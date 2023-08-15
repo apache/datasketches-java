@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+
 /**
  * The quantiles SortedView Iterator for generic types.
  * @see SortedViewIterator
@@ -26,17 +28,49 @@ package org.apache.datasketches.quantilescommon;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public interface GenericSortedViewIterator<T> extends SortedViewIterator {
+public class GenericSortedViewIterator<T> implements SortedViewIterator {
+  private final T[] quantiles;
+  private final long[] cumWeights;
+  private final long totalN;
+  private int index;
 
-  /**
-   * Gets the quantile at the current index.
-   *
-   * <p>Don't call this before calling next() for the first time
-   * or after getting false from next().</p>
-   *
-   * @return the quantile at the current index.
-   */
-  T getQuantile();
+  public GenericSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
+    this.quantiles = quantiles;
+    this.cumWeights = cumWeights;
+    this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
+    index = -1;
+  }
+
+  @Override
+  public long getCumulativeWeight(final QuantileSearchCriteria searchCrit) {
+    if (searchCrit == INCLUSIVE) { return cumWeights[index]; }
+    return (index == 0) ? 0 : cumWeights[index - 1];
+  }
+
+  public T getQuantile() {
+    return quantiles[index];
+  }
+
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
+  public double getNormalizedRank(final QuantileSearchCriteria searchCrit) {
+    return (double) getCumulativeWeight(searchCrit) / totalN;
+  }
+
+  @Override
+  public long getWeight() {
+    if (index == 0) { return cumWeights[0]; }
+    return cumWeights[index] - cumWeights[index - 1];
+  }
+
+  @Override
+  public boolean next() {
+    index++;
+    return index < quantiles.length;
+  }
 
 }
-

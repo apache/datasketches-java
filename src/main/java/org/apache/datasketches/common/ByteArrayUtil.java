@@ -26,6 +26,23 @@ package org.apache.datasketches.common;
 public final class ByteArrayUtil {
 
   /**
+   * Copies bytes from source to target with offsets on both the source and target.
+   * @param source the given source
+   * @param srcStart the source starting index
+   * @param target the give target
+   * @param tgtStart the target starting index
+   * @param numBytes the number of bytes to be transferred.
+   */
+  public static void copyBytes(final byte[] source, final int srcStart,
+      final byte[] target, final int tgtStart, final int numBytes) {
+    Util.checkBounds(srcStart, numBytes, source.length);
+    Util.checkBounds(tgtStart, numBytes, target.length);
+    for (int i = 0, j = srcStart, k = tgtStart; i < numBytes; i++) {
+      target[k++] = source[j++];
+    }
+  }
+
+  /**
    * Get a <i>short</i> from the given byte array starting at the given offset
    * in little endian order.
    * There is no bounds checking.

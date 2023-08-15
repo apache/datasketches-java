@@ -36,8 +36,6 @@ public final class QuantilesUtil {
 
   private QuantilesUtil() {}
 
-  public static final String THROWS_EMPTY = "The sketch must not be empty at this point.";
-
   /**
    * Checks that the given normalized rank: <i>0 &le; nRank &le; 1.0</i>.
    * @param nRank the given normalized rank.
@@ -56,8 +54,12 @@ public final class QuantilesUtil {
    */
   public static final void checkDoublesSplitPointsOrder(final double[] values) {
     Objects.requireNonNull(values);
-    final int len = values.length - 1;
-    for (int j = 0; j < len; j++) {
+    final int len = values.length;
+    if (len == 1 && Double.isNaN(values[0])) {
+      throw new SketchesArgumentException(
+        "Values must be unique, monotonically increasing and not NaN.");
+    }
+    for (int j = 0; j < len - 1; j++) {
       if (values[j] < values[j + 1]) { continue; }
       throw new SketchesArgumentException(
           "Values must be unique, monotonically increasing and not NaN.");
@@ -71,8 +73,12 @@ public final class QuantilesUtil {
    */
   public static final void checkFloatsSplitPointsOrder(final float[] values) {
     Objects.requireNonNull(values);
-    final int len = values.length - 1;
-    for (int j = 0; j < len; j++) {
+    final int len = values.length;
+    if (len == 1 && Float.isNaN(values[0])) {
+      throw new SketchesArgumentException(
+        "Values must be unique, monotonically increasing and not NaN.");
+    }
+    for (int j = 0; j < len - 1; j++) {
       if (values[j] < values[j + 1]) { continue; }
       throw new SketchesArgumentException(
           "Values must be unique, monotonically increasing and not NaN.");

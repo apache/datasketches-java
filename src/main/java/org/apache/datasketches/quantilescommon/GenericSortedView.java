@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import java.util.Comparator;
+
+import org.apache.datasketches.common.SketchesArgumentException;
+
 /**
  * The Sorted View for quantiles of generic type.
  * @param <T> The generic quantile type.
@@ -27,31 +31,6 @@ package org.apache.datasketches.quantilescommon;
  * @author Lee Rhodes
  */
 public interface GenericSortedView<T> extends SortedView {
-
-  /**
-   * Gets the approximate quantile of the given normalized rank and the given search criterion.
-   *
-   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
-   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
-   * the quantile directly corresponding to the given rank.
-   * If EXCLUSIVE, he given rank includes all quantiles &lt;
-   * the quantile directly corresponding to the given rank.
-   * @return the approximate quantile given the normalized rank.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
-   */
-  T getQuantile(double rank, QuantileSearchCriteria searchCrit);
-
-  /**
-   * Gets the normalized rank corresponding to the given a quantile.
-   *
-   * @param quantile the given quantile
-   * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
-   * @return the normalized rank corresponding to the given quantile.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
-   */
-  double getRank(T quantile, QuantileSearchCriteria searchCrit);
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream
@@ -133,13 +112,61 @@ public interface GenericSortedView<T> extends SortedView {
   double[] getPMF(T[] splitPoints,  QuantileSearchCriteria searchCrit);
 
   /**
+   * Gets the approximate quantile of the given normalized rank and the given search criterion.
+   *
+   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
+   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
+   * the quantile directly corresponding to the given rank.
+   * If EXCLUSIVE, he given rank includes all quantiles &lt;
+   * the quantile directly corresponding to the given rank.
+   * @return the approximate quantile given the normalized rank.
+   * @throws IllegalArgumentException if sketch is empty.
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   */
+  T getQuantile(double rank, QuantileSearchCriteria searchCrit);
+
+  /**
    * Returns the array of quantiles.
    * @return the array of quantiles.
    */
   T[] getQuantiles();
 
+  /**
+   * Gets the normalized rank corresponding to the given a quantile.
+   *
+   * @param quantile the given quantile
+   * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
+   * @return the normalized rank corresponding to the given quantile.
+   * @throws IllegalArgumentException if sketch is empty.
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   */
+  double getRank(T quantile, QuantileSearchCriteria searchCrit);
+
   @Override
   GenericSortedViewIterator<T> iterator();
+
+  /**
+   * Checks the sequential validity of the given array of generic items.
+   * They must be unique, monotonically increasing and not null.
+   * @param <T> the data type
+   * @param items given array of generic items
+   * @param comparator the comparator for generic item data type T
+   */
+  static <T> void validateItems(final T[] items, final Comparator<? super T> comparator) {
+    final int len = items.length;
+    if (len == 1 && items[0] == null) {
+      throw new SketchesArgumentException(
+          "Items must be unique, monotonically increasing and not null.");
+    }
+    for (int j = 0; j < len - 1; j++) {
+      if ((items[j] != null) && (items[j + 1] != null)
+          && (comparator.compare(items[j], items[j + 1]) < 0)) {
+        continue;
+      }
+      throw new SketchesArgumentException(
+          "Items must be unique, monotonically increasing and not null.");
+    }
+  }
 
 }
 

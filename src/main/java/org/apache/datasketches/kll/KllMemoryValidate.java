@@ -19,21 +19,8 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_PREINTS;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_SER_VER;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_SINGLEBIT;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.INVALID_PREINTS;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SINGLEBIT_AND_PREINTS;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SINGLEBIT_AND_SER_VER;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SRC_NOT_KLL;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.memoryValidateThrow;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFlags;
@@ -45,98 +32,102 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class performs all the error checking of an incoming Memory object and extracts the key fields in the process.
  * This is used by all KLL sketches that read or import Memory objects.
- *
  * @author lrhodes
  *
  */
 final class KllMemoryValidate {
+  final Memory srcMem;
+  final ArrayOfItemsSerDe<?> serDe;
+  final SketchType sketchType;
+  final SketchStructure sketchStructure;
+
   // first 8 bytes of preamble
-  final int preInts;
-  final int serVer;
-  final int familyID;
-  final int flags;
-  final int k;
-  final int m;
-  //last byte is unused
-  
+  final int preInts;  //used by KllPreambleUtil
+  final int serVer;   //used by KllPreambleUtil
+  final int familyID; //used by KllPreambleUtil
+  final int flags;    //used by KllPreambleUtil
+  final int k;        //used multiple places
+  final int m;        //used multiple places
+  //byte 7 is unused
+
   //Flag bits:
-  final boolean empty;
-  final boolean level0Sorted;
-  final boolean singleItem;
-  //From SerVer
-  private boolean serialVersionUpdatable;
-  
+  final boolean emptyFlag;        //used multiple places
+  final boolean level0SortedFlag; //used multiple places
+
   // depending on the layout, the next 8-16 bytes of the preamble, may be derived by assumption.
-  // For example, if the layout is compact & empty, n = 0, if compact and single, n = 1. 
-  long n;        //8 bytes (if present)
-  int minK;      //2 bytes (if present)
-  int numLevels; //1 byte  (if present)
-  //unused byte
-  int[] levelsArr; //starts at byte 20, adjusted to include top index here
-  
-  // derived, other
-  int sketchBytes;
-  private int typeBytes;
-  
+  // For example, if the layout is compact & empty, n = 0, if compact and single, n = 1.
+  long n;        //8 bytes (if present), used multiple places
+  int minK;      //2 bytes (if present), used multiple places
+  int numLevels; //1 byte  (if present), used by KllPreambleUtil
+  //skip unused byte
+  int[] levelsArr; //starts at byte 20, adjusted to include top index here, used multiple places
+
+  // derived.
+  int sketchBytes = 0; //used by KllPreambleUtil
+  private int typeBytes = 0; //always 0 for generic
+
   KllMemoryValidate(final Memory srcMem, final SketchType sketchType) {
+    this(srcMem, sketchType, null);
+  }
+
+  KllMemoryValidate(final Memory srcMem, final SketchType sketchType, final ArrayOfItemsSerDe<?> serDe) {
+    final long memCapBytes = srcMem.getCapacity();
+    if (memCapBytes < 8) { throw new SketchesArgumentException(MEMORY_TOO_SMALL + memCapBytes); }
+    this.srcMem = srcMem;
+    this.sketchType = sketchType;
+    this.serDe = serDe;
     preInts = getMemoryPreInts(srcMem);
     serVer = getMemorySerVer(srcMem);
+    sketchStructure = SketchStructure.getSketchStructure(preInts, serVer);
     familyID = getMemoryFamilyID(srcMem);
-    if (familyID != Family.KLL.getID()) { memoryValidateThrow(SRC_NOT_KLL, familyID); }
+    if (familyID != Family.KLL.getID()) { throw new SketchesArgumentException(SRC_NOT_KLL + familyID); }
     flags = getMemoryFlags(srcMem);
     k = getMemoryK(srcMem);
     m = getMemoryM(srcMem);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    
-    empty = getMemoryEmptyFlag(srcMem);
-    level0Sorted  = getMemoryLevelZeroSortedFlag(srcMem);
-    singleItem = getMemorySingleItemFlag(srcMem);
-    
-    serialVersionUpdatable = serVer == SERIAL_VERSION_UPDATABLE;
-    typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
-
-    if (serialVersionUpdatable) { updatableMemFormatValidate((WritableMemory) srcMem); }
-    else { compactMemoryValidate(srcMem); }
+    //flags
+    emptyFlag = getMemoryEmptyFlag(srcMem);
+    level0SortedFlag  = getMemoryLevelZeroSortedFlag(srcMem);
+    if (sketchType == DOUBLES_SKETCH) { typeBytes = Double.BYTES; }
+    else if (sketchType == FLOATS_SKETCH) { typeBytes = Float.BYTES; }
+    else { typeBytes = 0; }
+    validate();
   }
 
-  private void compactMemoryValidate(final Memory srcMem) { //FOR HEAPIFY.  NOT UPDATABLE
-    if (empty && singleItem) { memoryValidateThrow(EMPTYBIT_AND_SINGLEBIT, flags); }
-    final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0);
+  private void validate() {
 
-    switch (sw) {
-      case 0: { //FULL_COMPACT
-        if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
+    switch (sketchStructure) {
+      case COMPACT_FULL: {
+        if (emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_FULL); }
         n = getMemoryN(srcMem);
+        //if (n <= 1) { memoryValidateThrow(N_AND_COMPACT_FULL); } //very old sketches prior to serVer=2 will violate.
         minK = getMemoryMinK(srcMem);
         numLevels = getMemoryNumLevels(srcMem);
-
         // Get Levels Arr and add the last element
         levelsArr = new int[numLevels + 1];
         srcMem.getIntArray(DATA_START_ADR, levelsArr, 0, numLevels); //copies all except the last one
         final int capacityItems = KllHelper.computeTotalItemCapacity(k, m, numLevels);
         levelsArr[numLevels] = capacityItems; //load the last one
-
-        final int retainedItems = (levelsArr[numLevels] - levelsArr[0]);
-        sketchBytes = DATA_START_ADR + numLevels * Integer.BYTES + 2 * typeBytes + retainedItems * typeBytes;
+        sketchBytes = computeSketchBytes(srcMem, sketchType, levelsArr, false, serDe);
         break;
       }
-      case 1: { //EMPTY_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(EMPTYBIT_AND_PREINTS, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
+      case COMPACT_EMPTY: {
+        if (!emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_EMPTY); }
         n = 0;           //assumed
         minK = k;        //assumed
         numLevels = 1;   //assumed
@@ -144,58 +135,59 @@ final class KllMemoryValidate {
         sketchBytes = DATA_START_ADR_SINGLE_ITEM;
         break;
       }
-      case 4: { //SINGLE_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(SINGLEBIT_AND_PREINTS, preInts); }
-        if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(SINGLEBIT_AND_SER_VER, serVer); }
+      case COMPACT_SINGLE: {
+        if (emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_SINGLE); }
         n = 1;           //assumed
         minK = k;        //assumed
         numLevels = 1;   //assumed
         levelsArr = new int[] {k - 1, k};
-        sketchBytes = DATA_START_ADR_SINGLE_ITEM + typeBytes;
+        if (sketchType == ITEMS_SKETCH) {
+          sketchBytes = DATA_START_ADR_SINGLE_ITEM + serDe.sizeOf(srcMem, DATA_START_ADR_SINGLE_ITEM, 1);
+        } else {
+          sketchBytes = DATA_START_ADR_SINGLE_ITEM + typeBytes;
+        }
+        break;
+      }
+      case UPDATABLE: {
+        n = getMemoryN(srcMem);
+        minK = getMemoryMinK(srcMem);
+        numLevels = getMemoryNumLevels(srcMem);
+        levelsArr = new int[numLevels + 1];
+        srcMem.getIntArray(DATA_START_ADR, levelsArr, 0, numLevels + 1);
+        sketchBytes = computeSketchBytes(srcMem, sketchType, levelsArr, true, serDe);
         break;
       }
       default: break; //can not happen
     }
   }
 
-  private void updatableMemFormatValidate(final WritableMemory wSrcMem) {
-    if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
-    n = getMemoryN(wSrcMem);
-    minK = getMemoryMinK(wSrcMem);
-    numLevels = getMemoryNumLevels(wSrcMem);
+  static int computeSketchBytes( //for COMPACT_FULL or UPDATABLE only
+      final Memory srcMem,
+      final SketchType sketchType,
+      final int[] levelsArr, //full levels array
+      final boolean updatable,
+      final ArrayOfItemsSerDe<?> serDe) { //serDe only valid for ITEMS_SKETCH
+    final int numLevels = levelsArr.length - 1;
+    final int capacityItems = levelsArr[numLevels];
+    final int retainedItems = (levelsArr[numLevels] - levelsArr[0]);
+    final int levelsLen = updatable ? levelsArr.length : levelsArr.length - 1;
+    final int numItems = updatable ? capacityItems : retainedItems;
 
-    levelsArr = new int[numLevels + 1];
-    wSrcMem.getIntArray(DATA_START_ADR, levelsArr, 0, numLevels + 1);
-
-    final int capacity = levelsArr[numLevels];
-
-    sketchBytes =
-        DATA_START_ADR + levelsArr.length * Integer.BYTES + 2 * typeBytes + capacity * typeBytes;
+    int offsetBytes = DATA_START_ADR + levelsLen * Integer.BYTES;
+    if (sketchType == ITEMS_SKETCH) {
+      offsetBytes += serDe.sizeOf(srcMem, offsetBytes, numItems + 2); //2 for min & max
+    } else {
+      final int typeBytes = sketchType.getBytes();
+      offsetBytes += (numItems + 2) * typeBytes; //2 for min & max
+    }
+    return offsetBytes;
   }
 
-  enum MemoryInputError {
-    SRC_NOT_KLL("FamilyID Field must be: " + Family.KLL.getID() + ", NOT: "),
-    EMPTYBIT_AND_PREINTS("Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
-    EMPTYBIT_AND_SER_VER("Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: "),
-    SINGLEBIT_AND_SER_VER("Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: "),
-    SINGLEBIT_AND_PREINTS("Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
-    INVALID_PREINTS("PreInts Must Be: " + PREAMBLE_INTS_FULL + ", NOT: "),
-    EMPTYBIT_AND_SINGLEBIT("Empty flag bit and SingleItem flag bit cannot both be set. Flags: ");
-
-    private String msg;
-
-    private MemoryInputError(final String msg) {
-      this.msg = msg;
-    }
-
-    private String getMessage() {
-      return msg;
-    }
-
-    final static void memoryValidateThrow(final MemoryInputError errType, final int errVal) {
-      throw new SketchesArgumentException(errType.getMessage() + errVal);
-    }
-
-  }
+  static final String EMPTY_FLAG_AND_COMPACT_EMPTY = "A compact empty sketch should have empty flag set. ";
+  static final String EMPTY_FLAG_AND_COMPACT_FULL = "A compact full sketch should not have empty flag set. ";
+  static final String EMPTY_FLAG_AND_COMPACT_SINGLE = "A single item sketch should not have empty flag set. ";
+  //static final String N_AND_COMPACT_FULL = "A compact full sketch should have n > 1. ";
+  static final String SRC_NOT_KLL = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: ";
+  static final String MEMORY_TOO_SMALL = "A sketch memory image must be at least 8 bytes. ";
 
 }

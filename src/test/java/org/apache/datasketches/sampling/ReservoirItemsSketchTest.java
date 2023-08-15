@@ -33,10 +33,6 @@ import static org.testng.Assert.fail;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfNumbersSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
@@ -45,6 +41,9 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 public class ReservoirItemsSketchTest {
   private static final double EPS = 1e-8;
@@ -284,7 +283,7 @@ public class ReservoirItemsSketchTest {
     // change first element to indicate something unsupported
     bytes[0] = 'q';
     try {
-      serDe.deserializeFromMemory(Memory.wrap(bytes), 2);
+      serDe.deserializeFromMemory(Memory.wrap(bytes), 0, 2);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected

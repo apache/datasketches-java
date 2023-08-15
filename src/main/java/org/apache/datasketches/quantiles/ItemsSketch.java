@@ -37,7 +37,6 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import java.lang.reflect.Array;
@@ -154,7 +153,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param <T> The sketch data type
    * @param clazz the given class of T
    * @param comparator to compare items
-   * @return a GenericQuantileSketch
+   * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
       final Class<T> clazz,
@@ -169,7 +168,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @param comparator to compare items
    * @param <T> The sketch data type
-   * @return a GenericQuantileSketch
+   * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
       final Class<T> clazz,
@@ -195,7 +194,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
    * @param <T> The sketch data type
-   * @return a ItemsSketch on the Java heap.
+   * @return a ItemSketch&lt;T&gt; on the Java heap.
    */
   public static <T> ItemsSketch<T> getInstance(
       final Class<T> clazz,
@@ -242,7 +241,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
     final Memory mReg = srcMem.region(srcMemItemsOffsetBytes,
         srcMem.getCapacity() - srcMemItemsOffsetBytes);
-    final T[] itemsArray = serDe.deserializeFromMemory(mReg, numMemItems);
+    final T[] itemsArray = serDe.deserializeFromMemory(mReg, 0, numMemItems);
     sk.itemsArrayToCombinedBuffer(itemsArray);
     return sk;
   }
@@ -273,7 +272,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return classicQisSV.getCDF(splitPoints, searchCrit);
   }
@@ -285,20 +284,20 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   @Override
   public T getMaxItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     return maxItem_;
   }
 
   @Override
   public T getMinItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     return minItem_;
   }
 
   @Override
   public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallyWeighted,
       final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
     final T[] boundaries = getQuantiles(ranks, searchCrit);
     boundaries[0] = getMinItem();
@@ -317,7 +316,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   @Override
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+  if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return classicQisSV.getPMF(splitPoints, searchCrit);
   }
@@ -329,20 +328,20 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return classicQisSV.getQuantile(rank, searchCrit);
   }
 
   @Override
   public T getQuantileLowerBound(final double rank) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     return getQuantile(max(0, rank - getNormalizedRankError(k_, false)));
   }
 
   @Override
   public T getQuantileUpperBound(final double rank) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     return getQuantile(min(1.0, rank + getNormalizedRankError(k_, false)));
   }
 
@@ -354,7 +353,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   @Override
   @SuppressWarnings("unchecked")
   public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     final int len = ranks.length;
     final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
@@ -371,7 +370,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   @Override
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return classicQisSV.getRank(quantile, searchCrit);
   }
@@ -393,7 +392,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   @Override
   public double[] getRanks(final T[] quantiles, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     final int len = quantiles.length;
     final double[] ranks = new double[len];

@@ -28,7 +28,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  *
  * @author Lee Rhodes
  */
-public class ReqSketchIterator implements QuantilesFloatsSketchIterator {
+public final class ReqSketchIterator implements QuantilesFloatsSketchIterator {
   private List<ReqCompactor> compactors;
   private int cIndex;
   private int bIndex;

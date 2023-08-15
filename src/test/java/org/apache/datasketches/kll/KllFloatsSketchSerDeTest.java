@@ -28,6 +28,7 @@ import static org.testng.Assert.fail;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
@@ -37,82 +38,126 @@ public class KllFloatsSketchSerDeTest {
 
   @Test
   public void serializeDeserializeEmpty() {
-    final KllFloatsSketch sketch1 = KllFloatsSketch.newHeapInstance();
-    final byte[] bytes = sketch1.toByteArray();
-    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
-    assertTrue(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
-    assertEquals(sketch2.getN(), sketch1.getN());
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
-    assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+    final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance();
+    //from heap -> byte[] -> heap
+    final byte[] bytes = sk1.toByteArray();
+    final KllFloatsSketch sk2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    assertEquals(bytes.length, sk1.getSerializedSizeBytes());
+    assertTrue(sk2.isEmpty());
+    assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk2.getN(), sk1.getN());
+    assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
+    assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap
+    final KllFloatsSketch sk3 = KllFloatsSketch.wrap(Memory.wrap(bytes));
+    assertTrue(sk3.isEmpty());
+    assertEquals(sk3.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk3.getN(), sk1.getN());
+    assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    try { sk3.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk3.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
+    assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
+    final byte[] bytes2 = sk3.toByteArray();
+    assertEquals(bytes, bytes2);
   }
 
   @Test
   public void serializeDeserializeOneValue() {
-    final KllFloatsSketch sketch1 = KllFloatsSketch.newHeapInstance();
-    sketch1.update(1);
-    final byte[] bytes = sketch1.toByteArray();
-    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
-    assertFalse(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), 1);
-    assertEquals(sketch2.getN(), 1);
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Float.isNaN(sketch2.getMinItem()));
-    assertFalse(Float.isNaN(sketch2.getMaxItem()));
-    assertEquals(sketch2.getSerializedSizeBytes(), 8 + Float.BYTES);
+    final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance();
+    sk1.update(1);
+    //from heap -> byte[] -> heap
+    final byte[] bytes = sk1.toByteArray();
+    final KllFloatsSketch sk2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    assertEquals(bytes.length, sk1.getSerializedSizeBytes());
+    assertFalse(sk2.isEmpty());
+    assertEquals(sk2.getNumRetained(), 1);
+    assertEquals(sk2.getN(), 1);
+    assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk2.getMinItem(), 1.0F);
+    assertEquals(sk2.getMaxItem(), 1.0F);
+    assertEquals(sk2.getSerializedSizeBytes(), Long.BYTES + Float.BYTES);
+    //from heap -> byte[] -> off heap
+    final KllFloatsSketch sk3 = KllFloatsSketch.wrap(Memory.wrap(bytes));
+    assertFalse(sk3.isEmpty());
+    assertEquals(sk3.getNumRetained(), 1);
+    assertEquals(sk3.getN(), 1);
+    assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk3.getMinItem(), 1.0f);
+    assertEquals(sk3.getMaxItem(), 1.0f);
+    assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
+    final byte[] bytes2 = sk3.toByteArray();
+    assertEquals(bytes, bytes2);
   }
 
   @Test
-  public void deserializeOneValueV1() throws Exception {
-    final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
-    final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertFalse(sketch.isEmpty());
-    assertFalse(sketch.isEstimationMode());
-    assertEquals(sketch.getN(), 1);
-    assertEquals(sketch.getNumRetained(), 1);
-  }
-
-  @Test
-  public void serializeDeserialize() {
-    final KllFloatsSketch sketch1 = KllFloatsSketch.newHeapInstance();
+  public void serializeDeserializeMultipleValues() {
+    final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance();
     final int n = 1000;
     for (int i = 0; i < n; i++) {
-      sketch1.update(i);
+      sk1.update(i);
     }
-    final byte[] bytes = sketch1.toByteArray();
-    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
-    assertFalse(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
-    assertEquals(sketch2.getN(), sketch1.getN());
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinItem(), sketch1.getMinItem());
-    assertEquals(sketch2.getMaxItem(), sketch1.getMaxItem());
-    assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+    assertEquals(sk1.getMinItem(), 0.0f);
+    assertEquals(sk1.getMaxItem(), 999.0f);
+    //from heap -> byte[] -> heap
+    final byte[] bytes = sk1.toByteArray();
+    final KllFloatsSketch sk2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    assertEquals(bytes.length, sk1.getSerializedSizeBytes());
+    assertFalse(sk2.isEmpty());
+    assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk2.getN(), sk1.getN());
+    assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk2.getMinItem(), sk1.getMinItem());
+    assertEquals(sk2.getMaxItem(), sk1.getMaxItem());
+    assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap
+    final KllFloatsSketch sk3 = KllFloatsSketch.wrap(Memory.wrap(bytes));
+    assertFalse(sk3.isEmpty());
+    assertEquals(sk3.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk3.getN(), sk1.getN());
+    assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk3.getMinItem(), sk1.getMinItem());
+    assertEquals(sk3.getMaxItem(), sk1.getMaxItem());
+    assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
+    final byte[] bytes2 = sk3.toByteArray();
+    assertEquals(bytes, bytes2);
   }
 
   @Test
   public void compatibilityWithCppEstimationMode() throws Exception {
     final File file = Util.getResourceFile("kll_float_estimation_cpp.sk");
-    try (final MapHandle mh = Memory.map(file)) {
-      final KllFloatsSketch sketch = KllFloatsSketch.heapify(mh.get());
-      assertEquals(sketch.getMinItem(), 0);
-      assertEquals(sketch.getMaxItem(), 999);
+    try (MapHandle mh = Memory.map(file)) {
+      final KllFloatsSketch sk = KllFloatsSketch.heapify(mh.get());
+      assertEquals(sk.getMinItem(), 0);
+      assertEquals(sk.getMaxItem(), 999);
+      assertEquals(sk.getN(), 1000);
     }
+  }
+
+  @Test
+  public void deserializeOneValueVersion1() throws Exception {
+    final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
+    final KllFloatsSketch sk = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    assertFalse(sk.isEmpty());
+    assertFalse(sk.isEstimationMode());
+    assertEquals(sk.getN(), 1);
+    assertEquals(sk.getNumRetained(), 1);
+    assertEquals(sk.getMinItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 1.0F);
   }
 
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-      for (int i = 1; i <= n; i++) sketch.update(i);
+      final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+      for (int i = 1; i <= n; i++) sk.update(i);
       try (final FileOutputStream file = new FileOutputStream("kll_float_n" + n + ".sk")) {
-        file.write(sketch.toByteArray());
+        file.write(sk.toByteArray());
       }
     }
   }

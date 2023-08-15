@@ -24,9 +24,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SI
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFlags;
+import static org.apache.datasketches.kll.KllPreambleUtil.*;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
@@ -59,11 +58,12 @@ public class KllMemoryValidateTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkInvalidEmptyAndSingle() {
+  public void checkInvalidEmptyAndSingleFormat() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryFlags(wmem, EMPTY_BIT_MASK | SINGLE_ITEM_BIT_MASK);
+    setMemoryEmptyFlag(wmem, true);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
@@ -118,7 +118,7 @@ public class KllMemoryValidateTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidDoubleUpdatableAndPreInts() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
+    byte[] byteArr = KllHelper.toByteArray(sk, true);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
@@ -138,7 +138,7 @@ public class KllMemoryValidateTest {
   public void checkInvalidFloatUpdatableFullAndPreInts() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(1); sk.update(2);
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
+    byte[] byteArr = KllHelper.toByteArray(sk, true);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);

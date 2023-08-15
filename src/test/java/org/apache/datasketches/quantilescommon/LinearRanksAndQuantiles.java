@@ -19,8 +19,12 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.common.Util.le;
+import static org.apache.datasketches.common.Util.lt;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.fail;
+
+import java.util.Comparator;
 
 public class LinearRanksAndQuantiles {
 
@@ -145,6 +149,67 @@ public class LinearRanksAndQuantiles {
   }
 
   /**
+   * Gets the quantile based on the given normalized rank.
+   * <ul><li><b>getQuantile(rank, INCLUSIVE) or q(r, GE)</b><br>
+   * := Given r, return the quantile, q, of the smallest rank that is strictly Greater than or Equal to r.</li>
+   * <li><br>getQuantile(rank, EXCLUSIVE) or q(r, GT)</b><br>
+   * := Given r, return the quantile, q, of the smallest rank that is strictly Greater Than r.</li>
+   * </ul>
+   *
+   * @param cumWeights the given natural cumulative weights. The last value must be N.
+   * @param quantiles the given quantile array
+   * @param givenNormR the given normalized rank, which must be in the range [0.0, 1.0], inclusive.
+   * @param inclusive determines the search criterion used.
+   * @return the quantile
+   */
+  public static <T> T getTrueItemQuantile(
+      final long[] cumWeights,
+      final T[] quantiles,
+      final double givenNormR,
+      final QuantileSearchCriteria inclusive) {
+    final int len = cumWeights.length;
+    final long N = cumWeights[len - 1];
+    T result = null;
+
+    for (int i = 0; i < len; i++) {
+      if (i == len - 1) { //at top or single element array
+        double topR = (double)cumWeights[i] / N;
+        T topQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (givenNormR <= topR) { result = topQ; break; }
+          fail("normRank > 1.0");
+        }
+        //EXCLUSIVE
+        if (givenNormR < topR ) { result = topQ; break; }
+        if (givenNormR > 1.0) { fail("normRank > 1.0"); }
+        result = topQ; // R == 1.0
+        break;
+      }
+      else { //always at least two valid entries
+        double loR = (double)cumWeights[i] / N;
+        double hiR = (double)cumWeights[i + 1] / N;
+        T loQ = quantiles[i];
+        T hiQ = quantiles[i + 1];
+        if (inclusive == INCLUSIVE) {
+          if (i == 0) { //at bottom, starting up
+            if (givenNormR <= loR) { result = loQ; break; }
+          }
+          if (loR < givenNormR && givenNormR <= hiR) { result = hiQ; break; }
+          continue;
+        }
+        //EXCLUSIVE) {
+        if (i == 0) { //at bottom, starting up
+          if (givenNormR < loR) { result = loQ; break; }
+        }
+        if (loR <= givenNormR && givenNormR < hiR) { result = hiQ; break; }
+        continue;
+      }
+    }
+    return result;
+  }
+
+
+  /**
    * Gets the normalized rank based on the given value.
    * <ul><li><b>getRank(quantile, INCLUSIVE) or r(q, LE)</b><br>
    * := Given q, return the rank, r, of the largest quantile that is less than or equal to q.</li>
@@ -168,7 +233,7 @@ public class LinearRanksAndQuantiles {
     double result = Double.NaN;
 
     for (int i = len; i-- > 0; ) {
-      if (i == 0) { //at bottom or single element array
+      if (i == 0) { //at bottom of single element array
         double bottomR = (double)cumWeights[i] / N;
         float bottomQ = quantiles[i];
         if (inclusive == INCLUSIVE) {
@@ -227,7 +292,7 @@ public class LinearRanksAndQuantiles {
     double result = Double.NaN;
 
     for (int i = len; i-- > 0; ) {
-      if (i == 0) { //at bottom or single element array
+      if (i == 0) { //at bottom of single element array
         double bottomR = (double)cumWeights[i] / N;
         double bottomQ = quantiles[i];
         if (inclusive == INCLUSIVE) {
@@ -256,6 +321,66 @@ public class LinearRanksAndQuantiles {
           if (hiQ < givenQ) { result = 1.0; break; }
         }
         if (loQ < givenQ && givenQ <= hiQ) { result = loR; break; }
+        continue;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Gets the normalized rank based on the given value.
+   * <ul><li><b>getRank(quantile, INCLUSIVE) or r(q, LE)</b><br>
+   * := Given q, return the rank, r, of the largest quantile that is less than or equal to q.</li>
+   * <li><b>getRank(quantile, EXCLUSIVE) or r(q, LT)</b>
+   * := Given q, return the rank, r, of the largest quantile that is strictly Less Than q.</li>
+   * </ul>
+   *
+   * @param cumWeights the given cumulative weights
+   * @param quantiles the given quantile array
+   * @param givenQ the given quantile
+   * @param inclusive determines the search criterion used.
+   * @return the normalized rank
+   */
+  public static <T> double getTrueItemRank(
+      final long[] cumWeights,
+      final T[] quantiles,
+      final T givenQ,
+      final QuantileSearchCriteria inclusive,
+      final Comparator<? super T> comp) {
+    final int len = quantiles.length;
+    final long N = cumWeights[len -1];
+    double result = Double.NaN;
+
+    for (int i = len; i-- > 0; ) {
+      if (i == 0) { //at bottom of single element array
+        double bottomR = (double)cumWeights[i] / N;
+        T bottomQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (lt(givenQ, bottomQ, comp)) { result = 0; break; }
+          result = bottomR;
+          break;
+        }
+        //EXCLUSIVE
+        if (le(givenQ, bottomQ, comp)) { result = 0; break; }
+        if (lt(bottomQ, givenQ, comp)) { result = bottomR; break; }
+      }
+      else { //always at least two valid entries
+        double loR = (double)cumWeights[i - 1] / N;
+        //double hiR = (double)cumWeights[i] / N;
+        T loQ = quantiles[i - 1];
+        T hiQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (i == len - 1) { //at top, starting down
+            if (le(hiQ, givenQ, comp)) { result = 1.0; break; }
+          }
+          if (le(loQ, givenQ,comp) && lt(givenQ, hiQ, comp)) { result = loR; break; }
+          continue;
+        }
+        //EXCLUSIVE
+        if (i == len - 1) { //at top, starting down
+          if (lt(hiQ, givenQ, comp)) { result = 1.0; break; }
+        }
+        if (lt(loQ, givenQ, comp) && le(givenQ, hiQ, comp)) { result = loR; break; }
         continue;
       }
     }

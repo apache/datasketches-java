@@ -258,7 +258,8 @@ public class ItemsSketchTest {
 
     final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Long.class, Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final ItemsSketch<Long> sketch2 =
+        ItemsSketch.getInstance(Long.class, Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) {
       sketch2.update((long) i);
@@ -280,7 +281,8 @@ public class ItemsSketchTest {
 
     final ArrayOfItemsSerDe<Double> serDe = new ArrayOfDoublesSerDe();
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Double.class, Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final ItemsSketch<Double> sketch2 =
+        ItemsSketch.getInstance(Double.class, Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) {
       sketch2.update((double) i);
@@ -505,7 +507,8 @@ public class ItemsSketchTest {
 
   @Test
   public void getRankAndGetCdfConsistencyReverseComparator() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.<Integer>naturalOrder().reversed());
+    final ItemsSketch<Integer> sketch =
+        ItemsSketch.getInstance(Integer.class, Comparator.<Integer>naturalOrder().reversed());
     final int n = 1_000_000;
     final Integer[] values = new Integer[n];
     for (int i = 0; i < n; i++) {

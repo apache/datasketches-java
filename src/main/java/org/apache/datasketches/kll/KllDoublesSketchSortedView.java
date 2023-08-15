@@ -20,10 +20,11 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
@@ -58,7 +59,7 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   public KllDoublesSketchSortedView(final KllDoublesSketch sk) {
     this.totalN = sk.getN();
     final double[] srcQuantiles = sk.getDoubleItemsArray();
-    final int[] srcLevels = sk.getLevelsArray();
+    final int[] srcLevels = sk.levelsArr;
     final int srcNumLevels = sk.getNumLevels();
 
     if (!sk.isLevelZeroSorted()) {
@@ -73,8 +74,13 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
+  public long[] getCumulativeWeights() {
+    return cumWeights.clone();
+  }
+
+  @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
     final long naturalRank = (searchCrit == INCLUSIVE)
@@ -88,8 +94,13 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
+  public double[] getQuantiles() {
+    return quantiles.clone();
+  }
+
+  @Override
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
@@ -97,16 +108,6 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
-  }
-
-  @Override
-  public long[] getCumulativeWeights() {
-    return cumWeights.clone();
-  }
-
-  @Override
-  public double[] getQuantiles() {
-    return quantiles.clone();
   }
 
   @Override

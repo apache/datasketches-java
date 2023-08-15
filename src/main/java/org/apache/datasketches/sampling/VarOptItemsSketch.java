@@ -383,7 +383,7 @@ public final class VarOptItemsSketch<T> {
 
       final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
       final Boolean[] markArray = booleansSerDe.deserializeFromMemory(
-              srcMem.region(markOffsetBytes, (hCount >>> 3) + 1), hCount);
+              srcMem.region(markOffsetBytes, (hCount >>> 3) + 1), 0, hCount);
 
       for (Boolean mark : markArray) {
         if (mark) { ++markCount; }
@@ -393,7 +393,7 @@ public final class VarOptItemsSketch<T> {
 
     final long offsetBytes = preLongBytes + ((long) hCount * Double.BYTES) + markBytes;
     final T[] data = serDe.deserializeFromMemory(
-            srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), totalItems);
+            srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), 0, totalItems);
     final List<T> wrappedData = Arrays.asList(data);
     final ArrayList<T> dataList = new ArrayList<>(allocatedItems);
     dataList.addAll(wrappedData.subList(0, hCount));

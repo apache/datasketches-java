@@ -235,7 +235,7 @@ public abstract class UpdateSketch extends Sketch {
    */
   public UpdateReturnState update(final double datum) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
+    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN & +/- infinity forms
     return hashUpdate(hash(data, getSeed())[0] >>> 1);
   }
 

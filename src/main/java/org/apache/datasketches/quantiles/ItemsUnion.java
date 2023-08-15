@@ -143,7 +143,7 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Update this union with the given double (or float) data Item.
+   * Update this union with the given dataItem.
    *
    * @param dataItem The given datum.
    */

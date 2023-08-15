@@ -313,7 +313,7 @@ abstract class BaseHllSketch {
    */
   public void update(final double datum) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
+    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN & +/- infinity forms
     couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 

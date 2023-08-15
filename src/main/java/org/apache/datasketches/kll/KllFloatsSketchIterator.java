@@ -24,20 +24,20 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 /**
  * Iterator over KllFloatsSketch. The order is not defined.
  */
-public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
+public final class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
   private final float[] quantiles;
-  private final int[] levels;
+  private final int[] levelsArr;
   private final int numLevels;
   private int level;
   private int index;
   private long weight;
-  private boolean isInitialized_;
+  private boolean isInitialized;
 
-  KllFloatsSketchIterator(final float[] quantiles, final int[] levels, final int numLevels) {
+  KllFloatsSketchIterator(final float[] quantiles, final int[] levelsArr, final int numLevels) {
     this.quantiles = quantiles;
-    this.levels = levels;
+    this.levelsArr = levelsArr;
     this.numLevels = numLevels;
-    this.isInitialized_ = false;
+    this.isInitialized = false;
   }
 
   @Override
@@ -52,15 +52,15 @@ public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
 
   @Override
   public boolean next() {
-    if (!isInitialized_) {
+    if (!isInitialized) {
       level = 0;
-      index = levels[level];
+      index = levelsArr[level];
       weight = 1;
-      isInitialized_ = true;
+      isInitialized = true;
     } else {
       index++;
     }
-    if (index < levels[level + 1]) {
+    if (index < levelsArr[level + 1]) {
       return true;
     }
     // go to the next non-empty level
@@ -70,8 +70,8 @@ public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
         return false; // run out of levels
       }
       weight *= 2;
-    } while (levels[level] == levels[level + 1]);
-    index = levels[level];
+    } while (levelsArr[level] == levelsArr[level + 1]);
+    index = levelsArr[level];
     return true;
   }
 

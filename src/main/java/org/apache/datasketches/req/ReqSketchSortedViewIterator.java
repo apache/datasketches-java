@@ -30,7 +30,7 @@ import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public class ReqSketchSortedViewIterator implements FloatsSortedViewIterator {
+public final class ReqSketchSortedViewIterator implements FloatsSortedViewIterator {
 
   private final float[] quantiles;
   private final long[] cumWeights;

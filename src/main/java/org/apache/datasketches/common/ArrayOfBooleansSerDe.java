@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.common;
 
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -40,7 +42,16 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   }
 
   @Override
+  public byte[] serializeToByteArray(final Boolean item) {
+    Objects.requireNonNull(item, "Item must not be null");
+    final byte[] bytes = new byte[1];
+    bytes[0] = (item) ? (byte)1 : 0;
+    return bytes;
+  }
+
+  @Override
   public byte[] serializeToByteArray(final Boolean[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
     final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
@@ -50,35 +61,66 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
       if (items[i]) {
         val |= 0x1 << (i & 0x7);
       }
-
       if ((i & 0x7) == 0x7) {
         mem.putByte(i >>> 3, val);
         val = 0;
       }
     }
-
     // write out any remaining values (if val=0, still good to be explicit)
     if ((items.length & 0x7) > 0) {
       mem.putByte(bytesNeeded - 1, val);
     }
-
     return bytes;
   }
 
   @Override
-  public Boolean[] deserializeFromMemory(final Memory mem, final int length) {
-    final int numBytes = computeBytesNeeded(length);
-    Util.checkBounds(0, numBytes, mem.getCapacity());
-    final Boolean[] array = new Boolean[length];
+  @Deprecated
+  public Boolean[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public Boolean[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    if (numItems <= 0) { return new Boolean[0]; }
+    final int numBytes = computeBytesNeeded(numItems);
+    Util.checkBounds(offsetBytes, numBytes, mem.getCapacity());
+    final Boolean[] array = new Boolean[numItems];
 
     byte srcVal = 0;
-    for (int i = 0, b = 0; i < length; ++i) {
+    for (int i = 0, b = 0; i < numItems; ++i) {
       if ((i & 0x7) == 0x0) { // should trigger on first iteration
-        srcVal = mem.getByte(b++);
+        srcVal = mem.getByte(offsetBytes + b++);
       }
       array[i] = ((srcVal >>> (i & 0x7)) & 0x1) == 1;
     }
-
     return array;
   }
+
+  @Override
+  public int sizeOf(final Boolean item) {
+    Objects.requireNonNull(item, "Item must not be null");
+    return computeBytesNeeded(1);
+  }
+
+  @Override //needs to override default due to the bit packing, which must be computed.
+  public int sizeOf(final Boolean[] items) {
+    Objects.requireNonNull(items, "Item must not be null");
+    return computeBytesNeeded(items.length);
+  }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    return computeBytesNeeded(numItems);
+  }
+
+  @Override
+  public String toString(final Boolean item) {
+    if (item == null) { return "null"; }
+    return item ? "true" : "false";
+  }
+
+  @Override
+  public Class<Boolean> getClassOfT() { return Boolean.class; }
 }

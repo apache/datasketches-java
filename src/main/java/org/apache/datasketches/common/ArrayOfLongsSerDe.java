@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.common;
 
+import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
+
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -30,27 +34,71 @@ import org.apache.datasketches.memory.WritableMemory;
 public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
 
   @Override
+  public byte[] serializeToByteArray(final Long item) {
+    Objects.requireNonNull(item, "Item must not be null");
+    final byte[] byteArr = new byte[Long.BYTES];
+    putLongLE(byteArr, 0, item.longValue());
+    return byteArr;
+  }
+
+  @Override
   public byte[] serializeToByteArray(final Long[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
+    if (items.length == 0) { return new byte[0]; }
     final byte[] bytes = new byte[Long.BYTES * items.length];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    long offsetBytes = 0;
+    long offset = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putLong(offsetBytes, items[i]);
-      offsetBytes += Long.BYTES;
+      mem.putLong(offset, items[i]);
+      offset += Long.BYTES;
     }
     return bytes;
   }
 
   @Override
-  public Long[] deserializeFromMemory(final Memory mem, final int length) {
-    Util.checkBounds(0, (long)length * Long.BYTES, mem.getCapacity());
-    final Long[] array = new Long[length];
-    long offsetBytes = 0;
-    for (int i = 0; i < length; i++) {
-      array[i] = mem.getLong(offsetBytes);
-      offsetBytes += Long.BYTES;
+  @Deprecated
+  public Long[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public Long[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    if (numItems <= 0) { return new Long[0]; }
+    long offset = offsetBytes;
+    Util.checkBounds(offset, Long.BYTES * (long)numItems, mem.getCapacity());
+    final Long[] array = new Long[numItems];
+    for (int i = 0; i < numItems; i++) {
+      array[i] = mem.getLong(offset);
+      offset += Long.BYTES;
     }
     return array;
   }
 
+  @Override
+  public int sizeOf(final Long item) {
+    Objects.requireNonNull(item, "Item must not be null");
+    return Long.BYTES;
+  }
+
+  @Override //override because this is simpler
+  public int sizeOf(final Long[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
+    return items.length * Long.BYTES;
+  }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    return numItems * Long.BYTES;
+  }
+
+  @Override
+  public String toString(final Long item) {
+    if (item == null) { return "null"; }
+    return item.toString();
+  }
+
+  @Override
+  public Class<Long> getClassOfT() { return Long.class; }
 }

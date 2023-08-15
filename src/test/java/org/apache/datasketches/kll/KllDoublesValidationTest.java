@@ -34,9 +34,9 @@ import org.testng.annotations.Test;
    6. hash of the retained samples
 */
 
-//These results are for the version that delays the roll up until the next value comes in.
-//The @Test annotations have to be enabled to use this class and a section in KllDoublesHelper also
-//needs to be enabled.
+// These results are for the version that delays the roll up until the next value comes in.
+// The @Test annotations have to be enabled to use this class and a section in KllDoublesHelper also
+// needs to be enabled.
 @SuppressWarnings("unused")
 public class KllDoublesValidationTest {
 
@@ -218,7 +218,7 @@ public class KllDoublesValidationTest {
       }
       int numLevels = sketch.getNumLevels();
       int numSamples = sketch.getNumRetained();
-      int[] levels = sketch.getLevelsArray();
+      int[] levels = sketch.getLevelsArray(sketch.sketchStructure);
       long hashedSamples = simpleHashOfSubArray(sketch.getDoubleItemsArray(), levels[0], numSamples);
       System.out.print(testI);
       assert correctResultsWithReset[(7 * testI) + 4] == numLevels;

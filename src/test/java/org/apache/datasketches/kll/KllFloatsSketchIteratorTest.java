@@ -39,6 +39,17 @@ public class KllFloatsSketchIteratorTest {
   }
 
   @Test
+  public void oneItemSketch() {
+    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
+    sketch.update(1);
+    QuantilesFloatsSketchIterator it = sketch.iterator();
+    Assert.assertTrue(it.next());
+    Assert.assertEquals(it.getQuantile(), 1.0f);
+    Assert.assertEquals(it.getWeight(), 1);
+    Assert.assertFalse(it.next());
+  }
+
+  @Test
   public void twoItemSketchForIterator() {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
@@ -46,12 +57,12 @@ public class KllFloatsSketchIteratorTest {
     QuantilesFloatsSketchIterator itr = sketch.iterator();
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 2f);
+    assertEquals(itr.getQuantile(), 2.0f);
     assertEquals(itr.getWeight(), 1);
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 1f);
+    assertEquals(itr.getQuantile(), 1.0f);
     assertEquals(itr.getWeight(), 1);
   }
 
@@ -64,7 +75,7 @@ public class KllFloatsSketchIteratorTest {
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 1f);
+    assertEquals(itr.getQuantile(), 1.0f);
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
@@ -73,7 +84,7 @@ public class KllFloatsSketchIteratorTest {
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 2f);
+    assertEquals(itr.getQuantile(), 2.0f);
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);

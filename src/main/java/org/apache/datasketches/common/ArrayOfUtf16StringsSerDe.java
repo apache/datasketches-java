@@ -19,8 +19,13 @@
 
 package org.apache.datasketches.common;
 
+import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
+import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of String.
@@ -34,38 +39,90 @@ import org.apache.datasketches.memory.WritableMemory;
 public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
-  public byte[] serializeToByteArray(final String[] items) {
-    int length = 0;
-    for (int i = 0; i < items.length; i++) {
-      length += (items[i].length() * Character.BYTES) + Integer.BYTES;
-    }
-    final byte[] bytes = new byte[length];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    long offsetBytes = 0;
-    for (int i = 0; i < items.length; i++) {
-      mem.putInt(offsetBytes, items[i].length());
-      offsetBytes += Integer.BYTES;
-      mem.putCharArray(offsetBytes, items[i].toCharArray(), 0, items[i].length());
-      offsetBytes += (long) (items[i].length()) * Character.BYTES;
-    }
-    return bytes;
+  public byte[] serializeToByteArray(final String item) {
+    Objects.requireNonNull(item, "Item must not be null");
+    final byte[] utf16ByteArr = item.getBytes(StandardCharsets.UTF_16); //includes BOM
+    final int numBytes = utf16ByteArr.length;
+    final byte[] out = new byte[numBytes + Integer.BYTES];
+    copyBytes(utf16ByteArr, 0, out, 4, numBytes);
+    putIntLE(out, 0, numBytes);
+    return out;
   }
 
   @Override
-  public String[] deserializeFromMemory(final Memory mem, final int numItems) {
-    final String[] array = new String[numItems];
-    long offsetBytes = 0;
+  public byte[] serializeToByteArray(final String[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
+    int totalBytes = 0;
+    final int numItems = items.length;
+    final byte[][] serialized2DArray = new byte[numItems][];
     for (int i = 0; i < numItems; i++) {
-      Util.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
-      final int strLength = mem.getInt(offsetBytes);
-      offsetBytes += Integer.BYTES;
-      final char[] chars = new char[strLength];
-      Util.checkBounds(offsetBytes, (long) strLength * Character.BYTES, mem.getCapacity());
-      mem.getCharArray(offsetBytes, chars, 0, strLength);
-      array[i] = new String(chars);
-      offsetBytes += (long) strLength * Character.BYTES;
+      serialized2DArray[i] = items[i].getBytes(StandardCharsets.UTF_16);
+      totalBytes += serialized2DArray[i].length + Integer.BYTES;
+    }
+    final byte[] bytesOut = new byte[totalBytes];
+    int offset = 0;
+    for (int i = 0; i < numItems; i++) {
+      final int utf8len = serialized2DArray[i].length;
+      putIntLE(bytesOut, offset, utf8len);
+      offset += Integer.BYTES;
+      copyBytes(serialized2DArray[i], 0, bytesOut, offset, utf8len);
+      offset += utf8len;
+    }
+    return bytesOut;
+  }
+
+  @Override
+  @Deprecated
+  public String[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public String[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    if (numItems <= 0) { return new String[0]; }
+    final String[] array = new String[numItems];
+    long offset = offsetBytes;
+    for (int i = 0; i < numItems; i++) {
+      Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
+      final int strLength = mem.getInt(offset);
+      offset += Integer.BYTES;
+      final byte[] utf16Bytes = new byte[strLength];
+      Util.checkBounds(offset, strLength, mem.getCapacity());
+      mem.getByteArray(offset, utf16Bytes, 0, strLength);
+      offset += strLength;
+      array[i] = new String(utf16Bytes, StandardCharsets.UTF_16);
     }
     return array;
   }
 
+  @Override
+  public int sizeOf(final String item) {
+    Objects.requireNonNull(item, "Item must not be null");
+    return item.getBytes(StandardCharsets.UTF_16).length + Integer.BYTES;
+  }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    long offset = offsetBytes;
+    final long memCap = mem.getCapacity();
+    for (int i = 0; i < numItems; i++) {
+      Util.checkBounds(offset, Integer.BYTES, memCap);
+      final int itemLenBytes = mem.getInt(offset);
+      offset += Integer.BYTES;
+      Util.checkBounds(offset, itemLenBytes, memCap);
+      offset += itemLenBytes;
+    }
+    return (int)(offset - offsetBytes);
+  }
+
+  @Override
+  public String toString(final String item) {
+    if (item == null) { return "null"; }
+    return item;
+  }
+
+  @Override
+  public Class<String> getClassOfT() { return String.class; }
 }
