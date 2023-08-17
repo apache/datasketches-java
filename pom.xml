@@ -89,6 +89,9 @@ under the License.
 
     <!-- Test -->
     <testng.version>7.5.1</testng.version>
+    <testng.excludeGenerate>generate</testng.excludeGenerate>
+    <testng.includeGenerate>generate</testng.includeGenerate>
+    <testng.includeXLangCheck>cross_language_check</testng.includeXLangCheck>
 
     <!-- System-wide properties -->
     <maven.version>3.5.0</maven.version>
@@ -112,13 +115,14 @@ under the License.
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version> <!-- overrides parent -->
     <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version> <!-- overrides parent -->
     <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version> <!-- overrides parent -->
+    <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
     <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version> <!-- overrides parent -->
     <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version> <!-- overrides parent -->
     <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version> <!-- overrides parent -->
     <maven-release-plugin.version>3.0.0-M4</maven-release-plugin.version> <!-- overrides parent -->
     <maven-remote-resources-plugin.version>[1.7.0,)</maven-remote-resources-plugin.version> <!-- overrides parent -->
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version> <!-- overrides parent -->
-    <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version> <!-- overrides parent -->
+    <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version> <!-- overrides parent -->
     <!-- Apache Plugins -->
     <apache-rat-plugin.version>0.13</apache-rat-plugin.version> <!-- overrides parent -->
     <!-- org.jacoco Maven Plugins -->
@@ -127,10 +131,8 @@ under the License.
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     <!-- other -->
-    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
+    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version> <!-- not used -->
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
-
-    <testng.excludedgroups>generate</testng.excludedgroups>
   </properties>
 
   <dependencies>
@@ -155,9 +157,14 @@ under the License.
       <plugins>
 
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>versions-maven-plugin</artifactId>
-          <version>${versions-maven-plugin.version}</version>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${maven-assembly-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
         </plugin>
 
         <plugin>
@@ -169,10 +176,55 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>${maven-release-plugin.version}</version>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven-enforcer-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>enforce-banned-dependencies</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <rules>
+                  <requireJavaVersion>
+                    <version>[1.8,1.9),[8],[11,14)</version>
+                  </requireJavaVersion>
+                  <requireMavenVersion>
+                    <version>[${maven.version},)</version>
+                  </requireMavenVersion>
+                  <bannedDependencies>
+                    <excludes>
+                      <!--LGPL licensed library-->
+                      <exclude>com.google.code.findbugs:annotations</exclude>
+                    </excludes>
+                  </bannedDependencies>
+                </rules>
+                <fail>true</fail>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven-failsafe-plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <trimStackTrace>false</trimStackTrace>
+            <useManifestOnlyJar>false</useManifestOnlyJar>
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+            <reportsDirectory>${project.build.directory}/integration-test-output/${maven.build.timestamp}</reportsDirectory>
+            <groups>${testng.includeXLangCheck}</groups>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -217,65 +269,10 @@ under the License.
         </plugin>
 
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <version>${maven-enforcer-plugin.version}</version>
-          <executions>
-            <execution>
-              <id>enforce-banned-dependencies</id>
-              <goals>
-                <goal>enforce</goal>
-              </goals>
-              <configuration>
-                <rules>
-                  <requireJavaVersion>
-                    <version>[1.8,1.9),[8],[11,14)</version>
-                  </requireJavaVersion>
-                  <requireMavenVersion>
-                    <version>[${maven.version},)</version>
-                  </requireMavenVersion>
-                  <bannedDependencies>
-                    <excludes>
-                      <!--LGPL licensed library-->
-                      <exclude>com.google.code.findbugs:annotations</exclude>
-                    </excludes>
-                  </bannedDependencies>
-                </rules>
-                <fail>true</fail>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-
-        <plugin>
           <!-- Apache Parent pom, pluginManagement-->
-          <groupId>org.apache.rat</groupId>
-          <artifactId>apache-rat-plugin</artifactId>
-          <version>${apache-rat-plugin.version}</version>
-          <executions>
-            <execution>
-              <phase>verify</phase>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <outputDirectory>${project.basedir}/rat</outputDirectory>
-            <consoleOutput>true</consoleOutput>
-            <useDefaultExcludes>true</useDefaultExcludes>
-            <excludes>
-              <!-- rat uses .gitignore for excludes by default -->
-              <exclude>**/*.yaml</exclude>
-              <exclude>**/*.yml</exclude>
-              <exclude>**/.*</exclude>
-              <exclude>**/test/resources/**/*.txt</exclude>
-              <exclude>**/git.properties</exclude>
-              <exclude>**/*.sk</exclude>
-              <exclude>LICENSE</exclude>
-              <exclude>NOTICE</exclude>
-            </excludes>
-          </configuration>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>${maven-release-plugin.version}</version>
         </plugin>
 
         <plugin>
@@ -311,7 +308,54 @@ under the License.
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
-            <excludedGroups>${testng.excludedgroups}</excludedGroups>
+            <excludedGroups>${testng.excludeGenerate}</excludedGroups>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <!-- Apache Parent pom, pluginManagement-->
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <version>${apache-rat-plugin.version}</version>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <outputDirectory>${project.basedir}/rat</outputDirectory>
+            <consoleOutput>true</consoleOutput>
+            <useDefaultExcludes>true</useDefaultExcludes>
+            <excludes>
+              <!-- rat uses .gitignore for excludes by default -->
+              <exclude>**/*.yaml</exclude>
+              <exclude>**/*.yml</exclude>
+              <exclude>**/.*</exclude>
+              <exclude>**/test/resources/**/*.txt</exclude>
+              <exclude>**/git.properties</exclude>
+              <exclude>**/*.sk</exclude>
+              <exclude>LICENSE</exclude>
+              <exclude>NOTICE</exclude>
+            </excludes>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>${versions-maven-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <!-- Submit code coverage report to Coveralls.io. -->
+          <groupId>org.eluder.coveralls</groupId>
+          <artifactId>coveralls-maven-plugin</artifactId>
+          <version>${coveralls-maven-plugin.version}</version>
+          <configuration>
+            <repoToken>${coveralls-repo-token}</repoToken>
           </configuration>
         </plugin>
 
@@ -337,16 +381,6 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Submit code coverage report to Coveralls.io. -->
-          <groupId>org.eluder.coveralls</groupId>
-          <artifactId>coveralls-maven-plugin</artifactId>
-          <version>${coveralls-maven-plugin.version}</version>
-          <configuration>
-            <repoToken>${coveralls-repo-token}</repoToken>
-          </configuration>
-        </plugin>
-
-        <plugin>
           <groupId>pl.project13.maven</groupId>
           <artifactId>git-commit-id-plugin</artifactId>
           <version>${git-commit-id-plugin.version}</version>
@@ -361,7 +395,11 @@ under the License.
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -373,11 +411,7 @@ under the License.
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.rat</groupId>
-        <artifactId>apache-rat-plugin</artifactId>
+        <artifactId>maven-release-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -388,12 +422,20 @@ under the License.
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.eluder.coveralls</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>pl.project13.maven</groupId>
@@ -617,8 +659,7 @@ under the License.
       </build>
     </profile>
     <!-- Disable source release assembly for 'apache-release' profile.
-             This is performed from a script outside Maven
-    -->
+             This is performed from a script outside Maven -->
     <profile>
       <id>apache-release</id>
       <build>
@@ -643,7 +684,7 @@ under the License.
         <jdk>[1.8,1.9),8</jdk>
       </activation>
       <build>
-        <pluginManagement>
+        <!-- <pluginManagement> -->
           <plugins>
             <plugin>
               <!-- Apache Parent pom, pluginManagement-->
@@ -655,10 +696,23 @@ under the License.
                 <useManifestOnlyJar>false</useManifestOnlyJar>
                 <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
+                <excludedGroups>${testng.excludeGenerate}</excludedGroups>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <version>${maven-failsafe-plugin.version}</version>
+              <configuration>
+                <trimStackTrace>false</trimStackTrace>
+                <useManifestOnlyJar>false</useManifestOnlyJar>
+                <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                <reportsDirectory>${project.build.directory}/integration-test-output/${maven.build.timestamp}</reportsDirectory>
+                <groups>${testng.includeXLangCheck}</groups>
               </configuration>
             </plugin>
           </plugins>
-        </pluginManagement>
+          <!-- </pluginManagement> -->
       </build>
     </profile>
 
@@ -683,6 +737,7 @@ under the License.
                 <useManifestOnlyJar>false</useManifestOnlyJar>
                 <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
+                <excludedGroups>${testng.excludeGenerate}</excludedGroups>
                 <argLine>@{argLine}
                   --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
                   --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
