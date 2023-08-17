@@ -39,13 +39,13 @@ public class HllSketchSerDeTest {
       for (int i = 0; i < n; i++) hll4.update(i);
       for (int i = 0; i < n; i++) hll6.update(i);
       for (int i = 0; i < n; i++) hll8.update(i);
-      try (final FileOutputStream file = new FileOutputStream("hll4_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("hll4_n" + n + "_java.sk")) {
         file.write(hll4.toCompactByteArray());
       }
-      try (final FileOutputStream file = new FileOutputStream("hll6_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("hll6_n" + n + "_java.sk")) {
         file.write(hll6.toCompactByteArray());
       }
-      try (final FileOutputStream file = new FileOutputStream("hll8_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("hll8_n" + n + "_java.sk")) {
         file.write(hll8.toCompactByteArray());
       }
     }

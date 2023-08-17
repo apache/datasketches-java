@@ -34,7 +34,7 @@ public class ArrayOfDoublesSketchSerDeTest {
     for (int n: nArr) {
       final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
       for (int i = 0; i < n; i++) sketch.update(i, new double[] {i});
-      try (final FileOutputStream file = new FileOutputStream("aod_1_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("aod_1_n" + n + "_java.sk")) {
         file.write(sketch.compact().toByteArray());
       }
     }
@@ -46,7 +46,7 @@ public class ArrayOfDoublesSketchSerDeTest {
     for (int n: nArr) {
       final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(3).build();
       for (int i = 0; i < n; i++) sketch.update(i, new double[] {i, i, i});
-      try (final FileOutputStream file = new FileOutputStream("aod_3_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("aod_3_n" + n + "_java.sk")) {
         file.write(sketch.compact().toByteArray());
       }
     }
@@ -58,7 +58,7 @@ public class ArrayOfDoublesSketchSerDeTest {
     sketch.update(1, new double[] {1});
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
-    try (final FileOutputStream file = new FileOutputStream("aod_1_non_empty_no_entries.sk")) {
+    try (final FileOutputStream file = new FileOutputStream("aod_1_non_empty_no_entries_java.sk")) {
       file.write(sketch.compact().toByteArray());
     }
   }

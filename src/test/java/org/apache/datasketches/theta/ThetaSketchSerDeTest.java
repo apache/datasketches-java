@@ -34,7 +34,7 @@ public class ThetaSketchSerDeTest {
     for (int n: nArr) {
       final UpdateSketch sketch = UpdateSketch.builder().build();
       for (int i = 0; i < n; i++) sketch.update(i);
-      try (final FileOutputStream file = new FileOutputStream("theta_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("theta_n" + n + "_java.sk")) {
         file.write(sketch.compact().toByteArray());
       }
     }
@@ -46,7 +46,7 @@ public class ThetaSketchSerDeTest {
     sketch.update(1);
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
-    try (final FileOutputStream file = new FileOutputStream("theta_non_empty_no_entries.sk")) {
+    try (final FileOutputStream file = new FileOutputStream("theta_non_empty_no_entries_java.sk")) {
       file.write(sketch.compact().toByteArray());
     }
   }

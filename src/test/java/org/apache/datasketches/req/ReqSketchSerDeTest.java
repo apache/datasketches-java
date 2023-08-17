@@ -31,7 +31,7 @@ public class ReqSketchSerDeTest {
     for (int n: nArr) {
       final ReqSketch sketch = ReqSketch.builder().build();
       for (int i = 1; i <= n; i++) sketch.update(i);
-      try (final FileOutputStream file = new FileOutputStream("req_float_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("req_float_n" + n + "_java.sk")) {
         file.write(sketch.toByteArray());
       }
     }

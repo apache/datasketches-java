@@ -46,7 +46,7 @@ public class ItemsSketchSerDeTest {
         assertEquals(sketch.getMinItem(), "1");
         assertEquals(sketch.getMaxItem(), Integer.toString(n));
       }
-      try (final FileOutputStream file = new FileOutputStream("quantiles_string_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("quantiles_string_n" + n + "_java.sk")) {
         file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
       }
     }

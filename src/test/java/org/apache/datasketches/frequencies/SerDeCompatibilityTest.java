@@ -93,7 +93,7 @@ public class SerDeCompatibilityTest {
       } else {
         assertEquals(sketch.getMaximumError(), 0);
       }
-      try (final FileOutputStream file = new FileOutputStream("frequent_long_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("frequent_long_n" + n + "_java.sk")) {
         file.write(sketch.toByteArray());
       }
     }
@@ -111,7 +111,7 @@ public class SerDeCompatibilityTest {
       } else {
         assertEquals(sketch.getMaximumError(), 0);
       }
-      try (final FileOutputStream file = new FileOutputStream("frequent_string_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("frequent_string_n" + n + "_java.sk")) {
         file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
       }
     }
@@ -124,7 +124,7 @@ public class SerDeCompatibilityTest {
     sketch.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 2);
     sketch.update("ccccccccccccccccccccccccccccc", 3);
     sketch.update("ddddddddddddddddddddddddddddd", 4);
-    try (final FileOutputStream file = new FileOutputStream("frequent_string_ascii.sk")) {
+    try (final FileOutputStream file = new FileOutputStream("frequent_string_ascii_java.sk")) {
       file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
@@ -139,7 +139,7 @@ public class SerDeCompatibilityTest {
     sketch.update("уфхцч", 5);
     sketch.update("шщъыь", 6);
     sketch.update("эюя", 7);
-    try (final FileOutputStream file = new FileOutputStream("frequent_string_utf8.sk")) {
+    try (final FileOutputStream file = new FileOutputStream("frequent_string_utf8_java.sk")) {
       file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
     }
   }

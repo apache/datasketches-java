@@ -31,7 +31,7 @@ public class DoublesSketchSerDeTest {
     for (final int n: nArr) {
       final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
       for (int i = 1; i <= n; i++) sketch.update(i);
-      try (final FileOutputStream file = new FileOutputStream("quantiles_double_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("quantiles_double_n" + n + "_java.sk")) {
         file.write(sketch.toByteArray(true));
       }
     }

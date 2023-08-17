@@ -292,7 +292,7 @@ public class CpcCBinariesTest {
       final CpcSketch sketch = new CpcSketch(11);
       for (int i = 0; i < n; i++) sketch.update(i);
       assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
-      try (final FileOutputStream file = new FileOutputStream("cpc_n" + n + ".sk")) {
+      try (final FileOutputStream file = new FileOutputStream("cpc_n" + n + "_java.sk")) {
         file.write(sketch.toByteArray());
       }
     }
