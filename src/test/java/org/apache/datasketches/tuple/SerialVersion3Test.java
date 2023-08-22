@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.Util.getResourceBytes;
+import static org.apache.datasketches.common.TestUtil.cppPath;
+
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
@@ -27,11 +30,10 @@ import org.testng.annotations.Test;
 
 public class SerialVersion3Test {
 
-  @Test
-  public void version2Compatibility() throws Exception {
-    byte[] bytes = getResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
-    Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(bytes),
-        new IntegerSummaryDeserializer());
+  @Test(groups = {"check_cpp_files"})
+  public void version2Compatibility() throws IOException {
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk"));
+    Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
     final int lgK = 12;
@@ -51,44 +53,40 @@ public class SerialVersion3Test {
     Assert.assertEquals(sketch1.isEstimationMode(), sketch2.isEstimationMode());
   }
 
-  @Test
-  public void emptyFromCpp() {
-    byte[] bytes = getResourceBytes("tuple-int-empty-cpp.sk");
-    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes),
-        new IntegerSummaryDeserializer());
+  @Test(groups = {"check_cpp_files"})
+  public void emptyFromCpp() throws IOException {
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-empty-cpp.sk"));
+    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getRetainedEntries(), 0);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
   }
 
-  @Test
-  public void singleItemFromCpp() {
-    byte[] bytes = getResourceBytes("tuple-int-single-cpp.sk");
-    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes),
-        new IntegerSummaryDeserializer());
+  @Test(groups = {"check_cpp_files"})
+  public void singleItemFromCpp() throws IOException {
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-single-cpp.sk"));
+    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getRetainedEntries(), 1);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
   }
 
-  @Test
-  public void exactModeFromCpp() {
-    byte[] bytes = getResourceBytes("tuple-int-two-cpp.sk");
-    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes),
-        new IntegerSummaryDeserializer());
+  @Test(groups = {"check_cpp_files"})
+  public void exactModeFromCpp() throws IOException {
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-two-cpp.sk"));
+    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getRetainedEntries(), 2);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
   }
 
-  @Test
-  public void estimationModeFromCpp() {
-    byte[] bytes = getResourceBytes("tuple-int-est-trim-cpp.sk");
-    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes),
-        new IntegerSummaryDeserializer());
+  @Test(groups = {"check_cpp_files"})
+  public void estimationModeFromCpp() throws IOException {
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-est-trim-cpp.sk"));
+    Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getRetainedEntries(), 4096);

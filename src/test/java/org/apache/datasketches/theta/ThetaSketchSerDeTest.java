@@ -19,36 +19,34 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.testng.annotations.Test;
 
 public class ThetaSketchSerDeTest {
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+  public void generateBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final UpdateSketch sketch = UpdateSketch.builder().build();
-      for (int i = 0; i < n; i++) sketch.update(i);
-      try (final FileOutputStream file = new FileOutputStream("theta_n" + n + ".sk")) {
-        file.write(sketch.compact().toByteArray());
-      }
+      final UpdateSketch sk = UpdateSketch.builder().build();
+      for (int i = 0; i < n; i++) sk.update(i);
+      Files.newOutputStream(javaPath.resolve("theta_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }
   }
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws Exception {
-    final UpdateSketch sketch = UpdateSketch.builder().setP(0.01f).build();
-    sketch.update(1);
-    assertFalse(sketch.isEmpty());
-    assertEquals(sketch.getRetainedEntries(), 0);
-    try (final FileOutputStream file = new FileOutputStream("theta_non_empty_no_entries.sk")) {
-      file.write(sketch.compact().toByteArray());
-    }
+  public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
+    final UpdateSketch sk = UpdateSketch.builder().setP(0.01f).build();
+    sk.update(1);
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getRetainedEntries(), 0);
+    Files.newOutputStream(javaPath.resolve("theta_non_empty_no_entries_java.sk")).write(sk.compact().toByteArray());
   }
 
 }

@@ -19,21 +19,22 @@
 
 package org.apache.datasketches.req;
 
-import java.io.FileOutputStream;
+import static org.apache.datasketches.common.TestUtil.javaPath;
+
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.testng.annotations.Test;
 
 public class ReqSketchSerDeTest {
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+  public void generateBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final ReqSketch sketch = ReqSketch.builder().build();
-      for (int i = 1; i <= n; i++) sketch.update(i);
-      try (final FileOutputStream file = new FileOutputStream("req_float_n" + n + ".sk")) {
-        file.write(sketch.toByteArray());
-      }
+      final ReqSketch sk = ReqSketch.builder().build();
+      for (int i = 1; i <= n; i++) sk.update(i);
+      Files.newOutputStream(javaPath.resolve("req_float_n" + n + "_java.sk")).write(sk.toByteArray());
     }
   }
 

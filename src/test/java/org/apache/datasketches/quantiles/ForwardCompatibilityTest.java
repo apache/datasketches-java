@@ -19,9 +19,13 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.common.Util.getResourceBytes;
+import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -29,7 +33,7 @@ import org.testng.annotations.Test;
 public class ForwardCompatibilityTest {
   private static final String LS = System.getProperty("line.separator");
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.3.0.sk
   //Median2: 26.0
   public void check030_50() {
@@ -39,7 +43,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.3.0.sk
   //Median2: 501.0
   public void check030_1000() {
@@ -49,7 +53,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.6.0.sk
   //Median2: 26.0
   public void check060_50() {
@@ -59,7 +63,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.6.0.sk
   //Median2: 501.0
   public void check060_1000() {
@@ -69,7 +73,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.0.sk
   //Median2: 26.0
   public void check080_50() {
@@ -79,7 +83,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
   //Median2: 501.0
   public void check080_1000() {
@@ -89,7 +93,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.3.sk
   //Median2: 26.0
   public void check083_50() {
@@ -99,7 +103,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
   //Median2: 501.0
   public void check083_1000() {
@@ -109,7 +113,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  private static void getAndCheck(String ver, int n, double quantile) {
+  private static void getAndCheck(String ver, int n, double quantile)  {
     DoublesSketch.rand.setSeed(131); //make deterministic
     //create fileName
     int k = 128;
@@ -118,8 +122,11 @@ public class ForwardCompatibilityTest {
     println("fullName: "+ fileName);
     println("Old Median: " + quantile);
     //Read File bytes
-    byte[] byteArr2 = getResourceBytes(fileName);
-    Memory srcMem = Memory.wrap(byteArr2);
+    byte[] byteArr;
+    try {
+      byteArr = Files.readAllBytes(cppPath.resolve(fileName));
+    } catch (IOException e) { throw new SketchesArgumentException(e.getCause().toString()); }
+    Memory srcMem = Memory.wrap(byteArr);
 
     // heapify as update sketch
     DoublesSketch qs2 = UpdateDoublesSketch.heapify(srcMem);

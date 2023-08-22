@@ -19,19 +19,21 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.testng.annotations.Test;
 
 public class HllSketchSerDeTest {
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+  public void generateBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final HllSketch hll4 = new HllSketch(HllSketch.DEFAULT_LG_K, HLL_4);
       final HllSketch hll6 = new HllSketch(HllSketch.DEFAULT_LG_K, HLL_6);
@@ -39,15 +41,9 @@ public class HllSketchSerDeTest {
       for (int i = 0; i < n; i++) hll4.update(i);
       for (int i = 0; i < n; i++) hll6.update(i);
       for (int i = 0; i < n; i++) hll8.update(i);
-      try (final FileOutputStream file = new FileOutputStream("hll4_n" + n + ".sk")) {
-        file.write(hll4.toCompactByteArray());
-      }
-      try (final FileOutputStream file = new FileOutputStream("hll6_n" + n + ".sk")) {
-        file.write(hll6.toCompactByteArray());
-      }
-      try (final FileOutputStream file = new FileOutputStream("hll8_n" + n + ".sk")) {
-        file.write(hll8.toCompactByteArray());
-      }
+      Files.newOutputStream(javaPath.resolve("hll4_n" + n + "_java.sk")).write(hll4.toCompactByteArray());
+      Files.newOutputStream(javaPath.resolve("hll6_n" + n + "_java.sk")).write(hll6.toCompactByteArray());
+      Files.newOutputStream(javaPath.resolve("hll8_n" + n + "_java.sk")).write(hll8.toCompactByteArray());
     }
   }
 

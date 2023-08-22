@@ -19,9 +19,11 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
@@ -30,10 +32,10 @@ import org.testng.annotations.Test;
 public class ItemsSketchSerDeTest {
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+  public void generateBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
-      final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, new Comparator<String>() {
+      final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, new Comparator<String>() {
         @Override
         public int compare(final String s1, final String s2) {
           final Integer i1 = Integer.parseInt(s1);
@@ -41,14 +43,13 @@ public class ItemsSketchSerDeTest {
           return i1.compareTo(i2);
         }
       });
-      for (int i = 1; i <= n; i++) sketch.update(Integer.toString(i));
+      for (int i = 1; i <= n; i++) sk.update(Integer.toString(i));
       if (n > 0) {
-        assertEquals(sketch.getMinItem(), "1");
-        assertEquals(sketch.getMaxItem(), Integer.toString(n));
+        assertEquals(sk.getMinItem(), "1");
+        assertEquals(sk.getMaxItem(), Integer.toString(n));
       }
-      try (final FileOutputStream file = new FileOutputStream("quantiles_string_n" + n + ".sk")) {
-        file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
-      }
+      Files.newOutputStream(javaPath.resolve("quantiles_string_n" + n + "_java.sk"))
+        .write(sk.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 
