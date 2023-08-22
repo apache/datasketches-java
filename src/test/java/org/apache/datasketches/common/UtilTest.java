@@ -494,7 +494,7 @@ public class UtilTest {
     assertNotNull(cppPath);
   }
 
-  private static boolean enablePrinting = true;
+  private static boolean enablePrinting = false;
 
   static void println(final Object o) {
     if (enablePrinting) {
