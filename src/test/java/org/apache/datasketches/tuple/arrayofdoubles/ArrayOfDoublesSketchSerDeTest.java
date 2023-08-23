@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 public class ArrayOfDoublesSketchSerDeTest {
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTestingOneValue() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -40,7 +40,7 @@ public class ArrayOfDoublesSketchSerDeTest {
     }
   }
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTestingThreeValues() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -50,7 +50,7 @@ public class ArrayOfDoublesSketchSerDeTest {
     }
   }
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
     final ArrayOfDoublesUpdatableSketch sk =
         new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
