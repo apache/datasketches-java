@@ -36,12 +36,12 @@ public class VarOptSketchSerDeTest {
     for (int n: nArr) {
       final VarOptItemsSketch<Long> sk = VarOptItemsSketch.newInstance(32);
       for (int i = 1; i <= n; i++) sk.update(Long.valueOf(i), 1.0);
-      Files.newOutputStream(javaPath.resolve("varopt_long_n" + n + "_java.sk"))
+      Files.newOutputStream(javaPath.resolve("varopt_sketch_long_n" + n + "_java.sk"))
         .write(sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTestingStringExact() throws IOException {
     final VarOptItemsSketch<String> sketch = VarOptItemsSketch.newInstance(1024);
     for (int i = 1; i <= 200; ++i) {
@@ -51,7 +51,7 @@ public class VarOptSketchSerDeTest {
       .write(sketch.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTestingLongSampling() throws IOException {
     final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(1024);
     for (long i = 0; i < 2000; ++i) {
