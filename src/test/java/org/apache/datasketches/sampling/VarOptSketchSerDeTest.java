@@ -21,7 +21,6 @@ package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.common.TestUtil.javaPath;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -43,18 +42,17 @@ public class VarOptSketchSerDeTest {
   }
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTestingStringExact() throws Exception {
+  public void generateBinariesForCompatibilityTestingStringExact() throws IOException {
     final VarOptItemsSketch<String> sketch = VarOptItemsSketch.newInstance(1024);
     for (int i = 1; i <= 200; ++i) {
       sketch.update(Integer.toString(i), 1000.0 / i);
     }
-    try (final FileOutputStream file = new FileOutputStream("varopt_sketch_string_exact_java.sk")) {
-      file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
-    }
+    Files.newOutputStream(javaPath.resolve("varopt_sketch_string_exact_java.sk"))
+      .write(sketch.toByteArray(new ArrayOfStringsSerDe()));
   }
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTestingLongSampling() throws Exception {
+  public void generateBinariesForCompatibilityTestingLongSampling() throws IOException {
     final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(1024);
     for (long i = 0; i < 2000; ++i) {
       sketch.update(i, 1.0);
@@ -63,9 +61,8 @@ public class VarOptSketchSerDeTest {
     sketch.update(-1L, 100000.0);
     sketch.update(-2L, 110000.0);
     sketch.update(-3L, 120000.0);
-    try (final FileOutputStream file = new FileOutputStream("varopt_sketch_long_sampling_java.sk")) {
-      file.write(sketch.toByteArray(new ArrayOfLongsSerDe()));
-    }
+    Files.newOutputStream(javaPath.resolve("varopt_sketch_long_sampling_java.sk"))
+      .write(sketch.toByteArray(new ArrayOfLongsSerDe()));
   }
 
 }

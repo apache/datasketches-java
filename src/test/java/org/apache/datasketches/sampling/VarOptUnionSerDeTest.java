@@ -19,7 +19,9 @@
 
 package org.apache.datasketches.sampling;
 
-import java.io.FileOutputStream;
+import static org.apache.datasketches.common.TestUtil.javaPath;
+
+import java.nio.file.Files;
 
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
 import org.testng.annotations.Test;
@@ -27,7 +29,7 @@ import org.testng.annotations.Test;
 public class VarOptUnionSerDeTest {
 
   @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
+  public void generateBinariesForCompatibilityTesting() throws IOException {
     final int kSmall = 16;
     final int n1 = 32;
     final int n2 = 64;
@@ -50,9 +52,8 @@ public class VarOptUnionSerDeTest {
       sketch.update(1.0 * i, 1.0);
     }
     union.update(sketch);
-    try (final FileOutputStream file = new FileOutputStream("varopt_union_double_sampling_java.sk")) {
-      file.write(union.toByteArray(new ArrayOfDoublesSerDe()));
-    }
+    Files.newOutputStream(javaPath.resolve("varopt_union_double_sampling_java.sk"))
+      .write(union.toByteArray(new ArrayOfDoublesSerDe()));
   }
 
 }
