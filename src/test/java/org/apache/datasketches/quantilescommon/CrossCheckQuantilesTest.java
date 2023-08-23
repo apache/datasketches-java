@@ -20,10 +20,10 @@
 package org.apache.datasketches.quantilescommon;
 
 import static org.apache.datasketches.common.Util.*;
-import static org.apache.datasketches.quantilescommon.ReflectUtility.CLASSIC_DOUBLES_SV_CTOR;
-import static org.apache.datasketches.quantilescommon.ReflectUtility.KLL_DOUBLES_SV_CTOR;
-import static org.apache.datasketches.quantilescommon.ReflectUtility.KLL_FLOATS_SV_CTOR;
-import static org.apache.datasketches.quantilescommon.ReflectUtility.REQ_SV_CTOR;
+import static org.apache.datasketches.quantilescommon.ReflectUtilityTest.CLASSIC_DOUBLES_SV_CTOR;
+import static org.apache.datasketches.quantilescommon.ReflectUtilityTest.KLL_DOUBLES_SV_CTOR;
+import static org.apache.datasketches.quantilescommon.ReflectUtilityTest.KLL_FLOATS_SV_CTOR;
+import static org.apache.datasketches.quantilescommon.ReflectUtilityTest.REQ_SV_CTOR;
 import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.*;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;

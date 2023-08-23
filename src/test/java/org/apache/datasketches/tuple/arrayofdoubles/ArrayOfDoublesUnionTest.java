@@ -19,8 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.common.Util.getResourceBytes;
+import static org.apache.datasketches.common.TestUtil.cppPath;
 
+import java.nio.file.Files;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -201,16 +202,16 @@ public class ArrayOfDoublesUnionTest {
     }
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_historical_files"})
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    ArrayOfDoublesUnion.heapify(Memory.wrap(bytes));
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    ArrayOfDoublesUnion.heapify(Memory.wrap(byteArr));
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_historical_files"})
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(bytes));
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(byteArr));
   }
 
   @Test
@@ -305,20 +306,23 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void directExactMode() {
-    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch1 =
+        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch2 =
+        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUnion union =
+        new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
     union.union(sketch1);
     union.union(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(WritableMemory.writableWrap(new byte[1000000]));
@@ -341,18 +345,21 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void directEstimationMode() {
     int key = 0;
-    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch1 =
+        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch2 =
+        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUnion union =
+        new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
     union.union(sketch1);
     union.union(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(WritableMemory.writableWrap(new byte[1000000]));
@@ -386,7 +393,8 @@ public class ArrayOfDoublesUnionTest {
     final ArrayOfDoublesUnion heapUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     heapUnion.union(sketch1);
 
-    final ArrayOfDoublesUnion directUnion = ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(heapUnion.toByteArray()));
+    final ArrayOfDoublesUnion directUnion =
+        ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(heapUnion.toByteArray()));
     directUnion.union(sketch2);
 
     final ArrayOfDoublesCompactSketch result = directUnion.getResult(WritableMemory.writableWrap(new byte[1000000]));
@@ -414,7 +422,8 @@ public class ArrayOfDoublesUnionTest {
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    final ArrayOfDoublesUnion directUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUnion directUnion =
+        new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
     directUnion.union(sketch1);
 
     final ArrayOfDoublesUnion heapUnion = ArrayOfDoublesUnion.heapify(Memory.wrap(directUnion.toByteArray()));
@@ -446,7 +455,8 @@ public class ArrayOfDoublesUnionTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleInputSketchMoreValues() {
-    final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
+    final ArrayOfDoublesUpdatableSketch sketch =
+        new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.union(sketch);
   }

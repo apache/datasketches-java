@@ -19,22 +19,24 @@
 
 package org.apache.datasketches.sampling;
 
-import java.io.FileOutputStream;
+import static org.apache.datasketches.common.TestUtil.javaPath;
+
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.testng.annotations.Test;
 
 public class VarOptSketchSerDeTest {
 
-  @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+  @Test(groups = {"generate_java_files"})
+  public void generateBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(32);
-      for (int i = 1; i <= n; i++) sketch.update(Long.valueOf(i), 1.0);
-      try (final FileOutputStream file = new FileOutputStream("varopt_long_n" + n + ".sk")) {
-        file.write(sketch.toByteArray(new ArrayOfLongsSerDe()));
-      }
+      final VarOptItemsSketch<Long> sk = VarOptItemsSketch.newInstance(32);
+      for (int i = 1; i <= n; i++) sk.update(Long.valueOf(i), 1.0);
+      Files.newOutputStream(javaPath.resolve("varopt_long_n" + n + "_java.sk"))
+        .write(sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
 

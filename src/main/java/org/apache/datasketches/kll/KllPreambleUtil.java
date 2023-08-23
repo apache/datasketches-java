@@ -164,6 +164,7 @@ final class KllPreambleUtil<T> {
   // Flag bit masks
   static final int EMPTY_BIT_MASK             = 1;
   static final int LEVEL_ZERO_SORTED_BIT_MASK = 2;
+  static final int SINGLE_ITEM_BIT_MASK       = 4;
 
   /**
    * Returns a human readable string summary of the internal state of the given sketch byte array.

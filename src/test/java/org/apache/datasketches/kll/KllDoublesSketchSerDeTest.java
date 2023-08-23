@@ -19,18 +19,12 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.File;
-import java.io.FileOutputStream;
-
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
@@ -125,41 +119,6 @@ public class KllDoublesSketchSerDeTest {
     //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
     final byte[] bytes2 = sk3.toByteArray();
     assertEquals(bytes, bytes2);
-  }
-
-  @Test
-  public void compatibilityWithCppEstimationMode() throws Exception {
-    final File file = Util.getResourceFile("kll_double_estimation_cpp.sk");
-    try (MapHandle mh = Memory.map(file)) {
-      final KllDoublesSketch sk = KllDoublesSketch.heapify(mh.get());
-      assertEquals(sk.getMinItem(), 0);
-      assertEquals(sk.getMaxItem(), 999);
-      assertEquals(sk.getN(), 1000);
-    }
-  }
-
-  @Test
-  public void deserializeOneValueVersion1() throws Exception {
-    final byte[] bytes = getResourceBytes("kll_sketch_double_one_item_v1.sk");
-    final KllDoublesSketch sk = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertFalse(sk.isEmpty());
-    assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getN(), 1);
-    assertEquals(sk.getNumRetained(), 1);
-    assertEquals(sk.getMinItem(), 1.0);
-    assertEquals(sk.getMaxItem(), 1.0);
-  }
-
-  @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
-      final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
-      for (int i = 1; i <= n; i++) sk.update(i);
-      try (final FileOutputStream file = new FileOutputStream("kll_double_n" + n + ".sk")) {
-        file.write(sk.toByteArray());
-      }
-    }
   }
 
 }
