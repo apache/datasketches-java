@@ -275,7 +275,7 @@ public class CpcCBinariesTest {
     println(sk2.toString(true));
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 100, 200, 2000, 20_000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};

@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 public class SerialVersion3Test {
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {"check_cpp_files"})
   public void version2Compatibility() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk"));
     Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());

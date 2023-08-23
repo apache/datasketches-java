@@ -590,7 +590,7 @@ public class CompactSketchTest {
     }
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {"check_cpp_files"})
   public void compatibilityWithCppEstimationModeV4() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("theta_estimation_mode_v4.sk"));
     CompactSketch cs1 = CompactSketch.heapify(Memory.wrap(byteArr));

@@ -27,28 +27,40 @@ import java.nio.file.Paths;
 /**
  * Utilities common to testing
  */
-public final class TestUtil  {
+public class TestUtil  {
 
   private static String userDir = System.getProperty("user.dir");
 
   /**
+   * The project local target directory for serialized sketches to be tested by other languages.
+   */
+  private static final String JAVA_GENERATED_FILES_DIR = "target/java_generated_files";
+
+  /**
+   * The project local source directory for serialized sketches created by C++, to be tested by Java.
+   */
+  private static final String CPP_GENERATED_FILES_DIR = "src/test/resources";
+
+  /**
    * The full target Path for Java serialized sketches to be tested by other languages.
    */
-  public static Path javaPath = createPath("target/java_generated_files");
+  public static Path javaPath = createJavaPath();
 
   /**
    * The full target Path for C++ serialized sketches to be tested by Java.
    */
-  public static Path cppPath = createPath("src/test/resources");
+  public static Path cppPath = createCppPath();
 
-  /**
-   * The full target Path for historical C++ serialized sketches to be tested by Java.
-   */
-  public static Path cppHistPath = createPath("src/test/resources");
 
-  private static Path createPath(final String projectLocalDir) {
+  private static Path createJavaPath() {
     try {
-      return Files.createDirectories(Paths.get(userDir, projectLocalDir));
+      return Files.createDirectories(Paths.get(userDir, JAVA_GENERATED_FILES_DIR));
+    } catch (IOException e) { throw new SketchesArgumentException(e.getCause().toString()); }
+  }
+
+  private static Path createCppPath() {
+    try {
+      return Files.createDirectories(Paths.get(userDir, CPP_GENERATED_FILES_DIR));
     } catch (IOException e) { throw new SketchesArgumentException(e.getCause().toString()); }
   }
 

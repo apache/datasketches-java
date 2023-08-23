@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 
 public class VarOptSketchSerDeTest {
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {

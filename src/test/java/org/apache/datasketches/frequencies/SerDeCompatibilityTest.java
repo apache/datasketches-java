@@ -83,7 +83,7 @@ public class SerDeCompatibilityTest {
     Assert.assertEquals(sketch2.getEstimate(4L), 1);
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTestingLongsSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -96,7 +96,7 @@ public class SerDeCompatibilityTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTestingStringsSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -110,7 +110,7 @@ public class SerDeCompatibilityTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTestingStringsSketchAscii() throws IOException {
     final ItemsSketch<String> sk = new ItemsSketch<>(64);
     sk.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1);
@@ -121,7 +121,7 @@ public class SerDeCompatibilityTest {
       .write(sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTestingStringsSketchUtf8() throws IOException {
     final ItemsSketch<String> sk = new ItemsSketch<>(64);
     sk.update("абвгд", 1);

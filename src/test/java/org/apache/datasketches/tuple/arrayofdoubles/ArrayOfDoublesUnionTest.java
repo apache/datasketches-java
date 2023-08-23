@@ -202,13 +202,13 @@ public class ArrayOfDoublesUnionTest {
     }
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_historical_files"})
+  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_files"})
   public void noSupportHeapifyV0_9_1() throws Exception {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
     ArrayOfDoublesUnion.heapify(Memory.wrap(byteArr));
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_historical_files"})
+  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_files"})
   public void noSupportWrapV0_9_1() throws Exception {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
     ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(byteArr));

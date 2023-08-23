@@ -191,7 +191,7 @@ public class CompactSketchWithDoubleSummaryTest {
         new DoubleSummaryFactory(mode));
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {"check_cpp_files"})
   public void serialVersion1Compatibility() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("CompactSketchWithDoubleSummary4K_serialVersion1.sk"));
     Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new DoubleSummaryDeserializer());

@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 
 public class DoublesSketchSerDeTest {
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {

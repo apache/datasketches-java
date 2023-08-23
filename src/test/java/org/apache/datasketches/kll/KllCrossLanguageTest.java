@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 public class KllCrossLanguageTest {
   private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateKllDoublesSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -49,7 +49,7 @@ public class KllCrossLanguageTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateKllFloatsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -59,7 +59,7 @@ public class KllCrossLanguageTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {"generate"})
   public void generateKllItemsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -79,7 +79,7 @@ public class KllCrossLanguageTest {
     assertEquals(sk.getN(), 1000);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {"check_cpp_files"})
   public void checkCppKllDoublesSketchOneItemVersion1() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("kll_sketch_double_one_item_v1.sk"));
     final KllDoublesSketch sk = KllDoublesSketch.heapify(Memory.wrap(byteArr));
@@ -100,7 +100,7 @@ public class KllCrossLanguageTest {
     assertEquals(sk.getN(), 1000);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {"check_cpp_files"})
   public void checkCppKllFloatsSketchOneItemVersion1() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("kll_sketch_float_one_item_v1.sk"));
     final KllFloatsSketch sk = KllFloatsSketch.heapify(Memory.wrap(byteArr));
