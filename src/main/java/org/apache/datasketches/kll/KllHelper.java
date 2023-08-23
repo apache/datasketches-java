@@ -32,6 +32,7 @@ import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
@@ -491,7 +492,8 @@ final class KllHelper {
     final byte serVer = (byte)tgtStructure.getSerVer();
     final byte famId = (byte)(KLL.getID());
     final byte flags = (byte) ((srcSk.isEmpty() ? EMPTY_BIT_MASK : 0)
-        | (srcSk.isLevelZeroSorted() ? LEVEL_ZERO_SORTED_BIT_MASK : 0));
+        | (srcSk.isLevelZeroSorted() ? LEVEL_ZERO_SORTED_BIT_MASK : 0)
+        | (srcSk.getN() == 1 ? SINGLE_ITEM_BIT_MASK : 0));
     final short k = (short) srcSk.getK();
     final byte m = (byte) srcSk.getM();
 

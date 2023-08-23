@@ -24,7 +24,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.FileOutputStream;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
@@ -34,7 +33,7 @@ import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 public class KllItemsSketchSerDeTest {
-  public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+  private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void serializeDeserializeEmpty() {
@@ -125,21 +124,6 @@ public class KllItemsSketchSerDeTest {
     //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
     final byte[] bytes2 = sk3.toByteArray();
     assertEquals(bytes, bytes2);
-  }
-
-  //no cross language tests yet
-
-  //@Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
-      final int digits = Util.numDigits(n);
-      final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-      for (int i = 0; i < n; i++) sketch.update(Util.intToFixedLengthString(i, digits));
-      try (final FileOutputStream file = new FileOutputStream("kll_string_n" + n + ".sk")) {
-        file.write(sketch.toByteArray());
-      }
-    }
   }
 
 }

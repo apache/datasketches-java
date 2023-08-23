@@ -19,48 +19,45 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.testng.annotations.Test;
 
 public class ArrayOfDoublesSketchSerDeTest {
 
-  @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTestingOneValue() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+  @Test(groups = {"generate_java_files"})
+  public void generateBinariesForCompatibilityTestingOneValue() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
-      for (int i = 0; i < n; i++) sketch.update(i, new double[] {i});
-      try (final FileOutputStream file = new FileOutputStream("aod_1_n" + n + "_java.sk")) {
-        file.write(sketch.compact().toByteArray());
-      }
+      final ArrayOfDoublesUpdatableSketch sk = new ArrayOfDoublesUpdatableSketchBuilder().build();
+      for (int i = 0; i < n; i++) sk.update(i, new double[] {i});
+      Files.newOutputStream(javaPath.resolve("aod_1_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }
   }
 
-  @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTestingThreeValues() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+  @Test(groups = {"generate_java_files"})
+  public void generateBinariesForCompatibilityTestingThreeValues() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(3).build();
-      for (int i = 0; i < n; i++) sketch.update(i, new double[] {i, i, i});
-      try (final FileOutputStream file = new FileOutputStream("aod_3_n" + n + "_java.sk")) {
-        file.write(sketch.compact().toByteArray());
-      }
+      final ArrayOfDoublesUpdatableSketch sk = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(3).build();
+      for (int i = 0; i < n; i++) sk.update(i, new double[] {i, i, i});
+      Files.newOutputStream(javaPath.resolve("aod_3_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }
   }
 
-  @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws Exception {
-    final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
-    sketch.update(1, new double[] {1});
-    assertFalse(sketch.isEmpty());
-    assertEquals(sketch.getRetainedEntries(), 0);
-    try (final FileOutputStream file = new FileOutputStream("aod_1_non_empty_no_entries_java.sk")) {
-      file.write(sketch.compact().toByteArray());
-    }
+  @Test(groups = {"generate_java_files"})
+  public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
+    final ArrayOfDoublesUpdatableSketch sk =
+        new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
+    sk.update(1, new double[] {1});
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getRetainedEntries(), 0);
+    Files.newOutputStream(javaPath.resolve("aod_1_non_empty_no_entries_java.sk")).write(sk.compact().toByteArray());
   }
 
 }

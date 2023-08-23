@@ -56,8 +56,11 @@ import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.common.Util.pwr2SeriesNext;
 import static org.apache.datasketches.common.Util.pwr2SeriesPrev;
 import static org.apache.datasketches.common.Util.zeroPad;
+import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -485,17 +488,27 @@ public class UtilTest {
     println("PRINTING: " + this.getClass().getName());
   }
 
+  @Test
+  public void checkDirCreation() {
+    assertNotNull(javaPath);
+    assertNotNull(cppPath);
+  }
+
+  private static boolean enablePrinting = false;
+
   static void println(final Object o) {
-    if (o == null) { print(LS); }
-    else { print(o.toString() + LS); }
+    if (enablePrinting) {
+      if (o == null) { print(LS); }
+      else { print(o.toString() + LS); }
+    }
   }
 
   /**
    * @param o value to print
    */
   static void print(final Object o) {
-    if (o != null) {
-      //System.out.print(o.toString()); //disable here
+    if (enablePrinting && o != null) {
+      System.out.print(o.toString());
     }
   }
 

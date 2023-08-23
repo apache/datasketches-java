@@ -19,12 +19,14 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.common.Util.getResourceFile;
+import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
 
 import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
@@ -38,10 +40,9 @@ public class CpcCBinariesTest {
   static PrintStream ps = System.out;
   static final String LS = System.getProperty("line.separator");
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkEmptyBin() {
-    final String fileName = "cpc-empty.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-empty.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory wmem = mh.get();
       println(PreambleUtil.toString(wmem, true));
@@ -52,10 +53,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkSparseBin() {
-    final String fileName = "cpc-sparse.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-sparse.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U99");
@@ -78,10 +78,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkHybridBin() {
-    final String fileName = "cpc-hybrid.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-hybrid.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U199");
@@ -104,10 +103,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkPinnedBin() {
-    final String fileName = "cpc-pinned.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-pinned.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U1999");
@@ -130,10 +128,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkSlidingBin() {
-    final String fileName = "cpc-sliding.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-sliding.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U19999");
@@ -158,10 +155,9 @@ public class CpcCBinariesTest {
 
   //Image checks
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkEmptyImages() {
-    final String fileName = "cpc-empty.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-empty.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
@@ -178,10 +174,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkSparseImages() {
-    final String fileName = "cpc-sparse.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-sparse.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
@@ -199,10 +194,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkHybridImages() {
-    final String fileName = "cpc-hybrid.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-hybrid.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
@@ -220,10 +214,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkPinnedImages() {
-    final String fileName = "cpc-pinned.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-pinned.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
@@ -241,10 +234,9 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  @Test(groups = {"check_cpp_files"})
   public void checkSlidingImages() {
-    final String fileName = "cpc-sliding.sk";
-    final File file = getResourceFile(fileName);
+    final File file = cppPath.resolve("cpc-sliding.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
@@ -283,18 +275,16 @@ public class CpcCBinariesTest {
     println(sk2.toString(true));
   }
 
-  @Test(groups = {"generate"})
-  public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 100, 200, 2000, 20000};
+  @Test(groups = {"generate_java_files"})
+  public void generateBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {0, 100, 200, 2000, 20_000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
     int flavorIdx = 0;
     for (int n: nArr) {
-      final CpcSketch sketch = new CpcSketch(11);
-      for (int i = 0; i < n; i++) sketch.update(i);
-      assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
-      try (final FileOutputStream file = new FileOutputStream("cpc_n" + n + "_java.sk")) {
-        file.write(sketch.toByteArray());
-      }
+      final CpcSketch sk = new CpcSketch(11);
+      for (int i = 0; i < n; i++) sk.update(i);
+      assertEquals(sk.getFlavor(), flavorArr[flavorIdx++]);
+      Files.newOutputStream(javaPath.resolve("cpc_n" + n + "_java.sk")).write(sk.toByteArray());
     }
   }
 

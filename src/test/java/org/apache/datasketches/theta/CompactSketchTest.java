@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -26,12 +27,11 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
@@ -236,7 +236,7 @@ public class CompactSketchTest {
   private static final boolean MEMORY = true;
   private static final boolean ORDERED = true;
   private static final boolean ESTIMATION = true;
-  
+
   @Test
   /**
    * Empty, memory-based Compact sketches are always ordered
@@ -252,39 +252,39 @@ public class CompactSketchTest {
     WritableMemory wmem2 = WritableMemory.allocate(16);
     CompactSketch csk2 = sk.compact(false, wmem2);
     state1.check(csk2);
-    
+
     assertNotEquals(csk1, csk2); //different object because memory is valid
     assertFalse(csk1 == csk2);
-    
+
     WritableMemory wmem3 = WritableMemory.allocate(16);
     CompactSketch csk3 = csk1.compact(false, wmem3);
     state1.check(csk3);
-    
+
     assertNotEquals(csk1, csk3); //different object because memory is valid
     assertFalse(csk1 == csk3);
-    
+
     CompactSketch csk4 = csk1.compact(false, null);
     State state4 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
     state4.check(csk4);
-    
+
     assertNotEquals(csk1, csk4); //different object because on heap
     assertFalse(csk1 == csk4);
-    
+
     CompactSketch cskc = csk1.compact();
     state1.check(cskc);
-    
+
     assertEquals(csk1, cskc); //the same object
     assertTrue(csk1 == cskc);
   }
-  
+
   @Test
   /**
-   * Single-Item, memory-based Compact sketches are always ordered: 
+   * Single-Item, memory-based Compact sketches are always ordered:
    */
   public void checkSingleItemMemoryCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
-    
+
     WritableMemory wmem1 = WritableMemory.allocate(16);
     CompactSketch csk1 = sk.compact(false, wmem1); //the first parameter is ignored when single item
     State state1 = new State("DirectCompactSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, MEMORY, ORDERED, !ESTIMATION);
@@ -293,20 +293,20 @@ public class CompactSketchTest {
     WritableMemory wmem2 = WritableMemory.allocate(16);
     CompactSketch csk2 = sk.compact(false, wmem2); //the first parameter is ignored when single item
     state1.check(csk2);
-    
+
     assertNotEquals(csk1, csk2); //different object because memory is valid
     assertFalse(csk1 == csk2);
-    
+
     WritableMemory wmem3 = WritableMemory.allocate(16);
     CompactSketch csk3 = csk1.compact(false, wmem3);
     state1.check(csk3);
-    
+
     assertNotEquals(csk1, csk3); //different object because memory is valid
     assertFalse(csk1 == csk3);
-    
+
     CompactSketch cskc = csk1.compact();
     state1.check(cskc);
-    
+
     assertEquals(csk1, cskc); //the same object
     assertTrue(csk1 == cskc);
   }
@@ -318,7 +318,7 @@ public class CompactSketchTest {
     sk.update(1);
     sk.update(2);
     sk.update(3);
-    
+
     WritableMemory wmem1 = WritableMemory.allocate(50);
     CompactSketch csk1 = sk.compact(true, wmem1);
     State state1 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, MEMORY, ORDERED, !ESTIMATION);
@@ -328,28 +328,28 @@ public class CompactSketchTest {
     CompactSketch csk2 = sk.compact(false, wmem2);
     State state2 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, MEMORY, !ORDERED, !ESTIMATION);
     state2.check(csk2);
-    
+
     assertNotEquals(csk1, csk2); //different object because memory is valid
     assertFalse(csk1 == csk2);
-    
+
     WritableMemory wmem3 = WritableMemory.allocate(50);
     CompactSketch csk3 = csk1.compact(false, wmem3);
     state2.check(csk3);
-    
+
     assertNotEquals(csk1, csk3); //different object because memory is valid
     assertFalse(csk1 == csk3);
-    
+
     CompactSketch cskc = csk1.compact();
     state1.check(cskc);
-    
+
     assertEquals(csk1, cskc); //the same object
     assertTrue(csk1 == cskc);
   }
-  
+
   @Test
   /**
-   * Empty, heap-based Compact sketches are always ordered. 
-   * All empty, heap-based, compact sketches point to the same static, final constant of 8 bytes. 
+   * Empty, heap-based Compact sketches are always ordered.
+   * All empty, heap-based, compact sketches point to the same static, final constant of 8 bytes.
    */
   public void checkEmptyHeapCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
@@ -357,22 +357,22 @@ public class CompactSketchTest {
     CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when empty
     State state1 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
     state1.check(csk1);
-  
+
     CompactSketch csk2 = sk.compact(false, null); //the first parameter is ignored when empty
     state1.check(csk1);
-  
+
     assertEquals(csk1, csk2);
     assertTrue(csk1 == csk2);
-    
+
     CompactSketch csk3 = csk1.compact(false, null);
     state1.check(csk3);
-    
+
     assertEquals(csk1, csk3); //The same object
     assertTrue(csk1 == csk3);
-    
+
     CompactSketch cskc = csk1.compact();
     state1.check(cskc);
-    
+
     assertEquals(csk1, cskc); //The same object
     assertTrue(csk1 == cskc);
   }
@@ -384,26 +384,26 @@ public class CompactSketchTest {
   public void checkSingleItemHeapCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
-    
+
     CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when single item
     State state1 = new State("SingleItemSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     CompactSketch csk2 = sk.compact(false, null); //the first parameter is ignored when single item
     state1.check(csk2);
-    
+
     assertNotEquals(csk1, csk2); //calling the compact(boolean, null) method creates a new object
     assertFalse(csk1 == csk2);
-    
+
     CompactSketch csk3 = csk1.compact(false, null);
     state1.check(csk3);
-    
+
     assertEquals(csk1, csk3); //The same object
     assertTrue(csk1 == csk3);
-    
+
     CompactSketch cskc = csk1.compact(); //this, however just returns the same object.
     state1.check(csk1);
-    
+
     assertEquals(csk1, cskc); //the same object
     assertTrue(csk1 == cskc);
   }
@@ -415,7 +415,7 @@ public class CompactSketchTest {
     sk.update(1);
     sk.update(2);
     sk.update(3);
-    
+
     CompactSketch csk1 = sk.compact(true, null); //creates a new object
     State state1 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
     state1.check(csk1);
@@ -423,22 +423,22 @@ public class CompactSketchTest {
     CompactSketch csk2 = sk.compact(false, null); //creates a new object, unordered
     State state2 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !MEMORY, !ORDERED, !ESTIMATION);
     state2.check(csk2);
-    
+
     assertNotEquals(csk1, csk2); //order is different and different objects
     assertFalse(csk1 == csk2);
-    
+
     CompactSketch csk3 = csk1.compact(true, null);
     state1.check(csk3);
-    
+
     assertEquals(csk1, csk3); //the same object because wmem = null and csk1.ordered = dstOrdered
     assertTrue(csk1 == csk3);
-    
+
     assertNotEquals(csk2, csk3); //different object because wmem = null and csk2.ordered = false && dstOrdered = true
     assertFalse(csk2 == csk3);
-    
+
     CompactSketch cskc = csk1.compact();
     state1.check(cskc);
-    
+
     assertEquals(csk1, cskc); //the same object
     assertTrue(csk1 == cskc);
   }
@@ -590,34 +590,29 @@ public class CompactSketchTest {
     }
   }
 
-  @Test
-  public void compatibilityWithCppEstimationModeV4() {
-    final File file = Util.getResourceFile("theta_estimation_mode_v4.sk");
-    try (MapHandle mh = Memory.map(file)) {
-      final Memory mem = mh.get();
-      CompactSketch cs1 = CompactSketch.heapify(mem);
-      
-      // construct sketch the same way
-      UpdateSketch sk = Sketches.updateSketchBuilder().build();
-      for (int i = 0; i < 10000; i++) {
-        sk.update(i);
-      }
-      CompactSketch cs2 = sk.compact();
-      assertEquals(cs1.isEmpty(), cs2.isEmpty());
-      assertEquals(cs1.isEstimationMode(), cs2.isEstimationMode());
-      assertEquals(cs1.getTheta(), cs2.getTheta());
-      assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
-      HashIterator it1 = cs1.iterator();
-      HashIterator it2 = cs2.iterator();
-      while (it1.next()) {
-        assertTrue(it2.next());
-        assertEquals(it1.get(), it2.get());
-      }
-    } catch (final Exception e) {
-      e.printStackTrace();
+  @Test(groups = {"check_cpp_historical_files"})
+  public void compatibilityWithCppEstimationModeV4() throws IOException {
+    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("theta_estimation_mode_v4.sk"));
+    CompactSketch cs1 = CompactSketch.heapify(Memory.wrap(byteArr));
+
+    // construct sketch the same way
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < 10000; i++) {
+      sk.update(i);
+    }
+    CompactSketch cs2 = sk.compact();
+    assertEquals(cs1.isEmpty(), cs2.isEmpty());
+    assertEquals(cs1.isEstimationMode(), cs2.isEstimationMode());
+    assertEquals(cs1.getTheta(), cs2.getTheta());
+    assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
+    HashIterator it1 = cs1.iterator();
+    HashIterator it2 = cs2.iterator();
+    while (it1.next()) {
+      assertTrue(it2.next());
+      assertEquals(it1.get(), it2.get());
     }
   }
-  
+
   private static class State {
     String classType = null;
     int count = 0;
@@ -628,7 +623,7 @@ public class CompactSketchTest {
     boolean memory = false;
     boolean ordered = false;
     boolean estimation = false;
-    
+
     State(String classType, int count, int bytes, boolean compact, boolean empty, boolean direct,
         boolean memory, boolean ordered, boolean estimation) {
       this.classType = classType;

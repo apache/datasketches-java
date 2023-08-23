@@ -30,9 +30,9 @@ import static org.testng.Assert.assertEquals;
 import org.apache.datasketches.req.ReqSketchSortedView;
 import org.testng.annotations.Test;
 
-public final class ReflectUtility {
+public final class ReflectUtilityTest {
 
-  private ReflectUtility() {}
+  private ReflectUtilityTest() {}
 
   static final Class<?> REQ_SV;
   static final Class<?> KLL_FLOATS_SV;
