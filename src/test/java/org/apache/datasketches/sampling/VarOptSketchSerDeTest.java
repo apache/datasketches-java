@@ -36,7 +36,7 @@ public class VarOptSketchSerDeTest {
     for (int n: nArr) {
       final VarOptItemsSketch<Long> sk = VarOptItemsSketch.newInstance(32);
       for (int i = 1; i <= n; i++) sk.update(Long.valueOf(i), 1.0);
-      Files.newOutputStream(javaPath.resolve("varopt_long_n" + n + "_java.sk"))
+      Files.newOutputStream(javaPath.resolve("varopt_sketch_long_n" + n + "_java.sk"))
         .write(sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
