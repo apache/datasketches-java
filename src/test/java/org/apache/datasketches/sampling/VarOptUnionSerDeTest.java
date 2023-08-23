@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 
 public class VarOptUnionSerDeTest {
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int kSmall = 16;
     final int n1 = 32;

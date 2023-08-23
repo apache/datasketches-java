@@ -41,7 +41,7 @@ public class VarOptSketchSerDeTest {
     }
   }
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTestingStringExact() throws IOException {
     final VarOptItemsSketch<String> sketch = VarOptItemsSketch.newInstance(1024);
     for (int i = 1; i <= 200; ++i) {
@@ -51,7 +51,7 @@ public class VarOptSketchSerDeTest {
       .write(sketch.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {"generate"})
+  @Test(groups = {"generate_java_files"})
   public void generateBinariesForCompatibilityTestingLongSampling() throws IOException {
     final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(1024);
     for (long i = 0; i < 2000; ++i) {
