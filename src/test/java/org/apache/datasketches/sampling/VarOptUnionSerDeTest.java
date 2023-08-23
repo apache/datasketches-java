@@ -21,6 +21,7 @@ package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.common.TestUtil.javaPath;
 
+import java.io.IOException;
 import java.nio.file.Files;
 
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
