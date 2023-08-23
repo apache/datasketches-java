@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.testng.annotations.Test;
 
 public class VarOptSketchSerDeTest {
@@ -38,6 +39,30 @@ public class VarOptSketchSerDeTest {
       Files.newOutputStream(javaPath.resolve("varopt_long_n" + n + "_java.sk"))
         .write(sk.toByteArray(new ArrayOfLongsSerDe()));
     }
+  }
+
+  @Test(groups = {"generate"})
+  public void generateBinariesForCompatibilityTestingStringExact() throws IOException {
+    final VarOptItemsSketch<String> sketch = VarOptItemsSketch.newInstance(1024);
+    for (int i = 1; i <= 200; ++i) {
+      sketch.update(Integer.toString(i), 1000.0 / i);
+    }
+    Files.newOutputStream(javaPath.resolve("varopt_sketch_string_exact_java.sk"))
+      .write(sketch.toByteArray(new ArrayOfStringsSerDe()));
+  }
+
+  @Test(groups = {"generate"})
+  public void generateBinariesForCompatibilityTestingLongSampling() throws IOException {
+    final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(1024);
+    for (long i = 0; i < 2000; ++i) {
+      sketch.update(i, 1.0);
+    }
+    // heavy items have negative weights to allow a simple predicate to filter
+    sketch.update(-1L, 100000.0);
+    sketch.update(-2L, 110000.0);
+    sketch.update(-3L, 120000.0);
+    Files.newOutputStream(javaPath.resolve("varopt_sketch_long_sampling_java.sk"))
+      .write(sketch.toByteArray(new ArrayOfLongsSerDe()));
   }
 
 }
