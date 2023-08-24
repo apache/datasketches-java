@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.cpc;
 
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
@@ -40,7 +42,7 @@ public class CpcCBinariesTest {
   static PrintStream ps = System.out;
   static final String LS = System.getProperty("line.separator");
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkEmptyBin() {
     final File file = cppPath.resolve("cpc-empty.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -53,7 +55,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkSparseBin() {
     final File file = cppPath.resolve("cpc-sparse.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -78,7 +80,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkHybridBin() {
     final File file = cppPath.resolve("cpc-hybrid.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -103,7 +105,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkPinnedBin() {
     final File file = cppPath.resolve("cpc-pinned.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -128,7 +130,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkSlidingBin() {
     final File file = cppPath.resolve("cpc-sliding.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -155,7 +157,7 @@ public class CpcCBinariesTest {
 
   //Image checks
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkEmptyImages() {
     final File file = cppPath.resolve("cpc-empty.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -174,7 +176,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkSparseImages() {
     final File file = cppPath.resolve("cpc-sparse.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -194,7 +196,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkHybridImages() {
     final File file = cppPath.resolve("cpc-hybrid.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -214,7 +216,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkPinnedImages() {
     final File file = cppPath.resolve("cpc-pinned.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -234,7 +236,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void checkSlidingImages() {
     final File file = cppPath.resolve("cpc-sliding.sk").toFile();
     try (MapHandle mh = Memory.map(file)) {
@@ -275,7 +277,7 @@ public class CpcCBinariesTest {
     println(sk2.toString(true));
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 100, 200, 2000, 20_000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};

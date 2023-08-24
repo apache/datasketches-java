@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 public class ThetaSketchSerDeTest {
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -40,7 +40,7 @@ public class ThetaSketchSerDeTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
     final UpdateSketch sk = UpdateSketch.builder().setP(0.01f).build();
     sk.update(1);

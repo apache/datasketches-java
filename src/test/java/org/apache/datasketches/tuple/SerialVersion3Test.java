@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,9 +30,9 @@ import org.testng.annotations.Test;
 
 public class SerialVersion3Test {
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void version2Compatibility() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk"));
+    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk"));
     Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
@@ -53,7 +53,7 @@ public class SerialVersion3Test {
     Assert.assertEquals(sketch1.isEstimationMode(), sketch2.isEstimationMode());
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void emptyFromCpp() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-empty-cpp.sk"));
     Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
@@ -63,7 +63,7 @@ public class SerialVersion3Test {
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void singleItemFromCpp() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-single-cpp.sk"));
     Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
@@ -73,7 +73,7 @@ public class SerialVersion3Test {
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void exactModeFromCpp() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-two-cpp.sk"));
     Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
@@ -83,7 +83,7 @@ public class SerialVersion3Test {
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
   }
 
-  @Test(groups = {"check_cpp_files"})
+  @Test(groups = {CHECK_CPP_FILES})
   public void estimationModeFromCpp() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppPath.resolve("tuple-int-est-trim-cpp.sk"));
     Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());

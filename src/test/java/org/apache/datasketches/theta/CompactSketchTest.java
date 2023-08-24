@@ -19,7 +19,8 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
+import static org.apache.datasketches.common.TestUtil.cppHistPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
@@ -590,9 +591,9 @@ public class CompactSketchTest {
     }
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void compatibilityWithCppEstimationModeV4() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("theta_estimation_mode_v4.sk"));
+    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("theta_estimation_mode_v4.sk"));
     CompactSketch cs1 = CompactSketch.heapify(Memory.wrap(byteArr));
 
     // construct sketch the same way

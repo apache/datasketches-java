@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.*;
 import static org.testng.Assert.assertEquals;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 public class ItemsSketchSerDeTest {
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {

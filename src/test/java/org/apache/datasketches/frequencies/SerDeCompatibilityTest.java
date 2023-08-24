@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.frequencies;
 
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -83,7 +84,7 @@ public class SerDeCompatibilityTest {
     Assert.assertEquals(sketch2.getEstimate(4L), 1);
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingLongsSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -96,7 +97,7 @@ public class SerDeCompatibilityTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingStringsSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -110,7 +111,7 @@ public class SerDeCompatibilityTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingStringsSketchAscii() throws IOException {
     final ItemsSketch<String> sk = new ItemsSketch<>(64);
     sk.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1);
@@ -121,7 +122,7 @@ public class SerDeCompatibilityTest {
       .write(sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingStringsSketchUtf8() throws IOException {
     final ItemsSketch<String> sk = new ItemsSketch<>(64);
     sk.update("абвгд", 1);

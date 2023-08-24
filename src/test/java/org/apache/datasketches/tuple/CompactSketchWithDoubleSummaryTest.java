@@ -19,7 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
+import static org.apache.datasketches.common.TestUtil.cppHistPath;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -191,9 +192,10 @@ public class CompactSketchWithDoubleSummaryTest {
         new DoubleSummaryFactory(mode));
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void serialVersion1Compatibility() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("CompactSketchWithDoubleSummary4K_serialVersion1.sk"));
+    final byte[] byteArr =
+        Files.readAllBytes(cppHistPath.resolve("CompactSketchWithDoubleSummary4K_serialVersion1.sk"));
     Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);

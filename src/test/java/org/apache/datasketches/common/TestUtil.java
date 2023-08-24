@@ -32,6 +32,13 @@ public final class TestUtil  {
   private static String userDir = System.getProperty("user.dir");
 
   /**
+   * TestNG group constants
+   */
+  public static final String GENERATE_JAVA_FILES = "generate_java_files";
+  public static final String CHECK_CPP_FILES = "check_cpp_files";
+  public static final String CHECK_CPP_HISTORICAL_FILES = "check_cpp_historical_files";
+
+  /**
    * The full target Path for Java serialized sketches to be tested by other languages.
    */
   public static Path javaPath = createPath("target/java_generated_files");
