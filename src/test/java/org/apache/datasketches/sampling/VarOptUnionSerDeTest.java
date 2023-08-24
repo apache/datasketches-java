@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.sampling;
 
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ import org.testng.annotations.Test;
 
 public class VarOptUnionSerDeTest {
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int kSmall = 16;
     final int n1 = 32;

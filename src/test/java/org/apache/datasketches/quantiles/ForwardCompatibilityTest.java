@@ -19,7 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
+import static org.apache.datasketches.common.TestUtil.cppHistPath;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ import org.testng.annotations.Test;
 public class ForwardCompatibilityTest {
   private static final String LS = System.getProperty("line.separator");
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.3.0.sk
   //Median2: 26.0
   public void check030_50() {
@@ -43,7 +44,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.3.0.sk
   //Median2: 501.0
   public void check030_1000() {
@@ -53,7 +54,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.6.0.sk
   //Median2: 26.0
   public void check060_50() {
@@ -63,7 +64,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.6.0.sk
   //Median2: 501.0
   public void check060_1000() {
@@ -73,7 +74,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.0.sk
   //Median2: 26.0
   public void check080_50() {
@@ -83,7 +84,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
   //Median2: 501.0
   public void check080_1000() {
@@ -93,7 +94,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.3.sk
   //Median2: 26.0
   public void check083_50() {
@@ -103,7 +104,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  @Test(groups = {"check_cpp_historical_files"})
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
   //Median2: 501.0
   public void check083_1000() {
@@ -124,7 +125,7 @@ public class ForwardCompatibilityTest {
     //Read File bytes
     byte[] byteArr;
     try {
-      byteArr = Files.readAllBytes(cppPath.resolve(fileName));
+      byteArr = Files.readAllBytes(cppHistPath.resolve(fileName));
     } catch (IOException e) { throw new SketchesArgumentException(e.getCause().toString()); }
     Memory srcMem = Memory.wrap(byteArr);
 

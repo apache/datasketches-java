@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -30,7 +31,7 @@ import org.testng.annotations.Test;
 
 public class ArrayOfDoublesSketchSerDeTest {
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingOneValue() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -40,7 +41,7 @@ public class ArrayOfDoublesSketchSerDeTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingThreeValues() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -50,7 +51,7 @@ public class ArrayOfDoublesSketchSerDeTest {
     }
   }
 
-  @Test(groups = {"generate_java_files"})
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
     final ArrayOfDoublesUpdatableSketch sk =
         new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();

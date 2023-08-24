@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.*;
 
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -202,15 +202,15 @@ public class ArrayOfDoublesUnionTest {
     }
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_historical_files"})
+  @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
     ArrayOfDoublesUnion.heapify(Memory.wrap(byteArr));
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {"check_cpp_historical_files"})
+  @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
     ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(byteArr));
   }
 
