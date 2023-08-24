@@ -25,7 +25,7 @@ import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
@@ -44,8 +44,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkEmptyBin() {
-    final File file = cppPath.resolve("cpc-empty.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-empty.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory wmem = mh.get();
       println(PreambleUtil.toString(wmem, true));
       final CpcSketch sk = CpcSketch.heapify(wmem);
@@ -57,8 +57,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkSparseBin() {
-    final File file = cppPath.resolve("cpc-sparse.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-sparse.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U99");
       println("PreambleUtil.toString(mem, true)" + LS);
@@ -82,8 +82,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkHybridBin() {
-    final File file = cppPath.resolve("cpc-hybrid.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-hybrid.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U199");
       println("PreambleUtil.toString(mem, true)" + LS);
@@ -107,8 +107,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkPinnedBin() {
-    final File file = cppPath.resolve("cpc-pinned.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-pinned.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U1999");
       println("PreambleUtil.toString(mem, true)" + LS);
@@ -132,8 +132,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkSlidingBin() {
-    final File file = cppPath.resolve("cpc-sliding.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-sliding.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U19999");
       println("PreambleUtil.toString(mem, true)" + LS);
@@ -159,8 +159,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkEmptyImages() {
-    final File file = cppPath.resolve("cpc-empty.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-empty.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
       final byte[] memByteArr = new byte[cap];
@@ -178,8 +178,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkSparseImages() {
-    final File file = cppPath.resolve("cpc-sparse.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-sparse.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
       final byte[] memByteArr = new byte[cap];
@@ -198,8 +198,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkHybridImages() {
-    final File file = cppPath.resolve("cpc-hybrid.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-hybrid.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
       final byte[] memByteArr = new byte[cap];
@@ -218,8 +218,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkPinnedImages() {
-    final File file = cppPath.resolve("cpc-pinned.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-pinned.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
       final byte[] cppMemByteArr = new byte[cap];
@@ -238,8 +238,8 @@ public class CpcCBinariesTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkSlidingImages() {
-    final File file = cppPath.resolve("cpc-sliding.sk").toFile();
-    try (MapHandle mh = Memory.map(file)) {
+    final Path path = cppPath.resolve("cpc-sliding.sk");
+    try (MapHandle mh = Memory.map(path.toFile())) {
       final Memory mem = mh.get();
       final int cap = (int) mem.getCapacity();
       final byte[] memByteArr = new byte[cap];
