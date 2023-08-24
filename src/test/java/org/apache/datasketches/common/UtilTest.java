@@ -37,8 +37,6 @@ import static org.apache.datasketches.common.Util.exactLog2OfInt;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.common.Util.floorPowerBaseOfDouble;
 import static org.apache.datasketches.common.Util.floorPowerOf2;
-import static org.apache.datasketches.common.Util.getResourceBytes;
-import static org.apache.datasketches.common.Util.getResourceFile;
 import static org.apache.datasketches.common.Util.intToBytes;
 import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.common.Util.isEven;
@@ -63,8 +61,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
-
-import java.io.File;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -453,34 +449,6 @@ public class UtilTest {
     assertEquals(s, "0102030405060708");
     s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[1]), 16);
     assertEquals(s, "00000000090a0b0c");
-  }
-
-  //Resources
-
-  @Test
-  public void resourcefileExists() {
-    final String shortFileName = "cpc-empty.sk";
-    final File file = getResourceFile(shortFileName);
-    assertTrue(file.exists());
-  }
-
-  @Test(expectedExceptions = NullPointerException.class)
-  public void resourceFileNotFound() {
-    final String shortFileName = "cpc-empty.sk";
-    getResourceFile(shortFileName + "123");
-  }
-
-  @Test
-  public void resourceBytesCorrect() {
-    final String shortFileName = "cpc-empty.sk";
-    final byte[] bytes = getResourceBytes(shortFileName);
-    assertTrue(bytes.length == 8);
-  }
-
-  @Test(expectedExceptions = NullPointerException.class)
-  public void resourceBytesFileNotFound() {
-    final String shortFileName = "cpc-empty.sk";
-    getResourceBytes(shortFileName + "123");
   }
 
   @Test
