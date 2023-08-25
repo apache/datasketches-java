@@ -1,0 +1,30 @@
+name: Serialization Compatibility Test
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: SerDe Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Checkout C++
+        uses: actions/checkout@v3
+        with:
+          repository: apache/datasketches-cpp
+          path: cpp
+      - name: Configure C++ build
+        run: cd cpp/build && cmake .. -DGENERATE=true
+      - name: Build C++ unit tests
+        run: cd cpp && cmake --build build --config Release
+      - name: Run C++ tests
+        run: cd cpp && cmake --build build --config Release --target test
+      - name: Copy files
+        run: cp cpp/build/*/test/*_cpp.sk src/test/resources
+      - name: Run Java tests
+        run: mvn test -P check-cpp-files
