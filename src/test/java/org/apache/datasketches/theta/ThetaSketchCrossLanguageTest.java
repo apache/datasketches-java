@@ -66,6 +66,33 @@ public class ThetaSketchCrossLanguageTest {
       final CompactSketch sketch = CompactSketch.wrap(Memory.wrap(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
+      assertTrue(sketch.isOrdered());
+      final HashIterator it = sketch.iterator();
+      long previous = 0;
+      while (it.next()) {
+        assertTrue(it.get() < sketch.getThetaLong());
+        assertTrue(it.get() > previous);
+        previous = it.get();
+      }
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void deserializeFromCppCompressed() throws IOException {
+    final int[] nArr = {10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_compressed_n" + n + "_cpp.sk"));
+      final CompactSketch sketch = CompactSketch.wrap(Memory.wrap(bytes));
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertEquals(sketch.getEstimate(), n, n * 0.03);
+      assertTrue(sketch.isOrdered());
+      final HashIterator it = sketch.iterator();
+      long previous = 0;
+      while (it.next()) {
+        assertTrue(it.get() < sketch.getThetaLong());
+        assertTrue(it.get() > previous);
+        previous = it.get();
+      }
     }
   }
 
