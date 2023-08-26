@@ -19,16 +19,25 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.common.TestUtil.*;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
-public class ThetaSketchSerDeTest {
+/**
+ * Serialize binary sketches to be tested by C++ code.
+ * Test deserialization of binary sketches serialized by C++ code.
+ */
+public class ThetaSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
@@ -47,6 +56,25 @@ public class ThetaSketchSerDeTest {
     assertFalse(sk.isEmpty());
     assertEquals(sk.getRetainedEntries(), 0);
     Files.newOutputStream(javaPath.resolve("theta_non_empty_no_entries_java.sk")).write(sk.compact().toByteArray());
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void deserializeFromCpp() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_n" + n + "_cpp.sk"));
+      final CompactSketch sketch = CompactSketch.wrap(Memory.wrap(bytes));
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertEquals(sketch.getEstimate(), n, n * 0.03);
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void deserializeFromCppNonEmptyNoEntries() throws IOException {
+    final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_non_empty_no_entries_cpp.sk"));
+    final CompactSketch sketch = CompactSketch.wrap(Memory.wrap(bytes));
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getRetainedEntries(), 0);
   }
 
 }
