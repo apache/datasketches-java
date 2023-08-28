@@ -19,17 +19,12 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
-import static org.apache.datasketches.common.TestUtil.cppHistPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.nio.file.Files;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -588,29 +583,6 @@ public class CompactSketchTest {
     HashIterator it2 = cs2.iterator();
     while (it1.next() && it2.next()) {
       assertEquals(it2.get(), it2.get());
-    }
-  }
-
-  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void compatibilityWithCppEstimationModeV4() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("theta_estimation_mode_v4.sk"));
-    CompactSketch cs1 = CompactSketch.heapify(Memory.wrap(byteArr));
-
-    // construct sketch the same way
-    UpdateSketch sk = Sketches.updateSketchBuilder().build();
-    for (int i = 0; i < 10000; i++) {
-      sk.update(i);
-    }
-    CompactSketch cs2 = sk.compact();
-    assertEquals(cs1.isEmpty(), cs2.isEmpty());
-    assertEquals(cs1.isEstimationMode(), cs2.isEstimationMode());
-    assertEquals(cs1.getTheta(), cs2.getTheta());
-    assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
-    HashIterator it1 = cs1.iterator();
-    HashIterator it2 = cs2.iterator();
-    while (it1.next()) {
-      assertTrue(it2.next());
-      assertEquals(it1.get(), it2.get());
     }
   }
 

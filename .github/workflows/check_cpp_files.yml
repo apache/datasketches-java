@@ -24,7 +24,9 @@ jobs:
         run: cd cpp && cmake --build build --config Release
       - name: Run C++ tests
         run: cd cpp && cmake --build build --config Release --target test
+      - name: Make dir
+        run: mkdir -p target/cpp_generated_files
       - name: Copy files
-        run: cp cpp/build/*/test/*_cpp.sk src/test/resources
+        run: cp cpp/build/*/test/*_cpp.sk target/cpp_generated_files
       - name: Run Java tests
         run: mvn test -P check-cpp-files

@@ -153,14 +153,14 @@ public class KllCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
-  public void kllString() throws IOException {
+  public void kllString() throws IOException, NumberFormatException {
     // sketch contains numbers in strings to make meaningful assertions
     Comparator<String> numericOrder = new Comparator<String>() {
       @Override
       public int compare(final String s1, final String s2) {
-        final Integer i1 = Integer.parseInt(s1);
-        final Integer i2 = Integer.parseInt(s2);
-        return i1.compareTo(i2);
+        final int i1 = Integer.parseInt(s1);
+        final int i2 = Integer.parseInt(s2);
+        return Integer.valueOf(i1).compareTo(i2);
       }
     };
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};

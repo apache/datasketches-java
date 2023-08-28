@@ -20,9 +20,12 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.cppHistPath;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -31,9 +34,11 @@ import java.nio.file.Files;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -41,6 +46,7 @@ import org.testng.annotations.Test;
  * Test deserialization of binary sketches serialized by C++ code.
  */
 public class QuantilesSketchCrossLanguageTest {
+  private static final String LS = System.getProperty("line.separator");
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateDoublesSketch() throws IOException {
@@ -53,15 +59,15 @@ public class QuantilesSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateItemsSketchWithStrings() throws IOException {
+  public void generateItemsSketchWithStrings() throws IOException, NumberFormatException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
       final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, new Comparator<String>() {
         @Override
         public int compare(final String s1, final String s2) {
-          final Integer i1 = Integer.parseInt(s1);
-          final Integer i2 = Integer.parseInt(s2);
-          return i1.compareTo(i2);
+          final int i1 = Integer.parseInt(s1);
+          final int i2 = Integer.parseInt(s2);
+          return Integer.valueOf(i1).compareTo(i2);
         }
       });
       for (int i = 1; i <= n; i++) sk.update(Integer.toString(i));
@@ -99,14 +105,14 @@ public class QuantilesSketchCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
-  public void checkItemsSketchWithStrings() throws IOException {
+  public void checkItemsSketchWithStrings() throws IOException, NumberFormatException {
     // sketch contains numbers in strings to make meaningful assertions
     Comparator<String> numericOrder = new Comparator<String>() {
       @Override
       public int compare(final String s1, final String s2) {
-        final Integer i1 = Integer.parseInt(s1);
-        final Integer i2 = Integer.parseInt(s2);
-        return i1.compareTo(i2);
+        final int i1 = Integer.parseInt(s1);
+        final int i2 = Integer.parseInt(s2);
+        return Integer.valueOf(i1).compareTo(i2);
       }
     };
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
@@ -133,6 +139,135 @@ public class QuantilesSketchCrossLanguageTest {
         }
         assertEquals(weight, n);
       }
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.3.0.sk
+  //Median2: 26.0
+  public void check030_50() {
+    int n = 50;
+    String ver = "0.3.0";
+    double expected = 26;
+    getAndCheck(ver, n, expected);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.3.0.sk
+  //Median2: 501.0
+  public void check030_1000() {
+    int n = 1000;
+    String ver = "0.3.0";
+    double expected = 501;
+    getAndCheck(ver, n, expected);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.6.0.sk
+  //Median2: 26.0
+  public void check060_50() {
+    int n = 50;
+    String ver = "0.6.0";
+    double expected = 26;
+    getAndCheck(ver, n, expected);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.6.0.sk
+  //Median2: 501.0
+  public void check060_1000() {
+    int n = 1000;
+    String ver = "0.6.0";
+    double expected = 501;
+    getAndCheck(ver, n, expected);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.0.sk
+  //Median2: 26.0
+  public void check080_50() {
+    int n = 50;
+    String ver = "0.8.0";
+    double expected = 26;
+    getAndCheck(ver, n, expected);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
+  //Median2: 501.0
+  public void check080_1000() {
+    int n = 1000;
+    String ver = "0.8.0";
+    double expected = 501;
+    getAndCheck(ver, n, expected);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.3.sk
+  //Median2: 26.0
+  public void check083_50() {
+    int n = 50;
+    String ver = "0.8.3";
+    double expected = 26;
+    getAndCheck(ver, n, expected);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
+  //Median2: 501.0
+  public void check083_1000() {
+    int n = 1000;
+    String ver = "0.8.3";
+    double expected = 501;
+    getAndCheck(ver, n, expected);
+  }
+
+  private static void getAndCheck(String ver, int n, double quantile)  {
+    DoublesSketch.rand.setSeed(131); //make deterministic
+    //create fileName
+    int k = 128;
+    double nf = 0.5;
+    String fileName = String.format("Qk%d_n%d_v%s.sk", k, n, ver);
+    println("fullName: "+ fileName);
+    println("Old Median: " + quantile);
+    //Read File bytes
+    byte[] byteArr;
+    try {
+      byteArr = Files.readAllBytes(cppHistPath.resolve(fileName));
+    } catch (IOException e) { throw new SketchesArgumentException(e.getCause().toString()); }
+    Memory srcMem = Memory.wrap(byteArr);
+
+    // heapify as update sketch
+    DoublesSketch qs2 = UpdateDoublesSketch.heapify(srcMem);
+    //Test the quantile
+    double q2 = qs2.getQuantile(nf, EXCLUSIVE);
+    println("New Median: " + q2);
+    Assert.assertEquals(q2, quantile, 0.0);
+
+    // same thing with compact sketch
+    qs2 = CompactDoublesSketch.heapify(srcMem);
+    //Test the quantile
+    q2 = qs2.getQuantile(nf, EXCLUSIVE);
+    println("New Median: " + q2);
+    Assert.assertEquals(q2, quantile, 0.0);
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
+  static void println(final Object o) {
+    if (o == null) { print(LS); }
+    else { print(o.toString() + LS); }
+  }
+
+  /**
+   * @param o value to print
+   */
+  static void print(final Object o) {
+    if (o != null) {
+      //System.out.print(o.toString()); //disable here
     }
   }
 
