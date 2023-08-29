@@ -59,15 +59,19 @@ public class QuantilesSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateItemsSketchWithStrings() throws IOException, NumberFormatException {
+  public void generateItemsSketchWithStrings() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
       final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, new Comparator<String>() {
         @Override
         public int compare(final String s1, final String s2) {
-          final int i1 = Integer.parseInt(s1);
-          final int i2 = Integer.parseInt(s2);
-          return Integer.valueOf(i1).compareTo(i2);
+          try {
+            final int i1 = Integer.parseInt(s1);
+            final int i2 = Integer.parseInt(s2);
+            return Integer.valueOf(i1).compareTo(i2);
+          } catch (NumberFormatException e) {
+            throw new RuntimeException(e);
+          }
         }
       });
       for (int i = 1; i <= n; i++) sk.update(Integer.toString(i));
@@ -105,14 +109,18 @@ public class QuantilesSketchCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
-  public void checkItemsSketchWithStrings() throws IOException, NumberFormatException {
+  public void checkItemsSketchWithStrings() throws IOException {
     // sketch contains numbers in strings to make meaningful assertions
     Comparator<String> numericOrder = new Comparator<String>() {
       @Override
       public int compare(final String s1, final String s2) {
-        final int i1 = Integer.parseInt(s1);
-        final int i2 = Integer.parseInt(s2);
-        return Integer.valueOf(i1).compareTo(i2);
+        try {
+          final int i1 = Integer.parseInt(s1);
+          final int i2 = Integer.parseInt(s2);
+          return Integer.valueOf(i1).compareTo(i2);
+        } catch (NumberFormatException e) {
+          throw new RuntimeException(e);
+        }
       }
     };
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
