@@ -66,11 +66,23 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
       final long totalN,
       final T minItem,
       final Comparator<? super T> comparator) {
-    this.quantiles = quantiles;
-    this.cumWeights  = cumWeights;
+    this.quantiles = quantiles.clone();
+    this.cumWeights  = cumWeights.clone();
     this.totalN = totalN;
     this.minItem = minItem;
     this.comp = comparator;
+  }
+
+  /**
+   * Copy constructor.
+   * @param sv the given Sorted View
+   */
+  public KllItemsSketchSortedView(final KllItemsSketchSortedView<T> sv) {
+    this.quantiles = sv.quantiles.clone();
+    this.cumWeights = sv.cumWeights.clone();
+    this.totalN = sv.totalN;
+    this.minItem = sv.minItem;
+    this.comp = sv.comp;
   }
 
   /**

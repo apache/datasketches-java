@@ -767,7 +767,7 @@ public final class Util {
    * @return the given number to a string prepended with spaces
    */
   public static String intToFixedLengthString(final int number, final int length) {
-    final String num = Integer.valueOf(number).toString();
+    final String num = Integer.toString(number);
     return characterPad(num, length, ' ', false);
   }
 
