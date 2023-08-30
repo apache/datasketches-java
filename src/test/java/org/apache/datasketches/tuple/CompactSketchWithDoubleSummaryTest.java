@@ -19,12 +19,6 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
-import static org.apache.datasketches.common.TestUtil.cppHistPath;
-
-import java.io.IOException;
-import java.nio.file.Files;
-
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
@@ -190,23 +184,6 @@ public class CompactSketchWithDoubleSummaryTest {
     Sketches.heapifyUpdatableSketch(Memory.wrap(sketch1.toByteArray()),
         new DoubleSummaryDeserializer(),
         new DoubleSummaryFactory(mode));
-  }
-
-  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void serialVersion1Compatibility() throws IOException {
-    final byte[] byteArr =
-        Files.readAllBytes(cppHistPath.resolve("CompactSketchWithDoubleSummary4K_serialVersion1.sk"));
-    Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new DoubleSummaryDeserializer());
-    Assert.assertTrue(sketch.isEstimationMode());
-    Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
-    Assert.assertEquals(sketch.getRetainedEntries(), 4096);
-    int count = 0;
-    TupleSketchIterator<DoubleSummary> it = sketch.iterator();
-    while (it.next()) {
-      Assert.assertEquals(it.getSummary().getValue(), 1.0);
-      count++;
-    }
-    Assert.assertEquals(count, 4096);
   }
 
 }

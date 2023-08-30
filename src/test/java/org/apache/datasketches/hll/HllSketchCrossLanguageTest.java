@@ -19,18 +19,27 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
-public class HllSketchSerDeTest {
+/**
+ * Serialize binary sketches to be tested by C++ code.
+ * Test deserialization of binary sketches serialized by C++ code.
+ */
+public class HllSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
@@ -45,6 +54,42 @@ public class HllSketchSerDeTest {
       Files.newOutputStream(javaPath.resolve("hll4_n" + n + "_java.sk")).write(hll4.toCompactByteArray());
       Files.newOutputStream(javaPath.resolve("hll6_n" + n + "_java.sk")).write(hll6.toCompactByteArray());
       Files.newOutputStream(javaPath.resolve("hll8_n" + n + "_java.sk")).write(hll8.toCompactByteArray());
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void hll4() throws IOException {
+    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll4_n" + n + "_cpp.sk"));
+      final HllSketch sketch = HllSketch.heapify(Memory.wrap(bytes));
+      assertEquals(sketch.getLgConfigK(), 12);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertEquals(sketch.getEstimate(), n, n * 0.02);
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void hll6() throws IOException {
+    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll6_n" + n + "_cpp.sk"));
+      final HllSketch sketch = HllSketch.heapify(Memory.wrap(bytes));
+      assertEquals(sketch.getLgConfigK(), 12);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertEquals(sketch.getEstimate(), n, n * 0.02);
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void hll8() throws IOException {
+    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll8_n" + n + "_cpp.sk"));
+      final HllSketch sketch = HllSketch.heapify(Memory.wrap(bytes));
+      assertEquals(sketch.getLgConfigK(), 12);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertEquals(sketch.getEstimate(), n, n * 0.02);
     }
   }
 

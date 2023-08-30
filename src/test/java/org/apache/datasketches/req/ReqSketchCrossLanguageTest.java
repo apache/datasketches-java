@@ -19,15 +19,25 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.testng.annotations.Test;
 
-public class ReqSketchSerDeTest {
+/**
+ * Serialize binary sketches to be tested by C++ code.
+ * Test deserialization of binary sketches serialized by C++ code.
+ */
+public class ReqSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
@@ -36,6 +46,30 @@ public class ReqSketchSerDeTest {
       final ReqSketch sk = ReqSketch.builder().build();
       for (int i = 1; i <= n; i++) sk.update(i);
       Files.newOutputStream(javaPath.resolve("req_float_n" + n + "_java.sk")).write(sk.toByteArray());
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void deserializeFromCpp() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("req_float_n" + n + "_cpp.sk"));
+      final ReqSketch sk = ReqSketch.heapify(Memory.wrap(bytes));
+      assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
+      assertTrue(n > 10 ? sk.isEstimationMode() : !sk.isEstimationMode());
+      assertEquals(sk.getN(), n);
+      if (n > 0) {
+        assertEquals(sk.getMinItem(), 1);
+        assertEquals(sk.getMaxItem(), n);
+        QuantilesFloatsSketchIterator it = sk.iterator();
+        long weight = 0;
+        while(it.next()) {
+          assertTrue(it.getQuantile() >= sk.getMinItem());
+          assertTrue(it.getQuantile() <= sk.getMaxItem());
+          weight += it.getWeight();
+        }
+        assertEquals(weight, n);
+      }
     }
   }
 

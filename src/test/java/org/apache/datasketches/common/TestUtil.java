@@ -46,7 +46,7 @@ public final class TestUtil  {
   /**
    * The full target Path for C++ serialized sketches to be tested by Java.
    */
-  public static Path cppPath = createPath("src/test/resources");
+  public static Path cppPath = createPath("target/cpp_generated_files");
 
   /**
    * The full target Path for historical C++ serialized sketches to be tested by Java.

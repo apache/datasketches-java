@@ -19,9 +19,6 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.common.TestUtil.*;
-
-import java.nio.file.Files;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -200,18 +197,6 @@ public class ArrayOfDoublesUnionTest {
     for (int i = 0; i < values.length; i++) {
       Assert.assertEquals(values[i][0], 2.0);
     }
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
-    ArrayOfDoublesUnion.heapify(Memory.wrap(byteArr));
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
-    ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(byteArr));
   }
 
   @Test

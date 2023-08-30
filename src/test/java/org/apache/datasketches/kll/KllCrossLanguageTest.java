@@ -27,6 +27,7 @@ import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +36,9 @@ import java.util.Comparator;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.annotations.Test;
 
 /**
@@ -74,15 +78,6 @@ public class KllCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void checkCppKllDoublesSketchEstimationMode() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("kll_double_estimation_cpp.sk"));
-    final KllDoublesSketch sk = KllDoublesSketch.heapify(Memory.wrap(byteArr));
-    assertEquals(sk.getMinItem(), 0);
-    assertEquals(sk.getMaxItem(), 999);
-    assertEquals(sk.getN(), 1000);
-  }
-
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllDoublesSketchOneItemVersion1() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("kll_sketch_double_one_item_v1.sk"));
@@ -95,15 +90,6 @@ public class KllCrossLanguageTest {
     assertEquals(sk.getMaxItem(), 1.0);
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void checkCppKllFloatsSketchEstimationMode() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppPath.resolve("kll_float_estimation_cpp.sk"));
-    final KllFloatsSketch sk = KllFloatsSketch.heapify(Memory.wrap(byteArr));
-    assertEquals(sk.getMinItem(), 0);
-    assertEquals(sk.getMaxItem(), 999);
-    assertEquals(sk.getN(), 1000);
-  }
-
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllFloatsSketchOneItemVersion1() throws IOException {
     final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("kll_sketch_float_one_item_v1.sk"));
@@ -114,6 +100,98 @@ public class KllCrossLanguageTest {
     assertEquals(sk.getNumRetained(), 1);
     assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getMaxItem(), 1.0F);
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void kllFloat() throws IOException {
+    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_float_n" + n + "_cpp.sk"));
+      final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
+      assertEquals(sketch.getK(), 200);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertTrue(n > 100 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
+      assertEquals(sketch.getN(), n);
+      if (n > 0) {
+        assertEquals(sketch.getMinItem(), 1);
+        assertEquals(sketch.getMaxItem(), n);
+        long weight = 0;
+        QuantilesFloatsSketchIterator it = sketch.iterator();
+        while (it.next()) {
+          assertTrue(it.getQuantile() >= sketch.getMinItem());
+          assertTrue(it.getQuantile() <= sketch.getMaxItem());
+          weight += it.getWeight();
+        }
+        assertEquals(weight, n);
+      }
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void kllDouble() throws IOException {
+    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_double_n" + n + "_cpp.sk"));
+      final KllDoublesSketch sketch = KllDoublesSketch.heapify(Memory.wrap(bytes));
+      assertEquals(sketch.getK(), 200);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertTrue(n > 100 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
+      assertEquals(sketch.getN(), n);
+      if (n > 0) {
+        assertEquals(sketch.getMinItem(), 1);
+        assertEquals(sketch.getMaxItem(), n);
+        long weight = 0;
+        QuantilesDoublesSketchIterator it = sketch.iterator();
+        while (it.next()) {
+          assertTrue(it.getQuantile() >= sketch.getMinItem());
+          assertTrue(it.getQuantile() <= sketch.getMaxItem());
+          weight += it.getWeight();
+        }
+        assertEquals(weight, n);
+      }
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void kllString() throws IOException {
+    // sketch contains numbers in strings to make meaningful assertions
+    Comparator<String> numericOrder = new Comparator<String>() {
+      @Override
+      public int compare(final String s1, final String s2) {
+        try {
+          final int i1 = Integer.parseInt(s1);
+          final int i2 = Integer.parseInt(s2);
+          return Integer.valueOf(i1).compareTo(i2);
+        } catch (NumberFormatException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    };
+    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    for (int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_string_n" + n + "_cpp.sk"));
+      final KllHeapItemsSketch<String> sketch = new KllHeapItemsSketch<>(
+        Memory.wrap(bytes),
+        numericOrder,
+        new ArrayOfStringsSerDe()
+      );
+      assertEquals(sketch.getK(), 200);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertTrue(n > 100 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
+      assertEquals(sketch.getN(), n);
+      if (n > 0) {
+        assertEquals(sketch.getMinItem(), Integer.toString(1));
+        assertEquals(sketch.getMaxItem(), Integer.toString(n));
+        long weight = 0;
+        QuantilesGenericSketchIterator<String> it = sketch.iterator();
+        while (it.next()) {
+          assertTrue(numericOrder.compare(it.getQuantile(), sketch.getMinItem()) >= 0);
+          assertTrue(numericOrder.compare(it.getQuantile(), sketch.getMaxItem()) <= 0);
+          weight += it.getWeight();
+        }
+        assertEquals(weight, n);
+      }
+    }
   }
 
 }
