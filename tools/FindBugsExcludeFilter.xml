@@ -40,14 +40,8 @@ under the License.
   </Match>
 
   <!-- Harmless, Too many False Positives May 2, 2023 -->
-  <Match>
+  <Match>   
     <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-  </Match>
-  
-  <!-- This is test utility class -->
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP2" />
-    <Class name="org.apache.datasketches.req.ReqDebugImpl" />
   </Match>
 
 </FindBugsFilter>

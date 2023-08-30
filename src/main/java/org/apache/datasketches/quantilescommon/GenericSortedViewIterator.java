@@ -35,8 +35,8 @@ public class GenericSortedViewIterator<T> implements SortedViewIterator {
   private int index;
 
   public GenericSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
-    this.quantiles = quantiles.clone();
-    this.cumWeights = cumWeights.clone();
+    this.quantiles = quantiles;
+    this.cumWeights = cumWeights;
     this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
     index = -1;
   }

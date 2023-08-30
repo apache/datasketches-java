@@ -28,6 +28,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Comparator;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;

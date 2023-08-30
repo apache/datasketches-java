@@ -154,14 +154,14 @@ public class KllCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void kllString() throws IOException {
-    // the sketch under test intentionally contains numbers in strings to make meaningful assertions
+    // sketch contains numbers in strings to make meaningful assertions
     Comparator<String> numericOrder = new Comparator<String>() {
       @Override
       public int compare(final String s1, final String s2) {
         try {
           final int i1 = Integer.parseInt(s1);
           final int i2 = Integer.parseInt(s2);
-          return Integer.compare(i1, i2);
+          return Integer.valueOf(i1).compareTo(i2);
         } catch (NumberFormatException e) {
           throw new RuntimeException(e);
         }

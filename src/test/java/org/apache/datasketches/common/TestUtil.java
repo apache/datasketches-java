@@ -29,7 +29,7 @@ import java.nio.file.Paths;
  */
 public final class TestUtil  {
 
-  private static final String userDir = System.getProperty("user.dir");
+  private static String userDir = System.getProperty("user.dir");
 
   /**
    * TestNG group constants
@@ -41,17 +41,17 @@ public final class TestUtil  {
   /**
    * The full target Path for Java serialized sketches to be tested by other languages.
    */
-  public static final Path javaPath = createPath("target/java_generated_files");
+  public static Path javaPath = createPath("target/java_generated_files");
 
   /**
    * The full target Path for C++ serialized sketches to be tested by Java.
    */
-  public static final Path cppPath = createPath("target/cpp_generated_files");
+  public static Path cppPath = createPath("target/cpp_generated_files");
 
   /**
    * The full target Path for historical C++ serialized sketches to be tested by Java.
    */
-  public static final Path cppHistPath = createPath("src/test/resources");
+  public static Path cppHistPath = createPath("src/test/resources");
 
   private static Path createPath(final String projectLocalDir) {
     try {
