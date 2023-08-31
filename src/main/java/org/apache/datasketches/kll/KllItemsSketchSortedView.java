@@ -58,9 +58,8 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param totalN the total number of items presented to the sketch.
    * @param minItem used to extract the type of T
    * @param comparator the Comparator for type T
-   *
    */
-  public KllItemsSketchSortedView(
+  KllItemsSketchSortedView(
       final T[] quantiles,
       final long[] cumWeights,
       final long totalN,
@@ -77,7 +76,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
    * Constructs this Sorted View given the sketch
    * @param sk the given KllItemsSketch.
    */
-  public KllItemsSketchSortedView(final KllItemsSketch<T> sk) {
+  KllItemsSketchSortedView(final KllItemsSketch<T> sk) {
     this.totalN = sk.getN();
     this.minItem = sk.getMinItem();
     final Object[] srcQuantiles = sk.getTotalItemsArray();

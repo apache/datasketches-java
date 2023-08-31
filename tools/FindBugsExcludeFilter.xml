@@ -44,4 +44,24 @@ under the License.
     <Bug pattern="DLS_DEAD_LOCAL_STORE" />
   </Match>
 
+  <!-- Used in test only. -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Class name="org.apache.datasketches.req.ReqDebugImpl"/>
+  </Match>
+
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP"/>
+    <Class name="org.apache.datasketches.kll.KllItemsSketch"/>
+  </Match>
+
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Class name="org.apache.datasketches.kll.KllItemsSketchSortedView"/>
+  </Match>
+  
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
+  </Match>
 </FindBugsFilter>

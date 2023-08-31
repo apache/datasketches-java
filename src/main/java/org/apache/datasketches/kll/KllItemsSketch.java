@@ -240,7 +240,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public KllItemsSketchSortedView<T> getSortedView() {
+  public final KllItemsSketchSortedView<T> getSortedView() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllItemsSV;
