@@ -32,7 +32,7 @@ public class ReqSketchBuilderTest {
   @Test
   public void checkBldr() {
     final ReqSketchBuilder bldr = new ReqSketchBuilder();
-    final ReqDebugImpl rdi = new ReqDebugImpl(2, "%4.0f");
+    final ReqDebugImplTest rdi = new ReqDebugImplTest(2, "%4.0f");
     bldr.setK(50).setHighRankAccuracy(true).setReqDebug(rdi);
     assertEquals(bldr.getK(), 50);
     assertEquals(bldr.getHighRankAccuracy(), true);

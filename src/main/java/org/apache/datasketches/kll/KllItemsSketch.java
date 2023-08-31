@@ -242,8 +242,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   public final KllItemsSketchSortedView<T> getSortedView() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    refreshSortedView();
-    return kllItemsSV; //SpotBugs EI_EXPOSE_REP, Suppressed by FindBugsExcludeFilter
+    return refreshSortedView();
+    //return kllItemsSV; //SpotBugs EI_EXPOSE_REP, Suppressed by FindBugsExcludeFilter
   }
 
   @Override
@@ -301,8 +301,11 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   abstract int getMinMaxSizeBytes();
 
-  private final void refreshSortedView() {
-    kllItemsSV = (kllItemsSV == null) ? new KllItemsSketchSortedView<T>(this) : kllItemsSV;
+  private final KllItemsSketchSortedView<T> refreshSortedView() {
+    final KllItemsSketchSortedView<T> sv = (kllItemsSV == null)
+        ? kllItemsSV = new KllItemsSketchSortedView<T>(this)
+        : kllItemsSV;
+    return sv;
   }
 
   abstract T[] getRetainedItemsArray();

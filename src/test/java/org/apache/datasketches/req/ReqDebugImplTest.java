@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author Lee Rhodes
  */
-public class ReqDebugImpl implements ReqDebug {
+public class ReqDebugImplTest implements ReqDebug {
   private static final String LS = System.getProperty("line.separator");
   private static final String TAB = "\t";
   private ReqSketch sk;
@@ -45,7 +45,7 @@ public class ReqDebugImpl implements ReqDebug {
    * @param debugLevel sets the debug level of detail
    * @param fmt string format to use when printing values
    */
-  public ReqDebugImpl(final int debugLevel, final String fmt) {
+  public ReqDebugImplTest(final int debugLevel, final String fmt) {
     this.debugLevel = debugLevel;
     this.fmt = fmt;
   }
