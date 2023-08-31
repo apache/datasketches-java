@@ -41,7 +41,7 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
+public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final T[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
@@ -54,7 +54,10 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param totalN the total number of items presented to the sketch.
    * @param comparator comparator for type T
    */
-  ItemsSketchSortedView(final T[] quantiles, final long[] cumWeights, final long totalN,
+  ItemsSketchSortedView(
+      final T[] quantiles,
+      final long[] cumWeights,
+      final long totalN,
       final Comparator<T> comparator) {
     this.quantiles = quantiles;
     this.cumWeights = cumWeights;

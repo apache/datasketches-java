@@ -80,7 +80,7 @@ public class ReqSketchTest {
   public ReqSketch loadSketch(final int k, final int min, final int max, final boolean up,
       final boolean hra, final int skDebug) {
     final ReqSketchBuilder bldr = ReqSketch.builder();
-    bldr.setReqDebug(new ReqDebugImpl(skDebug, "%5.0f"));
+    bldr.setReqDebug(new ReqDebugImplTest(skDebug, "%5.0f"));
     bldr.setK(k);
     bldr.setHighRankAccuracy(hra);
     final ReqSketch sk = bldr.build();

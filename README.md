@@ -150,3 +150,9 @@ In Eclipse, open the project *Properties / Java Build Path / Module Dependencies
 
 **NOTE:** If you execute *Maven/Update Project...* from Eclipse with the option *Update project configuration from pom.xml* checked, all of the above will be erased, and you will have to redo it.
 
+## Known Issues
+
+#### SpotBugs
+
+* Make sure you configure SpotBugs with the /tools/FindBugsExcludeFilter.xml file. Otherwise, you will get a lot of false positive or low risk issues that we have examined and exliminated with this exclusion file.
+

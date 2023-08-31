@@ -161,7 +161,7 @@ public class KllCrossLanguageTest {
         try {
           final int i1 = Integer.parseInt(s1);
           final int i2 = Integer.parseInt(s2);
-          return Integer.valueOf(i1).compareTo(i2);
+          return Integer.compare(i1, i2);
         } catch (NumberFormatException e) {
           throw new RuntimeException(e);
         }

@@ -17,35 +17,20 @@
  * under the License.
  */
 
-package org.apache.datasketches.req;
+package org.apache.datasketches.quantiles;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-import org.testng.annotations.Test;
+import java.util.Comparator;
 
 /**
- * @author Lee Rhodes
+ * For testing only
  */
-public class ReqSketchBuilderTest {
+public class ItemsSketchSortedViewString extends ItemsSketchSortedView<String> {
 
-  @Test
-  public void checkBldr() {
-    final ReqSketchBuilder bldr = new ReqSketchBuilder();
-    final ReqDebugImplTest rdi = new ReqDebugImplTest(2, "%4.0f");
-    bldr.setK(50).setHighRankAccuracy(true).setReqDebug(rdi);
-    assertEquals(bldr.getK(), 50);
-    assertEquals(bldr.getHighRankAccuracy(), true);
-    assertTrue(bldr.getReqDebug() != null);
-    println(bldr.toString());
-    bldr.setReqDebug(null);
-    println(bldr.toString());
-  }
-
-  /**
-   * @param o object to be printed
-   */
-  static void println(final Object o) {
-    //System.out.println(o.toString());
+  public ItemsSketchSortedViewString(
+      final String[] quantiles,
+      final long[] cumWeights,
+      final long totalN,
+      final Comparator<String> comparator) {
+    super(quantiles, cumWeights, totalN, comparator);
   }
 }

@@ -44,4 +44,9 @@ under the License.
     <Bug pattern="DLS_DEAD_LOCAL_STORE" />
   </Match>
 
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2"/>
+    <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
+  </Match>
+
 </FindBugsFilter>

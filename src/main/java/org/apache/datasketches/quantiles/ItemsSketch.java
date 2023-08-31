@@ -581,7 +581,8 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   @Override
   public GenericSortedView<T> getSortedView() {
-    return new ItemsSketchSortedView<T>(this);
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    return refreshSortedView();
   }
 
   @Override
@@ -605,8 +606,11 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   // Restricted
 
-  private final void refreshSortedView() {
-    classicQisSV = (classicQisSV == null) ? new ItemsSketchSortedView<T>(this) : classicQisSV;
+  private final ItemsSketchSortedView<T> refreshSortedView() {
+    final ItemsSketchSortedView<T> sv = (classicQisSV == null)
+        ? classicQisSV = new ItemsSketchSortedView<T>(this)
+        : classicQisSV;
+    return sv;
   }
 
   /**
