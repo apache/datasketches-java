@@ -69,7 +69,7 @@ public class VarOptCrossLanguageTest {
     for (long i = 0; i < 2000; ++i) {
       sketch.update(i, 1.0);
     }
-    // heavy items have negative weights to allow a simple predicate to filter
+    // negative heavy items to allow a simple predicate to filter
     sketch.update(-1L, 100000.0);
     sketch.update(-2L, 110000.0);
     sketch.update(-3L, 120000.0);
@@ -89,7 +89,7 @@ public class VarOptCrossLanguageTest {
     for (int i = 0; i < n1; ++i) {
       sketch.update(1.0 * i, 1.0);
     }
-    sketch.update(-1.0, n1 * n1); // heavy items have negative weights to allow a simple predicate to filter
+    sketch.update(-1.0, n1 * n1); // negative heavy item to allow a simple predicate to filter
 
 
     final VarOptItemsUnion<Double> union = VarOptItemsUnion.newInstance(kMax);
