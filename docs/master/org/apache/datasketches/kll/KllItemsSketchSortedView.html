@@ -91,13 +91,13 @@ loadScripts(document, 'script');</script>
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -173,39 +173,6 @@ implements <a href="../quantilescommon/GenericSortedView.html" title="interface 
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="KllItemsSketchSortedView.KllItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView.KllItemsSketchSortedViewIterator</a>&lt;<a href="KllItemsSketchSortedView.KllItemsSketchSortedViewIterator.html" title="type parameter in KllItemsSketchSortedView.KllItemsSketchSortedViewIterator">T</a>&gt;</span></code></th>
 <td class="colLast">
 <div class="block">Iterator over KllItemsSketchSortedView.</div>
-</td>
-</tr>
-</table>
-</li>
-</ul>
-</section>
-<!-- ======== CONSTRUCTOR SUMMARY ======== -->
-<section>
-<ul class="blockList">
-<li class="blockList"><a id="constructor.summary">
-<!--   -->
-</a>
-<h3>Constructor Summary</h3>
-<table class="memberSummary">
-<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Constructor</th>
-<th class="colLast" scope="col">Description</th>
-</tr>
-<tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.apache.datasketches.kll.KllItemsSketch)">KllItemsSketchSortedView</a></span>&#8203;(<a href="KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a>&lt;<a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>&gt;&nbsp;sk)</code></th>
-<td class="colLast">
-<div class="block">Constructs this Sorted View given the sketch</div>
-</td>
-</tr>
-<tr class="rowColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(T%5B%5D,long%5B%5D,long,T,java.util.Comparator)">KllItemsSketchSortedView</a></span>&#8203;(<a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>[]&nbsp;quantiles,
-                        long[]&nbsp;cumWeights,
-                        long&nbsp;totalN,
-                        <a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>&nbsp;minItem,
-                        <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>&gt;&nbsp;comparator)</code></th>
-<td class="colLast">
-<div class="block">Construct from elements for testing only.</div>
 </td>
 </tr>
 </table>
@@ -307,54 +274,6 @@ implements <a href="../quantilescommon/GenericSortedView.html" title="interface 
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ========= CONSTRUCTOR DETAIL ======== -->
-<section>
-<ul class="blockList">
-<li class="blockList"><a id="constructor.detail">
-<!--   -->
-</a>
-<h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(java.lang.Object[],long[],long,java.lang.Object,java.util.Comparator)">
-<!--   -->
-</a><a id="&lt;init&gt;(T[],long[],long,T,java.util.Comparator)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>KllItemsSketchSortedView</h4>
-<pre>public&nbsp;KllItemsSketchSortedView&#8203;(<a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>[]&nbsp;quantiles,
-                                long[]&nbsp;cumWeights,
-                                long&nbsp;totalN,
-                                <a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>&nbsp;minItem,
-                                <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>&gt;&nbsp;comparator)</pre>
-<div class="block">Construct from elements for testing only.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>quantiles</code> - sorted array of quantiles</dd>
-<dd><code>cumWeights</code> - sorted, monotonically increasing cumulative weights.</dd>
-<dd><code>totalN</code> - the total number of items presented to the sketch.</dd>
-<dd><code>minItem</code> - used to extract the type of T</dd>
-<dd><code>comparator</code> - the Comparator for type T</dd>
-</dl>
-</li>
-</ul>
-<a id="&lt;init&gt;(org.apache.datasketches.kll.KllItemsSketch)">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>KllItemsSketchSortedView</h4>
-<pre>public&nbsp;KllItemsSketchSortedView&#8203;(<a href="KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a>&lt;<a href="KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>&gt;&nbsp;sk)</pre>
-<div class="block">Constructs this Sorted View given the sketch</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>sk</code> - the given KllItemsSketch.</dd>
-</dl>
-</li>
-</ul>
-</li>
-</ul>
-</section>
 <!-- ============ METHOD DETAIL ========== -->
 <section>
 <ul class="blockList">
@@ -640,13 +559,13 @@ implements <a href="../quantilescommon/GenericSortedView.html" title="interface 
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
