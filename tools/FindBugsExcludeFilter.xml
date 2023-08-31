@@ -57,11 +57,7 @@ under the License.
 
   <Match>
     <Bug pattern="EI_EXPOSE_REP2"/>
-    <Class name="org.apache.datasketches.kll.KllItemsSketchSortedView"/>
-  </Match>
-  
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP2"/>
     <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
   </Match>
+
 </FindBugsFilter>

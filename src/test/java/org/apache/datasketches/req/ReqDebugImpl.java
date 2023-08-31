@@ -53,7 +53,7 @@ public class ReqDebugImpl implements ReqDebug {
   @Override
   public void emitStart(final ReqSketch sk) {
     if (debugLevel == 0) { return; }
-    this.sk = sk;
+    this.sk = sk; //SpotBugs EI_EXPOSE_REP2 suppressed by FindBugsExcludeFilter
     println("START");
   }
 
