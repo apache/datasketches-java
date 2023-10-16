@@ -22,9 +22,9 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppHistPath;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -80,7 +80,7 @@ public class KllCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllDoublesSketchOneItemVersion1() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("kll_sketch_double_one_item_v1.sk"));
+    final byte[] byteArr = getResourceBytes("kll_sketch_double_one_item_v1.sk");
     final KllDoublesSketch sk = KllDoublesSketch.heapify(Memory.wrap(byteArr));
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
@@ -92,7 +92,7 @@ public class KllCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllFloatsSketchOneItemVersion1() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("kll_sketch_float_one_item_v1.sk"));
+    final byte[] byteArr = getResourceBytes("kll_sketch_float_one_item_v1.sk");
     final KllFloatsSketch sk = KllFloatsSketch.heapify(Memory.wrap(byteArr));
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());

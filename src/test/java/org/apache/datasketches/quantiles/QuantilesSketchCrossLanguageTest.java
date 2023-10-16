@@ -22,9 +22,9 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppHistPath;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
@@ -239,10 +238,7 @@ public class QuantilesSketchCrossLanguageTest {
     println("fullName: "+ fileName);
     println("Old Median: " + quantile);
     //Read File bytes
-    byte[] byteArr;
-    try {
-      byteArr = Files.readAllBytes(cppHistPath.resolve(fileName));
-    } catch (IOException e) { throw new SketchesArgumentException(e.getCause().toString()); }
+    byte[] byteArr = getResourceBytes(fileName);
     Memory srcMem = Memory.wrap(byteArr);
 
     // heapify as update sketch

@@ -48,11 +48,6 @@ public final class TestUtil  {
    */
   public static final Path cppPath = createPath("target/cpp_generated_files");
 
-  /**
-   * The full target Path for historical C++ serialized sketches to be tested by Java.
-   */
-  public static final Path cppHistPath = createPath("src/test/resources");
-
   private static Path createPath(final String projectLocalDir) {
     try {
       return Files.createDirectories(Paths.get(userDir, projectLocalDir));

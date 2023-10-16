@@ -19,7 +19,11 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.TestUtil.*;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
