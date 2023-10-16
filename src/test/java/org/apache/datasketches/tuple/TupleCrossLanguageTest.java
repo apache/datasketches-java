@@ -20,6 +20,7 @@
 package org.apache.datasketches.tuple;
 
 import static org.apache.datasketches.common.TestUtil.*;
+import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -39,8 +40,7 @@ public class TupleCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void serialVersion1Compatibility() throws IOException {
-    final byte[] byteArr =
-        Files.readAllBytes(cppHistPath.resolve("CompactSketchWithDoubleSummary4K_serialVersion1.sk"));
+    final byte[] byteArr = getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
     Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
@@ -56,7 +56,7 @@ public class TupleCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void version2Compatibility() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk"));
+    final byte[] byteArr = getResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
     Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
@@ -106,13 +106,13 @@ public class TupleCrossLanguageTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    final byte[] byteArr = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.heapify(Memory.wrap(byteArr));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    final byte[] byteArr = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(byteArr));
   }
 
