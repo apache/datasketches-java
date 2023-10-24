@@ -287,7 +287,7 @@ under the License.
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
-            <excludedGroups>${testng.generate-java-files},${testng.check-cpp-files}</excludedGroups> -->
+            <excludedGroups>${testng.generate-java-files},${testng.check-cpp-files}</excludedGroups>
           </configuration>
         </plugin>
 

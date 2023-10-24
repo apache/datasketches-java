@@ -177,7 +177,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
     UpdateDoublesSketch ret = null;
 
     switch (outCase) {
-      case 0: ret = null; break; //return null
+      case 0: break; //return null
       case 1: ret = myQS; break; //no-op
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         assert other != null;

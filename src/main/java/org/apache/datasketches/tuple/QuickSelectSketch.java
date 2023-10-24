@@ -232,7 +232,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @return a deep copy of this sketch
    */
   QuickSelectSketch<S> copy() {
-    return new QuickSelectSketch<S>(this);
+    return new QuickSelectSketch<>(this);
   }
 
   long[] getHashTable() {

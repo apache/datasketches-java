@@ -77,7 +77,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
       final KllItemsSketch<T> itmSk =
-          new KllHeapItemsSketch<T>(DEFAULT_K, DEFAULT_M, comparator, serDe);
+          new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
     return itmSk;
   }
 
@@ -96,7 +96,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final int k,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    return new KllHeapItemsSketch<T>(k, DEFAULT_M, comparator, serDe);
+    return new KllHeapItemsSketch<>(k, DEFAULT_M, comparator, serDe);
   }
 
   // Factory to create an heap instance from a Memory image
@@ -114,7 +114,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final Memory srcMem,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    return new KllHeapItemsSketch<T>(srcMem, comparator, serDe);
+    return new KllHeapItemsSketch<>(srcMem, comparator, serDe);
   }
 
   //Factory to wrap a Read-Only Memory
@@ -137,7 +137,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, SketchType.ITEMS_SKETCH, serDe);
-    return new KllDirectCompactItemsSketch<T>(memVal, comparator, serDe);
+    return new KllDirectCompactItemsSketch<>(memVal, comparator, serDe);
   }
 
   //END of Constructors
@@ -157,7 +157,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     final Object[] boundaries = getQuantiles(ranks, searchCrit);
     boundaries[0] = getMinItem();
     boundaries[boundaries.length - 1] = getMaxItem();
-    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<T>();
+    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>();
     gpb.N = this.getN();
     gpb.ranks = ranks;
     gpb.boundaries = (T[])boundaries;
@@ -248,7 +248,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public QuantilesGenericSketchIterator<T> iterator() {
-    return new KllItemsSketchIterator<T>(
+    return new KllItemsSketchIterator<>(
         getTotalItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }
 
@@ -303,7 +303,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   private final KllItemsSketchSortedView<T> refreshSortedView() {
     final KllItemsSketchSortedView<T> sv = (kllItemsSV == null)
-        ? kllItemsSV = new KllItemsSketchSortedView<T>(this)
+        ? kllItemsSV = new KllItemsSketchSortedView<>(this)
         : kllItemsSV;
     return sv;
   }

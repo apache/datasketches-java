@@ -812,8 +812,8 @@ final class PreambleUtil {
     Objects.requireNonNull(mem, "Source Memory must not be null");
     checkBounds(0, 8, mem.getCapacity()); //need min 8 bytes
     rtAssertEquals(getSerVer(mem), SER_VER & 0XFF);
-    final Format fmt = getFormat(mem);
-    final int preIntsDef = getDefinedPreInts(fmt) & 0XFF;
+    final Format fmat = getFormat(mem);
+    final int preIntsDef = getDefinedPreInts(fmat) & 0XFF;
     rtAssertEquals(getPreInts(mem), preIntsDef);
     final Family fam = getFamily(mem);
     rtAssert(fam == Family.CPC);

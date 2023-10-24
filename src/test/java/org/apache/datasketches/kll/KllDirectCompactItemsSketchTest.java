@@ -64,7 +64,7 @@ public class KllDirectCompactItemsSketchTest {
     assertTrue(sk2 instanceof KllDirectCompactItemsSketch);
     //println(sk2.toString(true, false));
     assertTrue(sk2.isReadOnly());
-    assertEquals((String)sk2.getSingleItem(), "1");
+    assertEquals(sk2.getSingleItem(), "1");
 
     sk.update("2");
     sk2 = KllItemsSketch.wrap(Memory.wrap(sk.toByteArray()), Comparator.naturalOrder(), serDe);
@@ -80,16 +80,16 @@ public class KllDirectCompactItemsSketchTest {
     int k = 20;
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
 
-    String[] itemsArr = (String[]) sk.getTotalItemsArray();
+    String[] itemsArr = sk.getTotalItemsArray();
     for (int j = 0; j < k; j++) { assertNull(itemsArr[j]); }
 
     sk.update(" 1"); //single
-    itemsArr = (String[]) sk.getTotalItemsArray();
+    itemsArr = sk.getTotalItemsArray();
     for (int j = 0; j < k - 1; j++) { assertNull(itemsArr[j]); }
     assertEquals(itemsArr[k - 1], " 1");
 
     sk.update(" 2"); //multiple
-    itemsArr = (String[]) sk.getTotalItemsArray();
+    itemsArr = sk.getTotalItemsArray();
     for (int j = 0; j < k - 2; j++) { assertNull(itemsArr[j]); }
     assertEquals(itemsArr[k - 1], " 1");
     assertEquals(itemsArr[k - 2], " 2");
@@ -101,18 +101,18 @@ public class KllDirectCompactItemsSketchTest {
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
 
     KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(sk.toByteArray()), Comparator.naturalOrder(), serDe);
-    String[] itemsArr = (String[]) sk2.getTotalItemsArray(); //empty
+    String[] itemsArr = sk2.getTotalItemsArray(); //empty
     for (int j = 0; j < k; j++) { assertNull(itemsArr[j]); }
 
     sk.update(" 1"); //single
     sk2 = KllItemsSketch.wrap(Memory.wrap(sk.toByteArray()), Comparator.naturalOrder(), serDe);
-    itemsArr = (String[]) sk2.getTotalItemsArray();
+    itemsArr = sk2.getTotalItemsArray();
     for (int j = 0; j < k - 1; j++) { assertNull(itemsArr[j]); }
     assertEquals(itemsArr[k - 1], " 1");
 
     sk.update(" 2"); //multi
     sk2 = KllItemsSketch.wrap(Memory.wrap(sk.toByteArray()), Comparator.naturalOrder(), serDe);
-    itemsArr = (String[]) sk2.getTotalItemsArray();
+    itemsArr = sk2.getTotalItemsArray();
     for (int j = 0; j < k - 2; j++) { assertNull(itemsArr[j]); }
     assertEquals(itemsArr[k - 1], " 1");
     assertEquals(itemsArr[k - 2], " 2");
@@ -123,7 +123,7 @@ public class KllDirectCompactItemsSketchTest {
     int k = 20;
 
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
-    String[] retArr = (String[]) sk.getRetainedItemsArray();
+    String[] retArr = sk.getRetainedItemsArray();
     assertEquals(retArr.length, sk.getNumRetained());
     assertEquals(retArr.length, 0);
 

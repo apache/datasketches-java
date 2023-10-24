@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 public class TupleCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void serialVersion1Compatibility() throws IOException {
+  public void serialVersion1Compatibility() {
     final byte[] byteArr = getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
     Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
@@ -59,7 +59,7 @@ public class TupleCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void version2Compatibility() throws IOException {
+  public void version2Compatibility() {
     final byte[] byteArr = getResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
     Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
 
@@ -86,7 +86,8 @@ public class TupleCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("tuple_int_n" + n + "_cpp.sk"));
-      final Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes), new IntegerSummaryDeserializer());
+      final Sketch<IntegerSummary> sketch =
+          Sketches.heapifySketch(Memory.wrap(bytes), new IntegerSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertTrue(n > 1000 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
@@ -102,7 +103,8 @@ public class TupleCrossLanguageTest {
   public void generateForCppIntegerSummary() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final UpdatableSketch<Integer, IntegerSummary> sk = new UpdatableSketchBuilder<>(new IntegerSummaryFactory()).build();
+      final UpdatableSketch<Integer, IntegerSummary> sk =
+          new UpdatableSketchBuilder<>(new IntegerSummaryFactory()).build();
       for (int i = 0; i < n; i++) sk.update(i, i);
       Files.newOutputStream(javaPath.resolve("tuple_int_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }

@@ -229,7 +229,7 @@ public class QuantilesSketchCrossLanguageTest {
     getAndCheck(ver, n, expected);
   }
 
-  private static void getAndCheck(String ver, int n, double quantile)  {
+  private static void getAndCheck(String ver, int n, double quantile) {
     DoublesSketch.rand.setSeed(131); //make deterministic
     //create fileName
     int k = 128;

@@ -57,7 +57,7 @@ public final class ReflectUtilityTest {
   }
 
   @Test //Example
-  public void checkCtr() throws Exception {
+  public static void checkCtr() throws Exception {
     float[] farr = { 10, 20, 30 };
     long[] larr = { 1, 2, 3 };
     long n = 3;

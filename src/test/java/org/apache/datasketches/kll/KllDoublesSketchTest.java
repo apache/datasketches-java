@@ -119,7 +119,7 @@ public class KllDoublesSketchTest {
       double rank = i/10.0;
       double q = rank == 1.0 ? i : i + 1;
       assertEquals(sketch.getQuantile(rank, EXCLUSIVE), q);
-      q = (double)(rank == 0 ? i + 1.0 : i);
+      q = rank == 0 ? i + 1.0 : i;
       assertEquals(sketch.getQuantile(rank, INCLUSIVE), q);
     }
 

@@ -31,7 +31,7 @@ public final class Sketches {
    * @return an empty instance of Sketch
    */
   public static <S extends Summary> Sketch<S> createEmptySketch() {
-    return new CompactSketch<S>(null, null, Long.MAX_VALUE, true);
+    return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
   }
 
   /**
@@ -51,9 +51,9 @@ public final class Sketches {
       final SummaryDeserializer<S> deserializer) {
     final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.QuickSelectSketch) {
-      return new QuickSelectSketch<S>(mem, deserializer, null);
+      return new QuickSelectSketch<>(mem, deserializer, null);
     }
-    return new CompactSketch<S>(mem, deserializer);
+    return new CompactSketch<>(mem, deserializer);
   }
 
   /**
@@ -73,7 +73,7 @@ public final class Sketches {
       final Memory mem,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    return new UpdatableSketch<U, S>(mem, deserializer, summaryFactory);
+    return new UpdatableSketch<>(mem, deserializer, summaryFactory);
   }
 
 }

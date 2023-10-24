@@ -87,7 +87,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   @Override
   public UpdatableSketch<U,S> copy() {
-    return new UpdatableSketch<U,S>(this);
+    return new UpdatableSketch<>(this);
   }
 
   /**
