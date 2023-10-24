@@ -440,7 +440,7 @@ public class KllFloatsSketchTest {
     try { KllFloatsSketch.newDirectInstance(wmem, null); fail(); }
     catch (NullPointerException e) { }
     int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, FLOATS_SKETCH, true);
-    int compactSize = KllFloatsSketch.getMaxSerializedSizeBytes(200, 0, FLOATS_SKETCH, false);
+    int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, FLOATS_SKETCH, false);
     assertTrue(compactSize < updateSize);
   }
 

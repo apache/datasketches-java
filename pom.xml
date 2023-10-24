@@ -33,7 +33,7 @@ under the License.
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>4.2.0-SNAPSHOT</version>
+  <version>4.3.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
@@ -188,7 +188,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[1.8,1.9),[8],[11,14)</version>
+                    <version>[1.8,1.9),[8],[11,12)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},)</version>

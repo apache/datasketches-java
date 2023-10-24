@@ -35,7 +35,7 @@ import org.apache.datasketches.thetacommon.HashOperations;
  * allows the combination of buffers and shared sketch to maintain an error bound in real-time
  * that is close to the error bound of a sequential theta sketch.  Allowing larger buffer sizes
  * enables amortization of the cost propagations and substantially improves overall system throughput.
- * The error caused by the buffering is essentially a perspecitive of time and synchronization
+ * The error caused by the buffering is essentially a perspective of time and synchronization
  * and not really a true error.  At the end of a stream, after all the buffers have synchronized with
  * the shared sketch, there is no additional error.
  * Propagation is done either synchronously by the updating thread, or asynchronously by a

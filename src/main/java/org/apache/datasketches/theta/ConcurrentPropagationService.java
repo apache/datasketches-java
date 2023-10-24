@@ -54,7 +54,7 @@ final class ConcurrentPropagationService {
   }
 
   public static ExecutorService getExecutorService(final long id) {
-    return initExecutorService((int) id % NUM_POOL_THREADS);
+    return getInstance().initExecutorService((int) id % NUM_POOL_THREADS);
   }
 
   @SuppressWarnings("static-access")
@@ -62,7 +62,8 @@ final class ConcurrentPropagationService {
     return getInstance().propagationExecutorService[(int) id % NUM_POOL_THREADS] = null;
   }
 
-  private static ExecutorService initExecutorService(final int i) {
+  @SuppressWarnings("static-method")
+  private ExecutorService initExecutorService(final int i) {
     if (propagationExecutorService[i] == null) {
       propagationExecutorService[i] = Executors.newSingleThreadExecutor();
     }

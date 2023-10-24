@@ -30,6 +30,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("resource")
 public class HeapifyWrapSerVer1and2Test {
   private static final short defaultSeedHash = Util.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
 
