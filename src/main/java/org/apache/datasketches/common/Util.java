@@ -1014,6 +1014,12 @@ public final class Util {
     final File file;
     try {
       file = File.createTempFile("temp_" + name, suffix);
+      if (!file.setReadable(false, true)) {
+        throw new IllegalStateException("Failed to set only owner 'Readable' on file");
+      }
+      if (!file.setWritable(false, true)) {
+        throw new IllegalStateException("Failed to set only owner 'Writable' on file");
+      }
 
     } catch (final IOException e) { throw new RuntimeException(e); }
     return file;
