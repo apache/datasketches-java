@@ -49,6 +49,7 @@ tmp/
 
 # Build artifacts
 target/
+target2/
 out/
 build/
 jarsIn/
