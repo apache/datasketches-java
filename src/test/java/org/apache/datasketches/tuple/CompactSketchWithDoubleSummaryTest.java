@@ -172,7 +172,6 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertEquals(count, 4096);
   }
 
-  @SuppressWarnings("deprecation")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeWrongType() {
     UpdatableSketch<Double, DoubleSummary> us =

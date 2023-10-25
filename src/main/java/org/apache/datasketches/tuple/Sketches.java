@@ -24,6 +24,7 @@ import org.apache.datasketches.memory.Memory;
 /**
  * Convenient static methods to instantiate generic tuple sketches.
  */
+@SuppressWarnings("deprecation")
 public final class Sketches {
 
   /**
@@ -36,16 +37,11 @@ public final class Sketches {
 
   /**
    * Instantiate a Sketch from a given Memory.
-   *
-   * <p>As of 3.0.0, heapifying an UpdatableSketch is deprecated.
-   * This capability will be removed in a future release.
-   * Heapifying a CompactSketch is not deprecated.</p>
    * @param <S> Type of Summary
    * @param mem Memory object representing a Sketch
    * @param deserializer instance of SummaryDeserializer
    * @return Sketch created from its Memory representation
    */
-  @SuppressWarnings("deprecation")
   public static <S extends Summary> Sketch<S> heapifySketch(
       final Memory mem,
       final SummaryDeserializer<S> deserializer) {
@@ -64,11 +60,7 @@ public final class Sketches {
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
    * @return Sketch created from its Memory representation
-   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
-   * This capability will be removed in a future release.
-   * Heapifying a CompactSketch is not deprecated.
    */
-  @Deprecated
   public static <U, S extends UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(
       final Memory mem,
       final SummaryDeserializer<S> deserializer,
