@@ -839,9 +839,6 @@ public final class Util {
    * Gets the file defined by the given resource file's shortFileName.
    * @param shortFileName the last name in the pathname's name sequence.
    * @return the file defined by the given resource file's shortFileName.
-   * @throws URISyntaxException error
-   * @throws MalformedURLException error
-   * @throws IOException if an IO error occurs
    */
   public static File getResourceFile(final String shortFileName) {
     Objects.requireNonNull(shortFileName, "input parameter 'String shortFileName' cannot be null.");
@@ -870,7 +867,6 @@ public final class Util {
    * @param shortFileName the last name in the pathname's name sequence.
    * @return a byte array of the contents of the file defined by the given resource file's shortFileName.
    * @throws IllegalArgumentException if resource cannot be read.
-   * @throws IOException if an IO error occurs
    */
   public static byte[] getResourceBytes(final String shortFileName) {
     Objects.requireNonNull(shortFileName, "input parameter 'String shortFileName' cannot be null.");
@@ -897,7 +893,6 @@ public final class Util {
    * This may be a little smaller than <i>Integer.MAX_VALUE</i>.
    * @param in the Input Stream
    * @return byte array
-   * @throws IOException if an IO error occurs
    */
   public static byte[] readAllBytesFromInputStream(final InputStream in) {
     return readBytesFromInputStream(Integer.MAX_VALUE, in);
@@ -914,7 +909,7 @@ public final class Util {
    * @param in the InputStream
    * @return the filled byte array from the input stream
    * @throws IllegalArgumentException if array size grows larger than what can be safely allocated by some VMs.
-   * @throws IOException if an IO error occurs
+
    */
   public static byte[] readBytesFromInputStream(final int numBytesToRead, final InputStream in) {
     if (numBytesToRead < 0) { throw new IllegalArgumentException("numBytesToRead must be positive or zero."); }
@@ -993,7 +988,6 @@ public final class Util {
    * @param shortFileName the name before prefixes and suffixes are added here and by the OS.
    * The final extension will be the current extension. The prefix "temp_" is added here.
    * @return a temp file,which will be eventually deleted by the OS
-   * @throws IOException if an IO error occurs
    */
   private static File createTempFile(final String shortFileName) {
     //remove any leading slash
