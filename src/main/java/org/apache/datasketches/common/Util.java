@@ -858,7 +858,12 @@ public final class Util {
     } else { //protocol says resource is not a jar, must be a file
       file = new File(getResourcePath(url));
     }
-    file.setReadOnly();
+    if (!file.setReadable(false, true)) {
+      throw new IllegalStateException("Failed to set owner only 'Readable' on file");
+    }
+    if (!file.setWritable(false, false)) {
+      throw new IllegalStateException("Failed to set everyone 'Not Writable' on file");
+    }
     return file;
   }
 
@@ -1009,6 +1014,7 @@ public final class Util {
     final File file;
     try {
       file = File.createTempFile("temp_" + name, suffix);
+
     } catch (final IOException e) { throw new RuntimeException(e); }
     return file;
   }
