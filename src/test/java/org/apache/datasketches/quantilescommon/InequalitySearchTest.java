@@ -403,7 +403,7 @@ public class InequalitySearchTest {
     exerciseDoubles(arr);
   }
 
-  private void exerciseDoubles(final double[] arr) {
+  private static void exerciseDoubles(final double[] arr) {
     checkFindDouble(arr, LT);
     checkFindDouble(arr, LE);
     checkFindDouble(arr, EQ);
@@ -439,7 +439,7 @@ public class InequalitySearchTest {
     exerciseFloats(arr);
   }
 
-  private void exerciseFloats(final float[] arr) {
+  private static void exerciseFloats(final float[] arr) {
     checkFindFloat(arr, LT);
     checkFindFloat(arr, LE);
     checkFindFloat(arr, EQ);
@@ -475,7 +475,7 @@ public class InequalitySearchTest {
     exerciseLongs(arr);
   }
 
-  private void exerciseLongs(final long[] arr) {
+  private static void exerciseLongs(final long[] arr) {
     checkFindLong(arr, LT);
     checkFindLong(arr, LE);
     checkFindLong(arr, EQ);

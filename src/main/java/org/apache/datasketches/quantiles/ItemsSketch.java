@@ -302,7 +302,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     final T[] boundaries = getQuantiles(ranks, searchCrit);
     boundaries[0] = getMinItem();
     boundaries[boundaries.length - 1] = getMaxItem();
-    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<T>();
+    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>();
     gpb.N = this.getN();
     gpb.ranks = ranks;
     gpb.boundaries = boundaries;
@@ -608,7 +608,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   private final ItemsSketchSortedView<T> refreshSortedView() {
     final ItemsSketchSortedView<T> sv = (classicQisSV == null)
-        ? classicQisSV = new ItemsSketchSortedView<T>(this)
+        ? classicQisSV = new ItemsSketchSortedView<>(this)
         : classicQisSV;
     return sv;
   }

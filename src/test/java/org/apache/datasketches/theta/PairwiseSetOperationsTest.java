@@ -25,7 +25,6 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("deprecation")
 public class PairwiseSetOperationsTest {
 
   // Intersection
@@ -45,8 +44,8 @@ public class PairwiseSetOperationsTest {
 
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
-
-    Sketch rsk = PairwiseSetOperations.intersect(csk1, csk2);
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    Sketch rsk = inter.intersect(csk1, csk2);
     assertEquals(rsk.getEstimate(), 0.0);
   }
 
@@ -57,6 +56,7 @@ public class PairwiseSetOperationsTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
 
     for (int i=0; i<k; i++) { //<k so est is exact
       usk1.update(i);
@@ -66,7 +66,7 @@ public class PairwiseSetOperationsTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
 
-    Sketch rsk = PairwiseSetOperations.intersect(csk1, csk2);
+    Sketch rsk = inter.intersect(csk1, csk2);
     assertEquals(rsk.getEstimate(), k, 0.0);
   }
 
@@ -91,8 +91,7 @@ public class PairwiseSetOperationsTest {
 
       CompactSketch csk1 = usk1.compact(true, null);
       CompactSketch csk2 = usk2.compact(true, null);
-
-      Sketch rsk = PairwiseSetOperations.intersect(csk1, csk2);
+      Sketch rsk = inter.intersect(csk1, csk2);
       double result1 = rsk.getEstimate();
 
       inter.intersect(csk1);
@@ -117,6 +116,7 @@ public class PairwiseSetOperationsTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    AnotB anotb = Sketches.setOperationBuilder().buildANotB();
 
     for (int i=0; i<k; i++) {
       usk1.update(i);
@@ -126,7 +126,7 @@ public class PairwiseSetOperationsTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
 
-    Sketch rsk = PairwiseSetOperations.aNotB(csk1, csk2);
+    Sketch rsk = anotb.aNotB(csk1, csk2);
     assertEquals(rsk.getEstimate(), k, 0.0);
   }
 
@@ -137,6 +137,7 @@ public class PairwiseSetOperationsTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    AnotB anotb = Sketches.setOperationBuilder().buildANotB();
 
     for (int i=0; i<k; i++) {
       usk1.update(i);
@@ -146,7 +147,7 @@ public class PairwiseSetOperationsTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
 
-    Sketch rsk = PairwiseSetOperations.aNotB(csk1, csk2);
+    Sketch rsk = anotb.aNotB(csk1, csk2);
     assertEquals(rsk.getEstimate(), 0.0, 0.0);
   }
 
@@ -172,7 +173,7 @@ public class PairwiseSetOperationsTest {
       CompactSketch csk1 = usk1.compact(true, null);
       CompactSketch csk2 = usk2.compact(true, null);
 
-      Sketch rsk = PairwiseSetOperations.aNotB(csk1, csk2);
+      Sketch rsk = aNotB.aNotB(csk1, csk2);
       double result1 = rsk.getEstimate();
 
       CompactSketch csk3 = aNotB.aNotB(csk1, csk2);
@@ -208,9 +209,9 @@ public class PairwiseSetOperationsTest {
    union.union(csk2);
    Sketch stdSk = union.getResult(true, null);
 
-   Sketch pwSk = PairwiseSetOperations.union(csk1, csk2, k);
+   Sketch rsk = union.union(csk1, csk2);
 
-   assertEquals(pwSk.getEstimate(), stdSk.getEstimate(), 0.0);
+   assertEquals(rsk.getEstimate(), stdSk.getEstimate(), 0.0);
  }
 
  @Test
@@ -220,6 +221,7 @@ public class PairwiseSetOperationsTest {
 
    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+   Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
 
    for (int i=0; i<k; i++) {
      usk1.update(i);
@@ -229,7 +231,7 @@ public class PairwiseSetOperationsTest {
    CompactSketch csk1 = usk1.compact(true, null);
    CompactSketch csk2 = usk2.compact(true, null);
 
-   Sketch rsk = PairwiseSetOperations.union(csk1, csk2, k);
+   Sketch rsk = union.union(csk1, csk2);
    assertEquals(rsk.getEstimate(), k, 0.0);
  }
 
@@ -255,7 +257,7 @@ public class PairwiseSetOperationsTest {
      CompactSketch csk1 = usk1.compact(true, null);
      CompactSketch csk2 = usk2.compact(true, null);
 
-     Sketch pwSk = PairwiseSetOperations.union(csk1, csk2, 2 * k);
+     Sketch pwSk = union.union(csk1, csk2);
      double pwEst = pwSk.getEstimate();
 
      union.union(csk1);
@@ -289,7 +291,7 @@ public class PairwiseSetOperationsTest {
    CompactSketch csk1 = usk1.compact(true, null);
    CompactSketch csk2 = usk2.compact(true, null);
 
-   Sketch pwSk = PairwiseSetOperations.union(csk1, csk2, k);
+   Sketch pwSk = union.union(csk1, csk2);
    double pwEst = pwSk.getEstimate();
 
    union.union(csk1);
@@ -357,23 +359,23 @@ public class PairwiseSetOperationsTest {
    AnotB aNotB = SetOperation.builder().buildANotB();
    Intersection inter = SetOperation.builder().buildIntersection();
 
-   checkSetOps(union, inter, aNotB, k, cskAempty, cskBempty); //Empty, Empty
-   checkSetOps(union, inter, aNotB, k, cskA1, cskBempty);     //NotEmpty, Empty
-   checkSetOps(union, inter, aNotB, k, cskAempty, cskA1);     //Empty, NotEmpty
+   checkSetOps(union, inter, aNotB, cskAempty, cskBempty); //Empty, Empty
+   checkSetOps(union, inter, aNotB, cskA1, cskBempty);     //NotEmpty, Empty
+   checkSetOps(union, inter, aNotB, cskAempty, cskA1);     //Empty, NotEmpty
  }
 
- private static void checkSetOps(Union union, Intersection inter, AnotB aNotB, int k,
+ private static void checkSetOps(Union union, Intersection inter, AnotB aNotB,
      CompactSketch cskA, CompactSketch cskB) {
-   checkUnion(union, cskA, cskB, k);
+   checkUnion(union, cskA, cskB);
    checkIntersection(inter, cskA, cskB);
    checkAnotB(aNotB, cskA, cskB);
  }
 
- private static void checkUnion(Union union, CompactSketch cskA, CompactSketch cskB, int k) {
+ private static void checkUnion(Union union, CompactSketch cskA, CompactSketch cskB) {
    union.union(cskA);
    union.union(cskB);
    CompactSketch cskU = union.getResult();
-   CompactSketch cskP = PairwiseSetOperations.union(cskA, cskB, k);
+   CompactSketch cskP = union.union(cskA, cskB);
    assertEquals(cskU.isEmpty(), cskP.isEmpty());
    union.reset();
  }
@@ -382,14 +384,14 @@ public class PairwiseSetOperationsTest {
    inter.intersect(cskA);
    inter.intersect(cskB);
    CompactSketch cskI = inter.getResult();
-   CompactSketch cskP = PairwiseSetOperations.intersect(cskA, cskB);
+   CompactSketch cskP = inter.intersect(cskA, cskB);
    assertEquals(cskI.isEmpty(), cskP.isEmpty());
    inter.reset();
  }
 
  private static void checkAnotB(AnotB aNotB, CompactSketch cskA, CompactSketch cskB) {
    CompactSketch cskD = aNotB.aNotB(cskA, cskB);
-   CompactSketch cskP = PairwiseSetOperations.aNotB(cskA, cskB);
+   CompactSketch cskP = aNotB.aNotB(cskA, cskB);
    assertEquals(cskD.isEmpty(), cskP.isEmpty());
  }
 

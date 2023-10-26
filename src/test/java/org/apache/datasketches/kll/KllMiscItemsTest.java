@@ -136,7 +136,7 @@ public class KllMiscItemsTest {
     }
     println(sk.toString(true, true));
     sk.toByteArray();
-    final String[] items = (String[]) sk.getTotalItemsArray();
+    final String[] items = sk.getTotalItemsArray();
     assertEquals(items.length, 33);
     final int[] levels = sk.getLevelsArray(sk.sketchStructure);
     assertEquals(levels.length, 3);

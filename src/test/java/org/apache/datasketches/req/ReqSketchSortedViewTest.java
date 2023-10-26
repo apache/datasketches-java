@@ -95,14 +95,14 @@ public class ReqSketchSortedViewTest {
     return sketch;
   }
 
-  private void checkIterator(final ReqSketch sketch) {
+  private static void checkIterator(final ReqSketch sketch) {
     println("\nNot Deduped:");
     FloatsSortedView sv = sketch.getSortedView();
     FloatsSortedViewIterator itr = sv.iterator();
     printIterator(itr);
   }
 
-  private void printIterator(final FloatsSortedViewIterator itr) {
+  private static void printIterator(final FloatsSortedViewIterator itr) {
     println("");
     String[] header = {"Value", "Wt", "CumWtNotInc", "NormRankNotInc", "CumWtInc", "NormRankInc"};
     String hfmt = "%8s%6s%16s%16s%16s%16s\n";

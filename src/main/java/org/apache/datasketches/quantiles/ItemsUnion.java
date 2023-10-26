@@ -61,7 +61,7 @@ public final class ItemsUnion<T> {
    */
   public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final Comparator<? super T> comparator) {
     final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, comparator);
-    return new ItemsUnion<T>(PreambleUtil.DEFAULT_K, comparator, emptySk);
+    return new ItemsUnion<>(PreambleUtil.DEFAULT_K, comparator, emptySk);
   }
 
   /**
@@ -288,7 +288,7 @@ public final class ItemsUnion<T> {
     ItemsSketch<T> ret = null;
 
     switch (outCase) {
-      case 0: ret = null; break;
+      case 0: break;
       case 1: ret = myQS; break;
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         assert other != null;

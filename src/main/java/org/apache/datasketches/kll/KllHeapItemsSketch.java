@@ -106,9 +106,9 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
     } else if (memStruct == COMPACT_FULL) {
       int offset = DATA_START_ADR + memVal.numLevels * Integer.BYTES;
       this.minItem = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
-      offset += serDe.sizeOf((T) minItem);
+      offset += serDe.sizeOf(minItem);
       this.maxItem = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
-      offset += serDe.sizeOf((T) maxItem);
+      offset += serDe.sizeOf(maxItem);
       final int numRetained = levelsArr[memVal.numLevels] - levelsArr[0];
       final Object[] retItems = serDe.deserializeFromMemory(srcMem, offset, numRetained);
       System.arraycopy(retItems, 0, itemsArr, levelsArr[0], numRetained);
@@ -153,8 +153,8 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   byte[] getMinMaxByteArr() {
-    final byte[] minBytes = serDe.serializeToByteArray((T)minItem);
-    final byte[] maxBytes = serDe.serializeToByteArray((T)maxItem);
+    final byte[] minBytes = serDe.serializeToByteArray(minItem);
+    final byte[] maxBytes = serDe.serializeToByteArray(maxItem);
     final byte[] minMaxBytes = new byte[minBytes.length + maxBytes.length];
     copyBytes(minBytes, 0, minMaxBytes, 0, minBytes.length);
     copyBytes(maxBytes, 0, minMaxBytes, minBytes.length, maxBytes.length);
@@ -163,8 +163,8 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   int getMinMaxSizeBytes() {
-    final int minBytes = serDe.sizeOf((T)minItem);
-    final int maxBytes = serDe.sizeOf((T)maxItem);
+    final int minBytes = serDe.sizeOf(minItem);
+    final int maxBytes = serDe.sizeOf(maxItem);
     return minBytes + maxBytes;
   }
 

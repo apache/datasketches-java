@@ -252,7 +252,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   /**
    * Advances the epoch while there is no background propagation
    * This ensures a propagation invoked before the reset cannot affect the sketch after the reset
-   * is completed.
+   * is completed. Ignore VO_VOLATILE_INCREMENT findbugs warning, it is False Positive.
    */
   @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT", justification = "Likely False Positive, Fix Later")
   private void advanceEpoch() {

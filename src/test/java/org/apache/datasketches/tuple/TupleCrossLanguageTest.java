@@ -19,7 +19,11 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.TestUtil.*;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -27,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.TestUtil;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
@@ -38,9 +43,8 @@ import org.testng.annotations.Test;
 public class TupleCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void serialVersion1Compatibility() throws IOException {
-    final byte[] byteArr =
-        Files.readAllBytes(cppHistPath.resolve("CompactSketchWithDoubleSummary4K_serialVersion1.sk"));
+  public void serialVersion1Compatibility() {
+    final byte[] byteArr = TestUtil.getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
     Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
@@ -55,8 +59,8 @@ public class TupleCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void version2Compatibility() throws IOException {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk"));
+  public void version2Compatibility() {
+    final byte[] byteArr = TestUtil.getResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
     Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
@@ -82,7 +86,8 @@ public class TupleCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("tuple_int_n" + n + "_cpp.sk"));
-      final Sketch<IntegerSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes), new IntegerSummaryDeserializer());
+      final Sketch<IntegerSummary> sketch =
+          Sketches.heapifySketch(Memory.wrap(bytes), new IntegerSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertTrue(n > 1000 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
@@ -98,7 +103,8 @@ public class TupleCrossLanguageTest {
   public void generateForCppIntegerSummary() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final UpdatableSketch<Integer, IntegerSummary> sk = new UpdatableSketchBuilder<>(new IntegerSummaryFactory()).build();
+      final UpdatableSketch<Integer, IntegerSummary> sk =
+          new UpdatableSketchBuilder<>(new IntegerSummaryFactory()).build();
       for (int i = 0; i < n; i++) sk.update(i, i);
       Files.newOutputStream(javaPath.resolve("tuple_int_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }
@@ -106,13 +112,13 @@ public class TupleCrossLanguageTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    final byte[] byteArr = TestUtil.getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.heapify(Memory.wrap(byteArr));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] byteArr = Files.readAllBytes(cppHistPath.resolve("ArrayOfDoublesUnion_v0.9.1.sk"));
+    final byte[] byteArr = TestUtil.getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(byteArr));
   }
 

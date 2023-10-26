@@ -168,7 +168,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   T getSingleItem() {
     if (getN() != 1) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     final int offset = getCompactDataOffset(); //both single & full
-    return (T) (serDe.deserializeFromMemory(mem, offset, 1)[0]);
+    return (serDe.deserializeFromMemory(mem, offset, 1)[0]);
   }
 
   @Override

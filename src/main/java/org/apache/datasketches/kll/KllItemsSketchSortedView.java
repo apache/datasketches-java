@@ -169,7 +169,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public KllItemsSketchSortedViewIterator<T> iterator() {
-    return new KllItemsSketchSortedViewIterator<T>((T[])quantiles, cumWeights);
+    return new KllItemsSketchSortedViewIterator<>((T[])quantiles, cumWeights);
   }
 
   //restricted methods

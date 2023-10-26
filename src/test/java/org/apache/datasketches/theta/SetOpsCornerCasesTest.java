@@ -33,7 +33,6 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("deprecation")
 public class SetOpsCornerCasesTest {
 
   /*******************************************/
@@ -207,15 +206,18 @@ public class SetOpsCornerCasesTest {
     else { tcskA = (tskA instanceof CompactSketch) ? (CompactSketch) tskA : tskA.compact(); }
     if (tskB == null) { tcskB = null; }
     else { tcskB = (tskB instanceof CompactSketch) ? (CompactSketch) tskB : tskB.compact(); }
-    return PairwiseSetOperations.union(tcskA, tcskB, k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
+    return union.union(tcskA, tcskB);
   }
 
   private static CompactSketch doPwIntersection(Sketch tskA, Sketch tskB) {
-    return PairwiseSetOperations.intersect(tskA, tskB);
+    Intersection inter = SetOperation.builder().buildIntersection();
+    return inter.intersect(tskA, tskB);
   }
 
   private static CompactSketch doPwAnotB(Sketch tskA, Sketch tskB) {
-    return PairwiseSetOperations.aNotB(tskA, tskB);
+    AnotB aNotB = SetOperation.builder().buildANotB();
+    return aNotB.aNotB(tskA, tskB);
   }
 
 
@@ -244,13 +246,13 @@ public class SetOpsCornerCasesTest {
     CompactSketch skEmpty = generate(EMPTY, k);
     CompactSketch skHeap = generate(EST_HEAP, k);
     CompactSketch skHeapUO = generate(EST_MEMORY_UNORDERED, k);
-
-    PairwiseSetOperations.union(skNull, skHeapUO, k);
-    PairwiseSetOperations.union(skEmpty, skHeapUO, k);
-    PairwiseSetOperations.union(skHeapUO, skNull, k);
-    PairwiseSetOperations.union(skHeapUO, skEmpty, k);
-    PairwiseSetOperations.union(skHeapUO, skHeap, k);
-    PairwiseSetOperations.union(skHeap, skHeapUO, k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
+    union.union(skNull, skHeapUO);
+    union.union(skEmpty, skHeapUO);
+    union.union(skHeapUO, skNull);
+    union.union(skHeapUO, skEmpty);
+    union.union(skHeapUO, skHeap);
+    union.union(skHeap, skHeapUO);
   }
 
   @Test
@@ -268,55 +270,60 @@ public class SetOpsCornerCasesTest {
 
     CompactSketch skExact = generate(EXACT, k);
     CompactSketch skHeap = generate(EST_HEAP, 2 * k);
+
+    Intersection inter = SetOperation.builder().buildIntersection();
+    AnotB aNotB = SetOperation.builder().buildANotB();
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
+
     //Intersect
     try {
-      PairwiseSetOperations.intersect(skExact, skSmallSeed2A);
+      inter.intersect(skExact, skSmallSeed2A);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.intersect(skExact, skSmallSeed2B);
+      inter.intersect(skExact, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.intersect(skSmallSeed2B, skExact);
+      inter.intersect(skSmallSeed2B, skExact);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.intersect(skHeap, skSmallSeed2B);
+      inter.intersect(skHeap, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     //A NOT B
     try {
-      PairwiseSetOperations.aNotB(skExact, skSmallSeed2A);
+      aNotB.aNotB(skExact, skSmallSeed2A);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.aNotB(skExact, skSmallSeed2B);
+      aNotB.aNotB(skExact, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.aNotB(skSmallSeed2B, skExact);
+      aNotB.aNotB(skSmallSeed2B, skExact);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.aNotB(skHeap, skSmallSeed2B);
+      aNotB.aNotB(skHeap, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     //Union
     try {
-      PairwiseSetOperations.union(skExact, skSmallSeed2A);
+      union.union(skExact, skSmallSeed2A);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.union(skExact, skSmallSeed2B);
+      union.union(skExact, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.union(skSmallSeed2B, skExact);
+      union.union(skSmallSeed2B, skExact);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.union(skHeap, skSmallSeed2B);
+      union.union(skHeap, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
   }
@@ -328,16 +335,17 @@ public class SetOpsCornerCasesTest {
     CompactSketch skEmpty = generate(EMPTY, k);
     CompactSketch skHeap1 = generate(EST_HEAP, k);
     CompactSketch skHeap2 = generate(EST_HEAP, k);
+    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     CompactSketch csk;
-    csk = PairwiseSetOperations.union(skNull, skHeap1, k);
+    csk = union.union(skNull, skHeap1);
     Assert.assertEquals(csk.getRetainedEntries(true), k);
-    csk = PairwiseSetOperations.union(skEmpty, skHeap1, k);
+    csk = union.union(skEmpty, skHeap1);
     Assert.assertEquals(csk.getRetainedEntries(true), k);
-    csk = PairwiseSetOperations.union(skHeap1, skNull, k);
+    csk = union.union(skHeap1, skNull);
     Assert.assertEquals(csk.getRetainedEntries(true), k);
-    csk = PairwiseSetOperations.union(skHeap1, skEmpty, k);
+    csk = union.union(skHeap1, skEmpty);
     Assert.assertEquals(csk.getRetainedEntries(true), k);
-    csk = PairwiseSetOperations.union(skHeap1, skHeap2, k);
+    csk = union.union(skHeap1, skHeap2);
     Assert.assertEquals(csk.getRetainedEntries(true), k);
   }
 

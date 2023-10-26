@@ -337,22 +337,22 @@ public class CrossCheckQuantilesTest {
     itemsSV = new ItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set], comparator);
   }
 
-  private final ReqSketchSortedView getRawReqSV(
+  private final static ReqSketchSortedView getRawReqSV(
       final float[] values, final long[] cumWeights, final long totalN) throws Exception {
     return (ReqSketchSortedView) REQ_SV_CTOR.newInstance(values, cumWeights, totalN);
   }
 
-  private final KllFloatsSketchSortedView getRawKllFloatsSV(
+  private final static KllFloatsSketchSortedView getRawKllFloatsSV(
       final float[] values, final long[] cumWeights, final long totalN) throws Exception {
     return (KllFloatsSketchSortedView) KLL_FLOATS_SV_CTOR.newInstance(values, cumWeights, totalN);
   }
 
-  private final KllDoublesSketchSortedView getRawKllDoublesSV(
+  private final static KllDoublesSketchSortedView getRawKllDoublesSV(
       final double[] values, final long[] cumWeights, final long totalN) throws Exception {
     return (KllDoublesSketchSortedView) KLL_DOUBLES_SV_CTOR.newInstance(values, cumWeights, totalN);
   }
 
-  private final DoublesSketchSortedView getRawClassicDoublesSV(
+  private final static DoublesSketchSortedView getRawClassicDoublesSV(
       final double[] values, final long[] cumWeights, final long totalN) throws Exception {
     return (DoublesSketchSortedView) CLASSIC_DOUBLES_SV_CTOR.newInstance(values, cumWeights, totalN);
   }
@@ -378,7 +378,7 @@ public class CrossCheckQuantilesTest {
     println("");
   }
 
-  private float[] convertToFloatStream(
+  private static float[] convertToFloatStream(
       final float[] svFValueArr,
       final long[] svWeightsArr,
       final int totalCount) {
@@ -395,7 +395,7 @@ public class CrossCheckQuantilesTest {
     return out;
   }
 
-  private double[] convertToDoubleStream(
+  private static double[] convertToDoubleStream(
       final double[] svDValueArr,
       final long[] svWeightsArr,
       final int totalCount) {
@@ -412,7 +412,7 @@ public class CrossCheckQuantilesTest {
     return out;
   }
 
-  private String[] convertToItemStream(
+  private static String[] convertToItemStream(
       final String[] svIValueArr,
       final long[] svWeightsArr,
       final int totalCount) {
@@ -429,7 +429,7 @@ public class CrossCheckQuantilesTest {
     return out;
   }
 
-  private long[] convertToCumWeights(final long[] weights) {
+  private static long[] convertToCumWeights(final long[] weights) {
     final int len = weights.length;
     final long[] out = new long[len];
     out[0] = weights[0];

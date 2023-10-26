@@ -622,7 +622,7 @@ final class KllHelper {
       }
       else { //sketchType == KllItemsSketch
         final KllItemsSketch<T> itmSk = (KllItemsSketch<T>) sketch;
-        final T[] myItemsArr = (T[]) itmSk.getTotalItemsArray();
+        final T[] myItemsArr = itmSk.getTotalItemsArray();
         sb.append(outputItemsData(numLevels, fullLevelsArr, myItemsArr, serDe));
       }
     }
