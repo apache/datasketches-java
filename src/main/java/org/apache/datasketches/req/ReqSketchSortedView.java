@@ -70,8 +70,7 @@ public final class ReqSketchSortedView implements FloatsSortedView {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = (searchCrit == INCLUSIVE)
-        ? (long)Math.ceil(rank * totalN) : (long)Math.floor(rank * totalN);
+    final long naturalRank = Math.round(rank * totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
