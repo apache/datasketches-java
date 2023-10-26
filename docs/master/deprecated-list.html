@@ -97,35 +97,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <h1 title="Deprecated API" class="title">Deprecated API</h1>
 <h2 title="Contents">Contents</h2>
 <ul>
-<li><a href="#class">Classes</a></li>
 <li><a href="#method">Methods</a></li>
 <li><a href="#constructor">Constructors</a></li>
 </ul>
 </div>
-<div class="contentContainer"><a id="class">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<table class="deprecatedSummary">
-<caption><span>Classes</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Class</th>
-<th class="colLast" scope="col">Description</th>
-</tr>
-<tbody>
-<tr class="altColor">
-<th class="colDeprecatedItemName" scope="row"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html" title="class in org.apache.datasketches.theta">org.apache.datasketches.theta.PairwiseSetOperations</a></th>
-<td class="colLast">
-<div class="deprecationComment">v2.0.0. This class has been deprecated as equivalent functionality has been added to the
- SetOperation classes: <a href="org/apache/datasketches/theta/Union.html" title="class in org.apache.datasketches.theta"><code>Union</code></a>, <a href="org/apache/datasketches/theta/Intersection.html" title="class in org.apache.datasketches.theta"><code>Intersection</code></a> and <a href="org/apache/datasketches/theta/AnotB.html" title="class in org.apache.datasketches.theta"><code>AnotB</code></a>.</div>
-</td>
-</tr>
-</tbody>
-</table>
-</li>
-</ul>
-<a id="method">
+<div class="contentContainer"><a id="method">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -167,35 +143,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="altColor">
 <th class="colDeprecatedItemName" scope="row"><a href="org/apache/datasketches/common/ArrayOfUtf16StringsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">org.apache.datasketches.common.ArrayOfUtf16StringsSerDe.deserializeFromMemory&#8203;(Memory, int)</a></th>
 <td class="colLast"></td>
-</tr>
-<tr class="rowColor">
-<th class="colDeprecatedItemName" scope="row"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#aNotB(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)">org.apache.datasketches.theta.PairwiseSetOperations.aNotB&#8203;(Sketch, Sketch)</a></th>
-<td class="colLast">
-<div class="deprecationComment">v2.0.0. Use <a href="org/apache/datasketches/theta/AnotB.html#aNotB(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)"><code>AnotB.aNotB(Sketch, Sketch)</code></a> instead, which has more
- complete seed handling.</div>
-</td>
-</tr>
-<tr class="altColor">
-<th class="colDeprecatedItemName" scope="row"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#intersect(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)">org.apache.datasketches.theta.PairwiseSetOperations.intersect&#8203;(Sketch, Sketch)</a></th>
-<td class="colLast">
-<div class="deprecationComment">v2.0.0. Use <a href="org/apache/datasketches/theta/Intersection.html#intersect(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)"><code>Intersection.intersect(Sketch, Sketch)</code></a> instead, which has more
- complete seed handling.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<th class="colDeprecatedItemName" scope="row"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#union(org.apache.datasketches.theta.CompactSketch,org.apache.datasketches.theta.CompactSketch)">org.apache.datasketches.theta.PairwiseSetOperations.union&#8203;(CompactSketch, CompactSketch)</a></th>
-<td class="colLast">
-<div class="deprecationComment">v2.0.0. Please use <a href="org/apache/datasketches/theta/Union.html#union(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)"><code>Union.union(Sketch, Sketch)</code></a> instead, which has more
- complete seed handling.</div>
-</td>
-</tr>
-<tr class="altColor">
-<th class="colDeprecatedItemName" scope="row"><a href="org/apache/datasketches/tuple/Sketches.html#heapifyUpdatableSketch(org.apache.datasketches.memory.Memory,org.apache.datasketches.tuple.SummaryDeserializer,org.apache.datasketches.tuple.SummaryFactory)">org.apache.datasketches.tuple.Sketches.heapifyUpdatableSketch&#8203;(Memory, SummaryDeserializer&lt;S&gt;, SummaryFactory&lt;S&gt;)</a></th>
-<td class="colLast">
-<div class="deprecationComment">As of 3.0.0, heapifying an UpdatableSketch is deprecated.
- This capability will be removed in a future release.
- Heapifying a CompactSketch is not deprecated.</div>
-</td>
 </tr>
 </tbody>
 </table>

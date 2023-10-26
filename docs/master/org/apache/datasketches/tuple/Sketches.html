@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":41};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
+var data = {"i0":9,"i1":9,"i2":9};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -170,7 +170,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -195,9 +195,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                       <a href="SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a>&lt;S&gt;&nbsp;deserializer,
                       <a href="SummaryFactory.html" title="interface in org.apache.datasketches.tuple">SummaryFactory</a>&lt;S&gt;&nbsp;summaryFactory)</code></th>
 <td class="colLast">
-<div class="block"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">As of 3.0.0, heapifying an UpdatableSketch is deprecated.</div>
-</div>
+<div class="block">Instantiate UpdatableSketch from a given Memory</div>
 </td>
 </tr>
 </table>
@@ -266,11 +264,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>heapifySketch</h4>
 <pre class="methodSignature">public static&nbsp;&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;&nbsp;<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;heapifySketch&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
                                                           <a href="SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a>&lt;S&gt;&nbsp;deserializer)</pre>
-<div class="block">Instantiate a Sketch from a given Memory.
-
- <p>As of 3.0.0, heapifying an UpdatableSketch is deprecated.
- This capability will be removed in a future release.
- Heapifying a CompactSketch is not deprecated.</p></div>
+<div class="block">Instantiate a Sketch from a given Memory.</div>
 <dl>
 <dt><span class="paramLabel">Type Parameters:</span></dt>
 <dd><code>S</code> - Type of Summary</dd>
@@ -288,15 +282,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockListLast">
 <li class="blockList">
 <h4>heapifyUpdatableSketch</h4>
-<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
-public static&nbsp;&lt;U,&#8203;S extends <a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;&nbsp;<a href="UpdatableSketch.html" title="class in org.apache.datasketches.tuple">UpdatableSketch</a>&lt;U,&#8203;S&gt;&nbsp;heapifyUpdatableSketch&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+<pre class="methodSignature">public static&nbsp;&lt;U,&#8203;S extends <a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;&nbsp;<a href="UpdatableSketch.html" title="class in org.apache.datasketches.tuple">UpdatableSketch</a>&lt;U,&#8203;S&gt;&nbsp;heapifyUpdatableSketch&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
                                                                                                         <a href="SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a>&lt;S&gt;&nbsp;deserializer,
                                                                                                         <a href="SummaryFactory.html" title="interface in org.apache.datasketches.tuple">SummaryFactory</a>&lt;S&gt;&nbsp;summaryFactory)</pre>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">As of 3.0.0, heapifying an UpdatableSketch is deprecated.
- This capability will be removed in a future release.
- Heapifying a CompactSketch is not deprecated.</div>
-</div>
 <div class="block">Instantiate UpdatableSketch from a given Memory</div>
 <dl>
 <dt><span class="paramLabel">Type Parameters:</span></dt>

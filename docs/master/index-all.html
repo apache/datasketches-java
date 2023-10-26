@@ -121,13 +121,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Perform A-and-not-B set operation on the two given sketches and return the result as an
  ordered CompactSketch on the heap.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#aNotB(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)">aNotB(Sketch, Sketch)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/PairwiseSetOperations.html" title="class in org.apache.datasketches.theta">PairwiseSetOperations</a></dt>
-<dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">v2.0.0. Use <a href="org/apache/datasketches/theta/AnotB.html#aNotB(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)"><code>AnotB.aNotB(Sketch, Sketch)</code></a> instead, which has more
- complete seed handling.</div>
-</div>
-</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/AnotB.html#aNotB(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch,boolean,org.apache.datasketches.memory.WritableMemory)">aNotB(Sketch, Sketch, boolean, WritableMemory)</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/AnotB.html" title="class in org.apache.datasketches.theta">AnotB</a></dt>
 <dd>
 <div class="block">Perform A-and-not-B set operation on the two given sketches and return the result as a
@@ -3910,11 +3903,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/Sketches.html#heapifyUpdatableSketch(org.apache.datasketches.memory.Memory,org.apache.datasketches.tuple.SummaryDeserializer,org.apache.datasketches.tuple.SummaryFactory)">heapifyUpdatableSketch(Memory, SummaryDeserializer&lt;S&gt;, SummaryFactory&lt;S&gt;)</a></span> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Sketches.html" title="class in org.apache.datasketches.tuple">Sketches</a></dt>
 <dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">As of 3.0.0, heapifying an UpdatableSketch is deprecated.
- This capability will be removed in a future release.
- Heapifying a CompactSketch is not deprecated.</div>
-</div>
+<div class="block">Instantiate UpdatableSketch from a given Memory</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketches.html#heapifyUpdateSketch(org.apache.datasketches.memory.Memory)">heapifyUpdateSketch(Memory)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
@@ -4056,13 +4045,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Perform intersect set operation on the two given sketch arguments and return the result as an
  ordered CompactSketch on the heap.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#intersect(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)">intersect(Sketch, Sketch)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/PairwiseSetOperations.html" title="class in org.apache.datasketches.theta">PairwiseSetOperations</a></dt>
-<dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">v2.0.0. Use <a href="org/apache/datasketches/theta/Intersection.html#intersect(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)"><code>Intersection.intersect(Sketch, Sketch)</code></a> instead, which has more
- complete seed handling.</div>
-</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Intersection.html#intersect(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch,boolean,org.apache.datasketches.memory.WritableMemory)">intersect(Sketch, Sketch, boolean, WritableMemory)</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Intersection.html" title="class in org.apache.datasketches.theta">Intersection</a></dt>
 <dd>
@@ -5077,17 +5059,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dl>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/BitPacking.html#packBits(long,int,byte%5B%5D,int,int)">packBits(long, int, byte[], int, int)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/BitPacking.html" title="class in org.apache.datasketches.theta">BitPacking</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="org/apache/datasketches/theta/PairwiseSetOperations.html" title="class in org.apache.datasketches.theta"><span class="typeNameLink">PairwiseSetOperations</span></a> - Class in <a href="org/apache/datasketches/theta/package-summary.html">org.apache.datasketches.theta</a></dt>
-<dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">v2.0.0. This class has been deprecated as equivalent functionality has been added to the
- SetOperation classes: <a href="org/apache/datasketches/theta/Union.html" title="class in org.apache.datasketches.theta"><code>Union</code></a>, <a href="org/apache/datasketches/theta/Intersection.html" title="class in org.apache.datasketches.theta"><code>Intersection</code></a> and <a href="org/apache/datasketches/theta/AnotB.html" title="class in org.apache.datasketches.theta"><code>AnotB</code></a>.</div>
-</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#%3Cinit%3E()">PairwiseSetOperations()</a></span> - Constructor for class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/PairwiseSetOperations.html" title="class in org.apache.datasketches.theta">PairwiseSetOperations</a></dt>
-<dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
-&nbsp;</dd>
 <dt><a href="org/apache/datasketches/fdt/PostProcessor.html" title="class in org.apache.datasketches.fdt"><span class="typeNameLink">PostProcessor</span></a> - Class in <a href="org/apache/datasketches/fdt/package-summary.html">org.apache.datasketches.fdt</a></dt>
 <dd>
 <div class="block">This processes the contents of a FDT sketch to extract the
@@ -6382,20 +6353,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsUnion.html#union(org.apache.datasketches.quantiles.ItemsSketch)">union(ItemsSketch&lt;T&gt;)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsUnion.html" title="class in org.apache.datasketches.quantiles">ItemsUnion</a></dt>
 <dd>
 <div class="block">Iterative union operation, which means this method can be repeatedly called.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#union(org.apache.datasketches.theta.CompactSketch,org.apache.datasketches.theta.CompactSketch)">union(CompactSketch, CompactSketch)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/PairwiseSetOperations.html" title="class in org.apache.datasketches.theta">PairwiseSetOperations</a></dt>
-<dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">v2.0.0. Please use <a href="org/apache/datasketches/theta/Union.html#union(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)"><code>Union.union(Sketch, Sketch)</code></a> instead, which has more
- complete seed handling.</div>
-</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/PairwiseSetOperations.html#union(org.apache.datasketches.theta.CompactSketch,org.apache.datasketches.theta.CompactSketch,int)">union(CompactSketch, CompactSketch, int)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/PairwiseSetOperations.html" title="class in org.apache.datasketches.theta">PairwiseSetOperations</a></dt>
-<dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">v2.0.0. Please use <a href="org/apache/datasketches/theta/Union.html#union(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch)"><code>Union.union(Sketch, Sketch)</code></a> instead, which has more
- complete seed handling.</div>
-</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Union.html#union(org.apache.datasketches.theta.Sketch)">union(Sketch)</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Union.html" title="class in org.apache.datasketches.theta">Union</a></dt>
 <dd>
