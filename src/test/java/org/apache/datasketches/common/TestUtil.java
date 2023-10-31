@@ -52,12 +52,12 @@ public final class TestUtil  {
   /**
    * The full target Path for Java serialized sketches to be tested by other languages.
    */
-  public static final Path javaPath = createPath("target2/java_generated_files");
+  public static final Path javaPath = createPath("serialization_test_data/java_generated_files");
 
   /**
    * The full target Path for C++ serialized sketches to be tested by Java.
    */
-  public static final Path cppPath = createPath("target2/cpp_generated_files");
+  public static final Path cppPath = createPath("serialization_test_data/cpp_generated_files");
 
   private static Path createPath(final String projectLocalDir) {
     try {
