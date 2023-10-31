@@ -86,24 +86,54 @@ public final class QuantilesUtil {
   }
 
   /**
-   * Returns a double array of ranks that defines equally weighted regions between 0.0, inclusive and 1.0, inclusive.
-   * The 0.0 and 1.0 end points are part of the returned array and are the getMinItem() and getMaxItem() values of the
-   * sketch.
-   * For example, if num == 2, three values will be returned: 0.0, .5, and 1, where the two equally weighted regions are
-   * 0.0 to 0.5, and 0.5 to 1.0.
-   * @param num the total number of equally weighted regions between 0.0 and 1.0 defined by the ranks in the returned
-   * array.  <i>num</i> must be 1 or greater.
-   * @return a double array of <i>num + 1</i> ranks that define the boundaries of <i>num</i> equally weighted
-   * regions between 0.0, inclusive and 1.0, inclusive.
+   * Returns an array of (<i>num</i> + 1) values that define equally sized intervals between 0.0, inclusive, and 1.0,
+   * inclusive. The end points 0.0 and 1.0 are part of the returned array.
+   *
+   * <p>For example, if num == 2, three values will be returned: 0.0, .5, and 1, where the two equally sized regions
+   * are {0.0,0.5}, and {0.5, 1.0}.</p>
+   * @param num the total number of equally sized intervals between 0.0, inclusive and 1.0, inclusive.
+   * Must be 1 or greater.
+   * @return a double array of values that define (num + 1) equally sized intervals between 0.0, inclusive and 1.0,
+   * inclusive.
    * @throws IllegalArgumentException if <i>num</i> is less than 1.
    */
-  public static double[] equallyWeightedRanks(final int num) {
+  public static double[] equallySpacedDoubles(final int num) {
     if (num < 1) { throw new IllegalArgumentException("num must be >= 1"); }
     final double[] out = new double[num + 1];
     out[0] = 0.0;
     out[num] = 1.0;
     final double delta = 1.0 / num;
     for (int i = 1; i < num; i++) { out[i] = i * delta; }
+    return out;
+  }
+
+  /**
+   * Returns an array of (<i>num</i> + 1) longs that define, approximately, equally spaced intervals between the given
+   * <i>max</i>, inclusive, and <i>min</i>, inclusive. The end points <i>max</i> and <i>min</i> are part of the
+   * returned array. Because the range of the values may not exactly divide into <i>num</i> intervals,
+   * the size of these intervals may vary by plus or minus one.
+   * @param min the lowest positive valued (or zero) number of the range
+   * @param max the highest positive valued number of the range.  <i>max</i> must be greater than <i>min</i>
+   * @param num Number of requested intervals. Must be greater or equal to one, and less than or equal to
+   * <i>max - min</i>.
+   *
+   * @return an array of (<i>num</i> + 1) longs that are approximately equally spaced between the given min and max.
+   */
+  public static long[] equallySpacedLongs(final long min, final long max, final int num) {
+    if (num < 1 || min < 0 || max < 1 || (min >= max) || num > (max - min)) {
+      throw new SketchesArgumentException(
+          "Improper inputs: n < 1, min < 0, max < 1, min >= max, or n > (max - min)");
+    }
+    final long span = (max - min);
+    final double[] splits = equallySpacedDoubles(num);
+    final int len = num + 1;
+    final long[] out = new long[len];
+    long prev = -1L;
+    for (int i = 0; i < len; i++) {
+      long cur = Math.round(splits[i] * span);
+      if (cur == prev) { cur++; } else { prev = cur; }
+      out[i] = min + cur;
+    }
     return out;
   }
 
@@ -176,6 +206,20 @@ public final class QuantilesUtil {
     final double[] arr = evenlySpacedDoubles(log(value1) / Util.LOG2, log(value2) / Util.LOG2, num);
     for (int i = 0; i < arr.length; i++) { arr[i] = pow(2.0,arr[i]); }
     return arr;
+  }
+
+  public static double maxPrecision;
+
+  public static double getNaturalRank(final double normalizedRank, final long totalN) {
+    final double naturalRank = normalizedRank * totalN;
+    if (totalN <= 1_000_000L) {
+      final double precision = Util.ceilingPowerBaseOfDouble(10.0, totalN) ;
+      maxPrecision = precision;
+      final double trimmedNatRank = Math.round(naturalRank * precision) / precision;
+      return trimmedNatRank;
+    } else {
+      return naturalRank;
+    }
   }
 
 }

@@ -19,8 +19,10 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.quantilescommon.GenericInequalitySearch.find;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -28,13 +30,11 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.quantilescommon.GenericInequalitySearch;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
-import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
@@ -84,7 +84,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
     final int srcNumLevels = sk.getNumLevels();
     this.comp = sk.comparator;
 
-    if (totalN == 0) { throw new SketchesArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (totalN == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
     if (!sk.isLevelZeroSorted()) {
       Arrays.sort((T[])srcQuantiles, srcLevels[0], srcLevels[1], comp);
       if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
@@ -133,9 +133,27 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = Math.round(rank * totalN);
+    final double naturalRank = getNaturalRank(rank, totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      return (T) quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
+    }
+    return (T) quantiles[index];
+  }
+
+  /**
+   * Special version of getQuantile to support the getPartitionBoundaries(int) function.
+   * @param weight ultimately comes from selected integral weights computed by the sketch.
+   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
+   * the quantile directly corresponding to the given weight internal to the sketch.
+   * @return the approximate quantile given the weight.
+   */
+  T getQuantile(final long weight, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
+    final int len = cumWeights.length;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, weight, crit);
     if (index == -1) {
       return (T) quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
     }
@@ -154,7 +172,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
-    final int index = GenericInequalitySearch.find((T[])quantiles,  0, len - 1, quantile, crit, comp);
+    final int index = find((T[])quantiles,  0, len - 1, quantile, crit, comp);
     if (index == -1) {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }

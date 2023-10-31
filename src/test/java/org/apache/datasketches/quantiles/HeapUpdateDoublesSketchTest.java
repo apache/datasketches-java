@@ -29,7 +29,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedDoubles;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -810,7 +810,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkEquallySpacedRanks() {
     int n = 10;
-    double[] es = equallyWeightedRanks(n);
+    double[] es = equallySpacedDoubles(n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedDoubles;
 
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
@@ -66,7 +66,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   public FloatsPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
-    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
+    final double[] ranks = equallySpacedDoubles(numEquallyWeighted);
     final float[] boundaries = getQuantiles(ranks, searchCrit);
     boundaries[0] = getMinItem();
     boundaries[boundaries.length - 1] = getMaxItem();

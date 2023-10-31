@@ -28,15 +28,25 @@ import org.testng.annotations.Test;
 public class QuantilesUtilTest {
 
   @Test
-  public void checkEvenlySpacedRanks() {
-    double[] arr = QuantilesUtil.equallyWeightedRanks(2);
+  public void checkEquallySpacedDoubles() {
+    double[] arr = QuantilesUtil.equallySpacedDoubles(2);
     assertEquals(arr[1], 0.5);
-    arr = QuantilesUtil.equallyWeightedRanks(4);
+    arr = QuantilesUtil.equallySpacedDoubles(4);
     assertEquals(arr[0], 0.0);
     assertEquals(arr[1], 0.25);
     assertEquals(arr[2], 0.5);
     assertEquals(arr[3], 0.75);
     assertEquals(arr[4], 1.0);
+  }
+
+  @Test
+  public void checkEquallySpacedLongs() {
+    long[] arr = QuantilesUtil.equallySpacedLongs(1, 5, 4);
+    assertEquals(arr[0], 1);
+    assertEquals(arr[1], 2);
+    assertEquals(arr[2], 3);
+    assertEquals(arr[3], 4);
+    assertEquals(arr[4], 5);
   }
 
   @Test
@@ -71,6 +81,8 @@ public class QuantilesUtilTest {
     try { QuantilesUtil.evenlySpacedDoubles(0, 1.0, 1); fail(); } catch (SketchesArgumentException e) {}
   }
 
+
+
   @Test
   public void checkEvenlyLogSpaced() {
     final double[] arr = QuantilesUtil.evenlyLogSpaced(1, 8, 4);
@@ -82,6 +94,15 @@ public class QuantilesUtilTest {
     try { QuantilesUtil.evenlyLogSpaced(1.0, -1.0, 2); fail(); } catch (SketchesArgumentException e) {}
     try { QuantilesUtil.evenlyLogSpaced(-1.0, -1.0, 2); fail(); } catch (SketchesArgumentException e) {}
     try { QuantilesUtil.evenlyLogSpaced(1.0, 1.0, 1); fail(); } catch (SketchesArgumentException e) {}
+  }
+
+  private final static boolean enablePrinting = true;
+
+  /**
+   * @param o the Object to println
+   */
+  static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }

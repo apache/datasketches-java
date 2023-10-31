@@ -376,8 +376,8 @@ public final class Util {
   }
 
   /**
-   * Computes the long ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
-   * of 2 that is equal to or greater than the given n and a mathematical integer.
+   * Computes the long ceiling power of 2 within the range [1, 2^62]. This is the smallest positive power
+   * of 2 that is equal to or greater than the given n and a mathematical long.
    *
    * <p>For:
    * <ul>

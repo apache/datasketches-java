@@ -23,7 +23,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedDoubles;
 
 import java.lang.reflect.Array;
 import java.util.Comparator;
@@ -153,7 +153,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallyWeighted,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
+    final double[] ranks = equallySpacedDoubles(numEquallyWeighted);
     final Object[] boundaries = getQuantiles(ranks, searchCrit);
     boundaries[0] = getMinItem();
     boundaries[boundaries.length - 1] = getMaxItem();

@@ -21,6 +21,7 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.util.Arrays;
 
@@ -83,7 +84,7 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = Math.round(rank * totalN);
+    final double naturalRank = getNaturalRank(rank, totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {

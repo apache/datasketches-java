@@ -135,8 +135,8 @@ public interface FloatsSortedView extends SortedView {
   float getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
   /**
-   * Returns the array of quantiles
-   * @return the array of quantiles
+   * Returns an array of all retained quantiles by the sketch.
+   * @return an array of all retained quantiles by the sketch.
    */
   float[] getQuantiles();
 

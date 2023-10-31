@@ -37,7 +37,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedLongs;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -298,14 +298,16 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallyWeighted,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
-    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
-    final T[] boundaries = getQuantiles(ranks, searchCrit);
-    boundaries[0] = getMinItem();
-    boundaries[boundaries.length - 1] = getMaxItem();
+    refreshSortedView();
+    final long[] weights = equallySpacedLongs(1, getN(), numEquallyWeighted);
+    final T[] boundaries = getQuantiles(weights, searchCrit);
     final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>();
     gpb.N = this.getN();
-    gpb.ranks = ranks;
     gpb.boundaries = boundaries;
+    gpb.weights = weights;
+    final double[] ranks = new double[weights.length];
+    for (int i = 0; i < weights.length; i++) { ranks[i] = (double)weights[i] / getN(); }
+    gpb.ranks = ranks;
     return gpb;
   }
 
@@ -359,6 +361,16 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
     for (int i = 0; i < len; i++) {
       quantiles[i] = classicQisSV.getQuantile(ranks[i], searchCrit);
+    }
+    return quantiles;
+  }
+
+  @SuppressWarnings("unchecked")
+  private T[] getQuantiles(final long[] weights, final QuantileSearchCriteria crit) {
+    final int len = weights.length;
+    final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
+    for (int i = 0; i < len; i++) {
+      quantiles[i] = classicQisSV.getQuantile(weights[i], crit);
     }
     return quantiles;
   }

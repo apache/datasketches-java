@@ -365,6 +365,13 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
     public double[] ranks;
 
     /**
+     * The cumulative weights that correspond to the returned boundaries.
+     * The returned array is of size <i>(m + 1)</i>, where <i>m</i> is the requested number of partitions.
+     * Index 0 of the returned array is always 1, and index <i>m</i> is always <i>n</i>.
+     */
+    public long[] weights;
+
+    /**
      * The partition boundaries as quantiles.
      * The returned array is of size <i>(m + 1)</i>, where <i>m</i> is the requested number of partitions.
      * Index 0 of the returned array is always {@link #getMinItem() getMinItem()}, and index <i>m</i> is always

@@ -22,6 +22,8 @@ package org.apache.datasketches.quantiles;
 import static java.lang.System.arraycopy;
 import static org.apache.datasketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.util.Arrays;
 
@@ -29,7 +31,6 @@ import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
-import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
@@ -80,10 +81,10 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = Math.round(rank * totalN);
+    final double naturalRank = getNaturalRank(rank, totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
@@ -92,9 +93,27 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     return quantiles[index];
   }
 
+  /**
+   * Special version of getQuantile to support the getPartitionBoundaries(int) function.
+   * @param weight ultimately comes from selected integral weights computed by the sketch.
+   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
+   * the quantile directly corresponding to the given weight internal to the sketch.
+   * @return the approximate quantile given the weight.
+   */
+  double getQuantile(final long weight, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
+    final int len = cumWeights.length;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, weight, crit);
+    if (index == -1) {
+      return quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
+    }
+    return quantiles[index];
+  }
+
   @Override
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
