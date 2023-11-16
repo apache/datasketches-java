@@ -77,7 +77,6 @@ import org.testng.annotations.Test;
  */
 public class CrossCheckQuantilesTest {
   private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
-  private final String minItem = "10";
   private final Comparator<String> comparator = Comparator.naturalOrder();
   private final static int k = 32; //all sketches are in exact mode
 
@@ -120,6 +119,14 @@ public class CrossCheckQuantilesTest {
       {2,2,2,2,2,2,2,2},
       {2,1,2,1,2,1,2,1}
     };
+
+  final float[]  svMaxFValues = { 10, 10, 40, 50, 40 };
+  final float[]  svMinFValues = { 10, 10, 10, 10, 10 };
+  final double[] svMaxDValues = { 10, 10, 40, 50, 40 };
+  final double[] svMinDValues = { 10, 10, 10, 10, 10 };
+  final String[] svMaxIValues = { "10", "10", "40", "50", "40" };
+  final String[] svMinIValues = { "10", "10", "10", "10", "10" };
+
 
   int numSets;
 
@@ -329,32 +336,44 @@ public class CrossCheckQuantilesTest {
   /*******BUILD & LOAD SVs***********/
 
   private void buildSVs(int set) throws Exception {
-    reqFloatsSV = getRawReqSV(svFValues[set], svCumWeights[set], totalN[set]);
-    kllFloatsSV = getRawKllFloatsSV(svFValues[set], svCumWeights[set], totalN[set]);
-    kllDoublesSV = getRawKllDoublesSV(svDValues[set], svCumWeights[set], totalN[set]);
-    classicDoublesSV = getRawClassicDoublesSV(svDValues[set], svCumWeights[set], totalN[set]);
-    kllItemsSV = new KllItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set], minItem, comparator);
-    itemsSV = new ItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set], comparator);
+    reqFloatsSV = getRawReqSV(svFValues[set], svCumWeights[set], totalN[set],
+        svMaxFValues[set], svMinFValues[set]);
+    kllFloatsSV = getRawKllFloatsSV(svFValues[set], svCumWeights[set], totalN[set],
+        svMaxFValues[set], svMinFValues[set]);
+    kllDoublesSV = getRawKllDoublesSV(svDValues[set], svCumWeights[set], totalN[set],
+        svMaxDValues[set], svMinDValues[set]);
+    classicDoublesSV = getRawClassicDoublesSV(svDValues[set], svCumWeights[set], totalN[set],
+        svMaxDValues[set], svMinDValues[set]);
+    String svImax = svIValues[set][svIValues[set].length - 1];
+    String svImin = svIValues[set][0];
+    kllItemsSV = new KllItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set],
+        comparator, svImax, svImin);
+    itemsSV = new ItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set],
+        comparator, svImax, svImin);
   }
 
   private final static ReqSketchSortedView getRawReqSV(
-      final float[] values, final long[] cumWeights, final long totalN) throws Exception {
-    return (ReqSketchSortedView) REQ_SV_CTOR.newInstance(values, cumWeights, totalN);
+      final float[] values, final long[] cumWeights, final long totalN, final float maxItem, final float minItem)
+          throws Exception {
+    return (ReqSketchSortedView) REQ_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
   }
 
   private final static KllFloatsSketchSortedView getRawKllFloatsSV(
-      final float[] values, final long[] cumWeights, final long totalN) throws Exception {
-    return (KllFloatsSketchSortedView) KLL_FLOATS_SV_CTOR.newInstance(values, cumWeights, totalN);
+      final float[] values, final long[] cumWeights, final long totalN, final float maxItem, final float minItem)
+          throws Exception {
+    return (KllFloatsSketchSortedView) KLL_FLOATS_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
   }
 
   private final static KllDoublesSketchSortedView getRawKllDoublesSV(
-      final double[] values, final long[] cumWeights, final long totalN) throws Exception {
-    return (KllDoublesSketchSortedView) KLL_DOUBLES_SV_CTOR.newInstance(values, cumWeights, totalN);
+      final double[] values, final long[] cumWeights, final long totalN, final double maxItem, final double minItem)
+          throws Exception {
+    return (KllDoublesSketchSortedView) KLL_DOUBLES_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
   }
 
   private final static DoublesSketchSortedView getRawClassicDoublesSV(
-      final double[] values, final long[] cumWeights, final long totalN) throws Exception {
-    return (DoublesSketchSortedView) CLASSIC_DOUBLES_SV_CTOR.newInstance(values, cumWeights, totalN);
+      final double[] values, final long[] cumWeights, final long totalN, final double maxItem, final double minItem)
+          throws Exception {
+    return (DoublesSketchSortedView) CLASSIC_DOUBLES_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
   }
 
   /********BUILD DATA SETS**********/

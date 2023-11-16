@@ -21,6 +21,7 @@ package org.apache.datasketches.quantilescommon;
 
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.Objects;
 
@@ -208,18 +209,17 @@ public final class QuantilesUtil {
     return arr;
   }
 
-  public static double maxPrecision;
+  public static final double tailRoundingFactor = 1e7;
 
-  public static double getNaturalRank(final double normalizedRank, final long totalN) {
-    final double naturalRank = normalizedRank * totalN;
-    if (totalN <= 1_000_000L) {
-      final double precision = Util.ceilingPowerBaseOfDouble(10.0, totalN) ;
-      maxPrecision = precision;
-      final double trimmedNatRank = Math.round(naturalRank * precision) / precision;
-      return trimmedNatRank;
-    } else {
-      return naturalRank;
+  public static double getNaturalRank(
+      final double normalizedRank,
+      final long totalN,
+      final QuantileSearchCriteria searchCrit) {
+    double naturalRank = (normalizedRank * totalN);
+    if (totalN <= tailRoundingFactor) {
+      naturalRank = Math.round(naturalRank * tailRoundingFactor) / tailRoundingFactor;
     }
+    return (searchCrit == INCLUSIVE) ? (long)Math.ceil(naturalRank) : (long)Math.floor(naturalRank);
   }
 
 }

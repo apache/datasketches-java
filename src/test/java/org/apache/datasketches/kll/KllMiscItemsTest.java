@@ -30,7 +30,7 @@ import java.util.Comparator;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.kll.KllItemsSketchSortedView.KllItemsSketchSortedViewIterator;
+import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -201,7 +201,7 @@ public class KllMiscItemsTest {
     for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
     println(sk.toString(true, true));
     KllItemsSketchSortedView<String> sv = sk.getSortedView();
-    KllItemsSketchSortedViewIterator<String> itr = sv.iterator();
+    GenericSortedViewIterator<String> itr = sv.iterator();
     println("### SORTED VIEW");
     printf("%12s%12s\n", "Value", "CumWeight");
     while (itr.next()) {

@@ -27,6 +27,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
@@ -40,6 +41,9 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
   private final float[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
+  private final double[] normRanks;
+  private final float maxItem;
+  private final float minItem;
 
   /**
    * Construct from elements for testing.
@@ -47,32 +51,48 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
    */
-  KllFloatsSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN) {
+  KllFloatsSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN,
+      final float maxItem, final float minItem) {
     this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
+    this.maxItem = maxItem;
+    this.minItem = minItem;
+    final int len = cumWeights.length;
+    final double[] normRanks = new double[len];
+    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
+    this.normRanks = normRanks;
   }
 
   /**
    * Constructs this Sorted View given the sketch
-   * @param sk the given KllFloatsSketch.
+   * @param sketch the given KllFloatsSketch.
    */
-  public KllFloatsSketchSortedView(final KllFloatsSketch sk) {
-    this.totalN = sk.getN();
-    final float[] srcQuantiles = sk.getFloatItemsArray();
-    final int[] srcLevels = sk.levelsArr;
-    final int srcNumLevels = sk.getNumLevels();
+  public KllFloatsSketchSortedView(final KllFloatsSketch sketch) {
+    if (sketch.isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    this.totalN = sketch.getN();
+    this.maxItem = sketch.getMaxItem();
+    this.minItem = sketch.getMinItem();
+    final float[] srcQuantiles = sketch.getFloatItemsArray();
+    final int[] srcLevels = sketch.levelsArr;
+    final int srcNumLevels = sketch.getNumLevels();
 
-    if (!sk.isLevelZeroSorted()) {
+    if (!sketch.isLevelZeroSorted()) {
       Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1]);
-      if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
+      if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
     }
 
     final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
     quantiles = new float[numQuantiles];
     cumWeights = new long[numQuantiles];
     populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
+    final int len = cumWeights.length;
+    final double[] normRanks = new double[len];
+    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
+    this.normRanks = normRanks;
   }
+
+  //end of constructors
 
   @Override
   public long[] getCumulativeWeights() {
@@ -80,11 +100,31 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
   }
 
   @Override
+  public float getMaxItem() {
+    return maxItem;
+  }
+
+  @Override
+  public float getMinItem() {
+    return minItem;
+  }
+
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
+  public double[] getNormalizedRanks() {
+    return normRanks;
+  }
+
+  @Override
   public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final double naturalRank = getNaturalRank(rank, totalN);
+    final double naturalRank = getNaturalRank(rank, totalN, searchCrit);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
@@ -116,8 +156,8 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
   }
 
   @Override
-  public KllFloatsSketchSortedViewIterator iterator() {
-    return new KllFloatsSketchSortedViewIterator(quantiles, cumWeights);
+  public FloatsSortedViewIterator iterator() {
+    return new FloatsSortedViewIterator(quantiles, cumWeights);
   }
 
   //restricted methods

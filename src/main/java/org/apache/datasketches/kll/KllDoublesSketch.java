@@ -24,7 +24,6 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedDoubles;
 
 import java.util.Objects;
 
@@ -173,21 +172,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllDoublesSV.getCDF(splitPoints, searchCrit);
-  }
-
-  @Override
-  public DoublesPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
-      final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    final double[] ranks = equallySpacedDoubles(numEquallyWeighted);
-    final double[] boundaries = getQuantiles(ranks, searchCrit);
-    boundaries[0] = getMinItem();
-    boundaries[boundaries.length - 1] = getMaxItem();
-    final DoublesPartitionBoundaries dpb = new DoublesPartitionBoundaries();
-    dpb.N = this.getN();
-    dpb.ranks = ranks;
-    dpb.boundaries = boundaries;
-    return dpb;
   }
 
   @Override

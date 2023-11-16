@@ -20,12 +20,15 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * The quantiles SortedView iterator for type double.
- * @see SortedViewIterator
- * @author Alexander Saydakov
- * @author Lee Rhodes
+ * Iterator over quantile sketches of primitive type <i>double</i>.
  */
-public interface DoublesSortedViewIterator extends SortedViewIterator {
+public final class DoublesSortedViewIterator extends SortedViewIterator {
+  private final double[] quantiles;
+
+  public DoublesSortedViewIterator(final double[] quantiles, final long[] cumWeights) {
+    super(cumWeights);
+    this.quantiles = quantiles; //SpotBugs EI_EXPOSE_REP2 suppressed by FindBugsExcludeFilter
+  }
 
   /**
    * Gets the quantile at the current index.
@@ -35,7 +38,8 @@ public interface DoublesSortedViewIterator extends SortedViewIterator {
    *
    * @return the quantile at the current index.
    */
-  double getQuantile();
+  public double getQuantile() {
+    return quantiles[index];
+  }
 
 }
-

@@ -263,9 +263,14 @@ public class UtilTest {
 
   @Test
   public void checkCharacterPad() {
-    final String s = "Pad 30, postpend z:";
-    final String out = characterPad(s, 30, 'z', true);
+    String s = "Pad 30, postpend z:";
+    String out = characterPad(s, 30, 'z', true);
     println(out);
+    assertEquals(out, "Pad 30, postpend z:zzzzzzzzzzz");
+    s = "Pad 30, prepend z:";
+    out = characterPad(s, 30, 'z', false);
+    println(out);
+    assertEquals(out,"zzzzzzzzzzzzPad 30, prepend z:");
   }
 
   @Test

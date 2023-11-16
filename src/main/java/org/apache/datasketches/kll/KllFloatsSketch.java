@@ -24,7 +24,6 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedDoubles;
 
 import java.util.Objects;
 
@@ -173,21 +172,6 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllFloatsSV.getCDF(splitPoints, searchCrit);
-  }
-
-  @Override
-  public FloatsPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
-      final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    final double[] ranks = equallySpacedDoubles(numEquallyWeighted);
-    final float[] boundaries = getQuantiles(ranks, searchCrit);
-    boundaries[0] = getMinItem();
-    boundaries[boundaries.length - 1] = getMaxItem();
-    final FloatsPartitionBoundaries fpb = new FloatsPartitionBoundaries();
-    fpb.N = this.getN();
-    fpb.ranks = ranks;
-    fpb.boundaries = boundaries;
-    return fpb;
   }
 
   @Override

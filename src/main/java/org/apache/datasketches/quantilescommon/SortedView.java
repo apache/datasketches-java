@@ -20,19 +20,15 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * This is the base interface for the Sorted View interface hierarchy.
+ * This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.
  *
- * <p>The Sorted View provides a view of the data retained by a quantiles-type sketch
- * that would be cumbersome to get any other way.
- * One can iterate over the contents of the sketch using the sketch's iterator, but the result is not sorted.</p>
+ * <p>The SortedView interface hierarchy provides a sorted view of the data retained by a quantiles-type sketch that
+ * would be cumbersome to get any other way.
+ * One could use the sketch's iterator to iterate over the contents of the sketch,
+ * but the result would not be sorted.</p>
  *
- * <p>Once this sorted view has been created, it provides not only a sorted view of the data retained by the sketch
- * but also the basic queries, such as getRank(), getQuantile(), and getCDF() and getPMF().
- * In addition, the iterator obtained from this sorted view provides useful detailed information about each entry.</p>
- *
- * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
- * analysis not directly provided by the sketch.  For example, comparing two sketches using the Kolmogorov-Smirnov
- * test.</p>
+ * <p>The data from a Sorted view is an unbiased random sample of the input stream that can be used for other kinds of
+ * analysis not directly provided by the sketch.</p>
  *
  * @author Alexander Saydakov
  * @author Lee Rhodes
@@ -40,10 +36,24 @@ package org.apache.datasketches.quantilescommon;
 public interface SortedView {
 
   /**
-   * Returns the array of cumulative weights
-   * @return the array of cumulative weights
+   * Returns the array of cumulative weights from the sketch.
+   * Also known as the natural ranks, which are the Natural Numbers on the interval [1, N].
+   * @return the array of cumulative weights (or natural ranks).
    */
   long[] getCumulativeWeights();
+
+  /**
+   * Returns the array of normalized ranks. The normalized ranks are the natural ranks divided by N.
+   * The normalized ranks are fractional numbers on the interval (0,1.0].
+   * @return the array of normalized ranks.
+   */
+  double[] getNormalizedRanks();
+
+  /**
+   * Returns the total number of items presented to the sourcing sketch.
+   * @return the total number of items presented to the sourcing sketch.
+   */
+  long getN();
 
   /**
    * Returns true if this sorted view is empty.

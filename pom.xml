@@ -150,6 +150,13 @@ under the License.
       <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
+    <!--
+    <dependency>
+      <groupId>org.apache.datasketches</groupId>
+      <artifactId>datasketches-java-common</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    -->
   </dependencies>
 
   <build>

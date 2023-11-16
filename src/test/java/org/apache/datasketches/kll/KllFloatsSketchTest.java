@@ -392,21 +392,6 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void getQuantiles() {
-    final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    sketch.update(1);
-    sketch.update(2);
-    sketch.update(3);
-    sketch.update(4);
-    float[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    float[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
-    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
-  }
-
-  @Test
   public void checkReset() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
@@ -456,18 +441,18 @@ public class KllFloatsSketchTest {
     assertEquals(itr.next(), true);
     assertEquals(itr.getQuantile(), 1);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 0);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 1);
     assertEquals(itr.next(), true);
     assertEquals(itr.getQuantile(), 2);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 2);
     assertEquals(itr.next(), true);
     assertEquals(itr.getQuantile(), 3);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 2);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 3);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 2);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 3);
     assertEquals(itr.next(), false);
   }
 

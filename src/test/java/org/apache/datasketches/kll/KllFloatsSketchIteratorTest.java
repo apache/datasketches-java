@@ -77,8 +77,8 @@ public class KllFloatsSketchIteratorTest {
 
     assertEquals(itr.getQuantile(), 1.0f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 0);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 1);
     assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
 
@@ -86,8 +86,8 @@ public class KllFloatsSketchIteratorTest {
 
     assertEquals(itr.getQuantile(), 2.0f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 2);
     assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0.5);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
   }

@@ -17,22 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.quantiles;
-
-import java.util.Comparator;
-
 /**
- * For testing only
+ *
  */
-public class ItemsSketchSortedViewString extends ItemsSketchSortedView<String> {
-
-  public ItemsSketchSortedViewString(
-      final String[] quantiles,
-      final long[] cumWeights,
-      final long totalN,
-      final Comparator<String> comparator,
-      final String maxItem,
-      final String minItem) {
-    super(quantiles, cumWeights, totalN, comparator, maxItem, minItem);
-  }
-}
+package org.apache.datasketches.partitions;

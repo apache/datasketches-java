@@ -91,7 +91,7 @@ public class CustomQuantilesTest {
       double qTrue = getTrueDoubleQuantile(cumWtsArr, quantilesArr, normRankIn, EXCLUSIVE);
       assertEquals(qEst, qTrue);
       double rawNatRank = normRankIn * N;
-      double trimNatRank = getNaturalRank(normRankIn, N);
+      double trimNatRank = getNaturalRank(normRankIn, N, EXCLUSIVE);
       printf("%22.18f %22.18f %22.18f %13.1f", normRankIn, rawNatRank, trimNatRank, qEst);
       if (qEst != qTrue) { println("  " + qEst + " != " +qTrue); } else { println(""); }
     }
@@ -120,7 +120,7 @@ public class CustomQuantilesTest {
       double qTrue = getTrueDoubleQuantile(cumWtsArr, quantilesArr, normRankIn, INCLUSIVE);
       assertEquals(qEst, qTrue);
       double rawNatRank = normRankIn * N;
-      double trimNatRank = getNaturalRank(normRankIn, N);
+      double trimNatRank = getNaturalRank(normRankIn, N, INCLUSIVE);
       printf("%22.18f %22.18f %22.18f %13.1f", normRankIn, rawNatRank, trimNatRank, qEst);
       if (qEst != qTrue) { println("  " + qEst + " != " +qTrue); } else { println(""); }
     }

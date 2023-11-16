@@ -20,12 +20,15 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * The quantiles SortedView Iterator for type float.
- * @see SortedViewIterator
- * @author Alexander Saydakov
- * @author Lee Rhodes
+ * Iterator over quantile sketches of primitive type <i>float</i>.
  */
-public interface FloatsSortedViewIterator extends SortedViewIterator {
+public final class FloatsSortedViewIterator extends SortedViewIterator {
+  private final float[] quantiles;
+
+  public FloatsSortedViewIterator(final float[] quantiles, final long[] cumWeights) {
+    super(cumWeights);
+    this.quantiles = quantiles; //SpotBugs EI_EXPOSE_REP2 suppressed by FindBugsExcludeFilter
+  }
 
   /**
    * Gets the quantile at the current index.
@@ -35,7 +38,8 @@ public interface FloatsSortedViewIterator extends SortedViewIterator {
    *
    * @return the quantile at the current index.
    */
-  float getQuantile();
+  public float getQuantile() {
+    return quantiles[index];
+  }
 
 }
-

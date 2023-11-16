@@ -36,10 +36,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedLongs;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
@@ -49,7 +46,8 @@ import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
+import org.apache.datasketches.quantilescommon.PartitioningFeature;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
@@ -74,25 +72,13 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  *
  * @param <T> The sketch data type
  */
-public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
-
+public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, PartitioningFeature<T> {
   final Class<T> clazz;
-
   private final Comparator<? super T> comparator_;
-
   final int k_;
-
   long n_;
-
-  /**
-   * The largest item ever seen in the stream.
-   */
-  T maxItem_;
-
-  /**
-   * The smallest item ever seen in the stream.
-   */
-  T minItem_;
+  T maxItem_; //The largest item ever seen in the stream.
+  T minItem_; //The smallest item ever seen in the stream.
 
   /**
    * In the initial on-heap version, equals combinedBuffer_.length.
@@ -132,7 +118,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   /**
    * Setting the seed makes the results of the sketch deterministic if the input items are
    * received in exactly the same order. This is only useful when performing test comparisons,
-   * otherwise is not recommended.
+   * otherwise, it is not recommended.
    */
   public static final Random rand = new Random();
 
@@ -220,7 +206,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
     final boolean empty = checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     checkFamilyID(familyID);
-
     final ItemsSketch<T> sk = getInstance(clazz, k, comparator); //checks k
     if (empty) { return sk; }
 
@@ -265,10 +250,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return qsCopy;
   }
 
-  @Override
-  public double[] getCDF(final T[] splitPoints) {
-    return getCDF(splitPoints, INCLUSIVE);
-  }
+  //END of Constructors
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -295,25 +277,11 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   @Override
-  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallyWeighted,
+  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
-    final long[] weights = equallySpacedLongs(1, getN(), numEquallyWeighted);
-    final T[] boundaries = getQuantiles(weights, searchCrit);
-    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>();
-    gpb.N = this.getN();
-    gpb.boundaries = boundaries;
-    gpb.weights = weights;
-    final double[] ranks = new double[weights.length];
-    for (int i = 0; i < weights.length; i++) { ranks[i] = (double)weights[i] / getN(); }
-    gpb.ranks = ranks;
-    return gpb;
-  }
-
-  @Override
-  public double[] getPMF(final T[] splitPoints) {
-    return getPMF(splitPoints, INCLUSIVE);
+    return classicQisSV.getPartitionBoundaries(numEquallySized, searchCrit);
   }
 
   @Override
@@ -321,11 +289,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return classicQisSV.getPMF(splitPoints, searchCrit);
-  }
-
-  @Override
-  public T getQuantile(final double rank) {
-    return getQuantile(rank, INCLUSIVE);
   }
 
   @Override
@@ -348,36 +311,10 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   @Override
-  public T[] getQuantiles(final double[] ranks) {
-    return getQuantiles(ranks, INCLUSIVE);
-  }
-
-  @Override
-  @SuppressWarnings("unchecked")
   public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
-    final int len = ranks.length;
-    final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
-    for (int i = 0; i < len; i++) {
-      quantiles[i] = classicQisSV.getQuantile(ranks[i], searchCrit);
-    }
-    return quantiles;
-  }
-
-  @SuppressWarnings("unchecked")
-  private T[] getQuantiles(final long[] weights, final QuantileSearchCriteria crit) {
-    final int len = weights.length;
-    final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
-    for (int i = 0; i < len; i++) {
-      quantiles[i] = classicQisSV.getQuantile(weights[i], crit);
-    }
-    return quantiles;
-  }
-
-  @Override
-  public double getRank(final T quantile) {
-    return getRank(quantile, INCLUSIVE);
+    return classicQisSV.getQuantiles(ranks, searchCrit);
   }
 
   @Override
@@ -395,11 +332,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   @Override
   public double getRankUpperBound(final double rank) {
     return min(1.0, rank + getNormalizedRankError(k_, false));
-  }
-
-  @Override
-  public double[] getRanks(final T[] quantiles) {
-    return getRanks(quantiles, INCLUSIVE);
   }
 
   @Override
@@ -522,11 +454,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return ItemsByteArrayImpl.toByteArray(this, ordered, serDe);
   }
 
-  @Override
-  public String toString() {
-    return toString(true, false);
-  }
-
   /**
    * Returns summary information about this sketch. Used for debugging.
    * @param sketchSummary if true includes sketch summary
@@ -592,7 +519,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   @Override
-  public GenericSortedView<T> getSortedView() {
+  public ItemsSketchSortedView<T> getSortedView() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return refreshSortedView();
   }

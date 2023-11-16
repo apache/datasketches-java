@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.quantilescommon.GenericInequalitySearch.find;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedDoubles;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.lang.reflect.Array;
@@ -31,10 +32,13 @@ import java.util.Comparator;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
+import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
+import org.apache.datasketches.quantilescommon.PartitioningFeature;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
@@ -43,13 +47,15 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-@SuppressWarnings("unchecked")
-public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
-  private final Object[] quantiles;
+public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, PartitioningFeature<T> {
+  private final T[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
+  private final Comparator<? super T> comparator;
+  private final T maxItem;
   private final T minItem;
-  private final Comparator<? super T> comp;
+  private final Class<T> clazz;
+  private final double[] normRanks;
 
   /**
    * Construct from elements for testing only.
@@ -59,49 +65,59 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param minItem used to extract the type of T
    * @param comparator the Comparator for type T
    */
+  @SuppressWarnings("unchecked")
   KllItemsSketchSortedView(
       final T[] quantiles,
       final long[] cumWeights,
       final long totalN,
-      final T minItem,
-      final Comparator<? super T> comparator) {
+      final Comparator<? super T> comparator,
+      final T maxItem,
+      final T minItem) {
     this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
+    this.comparator = comparator;
+    this.maxItem = maxItem;
     this.minItem = minItem;
-    this.comp = comparator;
+    this.clazz = (Class<T>)quantiles[0].getClass();
+    this.normRanks = convertCumWtsToNormRanks(cumWeights, totalN);
   }
 
   /**
    * Constructs this Sorted View given the sketch
-   * @param sk the given KllItemsSketch.
+   * @param sketch the given KllItemsSketch.
    */
-  KllItemsSketchSortedView(final KllItemsSketch<T> sk) {
-    this.totalN = sk.getN();
-    this.minItem = sk.getMinItem();
-    final Object[] srcQuantiles = sk.getTotalItemsArray();
-    final int[] srcLevels = sk.levelsArr;
-    final int srcNumLevels = sk.getNumLevels();
-    this.comp = sk.comparator;
+  @SuppressWarnings("unchecked")
+  KllItemsSketchSortedView(final KllItemsSketch<T> sketch) {
+    if (sketch.isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    this.totalN = sketch.getN();
+    final T[] srcQuantiles = sketch.getTotalItemsArray();
+    final int[] srcLevels = sketch.levelsArr;
+    final int srcNumLevels = sketch.getNumLevels();
+    this.comparator = sketch.comparator;
+    this.maxItem = sketch.getMaxItem();
+    this.minItem = sketch.getMinItem();
+    this.clazz = (Class<T>)sketch.serDe.getClassOfT();
 
     if (totalN == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
-    if (!sk.isLevelZeroSorted()) {
-      Arrays.sort((T[])srcQuantiles, srcLevels[0], srcLevels[1], comp);
-      if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
+    if (!sketch.isLevelZeroSorted()) {
+      Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1], comparator);
+      if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
     }
 
     final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
-    quantiles = new Object[numQuantiles];
+    quantiles = (T[]) Array.newInstance(sketch.serDe.getClassOfT(), numQuantiles);
     cumWeights = new long[numQuantiles];
     populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
+    this.normRanks = convertCumWtsToNormRanks(cumWeights, totalN);
   }
 
   //end of constructors
 
-  @Override //implemented here because it needs the comparator
+  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    GenericSortedView.validateItems(splitPoints, comp);
+    GenericSortedView.validateItems(splitPoints, comparator);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
     for (int i = 0; i < len - 1; i++) {
@@ -116,10 +132,66 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
     return cumWeights.clone();
   }
 
-  @Override //implemented here because it needs the comparator
+  @Override
+  public T getMaxItem() {
+    return maxItem;
+  }
+
+  @Override
+  public T getMinItem() {
+    return minItem;
+  }
+
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
+  public double[] getNormalizedRanks() {
+    return normRanks.clone();
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final long totalN = this.totalN;
+    final int svLen = cumWeights.length;
+    //adjust ends of sortedView arrays
+    cumWeights[0] = 1L;
+    cumWeights[svLen - 1] = totalN;
+    normRanks[0] = 1.0 / totalN;
+    normRanks[svLen - 1] = 1.0;
+    quantiles[0] = this.getMinItem();
+    quantiles[svLen - 1] = this.getMaxItem();
+
+    final double[] evSpNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySized + 1);
+    final int len = evSpNormRanks.length;
+    final T[] evSpQuantiles = (T[]) Array.newInstance(clazz, len);
+
+    final long[] evSpNatRanks = new long[len];
+    for (int i = 0; i < len; i++) {
+      final int index = getQuantileIndex(evSpNormRanks[i], searchCrit);
+      evSpQuantiles[i] = getQuantileFromIndex(index);
+      evSpNatRanks[i] = getCumWeightFromIndex(index);
+    }
+    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>(
+        this.totalN,
+        evSpQuantiles.clone(),
+        evSpNatRanks.clone(),
+        evSpNormRanks.clone(),
+        getMaxItem(),
+        getMinItem(),
+        searchCrit);
+    return gpb;
+  }
+
+  @Override
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    GenericSortedView.validateItems(splitPoints, comp);
+    GenericSortedView.validateItems(splitPoints, comparator);
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
     for (int i = len; i-- > 1; ) {
@@ -132,35 +204,36 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
-    final int len = cumWeights.length;
-    final double naturalRank = getNaturalRank(rank, totalN);
-    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
-    if (index == -1) {
-      return (T) quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
-    }
-    return (T) quantiles[index];
+    final int index = getQuantileIndex(rank, searchCrit);
+    return getQuantileFromIndex(index);
   }
 
-  /**
-   * Special version of getQuantile to support the getPartitionBoundaries(int) function.
-   * @param weight ultimately comes from selected integral weights computed by the sketch.
-   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
-   * the quantile directly corresponding to the given weight internal to the sketch.
-   * @return the approximate quantile given the weight.
-   */
-  T getQuantile(final long weight, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
+  private T getQuantileFromIndex(final int index) { return quantiles[index]; }
+
+  private long getCumWeightFromIndex(final int index) { return cumWeights[index]; }
+
+  private int getQuantileIndex(final double rank, final QuantileSearchCriteria searchCrit) {
     final int len = cumWeights.length;
+    final double naturalRank = getNaturalRank(rank, totalN, searchCrit);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, weight, crit);
-    if (index == -1) {
-      return (T) quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) { return len - 1; }
+    return index;
+  }
+
+  @SuppressWarnings("unchecked")
+  public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final int len = ranks.length;
+    final T[] quants = (T[]) Array.newInstance(clazz, len);
+    for (int i = 0; i < len; i++) {
+      quants[i] = getQuantile(ranks[i], searchCrit);
     }
-    return (T) quantiles[index];
+    return quants;
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public T[] getQuantiles() {
     final T[] quants = (T[]) Array.newInstance(minItem.getClass(), quantiles.length);
     System.arraycopy(quantiles, 0, quants, 0, quantiles.length);
@@ -172,7 +245,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
-    final int index = find((T[])quantiles,  0, len - 1, quantile, crit, comp);
+    final int index = find(quantiles,  0, len - 1, quantile, crit, comparator);
     if (index == -1) {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
@@ -185,11 +258,18 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
   }
 
   @Override
-  public KllItemsSketchSortedViewIterator<T> iterator() {
-    return new KllItemsSketchSortedViewIterator<>((T[])quantiles, cumWeights);
+  public GenericSortedViewIterator<T> iterator() {
+    return new GenericSortedViewIterator<>(quantiles, cumWeights);
   }
 
   //restricted methods
+
+  private static double[] convertCumWtsToNormRanks(final long[] cumWeights, final long totalN) {
+    final int len = cumWeights.length;
+    final double[] normRanks = new double[len];
+    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
+    return normRanks;
+  }
 
   private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevels,
     final int srcNumLevels, final int numItems) {
@@ -212,7 +292,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
       weight *= 2;
     }
     final int numLevels = dstLevel;
-    blockyTandemMergeSort(quantiles, cumWeights, myLevels, numLevels, comp); //create unit weights
+    blockyTandemMergeSort(quantiles, cumWeights, myLevels, numLevels, comparator); //create unit weights
     KllHelper.convertToCumulative(cumWeights);
   }
 
@@ -255,6 +335,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
         startingLevel2, numLevels2, comp);
   }
 
+  @SuppressWarnings("unchecked")
   private static <T> void tandemMerge(
       final Object[] quantilesSrc, final long[] weightsSrc,
       final Object[] quantilesDst, final long[] weightsDst,
@@ -287,17 +368,6 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
     } else if (iSrc2 < toIndex2) {
       System.arraycopy(quantilesSrc, iSrc2, quantilesDst, iDst, toIndex2 - iSrc2);
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
-    }
-  }
-
-  /**
-   * Iterator over KllItemsSketchSortedView.
-   * @param <T> type of quantile (item)
-   */
-  public static final class KllItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
-
-    KllItemsSketchSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
-      super(quantiles, cumWeights);
     }
   }
 

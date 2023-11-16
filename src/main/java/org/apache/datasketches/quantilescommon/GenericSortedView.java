@@ -70,6 +70,24 @@ public interface GenericSortedView<T> extends SortedView {
   double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
+   * Returns the maximum item of the stream. This may be distinct from the largest item retained by the
+   * sketch algorithm.
+   *
+   * @return the maximum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
+   */
+  T getMaxItem();
+
+  /**
+   * Returns the minimum item of the stream. This may be distinct from the smallest item retained by the
+   * sketch algorithm.
+   *
+   * @return the minimum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
+   */
+  T getMinItem();
+
+  /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
    * as an array of probability masses as doubles on the interval [0.0, 1.0],
    * given a set of splitPoints.
@@ -126,8 +144,8 @@ public interface GenericSortedView<T> extends SortedView {
   T getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
   /**
-   * Returns the array of quantiles.
-   * @return the array of quantiles.
+   * Returns the full array of quantiles.
+   * @return the full array of quantiles.
    */
   T[] getQuantiles();
 
@@ -169,4 +187,3 @@ public interface GenericSortedView<T> extends SortedView {
   }
 
 }
-

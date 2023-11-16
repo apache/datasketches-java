@@ -92,56 +92,6 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
   float getMinItem();
 
   /**
-   * This method returns an instance of {@link FloatsPartitionBoundaries FloatsPartitionBoundaries} which provides
-   * sufficient information for the user to create the given number of equally weighted partitions.
-   *
-   * <p>This method is equivalent to
-   * {@link #getPartitionBoundaries(int, QuantileSearchCriteria) getPartitionBoundaries(numEquallyWeighted, INCLUSIVE)}.
-   * </p>
-   *
-   * @param numEquallyWeighted an integer that specifies the number of equally weighted partitions between
-   * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than zero.
-   * <ul>
-   * <li>A 1 will return: minItem, maxItem.</li>
-   * <li>A 2 will return: minItem, median quantile, maxItem.</li>
-   * <li>Etc.</li>
-   * </ul>
-   *
-   * @return an instance of {@link FloatsPartitionBoundaries FloatsPartitionBoundaries}.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @throws IllegalArgumentException if <i>numEquallyWeighted</i> is less than 1.
-   */
-  default FloatsPartitionBoundaries getPartitionBoundaries(int numEquallyWeighted) {
-    return getPartitionBoundaries(numEquallyWeighted, INCLUSIVE);
-  }
-
-  /**
-   * This method returns an instance of {@link FloatsPartitionBoundaries FloatsPartitionBoundaries} which provides
-   * sufficient information for the user to create the given number of equally weighted partitions.
-   *
-   * @param numEquallyWeighted an integer that specifies the number of equally weighted partitions between
-   * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than zero.
-   * <ul>
-   * <li>A 1 will return: minItem, maxItem.</li>
-   * <li>A 2 will return: minItem, median quantile, maxItem.</li>
-   * <li>Etc.</li>
-   * </ul>
-   *
-   * @param searchCrit
-   * If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally weighted partitions
-   * with the exception of the lowest returned quantile, which is the lowest boundary of the lowest ranked partition.
-   * If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally weighted partitions
-   * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
-   *
-   * @return an instance of {@link FloatsPartitionBoundaries FloatsPartitionBoundaries}.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @throws IllegalArgumentException if <i>numEquallyWeighted</i> is less than 1.
-   */
-  FloatsPartitionBoundaries getPartitionBoundaries(int numEquallyWeighted, QuantileSearchCriteria searchCrit);
-
-  /**
    * This is equivalent to {@link #getPMF(float[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].

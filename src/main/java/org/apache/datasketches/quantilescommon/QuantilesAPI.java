@@ -219,8 +219,8 @@ public interface QuantilesAPI {
   int getK();
 
   /**
-   * Gets the length of the input stream.
-   * @return the length of the input stream.
+   * Gets the length of the input stream offered to the sketch..
+   * @return the length of the input stream offered to the sketch.
    */
   long getN();
 

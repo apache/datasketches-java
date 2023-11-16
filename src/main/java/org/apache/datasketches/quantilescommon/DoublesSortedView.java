@@ -20,7 +20,7 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * The Sorted View for quantiles of primitive type double.
+ * The Sorted View for quantile sketches of primitive type double.
  * @see SortedView
  * @author Alexander Saydakov
  * @author Lee Rhodes
@@ -70,6 +70,24 @@ public interface DoublesSortedView extends SortedView {
     buckets[len - 1] = 1.0;
     return buckets;
   }
+
+  /**
+   * Returns the maximum item of the stream. This may be distinct from the largest item retained by the
+   * sketch algorithm.
+   *
+   * @return the maximum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
+   */
+  double getMaxItem();
+
+  /**
+   * Returns the minimum item of the stream. This may be distinct from the smallest item retained by the
+   * sketch algorithm.
+   *
+   * @return the minimum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
+   */
+  double getMinItem();
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream

@@ -58,19 +58,6 @@ public class KllMiscDirectDoublesTest {
     assertTrue(rest - restLB < (2 * eps));
   }
 
-  @Test
-  public void checkMisc() {
-    final int k = 8;
-    final KllDoublesSketch sk = getDirectDoublesSketch(k, 0);
-    try { sk.getPartitionBoundaries(10); fail(); } catch (SketchesArgumentException e) {}
-    for (int i = 0; i < 20; i++) { sk.update(i); }
-    final double[] items = sk.getDoubleItemsArray();
-    assertEquals(items.length, 16);
-    final int[] levels = sk.getLevelsArray(sk.sketchStructure);
-    assertEquals(levels.length, 3);
-    assertEquals(sk.getNumLevels(), 2);
-  }
-
   //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
     final int k = 20;
