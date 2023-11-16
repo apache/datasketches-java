@@ -83,17 +83,17 @@ public class GenericPartitionBoundaries<T> implements PartitionBoundaries {
    * <p>If these results were computed using QuantileSearchCriteria.INCLUSIVE then these sequential boundaries
    * are to be interpreted as follows:
    * <ul>
-   * <li>Partition 1: include all items >= index 0 and <= index 1.</li>
-   * <li>Partition 2: include all items >  index 1 and <= index 2.</li>
-   * <li>Partition N: include all items >  index N-1 and <= index N.</li>
+   * <li>Partition 1: include all items &ge; index 0 and &le; index 1.</li>
+   * <li>Partition 2: include all items &gt; index 1 and &le; index 2.</li>
+   * <li>Partition N: include all items &gt; index N-1 and &le; index N.</li>
    * </ul>
    *
    * <p>If these results were computed using QuantileSearchCriteria.EXCLUSIVE then these sequential boundaries
    * are to be interpreted as follows:
    * <ul>
-   * <li>Partition 1: include all items >= index 0 and < index 1.</li>
-   * <li>Partition 2: include all items >= index 1 and < index 2.</li>
-   * <li>Partition N: include all items >= index N-1 and <= index N.</li>
+   * <li>Partition 1: include all items &ge; index 0 and &lt; index 1.</li>
+   * <li>Partition 2: include all items &ge; index 1 and &lt; index 2.</li>
+   * <li>Partition N: include all items &ge; index N-1 and &le; index N.</li>
    * </ul>
    *
    * @return an array of boundaries that sequentially define the upper and lower boundaries of partitions.

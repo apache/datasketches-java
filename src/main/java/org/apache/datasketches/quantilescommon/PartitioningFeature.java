@@ -37,7 +37,8 @@ public interface PartitioningFeature<T> {
    * </p>
    *
    * @param numEquallySized an integer that specifies the number of equally sized partitions between
-   * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
+   * {@link GenericPartitionBoundaries#getMinItem() getMinItem()} and
+   * {@link GenericPartitionBoundaries#getMaxItem() getMaxItem()}.
    * This must be a positive integer greater than zero.
    * <ul>
    * <li>A 1 will return: minItem, maxItem.</li>
@@ -60,7 +61,8 @@ public interface PartitioningFeature<T> {
    * refers to an approximately equal number of items per partition.
    *
    * @param numEquallySized an integer that specifies the number of equally sized partitions between
-   * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
+   * {@link GenericPartitionBoundaries#getMinItem() getMinItem()} and
+   * {@link GenericPartitionBoundaries#getMaxItem() getMaxItem()}.
    * This must be a positive integer greater than zero.
    * <ul>
    * <li>A 1 will return: minItem, maxItem.</li>
