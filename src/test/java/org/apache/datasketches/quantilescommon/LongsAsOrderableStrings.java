@@ -23,6 +23,8 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.log;
 import static org.apache.datasketches.common.Util.characterPad;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+
 /**
  * Creates a string from a positive long value that is orderable in the
  * same order as its long value.
@@ -46,7 +48,11 @@ public final class LongsAsOrderableStrings {
    * @return the given String back to a long
    */
   public static long getLong(final String value) {
-    return Long.parseLong(value.trim());
+    long out;
+    try { out = Long.parseLong(value.trim()); } catch (NumberFormatException e) {
+      throw new SketchesArgumentException(e.toString());
+    }
+    return out;
   }
 
   /**

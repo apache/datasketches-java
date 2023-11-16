@@ -41,8 +41,8 @@ import org.apache.datasketches.quantilescommon.Stack;
 /**
  * A partitioning process that can partition very large data sets into thousands to millions
  * of partitions of approximately the same size.
- * @param T the data type
- * @param S the quantiles sketch that implements both QuantilesGenericAPI and PartitioningFeature.
+ * @param <T> the data type
+ * @param <S> the quantiles sketch that implements both QuantilesGenericAPI and PartitioningFeature.
  */
 //@SuppressWarnings("unused")
 public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeature<T>> {
@@ -108,7 +108,7 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
     final int partsPerSk = (int)round(pow(guessNumParts, 1.0 / numLevels));
     this.partitionsPerSk = min(partsPerSk, maxPartsPerSk);
     final GenericPartitionBoundaries<T> gpb = sk.getPartitionBoundaries(partitionsPerSk, criteria);
-    final StackElement<T> se = new StackElement<>(gpb, stack.size() + 1, 0, "1");
+    final StackElement<T> se = new StackElement<>(gpb, 0, "1");
     stack.push(se);
     partitionSearch(stack);
     return finalPartitionList;
@@ -136,8 +136,8 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
         final S sk = fillReq.getRange(row.lowerBound, row.upperBound, row.rule);
         final GenericPartitionBoundaries<T> gpb2 = sk.getPartitionBoundaries(this.partitionsPerSk, criteria);
         final int level = stack.size() + 1;
-        final String partId = se.partId + "." + se.part + "," + level;
-        final StackElement<T> se2 = new StackElement<>(gpb2, level, 0, partId);
+        final String partId = se.levelPartId + "." + se.part + "," + level;
+        final StackElement<T> se2 = new StackElement<>(gpb2, 0, partId);
         stack.push(se2);
         partitionSearch(stack);
       }
@@ -156,12 +156,12 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
   public static class StackElement<T> {
     public final GenericPartitionBoundaries<T> gpb;
     public int part;
-    public String partId;
+    public String levelPartId;
 
-    public StackElement(final GenericPartitionBoundaries<T> gpb, final int level, final int part, final String partId) {
+    public StackElement(final GenericPartitionBoundaries<T> gpb, final int part, final String levelPartId) {
       this.gpb = gpb;
       this.part = part;
-      this.partId = partId;
+      this.levelPartId = levelPartId;
     }
   }
 
@@ -170,7 +170,7 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
    */
   public static class PartitionBoundsRow<T> {
     public int part;
-    public String partId;
+    public String levelPartId;
     public long approxNumDeltaItems;
     public BoundsRule rule;
     public T lowerBound;
@@ -179,7 +179,7 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
     public PartitionBoundsRow(final StackElement<T> se) {
       final GenericPartitionBoundaries<T> gpb = se.gpb;
       this.part = se.part;
-      this.partId = se.partId + "." + part;
+      this.levelPartId = se.levelPartId + "." + part;
       final QuantileSearchCriteria searchCrit = gpb.getSearchCriteria();
       final T[] boundaries = gpb.getBoundaries();
       final int numParts = gpb.getNumPartitions();

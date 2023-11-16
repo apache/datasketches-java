@@ -27,6 +27,7 @@ import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.ge
 import java.util.Comparator;
 import java.util.Random;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantiles.ItemsSketch;
 
 /**
@@ -52,8 +53,11 @@ public class ItemsSketchFillRequestLongAsString implements SketchFillRequest<Str
   public ItemsSketch<String> getRange(final String lowerQuantile, final String upperQuantile,
       final BoundsRule bounds) {
     final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
-    final long lower = Long.parseLong(lowerQuantile.trim());
-    final long upper = Long.parseLong(upperQuantile.trim());
+    long upper, lower;
+    try {
+      lower = Long.parseLong(lowerQuantile.trim());
+      upper = Long.parseLong(upperQuantile.trim());
+    } catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
     if (bounds == INCLUDE_BOTH) {
       for (long i = lower; i <= upper; i++) { sk.update(getString(i, numDigits)); }
     } else if (bounds == INCLUDE_UPPER) {

@@ -28,6 +28,7 @@ import java.util.Comparator;
 import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllItemsSketch;
 
 /**
@@ -53,8 +54,11 @@ public class KllItemsSketchFillRequestLongAsString implements SketchFillRequest<
   public KllItemsSketch<String> getRange(final String lowerQuantile, final String upperQuantile,
       final BoundsRule bounds) {
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
-    long lower = Long.parseLong(lowerQuantile.trim());
-    long upper = Long.parseLong(upperQuantile.trim());
+    long upper, lower;
+    try {
+      lower = Long.parseLong(lowerQuantile.trim());
+      upper = Long.parseLong(upperQuantile.trim());
+    } catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
     if (bounds == INCLUDE_BOTH) {
       for (long i = lower; i <= upper; i++) { sk.update(getString(i, numDigits)); }
     } else if (bounds == INCLUDE_UPPER) {

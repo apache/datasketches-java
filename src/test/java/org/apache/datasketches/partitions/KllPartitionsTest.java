@@ -82,7 +82,7 @@ public class KllPartitionsTest {
     double sumSqErr = 0;
     for (int i = 0; i < numParts; i++) {
       final PartitionBoundsRow<String> row = list.get(i);
-      printf(dFmt, row.partId , (i + 1), row.lowerBound, row.upperBound, row.approxNumDeltaItems, row.rule.name());
+      printf(dFmt, row.levelPartId , (i + 1), row.lowerBound, row.upperBound, row.approxNumDeltaItems, row.rule.name());
       size = row.approxNumDeltaItems;
       sumSizes += size;
       sumAbsRelErr += Math.abs(size / meanPartSize - 1.0);
