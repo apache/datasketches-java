@@ -39,7 +39,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.Stack;
 
 /**
- * A partitioning process that can partition very large data sets into thousands to millions
+ * A partitioning process that can partition very large data sets into thousands
  * of partitions of approximately the same size.
  * @param <T> the data type
  * @param <S> the quantiles sketch that implements both QuantilesGenericAPI and PartitioningFeature.

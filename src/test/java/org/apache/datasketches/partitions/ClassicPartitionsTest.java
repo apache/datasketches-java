@@ -19,33 +19,70 @@
 
 package org.apache.datasketches.partitions;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
-import static java.lang.Math.sqrt;
-import static org.apache.datasketches.common.Util.milliSecToString;
 import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_BOTH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.List;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.partitions.Partitioner.PartitionBoundsRow;
 import org.apache.datasketches.quantiles.ItemsSketch;
 import org.testng.annotations.Test;
 
+/**
+ * This classic quantiles sketch partitioner example application uses Strings formatted as numbers.
+ * The length of each string is the number of characters required to display the decimal digits of <i>N</i>,
+ * the number of elements of the entire set of data to be partitioned.
+ * As a result, there is a lot of overhead in string processing.
+ * Nevertheless, real applications of the approach outlined here, would have a lot of IO overhead that this simple
+ * test example does not have.
+ */
 @SuppressWarnings("unused")
 public class ClassicPartitionsTest {
-  private final int k = 1 << 15;
-  private final long totalN = 100_000_000L;
-  private final long tgtPartitionSize = (long)3e6;
-  private final int maxPartsPerSk = 100;
 
-  //@Test
+  /**
+   * Launch the partitioner as an application with the following arguments as strings:
+   * <ul>
+   * <li>arg[0]: int k, the size of the sketch</li>
+   * <li>arg[1]: long totalN, the total size, in elements, of the data set to parse.</li>
+   * <li>arg[2]: long tgtPartitionSize, the target number of elements per resulting partition.</li>
+   * <li>arg[3]: int maxPartsPerSk, the maximum number of partitions to be handled by any one sketch</li>
+   * </ul>
+   * @param args input arguments as defined above.
+   */
+  public void main(String[] args) {
+    final int k, maxPartsPerSk;
+    final long totalN, tgtPartitionSize;
+    try {
+      k = Integer.parseInt(args[0].trim());
+      totalN = Long.parseLong(args[1].trim());
+      tgtPartitionSize = Long.parseLong(args[2].trim());
+      maxPartsPerSk = Integer.parseInt(args[3].trim());
+    } catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
+    classicPartitioner(k, totalN, tgtPartitionSize, maxPartsPerSk);
+  }
+
+  //@Test //launch from TestNG
   public void checkClassicPartitioner() {
-    println("Classic ItemsSketch Partitions Test");
-    printf("Sketch K             :%,20d\n", k);
-    printf("Total N              :%,20d\n", totalN);
-    printf("Tgt Partition Size   :%,20d\n", tgtPartitionSize);
-    printf("Max Parts Per Sketch :%20d\n", maxPartsPerSk);
+    final int k = 1 << 15;
+    final long totalN = 30_000_000L; //artificially set low so it will execute fast
+    final long tgtPartitionSize = 3_000_000L;
+    final int maxPartsPerSk = 100;
+    classicPartitioner(k, totalN, tgtPartitionSize, maxPartsPerSk);
+  }
+
+  /**
+   * Programmatic call to classic Partitioner
+   * @param k the size of the sketch.
+   * @param totalN the total size, in elements, of the data set to parse.
+   * @param tgtPartitionSize the target number of elements per resulting partition.
+   * @param maxPartsPerSk the maximum number of partitions to be handled by any one sketch.
+   */
+  public void classicPartitioner(
+      final int k,
+      final long totalN,
+      final long tgtPartitionSize,
+      final int maxPartsPerSk) {
 
     final long startTime_mS = System.currentTimeMillis();
     final ItemsSketchFillRequestLongAsString fillReq = new ItemsSketchFillRequestLongAsString(k, totalN);
@@ -57,77 +94,20 @@ public class ClassicPartitionsTest {
         fillReq,
         INCLUSIVE);
     final List<PartitionBoundsRow<String>> list = partitioner.partition(sk);
-    outputList(list);
-
     final long endTime_mS = System.currentTimeMillis();
     final long fillInitialSketchTime_mS = endFillInitialSketchTime_mS - startTime_mS;
     final long partitioningTime_mS = endTime_mS - endFillInitialSketchTime_mS;
     final long totalTime_mS = endTime_mS - startTime_mS;
-    println("");
-    println("FillInitialSketchTime : " + milliSecToString(fillInitialSketchTime_mS));
-    println("PartioningTime        : " + milliSecToString(partitioningTime_mS));
-    println("Total Time            : " + milliSecToString(totalTime_mS));
-  }
-
-  private static final String[] hdr  =
-    { "Level.Part", "Partition", "LowerBound", "UpperBound", "ApproxNumItems", "Include Rule" };
-  private static final String hdrFmt = "%15s %10s %15s %15s %15s %15s\n";
-  private static final String dFmt   = "%15s %10d %15s %15s %15d %15s\n";
-
-  void outputList(final List<PartitionBoundsRow<String>> list) {
-    printf(hdrFmt, (Object[]) hdr);
-    final int numParts = list.size();
-    final double meanPartSize = (double)totalN / numParts;
-    double size = 0;
-    double sumSizes = 0;
-    double sumAbsRelErr = 0;
-    double sumSqErr = 0;
-    double maxAbsErr = 0;
-    for (int i = 0; i < numParts; i++) {
-      final PartitionBoundsRow<String> row = list.get(i);
-      printf(dFmt, row.levelPartId , (i + 1), row.lowerBound, row.upperBound, row.approxNumDeltaItems, row.rule.name());
-      size = row.approxNumDeltaItems;
-      sumSizes += size;
-      sumAbsRelErr += abs(size / meanPartSize - 1.0);
-      final double absErr = abs(size - meanPartSize);
-      sumSqErr += absErr * absErr;
-      maxAbsErr= max(absErr, maxAbsErr);
-    }
-    final double meanAbsRelErr = sumAbsRelErr / numParts;
-    final double meanSqErr = sumSqErr / numParts; //intermediate value
-    final double normMeanSqErr = meanSqErr / (meanPartSize * meanPartSize); //intermediate value
-    final double rmsRelErr = sqrt(normMeanSqErr); //a.k.a. Normalized RMS Error or NRMSE
-    final double maxAbsErrFraction = maxAbsErr / meanPartSize;
-
-    printf("Total ApproxNumItems  :%,20d\n", (long)sumSizes);
-    printf("Mean Partition Size   :%,20.1f\n", meanPartSize);
-    printf("Mean Abs Rel Error    :%20.3f%%\n", meanAbsRelErr * 100);
-    printf("Norm RMS Error        :%20.3f%%\n", rmsRelErr * 100);
-    printf("Max Abs Error Fraction:%20.3f%%\n", maxAbsErrFraction * 100);
-  }
-
-  private final static boolean enablePrinting = true;
-
-  /**
-   * @param o the Object to print
-   */
-  private static final void print(final Object o) {
-    if (enablePrinting) { System.out.print(o.toString()); }
-  }
-
-  /**
-   * @param o the Object to println
-   */
-  private static final void println(final Object o) {
-    if (enablePrinting) { System.out.println(o.toString()); }
-  }
-
-  /**
-   * @param format the format
-   * @param args the args
-   */
-  private static final void printf(final String format, final Object ...args) {
-    if (enablePrinting) { System.out.printf(format, args); }
+    PartitionResults.output(
+        "Classic",
+        list,
+        k,
+        totalN,
+        tgtPartitionSize,
+        maxPartsPerSk,
+        fillInitialSketchTime_mS,
+        partitioningTime_mS,
+        totalTime_mS);
   }
 
 }

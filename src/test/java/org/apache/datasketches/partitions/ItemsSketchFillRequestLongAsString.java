@@ -25,7 +25,6 @@ import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.di
 import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 
 import java.util.Comparator;
-import java.util.Random;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantiles.ItemsSketch;
@@ -37,7 +36,6 @@ import org.apache.datasketches.quantiles.ItemsSketch;
 public class ItemsSketchFillRequestLongAsString implements SketchFillRequest<String, ItemsSketch<String>> {
   private int k;
   private int numDigits;
-  private Random rand = new Random();
 
   public ItemsSketchFillRequestLongAsString() {
     k = 1 << 10;
@@ -80,46 +78,6 @@ public class ItemsSketchFillRequestLongAsString implements SketchFillRequest<Str
       for (long i = lower; i < upper; i++) { sk.update(getString(i, numDigits)); }
     }
     return sk;
-  }
-
-  public ItemsSketch<String> getRangeRandom(final long lowerQuantile, final long upperQuantile,
-      final BoundsRule bounds) {
-    final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
-    final long lower = lowerQuantile;
-    final long upper = upperQuantile;
-    this.rand = new Random();
-    if (bounds == INCLUDE_BOTH) {
-      for (long i = lower; i <= upper; i++) {
-        sk.update(getString(randBetween(lowerQuantile, upperQuantile, bounds), numDigits));
-      }
-    } else if (bounds == INCLUDE_UPPER) {
-      for (long i = lower + 1; i <= upper; i++) {
-        sk.update(getString(randBetween(lowerQuantile, upperQuantile, bounds), numDigits));
-      }
-    } else { //INCLUDE_LOWER
-      for (long i = lower; i < upper; i++) {
-        sk.update(getString(randBetween(lowerQuantile, upperQuantile, bounds), numDigits));
-      }
-    }
-    return sk;
-  }
-
-  private final long randBetween(final long lb, final long ub, final BoundsRule bounds) {
-    final double r = rand.nextDouble();
-    final long range;
-    final long offset;
-    if (bounds == INCLUDE_BOTH) {
-      range = ub - lb;
-      offset = lb;
-    }
-    else if (bounds == INCLUDE_UPPER) {
-      range = ub - lb - 1;
-      offset = lb + 1;
-    } else { //INCLUDE_LOWER
-      range = ub - lb - 1;
-      offset = lb;
-    }
-    return Math.round(r * range + offset);
   }
 
 }
