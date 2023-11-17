@@ -19,13 +19,15 @@
 
 package org.apache.datasketches.partitions;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
 import static org.apache.datasketches.common.Util.milliSecToString;
 import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_BOTH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.List;
 
-import org.apache.datasketches.partitions.Partitioner;
 import org.apache.datasketches.partitions.Partitioner.PartitionBoundsRow;
 import org.apache.datasketches.quantiles.ItemsSketch;
 import org.testng.annotations.Test;
@@ -62,9 +64,9 @@ public class ClassicPartitionsTest {
     final long partitioningTime_mS = endTime_mS - endFillInitialSketchTime_mS;
     final long totalTime_mS = endTime_mS - startTime_mS;
     println("");
-    println("FillInitialSketchTime: " + milliSecToString(fillInitialSketchTime_mS));
-    println("PartioningTime       : " + milliSecToString(partitioningTime_mS));
-    println("Total Time           : " + milliSecToString(totalTime_mS));
+    println("FillInitialSketchTime : " + milliSecToString(fillInitialSketchTime_mS));
+    println("PartioningTime        : " + milliSecToString(partitioningTime_mS));
+    println("Total Time            : " + milliSecToString(totalTime_mS));
   }
 
   private static final String[] hdr  =
@@ -80,24 +82,28 @@ public class ClassicPartitionsTest {
     double sumSizes = 0;
     double sumAbsRelErr = 0;
     double sumSqErr = 0;
+    double maxAbsErr = 0;
     for (int i = 0; i < numParts; i++) {
       final PartitionBoundsRow<String> row = list.get(i);
       printf(dFmt, row.levelPartId , (i + 1), row.lowerBound, row.upperBound, row.approxNumDeltaItems, row.rule.name());
       size = row.approxNumDeltaItems;
       sumSizes += size;
-      sumAbsRelErr += Math.abs(size / meanPartSize - 1.0);
-      final double absErr = size - meanPartSize;
+      sumAbsRelErr += abs(size / meanPartSize - 1.0);
+      final double absErr = abs(size - meanPartSize);
       sumSqErr += absErr * absErr;
+      maxAbsErr= max(absErr, maxAbsErr);
     }
     final double meanAbsRelErr = sumAbsRelErr / numParts;
     final double meanSqErr = sumSqErr / numParts; //intermediate value
     final double normMeanSqErr = meanSqErr / (meanPartSize * meanPartSize); //intermediate value
-    final double rmsRelErr = Math.sqrt(normMeanSqErr); //a.k.a. Normalized RMS Error or NRMSE
+    final double rmsRelErr = sqrt(normMeanSqErr); //a.k.a. Normalized RMS Error or NRMSE
+    final double maxAbsErrFraction = maxAbsErr / meanPartSize;
 
-    printf("Total ApproxNumItems :%,20d\n",(long)sumSizes);
-    printf("Mean Partition Size  :%,20.1f\n",meanPartSize);
-    printf("Mean Abs Rel Error   :%20.3f%%\n",meanAbsRelErr * 100);
-    printf("Norm RMS Error       :%20.3f%%\n",rmsRelErr * 100);
+    printf("Total ApproxNumItems  :%,20d\n", (long)sumSizes);
+    printf("Mean Partition Size   :%,20.1f\n", meanPartSize);
+    printf("Mean Abs Rel Error    :%20.3f%%\n", meanAbsRelErr * 100);
+    printf("Norm RMS Error        :%20.3f%%\n", rmsRelErr * 100);
+    printf("Max Abs Error Fraction:%20.3f%%\n", maxAbsErrFraction * 100);
   }
 
   private final static boolean enablePrinting = true;
