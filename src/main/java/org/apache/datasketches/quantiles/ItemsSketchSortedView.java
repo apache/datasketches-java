@@ -183,9 +183,9 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     }
     final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>(
         this.totalN,
-        evSpQuantiles.clone(),
-        evSpNatRanks.clone(),
-        evSpNormRanks.clone(),
+        evSpQuantiles,
+        evSpNatRanks,
+        evSpNormRanks,
         getMaxItem(),
         getMinItem(),
         searchCrit);

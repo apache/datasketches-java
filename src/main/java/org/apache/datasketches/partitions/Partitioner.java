@@ -28,6 +28,7 @@ import static java.lang.Math.round;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,6 @@ import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.PartitioningFeature;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
-import org.apache.datasketches.quantilescommon.Stack;
 
 /**
  * A partitioning process that can partition very large data sets into thousands
@@ -44,14 +44,13 @@ import org.apache.datasketches.quantilescommon.Stack;
  * @param <T> the data type
  * @param <S> the quantiles sketch that implements both QuantilesGenericAPI and PartitioningFeature.
  */
-//@SuppressWarnings("unused")
 public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeature<T>> {
   private static final QuantileSearchCriteria defaultCriteria = INCLUSIVE;
   private final long tgtPartitionSize;
   private final int maxPartsPerSk;
   private final SketchFillRequest<T, S> fillReq;
   private final QuantileSearchCriteria criteria;
-  private final Stack<StackElement<T>> stack = new Stack<>();
+  private final ArrayDeque<StackElement<T>> stack = new ArrayDeque<>();
 
   //computed once at the beginning
   private int numLevels;
@@ -114,7 +113,7 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
     return finalPartitionList;
   }
 
-  private void partitionSearch(final Stack<StackElement<T>> stack) {
+  private void partitionSearch(final ArrayDeque<StackElement<T>> stack) {
     if (stack.isEmpty()) {
       return;
     }

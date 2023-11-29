@@ -179,9 +179,9 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
     }
     final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>(
         this.totalN,
-        evSpQuantiles.clone(),
-        evSpNatRanks.clone(),
-        evSpNormRanks.clone(),
+        evSpQuantiles,
+        evSpNatRanks,
+        evSpNormRanks,
         getMaxItem(),
         getMinItem(),
         searchCrit);

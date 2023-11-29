@@ -531,39 +531,39 @@ public final class Util {
   }
 
   /**
-   * Returns the ceiling of a given <i>n</i> given a <i>radix</i>, where the ceiling is an integral power of the radix.
-   * This is the smallest positive power of <i>radix</i> that is equal to or greater than the given <i>n</i>
+   * Returns the ceiling of a given <i>n</i> given a <i>base</i>, where the ceiling is an integral power of the base.
+   * This is the smallest positive power of <i>base</i> that is equal to or greater than the given <i>n</i>
    * and equal to a mathematical integer.
    * The result of this function is consistent with {@link #ceilingIntPowerOf2(int)} for values
    * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
    *
-   * <p>The formula is: <i>radix<sup>ceiling(log<sub>radix</sub>(x))</sup></i></p>
+   * <p>The formula is: <i>base<sup>ceiling(log<sub>base</sub>(x))</sup></i></p>
    *
-   * @param radix The base of the number system.
+   * @param base The number in the expression &#8968;base<sup>n</sup>&#8969;.
    * @param n The input argument.
-   * @return the ceiling power of <i>radix</i> as a double and equal to a mathematical integer.
+   * @return the ceiling power of <i>base</i> as a double and equal to a mathematical integer.
    */
-  public static double ceilingPowerBaseOfDouble(final double radix, final double n) {
+  public static double ceilingPowerBaseOfDouble(final double base, final double n) {
     final double x = n < 1.0 ? 1.0 : n;
-    return Math.round(pow(radix, ceil(logBaseOfX(radix, x))));
+    return Math.round(pow(base, ceil(logBaseOfX(base, x))));
   }
 
   /**
-   * Computes the floor of a given <i>n</i> given <i>radix</i>, where the floor is an integral power of the radix.
-   * This is the largest positive power of <i>radix</i> that is equal to or less than the given <i>n</i>
+   * Computes the floor of a given <i>n</i> given <i>base</i>, where the floor is an integral power of the base.
+   * This is the largest positive power of <i>base</i> that is equal to or less than the given <i>n</i>
    * and equal to a mathematical integer.
    * The result of this function is consistent with {@link #floorPowerOf2(int)} for values
    * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
    *
-   * <p>The formula is: <i>radix<sup>floor(log<sub>radix</sub>(x))</sup></i></p>
+   * <p>The formula is: <i>base<sup>floor(log<sub>base</sub>(x))</sup></i></p>
    *
-   * @param radix The base of the number system.
+   * @param base The number in the expression &#8970;base<sup>n</sup>&#8971;.
    * @param n The input argument.
    * @return the floor power of 2 and equal to a mathematical integer.
    */
-  public static double floorPowerBaseOfDouble(final double radix, final double n) {
+  public static double floorPowerBaseOfDouble(final double base, final double n) {
     final double x = n < 1.0 ? 1.0 : n;
-    return Math.round(pow(radix, floor(logBaseOfX(radix, x))));
+    return Math.round(pow(base, floor(logBaseOfX(base, x))));
   }
 
   // Logarithm related
@@ -578,13 +578,13 @@ public final class Util {
   }
 
   /**
-   * Returns the log<sub>radix</sub>(x). Example: logB(2.0, x) = log(x) / log(2.0).
-   * @param radix the base of the number system
+   * Returns the log<sub>base</sub>(x). Example, if base = 2.0: logB(2.0, x) = log(x) / log(2.0).
+   * @param base The number in the expression log(x) / log(base).
    * @param x the given value
-   * @return the log<sub>radix</sub>(x): Example: logB(2.0, x) = log(x) / log(2.0).
+   * @return the log<sub>base</sub>(x)
    */
-  public static double logBaseOfX(final double radix, final double x) {
-    return log(x) / log(radix);
+  public static double logBaseOfX(final double base, final double x) {
+    return log(x) / log(base);
   }
 
   /**
