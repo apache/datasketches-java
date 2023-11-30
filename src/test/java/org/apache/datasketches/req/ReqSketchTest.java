@@ -29,6 +29,7 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
@@ -152,13 +153,13 @@ public class ReqSketchTest {
 
   private static void checkSortedView(final ReqSketch sk, final int iDebug) {
     final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
-    final ReqSketchSortedViewIterator itr = sv.iterator();
+    final FloatsSortedViewIterator itr = sv.iterator();
     final int retainedCount = sk.getNumRetained();
     final long totalN = sk.getN();
     int count = 0;
     long cumWt = 0;
     while (itr.next()) {
-      cumWt = itr.getCumulativeWeight(INCLUSIVE);
+      cumWt = itr.getNaturalRank(INCLUSIVE);
       count++;
     }
     assertEquals(cumWt, totalN);
@@ -233,21 +234,6 @@ public class ReqSketchTest {
   }
 
   //specific tests
-
-  @Test
-  public void getQuantiles() {
-    final ReqSketch sketch = ReqSketch.builder().setK(12).build();
-    sketch.update(1);
-    sketch.update(2);
-    sketch.update(3);
-    sketch.update(4);
-    float[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    float[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
-    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
-  }
 
   @Test
   public void merge() {

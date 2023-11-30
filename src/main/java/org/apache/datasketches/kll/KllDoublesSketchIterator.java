@@ -24,55 +24,17 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 /**
  * Iterator over KllDoublesSketch. The order is not defined.
  */
-public final class KllDoublesSketchIterator implements QuantilesDoublesSketchIterator {
+public final class KllDoublesSketchIterator extends KllSketchIterator implements QuantilesDoublesSketchIterator {
   private final double[] quantiles;
-  private final int[] levelsArr;
-  private final int numLevels;
-  private int level;
-  private int index;
-  private long weight;
-  private boolean isInitialized;
 
   KllDoublesSketchIterator(final double[] quantiles, final int[] levelsArr, final int numLevels) {
+    super(levelsArr, numLevels);
     this.quantiles = quantiles;
-    this.levelsArr = levelsArr;
-    this.numLevels = numLevels;
-    this.isInitialized = false;
   }
 
   @Override
   public double getQuantile() {
     return quantiles[index];
-  }
-
-  @Override
-  public long getWeight() {
-    return weight;
-  }
-
-  @Override
-  public boolean next() {
-    if (!isInitialized) {
-      level = 0;
-      index = levelsArr[level];
-      weight = 1;
-      isInitialized = true;
-    } else {
-      index++;
-    }
-    if (index < levelsArr[level + 1]) {
-      return true;
-    }
-    // go to the next non-empty level
-    do {
-      level++;
-      if (level == numLevels) {
-        return false; // run out of levels
-      }
-      weight *= 2;
-    } while (levelsArr[level] == levelsArr[level + 1]);
-    index = levelsArr[level];
-    return true;
   }
 
 }

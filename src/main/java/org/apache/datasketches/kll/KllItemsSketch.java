@@ -23,7 +23,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import java.lang.reflect.Array;
 import java.util.Comparator;
@@ -34,7 +33,10 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
+import org.apache.datasketches.quantilescommon.PartitioningFeature;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
@@ -46,7 +48,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  * @see org.apache.datasketches.kll.KllSketch
  */
 @SuppressWarnings("unchecked")
-public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
+public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T>, PartitioningFeature<T> {
   private KllItemsSketchSortedView<T> kllItemsSV = null;
   final Comparator<? super T> comparator;
   final ArrayOfItemsSerDe<T> serDe;
@@ -150,18 +152,11 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallyWeighted,
+  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
       final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
-    final Object[] boundaries = getQuantiles(ranks, searchCrit);
-    boundaries[0] = getMinItem();
-    boundaries[boundaries.length - 1] = getMaxItem();
-    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>();
-    gpb.N = this.getN();
-    gpb.ranks = ranks;
-    gpb.boundaries = (T[])boundaries;
-    return gpb;
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    refreshSortedView();
+    return kllItemsSV.getPartitionBoundaries(numEquallySized, searchCrit);
   }
 
   @Override

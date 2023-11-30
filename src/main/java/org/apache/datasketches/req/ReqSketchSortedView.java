@@ -20,10 +20,14 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.util.List;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
@@ -38,6 +42,8 @@ public final class ReqSketchSortedView implements FloatsSortedView {
   private float[] quantiles;
   private long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
+  private final float maxItem;
+  private final float minItem;
 
   /**
    * Construct from elements for testing.
@@ -45,20 +51,28 @@ public final class ReqSketchSortedView implements FloatsSortedView {
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
    */
-  ReqSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN) {
+  ReqSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN,
+      final float maxItem, final float minItem) {
     this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
+    this.maxItem = maxItem;
+    this.minItem = minItem;
   }
 
   /**
    * Constructs this Sorted View given the sketch
-   * @param sk the given ReqSketch
+   * @param sketch the given ReqSketch
    */
-  public ReqSketchSortedView(final ReqSketch sk) {
-    totalN = sk.getN();
-    buildSortedViewArrays(sk);
+  public ReqSketchSortedView(final ReqSketch sketch) {
+    if (sketch.isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    this.totalN = sketch.getN();
+    this.maxItem = sketch.getMaxItem();
+    this.minItem = sketch.getMinItem();
+    buildSortedViewArrays(sketch);
   }
+
+  //end of constructors
 
   @Override
   public long[] getCumulativeWeights() {
@@ -66,16 +80,30 @@ public final class ReqSketchSortedView implements FloatsSortedView {
   }
 
   @Override
+  public float getMaxItem() {
+    return maxItem;
+  }
+
+  @Override
+  public float getMinItem() {
+    return minItem;
+  }
+
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
   public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = (searchCrit == INCLUSIVE)
-        ? (long)Math.ceil(rank * totalN) : (long)Math.floor(rank * totalN);
+    final double naturalRank = getNaturalRank(rank, totalN, searchCrit);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
-      return quantiles[quantiles.length - 1]; ///EXCLUSIVE (GT) case: normRank == 1.0;
+      return quantiles[len - 1]; ///EXCLUSIVE (GT) case: normRank == 1.0;
     }
     return quantiles[index];
   }
@@ -103,8 +131,8 @@ public final class ReqSketchSortedView implements FloatsSortedView {
   }
 
   @Override
-  public ReqSketchSortedViewIterator iterator() {
-    return new ReqSketchSortedViewIterator(quantiles, cumWeights);
+  public FloatsSortedViewIterator iterator() {
+    return new FloatsSortedViewIterator(quantiles, cumWeights);
   }
 
   //restricted methods

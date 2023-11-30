@@ -22,14 +22,17 @@ package org.apache.datasketches.quantiles;
 import static java.lang.System.arraycopy;
 import static org.apache.datasketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
-import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
@@ -41,6 +44,8 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   private final double[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
+  private final double maxItem;
+  private final double minItem;
 
   /**
    * Construct from elements for testing.
@@ -48,10 +53,13 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
    */
-  DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN) {
+  DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN,
+      final double maxItem, final double minItem) {
     this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
+    this.maxItem = maxItem;
+    this.minItem = minItem;
   }
 
   /**
@@ -59,7 +67,10 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    * @param sketch the given Classic Quantiles DoublesSketch
    */
   public DoublesSketchSortedView(final DoublesSketch sketch) {
+    if (sketch.isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     this.totalN = sketch.getN();
+    this.maxItem = sketch.getMaxItem();
+    this.minItem = sketch.getMinItem();
     final int k = sketch.getK();
     final int numQuantiles = sketch.getNumRetained();
     quantiles = new double[numQuantiles];
@@ -79,23 +90,42 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
+  public long[] getCumulativeWeights() {
+    return cumWeights.clone();
+  }
+
+  @Override
+  public double getMaxItem() {
+    return maxItem;
+  }
+
+  @Override
+  public double getMinItem() {
+    return minItem;
+  }
+
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = (searchCrit == INCLUSIVE)
-        ? (long)Math.ceil(rank * totalN) : (long)Math.floor(rank * totalN);
+    final double naturalRank = getNaturalRank(rank, totalN, searchCrit);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
-      return quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
+      return quantiles[len - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
     }
     return quantiles[index];
   }
 
   @Override
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
@@ -103,11 +133,6 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
-  }
-
-  @Override
-  public long[] getCumulativeWeights() {
-    return cumWeights.clone();
   }
 
   @Override
@@ -121,8 +146,8 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public DoublesSketchSortedViewIterator iterator() {
-    return new DoublesSketchSortedViewIterator(quantiles, cumWeights);
+  public DoublesSortedViewIterator iterator() {
+    return new DoublesSortedViewIterator(quantiles, cumWeights);
   }
 
   //restricted methods

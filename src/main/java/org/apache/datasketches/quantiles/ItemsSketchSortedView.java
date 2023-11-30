@@ -19,18 +19,24 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantilescommon.GenericInequalitySearch.find;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedDoubles;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.quantilescommon.GenericInequalitySearch;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
+import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
+import org.apache.datasketches.quantilescommon.PartitioningFeature;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
@@ -41,11 +47,14 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
+public class ItemsSketchSortedView<T> implements GenericSortedView<T>, PartitioningFeature<T> {
   private final T[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
   private final Comparator<? super T> comparator;
+  private final T maxItem;
+  private final T minItem;
+  private final Class<T> clazz;
 
   /**
    * Construct from elements for testing.
@@ -54,15 +63,21 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param totalN the total number of items presented to the sketch.
    * @param comparator comparator for type T
    */
+  @SuppressWarnings("unchecked")
   ItemsSketchSortedView(
       final T[] quantiles,
-      final long[] cumWeights,
+      final long[] cumWeights, //or Natural Ranks
       final long totalN,
-      final Comparator<T> comparator) {
+      final Comparator<T> comparator,
+      final T maxItem,
+      final T minItem) {
     this.quantiles = quantiles;
     this.cumWeights = cumWeights;
     this.totalN = totalN;
     this.comparator = comparator;
+    this.maxItem = maxItem;
+    this.minItem = minItem;
+    this.clazz = (Class<T>)quantiles[0].getClass();
   }
 
   /**
@@ -71,12 +86,16 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    */
   @SuppressWarnings("unchecked")
   ItemsSketchSortedView(final ItemsSketch<T> sketch) {
+    if (sketch.isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     this.totalN = sketch.getN();
     final int k = sketch.getK();
     final int numQuantiles = sketch.getNumRetained();
-    quantiles = (T[]) Array.newInstance(sketch.clazz, numQuantiles);
+    this.quantiles = (T[]) Array.newInstance(sketch.clazz, numQuantiles);
+    this.minItem = sketch.minItem_;
+    this.maxItem = sketch.maxItem_;
     cumWeights = new long[numQuantiles];
     comparator = sketch.getComparator();
+    clazz = sketch.clazz;
 
     final Object[] combinedBuffer = sketch.getCombinedBuffer();
     final int baseBufferCount = sketch.getBaseBufferCount();
@@ -95,9 +114,11 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     }
   }
 
-  @Override //implemented here because it needs the comparator
+  //end of constructors
+
+  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     GenericSortedView.validateItems(splitPoints, comparator);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
@@ -113,9 +134,57 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     return cumWeights.clone();
   }
 
-  @Override //implemented here because it needs the comparator
-  public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+  @Override
+  public T getMaxItem() {
+    return maxItem;
+  }
+
+  @Override
+  public T getMinItem() {
+    return minItem;
+  }
+
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final long totalN = this.totalN;
+    final int svLen = cumWeights.length;
+    //adjust ends of sortedView arrays
+    cumWeights[0] = 1L;
+    cumWeights[svLen - 1] = totalN;
+    quantiles[0] = this.getMinItem();
+    quantiles[svLen - 1] = this.getMaxItem();
+
+    final double[] evSpNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySized + 1);
+    final int len = evSpNormRanks.length;
+    final T[] evSpQuantiles = (T[]) Array.newInstance(clazz, len);
+    final long[] evSpNatRanks = new long[len];
+    for (int i = 0; i < len; i++) {
+      final int index = getQuantileIndex(evSpNormRanks[i], searchCrit);
+      evSpQuantiles[i] = quantiles[index];
+      evSpNatRanks[i] = cumWeights[index];
+    }
+    final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>(
+        this.totalN,
+        evSpQuantiles,
+        evSpNatRanks,
+        evSpNormRanks,
+        getMaxItem(),
+        getMinItem(),
+        searchCrit);
+    return gpb;
+  }
+
+  @Override
+  public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     GenericSortedView.validateItems(splitPoints, comparator);
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
@@ -127,17 +196,30 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
+    final int index = getQuantileIndex(rank, searchCrit);
+    return quantiles[index];
+  }
+
+  private int getQuantileIndex(final double rank, final QuantileSearchCriteria searchCrit) {
     final int len = cumWeights.length;
-    final long naturalRank = (searchCrit == INCLUSIVE)
-        ? (long)Math.ceil(rank * totalN) : (long)Math.floor(rank * totalN);
+    final double naturalRank = getNaturalRank(rank, totalN, searchCrit);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
-    if (index == -1) {
-      return quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
+    if (index == -1) { return len - 1; }
+    return index;
+  }
+
+  @SuppressWarnings("unchecked")
+  public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final int len = ranks.length;
+    final T[] quants = (T[]) Array.newInstance(clazz, len);
+    for (int i = 0; i < len; i++) {
+      quants[i] = getQuantile(ranks[i], searchCrit);
     }
-    return quantiles[index];
+    return quants;
   }
 
   @Override
@@ -147,10 +229,10 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
-    final int index = GenericInequalitySearch.find(quantiles,  0, len - 1, quantile, crit, comparator);
+    final int index = find(quantiles,  0, len - 1, quantile, crit, comparator);
     if (index == -1) {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
@@ -163,8 +245,8 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   }
 
   @Override
-  public ItemsSketchSortedViewIterator<T> iterator() {
-    return new ItemsSketchSortedViewIterator<>(quantiles, cumWeights);
+  public GenericSortedViewIterator<T> iterator() {
+    return new GenericSortedViewIterator<>(quantiles, cumWeights);
   }
 
   //restricted methods
@@ -231,17 +313,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
       subtotal = array[i] = newSubtotal;
     }
     return subtotal;
-  }
-
-  /**
-   * Iterator over ItemsSketchSortedView.
-   * @param <T> type of quantile (item)
-   */
-  public static final class ItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
-
-    ItemsSketchSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
-      super(quantiles, cumWeights);
-    }
   }
 
 }

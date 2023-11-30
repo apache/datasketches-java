@@ -19,11 +19,8 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
-
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
-import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsAPI;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
@@ -61,21 +58,6 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
 
   @Override
   public abstract float getMinItem();
-
-  @Override
-  public FloatsPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
-      final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
-    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
-    final float[] boundaries = getQuantiles(ranks, searchCrit);
-    boundaries[0] = getMinItem();
-    boundaries[boundaries.length - 1] = getMaxItem();
-    final FloatsPartitionBoundaries fpb = new FloatsPartitionBoundaries();
-    fpb.N = this.getN();
-    fpb.ranks = ranks;
-    fpb.boundaries = boundaries;
-    return fpb;
-  }
 
   /**
    * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).

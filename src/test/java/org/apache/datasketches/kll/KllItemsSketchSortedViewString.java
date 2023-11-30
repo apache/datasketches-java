@@ -30,8 +30,9 @@ public class KllItemsSketchSortedViewString extends KllItemsSketchSortedView<Str
       final String[] quantiles,
       final long[] cumWeights,
       final long totalN,
-      final String minItem,
-      final Comparator<String> comparator) {
-    super(quantiles, cumWeights, totalN, minItem, comparator);
+      final Comparator<String> comparator,
+      final String maxItem,
+      final String minItem) {
+    super(quantiles, cumWeights, totalN, comparator, maxItem, minItem);
   }
 }

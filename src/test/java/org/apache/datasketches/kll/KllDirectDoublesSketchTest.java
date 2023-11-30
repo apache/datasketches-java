@@ -21,7 +21,6 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -421,21 +420,6 @@ public class KllDirectDoublesSketchTest {
     final KllDoublesSketch sketch = getUpdatableDirectDoublesSketch(200, 0);
     sketch.update(0);
     sketch.getCDF(new double[] {Double.NaN});
-  }
-
-  @Test
-  public void getQuantiles() {
-    final KllDoublesSketch sketch = getUpdatableDirectDoublesSketch(200, 0);
-    sketch.update(1);
-    sketch.update(2);
-    sketch.update(3);
-    sketch.update(4);
-    double[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    double[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
-    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
   }
 
   @Test

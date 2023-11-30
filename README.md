@@ -154,5 +154,5 @@ In Eclipse, open the project *Properties / Java Build Path / Module Dependencies
 
 #### SpotBugs
 
-* Make sure you configure SpotBugs with the /tools/FindBugsExcludeFilter.xml file. Otherwise, you will get a lot of false positive or low risk issues that we have examined and exliminated with this exclusion file.
+* Make sure you configure SpotBugs with the /tools/FindBugsExcludeFilter.xml file. Otherwise, you may get a lot of false positive or low risk issues that we have examined and eliminated with this exclusion file.
 

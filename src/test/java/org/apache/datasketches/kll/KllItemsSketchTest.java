@@ -107,30 +107,32 @@ public class KllItemsSketchTest {
   public void tenValues() {
     final String[] tenStr = {"A","B","C","D","E","F","G","H","I","J"};
     final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
-    for (int i = 1; i <= 10; i++) { sketch.update(tenStr[i - 1]); }
+    final int strLen = tenStr.length;
+    final double dblStrLen = strLen;
+    for (int i = 1; i <= strLen; i++) { sketch.update(tenStr[i - 1]); }
     assertFalse(sketch.isEmpty());
-    assertEquals(sketch.getN(), 10);
-    assertEquals(sketch.getNumRetained(), 10);
-    for (int i = 1; i <= 10; i++) {
-      assertEquals(sketch.getRank(tenStr[i - 1], EXCLUSIVE), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(tenStr[i - 1], INCLUSIVE), i / 10.0);
+    assertEquals(sketch.getN(), strLen);
+    assertEquals(sketch.getNumRetained(), strLen);
+    for (int i = 1; i <= strLen; i++) {
+      assertEquals(sketch.getRank(tenStr[i - 1], EXCLUSIVE), (i - 1) / dblStrLen);
+      assertEquals(sketch.getRank(tenStr[i - 1], INCLUSIVE), i / dblStrLen);
     }
     final String[] qArr = tenStr;
     double[] rOut = sketch.getRanks(qArr); //inclusive
     for (int i = 0; i < qArr.length; i++) {
-      assertEquals(rOut[i], (i + 1) / 10.0);
+      assertEquals(rOut[i], (i + 1) / dblStrLen);
     }
     rOut = sketch.getRanks(qArr, EXCLUSIVE); //exclusive
     for (int i = 0; i < qArr.length; i++) {
       assertEquals(rOut[i], i / 10.0);
     }
 
-    for (int i = 0; i <= 10; i++) {
-      double rank = i/10.0;
+    for (int i = 0; i <= strLen; i++) {
+      double rank = i/dblStrLen;
       String q = rank == 1.0 ? tenStr[i-1] : tenStr[i];
       assertEquals(sketch.getQuantile(rank, EXCLUSIVE), q);
       q = rank == 0 ? tenStr[i] : tenStr[i - 1];
-      assertEquals(sketch.getQuantile(rank, INCLUSIVE), q);
+      assertEquals(sketch.getQuantile(rank, INCLUSIVE), q); //ERROR
     }
 
     {
@@ -459,10 +461,10 @@ public class KllItemsSketchTest {
     sketch.update("C");
     sketch.update("D");
     String[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    String[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
+    String[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
     quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
+    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
   }
 
@@ -526,18 +528,18 @@ public class KllItemsSketchTest {
     assertEquals(itr.next(), true);
     assertEquals(itr.getQuantile(), "A");
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 0);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 1);
     assertEquals(itr.next(), true);
     assertEquals(itr.getQuantile(), "AB");
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 2);
     assertEquals(itr.next(), true);
     assertEquals(itr.getQuantile(), "ABC");
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 2);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 3);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 2);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 3);
     assertEquals(itr.next(), false);
   }
 

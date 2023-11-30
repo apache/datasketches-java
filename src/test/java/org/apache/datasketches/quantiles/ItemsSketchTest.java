@@ -599,15 +599,15 @@ public class ItemsSketchTest {
       assertEquals(it.next(), true);
       assertEquals(it.getQuantile(), 1);
       assertEquals(it.getWeight(), 1);
-      assertEquals(it.getCumulativeWeight(INCLUSIVE), 1);
+      assertEquals(it.getNaturalRank(INCLUSIVE), 1);
       assertEquals(it.next(), true);
       assertEquals(it.getQuantile(), 2);
       assertEquals(it.getWeight(), 1);
-      assertEquals(it.getCumulativeWeight(INCLUSIVE), 2);
+      assertEquals(it.getNaturalRank(INCLUSIVE), 2);
       assertEquals(it.next(), true);
       assertEquals(it.getQuantile(), 3);
       assertEquals(it.getWeight(), 1);
-      assertEquals(it.getCumulativeWeight(INCLUSIVE), 3);
+      assertEquals(it.getNaturalRank(INCLUSIVE), 3);
       assertEquals(it.next(), false);
     }
   }
@@ -617,7 +617,7 @@ public class ItemsSketchTest {
     Double[] qArr = {8.0, 10.0, 10.0, 20.0};
     long[] cwArr =  {1,  3,  4,  5};
     Comparator<Double> comp = Comparator.naturalOrder();
-    ItemsSketchSortedView<Double> sv = new ItemsSketchSortedView<>(qArr, cwArr, 5L, comp);
+    ItemsSketchSortedView<Double> sv = new ItemsSketchSortedView<>(qArr, cwArr, 5L, comp, 20.0, 8.0);
     double[] ranks = {0, .1, .2, .3, .6, .7, .8, .9, 1.0};
     Double[] qOut = new Double[9];
     for (int i = 0; i < ranks.length; i++) {
@@ -640,10 +640,10 @@ public class ItemsSketchTest {
     sketch.update(3);
     sketch.update(4);
     Integer[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    Integer[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
+    Integer[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
     quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
+    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
   }
 

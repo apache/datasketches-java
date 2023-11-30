@@ -17,22 +17,21 @@
  * under the License.
  */
 
-package org.apache.datasketches.quantiles;
+package org.apache.datasketches.partitions;
 
-import java.util.Comparator;
+public enum BoundsRule {
 
-/**
- * For testing only
- */
-public class ItemsSketchSortedViewString extends ItemsSketchSortedView<String> {
+  /**
+   * Include both the upper and lower bounds
+   */
+  INCLUDE_BOTH,
 
-  public ItemsSketchSortedViewString(
-      final String[] quantiles,
-      final long[] cumWeights,
-      final long totalN,
-      final Comparator<String> comparator,
-      final String maxItem,
-      final String minItem) {
-    super(quantiles, cumWeights, totalN, comparator, maxItem, minItem);
-  }
+  /**
+   * Include only the upper bound but not the lower bound
+   */
+  INCLUDE_UPPER,
+  /**
+   * Include only the lower bound but not the upper bound
+   */
+  INCLUDE_LOWER
 }

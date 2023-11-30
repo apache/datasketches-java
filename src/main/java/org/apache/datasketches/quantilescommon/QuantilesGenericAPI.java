@@ -93,58 +93,6 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   T getMinItem();
 
   /**
-   * This method returns an instance of
-   * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
-   * sufficient information for the user to create the given number of equally weighted partitions.
-   *
-   * <p>This method is equivalent to
-   * {@link #getPartitionBoundaries(int, QuantileSearchCriteria) getPartitionBoundaries(numEquallyWeighted, INCLUSIVE)}.
-   * </p>
-   *
-   * @param numEquallyWeighted an integer that specifies the number of equally weighted partitions between
-   * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than zero.
-   * <ul>
-   * <li>A 1 will return: minItem, maxItem.</li>
-   * <li>A 2 will return: minItem, median quantile, maxItem.</li>
-   * <li>Etc.</li>
-   * </ul>
-   *
-   * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @throws IllegalArgumentException if <i>numEquallyWeighted</i> is less than 1.
-   */
-  default GenericPartitionBoundaries<T> getPartitionBoundaries(int numEquallyWeighted) {
-    return getPartitionBoundaries(numEquallyWeighted, INCLUSIVE);
-  }
-
-  /**
-   * This method returns an instance of
-   * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
-   * sufficient information for the user to create the given number of equally weighted partitions.
-   *
-   * @param numEquallyWeighted an integer that specifies the number of equally weighted partitions between
-   * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than zero.
-   * <ul>
-   * <li>A 1 will return: minItem, maxItem.</li>
-   * <li>A 2 will return: minItem, median quantile, maxItem.</li>
-   * <li>Etc.</li>
-   * </ul>
-   *
-   * @param searchCrit
-   * If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally weighted partitions
-   * with the exception of the lowest returned quantile, which is the lowest boundary of the lowest ranked partition.
-   * If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally weighted partitions
-   * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
-   *
-   * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @throws IllegalArgumentException if <i>numEquallyWeighted</i> is less than 1.
-   */
-  GenericPartitionBoundaries<T> getPartitionBoundaries(int numEquallyWeighted, QuantileSearchCriteria searchCrit);
-
-  /**
    * This is equivalent to {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
@@ -337,40 +285,5 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    */
   void update(T item);
 
-  /**
-   * This encapsulates the essential information needed to construct actual partitions and is returned from the
-   * <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.
-   * @param <T> generic value T for the item type
-   */
-  static class GenericPartitionBoundaries<T> {
-
-    /**
-     * The total number of items presented to the sketch.
-     *
-     * <p>To compute the weight or density of a specific
-     * partition <i>i</i> where <i>i</i> varies from 1 to <i>m</i> partitions:
-     * <pre>{@code
-     * long N = getN();
-     * double[] ranks = getRanks();
-     * long weight = Math.round((ranks[i] - ranks[i - 1]) * N);
-     * }</pre>
-     */
-    public long N;
-
-    /**
-     * The normalized ranks that correspond to the returned boundaries.
-     * The returned array is of size <i>(m + 1)</i>, where <i>m</i> is the requested number of partitions.
-     * Index 0 of the returned array is always 0.0, and index <i>m</i> is always 1.0.
-     */
-    public double[] ranks;
-
-    /**
-     * The partition boundaries as quantiles.
-     * The returned array is of size <i>(m + 1)</i>, where <i>m</i> is the requested number of partitions.
-     * Index 0 of the returned array is always {@link #getMinItem() getMinItem()}, and index <i>m</i> is always
-     * {@link #getMaxItem() getMaxItem()}.
-     */
-    public T[] boundaries;
-  }
 }
 

@@ -24,6 +24,7 @@ import static java.lang.Math.floor;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
+import static java.util.Arrays.fill;
 
 import java.util.Comparator;
 
@@ -217,7 +218,7 @@ public final class Util {
 
   /**
    * Returns the given time in milliseconds formatted as Hours:Min:Sec.mSec
-   * @param mS the given nanoseconds
+   * @param mS the given milliseconds
    * @return the given time in milliseconds formatted as Hours:Min:Sec.mSec
    */
   public static String milliSecToString(final long mS) {
@@ -244,40 +245,20 @@ public final class Util {
 
   /**
    * Prepend or postpend the given string with the given character to fill the given field length.
-   * If the given string is equal or greater than the given field length, it will be returned
-   * without modification.
+   * If the given string is equal to or greater than the given field length, it will be returned without modification.
    * @param s the given string
    * @param fieldLength the desired field length
    * @param padChar the desired pad character
    * @param postpend if true append the pacCharacters to the end of the string.
-   * @return prepended or postpended given string with the given character to fill the given field
-   * length.
+   * @return prepended or postpended given string with the given character to fill the given field length.
    */
-  public static String characterPad(final String s, final int fieldLength, final char padChar,
-      final boolean postpend) {
-    final char[] chArr = s.toCharArray();
-    final int sLen = chArr.length;
+  public static String characterPad(final String s, final int fieldLength, final char padChar, final boolean postpend) {
+    final int sLen = s.length();
     if (sLen < fieldLength) {
-      final char[] out = new char[fieldLength];
-      final int blanks = fieldLength - sLen;
-
-      if (postpend) {
-        for (int i = 0; i < sLen; i++) {
-          out[i] = chArr[i];
-        }
-        for (int i = sLen; i < fieldLength; i++) {
-          out[i] = padChar;
-        }
-      } else { //prepend
-        for (int i = 0; i < blanks; i++) {
-          out[i] = padChar;
-        }
-        for (int i = blanks; i < fieldLength; i++) {
-          out[i] = chArr[i - blanks];
-        }
-      }
-
-      return String.valueOf(out);
+      final char[] cArr = new char[fieldLength - sLen];
+      fill(cArr, padChar);
+      final String addstr = String.valueOf(cArr);
+      return (postpend) ? s.concat(addstr) : addstr.concat(s);
     }
     return s;
   }
@@ -376,8 +357,8 @@ public final class Util {
   }
 
   /**
-   * Computes the long ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
-   * of 2 that is equal to or greater than the given n and a mathematical integer.
+   * Computes the long ceiling power of 2 within the range [1, 2^62]. This is the smallest positive power
+   * of 2 that is equal to or greater than the given n and a mathematical long.
    *
    * <p>For:
    * <ul>
@@ -550,56 +531,60 @@ public final class Util {
   }
 
   /**
-   * Computes the ceiling power of given <i>base</i> and <i>n</i> as doubles.
-   * This is the smallest positive power
-   * of <i>base</i> that equal to or greater than the given <i>n</i> and equal to a mathematical integer.
+   * Returns the ceiling of a given <i>n</i> given a <i>base</i>, where the ceiling is an integral power of the base.
+   * This is the smallest positive power of <i>base</i> that is equal to or greater than the given <i>n</i>
+   * and equal to a mathematical integer.
    * The result of this function is consistent with {@link #ceilingIntPowerOf2(int)} for values
    * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
    *
-   * @param base The base in the expression &#8968;base<sup>n</sup>&#8969;.
+   * <p>The formula is: <i>base<sup>ceiling(log<sub>base</sub>(x))</sup></i></p>
+   *
+   * @param base The number in the expression &#8968;base<sup>n</sup>&#8969;.
    * @param n The input argument.
    * @return the ceiling power of <i>base</i> as a double and equal to a mathematical integer.
    */
   public static double ceilingPowerBaseOfDouble(final double base, final double n) {
     final double x = n < 1.0 ? 1.0 : n;
-    return pow(base, ceil(logBaseOfX(base, x)));
+    return Math.round(pow(base, ceil(logBaseOfX(base, x))));
   }
 
   /**
-   * Computes the floor power of given <i>base</i> and <i>n</i> as doubles.
-   * This is the largest positive power
-   * of <i>base</i> that equal to or less than the given n and equal to a mathematical integer.
+   * Computes the floor of a given <i>n</i> given <i>base</i>, where the floor is an integral power of the base.
+   * This is the largest positive power of <i>base</i> that is equal to or less than the given <i>n</i>
+   * and equal to a mathematical integer.
    * The result of this function is consistent with {@link #floorPowerOf2(int)} for values
    * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
    *
-   * @param base The base in the expression &#8970;base<sup>n</sup>&#8971;.
+   * <p>The formula is: <i>base<sup>floor(log<sub>base</sub>(x))</sup></i></p>
+   *
+   * @param base The number in the expression &#8970;base<sup>n</sup>&#8971;.
    * @param n The input argument.
    * @return the floor power of 2 and equal to a mathematical integer.
    */
   public static double floorPowerBaseOfDouble(final double base, final double n) {
     final double x = n < 1.0 ? 1.0 : n;
-    return pow(base, floor(logBaseOfX(base, x)));
+    return Math.round(pow(base, floor(logBaseOfX(base, x))));
   }
 
   // Logarithm related
 
   /**
-   * The log base 2 of the value
+   * The log<sub>2</sub>(value)
    * @param value the given value
-   * @return The log base 2 of the value
+   * @return log<sub>2</sub>(value)
    */
   public static double log2(final double value) {
     return log(value) / LOG2;
   }
 
   /**
-   * Returns the logarithm_logBase of x. Example: logB(2.0, x) = log(x) / log(2.0).
-   * @param logBase the base of the logarithm used
+   * Returns the log<sub>base</sub>(x). Example, if base = 2.0: logB(2.0, x) = log(x) / log(2.0).
+   * @param base The number in the expression log(x) / log(base).
    * @param x the given value
-   * @return the logarithm_logBase of x: Example: logB(2.0, x) = log(x) / log(2.0).
+   * @return the log<sub>base</sub>(x)
    */
-  public static double logBaseOfX(final double logBase, final double x) {
-    return log(x) / log(logBase);
+  public static double logBaseOfX(final double base, final double x) {
+    return log(x) / log(base);
   }
 
   /**

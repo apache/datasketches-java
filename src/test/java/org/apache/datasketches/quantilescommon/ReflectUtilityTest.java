@@ -50,10 +50,14 @@ public final class ReflectUtilityTest {
     KLL_DOUBLES_SV = getClass("org.apache.datasketches.kll.KllDoublesSketchSortedView");
     CLASSIC_DOUBLES_SV = getClass("org.apache.datasketches.quantiles.DoublesSketchSortedView");
 
-    REQ_SV_CTOR = getConstructor(REQ_SV, float[].class, long[].class, long.class);
-    KLL_FLOATS_SV_CTOR = getConstructor(KLL_FLOATS_SV, float[].class, long[].class, long.class);
-    KLL_DOUBLES_SV_CTOR = getConstructor(KLL_DOUBLES_SV, double[].class, long[].class, long.class);
-    CLASSIC_DOUBLES_SV_CTOR = getConstructor(CLASSIC_DOUBLES_SV, double[].class, long[].class, long.class);
+    REQ_SV_CTOR =
+        getConstructor(REQ_SV, float[].class, long[].class, long.class, float.class, float.class);
+    KLL_FLOATS_SV_CTOR =
+        getConstructor(KLL_FLOATS_SV, float[].class, long[].class, long.class, float.class, float.class);
+    KLL_DOUBLES_SV_CTOR =
+        getConstructor(KLL_DOUBLES_SV, double[].class, long[].class, long.class, double.class, double.class);
+    CLASSIC_DOUBLES_SV_CTOR =
+        getConstructor(CLASSIC_DOUBLES_SV, double[].class, long[].class, long.class, double.class, double.class);
   }
 
   @Test //Example
@@ -62,7 +66,7 @@ public final class ReflectUtilityTest {
     long[] larr = { 1, 2, 3 };
     long n = 3;
     ReqSketchSortedView reqSV =
-        (ReqSketchSortedView) REQ_SV_CTOR.newInstance(farr, larr, n);
+        (ReqSketchSortedView) REQ_SV_CTOR.newInstance(farr, larr, n, 10f, 30f);
     float q = reqSV.getQuantile(1.0, INCLUSIVE);
     assertEquals(q, 30f);
   }

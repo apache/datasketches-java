@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+
 /**
  * This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
  * from a quantile-type sketch. This provides an ordered iterator over the retained quantiles of
@@ -35,30 +37,47 @@ package org.apache.datasketches.quantilescommon;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public interface SortedViewIterator {
+public class SortedViewIterator {
+  protected final long[] cumWeights;
+  protected long totalN;
+  protected int index;
+
+  SortedViewIterator(final long[] cumWeights) {
+    this.cumWeights = cumWeights; //SpotBugs EI_EXPOSE_REP2 suppressed by FindBugsExcludeFilter
+    this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
+    index = -1;
+  }
 
   /**
-   * Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.
-   * This is also referred to as the "Natural Rank".
+   * Gets the natural rank at the current index (or previous index) based on the chosen search criterion.
+   * This is also referred to as the "cumulative weight". The natural rank is a number in the range <i>[1, N]</i>,
+   * where <i>N</i> ({@link #getN()}) is the total number of items fed to the sketch.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @param searchCrit if INCLUSIVE, includes the weight at the current index in the cumulative sum.
-   * Otherwise, it will return the cumulative weight of the previous index.
-   * @return cumulative weight at the current index on the chosen search criterion.
+   * @param searchCrit if INCLUSIVE, includes the weight of the item at the current index in the computation of
+   * the natural rank.
+   * Otherwise, it will return the natural rank of the previous index.
+   * @return the natural rank at the current index (or previous index) based on the chosen search criterion.
    */
-  long getCumulativeWeight(QuantileSearchCriteria searchCrit);
+  public long getNaturalRank(final QuantileSearchCriteria searchCrit) {
+    if (searchCrit == INCLUSIVE) { return cumWeights[index]; }
+    return (index == 0) ? 0 : cumWeights[index - 1];
+  }
 
   /**
    * Gets the total count of all items presented to the sketch.
    * @return the total count of all items presented to the sketch.
    */
-  long getN();
+  public long getN() {
+    return totalN;
+  }
 
   /**
    * Gets the normalized rank at the current index (or previous index)
-   * based on the chosen search criterion.
+   * based on the chosen search criterion. Where <i>normalized rank = natural rank / N</i> ({@link #getN()})
+   * and is a fraction in the range (0,1.0].
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
@@ -68,24 +87,32 @@ public interface SortedViewIterator {
    * @return the normalized rank at the current index (or previous index)
    * based on the chosen search criterion.
    */
-  double getNormalizedRank(QuantileSearchCriteria searchCrit);
+  public double getNormalizedRank(final QuantileSearchCriteria searchCrit) {
+    return (double) getNaturalRank(searchCrit) / totalN;
+  }
 
   /**
-   * Gets the natural weight at the current index.
+   * Gets the weight contribution of the item at the current index.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @return the natural weight at the current index.
+   * @return the weight contribution of the item at the current index.
    */
-  long getWeight();
+  public long getWeight() {
+    if (index == 0) { return cumWeights[0]; }
+    return cumWeights[index] - cumWeights[index - 1];
+  }
 
   /**
    * Advances the index and checks if it is valid.
    * The state of this iterator is undefined before the first call of this method.
    * @return true if the next index is valid.
    */
-  boolean next();
+  public boolean next() {
+    index++;
+    return index < cumWeights.length;
+  }
 
 }
 

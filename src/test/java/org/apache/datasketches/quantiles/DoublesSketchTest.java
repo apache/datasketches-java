@@ -134,7 +134,6 @@ public class DoublesSketchTest {
     try { uds.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getRank(1.0); fail(); } catch (IllegalArgumentException e) {}
-    try { uds.getPartitionBoundaries(5); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getPMF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getCDF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
   }
@@ -199,15 +198,15 @@ public class DoublesSketchTest {
       Assert.assertEquals(it.next(), true);
       Assert.assertEquals(it.getQuantile(), 1);
       Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 1);
+      Assert.assertEquals(it.getNaturalRank(INCLUSIVE), 1);
       Assert.assertEquals(it.next(), true);
       Assert.assertEquals(it.getQuantile(), 2);
       Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 2);
+      Assert.assertEquals(it.getNaturalRank(INCLUSIVE), 2);
       Assert.assertEquals(it.next(), true);
       Assert.assertEquals(it.getQuantile(), 3);
       Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 3);
+      Assert.assertEquals(it.getNaturalRank(INCLUSIVE), 3);
       Assert.assertEquals(it.next(), false);
     }
   }

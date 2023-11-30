@@ -29,7 +29,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallySpacedDoubles;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -783,34 +783,9 @@ public class HeapUpdateDoublesSketchTest {
   }
 
   @Test
-  public void checkEvenlySpacedQuantiles() {
-    DoublesSketch qsk = buildAndLoadQS(32, 1001);
-    double[] values = qsk.getPartitionBoundaries(10).boundaries;
-    for (int i = 0; i<values.length; i++) {
-      println(""+values[i]);
-    }
-    assertEquals(values.length, 11);
-  }
-
-  @Test
-  public void getQuantiles() {
-    final DoublesSketch sketch = buildAndLoadQS(32,0);
-    sketch.update(1);
-    sketch.update(2);
-    sketch.update(3);
-    sketch.update(4);
-    double[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    double[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
-    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
-    assertEquals(quantiles1, quantiles2);
-  }
-
-  @Test
   public void checkEquallySpacedRanks() {
     int n = 10;
-    double[] es = equallyWeightedRanks(n);
+    double[] es = equallySpacedDoubles(n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];
@@ -955,10 +930,9 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
-    // inclusive = false (default)
+    // inclusive = false
     assertEquals(sketch.getQuantile(0, EXCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, EXCLUSIVE), 2);
     assertEquals(sketch.getQuantile(0.2, EXCLUSIVE), 3);

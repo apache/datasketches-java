@@ -21,12 +21,12 @@ package org.apache.datasketches.req;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -40,13 +40,6 @@ public class ReqSketchSortedViewTest {
   private final int n = numV * dup;
 
   @Test
-  public void emptySketch() {
-    ReqSketch sketch = ReqSketch.builder().build();
-    FloatsSortedViewIterator itr =  sketch.getSortedView().iterator();
-    Assert.assertFalse(itr.next());
-  }
-
-  @Test
   public void twoValueSketch() {
     ReqSketch sketch = ReqSketch.builder().build();
     sketch.update(1f);
@@ -57,8 +50,8 @@ public class ReqSketchSortedViewTest {
 
     assertEquals(itr.getQuantile(), 1f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 0);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 1);
     assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
 
@@ -66,8 +59,8 @@ public class ReqSketchSortedViewTest {
 
     assertEquals(itr.getQuantile(), 2f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
-    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.getNaturalRank(EXCLUSIVE), 1);
+    assertEquals(itr.getNaturalRank(INCLUSIVE), 2);
     assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0.5);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
   }
@@ -111,9 +104,9 @@ public class ReqSketchSortedViewTest {
     while (itr.next()) {
       float v = itr.getQuantile();
       long wt = itr.getWeight();
-      long cumWtNotInc   = itr.getCumulativeWeight(EXCLUSIVE);
+      long cumWtNotInc   = itr.getNaturalRank(EXCLUSIVE);
       double nRankNotInc = itr.getNormalizedRank(EXCLUSIVE);
-      long cumWtInc      = itr.getCumulativeWeight(INCLUSIVE);
+      long cumWtInc      = itr.getNaturalRank(INCLUSIVE);
       double nRankInc    = itr.getNormalizedRank(INCLUSIVE);
       printf(fmt, v, wt, cumWtNotInc, nRankNotInc, cumWtInc, nRankInc);
     }

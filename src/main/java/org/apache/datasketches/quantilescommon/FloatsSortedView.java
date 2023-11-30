@@ -72,6 +72,24 @@ public interface FloatsSortedView extends SortedView {
   }
 
   /**
+   * Returns the maximum item of the stream. This may be distinct from the largest item retained by the
+   * sketch algorithm.
+   *
+   * @return the maximum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
+   */
+  float getMaxItem();
+
+  /**
+   * Returns the minimum item of the stream. This may be distinct from the smallest item retained by the
+   * sketch algorithm.
+   *
+   * @return the minimum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
+   */
+  float getMinItem();
+
+  /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
    * as an array of probability masses as doubles on the interval [0.0, 1.0],
    * given a set of splitPoints.
@@ -135,8 +153,8 @@ public interface FloatsSortedView extends SortedView {
   float getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
   /**
-   * Returns the array of quantiles
-   * @return the array of quantiles
+   * Returns an array of all retained quantiles by the sketch.
+   * @return an array of all retained quantiles by the sketch.
    */
   float[] getQuantiles();
 

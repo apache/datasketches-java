@@ -24,56 +24,18 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 /**
  * Iterator over KllItemsSketch. The order is not defined.
  */
-public final class KllItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T> {
+public final class KllItemsSketchIterator<T> extends KllSketchIterator implements QuantilesGenericSketchIterator<T> {
   private final Object[] quantiles;
-  private final int[] levelsArr;
-  private final int numLevels;
-  private int level;
-  private int index;
-  private long weight;
-  private boolean isInitialized_;
 
   KllItemsSketchIterator(final Object[] quantiles, final int[] levelsArr, final int numLevels) {
+    super(levelsArr, numLevels);
     this.quantiles = quantiles;
-    this.levelsArr = levelsArr;
-    this.numLevels = numLevels;
-    this.isInitialized_ = false;
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public T getQuantile() {
     return (T)quantiles[index];
-  }
-
-  @Override
-  public long getWeight() {
-    return weight;
-  }
-
-  @Override
-  public boolean next() {
-    if (!isInitialized_) {
-      level = 0;
-      index = levelsArr[level];
-      weight = 1;
-      isInitialized_ = true;
-    } else {
-      index++;
-    }
-    if (index < levelsArr[level + 1]) {
-      return true;
-    }
-    // go to the next non-empty level
-    do {
-      level++;
-      if (level == numLevels) {
-        return false; // run out of levels
-      }
-      weight *= 2;
-    } while (levelsArr[level] == levelsArr[level + 1]);
-    index = levelsArr[level];
-    return true;
   }
 
 }

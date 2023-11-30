@@ -58,19 +58,6 @@ public class KllMiscDirectFloatsTest {
     assertTrue(rest - restLB < (2 * eps));
   }
 
-  @Test
-  public void checkMisc() {
-    final int k = 8;
-    final KllFloatsSketch sk = getDirectFloatsSketch(k, 0);
-    try { sk.getPartitionBoundaries(10); fail(); } catch (SketchesArgumentException e) {}
-    for (int i = 0; i < 20; i++) { sk.update(i); }
-    final float[] items = sk.getFloatItemsArray();
-    assertEquals(items.length, 16);
-    final int[] levels = sk.getLevelsArray(sk.sketchStructure);
-    assertEquals(levels.length, 3);
-    assertEquals(sk.getNumLevels(), 2);
-  }
-
   //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
     final int k = 20;
