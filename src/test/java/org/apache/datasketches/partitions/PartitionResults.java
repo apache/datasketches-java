@@ -27,6 +27,7 @@ import static org.apache.datasketches.common.Util.milliSecToString;
 import java.util.List;
 
 import org.apache.datasketches.partitions.Partitioner.PartitionBoundsRow;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 
 /**
  * Output partitioning results to console.
@@ -42,6 +43,7 @@ public class PartitionResults {
       final String sketchType,
       final List<PartitionBoundsRow<String>> list,
       final int k,
+      final QuantileSearchCriteria searchCrit,
       final long totalN,
       final long tgtPartitionSize,
       final int maxPartsPerSk,
@@ -75,6 +77,7 @@ public class PartitionResults {
     println(LS + sketchType +" ItemsSketch Partitions Test");
     println(LS + "INPUT:");
     printf("Sketch K              :%,20d\n", k);
+    printf("Search Criteria       :%20s\n", searchCrit.name());
     printf("Total N               :%,20d\n", totalN);
     printf("Tgt Partition Size    :%,20d\n", tgtPartitionSize);
     printf("Max Parts Per Sketch  :%20d\n", maxPartsPerSk);

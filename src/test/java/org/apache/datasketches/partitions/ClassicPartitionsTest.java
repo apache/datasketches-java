@@ -20,6 +20,7 @@
 package org.apache.datasketches.partitions;
 
 import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_BOTH;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.partitions.Partitioner.PartitionBoundsRow;
 import org.apache.datasketches.quantiles.ItemsSketch;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.testng.annotations.Test;
 
 /**
@@ -44,42 +46,48 @@ public class ClassicPartitionsTest {
    * Launch the partitioner as an application with the following arguments as strings:
    * <ul>
    * <li>arg[0]: int k, the size of the sketch</li>
-   * <li>arg[1]: long totalN, the total size, in elements, of the data set to parse.</li>
-   * <li>arg[2]: long tgtPartitionSize, the target number of elements per resulting partition.</li>
-   * <li>arg[3]: int maxPartsPerSk, the maximum number of partitions to be handled by any one sketch</li>
+   * <li>arg[1]: String INCLUSIVE or EXCLUSIVE, the search criteria.</li>
+   * <li>arg[2]: long totalN, the total size, in elements, of the data set to parse.</li>
+   * <li>arg[3]: long tgtPartitionSize, the target number of elements per resulting partition.</li>
+   * <li>arg[4]: int maxPartsPerSk, the maximum number of partitions to be handled by any one sketch</li>
    * </ul>
    * @param args input arguments as defined above.
    */
   public void main(String[] args) {
     final int k, maxPartsPerSk;
     final long totalN, tgtPartitionSize;
+    final QuantileSearchCriteria searchCrit;
     try {
       k = Integer.parseInt(args[0].trim());
-      totalN = Long.parseLong(args[1].trim());
-      tgtPartitionSize = Long.parseLong(args[2].trim());
-      maxPartsPerSk = Integer.parseInt(args[3].trim());
+      searchCrit = args[1].trim().equalsIgnoreCase("INCLUSIVE") ? INCLUSIVE : EXCLUSIVE;
+      totalN = Long.parseLong(args[2].trim());
+      tgtPartitionSize = Long.parseLong(args[3].trim());
+      maxPartsPerSk = Integer.parseInt(args[4].trim());
     } catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
-    classicPartitioner(k, totalN, tgtPartitionSize, maxPartsPerSk);
+    classicPartitioner(k, searchCrit, totalN, tgtPartitionSize, maxPartsPerSk);
   }
 
   //@Test //launch from TestNG
   public void checkClassicPartitioner() {
     final int k = 1 << 15;
-    final long totalN = 1000_000_000L; //artificially set low so it will execute fast
+    final QuantileSearchCriteria searchCrit = INCLUSIVE;
+    final long totalN = 30_000_000L; //artificially set low so it will execute fast as a simple test
     final long tgtPartitionSize = 3_000_000L;
     final int maxPartsPerSk = 100;
-    classicPartitioner(k, totalN, tgtPartitionSize, maxPartsPerSk);
+    classicPartitioner(k, searchCrit, totalN, tgtPartitionSize, maxPartsPerSk);
   }
 
   /**
    * Programmatic call to classic Partitioner
    * @param k the size of the sketch.
+   * @param searchCrit the QuantileSearchCriteria: either INCLUSIVE or EXCLUSIVE.
    * @param totalN the total size, in elements, of the data set to parse.
    * @param tgtPartitionSize the target number of elements per resulting partition.
    * @param maxPartsPerSk the maximum number of partitions to be handled by any one sketch.
    */
   public void classicPartitioner(
       final int k,
+      final QuantileSearchCriteria searchCrit,
       final long totalN,
       final long tgtPartitionSize,
       final int maxPartsPerSk) {
@@ -92,7 +100,7 @@ public class ClassicPartitionsTest {
         tgtPartitionSize,
         maxPartsPerSk,
         fillReq,
-        INCLUSIVE);
+        searchCrit);
     final List<PartitionBoundsRow<String>> list = partitioner.partition(sk);
     final long endTime_mS = System.currentTimeMillis();
     final long fillInitialSketchTime_mS = endFillInitialSketchTime_mS - startTime_mS;
@@ -102,6 +110,7 @@ public class ClassicPartitionsTest {
         "Classic",
         list,
         k,
+        searchCrit,
         totalN,
         tgtPartitionSize,
         maxPartsPerSk,

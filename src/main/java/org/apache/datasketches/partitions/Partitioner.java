@@ -41,6 +41,12 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 /**
  * A partitioning process that can partition very large data sets into thousands
  * of partitions of approximately the same size.
+ *
+ * <p>The code included here does work fine for moderate sized partitioning tasks.
+ * As an example, using the test code in the test branch with the partitioning task of splitting
+ * a data set of 1 billion items into 324 partitions of size 3M items completed in under 3 minutes, which was
+ * performed on a single CPU. For much larger partitioning tasks, it is recommended that this code be leveraged into a
+ * parallelized systems environment.</p>
  * @param <T> the data type
  * @param <S> the quantiles sketch that implements both QuantilesGenericAPI and PartitioningFeature.
  */
