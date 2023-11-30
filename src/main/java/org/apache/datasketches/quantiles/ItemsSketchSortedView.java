@@ -178,8 +178,8 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     final long[] evSpNatRanks = new long[len];
     for (int i = 0; i < len; i++) {
       final int index = getQuantileIndex(evSpNormRanks[i], searchCrit);
-      evSpQuantiles[i] = getQuantileFromIndex(index);
-      evSpNatRanks[i] = getCumWeightFromIndex(index);
+      evSpQuantiles[i] = quantiles[index];
+      evSpNatRanks[i] = cumWeights[index];
     }
     final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>(
         this.totalN,
@@ -209,12 +209,8 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int index = getQuantileIndex(rank, searchCrit);
-    return getQuantileFromIndex(index);
+    return quantiles[index];
   }
-
-  private T getQuantileFromIndex(final int index) { return quantiles[index]; }
-
-  private long getCumWeightFromIndex(final int index) { return cumWeights[index]; }
 
   private int getQuantileIndex(final double rank, final QuantileSearchCriteria searchCrit) {
     final int len = cumWeights.length;
