@@ -43,13 +43,6 @@ public interface SortedView {
   long[] getCumulativeWeights();
 
   /**
-   * Returns the array of normalized ranks. The normalized ranks are the natural ranks divided by N.
-   * The normalized ranks are fractional numbers on the interval (0,1.0].
-   * @return the array of normalized ranks.
-   */
-  double[] getNormalizedRanks();
-
-  /**
    * Returns the total number of items presented to the sourcing sketch.
    * @return the total number of items presented to the sourcing sketch.
    */

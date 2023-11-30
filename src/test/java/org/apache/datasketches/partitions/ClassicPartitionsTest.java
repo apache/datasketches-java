@@ -22,11 +22,14 @@ package org.apache.datasketches.partitions;
 import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_BOTH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.partitions.Partitioner.PartitionBoundsRow;
 import org.apache.datasketches.quantiles.ItemsSketch;
+import org.apache.datasketches.quantilescommon.PartitioningFeature;
+import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.testng.annotations.Test;
 
 /**
@@ -65,11 +68,22 @@ public class ClassicPartitionsTest {
   //@Test //launch from TestNG
   public void checkClassicPartitioner() {
     final int k = 1 << 15;
-    final long totalN = 30_000_000L; //artificially set low so it will execute fast
+    final long totalN = 1000_000_000L; //artificially set low so it will execute fast
     final long tgtPartitionSize = 3_000_000L;
     final int maxPartsPerSk = 100;
     classicPartitioner(k, totalN, tgtPartitionSize, maxPartsPerSk);
+    final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
+    this.runPartitioner(k, totalN, tgtPartitionSize, maxPartsPerSk, sk);
   }
+
+  public <T, S extends QuantilesGenericAPI<T> & PartitioningFeature<T>>
+  void runPartitioner(final int k, final long totalN, final long tgtPartitionSize, final int maxPartsPerSk,
+      ItemsSketch<String> sketch) {
+    final ItemsSketchFillRequestLongAsString fillReq = new ItemsSketchFillRequestLongAsString(k, totalN);
+    final long startTime_mS = System.currentTimeMillis();
+  }
+
+  //SketchFillRequest<String, ItemsSketch<String>>
 
   /**
    * Programmatic call to classic Partitioner

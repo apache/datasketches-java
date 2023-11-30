@@ -42,7 +42,6 @@ public final class ReqSketchSortedView implements FloatsSortedView {
   private float[] quantiles;
   private long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
-  private final double[] normRanks;
   private final float maxItem;
   private final float minItem;
 
@@ -59,10 +58,6 @@ public final class ReqSketchSortedView implements FloatsSortedView {
     this.totalN = totalN;
     this.maxItem = maxItem;
     this.minItem = minItem;
-    final int len = cumWeights.length;
-    final double[] normRanks = new double[len];
-    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
-    this.normRanks = normRanks;
   }
 
   /**
@@ -75,10 +70,6 @@ public final class ReqSketchSortedView implements FloatsSortedView {
     this.maxItem = sketch.getMaxItem();
     this.minItem = sketch.getMinItem();
     buildSortedViewArrays(sketch);
-    final int len = cumWeights.length;
-    final double[] normRanks = new double[len];
-    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
-    this.normRanks = normRanks;
   }
 
   //end of constructors
@@ -101,11 +92,6 @@ public final class ReqSketchSortedView implements FloatsSortedView {
   @Override
   public long getN() {
     return totalN;
-  }
-
-  @Override
-  public double[] getNormalizedRanks() {
-    return normRanks;
   }
 
   @Override

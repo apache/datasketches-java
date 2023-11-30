@@ -55,7 +55,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
   private final T maxItem;
   private final T minItem;
   private final Class<T> clazz;
-  private final double[] normRanks;
 
   /**
    * Construct from elements for testing.
@@ -79,7 +78,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     this.maxItem = maxItem;
     this.minItem = minItem;
     this.clazz = (Class<T>)quantiles[0].getClass();
-    this.normRanks = convertCumWtsToNormRanks(cumWeights, totalN);
   }
 
   /**
@@ -114,7 +112,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     if (convertToCumulative(cumWeights) != totalN) {
       throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
     }
-    this.normRanks = convertCumWtsToNormRanks(cumWeights, totalN);
   }
 
   //end of constructors
@@ -153,11 +150,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
   }
 
   @Override
-  public double[] getNormalizedRanks() {
-    return normRanks.clone();
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
   public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
       final QuantileSearchCriteria searchCrit) {
@@ -167,8 +159,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     //adjust ends of sortedView arrays
     cumWeights[0] = 1L;
     cumWeights[svLen - 1] = totalN;
-    normRanks[0] = 1.0 / totalN;
-    normRanks[svLen - 1] = 1.0;
     quantiles[0] = this.getMinItem();
     quantiles[svLen - 1] = this.getMaxItem();
 
@@ -308,13 +298,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     // Must sort the items that came from the base buffer.
     // Don't need to sort the corresponding weights because they are all the same.
     Arrays.sort(quantilesArr, startOfBaseBufferBlock, numQuantiles, comparator);
-  }
-
-  private static double[] convertCumWtsToNormRanks(final long[] cumWeights, final long totalN) {
-    final int len = cumWeights.length;
-    final double[] normRanks = new double[len];
-    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
-    return normRanks;
   }
 
   /**

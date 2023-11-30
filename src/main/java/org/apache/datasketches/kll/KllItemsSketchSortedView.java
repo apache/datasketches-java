@@ -55,7 +55,6 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
   private final T maxItem;
   private final T minItem;
   private final Class<T> clazz;
-  private final double[] normRanks;
 
   /**
    * Construct from elements for testing only.
@@ -80,7 +79,6 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
     this.maxItem = maxItem;
     this.minItem = minItem;
     this.clazz = (Class<T>)quantiles[0].getClass();
-    this.normRanks = convertCumWtsToNormRanks(cumWeights, totalN);
   }
 
   /**
@@ -109,7 +107,6 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
     quantiles = (T[]) Array.newInstance(sketch.serDe.getClassOfT(), numQuantiles);
     cumWeights = new long[numQuantiles];
     populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
-    this.normRanks = convertCumWtsToNormRanks(cumWeights, totalN);
   }
 
   //end of constructors
@@ -148,11 +145,6 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
   }
 
   @Override
-  public double[] getNormalizedRanks() {
-    return normRanks.clone();
-  }
-
-  @Override
   @SuppressWarnings("unchecked")
   public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
       final QuantileSearchCriteria searchCrit) {
@@ -162,8 +154,6 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
     //adjust ends of sortedView arrays
     cumWeights[0] = 1L;
     cumWeights[svLen - 1] = totalN;
-    normRanks[0] = 1.0 / totalN;
-    normRanks[svLen - 1] = 1.0;
     quantiles[0] = this.getMinItem();
     quantiles[svLen - 1] = this.getMaxItem();
 
@@ -259,13 +249,6 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
   }
 
   //restricted methods
-
-  private static double[] convertCumWtsToNormRanks(final long[] cumWeights, final long totalN) {
-    final int len = cumWeights.length;
-    final double[] normRanks = new double[len];
-    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
-    return normRanks;
-  }
 
   private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevels,
     final int srcNumLevels, final int numItems) {

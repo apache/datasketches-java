@@ -44,7 +44,6 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   private final double[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
-  private final double[] normRanks;
   private final double maxItem;
   private final double minItem;
 
@@ -61,10 +60,6 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     this.totalN = totalN;
     this.maxItem = maxItem;
     this.minItem = minItem;
-    final int len = cumWeights.length;
-    final double[] normRanks = new double[len];
-    for (int i = 0; i < len; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
-    this.normRanks = normRanks;
   }
 
   /**
@@ -92,9 +87,6 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    if (convertToCumulative(cumWeights) != totalN) {
      throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
    }
-   final double[] normRanks = new double[numQuantiles];
-   for (int i = 0; i < numQuantiles; i++) { normRanks[i] = (double)cumWeights[i] / totalN; }
-   this.normRanks = normRanks;
   }
 
   @Override
@@ -115,11 +107,6 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   @Override
   public long getN() {
     return totalN;
-  }
-
-  @Override
-  public double[] getNormalizedRanks() {
-    return normRanks.clone();
   }
 
   @Override
