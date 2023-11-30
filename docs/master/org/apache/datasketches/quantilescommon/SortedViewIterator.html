@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -90,13 +90,13 @@ loadScripts(document, 'script');</script>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -117,22 +117,27 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <main role="main">
 <div class="header">
 <div class="subTitle"><span class="packageLabelInType">Package</span>&nbsp;<a href="package-summary.html">org.apache.datasketches.quantilescommon</a></div>
-<h2 title="Interface SortedViewIterator" class="title">Interface SortedViewIterator</h2>
+<h2 title="Class SortedViewIterator" class="title">Class SortedViewIterator</h2>
 </div>
 <div class="contentContainer">
+<ul class="inheritance">
+<li><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>org.apache.datasketches.quantilescommon.SortedViewIterator</li>
+</ul>
+</li>
+</ul>
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
 <dl>
-<dt>All Known Subinterfaces:</dt>
-<dd><code><a href="DoublesSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></code>, <code><a href="FloatsSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">FloatsSortedViewIterator</a></code></dd>
-</dl>
-<dl>
-<dt>All Known Implementing Classes:</dt>
-<dd><code><a href="../quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedViewIterator</a></code>, <code><a href="GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></code>, <code><a href="../quantiles/ItemsSketchSortedView.ItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView.ItemsSketchSortedViewIterator</a></code>, <code><a href="../kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedViewIterator</a></code>, <code><a href="../kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedViewIterator</a></code>, <code><a href="../kll/KllItemsSketchSortedView.KllItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView.KllItemsSketchSortedViewIterator</a></code>, <code><a href="../req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req">ReqSketchSortedViewIterator</a></code></dd>
+<dt>Direct Known Subclasses:</dt>
+<dd><code><a href="DoublesSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></code>, <code><a href="FloatsSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">FloatsSortedViewIterator</a></code>, <code><a href="GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></code></dd>
 </dl>
 <hr>
-<pre>public interface <span class="typeNameLabel">SortedViewIterator</span></pre>
+<pre>public class <span class="typeNameLabel">SortedViewIterator</span>
+extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
 <div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
  from a quantile-type sketch. This provides an ordered iterator over the retained quantiles of
  the associated quantile-type sketch.
@@ -155,6 +160,39 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colSecond" scope="col">Field</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected long[]</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#cumWeights">cumWeights</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#index">index</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#totalN">totalN</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
+</section>
 <!-- ========== METHOD SUMMARY =========== -->
 <section>
 <ul class="blockList">
@@ -163,7 +201,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -171,16 +209,16 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getN()">getN</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.</div>
+<div class="block">Gets the total count of all items presented to the sketch.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getN()">getN</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a></span>&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
-<div class="block">Gets the total count of all items presented to the sketch.</div>
+<div class="block">Gets the natural rank at the current index (or previous index) based on the chosen search criterion.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -195,7 +233,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <td class="colFirst"><code>long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getWeight()">getWeight</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Gets the natural weight at the current index.</div>
+<div class="block">Gets the weight contribution of the item at the current index.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
@@ -206,6 +244,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
+<!--   -->
+</a>
+<h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></h3>
+<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone--" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals-java.lang.Object-" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize--" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass--" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode--" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify--" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll--" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString--" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait--" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-int-" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
+</ul>
 </li>
 </ul>
 </section>
@@ -215,6 +260,43 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a id="cumWeights">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>cumWeights</h4>
+<pre>protected final&nbsp;long[] cumWeights</pre>
+</li>
+</ul>
+<a id="totalN">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>totalN</h4>
+<pre>protected&nbsp;long totalN</pre>
+</li>
+</ul>
+<a id="index">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>index</h4>
+<pre>protected&nbsp;int index</pre>
+</li>
+</ul>
+</li>
+</ul>
+</section>
 <!-- ============ METHOD DETAIL ========== -->
 <section>
 <ul class="blockList">
@@ -222,24 +304,26 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<a id="getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getCumulativeWeight</h4>
-<pre class="methodSignature">long&nbsp;getCumulativeWeight&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block">Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.
- This is also referred to as the "Natural Rank".
+<h4>getNaturalRank</h4>
+<pre class="methodSignature">public&nbsp;long&nbsp;getNaturalRank&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Gets the natural rank at the current index (or previous index) based on the chosen search criterion.
+ This is also referred to as the "cumulative weight". The natural rank is a number in the range <i>[1, N]</i>,
+ where <i>N</i> (<a href="#getN()"><code>getN()</code></a>) is the total number of items fed to the sketch.
 
  <p>Don't call this before calling next() for the first time
  or after getting false from next().</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>searchCrit</code> - if INCLUSIVE, includes the weight at the current index in the cumulative sum.
- Otherwise, it will return the cumulative weight of the previous index.</dd>
+<dd><code>searchCrit</code> - if INCLUSIVE, includes the weight of the item at the current index in the computation of
+ the natural rank.
+ Otherwise, it will return the natural rank of the previous index.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>cumulative weight at the current index on the chosen search criterion.</dd>
+<dd>the natural rank at the current index (or previous index) based on the chosen search criterion.</dd>
 </dl>
 </li>
 </ul>
@@ -249,7 +333,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <h4>getN</h4>
-<pre class="methodSignature">long&nbsp;getN()</pre>
+<pre class="methodSignature">public&nbsp;long&nbsp;getN()</pre>
 <div class="block">Gets the total count of all items presented to the sketch.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -263,9 +347,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <h4>getNormalizedRank</h4>
-<pre class="methodSignature">double&nbsp;getNormalizedRank&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<pre class="methodSignature">public&nbsp;double&nbsp;getNormalizedRank&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
 <div class="block">Gets the normalized rank at the current index (or previous index)
- based on the chosen search criterion.
+ based on the chosen search criterion. Where <i>normalized rank = natural rank / N</i> (<a href="#getN()"><code>getN()</code></a>)
+ and is a fraction in the range (0,1.0].
 
  <p>Don't call this before calling next() for the first time
  or after getting false from next().</p></div>
@@ -285,14 +370,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <h4>getWeight</h4>
-<pre class="methodSignature">long&nbsp;getWeight()</pre>
-<div class="block">Gets the natural weight at the current index.
+<pre class="methodSignature">public&nbsp;long&nbsp;getWeight()</pre>
+<div class="block">Gets the weight contribution of the item at the current index.
 
  <p>Don't call this before calling next() for the first time
  or after getting false from next().</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the natural weight at the current index.</dd>
+<dd>the weight contribution of the item at the current index.</dd>
 </dl>
 </li>
 </ul>
@@ -302,7 +387,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockListLast">
 <li class="blockList">
 <h4>next</h4>
-<pre class="methodSignature">boolean&nbsp;next()</pre>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;next()</pre>
 <div class="block">Advances the index and checks if it is valid.
  The state of this iterator is undefined before the first call of this method.</div>
 <dl>
@@ -364,13 +449,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9};
+var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -90,13 +90,13 @@ loadScripts(document, 'script');</script>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -145,6 +145,29 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colSecond" scope="col">Field</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#tailRoundingFactor">tailRoundingFactor</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
+</section>
 <!-- ========== METHOD SUMMARY =========== -->
 <section>
 <ul class="blockList">
@@ -182,12 +205,23 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static double[]</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#equallyWeightedRanks(int)">equallyWeightedRanks</a></span>&#8203;(int&nbsp;num)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#equallySpacedDoubles(int)">equallySpacedDoubles</a></span>&#8203;(int&nbsp;num)</code></th>
 <td class="colLast">
-<div class="block">Returns a double array of ranks that defines equally weighted regions between 0.0, inclusive and 1.0, inclusive.</div>
+<div class="block">Returns an array of (<i>num</i> + 1) values that define equally sized intervals between 0.0, inclusive, and 1.0,
+ inclusive.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>static long[]</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#equallySpacedLongs(long,long,int)">equallySpacedLongs</a></span>&#8203;(long&nbsp;min,
+                  long&nbsp;max,
+                  int&nbsp;num)</code></th>
+<td class="colLast">
+<div class="block">Returns an array of (<i>num</i> + 1) longs that define, approximately, equally spaced intervals between the given
+ <i>max</i>, inclusive, and <i>min</i>, inclusive.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#evenlyLogSpaced(double,double,int)">evenlyLogSpaced</a></span>&#8203;(double&nbsp;value1,
                double&nbsp;value2,
@@ -197,7 +231,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  returned values are evenly spaced.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#evenlySpacedDoubles(double,double,int)">evenlySpacedDoubles</a></span>&#8203;(double&nbsp;value1,
                    double&nbsp;value2,
@@ -206,7 +240,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns a double array of evenly spaced values between value1, inclusive, and value2 inclusive.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static float[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#evenlySpacedFloats(float,float,int)">evenlySpacedFloats</a></span>&#8203;(float&nbsp;value1,
                   float&nbsp;value2,
@@ -215,13 +249,20 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns a float array of evenly spaced values between value1, inclusive, and value2 inclusive.</div>
 </td>
 </tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>static double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNaturalRank(double,long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a></span>&#8203;(double&nbsp;normalizedRank,
+              long&nbsp;totalN,
+              <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></h3>
-<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone()" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals(java.lang.Object)" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize()" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass()" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode()" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify()" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll()" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString()" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait()" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long)" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long,int)" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
+<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone--" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals-java.lang.Object-" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize--" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass--" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode--" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify--" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll--" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString--" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait--" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-int-" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
 </ul>
 </li>
 </ul>
@@ -232,6 +273,29 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a id="tailRoundingFactor">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>tailRoundingFactor</h4>
+<pre>public static final&nbsp;double tailRoundingFactor</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#org.apache.datasketches.quantilescommon.QuantilesUtil.tailRoundingFactor">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+</li>
+</ul>
+</section>
 <!-- ============ METHOD DETAIL ========== -->
 <section>
 <ul class="blockList">
@@ -283,27 +347,51 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
-<a id="equallyWeightedRanks(int)">
+<a id="equallySpacedDoubles(int)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>equallyWeightedRanks</h4>
-<pre class="methodSignature">public static&nbsp;double[]&nbsp;equallyWeightedRanks&#8203;(int&nbsp;num)</pre>
-<div class="block">Returns a double array of ranks that defines equally weighted regions between 0.0, inclusive and 1.0, inclusive.
- The 0.0 and 1.0 end points are part of the returned array and are the getMinItem() and getMaxItem() values of the
- sketch.
- For example, if num == 2, three values will be returned: 0.0, .5, and 1, where the two equally weighted regions are
- 0.0 to 0.5, and 0.5 to 1.0.</div>
+<h4>equallySpacedDoubles</h4>
+<pre class="methodSignature">public static&nbsp;double[]&nbsp;equallySpacedDoubles&#8203;(int&nbsp;num)</pre>
+<div class="block">Returns an array of (<i>num</i> + 1) values that define equally sized intervals between 0.0, inclusive, and 1.0,
+ inclusive. The end points 0.0 and 1.0 are part of the returned array.
+
+ <p>For example, if num == 2, three values will be returned: 0.0, .5, and 1, where the two equally sized regions
+ are {0.0,0.5}, and {0.5, 1.0}.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>num</code> - the total number of equally weighted regions between 0.0 and 1.0 defined by the ranks in the returned
- array.  <i>num</i> must be 1 or greater.</dd>
+<dd><code>num</code> - the total number of equally sized intervals between 0.0, inclusive and 1.0, inclusive.
+ Must be 1 or greater.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a double array of <i>num + 1</i> ranks that define the boundaries of <i>num</i> equally weighted
- regions between 0.0, inclusive and 1.0, inclusive.</dd>
+<dd>a double array of values that define (num + 1) equally sized intervals between 0.0, inclusive and 1.0,
+ inclusive.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if <i>num</i> is less than 1.</dd>
+</dl>
+</li>
+</ul>
+<a id="equallySpacedLongs(long,long,int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>equallySpacedLongs</h4>
+<pre class="methodSignature">public static&nbsp;long[]&nbsp;equallySpacedLongs&#8203;(long&nbsp;min,
+                                        long&nbsp;max,
+                                        int&nbsp;num)</pre>
+<div class="block">Returns an array of (<i>num</i> + 1) longs that define, approximately, equally spaced intervals between the given
+ <i>max</i>, inclusive, and <i>min</i>, inclusive. The end points <i>max</i> and <i>min</i> are part of the
+ returned array. Because the range of the values may not exactly divide into <i>num</i> intervals,
+ the size of these intervals may vary by plus or minus one.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>min</code> - the lowest positive valued (or zero) number of the range</dd>
+<dd><code>max</code> - the highest positive valued number of the range.  <i>max</i> must be greater than <i>min</i></dd>
+<dd><code>num</code> - Number of requested intervals. Must be greater or equal to one, and less than or equal to
+ <i>max - min</i>.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>an array of (<i>num</i> + 1) longs that are approximately equally spaced between the given min and max.</dd>
 </dl>
 </li>
 </ul>
@@ -354,7 +442,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <a id="evenlyLogSpaced(double,double,int)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>evenlyLogSpaced</h4>
 <pre class="methodSignature">public static&nbsp;double[]&nbsp;evenlyLogSpaced&#8203;(double&nbsp;value1,
@@ -372,6 +460,17 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a double array of exponentially spaced values between value1 and value2 inclusive.</dd>
 </dl>
+</li>
+</ul>
+<a id="getNaturalRank(double,long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getNaturalRank</h4>
+<pre class="methodSignature">public static&nbsp;double&nbsp;getNaturalRank&#8203;(double&nbsp;normalizedRank,
+                                    long&nbsp;totalN,
+                                    <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
 </li>
 </ul>
 </li>
@@ -427,13 +526,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

@@ -114,20 +114,24 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="rowColor">
+<th class="colFirst" scope="row"><a href="#org.apache.datasketches.partitions">org.apache.datasketches.partitions</a></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.quantiles">org.apache.datasketches.quantiles</a></th>
 <td class="colLast">
 <div class="block">The quantiles package contains stochastic streaming algorithms that enable single-pass
  analysis of the distribution of a stream of quantiles.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.quantilescommon">org.apache.datasketches.quantilescommon</a></th>
 <td class="colLast">
 <div class="block">This package contains common tools and methods for the <i>quantiles</i>, <i>kll</i> and
  <i>req</i> packages.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.req">org.apache.datasketches.req</a></th>
 <td class="colLast">
 <div class="block">This package is for the implementation of the Relative Error Quantiles sketch algorithm.</div>
@@ -149,13 +153,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/DoublesSortedView.html#org.apache.datasketches.kll">DoublesSortedView</a></th>
 <td class="colLast">
-<div class="block">The Sorted View for quantiles of primitive type double.</div>
+<div class="block">The Sorted View for quantile sketches of primitive type double.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/DoublesSortedViewIterator.html#org.apache.datasketches.kll">DoublesSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView iterator for type double.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>double</i>.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -167,19 +171,31 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/FloatsSortedViewIterator.html#org.apache.datasketches.kll">FloatsSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView Iterator for type float.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>float</i>.</div>
 </td>
 </tr>
 <tr class="altColor">
+<th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.kll">GenericPartitionBoundaries</a></th>
+<td class="colLast">
+<div class="block">Implements PartitionBoundaries</div>
+</td>
+</tr>
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericSortedView.html#org.apache.datasketches.kll">GenericSortedView</a></th>
 <td class="colLast">
 <div class="block">The Sorted View for quantiles of generic type.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericSortedViewIterator.html#org.apache.datasketches.kll">GenericSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView Iterator for generic types.</div>
+<div class="block">Iterator over quantile sketches of generic type.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="class-use/PartitioningFeature.html#org.apache.datasketches.kll">PartitioningFeature</a></th>
+<td class="colLast">
+<div class="block">This enables the special functions for performing efficient partitioning of massive data.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -197,35 +213,21 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesAPI.DoublesPartitionBoundaries.html#org.apache.datasketches.kll">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesSketchIterator.html#org.apache.datasketches.kll">QuantilesDoublesSketchIterator</a></th>
 <td class="colLast">
 <div class="block">The quantiles sketch iterator for primitive type double.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantileSearchCriteria.html#org.apache.datasketches.kll">QuantileSearchCriteria</a></th>
 <td class="colLast">
 <div class="block">These search criteria are used by the KLL, REQ and Classic Quantiles sketches in the DataSketches library.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesFloatsAPI.html#org.apache.datasketches.kll">QuantilesFloatsAPI</a></th>
 <td class="colLast">
 <div class="block">The Quantiles API for item type <i>float</i>.</div>
-</td>
-</tr>
-<tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesFloatsAPI.FloatsPartitionBoundaries.html#org.apache.datasketches.kll">QuantilesFloatsAPI.FloatsPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -241,36 +243,59 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="rowColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesGenericAPI.GenericPartitionBoundaries.html#org.apache.datasketches.kll">QuantilesGenericAPI.GenericPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
-</td>
-</tr>
-<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesGenericSketchIterator.html#org.apache.datasketches.kll">QuantilesGenericSketchIterator</a></th>
 <td class="colLast">
 <div class="block">The quantiles sketch iterator for generic types.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesSketchIterator.html#org.apache.datasketches.kll">QuantilesSketchIterator</a></th>
 <td class="colLast">
 <div class="block">This is the base interface for the SketchIterator hierarchy used for viewing the
  non-ordered quantiles retained by a sketch.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/SortedView.html#org.apache.datasketches.kll">SortedView</a></th>
 <td class="colLast">
-<div class="block">This is the base interface for the Sorted View interface hierarchy.</div>
+<div class="block">This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li class="blockList"><a id="org.apache.datasketches.partitions">
+<!--   -->
+</a>
+<table class="useSummary">
+<caption><span>Classes in <a href="package-summary.html">org.apache.datasketches.quantilescommon</a> used by <a href="../partitions/package-summary.html">org.apache.datasketches.partitions</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Class</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.partitions">GenericPartitionBoundaries</a></th>
+<td class="colLast">
+<div class="block">Implements PartitionBoundaries</div>
 </td>
 </tr>
 <tr class="rowColor">
-<th class="colFirst" scope="row"><a href="class-use/SortedViewIterator.html#org.apache.datasketches.kll">SortedViewIterator</a></th>
+<th class="colFirst" scope="row"><a href="class-use/PartitioningFeature.html#org.apache.datasketches.partitions">PartitioningFeature</a></th>
 <td class="colLast">
-<div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
- from a quantile-type sketch.</div>
+<div class="block">This enables the special functions for performing efficient partitioning of massive data.</div>
+</td>
+</tr>
+<tr class="altColor">
+<th class="colFirst" scope="row"><a href="class-use/QuantileSearchCriteria.html#org.apache.datasketches.partitions">QuantileSearchCriteria</a></th>
+<td class="colLast">
+<div class="block">These search criteria are used by the KLL, REQ and Classic Quantiles sketches in the DataSketches library.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="class-use/QuantilesGenericAPI.html#org.apache.datasketches.partitions">QuantilesGenericAPI</a></th>
+<td class="colLast">
+<div class="block">The Quantiles API for item type <i>generic</i>.</div>
 </td>
 </tr>
 </tbody>
@@ -289,25 +314,37 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/DoublesSortedView.html#org.apache.datasketches.quantiles">DoublesSortedView</a></th>
 <td class="colLast">
-<div class="block">The Sorted View for quantiles of primitive type double.</div>
+<div class="block">The Sorted View for quantile sketches of primitive type double.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/DoublesSortedViewIterator.html#org.apache.datasketches.quantiles">DoublesSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView iterator for type double.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>double</i>.</div>
 </td>
 </tr>
 <tr class="altColor">
+<th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.quantiles">GenericPartitionBoundaries</a></th>
+<td class="colLast">
+<div class="block">Implements PartitionBoundaries</div>
+</td>
+</tr>
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericSortedView.html#org.apache.datasketches.quantiles">GenericSortedView</a></th>
 <td class="colLast">
 <div class="block">The Sorted View for quantiles of generic type.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericSortedViewIterator.html#org.apache.datasketches.quantiles">GenericSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView Iterator for generic types.</div>
+<div class="block">Iterator over quantile sketches of generic type.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="class-use/PartitioningFeature.html#org.apache.datasketches.quantiles">PartitioningFeature</a></th>
+<td class="colLast">
+<div class="block">This enables the special functions for performing efficient partitioning of massive data.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -325,35 +362,21 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesAPI.DoublesPartitionBoundaries.html#org.apache.datasketches.quantiles">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesSketchIterator.html#org.apache.datasketches.quantiles">QuantilesDoublesSketchIterator</a></th>
 <td class="colLast">
 <div class="block">The quantiles sketch iterator for primitive type double.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantileSearchCriteria.html#org.apache.datasketches.quantiles">QuantileSearchCriteria</a></th>
 <td class="colLast">
 <div class="block">These search criteria are used by the KLL, REQ and Classic Quantiles sketches in the DataSketches library.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesGenericAPI.html#org.apache.datasketches.quantiles">QuantilesGenericAPI</a></th>
 <td class="colLast">
 <div class="block">The Quantiles API for item type <i>generic</i>.</div>
-</td>
-</tr>
-<tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesGenericAPI.GenericPartitionBoundaries.html#org.apache.datasketches.quantiles">QuantilesGenericAPI.GenericPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -372,14 +395,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/SortedView.html#org.apache.datasketches.quantiles">SortedView</a></th>
 <td class="colLast">
-<div class="block">This is the base interface for the Sorted View interface hierarchy.</div>
-</td>
-</tr>
-<tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/SortedViewIterator.html#org.apache.datasketches.quantiles">SortedViewIterator</a></th>
-<td class="colLast">
-<div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
- from a quantile-type sketch.</div>
+<div class="block">This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.</div>
 </td>
 </tr>
 </tbody>
@@ -398,13 +414,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/DoublesSortedView.html#org.apache.datasketches.quantilescommon">DoublesSortedView</a></th>
 <td class="colLast">
-<div class="block">The Sorted View for quantiles of primitive type double.</div>
+<div class="block">The Sorted View for quantile sketches of primitive type double.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/DoublesSortedViewIterator.html#org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView iterator for type double.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>double</i>.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -416,7 +432,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/FloatsSortedViewIterator.html#org.apache.datasketches.quantilescommon">FloatsSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView Iterator for type float.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>float</i>.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -426,22 +442,35 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="rowColor">
+<th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></th>
+<td class="colLast">
+<div class="block">Implements PartitionBoundaries</div>
+</td>
+</tr>
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericSortedView.html#org.apache.datasketches.quantilescommon">GenericSortedView</a></th>
 <td class="colLast">
 <div class="block">The Sorted View for quantiles of generic type.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericSortedViewIterator.html#org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView Iterator for generic types.</div>
+<div class="block">Iterator over quantile sketches of generic type.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/InequalitySearch.html#org.apache.datasketches.quantilescommon">InequalitySearch</a></th>
 <td class="colLast">
 <div class="block">This provides efficient, unique and unambiguous binary searching for inequality comparison criteria
  for ordered arrays of values that may include duplicate values.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="class-use/PartitionBoundaries.html#org.apache.datasketches.quantilescommon">PartitionBoundaries</a></th>
+<td class="colLast">
+<div class="block">This defines a set of results computed from the getParitionBoundaries() function and
+ encapsulates the basic methods needed to construct actual partitions based on generic items.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -453,29 +482,15 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="rowColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesAPI.DoublesPartitionBoundaries.html#org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
-</td>
-</tr>
-<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesSketchIterator.html#org.apache.datasketches.quantilescommon">QuantilesDoublesSketchIterator</a></th>
 <td class="colLast">
 <div class="block">The quantiles sketch iterator for primitive type double.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantileSearchCriteria.html#org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></th>
 <td class="colLast">
 <div class="block">These search criteria are used by the KLL, REQ and Classic Quantiles sketches in the DataSketches library.</div>
-</td>
-</tr>
-<tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesFloatsAPI.FloatsPartitionBoundaries.html#org.apache.datasketches.quantilescommon">QuantilesFloatsAPI.FloatsPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -485,32 +500,25 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/QuantilesGenericAPI.GenericPartitionBoundaries.html#org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesGenericSketchIterator.html#org.apache.datasketches.quantilescommon">QuantilesGenericSketchIterator</a></th>
 <td class="colLast">
 <div class="block">The quantiles sketch iterator for generic types.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesSketchIterator.html#org.apache.datasketches.quantilescommon">QuantilesSketchIterator</a></th>
 <td class="colLast">
 <div class="block">This is the base interface for the SketchIterator hierarchy used for viewing the
  non-ordered quantiles retained by a sketch.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/SortedView.html#org.apache.datasketches.quantilescommon">SortedView</a></th>
 <td class="colLast">
-<div class="block">This is the base interface for the Sorted View interface hierarchy.</div>
+<div class="block">This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/SortedViewIterator.html#org.apache.datasketches.quantilescommon">SortedViewIterator</a></th>
 <td class="colLast">
 <div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
@@ -539,7 +547,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/FloatsSortedViewIterator.html#org.apache.datasketches.req">FloatsSortedViewIterator</a></th>
 <td class="colLast">
-<div class="block">The quantiles SortedView Iterator for type float.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>float</i>.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -578,14 +586,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/SortedView.html#org.apache.datasketches.req">SortedView</a></th>
 <td class="colLast">
-<div class="block">This is the base interface for the Sorted View interface hierarchy.</div>
-</td>
-</tr>
-<tr class="altColor">
-<th class="colFirst" scope="row"><a href="class-use/SortedViewIterator.html#org.apache.datasketches.req">SortedViewIterator</a></th>
-<td class="colLast">
-<div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
- from a quantile-type sketch.</div>
+<div class="block">This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.</div>
 </td>
 </tr>
 </tbody>

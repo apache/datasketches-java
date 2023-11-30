@@ -114,20 +114,24 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="rowColor">
+<th class="colFirst" scope="row"><a href="#org.apache.datasketches.partitions">org.apache.datasketches.partitions</a></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.quantiles">org.apache.datasketches.quantiles</a></th>
 <td class="colLast">
 <div class="block">The quantiles package contains stochastic streaming algorithms that enable single-pass
  analysis of the distribution of a stream of quantiles.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.quantilescommon">org.apache.datasketches.quantilescommon</a></th>
 <td class="colLast">
 <div class="block">This package contains common tools and methods for the <i>quantiles</i>, <i>kll</i> and
  <i>req</i> packages.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.req">org.apache.datasketches.req</a></th>
 <td class="colLast">
 <div class="block">This package is for the implementation of the Relative Error Quantiles sketch algorithm.</div>
@@ -176,118 +180,98 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">KllDoublesSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../kll/KllDoublesSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">KllFloatsSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../kll/KllFloatsSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>double</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">KllDoublesSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../kll/KllDoublesSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>double</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">KllFloatsSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../kll/KllFloatsSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code><a href="../QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">KllDoublesSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllDoublesSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
+<td class="colFirst"><code><a href="../GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="../../kll/KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
                       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code><a href="../QuantilesFloatsAPI.FloatsPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesFloatsAPI.FloatsPartitionBoundaries</a></code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">KllFloatsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllFloatsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
+<td class="colFirst"><code><a href="../GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="../../kll/KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketchSortedView.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
                       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code><a href="../QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a>&lt;<a href="../../kll/KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
-                      <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllDoublesSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllDoublesSketch.html#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(double[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllFloatsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllFloatsSketch.html#getPMF(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(float[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="../../kll/KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketchSortedView.html#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="../../kll/KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllDoublesSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllDoublesSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllDoublesSketchSortedView.</span><code><span class="memberNameLink"><a href="../../kll/KllDoublesSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllFloatsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllFloatsSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllFloatsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../kll/KllFloatsSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code><a href="../../kll/KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a></code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code><a href="../../kll/KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllDoublesSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllDoublesSketch.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>float[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllFloatsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllFloatsSketch.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code><a href="../../kll/KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
+            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code><a href="../../kll/KllItemsSketchSortedView.html" title="type parameter in KllItemsSketchSortedView">T</a>[]</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketchSortedView.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
@@ -350,6 +334,31 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </section>
 </li>
 <li class="blockList">
+<section><a id="org.apache.datasketches.partitions">
+<!--   -->
+</a>
+<h3>Uses of <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a> in <a href="../../partitions/package-summary.html">org.apache.datasketches.partitions</a></h3>
+<table class="useSummary">
+<caption><span>Constructors in <a href="../../partitions/package-summary.html">org.apache.datasketches.partitions</a> with parameters of type <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Constructor</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../../partitions/Partitioner.html#%3Cinit%3E(long,int,org.apache.datasketches.partitions.SketchFillRequest,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">Partitioner</a></span>&#8203;(long&nbsp;tgtPartitionSize,
+           int&nbsp;maxPartsPerSk,
+           <a href="../../partitions/SketchFillRequest.html" title="interface in org.apache.datasketches.partitions">SketchFillRequest</a>&lt;<a href="../../partitions/Partitioner.html" title="type parameter in Partitioner">T</a>,&#8203;<a href="../../partitions/Partitioner.html" title="type parameter in Partitioner">S</a>&gt;&nbsp;fillReq,
+           <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;criteria)</code></th>
+<td class="colLast">
+<div class="block">This constructor includes the QuantileSearchCriteria criteria as a parameter.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+</li>
+<li class="blockList">
 <section><a id="org.apache.datasketches.quantiles">
 <!--   -->
 </a>
@@ -381,24 +390,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../quantiles/DoublesSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>double</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../quantiles/DoublesSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code><a href="../QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSketch.</span><code><span class="memberNameLink"><a href="../../quantiles/DoublesSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
+<td class="colFirst"><code><a href="../GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="../../quantiles/ItemsSketch.html" title="type parameter in ItemsSketch">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketch.</span><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
                       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code><a href="../QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a>&lt;<a href="../../quantiles/ItemsSketch.html" title="type parameter in ItemsSketch">T</a>&gt;</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketch.</span><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
+<td class="colFirst"><code><a href="../GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="../../quantiles/ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketchSortedView.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
                       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
@@ -457,36 +456,42 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code><a href="../../quantiles/ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketchSortedView.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
+            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSketch.</span><code><span class="memberNameLink"><a href="../../quantiles/DoublesSketch.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(double&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSketchSortedView.</span><code><span class="memberNameLink"><a href="../../quantiles/DoublesSketchSortedView.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(double&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketch.</span><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketch.html#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="../../quantiles/ItemsSketch.html" title="type parameter in ItemsSketch">T</a>&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketchSortedView.</span><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketchSortedView.html#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="../../quantiles/ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSketch.</span><code><span class="memberNameLink"><a href="../../quantiles/DoublesSketch.html#getRanks(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(double[]&nbsp;quantiles,
         <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketch.</span><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketch.html#getRanks(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(<a href="../../quantiles/ItemsSketch.html" title="type parameter in ItemsSketch">T</a>[]&nbsp;quantiles,
         <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -509,6 +514,18 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tbody>
+<tr class="altColor">
+<td class="colFirst"><code><a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">GenericPartitionBoundaries.</span><code><span class="memberNameLink"><a href="../GenericPartitionBoundaries.html#getSearchCriteria()">getSearchCriteria</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code><a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">PartitionBoundaries.</span><code><span class="memberNameLink"><a href="../PartitionBoundaries.html#getSearchCriteria()">getSearchCriteria</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the search criteria specified for the source sketch</div>
+</td>
+</tr>
 <tr class="altColor">
 <td class="colFirst"><code>static <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantileSearchCriteria.</span><code><span class="memberNameLink"><a href="../QuantileSearchCriteria.html#valueOf(java.lang.String)">valueOf</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;name)</code></th>
@@ -595,23 +612,20 @@ the order they are declared.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">GenericSortedViewIterator.</span><code><span class="memberNameLink"><a href="../GenericSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colFirst"><code>static double</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesUtil.</span><code><span class="memberNameLink"><a href="../QuantilesUtil.html#getNaturalRank(double,long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a></span>&#8203;(double&nbsp;normalizedRank,
+              long&nbsp;totalN,
+              <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">SortedViewIterator.</span><code><span class="memberNameLink"><a href="../SortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<th class="colSecond" scope="row"><span class="typeNameLabel">SortedViewIterator.</span><code><span class="memberNameLink"><a href="../SortedViewIterator.html#getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
-<div class="block">Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.</div>
+<div class="block">Gets the natural rank at the current index (or previous index) based on the chosen search criterion.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>double</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">GenericSortedViewIterator.</span><code><span class="memberNameLink"><a href="../GenericSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">SortedViewIterator.</span><code><span class="memberNameLink"><a href="../SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
@@ -619,35 +633,18 @@ the order they are declared.</div>
  based on the chosen search criterion.</div>
 </td>
 </tr>
-<tr class="altColor">
-<td class="colFirst"><code><a href="../QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesDoublesAPI.</span><code><span class="memberNameLink"><a href="../QuantilesDoublesAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
-                      <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">
-<div class="block">This method returns an instance of <a href="../QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</td>
-</tr>
 <tr class="rowColor">
-<td class="colFirst"><code><a href="../QuantilesFloatsAPI.FloatsPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesFloatsAPI.FloatsPartitionBoundaries</a></code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesFloatsAPI.</span><code><span class="memberNameLink"><a href="../QuantilesFloatsAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
-                      <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">
-<div class="block">This method returns an instance of <a href="../QuantilesFloatsAPI.FloatsPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>FloatsPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code><a href="../QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a>&lt;<a href="../QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&gt;</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesGenericAPI.</span><code><span class="memberNameLink"><a href="../QuantilesGenericAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
+<td class="colFirst"><code><a href="../GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="../PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">PartitioningFeature.</span><code><span class="memberNameLink"><a href="../PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
                       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
 <div class="block">This method returns an instance of
- <a href="../QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
+ <a href="../GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSortedView.</span><code><span class="memberNameLink"><a href="../DoublesSortedView.html#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(double[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -657,7 +654,7 @@ the order they are declared.</div>
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">FloatsSortedView.</span><code><span class="memberNameLink"><a href="../FloatsSortedView.html#getPMF(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(float[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -667,7 +664,7 @@ the order they are declared.</div>
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">GenericSortedView.</span><code><span class="memberNameLink"><a href="../GenericSortedView.html#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="../GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -677,7 +674,7 @@ the order they are declared.</div>
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesDoublesAPI.</span><code><span class="memberNameLink"><a href="../QuantilesDoublesAPI.html#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(double[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -687,7 +684,7 @@ the order they are declared.</div>
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesFloatsAPI.</span><code><span class="memberNameLink"><a href="../QuantilesFloatsAPI.html#getPMF(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(float[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -697,7 +694,7 @@ the order they are declared.</div>
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesGenericAPI.</span><code><span class="memberNameLink"><a href="../QuantilesGenericAPI.html#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="../QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -707,7 +704,7 @@ the order they are declared.</div>
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSortedView.</span><code><span class="memberNameLink"><a href="../DoublesSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -715,7 +712,7 @@ the order they are declared.</div>
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">FloatsSortedView.</span><code><span class="memberNameLink"><a href="../FloatsSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -723,7 +720,7 @@ the order they are declared.</div>
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code><a href="../GenericSortedView.html" title="type parameter in GenericSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">GenericSortedView.</span><code><span class="memberNameLink"><a href="../GenericSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -731,7 +728,7 @@ the order they are declared.</div>
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesDoublesAPI.</span><code><span class="memberNameLink"><a href="../QuantilesDoublesAPI.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -739,7 +736,7 @@ the order they are declared.</div>
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesFloatsAPI.</span><code><span class="memberNameLink"><a href="../QuantilesFloatsAPI.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -747,7 +744,7 @@ the order they are declared.</div>
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code><a href="../QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a></code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesGenericAPI.</span><code><span class="memberNameLink"><a href="../QuantilesGenericAPI.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -755,7 +752,7 @@ the order they are declared.</div>
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesDoublesAPI.</span><code><span class="memberNameLink"><a href="../QuantilesDoublesAPI.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -763,7 +760,7 @@ the order they are declared.</div>
 <div class="block">Gets an array of quantiles from the given array of normalized ranks.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>float[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesFloatsAPI.</span><code><span class="memberNameLink"><a href="../QuantilesFloatsAPI.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -771,7 +768,7 @@ the order they are declared.</div>
 <div class="block">Gets an array of quantiles from the given array of normalized ranks.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code><a href="../QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesGenericAPI.</span><code><span class="memberNameLink"><a href="../QuantilesGenericAPI.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -779,7 +776,7 @@ the order they are declared.</div>
 <div class="block">Gets an array of quantiles from the given array of normalized ranks.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">DoublesSortedView.</span><code><span class="memberNameLink"><a href="../DoublesSortedView.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(double&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -787,7 +784,7 @@ the order they are declared.</div>
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">FloatsSortedView.</span><code><span class="memberNameLink"><a href="../FloatsSortedView.html#getRank(float,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(float&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -795,7 +792,7 @@ the order they are declared.</div>
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">GenericSortedView.</span><code><span class="memberNameLink"><a href="../GenericSortedView.html#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="../GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -803,7 +800,7 @@ the order they are declared.</div>
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesDoublesAPI.</span><code><span class="memberNameLink"><a href="../QuantilesDoublesAPI.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(double&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -811,7 +808,7 @@ the order they are declared.</div>
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesFloatsAPI.</span><code><span class="memberNameLink"><a href="../QuantilesFloatsAPI.html#getRank(float,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(float&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -819,7 +816,7 @@ the order they are declared.</div>
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesGenericAPI.</span><code><span class="memberNameLink"><a href="../QuantilesGenericAPI.html#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="../QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&nbsp;quantile,
        <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -827,7 +824,7 @@ the order they are declared.</div>
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesDoublesAPI.</span><code><span class="memberNameLink"><a href="../QuantilesDoublesAPI.html#getRanks(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(double[]&nbsp;quantiles,
         <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -836,7 +833,7 @@ the order they are declared.</div>
  search criterion.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesFloatsAPI.</span><code><span class="memberNameLink"><a href="../QuantilesFloatsAPI.html#getRanks(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(float[]&nbsp;quantiles,
         <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -845,7 +842,7 @@ the order they are declared.</div>
  search criterion.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">QuantilesGenericAPI.</span><code><span class="memberNameLink"><a href="../QuantilesGenericAPI.html#getRanks(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(<a href="../QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]&nbsp;quantiles,
         <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -853,6 +850,25 @@ the order they are declared.</div>
 <div class="block">Gets an array of normalized ranks corresponding to the given array of quantiles and the given
  search criterion.</div>
 </td>
+</tr>
+</tbody>
+</table>
+<table class="useSummary">
+<caption><span>Constructors in <a href="../package-summary.html">org.apache.datasketches.quantilescommon</a> with parameters of type <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Constructor</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../GenericPartitionBoundaries.html#%3Cinit%3E(long,T%5B%5D,long%5B%5D,double%5B%5D,T,T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">GenericPartitionBoundaries</a></span>&#8203;(long&nbsp;totalN,
+                          <a href="../GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>[]&nbsp;boundaries,
+                          long[]&nbsp;natRanks,
+                          double[]&nbsp;normRanks,
+                          <a href="../GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>&nbsp;maxItem,
+                          <a href="../GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>&nbsp;minItem,
+                          <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">&nbsp;</td>
 </tr>
 </tbody>
 </table>
@@ -875,16 +891,6 @@ the order they are declared.</div>
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReqSketch.</span><code><span class="memberNameLink"><a href="../../req/ReqSketch.html#getCDF(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCDF</a></span>&#8203;(float[]&nbsp;splitPoints,
       <a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>long</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">ReqSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../req/ReqSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>double</code></td>
-<th class="colSecond" scope="row"><span class="typeNameLabel">ReqSketchSortedViewIterator.</span><code><span class="memberNameLink"><a href="../../req/ReqSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="../QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor">

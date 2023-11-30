@@ -142,12 +142,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code>, <code><a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;T&gt;</code></dd>
+<dd><code><a href="../quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code>, <code><a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;T&gt;</code></dd>
 </dl>
 <hr>
 <pre>public abstract class <span class="typeNameLabel">KllItemsSketch&lt;T&gt;</span>
 extends <a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a>
-implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;T&gt;</pre>
+implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;T&gt;, <a href="../quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</pre>
 <div class="block">This variation of the KllSketch implements generic data types. The user must provide
  a suitable implementation of the <i>java.lang.Comparator</i> as well as an implementation of
  the serializer / deserializer, <i>org.apache.datasketches.common.ArrayOfItemsSerDe</i>.</div>
@@ -174,13 +174,6 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 </a>
 <h3>Nested classes/interfaces inherited from class&nbsp;org.apache.datasketches.kll.<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></h3>
 <code><a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a>, <a href="KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></code></li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a id="nested.classes.inherited.from.class.org.apache.datasketches.quantilescommon.QuantilesGenericAPI">
-<!--   -->
-</a>
-<h3>Nested classes/interfaces inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></h3>
-<code><a href="../quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a>&lt;<a href="../quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="type parameter in QuantilesGenericAPI.GenericPartitionBoundaries">T</a>&gt;</code></li>
 </ul>
 </li>
 </ul>
@@ -234,13 +227,14 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code><a href="../quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a>&lt;<a href="KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
+<td class="colFirst"><code><a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
                       <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
 <div class="block">This method returns an instance of
- <a href="../quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
+ <a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -407,7 +401,14 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></h3>
-<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone()" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals(java.lang.Object)" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize()" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass()" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode()" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify()" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll()" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait()" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long)" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long,int)" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
+<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone--" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals-java.lang.Object-" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize--" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass--" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode--" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify--" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll--" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait--" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-int-" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.PartitioningFeature">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></h3>
+<code><a href="../quantilescommon/PartitioningFeature.html#getPartitionBoundaries(int)">getPartitionBoundaries</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.QuantilesAPI">
@@ -421,7 +422,7 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></h3>
-<code><a href="../quantilescommon/QuantilesGenericAPI.html#getCDF(T%5B%5D)">getCDF</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getMaxItem()">getMaxItem</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getMinItem()">getMinItem</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getPartitionBoundaries(int)">getPartitionBoundaries</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getPMF(T%5B%5D)">getPMF</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getQuantile(double)">getQuantile</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getQuantiles(double%5B%5D)">getQuantiles</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getRank(T)">getRank</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getRanks(T%5B%5D)">getRanks</a></code></li>
+<code><a href="../quantilescommon/QuantilesGenericAPI.html#getCDF(T%5B%5D)">getCDF</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getMaxItem()">getMaxItem</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getMinItem()">getMinItem</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getPMF(T%5B%5D)">getPMF</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getQuantile(double)">getQuantile</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getQuantiles(double%5B%5D)">getQuantiles</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getRank(T)">getRank</a>, <a href="../quantilescommon/QuantilesGenericAPI.html#getRanks(T%5B%5D)">getRanks</a></code></li>
 </ul>
 </li>
 </ul>
@@ -589,30 +590,32 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 <ul class="blockList">
 <li class="blockList">
 <h4>getPartitionBoundaries</h4>
-<pre class="methodSignature">public&nbsp;<a href="../quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a>&lt;<a href="KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;&nbsp;getPartitionBoundaries&#8203;(int&nbsp;numEquallyWeighted,
-                                                                                <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesGenericAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">QuantilesGenericAPI</a></code></span></div>
+<pre class="methodSignature">public&nbsp;<a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;&nbsp;getPartitionBoundaries&#8203;(int&nbsp;numEquallySized,
+                                                            <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">PartitioningFeature</a></code></span></div>
 <div class="block">This method returns an instance of
- <a href="../quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
+ <a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/QuantilesGenericAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;</code></dd>
+<dd><code><a href="../quantilescommon/PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>numEquallyWeighted</code> - an integer that specifies the number of equally weighted partitions between
- <a href="../quantilescommon/QuantilesGenericAPI.html#getMinItem()"><code>getMinItem()</code></a> and <a href="../quantilescommon/QuantilesGenericAPI.html#getMaxItem()"><code>getMaxItem()</code></a>.
+<dd><code>numEquallySized</code> - an integer that specifies the number of equally sized partitions between
+ <a href="../quantilescommon/GenericPartitionBoundaries.html#getMinItem()"><code>getMinItem()</code></a> and
+ <a href="../quantilescommon/GenericPartitionBoundaries.html#getMaxItem()"><code>getMaxItem()</code></a>.
  This must be a positive integer greater than zero.
  <ul>
  <li>A 1 will return: minItem, maxItem.</li>
  <li>A 2 will return: minItem, median quantile, maxItem.</li>
  <li>Etc.</li>
  </ul></dd>
-<dd><code>searchCrit</code> - If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally weighted partitions
+<dd><code>searchCrit</code> - If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally sized partitions
  with the exception of the lowest returned quantile, which is the lowest boundary of the lowest ranked partition.
- If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally weighted partitions
+ If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally sized partitions
  with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>an instance of <a href="../quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a>.</dd>
+<dd>an instance of <a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a>.</dd>
 </dl>
 </li>
 </ul>

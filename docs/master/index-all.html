@@ -156,6 +156,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Computes upper bound of approximate Clopper-Pearson confidence interval for a binomial
  proportion.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#approxNumDeltaItems">approxNumDeltaItems</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/common/ArrayOfBooleansSerDe.html" title="class in org.apache.datasketches.common"><span class="typeNameLink">ArrayOfBooleansSerDe</span></a> - Class in <a href="org/apache/datasketches/common/package-summary.html">org.apache.datasketches.common</a></dt>
 <dd>
 <div class="block">Methods of serializing and deserializing arrays of Boolean as a bit array.</div>
@@ -369,10 +371,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The partition boundaries as quantiles.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html#boundaries">boundaries</a></span> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a></dt>
-<dd>
-<div class="block">The partition boundaries as quantiles.</div>
-</dd>
 <dt><a href="org/apache/datasketches/common/BoundsOnBinomialProportions.html" title="class in org.apache.datasketches.common"><span class="typeNameLink">BoundsOnBinomialProportions</span></a> - Class in <a href="org/apache/datasketches/common/package-summary.html">org.apache.datasketches.common</a></dt>
 <dd>
 <div class="block">Confidence intervals for binomial proportions.</div>
@@ -423,6 +421,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  
  Note: The theta of <i>A</i> cannot be greater than the theta of <i>B</i>.</div>
 </dd>
+<dt><a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions"><span class="typeNameLink">BoundsRule</span></a> - Enum in <a href="org/apache/datasketches/partitions/package-summary.html">org.apache.datasketches.partitions</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchBuilder.html#build()">build()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchBuilder.html" title="class in org.apache.datasketches.quantiles">DoublesSketchBuilder</a></dt>
 <dd>
 <div class="block">Returns an UpdateDoublesSketch with the current configuration of this Builder.</div>
@@ -599,11 +599,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#ceilingLongPowerOf2(long)">ceilingLongPowerOf2(long)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
-<div class="block">Computes the long ceiling power of 2 within the range [1, 2^30].</div>
+<div class="block">Computes the long ceiling power of 2 within the range [1, 2^62].</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#ceilingPowerBaseOfDouble(double,double)">ceilingPowerBaseOfDouble(double, double)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
-<div class="block">Computes the ceiling power of given <i>base</i> and <i>n</i> as doubles.</div>
+<div class="block">Returns the ceiling of a given <i>n</i> given a <i>base</i>, where the ceiling is an integral power of the base.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#characterPad(java.lang.String,int,char,boolean)">characterPad(String, int, char, boolean)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
@@ -885,6 +885,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesIntersection.html#createSketch(int,int,long)">createSketch(int, int, long)</a></span> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesIntersection.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesIntersection</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#cumWeights">cumWeights</a></span> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dd>&nbsp;</dd>
 </dl>
 <a id="I:D">
 <!--   -->
@@ -950,6 +952,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Optional call that describes the details of the results of the search.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/InequalitySearch.html#desc(float%5B%5D,int,int,float,int)">desc(float[], int, int, float, int)</a></span> - Method in enum org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a></dt>
+<dd>
+<div class="block">Optional call that describes the details of the results of the search.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/InequalitySearch.html#desc(long%5B%5D,int,int,double,int)">desc(long[], int, int, double, int)</a></span> - Method in enum org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a></dt>
 <dd>
 <div class="block">Optional call that describes the details of the results of the search.</div>
 </dd>
@@ -1072,18 +1078,16 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Constructs this Sorted View given the sketch</div>
 </dd>
-<dt><a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles"><span class="typeNameLink">DoublesSketchSortedViewIterator</span></a> - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
-<dd>
-<div class="block">Iterator over DoublesSketchSortedView.</div>
-</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">DoublesSortedView</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
-<div class="block">The Sorted View for quantiles of primitive type double.</div>
+<div class="block">The Sorted View for quantile sketches of primitive type double.</div>
 </dd>
-<dt><a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">DoublesSortedViewIterator</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
+<dt><a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">DoublesSortedViewIterator</span></a> - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
-<div class="block">The quantiles SortedView iterator for type double.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>double</i>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html#%3Cinit%3E(double%5B%5D,long%5B%5D)">DoublesSortedViewIterator(double[], long[])</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/adouble/DoubleSummary.html" title="class in org.apache.datasketches.tuple.adouble"><span class="typeNameLink">DoubleSummary</span></a> - Class in <a href="org/apache/datasketches/tuple/adouble/package-summary.html">org.apache.datasketches.tuple.adouble</a></dt>
 <dd>
 <div class="block">Summary for generic tuple sketches of type Double.</div>
@@ -1226,9 +1230,15 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  this criterion instructs the binary search algorithm to find the adjacent pair of
  values <i>{A,B}</i> such that <i>A &le; V &le; B</i>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#equallyWeightedRanks(int)">equallyWeightedRanks(int)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#equallySpacedDoubles(int)">equallySpacedDoubles(int)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
 <dd>
-<div class="block">Returns a double array of ranks that defines equally weighted regions between 0.0, inclusive and 1.0, inclusive.</div>
+<div class="block">Returns an array of (<i>num</i> + 1) values that define equally sized intervals between 0.0, inclusive, and 1.0,
+ inclusive.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#equallySpacedLongs(long,long,int)">equallySpacedLongs(long, long, int)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
+<dd>
+<div class="block">Returns an array of (<i>num</i> + 1) longs that define, approximately, equally spaced intervals between the given
+ <i>max</i>, inclusive, and <i>min</i>, inclusive.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/fdt/Group.html#equals(java.lang.Object)">equals(Object)</a></span> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
 <dd>&nbsp;</dd>
@@ -1396,6 +1406,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Binary Search for the index of the float value in the given search range that satisfies
  the given InequalitySearch criterion.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/InequalitySearch.html#find(long%5B%5D,int,int,double,org.apache.datasketches.quantilescommon.InequalitySearch)">find(long[], int, int, double, InequalitySearch)</a></span> - Static method in enum org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a></dt>
+<dd>
+<div class="block">Binary Search for the index of the double value in the given search range that satisfies
+ the given InequalitySearch criterion.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/BinarySearch.html#find(long%5B%5D,int,int,long)">find(long[], int, int, long)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/BinarySearch.html" title="class in org.apache.datasketches.quantilescommon">BinarySearch</a></dt>
 <dd>
 <div class="block">Binary Search for the index of the exact long value in the given search range.</div>
@@ -1418,13 +1433,15 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The Sorted View for quantiles of primitive type float.</div>
 </dd>
-<dt><a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">FloatsSortedViewIterator</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
+<dt><a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">FloatsSortedViewIterator</span></a> - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
-<div class="block">The quantiles SortedView Iterator for type float.</div>
+<div class="block">Iterator over quantile sketches of primitive type <i>float</i>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html#%3Cinit%3E(float%5B%5D,long%5B%5D)">FloatsSortedViewIterator(float[], long[])</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">FloatsSortedViewIterator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#floorPowerBaseOfDouble(double,double)">floorPowerBaseOfDouble(double, double)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
-<div class="block">Computes the floor power of given <i>base</i> and <i>n</i> as doubles.</div>
+<div class="block">Computes the floor of a given <i>n</i> given <i>base</i>, where the floor is an integral power of the base.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#floorPowerOf2(int)">floorPowerOf2(int)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
@@ -1487,7 +1504,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The enumerator of inequalities</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html#%3Cinit%3E()">GenericPartitionBoundaries()</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a></dt>
+<dt><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">GenericPartitionBoundaries</span></a>&lt;<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>&gt; - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
+<dd>
+<div class="block">Implements PartitionBoundaries</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#%3Cinit%3E(long,T%5B%5D,long%5B%5D,double%5B%5D,T,T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">GenericPartitionBoundaries(long, T[], long[], double[], T, T, QuantileSearchCriteria)</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">GenericSortedView</span></a>&lt;<a href="org/apache/datasketches/quantilescommon/GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt; - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
@@ -1495,7 +1516,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">GenericSortedViewIterator</span></a>&lt;<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>&gt; - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
-<div class="block">The quantiles SortedView Iterator for generic types.</div>
+<div class="block">Iterator over quantile sketches of generic type.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#%3Cinit%3E(T%5B%5D,long%5B%5D)">GenericSortedViewIterator(T[], long[])</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
 <dd>&nbsp;</dd>
@@ -1534,6 +1555,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hllmap/UniqueCountMap.html#getAverageSketchMemoryPerKey()">getAverageSketchMemoryPerKey()</a></span> - Method in class org.apache.datasketches.hllmap.<a href="org/apache/datasketches/hllmap/UniqueCountMap.html" title="class in org.apache.datasketches.hllmap">UniqueCountMap</a></dt>
 <dd>
 <div class="block">Returns the average memory storage per key that is dedicated to sketching the unique counts.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getBoundaries()">getBoundaries()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>
+<div class="block">Gets an ordered array of boundaries that sequentially define the upper and lower boundaries of partitions.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.SketchType.html#getBytes()">getBytes()</a></span> - Method in enum org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></dt>
 <dd>&nbsp;</dd>
@@ -1578,8 +1603,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  given a set of splitPoints.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getCDF(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCDF(float[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getCDF(T%5B%5D)">getCDF(T[])</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getCDF(T%5B%5D)">getCDF(T[])</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
 <dd>
@@ -1655,20 +1678,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Gets the number of hash values less than the given theta expressed as a long.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight(QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
-<dd>
-<div class="block">Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req">ReqSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
@@ -1681,7 +1690,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></dt>
 <dd>
-<div class="block">Returns the array of cumulative weights</div>
+<div class="block">Returns the array of cumulative weights from the sketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
@@ -2207,10 +2216,36 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxIntersectionBytes(int)"><code>SetOperation.getMaxIntersectionBytes(int)</code></a></div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
+<dd>
+<div class="block">Returns the maximum item of the stream.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/FloatsSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/FloatsSortedView.html" title="interface in org.apache.datasketches.quantilescommon">FloatsSortedView</a></dt>
+<dd>
+<div class="block">Returns the maximum item of the stream.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>
+<div class="block">Returns the maximum item of the stream.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedView</a></dt>
+<dd>
+<div class="block">Returns the maximum item of the stream.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getMaxItem()">getMaxItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
 <div class="block">Returns the maximum item of the stream.</div>
@@ -2224,6 +2259,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns the maximum item of the stream.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesUnion.html#getMaxK()">getMaxK()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesUnion.html" title="class in org.apache.datasketches.quantiles">DoublesUnion</a></dt>
 <dd>
@@ -2307,10 +2344,36 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns total bytes used by all internal maps</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getMinItem()">getMinItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
+<dd>
+<div class="block">Returns the minimum item of the stream.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/FloatsSortedView.html#getMinItem()">getMinItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/FloatsSortedView.html" title="interface in org.apache.datasketches.quantilescommon">FloatsSortedView</a></dt>
+<dd>
+<div class="block">Returns the minimum item of the stream.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>
+<div class="block">Returns the minimum item of the stream.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedView.html#getMinItem()">getMinItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedView</a></dt>
+<dd>
+<div class="block">Returns the minimum item of the stream.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getMinItem()">getMinItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
 <div class="block">Returns the minimum item of the stream.</div>
@@ -2325,33 +2388,47 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Family.html#getMinPreLongs()">getMinPreLongs()</a></span> - Method in enum org.apache.datasketches.common.<a href="org/apache/datasketches/common/Family.html" title="enum in org.apache.datasketches.common">Family</a></dt>
 <dd>
 <div class="block">Returns the minimum preamble size for this family in longs</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html#getN()">getN()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></dt>
+<dd>
+<div class="block">Gets the length of the input stream offered to the underlying sketch.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#getN()">getN()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></dt>
 <dd>
-<div class="block">Gets the length of the input stream.</div>
+<div class="block">Gets the length of the input stream offered to the sketch..</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getN()">getN()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedView.html#getN()">getN()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></dt>
+<dd>
+<div class="block">Returns the total number of items presented to the sourcing sketch.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
 <dd>
 <div class="block">Gets the total count of all items presented to the sketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req">ReqSketchSortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/ReservoirItemsSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/ReservoirItemsSketch.html" title="class in org.apache.datasketches.sampling">ReservoirItemsSketch</a></dt>
 <dd>
@@ -2367,25 +2444,28 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.SketchType.html#getName()">getName()</a></span> - Method in enum org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#getNaturalRank(double,long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank(double, long, QuantileSearchCriteria)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dd>
+<div class="block">Gets the natural rank at the current index (or previous index) based on the chosen search criterion.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getNaturalRanks()">getNaturalRanks()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html#getNaturalRanks()">getNaturalRanks()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></dt>
+<dd>
+<div class="block">Gets an ordered array of natural ranks of the associated array of partition boundaries utilizing
+ a specified search criterion.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html#getNominalEntries()">getNominalEntries()</a></span> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUpdatableSketch</a></dt>
 <dd>
 <div class="block">Gets the configured nominal number of entries</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
 <dd>
 <div class="block">Gets the normalized rank at the current index (or previous index)
  based on the chosen search criterion.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req">ReqSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#getNormalizedRankError(boolean)">getNormalizedRankError(boolean)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
 <dd>
 <div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.</div>
@@ -2414,10 +2494,29 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Gets the normalized rank error given k and pmf.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getNormalizedRanks()">getNormalizedRanks()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html#getNormalizedRanks()">getNormalizedRanks()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></dt>
+<dd>
+<div class="block">Gets an ordered array of normalized ranks of the associated array of partition boundaries utilizing
+ a specified search criterion.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/frequencies/ItemsSketch.html#getNumActiveItems()">getNumActiveItems()</a></span> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.html" title="class in org.apache.datasketches.frequencies">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/frequencies/LongsSketch.html#getNumActiveItems()">getNumActiveItems()</a></span> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.html" title="class in org.apache.datasketches.frequencies">LongsSketch</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getNumDeltaItems()">getNumDeltaItems()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html#getNumDeltaItems()">getNumDeltaItems()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></dt>
+<dd>
+<div class="block">Gets the number of items to be included for each partition as an array.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getNumPartitions()">getNumPartitions()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html#getNumPartitions()">getNumPartitions()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></dt>
+<dd>
+<div class="block">Gets the number of partitions</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/UpdateSketchBuilder.html#getNumPoolThreads()">getNumPoolThreads()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/UpdateSketchBuilder.html" title="class in org.apache.datasketches.theta">UpdateSketchBuilder</a></dt>
 <dd>
 <div class="block">Gets the number of background pool threads used for propagation in the concurrent sketches.</div>
@@ -2468,47 +2567,27 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns the pre-sampling probability <i>p</i></div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getPartitionBoundaries(int)">getPartitionBoundaries(int)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
-<dd>
-<div class="block">This method returns an instance of <a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.html#getPartitionBoundaries(int)">getPartitionBoundaries(int)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesFloatsAPI</a></dt>
-<dd>
-<div class="block">This method returns an instance of <a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.FloatsPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>FloatsPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getPartitionBoundaries(int)">getPartitionBoundaries(int)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html#getPartitionBoundaries(int)">getPartitionBoundaries(int)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></dt>
 <dd>
 <div class="block">This method returns an instance of
- <a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
+ <a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketch.html" title="class in org.apache.datasketches.kll">KllFloatsSketch</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
-<dd>
-<div class="block">This method returns an instance of <a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesFloatsAPI</a></dt>
-<dd>
-<div class="block">This method returns an instance of <a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.FloatsPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>FloatsPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries(int, QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></dt>
 <dd>
 <div class="block">This method returns an instance of
- <a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
+ <a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getPMF(double%5B%5D)">getPMF(double[])</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
@@ -2549,8 +2628,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  given a set of splitPoints.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getPMF(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF(float[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getPMF(T%5B%5D)">getPMF(T[])</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getPMF(T%5B%5D)">getPMF(T[])</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
 <dd>
@@ -2594,30 +2671,26 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchIterator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedViewIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchIterator.html" title="class in org.apache.datasketches.kll">KllItemsSketchIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchIterator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchIterator.html" title="class in org.apache.datasketches.quantiles">ItemsSketchIterator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></dt>
 <dd>
 <div class="block">Gets the quantile at the current index.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">FloatsSortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">FloatsSortedViewIterator</a></dt>
 <dd>
 <div class="block">Gets the quantile at the current index.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Gets the quantile at the current index.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesSketchIterator</a></dt>
 <dd>
 <div class="block">Gets the double quantile at the current index.</div>
@@ -2631,10 +2704,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Gets the generic quantile at the current index.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchIterator.html" title="class in org.apache.datasketches.req">ReqSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req">ReqSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getQuantile(double)">getQuantile(double)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getQuantile(double)">getQuantile(double)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
@@ -2749,19 +2818,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
 <dd>
-<div class="block">Returns the array of quantiles.</div>
+<div class="block">Returns an array of all retained quantiles by the sketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/FloatsSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/FloatsSortedView.html" title="interface in org.apache.datasketches.quantilescommon">FloatsSortedView</a></dt>
 <dd>
-<div class="block">Returns the array of quantiles</div>
+<div class="block">Returns an array of all retained quantiles by the sketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedView</a></dt>
 <dd>
-<div class="block">Returns the array of quantiles.</div>
+<div class="block">Returns the full array of quantiles.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getQuantiles(double%5B%5D)">getQuantiles(double[])</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getQuantiles(double%5B%5D)">getQuantiles(double[])</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
@@ -2781,9 +2848,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketch.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles(double[], QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
@@ -2840,6 +2911,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getQuantileUpperBound(double,int)">getQuantileUpperBound(double, int)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/SketchFillRequest.html#getRange(T,T,org.apache.datasketches.partitions.BoundsRule)">getRange(T, T, BoundsRule)</a></span> - Method in interface org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/SketchFillRequest.html" title="interface in org.apache.datasketches.partitions">SketchFillRequest</a></dt>
+<dd>
+<div class="block">This is a callback request to the data source to fill a quantiles sketch
+ with a range of data between upper and lower bounds.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getRank(double)">getRank(double)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
 <div class="block">This is equivalent to <a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getRank(quantile, INCLUSIVE)</code></a></div>
@@ -2879,8 +2955,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getRank(float,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(float, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getRank(float,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(float, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getRank(T)">getRank(T)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getRank(T)">getRank(T)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
 <dd>
@@ -2961,8 +3035,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  search criterion.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getRanks(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks(float[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getRanks(T%5B%5D)">getRanks(T[])</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getRanks(T%5B%5D)">getRanks(T[])</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
 <dd>
@@ -3199,6 +3271,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Gets the configured sampling probability</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getSearchCriteria()">getSearchCriteria()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html#getSearchCriteria()">getSearchCriteria()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></dt>
+<dd>
+<div class="block">Gets the search criteria specified for the source sketch</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/SetOperationBuilder.html#getSeed()">getSeed()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/SetOperationBuilder.html" title="class in org.apache.datasketches.theta">SetOperationBuilder</a></dt>
 <dd>
 <div class="block">Returns the seed</div>
@@ -3434,40 +3512,28 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Gets an array of values from the current entry in the sketch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchIterator.html" title="class in org.apache.datasketches.kll">KllItemsSketchIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchIterator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchIterator.html" title="class in org.apache.datasketches.quantiles">ItemsSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesSketchIterator.html#getWeight()">getWeight()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesSketchIterator</a></dt>
 <dd>
 <div class="block">Gets the natural weight at the current index.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getWeight()">getWeight()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
 <dd>
-<div class="block">Gets the natural weight at the current index.</div>
+<div class="block">Gets the weight contribution of the item at the current index.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchIterator.html" title="class in org.apache.datasketches.req">ReqSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req">ReqSketchSortedViewIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/VarOptItemsSamples.WeightedSample.html#getWeight()">getWeight()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/VarOptItemsSamples.WeightedSample.html" title="class in org.apache.datasketches.sampling">VarOptItemsSamples.WeightedSample</a></dt>
 <dd>
 <div class="block">Accesses the iterator's current weight value</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.StackElement.html#gpb">gpb</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions">Partitioner.StackElement</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt"><span class="typeNameLink">Group</span></a> - Class in <a href="org/apache/datasketches/fdt/package-summary.html">org.apache.datasketches.fdt</a></dt>
 <dd>
 <div class="block">Defines a Group from a Frequent Distinct Tuple query.</div>
@@ -3955,12 +4021,28 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns the Family given the ID</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#INCLUDE_BOTH">INCLUDE_BOTH</a></span> - org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
+<dd>
+<div class="block">Include both the upper and lower bounds</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#INCLUDE_LOWER">INCLUDE_LOWER</a></span> - org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
+<dd>
+<div class="block">Include only the lower bound but not the upper bound</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#INCLUDE_UPPER">INCLUDE_UPPER</a></span> - org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
+<dd>
+<div class="block">Include only the upper bound but not the lower bound</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantileSearchCriteria.html#INCLUSIVE">INCLUSIVE</a></span> - org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></dt>
 <dd>
 <div class="block"><b>Definition of INCLUSIVE <i>getQuantile(r)</i> search:</b><br>
  Given rank <i>r</i>, return the quantile of the smallest rank that is
  strictly greater than or equal to <i>r</i>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#index">index</a></span> - Variable in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#index">index</a></span> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon"><span class="typeNameLink">InequalitySearch</span></a> - Enum in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
 <div class="block">This provides efficient, unique and unambiguous binary searching for inequality comparison criteria
@@ -4255,6 +4337,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns true if given n is even.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#isInitialized_">isInitialized_</a></span> - Variable in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#isIntPowerOf2(int)">isIntPowerOf2(int)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Returns true if given int argument is exactly a positive power of 2 and greater than zero.</div>
@@ -4371,10 +4455,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles"><span class="typeNameLink">ItemsSketchSortedView</span></a>&lt;<a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt; - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
 <dd>
 <div class="block">The SortedView of the Classic Quantiles ItemsSketch.</div>
-</dd>
-<dt><a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.ItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles"><span class="typeNameLink">ItemsSketchSortedView.ItemsSketchSortedViewIterator</span></a>&lt;<a href="org/apache/datasketches/quantiles/ItemsSketchSortedView.ItemsSketchSortedViewIterator.html" title="type parameter in ItemsSketchSortedView.ItemsSketchSortedViewIterator">T</a>&gt; - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
-<dd>
-<div class="block">Iterator over ItemsSketchSortedView.</div>
 </dd>
 <dt><a href="org/apache/datasketches/quantiles/ItemsUnion.html" title="class in org.apache.datasketches.quantiles"><span class="typeNameLink">ItemsUnion</span></a>&lt;<a href="org/apache/datasketches/quantiles/ItemsUnion.html" title="type parameter in ItemsUnion">T</a>&gt; - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
 <dd>
@@ -4501,10 +4581,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Constructs this Sorted View given the sketch</div>
 </dd>
-<dt><a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllDoublesSketchSortedViewIterator</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
-<dd>
-<div class="block">Iterator over KllDoublesSketchSortedView</div>
-</dd>
 <dt><a href="org/apache/datasketches/kll/KllFloatsSketch.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllFloatsSketch</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
 <dd>
 <div class="block">This variation of the KllSketch implements primitive floats.</div>
@@ -4521,10 +4597,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Constructs this Sorted View given the sketch</div>
 </dd>
-<dt><a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllFloatsSketchSortedViewIterator</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
-<dd>
-<div class="block">Iterator over KllFloatsSketchSortedView</div>
-</dd>
 <dt><a href="org/apache/datasketches/kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllItemsSketch</span></a>&lt;<a href="org/apache/datasketches/kll/KllItemsSketch.html" title="type parameter in KllItemsSketch">T</a>&gt; - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
 <dd>
 <div class="block">This variation of the KllSketch implements generic data types.</div>
@@ -4537,10 +4609,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The SortedView of the KllItemsSketch.</div>
 </dd>
-<dt><a href="org/apache/datasketches/kll/KllItemsSketchSortedView.KllItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllItemsSketchSortedView.KllItemsSketchSortedViewIterator</span></a>&lt;<a href="org/apache/datasketches/kll/KllItemsSketchSortedView.KllItemsSketchSortedViewIterator.html" title="type parameter in KllItemsSketchSortedView.KllItemsSketchSortedViewIterator">T</a>&gt; - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
-<dd>
-<div class="block">Iterator over KllItemsSketchSortedView.</div>
-</dd>
 <dt><a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllSketch</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
 <dd>
 <div class="block">This class is the root of the KLL sketch class hierarchy.</div>
@@ -4552,6 +4620,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><a href="org/apache/datasketches/kll/KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll"><span class="typeNameLink">KllSketch.SketchType</span></a> - Enum in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
 <dd>
 <div class="block">Used to define the variable type of the current instance of this class.</div>
+</dd>
+<dt><a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllSketchIterator</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
+<dd>
+<div class="block">The base implementation for the KLL sketch iterator hierarchy used for viewing the
+ non-ordered quantiles retained by a sketch.</div>
 </dd>
 </dl>
 <a id="I:L">
@@ -4579,13 +4652,21 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  Let <i>low</i> = index of the lowest value in the range.<br>
  Let <i>high</i> = index of the highest value in the range.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#level">level</a></span> - Variable in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#levelPartId">levelPartId</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.StackElement.html#levelPartId">levelPartId</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions">Partitioner.StackElement</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#levelsArr">levelsArr</a></span> - Variable in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/ResizeFactor.html#lg()">lg()</a></span> - Method in enum org.apache.datasketches.common.<a href="org/apache/datasketches/common/ResizeFactor.html" title="enum in org.apache.datasketches.common">ResizeFactor</a></dt>
 <dd>
 <div class="block">Returns the Log-base 2 of the Resize Factor</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#log2(double)">log2(double)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
-<div class="block">The log base 2 of the value</div>
+<div class="block">The log<sub>2</sub>(value)</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#LOG2">LOG2</a></span> - Static variable in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
@@ -4593,7 +4674,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#logBaseOfX(double,double)">logBaseOfX(double, double)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
-<div class="block">Returns the logarithm_logBase of x.</div>
+<div class="block">Returns the log<sub>base</sub>(x).</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#LONG_MAX_VALUE_AS_DOUBLE">LONG_MAX_VALUE_AS_DOUBLE</a></span> - Static variable in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
@@ -4621,6 +4702,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns a string of spaced hex bytes in Big-Endian order.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#lowerBound">lowerBound</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#LS">LS</a></span> - Static variable in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">The java line separator character as a String.</div>
@@ -4764,10 +4847,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The total number of items presented to the sketch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html#N">N</a></span> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a></dt>
-<dd>
-<div class="block">The total number of items presented to the sketch.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#nanoSecToString(long)">nanoSecToString(long)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Returns the given time in nanoseconds formatted as Sec.mSec_uSec_nSec</div>
@@ -4861,35 +4940,21 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/Util.html#newSummaryArray(S%5B%5D,int)">newSummaryArray(S[], int)</a></span> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Util.html" title="class in org.apache.datasketches.tuple">Util</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketchIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketchIterator.html" title="class in org.apache.datasketches.kll">KllItemsSketchIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchIterator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedViewIterator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketchIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketchIterator.html" title="class in org.apache.datasketches.quantiles">ItemsSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesSketchIterator.html#next()">next()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesSketchIterator</a></dt>
 <dd>
 <div class="block">Advances the index and checks if it is valid.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#next()">next()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
 <dd>
 <div class="block">Advances the index and checks if it is valid.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchIterator.html" title="class in org.apache.datasketches.req">ReqSketchIterator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req">ReqSketchSortedViewIterator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/VarOptItemsSamples.VarOptItemsIterator.html#next()">next()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/VarOptItemsSamples.VarOptItemsIterator.html" title="class in org.apache.datasketches.sampling">VarOptItemsSamples.VarOptItemsIterator</a></dt>
 <dd>&nbsp;</dd>
@@ -4954,6 +5019,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Computes the number of decimal digits of the number n</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#numLevels">numLevels</a></span> - Variable in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
+<dd>&nbsp;</dd>
 </dl>
 <a id="I:O">
 <!--   -->
@@ -5000,6 +5067,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">This package is for the implementations of the sketch algorithm developed by Zohar Karnin, Kevin Lang,
  and Edo Liberty that is commonly referred to as the "KLL" sketch after the authors' last names.</div>
 </dd>
+<dt><a href="org/apache/datasketches/partitions/package-summary.html">org.apache.datasketches.partitions</a> - package org.apache.datasketches.partitions</dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a> - package org.apache.datasketches.quantiles</dt>
 <dd>
 <div class="block">The quantiles package contains stochastic streaming algorithms that enable single-pass
@@ -5059,6 +5128,46 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dl>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/BitPacking.html#packBits(long,int,byte%5B%5D,int,int)">packBits(long, int, byte[], int, int)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/BitPacking.html" title="class in org.apache.datasketches.theta">BitPacking</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#part">part</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.StackElement.html#part">part</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions">Partitioner.StackElement</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.html#partition(S)">partition(S)</a></span> - Method in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.html" title="class in org.apache.datasketches.partitions">Partitioner</a></dt>
+<dd>
+<div class="block">This initiates the partitioning process</div>
+</dd>
+<dt><a href="org/apache/datasketches/quantilescommon/PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">PartitionBoundaries</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
+<dd>
+<div class="block">This defines a set of results computed from the getParitionBoundaries() function and
+ encapsulates the basic methods needed to construct actual partitions based on generic items.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#%3Cinit%3E(org.apache.datasketches.partitions.Partitioner.StackElement)">PartitionBoundsRow(Partitioner.StackElement&lt;T&gt;)</a></span> - Constructor for class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="org/apache/datasketches/partitions/Partitioner.html" title="class in org.apache.datasketches.partitions"><span class="typeNameLink">Partitioner</span></a>&lt;<a href="org/apache/datasketches/partitions/Partitioner.html" title="type parameter in Partitioner">T</a>,&#8203;<a href="org/apache/datasketches/partitions/Partitioner.html" title="type parameter in Partitioner">S</a> extends <a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="org/apache/datasketches/partitions/Partitioner.html" title="type parameter in Partitioner">T</a>&gt; &amp; <a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="org/apache/datasketches/partitions/Partitioner.html" title="type parameter in Partitioner">T</a>&gt;&gt; - Class in <a href="org/apache/datasketches/partitions/package-summary.html">org.apache.datasketches.partitions</a></dt>
+<dd>
+<div class="block">A partitioning process that can partition very large data sets into thousands
+ of partitions of approximately the same size.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.html#%3Cinit%3E(long,int,org.apache.datasketches.partitions.SketchFillRequest)">Partitioner(long, int, SketchFillRequest&lt;T, S&gt;)</a></span> - Constructor for class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.html" title="class in org.apache.datasketches.partitions">Partitioner</a></dt>
+<dd>
+<div class="block">This constructor assumes a QuantileSearchCriteria of INCLUSIVE.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.html#%3Cinit%3E(long,int,org.apache.datasketches.partitions.SketchFillRequest,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">Partitioner(long, int, SketchFillRequest&lt;T, S&gt;, QuantileSearchCriteria)</a></span> - Constructor for class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.html" title="class in org.apache.datasketches.partitions">Partitioner</a></dt>
+<dd>
+<div class="block">This constructor includes the QuantileSearchCriteria criteria as a parameter.</div>
+</dd>
+<dt><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions"><span class="typeNameLink">Partitioner.PartitionBoundsRow</span></a>&lt;<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="type parameter in Partitioner.PartitionBoundsRow">T</a>&gt; - Class in <a href="org/apache/datasketches/partitions/package-summary.html">org.apache.datasketches.partitions</a></dt>
+<dd>
+<div class="block">Defines a row for List of PartitionBounds.</div>
+</dd>
+<dt><a href="org/apache/datasketches/partitions/Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions"><span class="typeNameLink">Partitioner.StackElement</span></a>&lt;<a href="org/apache/datasketches/partitions/Partitioner.StackElement.html" title="type parameter in Partitioner.StackElement">T</a>&gt; - Class in <a href="org/apache/datasketches/partitions/package-summary.html">org.apache.datasketches.partitions</a></dt>
+<dd>
+<div class="block">Holds data for a Stack element</div>
+</dd>
+<dt><a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">PartitioningFeature</span></a>&lt;<a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt; - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
+<dd>
+<div class="block">This enables the special functions for performing efficient partitioning of massive data.</div>
+</dd>
 <dt><a href="org/apache/datasketches/fdt/PostProcessor.html" title="class in org.apache.datasketches.fdt"><span class="typeNameLink">PostProcessor</span></a> - Class in <a href="org/apache/datasketches/fdt/package-summary.html">org.apache.datasketches.fdt</a></dt>
 <dd>
 <div class="block">This processes the contents of a FDT sketch to extract the
@@ -5199,11 +5308,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The Quantiles API for item type <i>generic</i>.</div>
 </dd>
-<dt><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">QuantilesGenericAPI.GenericPartitionBoundaries</span></a>&lt;<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="type parameter in QuantilesGenericAPI.GenericPartitionBoundaries">T</a>&gt; - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
-<dd>
-<div class="block">This encapsulates the essential information needed to construct actual partitions and is returned from the
- <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.</div>
-</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/QuantilesGenericSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">QuantilesGenericSketchIterator</span></a>&lt;<a href="org/apache/datasketches/quantilescommon/QuantilesGenericSketchIterator.html" title="type parameter in QuantilesGenericSketchIterator">T</a>&gt; - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
 <div class="block">The quantiles sketch iterator for generic types.</div>
@@ -5252,10 +5356,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">The normalized ranks that correspond to the returned boundaries.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.FloatsPartitionBoundaries.html#ranks">ranks</a></span> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.FloatsPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesFloatsAPI.FloatsPartitionBoundaries</a></dt>
-<dd>
-<div class="block">The normalized ranks that correspond to the returned boundaries.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html#ranks">ranks</a></span> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesGenericAPI.GenericPartitionBoundaries</a></dt>
 <dd>
 <div class="block">The normalized ranks that correspond to the returned boundaries.</div>
 </dd>
@@ -5315,10 +5415,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#%3Cinit%3E(org.apache.datasketches.req.ReqSketch)">ReqSketchSortedView(ReqSketch)</a></span> - Constructor for class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>
 <div class="block">Constructs this Sorted View given the sketch</div>
-</dd>
-<dt><a href="org/apache/datasketches/req/ReqSketchSortedViewIterator.html" title="class in org.apache.datasketches.req"><span class="typeNameLink">ReqSketchSortedViewIterator</span></a> - Class in <a href="org/apache/datasketches/req/package-summary.html">org.apache.datasketches.req</a></dt>
-<dd>
-<div class="block">Iterator over ReqSketchSortedView.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Family.html#RESERVOIR">RESERVOIR</a></span> - org.apache.datasketches.common.<a href="org/apache/datasketches/common/Family.html" title="enum in org.apache.datasketches.common">Family</a></dt>
 <dd>
@@ -5460,6 +5556,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">For the Families that accept this configuration parameter, it controls the size multiple that
  affects how fast the internal cache grows, when more space is required.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#rule">rule</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
 </dl>
 <a id="I:S">
 <!--   -->
@@ -5854,17 +5952,24 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Constructs a new runtime exception with the specified detail message.</div>
 </dd>
+<dt><a href="org/apache/datasketches/partitions/SketchFillRequest.html" title="interface in org.apache.datasketches.partitions"><span class="typeNameLink">SketchFillRequest</span></a>&lt;<a href="org/apache/datasketches/partitions/SketchFillRequest.html" title="type parameter in SketchFillRequest">T</a>,&#8203;<a href="org/apache/datasketches/partitions/SketchFillRequest.html" title="type parameter in SketchFillRequest">S</a> extends <a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="org/apache/datasketches/partitions/SketchFillRequest.html" title="type parameter in SketchFillRequest">T</a>&gt; &amp; <a href="org/apache/datasketches/quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="org/apache/datasketches/partitions/SketchFillRequest.html" title="type parameter in SketchFillRequest">T</a>&gt;&gt; - Interface in <a href="org/apache/datasketches/partitions/package-summary.html">org.apache.datasketches.partitions</a></dt>
+<dd>
+<div class="block">This is a callback request to the data source to fill a quantiles sketch,
+ which is returned to the caller.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.html#sketchStateId(boolean,int,long)">sketchStateId(boolean, int, long)</a></span> - Static method in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.html" title="class in org.apache.datasketches.thetacommon">SetOperationCornerCases</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/SortedView.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">SortedView</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
-<div class="block">This is the base interface for the Sorted View interface hierarchy.</div>
+<div class="block">This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.</div>
 </dd>
-<dt><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">SortedViewIterator</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
+<dt><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">SortedViewIterator</span></a> - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
 <div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
  from a quantile-type sketch.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.StackElement.html#%3Cinit%3E(org.apache.datasketches.quantilescommon.GenericPartitionBoundaries,int,java.lang.String)">StackElement(GenericPartitionBoundaries&lt;T&gt;, int, String)</a></span> - Constructor for class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions">Partitioner.StackElement</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/CompressionCharacterization.html#start()">start()</a></span> - Method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/CompressionCharacterization.html" title="class in org.apache.datasketches.cpc">CompressionCharacterization</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/MergingValidation.html#start()">start()</a></span> - Method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/MergingValidation.html" title="class in org.apache.datasketches.cpc">MergingValidation</a></dt>
@@ -5945,6 +6050,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The tab character</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#tailRoundingFactor">tailRoundingFactor</a></span> - Static variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/cpc/TestUtil.html" title="class in org.apache.datasketches.cpc"><span class="typeNameLink">TestUtil</span></a> - Class in <a href="org/apache/datasketches/cpc/package-summary.html">org.apache.datasketches.cpc</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/TestUtil.html#%3Cinit%3E()">TestUtil()</a></span> - Constructor for class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/TestUtil.html" title="class in org.apache.datasketches.cpc">TestUtil</a></dt>
@@ -6126,8 +6233,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns summary information about the backing sketch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#toString()">toString()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsUnion.html#toString()">toString()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsUnion.html" title="class in org.apache.datasketches.quantiles">ItemsUnion</a></dt>
 <dd>
 <div class="block">Returns summary information about the backing sketch.</div>
@@ -6304,6 +6409,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns a human readable string of an item.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#totalN">totalN</a></span> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/HllSketch.html#toUpdatableByteArray()">toUpdatableByteArray()</a></span> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/Union.html#toUpdatableByteArray()">toUpdatableByteArray()</a></span> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/Union.html" title="class in org.apache.datasketches.hll">Union</a></dt>
@@ -6792,6 +6899,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Constructor for building a new UpdateSketch.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#upperBound">upperBound</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common"><span class="typeNameLink">Util</span></a> - Class in <a href="org/apache/datasketches/common/package-summary.html">org.apache.datasketches.common</a></dt>
 <dd>
 <div class="block">Common utility functions.</div>
@@ -6850,6 +6959,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.SketchType.html#valueOf(java.lang.String)">valueOf(String)</a></span> - Static method in enum org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this type with the specified name.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#valueOf(java.lang.String)">valueOf(String)</a></span> - Static method in enum org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
@@ -6923,6 +7036,11 @@ the order they are declared.</div>
 the order they are declared.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.SketchType.html#values()">values()</a></span> - Static method in enum org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum type, in
+the order they are declared.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#values()">values()</a></span> - Static method in enum org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>
@@ -7018,6 +7136,8 @@ the order they are declared.</div>
 </a>
 <h2 class="title">W</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketchIterator.html#weight">weight</a></span> - Variable in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketchIterator.html" title="class in org.apache.datasketches.kll">KllSketchIterator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/VarOptItemsSamples.html#weights()">weights()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/VarOptItemsSamples.html" title="class in org.apache.datasketches.sampling">VarOptItemsSamples</a></dt>
 <dd>
 <div class="block">Returns a copy of the array of weights contained in the sketch.</div>

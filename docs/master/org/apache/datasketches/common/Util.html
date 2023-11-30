@@ -254,7 +254,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <td class="colFirst"><code>static long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#ceilingLongPowerOf2(long)">ceilingLongPowerOf2</a></span>&#8203;(long&nbsp;n)</code></th>
 <td class="colLast">
-<div class="block">Computes the long ceiling power of 2 within the range [1, 2^30].</div>
+<div class="block">Computes the long ceiling power of 2 within the range [1, 2^62].</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
@@ -262,7 +262,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#ceilingPowerBaseOfDouble(double,double)">ceilingPowerBaseOfDouble</a></span>&#8203;(double&nbsp;base,
                         double&nbsp;n)</code></th>
 <td class="colLast">
-<div class="block">Computes the ceiling power of given <i>base</i> and <i>n</i> as doubles.</div>
+<div class="block">Returns the ceiling of a given <i>n</i> given a <i>base</i>, where the ceiling is an integral power of the base.</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
@@ -352,7 +352,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#floorPowerBaseOfDouble(double,double)">floorPowerBaseOfDouble</a></span>&#8203;(double&nbsp;base,
                       double&nbsp;n)</code></th>
 <td class="colLast">
-<div class="block">Computes the floor power of given <i>base</i> and <i>n</i> as doubles.</div>
+<div class="block">Computes the floor of a given <i>n</i> given <i>base</i>, where the floor is an integral power of the base.</div>
 </td>
 </tr>
 <tr id="i17" class="rowColor">
@@ -449,15 +449,15 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#log2(double)">log2</a></span>&#8203;(double&nbsp;value)</code></th>
 <td class="colLast">
-<div class="block">The log base 2 of the value</div>
+<div class="block">The log<sub>2</sub>(value)</div>
 </td>
 </tr>
 <tr id="i30" class="altColor">
 <td class="colFirst"><code>static double</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#logBaseOfX(double,double)">logBaseOfX</a></span>&#8203;(double&nbsp;logBase,
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#logBaseOfX(double,double)">logBaseOfX</a></span>&#8203;(double&nbsp;base,
           double&nbsp;x)</code></th>
 <td class="colLast">
-<div class="block">Returns the logarithm_logBase of x.</div>
+<div class="block">Returns the log<sub>base</sub>(x).</div>
 </td>
 </tr>
 <tr id="i31" class="rowColor">
@@ -584,7 +584,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></h3>
-<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone()" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals(java.lang.Object)" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize()" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass()" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode()" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify()" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll()" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString()" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait()" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long)" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long,int)" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
+<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone--" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals-java.lang.Object-" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize--" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass--" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode--" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify--" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll--" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString--" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait--" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-int-" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
 </ul>
 </li>
 </ul>
@@ -821,7 +821,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns the given time in milliseconds formatted as Hours:Min:Sec.mSec</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>mS</code> - the given nanoseconds</dd>
+<dd><code>mS</code> - the given milliseconds</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the given time in milliseconds formatted as Hours:Min:Sec.mSec</dd>
 </dl>
@@ -857,8 +857,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                   char&nbsp;padChar,
                                   boolean&nbsp;postpend)</pre>
 <div class="block">Prepend or postpend the given string with the given character to fill the given field length.
- If the given string is equal or greater than the given field length, it will be returned
- without modification.</div>
+ If the given string is equal to or greater than the given field length, it will be returned without modification.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>s</code> - the given string</dd>
@@ -866,8 +865,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dd><code>padChar</code> - the desired pad character</dd>
 <dd><code>postpend</code> - if true append the pacCharacters to the end of the string.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>prepended or postpended given string with the given character to fill the given field
- length.</dd>
+<dd>prepended or postpended given string with the given character to fill the given field length.</dd>
 </dl>
 </li>
 </ul>
@@ -1005,8 +1003,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>ceilingLongPowerOf2</h4>
 <pre class="methodSignature">public static&nbsp;long&nbsp;ceilingLongPowerOf2&#8203;(long&nbsp;n)</pre>
-<div class="block">Computes the long ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
- of 2 that is equal to or greater than the given n and a mathematical integer.
+<div class="block">Computes the long ceiling power of 2 within the range [1, 2^62]. This is the smallest positive power
+ of 2 that is equal to or greater than the given n and a mathematical long.
 
  <p>For:
  <ul>
@@ -1203,14 +1201,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>ceilingPowerBaseOfDouble</h4>
 <pre class="methodSignature">public static&nbsp;double&nbsp;ceilingPowerBaseOfDouble&#8203;(double&nbsp;base,
                                               double&nbsp;n)</pre>
-<div class="block">Computes the ceiling power of given <i>base</i> and <i>n</i> as doubles.
- This is the smallest positive power
- of <i>base</i> that equal to or greater than the given <i>n</i> and equal to a mathematical integer.
+<div class="block">Returns the ceiling of a given <i>n</i> given a <i>base</i>, where the ceiling is an integral power of the base.
+ This is the smallest positive power of <i>base</i> that is equal to or greater than the given <i>n</i>
+ and equal to a mathematical integer.
  The result of this function is consistent with <a href="#ceilingIntPowerOf2(int)"><code>ceilingIntPowerOf2(int)</code></a> for values
- less than one. I.e., if <i>n &lt; 1,</i> the result is 1.</div>
+ less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
+
+ <p>The formula is: <i>base<sup>ceiling(log<sub>base</sub>(x))</sup></i></p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>base</code> - The base in the expression &#8968;base<sup>n</sup>&#8969;.</dd>
+<dd><code>base</code> - The number in the expression &#8968;base<sup>n</sup>&#8969;.</dd>
 <dd><code>n</code> - The input argument.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the ceiling power of <i>base</i> as a double and equal to a mathematical integer.</dd>
@@ -1225,14 +1225,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>floorPowerBaseOfDouble</h4>
 <pre class="methodSignature">public static&nbsp;double&nbsp;floorPowerBaseOfDouble&#8203;(double&nbsp;base,
                                             double&nbsp;n)</pre>
-<div class="block">Computes the floor power of given <i>base</i> and <i>n</i> as doubles.
- This is the largest positive power
- of <i>base</i> that equal to or less than the given n and equal to a mathematical integer.
+<div class="block">Computes the floor of a given <i>n</i> given <i>base</i>, where the floor is an integral power of the base.
+ This is the largest positive power of <i>base</i> that is equal to or less than the given <i>n</i>
+ and equal to a mathematical integer.
  The result of this function is consistent with <a href="#floorPowerOf2(int)"><code>floorPowerOf2(int)</code></a> for values
- less than one. I.e., if <i>n &lt; 1,</i> the result is 1.</div>
+ less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
+
+ <p>The formula is: <i>base<sup>floor(log<sub>base</sub>(x))</sup></i></p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>base</code> - The base in the expression &#8970;base<sup>n</sup>&#8971;.</dd>
+<dd><code>base</code> - The number in the expression &#8970;base<sup>n</sup>&#8971;.</dd>
 <dd><code>n</code> - The input argument.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the floor power of 2 and equal to a mathematical integer.</dd>
@@ -1246,12 +1248,12 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>log2</h4>
 <pre class="methodSignature">public static&nbsp;double&nbsp;log2&#8203;(double&nbsp;value)</pre>
-<div class="block">The log base 2 of the value</div>
+<div class="block">The log<sub>2</sub>(value)</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>value</code> - the given value</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>The log base 2 of the value</dd>
+<dd>log<sub>2</sub>(value)</dd>
 </dl>
 </li>
 </ul>
@@ -1261,15 +1263,15 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockList">
 <li class="blockList">
 <h4>logBaseOfX</h4>
-<pre class="methodSignature">public static&nbsp;double&nbsp;logBaseOfX&#8203;(double&nbsp;logBase,
+<pre class="methodSignature">public static&nbsp;double&nbsp;logBaseOfX&#8203;(double&nbsp;base,
                                 double&nbsp;x)</pre>
-<div class="block">Returns the logarithm_logBase of x. Example: logB(2.0, x) = log(x) / log(2.0).</div>
+<div class="block">Returns the log<sub>base</sub>(x). Example, if base = 2.0: logB(2.0, x) = log(x) / log(2.0).</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>logBase</code> - the base of the logarithm used</dd>
+<dd><code>base</code> - The number in the expression log(x) / log(base).</dd>
 <dd><code>x</code> - the given value</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the logarithm_logBase of x: Example: logB(2.0, x) = log(x) / log(2.0).</dd>
+<dd>the log<sub>base</sub>(x)</dd>
 </dl>
 </li>
 </ul>

@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":18,"i1":6,"i2":6,"i3":6,"i4":18,"i5":6,"i6":18,"i7":6,"i8":18,"i9":6,"i10":6,"i11":18,"i12":6,"i13":6,"i14":18,"i15":6,"i16":18,"i17":6,"i18":6,"i19":6,"i20":6,"i21":6,"i22":6};
+var data = {"i0":18,"i1":6,"i2":6,"i3":6,"i4":18,"i5":6,"i6":18,"i7":6,"i8":6,"i9":18,"i10":6,"i11":6,"i12":18,"i13":6,"i14":18,"i15":6,"i16":6,"i17":6,"i18":6,"i19":6,"i20":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -236,30 +236,13 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>default <a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted)</code></th>
-<td class="colLast">
-<div class="block">This method returns an instance of <a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</td>
-</tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code><a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
-                      <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">
-<div class="block">This method returns an instance of <a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-</td>
-</tr>
-<tr id="i6" class="altColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(double%5B%5D)">getPMF</a></span>&#8203;(double[]&nbsp;splitPoints)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getPMF(splitPoints, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(double[]&nbsp;splitPoints,
       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -269,14 +252,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>default double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double)">getQuantile</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getQuantile(rank, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -284,7 +267,7 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileLowerBound(double)">getQuantileLowerBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -292,14 +275,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getQuantiles(ranks, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -307,7 +290,7 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <div class="block">Gets an array of quantiles from the given array of normalized ranks.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileUpperBound(double)">getQuantileUpperBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -315,14 +298,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>default double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(double)">getRank</a></span>&#8203;(double&nbsp;quantile)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getRank(quantile, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(double&nbsp;quantile,
        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -330,14 +313,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRanks(double%5B%5D)">getRanks</a></span>&#8203;(double[]&nbsp;quantiles)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getRanks(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getRanks(quantiles, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRanks(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(double[]&nbsp;quantiles,
         <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -346,35 +329,35 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  search criterion.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializedSizeBytes()">getSerializedSizeBytes</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the current number of bytes this Sketch would require if serialized.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code><a href="DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSortedView()">getSortedView</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the sorted view of this sketch</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code><a href="QuantilesDoublesSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesSketchIterator</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the iterator for this sketch, which is not sorted.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toByteArray()">toByteArray</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this sketch.</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(double)">update</a></span>&#8203;(double&nbsp;item)</code></th>
 <td class="colLast">
@@ -498,69 +481,6 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <dd>the minimum item of the stream</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-</dl>
-</li>
-</ul>
-<a id="getPartitionBoundaries(int)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getPartitionBoundaries</h4>
-<pre class="methodSignature">default&nbsp;<a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a>&nbsp;getPartitionBoundaries&#8203;(int&nbsp;numEquallyWeighted)</pre>
-<div class="block">This method returns an instance of <a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.
-
- <p>This method is equivalent to
- <a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getPartitionBoundaries(numEquallyWeighted, INCLUSIVE)</code></a>.
- </p></div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>numEquallyWeighted</code> - an integer that specifies the number of equally weighted partitions between
- <a href="#getMinItem()"><code>getMinItem()</code></a> and <a href="#getMaxItem()"><code>getMaxItem()</code></a>.
- This must be a positive integer greater than zero.
- <ul>
- <li>A 1 will return: minItem, maxItem.</li>
- <li>A 2 will return: minItem, median quantile, maxItem.</li>
- <li>Etc.</li>
- </ul></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>an instance of <a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a>.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if <i>numEquallyWeighted</i> is less than 1.</dd>
-</dl>
-</li>
-</ul>
-<a id="getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getPartitionBoundaries</h4>
-<pre class="methodSignature"><a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a>&nbsp;getPartitionBoundaries&#8203;(int&nbsp;numEquallyWeighted,
-                                                                      <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block">This method returns an instance of <a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a> which provides
- sufficient information for the user to create the given number of equally weighted partitions.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>numEquallyWeighted</code> - an integer that specifies the number of equally weighted partitions between
- <a href="#getMinItem()"><code>getMinItem()</code></a> and <a href="#getMaxItem()"><code>getMaxItem()</code></a>.
- This must be a positive integer greater than zero.
- <ul>
- <li>A 1 will return: minItem, maxItem.</li>
- <li>A 2 will return: minItem, median quantile, maxItem.</li>
- <li>Etc.</li>
- </ul></dd>
-<dd><code>searchCrit</code> - If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally weighted partitions
- with the exception of the lowest returned quantile, which is the lowest boundary of the lowest ranked partition.
- If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally weighted partitions
- with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>an instance of <a href="QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>DoublesPartitionBoundaries</code></a>.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if <i>numEquallyWeighted</i> is less than 1.</dd>
 </dl>
 </li>
 </ul>

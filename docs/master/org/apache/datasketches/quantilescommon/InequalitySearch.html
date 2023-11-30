@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9};
+var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -274,6 +274,17 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?i
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>abstract <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#desc(long%5B%5D,int,int,double,int)">desc</a></span>&#8203;(long[]&nbsp;arr,
+    int&nbsp;low,
+    int&nbsp;high,
+    double&nbsp;v,
+    int&nbsp;idx)</code></th>
+<td class="colLast">
+<div class="block">Optional call that describes the details of the results of the search.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>abstract <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#desc(long%5B%5D,int,int,long,int)">desc</a></span>&#8203;(long[]&nbsp;arr,
     int&nbsp;low,
     int&nbsp;high,
@@ -283,7 +294,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?i
 <div class="block">Optional call that describes the details of the results of the search.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#find(double%5B%5D,int,int,double,org.apache.datasketches.quantilescommon.InequalitySearch)">find</a></span>&#8203;(double[]&nbsp;arr,
     int&nbsp;low,
@@ -295,7 +306,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?i
  the given InequalitySearch criterion.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#find(float%5B%5D,int,int,float,org.apache.datasketches.quantilescommon.InequalitySearch)">find</a></span>&#8203;(float[]&nbsp;arr,
     int&nbsp;low,
@@ -307,7 +318,19 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?i
  the given InequalitySearch criterion.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#find(long%5B%5D,int,int,double,org.apache.datasketches.quantilescommon.InequalitySearch)">find</a></span>&#8203;(long[]&nbsp;arr,
+    int&nbsp;low,
+    int&nbsp;high,
+    double&nbsp;v,
+    <a href="InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a>&nbsp;crit)</code></th>
+<td class="colLast">
+<div class="block">Binary Search for the index of the double value in the given search range that satisfies
+ the given InequalitySearch criterion.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#find(long%5B%5D,int,int,long,org.apache.datasketches.quantilescommon.InequalitySearch)">find</a></span>&#8203;(long[]&nbsp;arr,
     int&nbsp;low,
@@ -319,14 +342,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?i
  the given InequalitySearch criterion.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static <a href="InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#valueOf(java.lang.String)">valueOf</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;name)</code></th>
 <td class="colLast">
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static <a href="InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#values()">values</a></span>()</code></th>
 <td class="colLast">
@@ -340,14 +363,14 @@ the order they are declared.</div>
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true" title="class or interface in java.lang" class="externalLink">Enum</a></h3>
-<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#clone()" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#compareTo(E)" title="class or interface in java.lang" class="externalLink">compareTo</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#equals(java.lang.Object)" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#finalize()" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#getDeclaringClass()" title="class or interface in java.lang" class="externalLink">getDeclaringClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#hashCode()" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#name()" title="class or interface in java.lang" class="externalLink">name</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#ordinal()" title="class or interface in java.lang" class="externalLink">ordinal</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#toString()" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#valueOf(java.lang.Class,java.lang.String)" title="class or interface in java.lang" class="externalLink">valueOf</a></code></li>
+<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#clone--" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#compareTo-E-" title="class or interface in java.lang" class="externalLink">compareTo</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#equals-java.lang.Object-" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#finalize--" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#getDeclaringClass--" title="class or interface in java.lang" class="externalLink">getDeclaringClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#hashCode--" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#name--" title="class or interface in java.lang" class="externalLink">name</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#ordinal--" title="class or interface in java.lang" class="externalLink">ordinal</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#toString--" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?is-external=true#valueOf-java.lang.Class-java.lang.String-" title="class or interface in java.lang" class="externalLink">valueOf</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></h3>
-<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass()" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify()" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll()" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait()" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long)" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long,int)" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
+<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass--" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify--" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll--" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait--" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-int-" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
 </ul>
 </li>
 </ul>
@@ -518,10 +541,10 @@ not permitted.)</div>
  Used primarily for debugging.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>arr</code> - The underlying sorted array of double values</dd>
+<dd><code>arr</code> - The underlying sorted array of values</dd>
 <dd><code>low</code> - the low index of the range</dd>
 <dd><code>high</code> - the high index of the range</dd>
-<dd><code>v</code> - the double value to search for</dd>
+<dd><code>v</code> - the value to search for</dd>
 <dd><code>idx</code> - the resolved index from the search</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the descriptive string.</dd>
@@ -543,10 +566,10 @@ not permitted.)</div>
  Used primarily for debugging.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>arr</code> - The underlying sorted array of double values</dd>
+<dd><code>arr</code> - The underlying sorted array of values</dd>
 <dd><code>low</code> - the low index of the range</dd>
 <dd><code>high</code> - the high index of the range</dd>
-<dd><code>v</code> - the double value to search for</dd>
+<dd><code>v</code> - the value to search for</dd>
 <dd><code>idx</code> - the resolved index from the search</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the descriptive string.</dd>
@@ -568,10 +591,35 @@ not permitted.)</div>
  Used primarily for debugging.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>arr</code> - The underlying sorted array of double values</dd>
+<dd><code>arr</code> - The underlying sorted array of values</dd>
 <dd><code>low</code> - the low index of the range</dd>
 <dd><code>high</code> - the high index of the range</dd>
-<dd><code>v</code> - the double value to search for</dd>
+<dd><code>v</code> - the value to search for</dd>
+<dd><code>idx</code> - the resolved index from the search</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the descriptive string.</dd>
+</dl>
+</li>
+</ul>
+<a id="desc(long[],int,int,double,int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>desc</h4>
+<pre class="methodSignature">public abstract&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;desc&#8203;(long[]&nbsp;arr,
+                            int&nbsp;low,
+                            int&nbsp;high,
+                            double&nbsp;v,
+                            int&nbsp;idx)</pre>
+<div class="block">Optional call that describes the details of the results of the search.
+ Used primarily for debugging.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>arr</code> - The underlying sorted array of values</dd>
+<dd><code>low</code> - the low index of the range</dd>
+<dd><code>high</code> - the high index of the range</dd>
+<dd><code>v</code> - the value to search for</dd>
 <dd><code>idx</code> - the resolved index from the search</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the descriptive string.</dd>
@@ -635,7 +683,7 @@ not permitted.)</div>
 <a id="find(long[],int,int,long,org.apache.datasketches.quantilescommon.InequalitySearch)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>find</h4>
 <pre class="methodSignature">public static&nbsp;int&nbsp;find&#8203;(long[]&nbsp;arr,
@@ -644,6 +692,32 @@ not permitted.)</div>
                        long&nbsp;v,
                        <a href="InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a>&nbsp;crit)</pre>
 <div class="block">Binary Search for the index of the long value in the given search range that satisfies
+ the given InequalitySearch criterion.
+ If -1 is returned there are no values in the search range that satisfy the criterion.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>arr</code> - the given array that must be sorted.</dd>
+<dd><code>low</code> - the lowest index of the lowest value in the search range, inclusive.</dd>
+<dd><code>high</code> - the highest index of the highest value in the search range, inclusive.</dd>
+<dd><code>v</code> - the value to search for.</dd>
+<dd><code>crit</code> - one of LT, LE, EQ, GT, GE</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the index of the value in the given search range that satisfies the criterion</dd>
+</dl>
+</li>
+</ul>
+<a id="find(long[],int,int,double,org.apache.datasketches.quantilescommon.InequalitySearch)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>find</h4>
+<pre class="methodSignature">public static&nbsp;int&nbsp;find&#8203;(long[]&nbsp;arr,
+                       int&nbsp;low,
+                       int&nbsp;high,
+                       double&nbsp;v,
+                       <a href="InequalitySearch.html" title="enum in org.apache.datasketches.quantilescommon">InequalitySearch</a>&nbsp;crit)</pre>
+<div class="block">Binary Search for the index of the double value in the given search range that satisfies
  the given InequalitySearch criterion.
  If -1 is returned there are no values in the search range that satisfy the criterion.</div>
 <dl>

@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":18,"i1":18,"i2":6,"i3":6,"i4":6,"i5":6};
+var data = {"i0":18,"i1":6,"i2":6,"i3":18,"i4":6,"i5":6,"i6":6,"i7":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -134,7 +134,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <hr>
 <pre>public interface <span class="typeNameLabel">DoublesSortedView</span>
 extends <a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></pre>
-<div class="block">The Sorted View for quantiles of primitive type double.</div>
+<div class="block">The Sorted View for quantile sketches of primitive type double.</div>
 <dl>
 <dt><span class="simpleTagLabel">Author:</span></dt>
 <dd>Alexander Saydakov, Lee Rhodes</dd>
@@ -172,6 +172,20 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxItem()">getMaxItem</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Returns the maximum item of the stream.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinItem()">getMinItem</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Returns the minimum item of the stream.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(double[]&nbsp;splitPoints,
       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -181,7 +195,7 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -189,14 +203,14 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles()">getQuantiles</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Returns the array of quantiles.</div>
+<div class="block">Returns an array of all retained quantiles by the sketch.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(double&nbsp;quantile,
        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -204,8 +218,8 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code><a href="DoublesSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></code></td>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code><a href="DoublesSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns an iterator for this Sorted View.</div>
@@ -217,7 +231,7 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></h3>
-<code><a href="SortedView.html#getCumulativeWeights()">getCumulativeWeights</a>, <a href="SortedView.html#isEmpty()">isEmpty</a></code></li>
+<code><a href="SortedView.html#getCumulativeWeights()">getCumulativeWeights</a>, <a href="SortedView.html#getN()">getN</a>, <a href="SortedView.html#isEmpty()">isEmpty</a></code></li>
 </ul>
 </li>
 </ul>
@@ -274,6 +288,40 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <dd><code>searchCrit</code> - the desired search criteria.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+</dl>
+</li>
+</ul>
+<a id="getMaxItem()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMaxItem</h4>
+<pre class="methodSignature">double&nbsp;getMaxItem()</pre>
+<div class="block">Returns the maximum item of the stream. This may be distinct from the largest item retained by the
+ sketch algorithm.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the maximum item of the stream</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+</dl>
+</li>
+</ul>
+<a id="getMinItem()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMinItem</h4>
+<pre class="methodSignature">double&nbsp;getMinItem()</pre>
+<div class="block">Returns the minimum item of the stream. This may be distinct from the smallest item retained by the
+ sketch algorithm.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the minimum item of the stream</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
 </dl>
@@ -362,10 +410,10 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <li class="blockList">
 <h4>getQuantiles</h4>
 <pre class="methodSignature">double[]&nbsp;getQuantiles()</pre>
-<div class="block">Returns the array of quantiles.</div>
+<div class="block">Returns an array of all retained quantiles by the sketch.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the array of quantiles.</dd>
+<dd>an array of all retained quantiles by the sketch.</dd>
 </dl>
 </li>
 </ul>
@@ -397,7 +445,7 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <ul class="blockListLast">
 <li class="blockList">
 <h4>iterator</h4>
-<pre class="methodSignature"><a href="DoublesSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a>&nbsp;iterator()</pre>
+<pre class="methodSignature"><a href="DoublesSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">DoublesSortedViewIterator</a>&nbsp;iterator()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedView.html#iterator()">SortedView</a></code></span></div>
 <div class="block">Returns an iterator for this Sorted View.</div>
 <dl>

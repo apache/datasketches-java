@@ -7,6 +7,7 @@ org.apache.datasketches.hash
 org.apache.datasketches.hll
 org.apache.datasketches.hllmap
 org.apache.datasketches.kll
+org.apache.datasketches.partitions
 org.apache.datasketches.quantiles
 org.apache.datasketches.quantilescommon
 org.apache.datasketches.req
