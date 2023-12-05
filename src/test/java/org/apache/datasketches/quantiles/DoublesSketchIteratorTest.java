@@ -44,6 +44,19 @@ public class DoublesSketchIteratorTest {
   }
 
   @Test
+  public void multipleItemsSketch() {
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    sketch.updateMultipleIdentical(0, 10);
+    QuantilesDoublesSketchIterator it = sketch.iterator();
+    for (int i = 1; i <= 10; i++) {
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getQuantile(), 0.0);
+      Assert.assertEquals(it.getWeight(), 1);
+    }
+    Assert.assertFalse(it.next());
+  }
+
+  @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
       UpdateDoublesSketch sketch = DoublesSketch.builder().build();
@@ -55,11 +68,27 @@ public class DoublesSketchIteratorTest {
       int weight = 0;
       while (it.next()) {
         count++;
-        weight += (int)it.getWeight();
+        weight += (int) it.getWeight();
       }
       Assert.assertEquals(count, sketch.getNumRetained());
       Assert.assertEquals(weight, n);
     }
   }
 
+  @Test
+  public void bigSketchesWithIdenticalMultiples() {
+    for (int n = 1000; n < 100000; n += 2000) {
+      UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+      sketch.updateMultipleIdentical(1d, n);
+      QuantilesDoublesSketchIterator it = sketch.iterator();
+      int count = 0;
+      int weight = 0;
+      while (it.next()) {
+        count++;
+        weight += (int) it.getWeight();
+      }
+      Assert.assertEquals(count, sketch.getNumRetained());
+      Assert.assertEquals(weight, n);
+    }
+  }
 }

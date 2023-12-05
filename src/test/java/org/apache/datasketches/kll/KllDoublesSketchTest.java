@@ -19,15 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -35,6 +26,18 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.annotations.Test;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.testng.Assert.*;
 
 public class KllDoublesSketchTest {
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
@@ -138,6 +141,38 @@ public class KllDoublesSketchTest {
       for (int i = 0; i <= 10; i++) {
         assertEquals(sketch.getQuantile(i / 10.0, INCLUSIVE), quantiles[i]);
       }
+    }
+  }
+
+  // This test needs KllDoublesHelper's deterministicOffset to be uncommented to pass
+   @Test
+  public void checkSingularInsertAndBatchInsert() {
+    List<Double> doublesList = IntStream.rangeClosed(1, 10000000)
+            .boxed()
+            .flatMapToDouble(value -> IntStream.rangeClosed(1, 10).mapToDouble(i -> value))
+            .boxed()
+            .collect(Collectors.toList());
+
+    Map<Double, Integer> doubleCountMap = doublesList.stream()
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.summingInt(e -> 1)));
+
+    List<Double> bigListOfRandomIntegersOrdered = doubleCountMap.entrySet().stream()
+            .flatMap(entry -> Collections.nCopies(entry.getValue(), entry.getKey()).stream())
+            .collect(Collectors.toList());
+
+    KllDoublesSketch bigSketch1 = KllDoublesSketch.newHeapInstance();
+    KllDoublesSketch bigSketch2 = KllDoublesSketch.newHeapInstance();
+
+    bigListOfRandomIntegersOrdered.forEach(bigSketch1::update);
+    doubleCountMap.forEach(bigSketch2::updateMultipleIdentical);
+
+    final double[] quantiles1 =
+            bigSketch1.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}, INCLUSIVE);
+    final double[] quantiles2 =
+            bigSketch2.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}, INCLUSIVE);
+
+    for (int i = 0; i <= 10; i++) {
+      assertEquals(quantiles1[i], quantiles2[i]);
     }
   }
 

@@ -50,6 +50,8 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
+import java.util.Arrays;
+
 /**
  * This class implements an off-heap, updatable KllDoublesSketch using WritableMemory.
  *
@@ -273,6 +275,13 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
+  void incNBy(int increment) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    long n = getMemoryN(wmem);
+    setMemoryN(wmem, n + increment);
+  }
+
+  @Override
   void incNumLevels() {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     int numLevels = getMemoryNumLevels(wmem);
@@ -297,6 +306,16 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     final int offset =
         DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
     wmem.putDouble(offset, item);
+  }
+
+  @Override
+  void setDoubleItemsArrayAtMultiple(final int begIndex, final double item, final int count) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset =
+            DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (begIndex + 2) * ITEM_BYTES;
+    double[] items = new double[count];
+    Arrays.fill(items, item);
+    wmem.putDoubleArray(offset, items, 0, count);
   }
 
   @Override

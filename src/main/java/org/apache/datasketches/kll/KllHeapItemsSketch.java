@@ -223,6 +223,11 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  void incNBy(int increment) {
+    n += increment;
+  }
+
+  @Override
   boolean isLevelZeroSorted() {
     return isLevelZeroSorted;
   }

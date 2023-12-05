@@ -19,15 +19,15 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class KllDoublesSketchIteratorTest {
 
@@ -46,6 +46,19 @@ public class KllDoublesSketchIteratorTest {
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getQuantile(), 1.0);
     Assert.assertEquals(it.getWeight(), 1);
+    Assert.assertFalse(it.next());
+  }
+
+  @Test
+  public void multipleItemsSketch() {
+    KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+    sketch.updateMultipleIdentical(0, 10);
+    QuantilesDoublesSketchIterator it = sketch.iterator();
+    for (int i = 1; i <= 10; i++) {
+      Assert.assertTrue(it.next());
+      Assert.assertEquals(it.getQuantile(), 0.0);
+      Assert.assertEquals(it.getWeight(), 1);
+    }
     Assert.assertFalse(it.next());
   }
 
@@ -111,4 +124,20 @@ public class KllDoublesSketchIteratorTest {
     }
   }
 
+  @Test
+  public void bigSketchesWithIdenticalMultiples() {
+    for (int n = 1000; n < 100000; n += 2000) {
+      KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+      sketch.updateMultipleIdentical(1d, n);
+      QuantilesDoublesSketchIterator it = sketch.iterator();
+      int count = 0;
+      int weight = 0;
+      while (it.next()) {
+        count++;
+        weight += (int)it.getWeight();
+      }
+      Assert.assertEquals(count, sketch.getNumRetained());
+      Assert.assertEquals(weight, n);
+    }
+  }
 }

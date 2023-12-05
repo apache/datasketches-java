@@ -298,6 +298,14 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   void update(double item);
 
   /**
+   * Updates this sketch with the same item multiple times.
+   * @param item from a stream of quantiles. NaNs are ignored.
+   * @param count the amount of times we update the given item.
+   */
+
+  void updateMultipleIdentical(double item, int count);
+
+  /**
    * This encapsulates the essential information needed to construct actual partitions and is returned from the
    * <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.
    */

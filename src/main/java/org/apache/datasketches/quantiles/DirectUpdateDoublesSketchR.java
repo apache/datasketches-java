@@ -136,6 +136,11 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     throw new SketchesReadOnlyException("Call to update() on read-only buffer");
   }
 
+  @Override
+  public void updateMultipleIdentical(final double dataItem, final int count) {
+    throw new SketchesReadOnlyException("Call to updateMultipleIdentical() on read-only buffer");
+  }
+
   //Restricted overrides
   //Gets
 

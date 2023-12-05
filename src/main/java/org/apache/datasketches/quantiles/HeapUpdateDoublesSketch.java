@@ -273,6 +273,13 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     classicQdsSV = null;
   }
 
+  @Override
+  public void updateMultipleIdentical(final double dataItem, final int count) {
+    for (int i = 0; i < count; i++) {
+      update(dataItem);
+    }
+  }
+
   /**
    * Loads the Combined Buffer, min and max from the given source Memory.
    * The resulting Combined Buffer is always in non-compact form and must be pre-allocated.

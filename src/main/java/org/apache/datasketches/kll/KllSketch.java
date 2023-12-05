@@ -426,6 +426,8 @@ public abstract class KllSketch implements QuantilesAPI {
 
   abstract void incN();
 
+  abstract void incNBy(int increment);
+
   abstract void incNumLevels();
 
   final boolean isCompactSingleItem() {

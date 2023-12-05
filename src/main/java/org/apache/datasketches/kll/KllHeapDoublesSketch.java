@@ -221,6 +221,9 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   void incN() { n++; }
 
   @Override
+  void incNBy(int increment) { n += increment; }
+
+  @Override
   void incNumLevels() {
     //the heap sketch computes num levels from the array itself, so this is not used on-heap
   }
@@ -233,6 +236,13 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   void setDoubleItemsArrayAt(final int index, final double item) { this.doubleItems[index] = item; }
+
+  @Override
+  void setDoubleItemsArrayAtMultiple(final int begIndex, final double item, final int count) {
+    for (int i = 0; i < count; i++) {
+      doubleItems[begIndex - i] = item;
+    }
+  }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted = sorted; }

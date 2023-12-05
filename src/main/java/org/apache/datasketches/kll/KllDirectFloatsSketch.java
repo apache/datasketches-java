@@ -273,6 +273,13 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
+  void incNBy(int increment) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    long n = getMemoryN(wmem);
+    setMemoryN(wmem, n + increment);
+  }
+
+  @Override
   void incNumLevels() {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     int numLevels = getMemoryNumLevels(wmem);

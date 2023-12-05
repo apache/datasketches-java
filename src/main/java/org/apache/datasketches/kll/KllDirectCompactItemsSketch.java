@@ -218,6 +218,9 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  void incNBy(int increment) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
+
+  @Override
   boolean isLevelZeroSorted() {
     return getMemoryLevelZeroSortedFlag(mem);
   }

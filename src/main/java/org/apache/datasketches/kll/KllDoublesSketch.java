@@ -313,6 +313,13 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     kllDoublesSV = null;
   }
 
+  @Override
+  public void updateMultipleIdentical(final double item, final int count) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    KllDoublesHelper.updateMultipleIdenticalDoubles(this, item, count);
+    kllDoublesSV = null;
+  }
+
   //restricted
 
   /**
@@ -374,6 +381,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract void setDoubleItemsArray(double[] doubleItems);
 
   abstract void setDoubleItemsArrayAt(int index, double item);
+
+  abstract void setDoubleItemsArrayAtMultiple(int begIndex, double item, int count);
 
   abstract void setMaxItem(double item);
 

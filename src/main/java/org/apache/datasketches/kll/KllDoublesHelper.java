@@ -40,6 +40,30 @@ import org.apache.datasketches.memory.WritableMemory;
 final class KllDoublesHelper {
 
   /**
+   * The following overloaded method helps with compressing/updating the sketch when dealing with inserting
+   * multiple identical elements.
+   * @param dblSk the current KllDoublesSketch
+   * @param carryOver the amount of items to be added to the sketch. This number starts off being larger than
+   *                  the current sketch's base level capacity
+   * @param item the item to be added to the sketch
+   * @return a number that is lower than the current (expanded) sketch's base level capacity
+   */
+  private static int compressWhileUpdatingSketch(final KllDoublesSketch dblSk, int carryOver, final double item) {
+    while (carryOver > dblSk.levelsArr[0]) {
+      carryOver -= dblSk.levelsArr[0];
+      int myLevelsArrAtZero = dblSk.levelsArr[0];
+      dblSk.setDoubleItemsArrayAtMultiple(myLevelsArrAtZero - 1, item, myLevelsArrAtZero); // fill in as many as possible at this level
+      dblSk.levelsArr[0] = 0; // set the capacity here to be 0
+      compressWhileUpdatingSketch(dblSk);
+
+      for (int i = dblSk.levelsArr[0] - 1; i >= Math.max(dblSk.levelsArr[0] - carryOver, 0); i--) {
+        dblSk.getDoubleItemsArray()[i] = item;
+      }
+    }
+    return carryOver;
+  }
+
+  /**
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
    * @param dblSk the current KllDoublesSketch
@@ -317,6 +341,37 @@ final class KllDoublesHelper {
     assert myLevelsArrAtZero >= 0;
     dblSk.setLevelsArrayAt(0, nextPos);
     dblSk.setDoubleItemsArrayAt(nextPos, item);
+  }
+
+  static void updateMultipleIdenticalDoubles(final KllDoublesSketch dblSk, final double item, int count) {
+    if (Double.isNaN(item)) { return; }
+    if (dblSk.isEmpty()) {
+      dblSk.setMinItem(item);
+      dblSk.setMaxItem(item);
+    } else {
+      dblSk.setMinItem(min(dblSk.getMinItem(), item));
+      dblSk.setMaxItem(max(dblSk.getMaxItem(), item));
+    }
+
+    dblSk.incNBy(count); // this needs to be done earlier because sometimes levels are incremented (a process that checks N) before any inserts are done
+    int myLevelsArrAtZero = dblSk.levelsArr[0]; //LevelsArr could be expanded
+    int nextPos;
+
+    if (count > myLevelsArrAtZero) {
+      // If the # of inserts is bigger than the current capacity, we will perform the compression until that #
+      // drops below capacity
+      int leftToUpdate = compressWhileUpdatingSketch(dblSk, count, item);
+      dblSk.setDoubleItemsArrayAtMultiple(dblSk.levelsArr[0] - 1, item, leftToUpdate);
+      nextPos = dblSk.levelsArr[0] -= leftToUpdate;
+    } else {
+      // Otherwise, just set the element directly
+      dblSk.setDoubleItemsArrayAtMultiple(myLevelsArrAtZero - 1, item, count);
+      nextPos = myLevelsArrAtZero - count;
+    }
+
+    dblSk.setLevelZeroSorted(false);
+    assert myLevelsArrAtZero >= 0;
+    dblSk.setLevelsArrayAt(0, nextPos);
   }
 
   /**
