@@ -306,7 +306,7 @@ public class Union extends BaseHllSketch {
   @Override
   public String toString(final boolean summary, final boolean hllDetail,
       final boolean auxDetail, final boolean all) {
-    HllSketch clone = gadget.copy();
+    final HllSketch clone = gadget.copy();
     checkRebuildCurMinNumKxQ(clone);
     return clone.toString(summary, hllDetail, auxDetail, all);
   }
