@@ -817,20 +817,21 @@ final class KllHelper {
     return result;
   }
 
+  private final static boolean enablePrinting = true;
+
   /**
-   * @param fmt format
-   * @param args arguments
+   * @param format the format
+   * @param args the args
    */
-  private static void printf(final String fmt, final Object ... args) {
-    //System.out.printf(fmt, args); //Disable
+  private static final void printf(final String format, final Object ... args) {
+    if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
-   * Println Object o
-   * @param o object to print
+   * @param o the Object to println
    */
-  private static void println(final Object o) {
-    //System.out.println(o.toString()); //Disable
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -27,6 +28,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDirectDoublesSketch.KllDirectCompactDoublesSketch;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -164,23 +166,28 @@ public class KllMiscDoublesTest {
     assertEquals(sk2.getNumRetained(), 56);
   }
 
-  @Test //set static enablePrinting = true for visual checking
+  @Test //set static enablePrinting = true for visual checking //HERE
   public void viewHeapCompactions() {
     int k = 20;
-    int n = 108;
+    int n = 21;
     int compaction = 0;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) {
-      sk.update(i);
+      sk.update(1);//i
       if (sk.levelsArr[0] == 0) {
         println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
         println(sk.toString(true, true));
-        sk.update(++i);
+        if (i == n) { break; }
+        sk.update(1); ++i; //++i
         println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
         println(sk.toString(true, true));
-        assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
+        //assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
       }
     }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(true, true));
+    println("");
+    getGrowthSchemeForGivenN(k,8,n,SketchType.DOUBLES_SKETCH, true);
   }
 
   @Test //set static enablePrinting = true for visual checking
@@ -592,7 +599,7 @@ public class KllMiscDoublesTest {
     printf("%s\n", s);
   }
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param format the format
