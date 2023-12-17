@@ -47,7 +47,6 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.WritableBuffer;
@@ -58,8 +57,14 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-@SuppressWarnings("unchecked")
 final class KllHelper {
+  public static final String LS = System.getProperty("line.separator");
+  static final double EPS_DELTA_THRESHOLD = 1E-6;
+  static final double MIN_EPS = 4.7634E-5;
+  static final double PMF_COEF = 2.446;
+  static final double PMF_EXP = 0.9433;
+  static final double CDF_COEF = 2.296;
+  static final double CDF_EXP = 0.9723;
 
   static class GrowthStats {
     SketchType sketchType;
@@ -84,13 +89,6 @@ final class KllHelper {
       this.numItems = numItems;
     }
   }
-
-  static final double EPS_DELTA_THRESHOLD = 1E-6;
-  static final double MIN_EPS = 4.7634E-5;
-  static final double PMF_COEF = 2.446;
-  static final double PMF_EXP = 0.9433;
-  static final double CDF_COEF = 2.296;
-  static final double CDF_EXP = 0.9723;
 
   /**
    * This is the exact powers of 3 from 3^0 to 3^30 where the exponent is the index
@@ -313,7 +311,7 @@ final class KllHelper {
     assert (k <= (1 << 29));
     assert (numLevels >= 1) && (numLevels <= 61);
     assert (level >= 0) && (level < numLevels);
-    final int depth = numLevels - level - 1;
+    final int depth = numLevels - level - 1; //depth is # levels from the top level (= 0)
     return (int) Math.max(m, intCapAux(k, depth));
   }
 
@@ -359,108 +357,44 @@ final class KllHelper {
     return newWmem;
   }
 
-  private static <T> String outputItemsData(final int numLevels, final int[] levelsArr, final Object[] itemsArr,
-      final ArrayOfItemsSerDe<T> serDe) {
+  private static String outputData(final KllSketch sketch) {
+    final int[] levelsArr = sketch.getLevelsArray(sketch.sketchStructure);
+    final int numLevels = sketch.getNumLevels();
+    final int k = sketch.getK();
+    final int m = sketch.getM();
     final StringBuilder sb =  new StringBuilder();
-    sb.append("### KLL items data {index, item}:").append(Util.LS);
+    sb.append("### KllSketch itemsArray & levelsArray data:").append(LS);
+    sb.append("Index, Value").append(LS);
     if (levelsArr[0] > 0) {
-      sb.append(" Empty/Garbage:" + Util.LS);
+      final String gbg = " Empty or Garbage, size = " + levelsArr[0];
       for (int i = 0; i < levelsArr[0]; i++) {
-        sb.append("   ").append(i + ", ").append(serDe.toString((T)itemsArr[i])).append(Util.LS);
+        sb.append("    ").append(i + ", ").append(sketch.getItemAsString(i));
+        if (i == 0) { sb.append(gbg); }
+        sb.append(LS);
       }
     }
     int level = 0;
     while (level < numLevels) {
       final int fromIndex = levelsArr[level];
       final int toIndex = levelsArr[level + 1]; // exclusive
+      String lvlData = "";
       if (fromIndex < toIndex) {
-        sb.append(" level[").append(level).append("]: offset: " + levelsArr[level] + " wt: " + (1 << level));
-        sb.append(Util.LS);
+        lvlData = " level[" + level + "]=" + levelsArr[level]
+            + ", cap=" + KllHelper.levelCapacity(k, numLevels, level, m)
+            + ", size=" + KllHelper.currentLevelSizeItems(level, numLevels, levelsArr)
+            + ", wt=" + (1 << level) + LS;
       }
 
       for (int i = fromIndex; i < toIndex; i++) {
-        sb.append("   ").append(i + ", ").append(serDe.toString((T)itemsArr[i])).append(Util.LS);
+        sb.append("    ").append(i + ", ").append(sketch.getItemAsString(i));
+        if (i == fromIndex) { sb.append(lvlData); } else { sb.append(LS); }
       }
       level++;
     }
-    sb.append(" level[" + level + "]: offset: " + levelsArr[level] + " (Exclusive)");
-    sb.append(Util.LS);
-    sb.append("### End items data").append(Util.LS);
-    return sb.toString();
+    sb.append("   ----------level[" + level + "]=" + levelsArr[level] + ": itemsArray[].length");
+    sb.append(LS);
+    sb.append("### End data").append(LS);
 
-  }
-
-  private static String outputDoublesData(final int numLevels, final int[] levelsArr, final double[] doubleItemsArr) {
-    final StringBuilder sb =  new StringBuilder();
-    sb.append("### KLL items data {index, item}:").append(Util.LS);
-    if (levelsArr[0] > 0) {
-      sb.append(" Empty/Garbage:" + Util.LS);
-      for (int i = 0; i < levelsArr[0]; i++) {
-        sb.append("   ").append(i + ", ").append(doubleItemsArr[i]).append(Util.LS);
-      }
-    }
-    int level = 0;
-    while (level < numLevels) {
-      final int fromIndex = levelsArr[level];
-      final int toIndex = levelsArr[level + 1]; // exclusive
-      if (fromIndex < toIndex) {
-        sb.append(" level[").append(level).append("]: offset: " + levelsArr[level] + " wt: " + (1 << level));
-        sb.append(Util.LS);
-      }
-
-      for (int i = fromIndex; i < toIndex; i++) {
-        sb.append("   ").append(i + ", ").append(doubleItemsArr[i]).append(Util.LS);
-      }
-      level++;
-    }
-    sb.append(" level[" + level + "]: offset: " + levelsArr[level] + " (Exclusive)");
-    sb.append(Util.LS);
-    sb.append("### End items data").append(Util.LS);
-    return sb.toString();
-  }
-
-  private static String outputFloatsData(final int numLevels, final int[] levelsArr, final float[] floatsItemsArr) {
-    final StringBuilder sb =  new StringBuilder();
-    sb.append("### KLL items data {index, item}:").append(Util.LS);
-    if (levelsArr[0] > 0) {
-      sb.append(" Empty/Garbage:" + Util.LS);
-      for (int i = 0; i < levelsArr[0]; i++) {
-        sb.append("   ").append(i + ", ").append(floatsItemsArr[i]).append(Util.LS);
-      }
-    }
-    int level = 0;
-    while (level < numLevels) {
-      final int fromIndex = levelsArr[level];
-      final int toIndex = levelsArr[level + 1]; // exclusive
-      if (fromIndex < toIndex) {
-        sb.append(" level[").append(level).append("]: offset: " + levelsArr[level] + " wt: " + (1 << level));
-        sb.append(Util.LS);
-      }
-
-      for (int i = fromIndex; i < toIndex; i++) {
-        sb.append("   ").append(i + ", ").append(floatsItemsArr[i]).append(Util.LS);
-      }
-      level++;
-    }
-    sb.append(" level[" + level + "]: offset: " + levelsArr[level] + " (Exclusive)");
-    sb.append(Util.LS);
-    sb.append("### End items data").append(Util.LS);
-    return sb.toString();
-  }
-
-  static String outputLevels(final int k, final int m, final int numLevels, final int[] levelsArr) {
-    final StringBuilder sb =  new StringBuilder();
-    sb.append("### KLL levels array:").append(Util.LS)
-    .append(" level, offset: nominal capacity, actual size").append(Util.LS);
-    int level = 0;
-    for ( ; level < numLevels; level++) {
-      sb.append("   ").append(level).append(", ").append(levelsArr[level]).append(": ")
-      .append(KllHelper.levelCapacity(k, numLevels, level, m))
-      .append(", ").append(KllHelper.currentLevelSizeItems(level, numLevels, levelsArr)).append(Util.LS);
-    }
-    sb.append("   ").append(level).append(", ").append(levelsArr[level]).append(": (Exclusive)")
-    .append(Util.LS);
-    sb.append("### End levels array").append(Util.LS);
     return sb.toString();
   }
 
@@ -541,7 +475,7 @@ final class KllHelper {
     return bytesOut;
   }
 
-  static <T> String toStringImpl(final KllSketch sketch, final boolean withLevels, final boolean withData,
+  static <T> String toStringImpl(final KllSketch sketch, final boolean withSummary, final boolean withData,
       final ArrayOfItemsSerDe<T> serDe) {
     final SketchType sketchType = sketch.sketchType;
     final boolean hasMemory = sketch.hasMemory();
@@ -562,70 +496,36 @@ final class KllHelper {
     final String skTypeStr = sketchType.getName();
     final String className = "Kll" + directStr + compactStr + skTypeStr;
 
-    sb.append(Util.LS).append("### ").append(className).append(" Summary:").append(Util.LS);
-    sb.append("   K                      : ").append(k).append(Util.LS);
-    sb.append("   Dynamic min K          : ").append(sketch.getMinK()).append(Util.LS);
-    sb.append("   M                      : ").append(m).append(Util.LS);
-    sb.append("   N                      : ").append(n).append(Util.LS);
-    sb.append("   Epsilon                : ").append(epsPct).append(Util.LS);
-    sb.append("   Epsilon PMF            : ").append(epsPMFPct).append(Util.LS);
-    sb.append("   Empty                  : ").append(sketch.isEmpty()).append(Util.LS);
-    sb.append("   Estimation Mode        : ").append(sketch.isEstimationMode()).append(Util.LS);
-    sb.append("   Levels                 : ").append(numLevels).append(Util.LS);
-    sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(Util.LS);
-    sb.append("   Capacity Items         : ").append(fullLevelsArr[numLevels]).append(Util.LS);
-    sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(Util.LS);
-    sb.append("   Empty/Garbage Items    : ").append(sketch.levelsArr[0]).append(Util.LS);
-    sb.append("   ReadOnly               : ").append(readOnlyStr).append(Util.LS);
+    sb.append(LS).append("### ").append(className).append(" Summary:").append(LS);
+    sb.append("   K                      : ").append(k).append(LS);
+    sb.append("   Dynamic min K          : ").append(sketch.getMinK()).append(LS);
+    sb.append("   M                      : ").append(m).append(LS);
+    sb.append("   N                      : ").append(n).append(LS);
+    sb.append("   Epsilon                : ").append(epsPct).append(LS);
+    sb.append("   Epsilon PMF            : ").append(epsPMFPct).append(LS);
+    sb.append("   Empty                  : ").append(sketch.isEmpty()).append(LS);
+    sb.append("   Estimation Mode        : ").append(sketch.isEstimationMode()).append(LS);
+    sb.append("   Levels                 : ").append(numLevels).append(LS);
+    sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(LS);
+    sb.append("   Capacity Items         : ").append(fullLevelsArr[numLevels]).append(LS);
+    sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(LS);
+    sb.append("   Empty/Garbage Items    : ").append(sketch.levelsArr[0]).append(LS);
+    sb.append("   ReadOnly               : ").append(readOnlyStr).append(LS);
     if (sketchType != ITEMS_SKETCH) {
-      sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true))
-        .append(Util.LS);
+      sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(LS);
     }
-    sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false))
-        .append(Util.LS);
+    sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(LS);
 
-    if (sketchType == DOUBLES_SKETCH) {
-      final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-      sb.append("   Min Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMinItem())
-          .append(Util.LS);
-      sb.append("   Max Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMaxItem())
-          .append(Util.LS);
-    }
-    else if (sketchType == FLOATS_SKETCH) {
-      final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-      sb.append("   Min Item               : ").append(fltSk.isEmpty() ? Float.NaN : fltSk.getMinItem())
-          .append(Util.LS);
-      sb.append("   Max Item               : ").append(fltSk.isEmpty() ? Float.NaN : fltSk.getMaxItem())
-          .append(Util.LS);
-    }
-    else { //sketchType == ITEMS_SKETCH
-      final KllItemsSketch<T> itmSk = (KllItemsSketch<T>) sketch;
-      sb.append("   Min Item               : ").append(itmSk.isEmpty() ? "null" : serDe.toString(itmSk.getMinItem()))
-          .append(Util.LS);
-      sb.append("   Max Item               : ").append(itmSk.isEmpty() ? "null" : serDe.toString(itmSk.getMaxItem()))
-          .append(Util.LS);
-    }
-    sb.append("### End sketch summary").append(Util.LS);
+    final String emptyStr = (sketchType == ITEMS_SKETCH) ? "Null" : "NaN";
 
-    if (withLevels) {
-      sb.append(outputLevels(k, m, numLevels, fullLevelsArr));
-    }
-    if (withData) {
-      if (sketchType == DOUBLES_SKETCH) {
-        final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-        final double[] myDoubleItemsArr = dblSk.getDoubleItemsArray();
-        sb.append(outputDoublesData(numLevels, fullLevelsArr, myDoubleItemsArr));
-      } else if (sketchType == FLOATS_SKETCH) {
-        final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-        final float[] myFloatItemsArr = fltSk.getFloatItemsArray();
-        sb.append(outputFloatsData(numLevels, fullLevelsArr, myFloatItemsArr));
-      }
-      else { //sketchType == KllItemsSketch
-        final KllItemsSketch<T> itmSk = (KllItemsSketch<T>) sketch;
-        final T[] myItemsArr = itmSk.getTotalItemsArray();
-        sb.append(outputItemsData(numLevels, fullLevelsArr, myItemsArr, serDe));
-      }
-    }
+    sb.append("   Min Item               : ").append(sketch.isEmpty() ? emptyStr : sketch.getMinItemAsString())
+        .append(LS);
+    sb.append("   Max Item               : ").append(sketch.isEmpty() ? emptyStr : sketch.getMaxItemAsString())
+        .append(LS);
+    sb.append("### End sketch summary").append(LS);
+
+    if (! withSummary) { sb.setLength(0); }
+    if (withData) { sb.append(outputData(sketch)); }
     return sb.toString();
   }
 
@@ -789,8 +689,9 @@ final class KllHelper {
   /**
    * Computes the actual item capacity of a given level given its depth index.
    * If the depth of levels exceeds 30, this uses a folding technique to accurately compute the
-   * actual level capacity up to a depth of 60. Without folding, the internal calculations would
-   * exceed the capacity of a long.
+   * actual level capacity up to a depth of 60 (or 61 levels).
+   * Without folding, the internal calculations would exceed the capacity of a long.
+   * This method just decides whether folding is required or not.
    * @param k the configured k of the sketch
    * @param depth the zero-based index of the level being computed.
    * @return the actual capacity of a given level given its depth index.
@@ -806,13 +707,13 @@ final class KllHelper {
   /**
    * Performs the integer based calculation of an individual level (or folded level).
    * @param k the configured k of the sketch
-   * @param depth depth the zero-based index of the level being computed.
+   * @param depth the zero-based index of the level being computed. The max depth is 30!
    * @return the actual capacity of a given level given its depth index.
    */
   private static long intCapAuxAux(final long k, final int depth) {
-    final long twok = k << 1; // for rounding pre-multiply by 2
-    final long tmp = ((twok << depth) / powersOfThree[depth]);
-    final long result = ((tmp + 1L) >>> 1); // add 1 and divide by 2
+    final long twok = k << 1; // for rounding at the end, pre-multiply by 2 here, divide by 2 during rounding.
+    final long tmp = ((twok << depth) / powersOfThree[depth]); //2k* (2/3)^depth. 2k also keeps the fraction larger.
+    final long result = ((tmp + 1L) >>> 1); // (tmp + 1)/2. If odd, round up. This guarantees an integer.
     assert (result <= k);
     return result;
   }

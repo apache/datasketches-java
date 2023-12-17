@@ -75,8 +75,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   double[] getCDF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
-   * Returns the maximum item of the stream. This is provided for convenience, but may be different from the largest
-   * item retained by the sketch algorithm.
+   * Returns the maximum item of the stream. This is provided for convenience and may be different from the
+   * item returned by <i>getQuantile(1.0)</i>.
    *
    * @return the maximum item of the stream
    * @throws IllegalArgumentException if sketch is empty.
@@ -84,8 +84,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   double getMaxItem();
 
   /**
-   * Returns the minimum item of the stream. This is provided for convenience, but is distinct from the smallest
-   * item retained by the sketch algorithm.
+   * Returns the minimum item of the stream. This is provided for convenience and may be different from the
+   * item returned by <i>getQuantile(0.0)</i>.
    *
    * @return the minimum item of the stream
    * @throws IllegalArgumentException if sketch is empty.

@@ -65,6 +65,14 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     levelsArr = memVal.levelsArr; //always converted to writable form.
   }
 
+  //End of constructors
+
+  @Override
+  String getItemAsString(final int index) {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(getTotalItemsArray()[index]);
+  }
+
   @Override
   public int getK() {
     return getMemoryK(mem);
@@ -84,6 +92,12 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  String getMaxItemAsString() {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(getMaxItem());
+  }
+
+  @Override
   public T getMinItem() {
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
       throw new SketchesArgumentException(EMPTY_MSG);
@@ -94,6 +108,12 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     //sketchStructure == COMPACT_FULL
     final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
     return serDe.deserializeFromMemory(mem, offset, 1)[0];
+  }
+
+  @Override
+  String getMinItemAsString() {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(getMinItem());
   }
 
   @Override

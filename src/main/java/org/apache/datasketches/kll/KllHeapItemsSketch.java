@@ -117,6 +117,14 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
     }
   }
 
+  //End of constructors
+
+  @Override
+  String getItemAsString(final int index) {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString((T)(itemsArr[index]));
+  }
+
   @Override
   public int getK() {
     return k;
@@ -129,9 +137,21 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  String getMaxItemAsString() {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(maxItem);
+  }
+
+  @Override
   public T getMinItem() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return minItem;
+  }
+
+  @Override
+  String getMinItemAsString() {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(minItem);
   }
 
   @Override
