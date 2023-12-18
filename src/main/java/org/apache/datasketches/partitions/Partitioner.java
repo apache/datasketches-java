@@ -25,6 +25,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
+import static java.util.Collections.unmodifiableList;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
@@ -116,7 +117,7 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
     final StackElement<T> se = new StackElement<>(gpb, 0, "1");
     stack.push(se);
     partitionSearch(stack);
-    return finalPartitionList;
+    return unmodifiableList(finalPartitionList);
   }
 
   private void partitionSearch(final ArrayDeque<StackElement<T>> stack) {

@@ -174,7 +174,9 @@ public class KllMiscDoublesTest {
     boolean withSummary = false;
     boolean withData = true;
     int compaction = 0;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    WritableMemory wmem = WritableMemory.allocate(1 << 20);
+    MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
+    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(k, wmem, memReqSvr);
     for (int i = 1; i <= n; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
@@ -189,7 +191,20 @@ public class KllMiscDoublesTest {
     println(LS + "#<<< END STATE # >>>");
     println(sk.toString(withSummary, withData));
     println("");
-    //getGrowthSchemeForGivenN(k,8,n,SketchType.DOUBLES_SKETCH, true);
+  }
+
+  @Test
+  public void viewCompactSketchData() {
+    int k = 20;
+    int n = 109;
+    boolean withSummary = true;
+    boolean withData = true;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    byte[] byteArr = sk.toByteArray();
+    Memory mem = Memory.wrap(byteArr);
+    KllDoublesSketch ddSk = KllDoublesSketch.wrap(mem);
+    println(ddSk.toString(withSummary, withData));
   }
 
   //@Test //set static enablePrinting = true for visual checking

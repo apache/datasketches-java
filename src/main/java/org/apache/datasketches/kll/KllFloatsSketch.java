@@ -307,6 +307,17 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
+  public String toString(final boolean withSummary, final boolean withData) {
+    KllSketch sketch = this;
+    if (withData && sketchStructure != UPDATABLE) {
+      final Memory mem = getWritableMemory();
+      assert mem != null;
+      sketch = KllFloatsSketch.heapify(getWritableMemory());
+    }
+    return KllHelper.toStringImpl(sketch, withSummary, withData, getSerDe());
+  }
+
+  @Override
   public void update(final float item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllFloatsHelper.updateFloat(this, item);

@@ -358,7 +358,7 @@ final class KllHelper {
   }
 
   private static String outputData(final KllSketch sketch) {
-    final int[] levelsArr = sketch.getLevelsArray(sketch.sketchStructure);
+    final int[] levelsArr = sketch.getLevelsArray(SketchStructure.UPDATABLE);
     final int numLevels = sketch.getNumLevels();
     final int k = sketch.getK();
     final int m = sketch.getM();

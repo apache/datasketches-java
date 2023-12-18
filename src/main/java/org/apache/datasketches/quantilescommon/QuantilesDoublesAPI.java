@@ -297,39 +297,4 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    */
   void update(double item);
 
-  /**
-   * This encapsulates the essential information needed to construct actual partitions and is returned from the
-   * <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.
-   */
-  static class DoublesPartitionBoundaries {
-
-    /**
-     * The total number of items presented to the sketch.
-     *
-     * <p>To compute the weight or density of a specific
-     * partition <i>i</i> where <i>i</i> varies from 1 to <i>m</i> partitions:
-     * <pre>{@code
-     * long N = getN();
-     * double[] ranks = getRanks();
-     * long weight = Math.round((ranks[i] - ranks[i - 1]) * N);
-     * }</pre>
-     */
-    public long N;
-
-    /**
-     * The normalized ranks that correspond to the returned boundaries.
-     * The returned array is of size <i>(m + 1)</i>, where <i>m</i> is the requested number of partitions.
-     * Index 0 of the returned array is always 0.0, and index <i>m</i> is always 1.0.
-     */
-    public double[] ranks;
-
-    /**
-     * The partition boundaries as quantiles.
-     * The returned array is of size <i>(m + 1)</i>, where <i>m</i> is the requested number of partitions.
-     * Index 0 of the returned array is always {@link #getMinItem() getMinItem()}, and index <i>m</i> is always
-     * {@link #getMaxItem() getMaxItem()}.
-     */
-    public double[] boundaries;
-  }
 }
-

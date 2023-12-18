@@ -48,7 +48,7 @@ public class GenericPartitionBoundaries<T> implements PartitionBoundaries {
       final T minItem,
       final QuantileSearchCriteria searchCrit) {
     this.totalN = totalN;
-    this.boundaries = boundaries;
+    this.boundaries = boundaries; //SpotBugs copy
     this.natRanks = natRanks;
     this.normRanks = normRanks;
     this.maxItem = maxItem;

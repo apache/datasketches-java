@@ -276,6 +276,17 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
+  public String toString(final boolean withSummary, final boolean withData) {
+    KllSketch sketch = this;
+    if (withData && sketchStructure != UPDATABLE) {
+      final Memory mem = getWritableMemory();
+      assert mem != null;
+      sketch = KllItemsSketch.heapify((Memory)getWritableMemory(), comparator, serDe);
+    }
+    return KllHelper.toStringImpl(sketch, withSummary, withData, getSerDe());
+  }
+
+  @Override
   public void update(final T item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllItemsHelper.updateItem(this, item, comparator);
