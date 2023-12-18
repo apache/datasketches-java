@@ -718,7 +718,7 @@ final class KllHelper {
     return result;
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format
