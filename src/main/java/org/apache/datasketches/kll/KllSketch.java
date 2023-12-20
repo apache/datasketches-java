@@ -131,6 +131,13 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   /**
+   * Gets the string value of the item at the given index.
+   * @param index the index of the value
+   * @return the string value of the item at the given index.
+   */
+  abstract String getItemAsString(int index);
+
+  /**
    * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error.
    * @param epsilon the normalized rank error between zero and one.
    * @param pmf if true, this function returns the <em>k</em> assuming the input epsilon
@@ -158,6 +165,18 @@ public abstract class KllSketch implements QuantilesAPI {
         KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, sketchType, false);
     return updatableMemFormat ? gStats.updatableBytes : gStats.compactBytes;
   }
+
+  /**
+   * Gets the string value of the max item
+   * @return the string value of the max item
+   */
+  abstract String getMaxItemAsString();
+
+  /**
+   * Gets the string value of the min item
+   * @return the string value of the min item
+   */
+  abstract String getMinItemAsString();
 
   /**
    * Gets the normalized rank error given k and pmf.
@@ -262,17 +281,17 @@ public abstract class KllSketch implements QuantilesAPI {
 
   @Override
   public final String toString() {
-    return toString(false, false);
+    return toString(true, false);
   }
 
   /**
    * Returns a summary of the sketch as a string.
-   * @param withLevels if true include information about levels
+   * @param withSummary if true includes sketch summary information
    * @param withData if true include sketch data
    * @return string representation of sketch summary
    */
-  public String toString(final boolean withLevels, final boolean withData) {
-    return KllHelper.toStringImpl(this, withLevels, withData, getSerDe());
+  public String toString(final boolean withSummary, final boolean withData) {
+    return KllHelper.toStringImpl(this, withSummary, withData, getSerDe());
   }
 
   //restricted
