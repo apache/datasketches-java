@@ -36,6 +36,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -175,7 +176,11 @@ final class KllMemoryValidate {
 
     int offsetBytes = DATA_START_ADR + levelsLen * Integer.BYTES;
     if (sketchType == ITEMS_SKETCH) {
-      offsetBytes += serDe.sizeOf(srcMem, offsetBytes, numItems + 2); //2 for min & max
+      if (serDe instanceof ArrayOfBooleansSerDe) {
+        offsetBytes += serDe.sizeOf(srcMem, offsetBytes, numItems) + 2; //2 for min & max
+      } else {
+        offsetBytes += serDe.sizeOf(srcMem, offsetBytes, numItems + 2); //2 for min & max
+      }
     } else {
       final int typeBytes = sketchType.getBytes();
       offsetBytes += (numItems + 2) * typeBytes; //2 for min & max

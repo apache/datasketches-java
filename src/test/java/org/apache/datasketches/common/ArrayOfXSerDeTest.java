@@ -34,7 +34,7 @@ public class ArrayOfXSerDeTest {
     WritableMemory wmem;
     ArrayOfBooleansSerDe serDe = new ArrayOfBooleansSerDe();
 
-    Boolean[] items = {true,false,true,true,false,false};
+    Boolean[] items = {true,false,true,false,true,false,true,false,true,false};
     bytes = serDe.sizeOf(items);
     byteArr = serDe.serializeToByteArray(items);
     assertEquals(byteArr.length, bytes);

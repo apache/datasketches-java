@@ -27,6 +27,7 @@ import static org.testng.Assert.fail;
 
 import java.util.Comparator;
 
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
@@ -435,6 +436,33 @@ public class KllMiscItemsTest {
     KllItemsSketch<String> skCompact = KllItemsSketch.wrap(srcMem2, Comparator.naturalOrder(), serDe);
     assertTrue(skCompact instanceof KllDirectCompactItemsSketch);
     assertEquals(skCompact.getSingleItem(), "1");
+  }
+
+  @Test
+  public void checkIssue484() {
+    Boolean[] items = { true,false,true,false,true,false,true,false,true,false };
+    KllItemsSketch<Boolean> sketch = KllItemsSketch.newHeapInstance(Boolean::compareTo, new ArrayOfBooleansSerDe());
+    for (int i = 0; i < items.length; i++) { sketch.update(items[i]); }
+    byte[] serialized = sketch.toByteArray();
+    KllItemsSketch<Boolean> deserialized =
+        KllItemsSketch.wrap(Memory.wrap(serialized), Boolean::compareTo, new ArrayOfBooleansSerDe());
+    checkSketchesEqual(items, sketch, deserialized);
+  }
+
+  private static <T> void checkSketchesEqual(T[] items, KllItemsSketch<T> expected, KllItemsSketch<T> actual) {
+    KllItemsSketchSortedView<T> expSV = expected.getSortedView();
+    KllItemsSketchSortedView<T> actSV = actual.getSortedView();
+    long N = actSV.getN();
+    long[] expCumWts = expSV.getCumulativeWeights();
+    Boolean[] expItemsArr = (Boolean[])expSV.getQuantiles();
+    long[] actCumWts = actSV.getCumulativeWeights();
+    Boolean[] actItemsArr = (Boolean[])actSV.getQuantiles();
+    printf("%3s %8s %8s\n", "i","Actual", "Expected");
+    for (int i = 0; i < N; i++) {
+      printf("%3d %8s %8s\n", i, actItemsArr[i].toString(), expItemsArr[i].toString());
+    }
+    assertEquals(actCumWts, expCumWts);
+    assertEquals(actItemsArr, expItemsArr);
   }
 
   private final static boolean enablePrinting = false;

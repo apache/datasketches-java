@@ -32,6 +32,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SING
 import java.lang.reflect.Array;
 import java.util.Comparator;
 
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -154,6 +155,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   int getMinMaxSizeBytes() { //this is only used by COMPACT_FULL
     final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
+    if (serDe instanceof ArrayOfBooleansSerDe) { return 2; }
     return serDe.sizeOf(mem, offset, 2);
   }
 
