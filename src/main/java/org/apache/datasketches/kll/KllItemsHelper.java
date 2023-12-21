@@ -305,12 +305,16 @@ final class KllItemsHelper<T> {
       itmSk.setMinItem(Util.minT(itmSk.getMinItem(), item, comp));
       itmSk.setMaxItem(Util.maxT(itmSk.getMaxItem(), item, comp));
     }
-    if (itmSk.levelsArr[0] == 0) { compressWhileUpdatingSketch(itmSk); }
-    final int myLevelsArrAtZero = itmSk.levelsArr[0]; //LevelsArr could be expanded
+    int level0space = itmSk.levelsArr[0];
+    assert level0space >= 0;
+    if (level0space == 0) {
+      compressWhileUpdatingSketch(itmSk);
+      level0space = itmSk.levelsArr[0];
+      assert (level0space > 0);
+    }
     itmSk.incN();
     itmSk.setLevelZeroSorted(false);
-    final int nextPos = myLevelsArrAtZero - 1;
-    assert myLevelsArrAtZero >= 0;
+    final int nextPos = level0space - 1;
     itmSk.setLevelsArrayAt(0, nextPos);
     itmSk.setItemsArrayAt(nextPos, item);
   }

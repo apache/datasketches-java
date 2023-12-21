@@ -141,6 +141,14 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     return new KllHeapFloatsSketch(srcMem, memVal);
   }
 
+  //End of constructors
+
+  @Override
+  String getItemAsString(final int index) {
+    if (isEmpty()) { return "NaN"; }
+    return Double.toString(floatItems[index]);
+  }
+
   @Override
   public int getK() { return k; }
 
@@ -151,9 +159,21 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
+  String getMaxItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Float.toString(maxFloatItem);
+  }
+
+  @Override
   public float getMinItem() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return minFloatItem;
+  }
+
+  @Override
+  String getMinItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Float.toString(minFloatItem);
   }
 
   @Override

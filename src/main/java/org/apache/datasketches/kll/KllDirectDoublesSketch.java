@@ -116,7 +116,13 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     return new KllDirectDoublesSketch(UPDATABLE, wMem, memReqSvr, memVal);
   }
 
-  //END of Constructors
+  //End of constructors
+
+  @Override
+  String getItemAsString(final int index) {
+    if (isEmpty()) { return "NaN"; }
+    return Double.toString(getDoubleItemsArray()[index]);
+  }
 
   @Override
   public int getK() {
@@ -138,6 +144,12 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
+  String getMaxItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Double.toString(getMaxItem());
+  }
+
+  @Override
   public double getMinItem() {
     int levelsArrBytes = 0;
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
@@ -149,6 +161,12 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     }
     final int offset =  DATA_START_ADR + levelsArrBytes;
     return wmem.getDouble(offset);
+  }
+
+  @Override
+  String getMinItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Double.toString(getMinItem());
   }
 
   @Override

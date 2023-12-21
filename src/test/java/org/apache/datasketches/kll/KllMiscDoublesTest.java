@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -27,6 +28,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDirectDoublesSketch.KllDirectCompactDoublesSketch;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -38,6 +40,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("unused")
 public class KllMiscDoublesTest {
   static final String LS = System.getProperty("line.separator");
   private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
@@ -168,20 +171,84 @@ public class KllMiscDoublesTest {
   public void viewHeapCompactions() {
     int k = 20;
     int n = 108;
+    boolean withSummary = false;
+    boolean withData = true;
     int compaction = 0;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    WritableMemory wmem = WritableMemory.allocate(1 << 20);
+    MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
+    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(k, wmem, memReqSvr);
     for (int i = 1; i <= n; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
         println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
-        println(sk.toString(true, true));
+        println(sk.toString(withSummary, withData));
         sk.update(++i);
         println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
-        println(sk.toString(true, true));
+        println(sk.toString(withSummary, withData));
         assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
       }
     }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(withSummary, withData));
+    println("");
   }
+
+  @Test
+  public void viewCompactSketchData() {
+    int k = 20;
+    int n = 109;
+    boolean withSummary = true;
+    boolean withData = true;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    byte[] byteArr = sk.toByteArray();
+    Memory mem = Memory.wrap(byteArr);
+    KllDoublesSketch ddSk = KllDoublesSketch.wrap(mem);
+    println(ddSk.toString(withSummary, withData));
+  }
+
+  //@Test //set static enablePrinting = true for visual checking
+  //  // must also make KllHelper.intCapAux(...) visible
+  //  public void checkIntCapAux() {
+  //    String[] hdr = {"level", "depth", "wt", "cap", "(end)", "MaxN"};
+  //    String hdrFmt =  "%6s %6s %28s %10s %10s %34s\n";
+  //    String dataFmt = "%6d %6d %,28d %,10d %,10d %,34.0f\n";
+  //    int k = 1000;
+  //    int m = 8;
+  //    int numLevels = 20;
+  //    println("k=" + k + ", m=" + m + ", numLevels=" + numLevels);
+  //    printf(hdrFmt, (Object[]) hdr);
+  //    double maxN = 0;
+  //    for (int i = 0; i < numLevels; i++) {
+  //      int depth = numLevels - i - 1;
+  //      long cap = KllHelper.intCapAux(k, depth);
+  //      long end = Math.max(m, cap);
+  //      long wt = 1L << i;
+  //      maxN += (double)wt * (double)end;
+  //      printf(dataFmt, i, depth, wt, cap, end, maxN);
+  //    }
+  //  }
+
+  //@Test //set static enablePrinting = true for visual checking
+  //  // must also make KllHelper.powersOfThree visible
+  //  public void checkIntCapAuxAux() {
+  //    String[] hdr = {"d","twoK","2k*2^d","3^d","tmp=2k*2^d/3^d","(tmp + 1)/2", "(end)"};
+  //    String hdrFmt =  "%6s %10s %20s %20s %15s %12s %10s\n";
+  //    String dataFmt = "%6d %10d %,20d %,20d %15d %12d %10d\n";
+  //    long k = (1L << 16) - 1L;
+  //    long m = 8;
+  //    println("k = " + k + ", m = " + m);
+  //    printf(hdrFmt, (Object[]) hdr);
+  //    for (int i = 0; i < 31; i++) {
+  //      long twoK = k << 1;
+  //      long twoKxtwoD = twoK << i;
+  //      long threeToD = KllHelper.powersOfThree[i];
+  //      long tmp = twoKxtwoD / threeToD;
+  //      long result = (tmp + 1L) >>> 1;
+  //      long end = Math.max(m, result); //performed later
+  //      printf(dataFmt, i, twoK, twoKxtwoD, threeToD, tmp, result, end);
+  //    }
+  //  }
 
   @Test //set static enablePrinting = true for visual checking
   public void viewDirectCompactions() {

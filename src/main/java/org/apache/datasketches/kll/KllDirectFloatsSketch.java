@@ -119,6 +119,12 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   //END of Constructors
 
   @Override
+  String getItemAsString(final int index) {
+    if (isEmpty()) { return "NaN"; }
+    return Float.toString(getFloatItemsArray()[index]);
+  }
+
+  @Override
   public int getK() {
     return getMemoryK(wmem);
   }
@@ -138,6 +144,12 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
+  String getMaxItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Float.toString(getMaxItem());
+  }
+
+  @Override
   public float getMinItem() {
     int levelsArrBytes = 0;
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
@@ -149,6 +161,12 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     }
     final int offset =  DATA_START_ADR + levelsArrBytes;
     return wmem.getFloat(offset);
+  }
+
+  @Override
+  String getMinItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Float.toString(getMinItem());
   }
 
   @Override

@@ -309,12 +309,16 @@ final class KllDoublesHelper {
       dblSk.setMinItem(min(dblSk.getMinItem(), item));
       dblSk.setMaxItem(max(dblSk.getMaxItem(), item));
     }
-    if (dblSk.levelsArr[0] == 0) { compressWhileUpdatingSketch(dblSk); }
-    final int myLevelsArrAtZero = dblSk.levelsArr[0]; //LevelsArr could be expanded
+    int level0space = dblSk.levelsArr[0];
+    assert (level0space >= 0);
+    if (level0space == 0) {
+      compressWhileUpdatingSketch(dblSk);
+      level0space = dblSk.levelsArr[0];
+      assert (level0space > 0);
+    }
     dblSk.incN();
     dblSk.setLevelZeroSorted(false);
-    final int nextPos = myLevelsArrAtZero - 1;
-    assert myLevelsArrAtZero >= 0;
+    final int nextPos = level0space - 1;
     dblSk.setLevelsArrayAt(0, nextPos);
     dblSk.setDoubleItemsArrayAt(nextPos, item);
   }

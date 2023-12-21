@@ -141,6 +141,14 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     return new KllHeapDoublesSketch(srcMem, memVal);
   }
 
+  //End of constructors
+
+  @Override
+  String getItemAsString(final int index) {
+    if (isEmpty()) { return "NaN"; }
+    return Double.toString(doubleItems[index]);
+  }
+
   @Override
   public int getK() { return k; }
 
@@ -151,9 +159,21 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
+  String getMaxItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Double.toString(maxDoubleItem);
+  }
+
+  @Override
   public double getMinItem() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return minDoubleItem;
+  }
+
+  @Override
+  String getMinItemAsString() {
+    if (isEmpty()) { return "NaN"; }
+    return Double.toString(minDoubleItem);
   }
 
   @Override

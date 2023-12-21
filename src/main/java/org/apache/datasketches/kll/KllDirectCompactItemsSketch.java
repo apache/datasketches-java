@@ -32,6 +32,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SING
 import java.lang.reflect.Array;
 import java.util.Comparator;
 
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -65,6 +66,14 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     levelsArr = memVal.levelsArr; //always converted to writable form.
   }
 
+  //End of constructors
+
+  @Override
+  String getItemAsString(final int index) {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(getTotalItemsArray()[index]);
+  }
+
   @Override
   public int getK() {
     return getMemoryK(mem);
@@ -84,6 +93,12 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  String getMaxItemAsString() {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(getMaxItem());
+  }
+
+  @Override
   public T getMinItem() {
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
       throw new SketchesArgumentException(EMPTY_MSG);
@@ -94,6 +109,12 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     //sketchStructure == COMPACT_FULL
     final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
     return serDe.deserializeFromMemory(mem, offset, 1)[0];
+  }
+
+  @Override
+  String getMinItemAsString() {
+    if (isEmpty()) { return "Null"; }
+    return serDe.toString(getMinItem());
   }
 
   @Override
@@ -134,6 +155,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   int getMinMaxSizeBytes() { //this is only used by COMPACT_FULL
     final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
+    if (serDe instanceof ArrayOfBooleansSerDe) { return 2; }
     return serDe.sizeOf(mem, offset, 2);
   }
 

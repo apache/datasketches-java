@@ -449,6 +449,7 @@ public class UnionTest {
     Union union1 = new Union(lgK, wmem); //Create original union off-heap
     union1.update(sk1);
     union1.update(sk2); //oooFlag = Rebuild_KxQ = TRUE
+    assertTrue(!union1.toString().isEmpty());
     boolean rebuild = PreambleUtil.extractRebuildCurMinNumKxQFlag(wmem);
     double hipAccum = PreambleUtil.extractHipAccum(wmem);
     assertTrue(rebuild);

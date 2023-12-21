@@ -309,12 +309,16 @@ final class KllFloatsHelper {
       fltSk.setMinItem(min(fltSk.getMinItem(), item));
       fltSk.setMaxItem(max(fltSk.getMaxItem(), item));
     }
-    if (fltSk.levelsArr[0] == 0) { compressWhileUpdatingSketch(fltSk); }
-    final int myLevelsArrAtZero = fltSk.levelsArr[0]; //LevelsArr could be expanded
+    int level0space = fltSk.levelsArr[0];
+    assert level0space >= 0;
+    if (level0space == 0) {
+      compressWhileUpdatingSketch(fltSk);
+      level0space = fltSk.levelsArr[0];
+      assert (level0space > 0);
+    }
     fltSk.incN();
     fltSk.setLevelZeroSorted(false);
-    final int nextPos = myLevelsArrAtZero - 1;
-    assert myLevelsArrAtZero >= 0;
+    final int nextPos = level0space - 1;
     fltSk.setLevelsArrayAt(0, nextPos);
     fltSk.setFloatItemsArrayAt(nextPos, item);
   }
