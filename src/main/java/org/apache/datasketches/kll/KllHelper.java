@@ -432,13 +432,13 @@ final class KllHelper {
     final byte m = (byte) srcSk.getM();
 
     //load first 8 bytes
-    wbuf.putByte(preInts);
+    wbuf.putByte(preInts); //byte 0
     wbuf.putByte(serVer);
     wbuf.putByte(famId);
     wbuf.putByte(flags);
     wbuf.putShort(k);
     wbuf.putByte(m);
-    wbuf.incrementPosition(1);
+    wbuf.incrementPosition(1); //byte 7 is unused
 
     if (tgtStructure == COMPACT_EMPTY) {
       return bytesOut;
