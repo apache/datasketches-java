@@ -30,6 +30,7 @@ import static org.testng.Assert.fail;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
@@ -648,15 +649,52 @@ public class ItemsSketchTest {
   }
 
   @Test
+  public void checkIssue484() {
+    Boolean[] items = { true,false,true,false,true,false,true,false,true,false };
+    ItemsSketch<Boolean> sketch = ItemsSketch.getInstance(Boolean.class, Boolean::compareTo);
+    for (int i = 0; i < items.length; i++) { sketch.update(items[i]); }
+    byte[] serialized = sketch.toByteArray(new ArrayOfBooleansSerDe());
+    ItemsSketch<Boolean> deserialized =
+        ItemsSketch.getInstance(Boolean.class, Memory.wrap(serialized), Boolean::compareTo, new ArrayOfBooleansSerDe());
+    checkSketchesEqual(sketch, deserialized);
+  }
+
+  private static <T> void checkSketchesEqual(ItemsSketch<T> expected, ItemsSketch<T> actual) {
+    ItemsSketchSortedView<T> expSV = expected.getSortedView();
+    ItemsSketchSortedView<T> actSV = actual.getSortedView();
+    int N = (int)actSV.getN();
+    long[] expCumWts = expSV.getCumulativeWeights();
+    Boolean[] expItemsArr = (Boolean[])expSV.getQuantiles();
+    long[] actCumWts = actSV.getCumulativeWeights();
+    Boolean[] actItemsArr = (Boolean[])actSV.getQuantiles();
+    printf("%3s %8s %8s\n", "i","Actual", "Expected");
+    for (int i = 0; i < N; i++) {
+      printf("%3d %8s %8s\n", i, actItemsArr[i].toString(), expItemsArr[i].toString());
+    }
+    assertEquals(actCumWts, expCumWts);
+    assertEquals(actItemsArr, expItemsArr);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
 
+  private final static boolean enablePrinting = false;
+
   /**
-   * @param s value to print
+   * @param format the format
+   * @param args the args
    */
-  static void println(final String s) {
-    //System.out.println(s); //disable here
+  private static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
+  }
+
+  /**
+   * @param o the Object to println
+   */
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }
