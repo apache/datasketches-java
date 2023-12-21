@@ -446,13 +446,13 @@ public class KllMiscItemsTest {
     byte[] serialized = sketch.toByteArray();
     KllItemsSketch<Boolean> deserialized =
         KllItemsSketch.wrap(Memory.wrap(serialized), Boolean::compareTo, new ArrayOfBooleansSerDe());
-    checkSketchesEqual(items, sketch, deserialized);
+    checkSketchesEqual(sketch, deserialized);
   }
 
-  private static <T> void checkSketchesEqual(T[] items, KllItemsSketch<T> expected, KllItemsSketch<T> actual) {
+  private static <T> void checkSketchesEqual(KllItemsSketch<T> expected, KllItemsSketch<T> actual) {
     KllItemsSketchSortedView<T> expSV = expected.getSortedView();
     KllItemsSketchSortedView<T> actSV = actual.getSortedView();
-    long N = actSV.getN();
+    int N = (int)actSV.getN();
     long[] expCumWts = expSV.getCumulativeWeights();
     Boolean[] expItemsArr = (Boolean[])expSV.getQuantiles();
     long[] actCumWts = actSV.getCumulativeWeights();
