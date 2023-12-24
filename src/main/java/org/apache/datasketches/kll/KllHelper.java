@@ -28,6 +28,7 @@ import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static org.apache.datasketches.common.Family.KLL;
+import static org.apache.datasketches.common.Util.bitAt;
 import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
@@ -93,7 +94,7 @@ final class KllHelper {
   /**
    * This is the exact powers of 3 from 3^0 to 3^30 where the exponent is the index
    */
-  private static long[] powersOfThree =
+  static long[] powersOfThree =
       new long[] {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
   1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467,
   3486784401L, 10460353203L, 31381059609L, 94143178827L, 282429536481L,
@@ -150,6 +151,23 @@ final class KllHelper {
     return subtotal;
   }
 
+  /**
+   * Create the Levels Array from given weight
+   * Used with weighted update only.
+   * @param weight the given weight
+   * @return the Levels Array
+   */
+  static int[] createLevelsArray(final int weight) {
+    final int numLevels = 32 - Integer.numberOfLeadingZeros(weight);
+    final int[] levelsArr = new int[numLevels + 1]; //always one more than numLevels
+    int itemsArrIndex = 0;
+    levelsArr[0] = itemsArrIndex;
+    for (int level = 0; level < numLevels; level++) {
+      levelsArr[level + 1] = itemsArrIndex += bitAt(weight, level);
+    }
+    return levelsArr;
+  }
+
   static int currentLevelSizeItems(final int level, final int numLevels, final int[] levels) {
     if (level >= numLevels) { return 0; }
     return levels[level + 1] - levels[level];
@@ -180,7 +198,9 @@ final class KllHelper {
       printf("%6s %8s %12s %18s %18s\n", "Level", "Items", "CumItems", "N at Level", "CumN");
     }
     for (int level = 0; level < numLevels; level++) {
-      final LevelStats lvlStats = getLevelCapacityItems(k, m, numLevels, level);
+      final int items = KllHelper.levelCapacity(k, numLevels, level, m);
+      final long n = (long)items << level;
+      final LevelStats lvlStats = new LevelStats(n, numLevels, items);
       cumItems += lvlStats.numItems;
       cumN += lvlStats.n;
       if (printSketchStructure) {
@@ -255,24 +275,6 @@ final class KllHelper {
     final double del = abs(krnd - kdbl);
     final int k = (int) (del < EPS_DELTA_THRESHOLD ? krnd : ceil(kdbl));
     return max(KllSketch.MIN_M, min(KllSketch.MAX_K, k));
-  }
-
-  /**
-   * Given k, m, numLevels, this computes the item capacity of a single level.
-   * @param k the given user sketch configuration parameter
-   * @param m the given user sketch configuration parameter
-   * @param numLevels the given number of levels of the sketch
-   * @param level the specific level to compute its item capacity
-   * @return LevelStats with the computed N and items for the given level.
-   */
-  static LevelStats getLevelCapacityItems(
-      final int k,
-      final int m,
-      final int numLevels,
-      final int level) {
-    final int items = KllHelper.levelCapacity(k, numLevels, level, m);
-    final long n = (long)items << level;
-    return new LevelStats(n, numLevels, items);
   }
 
   /**
@@ -696,7 +698,7 @@ final class KllHelper {
    * @param depth the zero-based index of the level being computed.
    * @return the actual capacity of a given level given its depth index.
    */
-  private static long intCapAux(final int k, final int depth) {
+  static long intCapAux(final int k, final int depth) {
     if (depth <= 30) { return intCapAuxAux(k, depth); }
     final int half = depth / 2;
     final int rest = depth - half;
@@ -710,7 +712,7 @@ final class KllHelper {
    * @param depth the zero-based index of the level being computed. The max depth is 30!
    * @return the actual capacity of a given level given its depth index.
    */
-  private static long intCapAuxAux(final long k, final int depth) {
+  static long intCapAuxAux(final long k, final int depth) {
     final long twok = k << 1; // for rounding at the end, pre-multiply by 2 here, divide by 2 during rounding.
     final long tmp = ((twok << depth) / powersOfThree[depth]); //2k* (2/3)^depth. 2k also keeps the fraction larger.
     final long result = ((tmp + 1L) >>> 1); // (tmp + 1)/2. If odd, round up. This guarantees an integer.

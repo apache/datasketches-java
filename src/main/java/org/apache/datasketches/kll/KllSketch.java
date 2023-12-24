@@ -113,7 +113,7 @@ public abstract class KllSketch implements QuantilesAPI {
   final SketchType sketchType;
   final SketchStructure sketchStructure;
   boolean readOnly;
-  int[] levelsArr; //Always writable form
+  int[] levelsArr; //Always updatable form
 
   /**
    * Constructor for on-heap and off-heap.

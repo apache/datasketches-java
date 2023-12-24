@@ -276,9 +276,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   public final void merge(final KllSketch other) {
     if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
-    if (othDblSk.isEmpty()) { return; }
-    KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
+    if (other.isEmpty()) { return; }
+    KllDoublesHelper.mergeDoubleImpl(this, (KllDoublesSketch)other);
     kllDoublesSV = null;
   }
 
@@ -321,6 +320,19 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public void update(final double item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllDoublesHelper.updateDouble(this, item);
+    kllDoublesSV = null;
+  }
+
+  /**
+   * Updates this sketch with the given item the number of times specified by the given weight.
+   * @param item the item to be repeated. NaNs are ignored.
+   * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
+   */
+  public void weightedUpdate(final double item, final int weight) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
+    if (Double.isNaN(item)) { return; } //ignore
+    KllHeapDoublesSketch.weightedUpdateDouble(this, item, weight);
     kllDoublesSV = null;
   }
 

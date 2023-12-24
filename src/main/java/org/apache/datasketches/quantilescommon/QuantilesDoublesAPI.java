@@ -293,7 +293,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
 
   /**
    * Updates this sketch with the given item.
-   * @param item from a stream of quantiles. NaNs are ignored.
+   * @param item from a stream of items. NaNs are ignored.
    */
   void update(double item);
 

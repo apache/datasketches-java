@@ -82,6 +82,25 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   /**
+   * Used for creating a temporary sketch for use with weighted updates.
+   */
+  KllHeapDoublesSketch(final int k, final int m, final double item, final int weight) {
+    super(UPDATABLE);
+    KllHelper.checkM(m);
+    KllHelper.checkK(k, m);
+    this.levelsArr = KllHelper.createLevelsArray(weight);
+    this.readOnly = false;
+    this.k = k;
+    this.m = m;
+    this.n = weight;
+    this.minK = k;
+    this.isLevelZeroSorted = false;
+    this.minDoubleItem = item;
+    this.maxDoubleItem = item;
+    this.doubleItems = KllDoublesHelper.createItemsArray(item, weight);
+  }
+
+  /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
    * @param memValidate the MemoryValidate object
@@ -281,5 +300,14 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   void setWritableMemory(final WritableMemory wmem) { }
+
+  static void weightedUpdateDouble(final KllDoublesSketch dblSk, final double item, final int weight) {
+    if (weight < dblSk.getLevelsArray(UPDATABLE)[0]) {
+      for (int i = 0; i < weight; i++) { dblSk.update(item); }
+    } else {
+      final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
+      dblSk.merge(tmpSk);
+    }
+  }
 
 }
