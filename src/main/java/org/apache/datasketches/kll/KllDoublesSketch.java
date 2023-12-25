@@ -276,8 +276,9 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   public final void merge(final KllSketch other) {
     if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    if (other.isEmpty()) { return; }
-    KllDoublesHelper.mergeDoubleImpl(this, (KllDoublesSketch)other);
+    final KllDoublesSketch othDblSk = (KllDoublesSketch)other; //check cast first
+    if (othDblSk.isEmpty()) { return; } //then check empty
+    KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
     kllDoublesSV = null;
   }
 
