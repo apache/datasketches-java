@@ -136,10 +136,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
       maxDoubleItem = srcMem.getDouble(offsetBytes);
       offsetBytes += Double.BYTES;
       final int capacityItems = levelsArr[getNumLevels()];
-      final int garbageItems = levelsArr[0];
-      final int retainedItems = capacityItems - garbageItems;
+      final int freeItems = levelsArr[0];
+      final int retainedItems = capacityItems - freeItems;
       doubleItems = new double[capacityItems];
-      srcMem.getDoubleArray(offsetBytes, doubleItems, garbageItems, retainedItems);
+      srcMem.getDoubleArray(offsetBytes, doubleItems, freeItems, retainedItems);
     }
     else { //(memStructure == UPDATABLE)
       int offsetBytes = DATA_START_ADR;
@@ -300,14 +300,5 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   void setWritableMemory(final WritableMemory wmem) { }
-
-  static void weightedUpdateDouble(final KllDoublesSketch dblSk, final double item, final int weight) {
-    if (weight < dblSk.getLevelsArray(UPDATABLE)[0]) {
-      for (int i = 0; i < weight; i++) { dblSk.update(item); }
-    } else {
-      final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
-      dblSk.merge(tmpSk);
-    }
-  }
 
 }

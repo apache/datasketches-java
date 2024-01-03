@@ -77,7 +77,7 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
       if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
     }
 
-    final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
+    final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove free space
     quantiles = new float[numQuantiles];
     cumWeights = new long[numQuantiles];
     populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);

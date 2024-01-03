@@ -103,7 +103,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
       if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
     }
 
-    final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
+    final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove free space
     quantiles = (T[]) Array.newInstance(sketch.serDe.getClassOfT(), numQuantiles);
     cumWeights = new long[numQuantiles];
     populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);

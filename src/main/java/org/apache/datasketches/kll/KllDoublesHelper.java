@@ -24,6 +24,8 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
+import static org.apache.datasketches.kll.KllSketch.DEFAULT_M;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -313,28 +315,29 @@ final class KllDoublesHelper {
     }
   }
 
-  //Called from KllDoublesSketch::update and this
+  //Called from KllDoublesSketch::update and merge
   static void updateDouble(final KllDoublesSketch dblSk, final double item) {
-    if (Double.isNaN(item)) { return; } //ignore
-    if (dblSk.isEmpty()) {
-      dblSk.setMinItem(item);
-      dblSk.setMaxItem(item);
-    } else {
-      dblSk.setMinItem(min(dblSk.getMinItem(), item));
-      dblSk.setMaxItem(max(dblSk.getMaxItem(), item));
-    }
-    int level0space = dblSk.levelsArr[0];
-    assert (level0space >= 0);
-    if (level0space == 0) {
+    int freeSpace = dblSk.levelsArr[0];
+    assert (freeSpace >= 0);
+    if (freeSpace == 0) {
       compressWhileUpdatingSketch(dblSk);
-      level0space = dblSk.levelsArr[0];
-      assert (level0space > 0);
+      freeSpace = dblSk.levelsArr[0];
+      assert (freeSpace > 0);
     }
     dblSk.incN();
     dblSk.setLevelZeroSorted(false);
-    final int nextPos = level0space - 1;
+    final int nextPos = freeSpace - 1;
     dblSk.setLevelsArrayAt(0, nextPos);
     dblSk.setDoubleItemsArrayAt(nextPos, item);
+  }
+
+  static void updateDouble(final KllDoublesSketch dblSk, final double item, final int weight) {
+    if (weight < dblSk.getLevelsArray(UPDATABLE)[0]) {
+      for (int i = 0; i < weight; i++) { dblSk.update(item); }
+    } else {
+      final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
+      dblSk.merge(tmpSk);
+    }
   }
 
   /**

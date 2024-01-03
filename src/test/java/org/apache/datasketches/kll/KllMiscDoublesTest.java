@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.common.Util.bitAt;
 import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -168,50 +169,124 @@ public class KllMiscDoublesTest {
     assertEquals(sk2.getNumRetained(), 56);
   }
 
-  //Disable this test for releases
   @Test //set static enablePrinting = true for visual checking
   public void viewHeapCompactions() {
     int k = 20;
     int n = 108;
     boolean withSummary = false;
-    boolean withData = true;
+    boolean withDetail = true;
     int compaction = 0;
-    WritableMemory wmem = WritableMemory.allocate(1 << 20);
-    MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    for (int i = 1; i <= n; i++) {
+      sk.update(i);
+      if (sk.levelsArr[0] == 0) {
+        println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
+        println(sk.toString(withSummary, withDetail));
+        sk.update(++i);
+        println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
+        println(sk.toString(withSummary, withDetail));
+        assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
+      }
+    }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(withSummary, withDetail));
+    println("");
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void viewDirectCompactions() {
+    int k = 20;
+    int n = 108;
+    boolean withSummary = false;
+    boolean withDetail = true;
+    int compaction = 0;
+    int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, n, DOUBLES_SKETCH, true);
+    WritableMemory wmem = WritableMemory.allocate(sizeBytes);
     KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(k, wmem, memReqSvr);
     for (int i = 1; i <= n; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
         println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
-        println(sk.toString(withSummary, withData));
+        println(sk.toString(withSummary, withDetail));
         sk.update(++i);
         println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
-        println(sk.toString(withSummary, withData));
+        println(sk.toString(withSummary, withDetail));
         assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
       }
     }
     println(LS + "#<<< END STATE # >>>");
-    println(sk.toString(withSummary, withData));
+    println(sk.toString(withSummary, withDetail));
     println("");
   }
 
   @Test //set static enablePrinting = true for visual checking
-  public void checkWeightedUpdates() {
+  public void viewCompactionAndSortedView() {
+    int n = 43;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    println(sk.toString(true, true));
+    DoublesSortedView sv = sk.getSortedView();
+    DoublesSortedViewIterator itr = sv.iterator();
+    println("### SORTED VIEW");
+    printf("%12s%12s\n", "Value", "Weight");
+    long[] correct = {2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    int i = 0;
+    while (itr.next()) {
+      double v = itr.getQuantile();
+      long wt = itr.getWeight();
+      printf("%12.1f%12d\n", v, wt);
+      assertEquals(wt, correct[i++]);
+    }
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkWeightedUpdates1() {
     int k = 20;
-    int n1 = 0;
     int weight = 127;
     double item = 10.0;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     println(sk.toString(true, true));
-    sk.weightedUpdate(item, weight);
-//    sk.weightedUpdate(item, n2);
-//    println(sk.toString(true, true));
-//    assertEquals(sk.getNumRetained(), 8);
-//    assertEquals(sk.getN(), 216);
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 7);
+    assertEquals(sk.getN(), 127);
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 14);
+    assertEquals(sk.getN(), 254);
   }
 
   @Test //set static enablePrinting = true for visual checking
-  public void checkCreateItemsArray() {
+  public void checkWeightedUpdates2() {
+    int k = 20;
+    int initial = 1000;
+    int weight = 127;
+    double item = 10.0;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    for (int i = 1; i <= initial; i++) { sk.update(i + 1000); }
+    println(sk.toString(true, true));
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 65);
+    assertEquals(sk.getN(), 1127);
+
+    DoublesSortedViewIterator itr = sk.getSortedView().iterator();
+    println("### SORTED VIEW");
+    printf("%12s %12s %12s\n", "Value", "Weight", "NaturalRank");
+    long cumWt = 0;
+    while (itr.next()) {
+      double v = itr.getQuantile();
+      long wt = itr.getWeight();
+      long natRank = itr.getNaturalRank(INCLUSIVE);
+      cumWt += wt;
+      assertEquals(cumWt, natRank);
+      printf("%12.1f %12d %12d\n", v, wt, natRank);
+    }
+    assertEquals(cumWt, sk.getN());
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkCreateItemsArray() { //used with weighted updates
     double item = 10.0;
     int weight = 108;
     double[] itemsArr = KllDoublesHelper.createItemsArray(item, weight);
@@ -233,7 +308,7 @@ public class KllMiscDoublesTest {
   }
 
   @Test //set static enablePrinting = true for visual checking
-  public void checkCreateLevelsArray() {
+  public void checkCreateLevelsArray() { //used with weighted updates
     int weight = 108;
     int[] levelsArr = KllHelper.createLevelsArray(weight);
     assertEquals(levelsArr.length, 8);
@@ -267,13 +342,13 @@ public class KllMiscDoublesTest {
     int k = 20;
     int n = 109;
     boolean withSummary = true;
-    boolean withData = true;
+    boolean withDetail = true;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toByteArray();
     Memory mem = Memory.wrap(byteArr);
     KllDoublesSketch ddSk = KllDoublesSketch.wrap(mem);
-    println(ddSk.toString(withSummary, withData));
+    println(ddSk.toString(withSummary, withDetail));
     assertEquals(ddSk.getN(), n);
   }
 
@@ -321,44 +396,6 @@ public class KllMiscDoublesTest {
       printf(dataFmt, i, twoK, twoKxtwoD, threeToD, tmp, result, end);
       assertEquals(result,correct[i]);
       assertEquals(result, KllHelper.intCapAuxAux(k, i));
-    }
-  }
-
-  @Test //set static enablePrinting = true for visual checking
-  public void viewDirectCompactions() {
-    int k = 20;
-    int n = 108;
-    int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, n, DOUBLES_SKETCH, true);
-    WritableMemory wmem = WritableMemory.allocate(sizeBytes);
-    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(k, wmem, memReqSvr);
-    for (int i = 1; i <= n; i++) {
-      sk.update(i);
-      if (sk.levelsArr[0] == 0) {
-        println(sk.toString(true, true));
-        sk.update(++i);
-        println(sk.toString(true, true));
-        assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
-      }
-    }
-  }
-
-  @Test //set static enablePrinting = true for visual checking
-  public void viewCompactionAndSortedView() {
-    int n = 43;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
-    for (int i = 1; i <= n; i++) { sk.update(i); }
-    println(sk.toString(true, true));
-    DoublesSortedView sv = sk.getSortedView();
-    DoublesSortedViewIterator itr = sv.iterator();
-    println("### SORTED VIEW");
-    printf("%12s%12s\n", "Value", "CumWeight");
-    long[] correct = {2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
-    int i = 0;
-    while (itr.next()) {
-      double v = itr.getQuantile();
-      long wt = itr.getWeight();
-      printf("%12.1f%12d\n", v, wt);
-      assertEquals(wt, correct[i++]);
     }
   }
 
@@ -650,7 +687,7 @@ public class KllMiscDoublesTest {
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
-    println(s); //note: heapify does not copy garbage, while toUpdatableByteArray does
+    println(s); //note: heapify does not copy free space, while toUpdatableByteArray does
     assertEquals(sk.getN(), sk2.getN());
     assertEquals(sk.getMinItem(), sk2.getMinItem());
     assertEquals(sk.getMaxItem(), sk2.getMaxItem());
@@ -736,7 +773,7 @@ public class KllMiscDoublesTest {
     printf("%s\n", s);
   }
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param format the format

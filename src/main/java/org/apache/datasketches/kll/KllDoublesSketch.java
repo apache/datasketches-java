@@ -307,33 +307,37 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public String toString(final boolean withSummary, final boolean withData) {
+  public String toString(final boolean withSummary, final boolean withDetail) {
     KllSketch sketch = this;
-    if (withData && sketchStructure != UPDATABLE) {
+    if (withDetail && sketchStructure != UPDATABLE) {
       final Memory mem = getWritableMemory();
       assert mem != null;
       sketch = KllDoublesSketch.heapify(getWritableMemory());
     }
-    return KllHelper.toStringImpl(sketch, withSummary, withData, getSerDe());
+    return KllHelper.toStringImpl(sketch, withSummary, withDetail, getSerDe());
   }
 
   @Override
   public void update(final double item) {
+    if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    updateMinMax(item);
     KllDoublesHelper.updateDouble(this, item);
     kllDoublesSV = null;
   }
 
   /**
-   * Updates this sketch with the given item the number of times specified by the given weight.
+   * Weighted update. Updates this sketch with the given item the number of times specified by the given weight.
    * @param item the item to be repeated. NaNs are ignored.
    * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
    */
-  public void weightedUpdate(final double item, final int weight) {
+  public void update(final double item, final int weight) {
+    if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
     if (Double.isNaN(item)) { return; } //ignore
-    KllHeapDoublesSketch.weightedUpdateDouble(this, item, weight);
+    updateMinMax(item);
+    KllDoublesHelper.updateDouble(this, item, weight);
     kllDoublesSV = null;
   }
 
@@ -402,5 +406,15 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract void setMaxItem(double item);
 
   abstract void setMinItem(double item);
+
+  private void updateMinMax(final double item) {
+    if (isEmpty()) {
+      setMinItem(item);
+      setMaxItem(item);
+    } else {
+      setMinItem(min(getMinItem(), item));
+      setMaxItem(max(getMaxItem(), item));
+    }
+  }
 
 }

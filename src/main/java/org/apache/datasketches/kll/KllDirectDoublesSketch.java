@@ -178,7 +178,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
 
   //restricted
 
-  @Override //returns updatable, expanded array including empty/garbage space at bottom
+  @Override //returns updatable, expanded array including free space at bottom
   double[] getDoubleItemsArray() {
     final int k = getK();
     if (sketchStructure == COMPACT_EMPTY) { return new double[k]; }
@@ -196,7 +196,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     return doubleItemsArr;
   }
 
-  @Override //returns compact items array of retained items, no empty/garbage.
+  @Override //returns compact items array of retained items, no free space.
   double[] getDoubleRetainedItemsArray() {
     if (sketchStructure == COMPACT_EMPTY) { return new double[0]; }
     if (sketchStructure == COMPACT_SINGLE) { return new double[] { getDoubleSingleItem() }; }
