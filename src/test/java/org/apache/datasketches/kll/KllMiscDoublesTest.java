@@ -198,16 +198,18 @@ public class KllMiscDoublesTest {
   @Test //set static enablePrinting = true for visual checking
   public void checkWeightedUpdates() {
     int k = 20;
-    int n1 = 0;
     int weight = 127;
     double item = 10.0;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     println(sk.toString(true, true));
     sk.weightedUpdate(item, weight);
-//    sk.weightedUpdate(item, n2);
-//    println(sk.toString(true, true));
-//    assertEquals(sk.getNumRetained(), 8);
-//    assertEquals(sk.getN(), 216);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 7);
+    assertEquals(sk.getN(), weight);
+    sk.weightedUpdate(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 14);
+    assertEquals(sk.getN(), 254);
   }
 
   @Test //set static enablePrinting = true for visual checking
