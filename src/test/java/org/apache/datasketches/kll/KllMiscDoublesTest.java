@@ -249,7 +249,7 @@ public class KllMiscDoublesTest {
     sk.update(item, weight);
     println(sk.toString(true, true));
     assertEquals(sk.getNumRetained(), 7);
-    assertEquals(sk.getN(), 127);
+    assertEquals(sk.getN(), weight);
     sk.update(item, weight);
     println(sk.toString(true, true));
     assertEquals(sk.getNumRetained(), 14);
