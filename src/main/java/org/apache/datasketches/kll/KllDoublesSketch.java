@@ -327,7 +327,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   /**
-   * Weighted update. Updates this sketch with the given item the number of times specified by the given weight.
+   * Weighted update. Updates this sketch with the given item the number of times specified by the given integer weight.
    * @param item the item to be repeated. NaNs are ignored.
    * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
    */
