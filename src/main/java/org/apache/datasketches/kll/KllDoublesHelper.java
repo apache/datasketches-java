@@ -40,6 +40,20 @@ import org.apache.datasketches.memory.WritableMemory;
 final class KllDoublesHelper {
 
   /**
+   * Create Items Array from given item and weight.
+   * Used with weighted update only.
+   * @param item the given item
+   * @param weight the given weight
+   * @return the Items Array.
+   */
+  static double[] createItemsArray(final double item, final int weight) {
+    final int itemsArrLen = Integer.bitCount(weight);
+    final double[] itemsArr = new double[itemsArrLen];
+    Arrays.fill(itemsArr, item);
+    return itemsArr;
+  }
+
+  /**
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
    * @param dblSk the current KllDoublesSketch
@@ -135,12 +149,12 @@ final class KllDoublesHelper {
       }
     }
 
-    //After the level 0 update, we capture the intermediate state of levels and items arrays...
+    //After the level 0 update, we capture the intermediate state of my levels and items arrays...
     final int myCurNumLevels = mySketch.getNumLevels();
     final int[] myCurLevelsArr = mySketch.levelsArr;
     final double[] myCurDoubleItemsArr = mySketch.getDoubleItemsArray();
 
-    // then rename them and initialize in case there are no higher levels
+    // create aliases in case there are no higher levels
     int myNewNumLevels = myCurNumLevels;
     int[] myNewLevelsArr = myCurLevelsArr;
     double[] myNewDoubleItemsArr = myCurDoubleItemsArr;
@@ -150,11 +164,12 @@ final class KllDoublesHelper {
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final double[] workbuf = new double[tmpSpaceNeeded];
-      final int ub = KllHelper.ubOnNumLevels(finalN);
-      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
-      final int[] outlevels  = new int[ub + 2];
 
       final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
+
+      final int ub = max(KllHelper.ubOnNumLevels(finalN), provisionalNumLevels);
+      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
+      final int[] outlevels  = new int[ub + 2];
 
       populateDoubleWorkArrays(workbuf, worklevels, provisionalNumLevels,
           myCurNumLevels, myCurLevelsArr, myCurDoubleItemsArr,
@@ -199,7 +214,7 @@ final class KllDoublesHelper {
             KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
         mySketch.setWritableMemory(wmem);
       }
-    }
+    } //end of updating levels above level 0
 
     //Update Preamble:
     mySketch.setN(finalN);
@@ -225,7 +240,7 @@ final class KllDoublesHelper {
     assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
   }
 
-  private static void mergeSortedDoubleArrays(
+  private static void mergeSortedDoubleArrays( //only bufC is modified
       final double[] bufA, final int startA, final int lenA,
       final double[] bufB, final int startB, final int lenB,
       final double[] bufC, final int startC) {
@@ -299,8 +314,7 @@ final class KllDoublesHelper {
   }
 
   //Called from KllDoublesSketch::update and this
-  static void updateDouble(final KllDoublesSketch dblSk,
-      final double item) {
+  static void updateDouble(final KllDoublesSketch dblSk, final double item) {
     if (Double.isNaN(item)) { return; } //ignore
     if (dblSk.isEmpty()) {
       dblSk.setMinItem(item);
@@ -445,32 +459,36 @@ final class KllDoublesHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static void populateDoubleWorkArrays(
-      final double[] workbuf, final int[] worklevels, final int provisionalNumLevels,
+  private static void populateDoubleWorkArrays( //workBuf and workLevels are modified
+      final double[] workBuf, final int[] workLevels, final int provisionalNumLevels,
       final int myCurNumLevels, final int[] myCurLevelsArr, final double[] myCurDoubleItemsArr,
       final int otherNumLevels, final int[] otherLevelsArr, final double[] otherDoubleItemsArr) {
 
-    worklevels[0] = 0;
+    workLevels[0] = 0;
 
-    // Note: the level zero data from "other" was already inserted into "self"
+    // Note: the level zero data from "other" was already inserted into "self",
+    // This copies into workbuf.
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
-    System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
-    worklevels[1] = worklevels[0] + selfPopZero;
+    System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[0], workBuf, workLevels[0], selfPopZero);
+    workLevels[1] = workLevels[0] + selfPopZero;
 
     for (int lvl = 1; lvl < provisionalNumLevels; lvl++) {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
-      worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
+      workLevels[lvl + 1] = workLevels[lvl] + selfPop + otherPop;
 
-      if (selfPop > 0 && otherPop == 0) {
-        System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
-      } else if (selfPop == 0 && otherPop > 0) {
-        System.arraycopy(otherDoubleItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
-      } else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedDoubleArrays(
+      if (selfPop == 0 && otherPop == 0) { continue; }
+      else if (selfPop > 0 && otherPop == 0) {
+        System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);
+      }
+      else if (selfPop == 0 && otherPop > 0) {
+        System.arraycopy(otherDoubleItemsArr, otherLevelsArr[lvl], workBuf, workLevels[lvl], otherPop);
+      }
+      else if (selfPop > 0 && otherPop > 0) {
+        mergeSortedDoubleArrays( //only workbuf is modified
             myCurDoubleItemsArr, myCurLevelsArr[lvl], selfPop,
             otherDoubleItemsArr, otherLevelsArr[lvl], otherPop,
-            workbuf, worklevels[lvl]);
+            workBuf, workLevels[lvl]);
       }
     }
   }

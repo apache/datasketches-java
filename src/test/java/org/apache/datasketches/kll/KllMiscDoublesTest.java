@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.Util.bitAt;
 import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.testng.Assert.assertEquals;
@@ -167,6 +168,7 @@ public class KllMiscDoublesTest {
     assertEquals(sk2.getNumRetained(), 56);
   }
 
+  //Disable this test for releases
   @Test //set static enablePrinting = true for visual checking
   public void viewHeapCompactions() {
     int k = 20;
@@ -193,8 +195,77 @@ public class KllMiscDoublesTest {
     println("");
   }
 
+  @Test //set static enablePrinting = true for visual checking
+  public void checkWeightedUpdates() {
+    int k = 20;
+    int weight = 127;
+    double item = 10.0;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    println(sk.toString(true, true));
+    sk.weightedUpdate(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 7);
+    assertEquals(sk.getN(), weight);
+    sk.weightedUpdate(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 14);
+    assertEquals(sk.getN(), 254);
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkCreateItemsArray() {
+    double item = 10.0;
+    int weight = 108;
+    double[] itemsArr = KllDoublesHelper.createItemsArray(item, weight);
+    assertEquals(itemsArr.length, 4);
+    for (int i = 0; i < itemsArr.length; i++) { itemsArr[i] = item; }
+    outputItems(itemsArr);
+  }
+
+  private static void outputItems(double[] itemsArr) {
+    String[] hdr2 = {"Index", "Value"};
+    String hdr2fmt = "%6s %15s\n";
+    String d2fmt = "%6d %15f\n";
+    println("ItemsArr");
+    printf(hdr2fmt, (Object[]) hdr2);
+    for (int i = 0; i < itemsArr.length; i++) {
+      printf(d2fmt, i, itemsArr[i]);
+    }
+    println("");
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkCreateLevelsArray() {
+    int weight = 108;
+    int[] levelsArr = KllHelper.createLevelsArray(weight);
+    assertEquals(levelsArr.length, 8);
+    int[] correct = {0,0,0,1,2,2,3,4};
+    for (int i = 0; i < levelsArr.length; i++) {
+      assertEquals(levelsArr[i], correct[i]);
+    }
+    outputLevels(weight, levelsArr);
+  }
+
+  private static void outputLevels(int weight, int[] levelsArr) {
+    String[] hdr = {"Lvl", "StartAdr", "BitPattern", "Weight"};
+    String hdrfmt = "%3s %9s %10s %s\n";
+    String dfmt   = "%3d %9d %10d %d\n";
+    String dfmt_2 = "%3d %9d %s\n";
+    println("Count = " + weight + " => " + (Integer.toBinaryString(weight)));
+    println("LevelsArr");
+    printf(hdrfmt, (Object[]) hdr);
+    for (int i = 0; i < levelsArr.length; i++) {
+      if (i == levelsArr.length - 1) { printf(dfmt_2, i, levelsArr[i], "ItemsArr.length"); }
+      else {
+        int j = bitAt(weight, i);
+        printf(dfmt, i, levelsArr[i], j, 1 << (i));
+      }
+    }
+    println("");
+  }
+
   @Test
-  public void viewCompactSketchData() {
+  public void viewMemorySketchData() {
     int k = 20;
     int n = 109;
     boolean withSummary = true;
@@ -205,50 +276,55 @@ public class KllMiscDoublesTest {
     Memory mem = Memory.wrap(byteArr);
     KllDoublesSketch ddSk = KllDoublesSketch.wrap(mem);
     println(ddSk.toString(withSummary, withData));
+    assertEquals(ddSk.getN(), n);
   }
 
-  //@Test //set static enablePrinting = true for visual checking
-  //  // must also make KllHelper.intCapAux(...) visible
-  //  public void checkIntCapAux() {
-  //    String[] hdr = {"level", "depth", "wt", "cap", "(end)", "MaxN"};
-  //    String hdrFmt =  "%6s %6s %28s %10s %10s %34s\n";
-  //    String dataFmt = "%6d %6d %,28d %,10d %,10d %,34.0f\n";
-  //    int k = 1000;
-  //    int m = 8;
-  //    int numLevels = 20;
-  //    println("k=" + k + ", m=" + m + ", numLevels=" + numLevels);
-  //    printf(hdrFmt, (Object[]) hdr);
-  //    double maxN = 0;
-  //    for (int i = 0; i < numLevels; i++) {
-  //      int depth = numLevels - i - 1;
-  //      long cap = KllHelper.intCapAux(k, depth);
-  //      long end = Math.max(m, cap);
-  //      long wt = 1L << i;
-  //      maxN += (double)wt * (double)end;
-  //      printf(dataFmt, i, depth, wt, cap, end, maxN);
-  //    }
-  //  }
+  @Test //set static enablePrinting = true for visual checking
+    public void checkIntCapAux() {
+      String[] hdr = {"level", "depth", "wt", "cap", "(end)", "MaxN"};
+      String hdrFmt =  "%6s %6s %28s %10s %10s %34s\n";
+      String dataFmt = "%6d %6d %,28d %,10d %,10d %,34.0f\n";
+      int k = 1000;
+      int m = 8;
+      int numLevels = 20;
+      println("k=" + k + ", m=" + m + ", numLevels=" + numLevels);
+      printf(hdrFmt, (Object[]) hdr);
+      double maxN = 0;
+      double[] correct = {0,1,1,2,2,3,5,8,12,17,26,39,59,88,132,198,296,444,667,1000};
+      for (int i = 0; i < numLevels; i++) {
+        int depth = numLevels - i - 1;
+        long cap = KllHelper.intCapAux(k, depth);
+        long end = Math.max(m, cap);
+        long wt = 1L << i;
+        maxN += (double)wt * (double)end;
+        printf(dataFmt, i, depth, wt, cap, end, maxN);
+        assertEquals(cap, correct[i]);
+      }
+    }
 
-  //@Test //set static enablePrinting = true for visual checking
-  //  // must also make KllHelper.powersOfThree visible
-  //  public void checkIntCapAuxAux() {
-  //    String[] hdr = {"d","twoK","2k*2^d","3^d","tmp=2k*2^d/3^d","(tmp + 1)/2", "(end)"};
-  //    String hdrFmt =  "%6s %10s %20s %20s %15s %12s %10s\n";
-  //    String dataFmt = "%6d %10d %,20d %,20d %15d %12d %10d\n";
-  //    long k = (1L << 16) - 1L;
-  //    long m = 8;
-  //    println("k = " + k + ", m = " + m);
-  //    printf(hdrFmt, (Object[]) hdr);
-  //    for (int i = 0; i < 31; i++) {
-  //      long twoK = k << 1;
-  //      long twoKxtwoD = twoK << i;
-  //      long threeToD = KllHelper.powersOfThree[i];
-  //      long tmp = twoKxtwoD / threeToD;
-  //      long result = (tmp + 1L) >>> 1;
-  //      long end = Math.max(m, result); //performed later
-  //      printf(dataFmt, i, twoK, twoKxtwoD, threeToD, tmp, result, end);
-  //    }
-  //  }
+  @Test //set static enablePrinting = true for visual checking
+  public void checkIntCapAuxAux() {
+    String[] hdr = {"d","twoK","2k*2^d","3^d","tmp=2k*2^d/3^d","(tmp + 1)/2", "(end)"};
+    String hdrFmt =  "%6s %10s %20s %20s %15s %12s %10s\n";
+    String dataFmt = "%6d %10d %,20d %,20d %15d %12d %10d\n";
+    long k = (1L << 16) - 1L;
+    long m = 8;
+    println("k = " + k + ", m = " + m);
+    printf(hdrFmt, (Object[]) hdr);
+    long[] correct =
+ {65535,43690,29127,19418,12945,8630,5753,3836,2557,1705,1136,758,505,337,224,150,100,67,44,30,20,13,9,6,4,3,2,1,1,1,0};
+    for (int i = 0; i < 31; i++) {
+      long twoK = k << 1;
+      long twoKxtwoD = twoK << i;
+      long threeToD = KllHelper.powersOfThree[i];
+      long tmp = twoKxtwoD / threeToD;
+      long result = (tmp + 1L) >>> 1;
+      long end = Math.max(m, result); //performed later
+      printf(dataFmt, i, twoK, twoKxtwoD, threeToD, tmp, result, end);
+      assertEquals(result,correct[i]);
+      assertEquals(result, KllHelper.intCapAuxAux(k, i));
+    }
+  }
 
   @Test //set static enablePrinting = true for visual checking
   public void viewDirectCompactions() {
@@ -278,10 +354,13 @@ public class KllMiscDoublesTest {
     DoublesSortedViewIterator itr = sv.iterator();
     println("### SORTED VIEW");
     printf("%12s%12s\n", "Value", "CumWeight");
+    long[] correct = {2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    int i = 0;
     while (itr.next()) {
       double v = itr.getQuantile();
       long wt = itr.getWeight();
       printf("%12.1f%12d\n", v, wt);
+      assertEquals(wt, correct[i++]);
     }
   }
 

@@ -729,6 +729,19 @@ public final class Util {
     return (n & 1L) == 1L;
   }
 
+  //Other
+
+  /**
+   * Returns a one if the bit at bitPos is a one, otherwise zero.
+   * @param number the number to examine
+   * @param bitPos the given zero-based bit position, where the least significant
+   * bit is at position zero.
+   * @return a one if the bit at bitPos is a one, otherwise zero.
+   */
+  public static final int bitAt(final long number, final int bitPos) {
+    return (number & (1L << bitPos)) > 0 ? 1 : 0;
+  }
+
   /**
    * Computes the number of decimal digits of the number n
    * @param n the given number
@@ -755,6 +768,8 @@ public final class Util {
     final String num = Integer.toString(number);
     return characterPad(num, length, ' ', false);
   }
+
+  //Generic tests
 
   /**
    * Finds the minimum of two generic items
