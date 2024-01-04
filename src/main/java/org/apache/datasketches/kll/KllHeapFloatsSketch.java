@@ -117,10 +117,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
       maxFloatItem = srcMem.getFloat(offsetBytes);
       offsetBytes += Float.BYTES;
       final int capacityItems = levelsArr[getNumLevels()];
-      final int freeItems = levelsArr[0];
-      final int retainedItems = capacityItems - freeItems;
+      final int freeSpace = levelsArr[0];
+      final int retainedItems = capacityItems - freeSpace;
       floatItems = new float[capacityItems];
-      srcMem.getFloatArray(offsetBytes, floatItems, freeItems, retainedItems);
+      srcMem.getFloatArray(offsetBytes, floatItems, freeSpace, retainedItems);
     }
     else { //(memStructure == UPDATABLE)
       int offsetBytes = DATA_START_ADR;

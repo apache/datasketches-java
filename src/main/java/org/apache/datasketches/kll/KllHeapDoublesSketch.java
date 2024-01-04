@@ -136,10 +136,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
       maxDoubleItem = srcMem.getDouble(offsetBytes);
       offsetBytes += Double.BYTES;
       final int capacityItems = levelsArr[getNumLevels()];
-      final int freeItems = levelsArr[0];
-      final int retainedItems = capacityItems - freeItems;
+      final int freeSpace = levelsArr[0];
+      final int retainedItems = capacityItems - freeSpace;
       doubleItems = new double[capacityItems];
-      srcMem.getDoubleArray(offsetBytes, doubleItems, freeItems, retainedItems);
+      srcMem.getDoubleArray(offsetBytes, doubleItems, freeSpace, retainedItems);
     }
     else { //(memStructure == UPDATABLE)
       int offsetBytes = DATA_START_ADR;

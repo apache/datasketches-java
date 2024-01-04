@@ -67,13 +67,13 @@ import org.apache.datasketches.memory.WritableMemory;
  * in the table below.
  * The 5 int preamble is followed by the <i>levelsArr int[numLevels]</i> as bytes,
  * followed by the min and max values as bytes,
- * followed by a packed items data array as bytes. There are no free slots in this structure.
+ * followed by a packed items data array as bytes. There is no free space in this structure.
  * It is not updatable.
  * It is identified by the <i>enum SketchStructure.COMPACT_FULL</i>.</li>
  *
  * <li>A serialized, <i>n &gt; 1</i> non-compact, updatable structure requires 20 bytes of preamble (5 ints).
  * This is followed by the LevelsArr int[NumLevels + 1], followed by the min and max values, and then
- * followed by an items data array that may include free slots. It is updatable.
+ * followed by an items data array that may include free space. It is updatable.
  * The details of these fields can be found in the code..
  * It is identified by the <i>enum SketchStructure.UPDATABLE</i>. This structure may not be implemented by
  * some sketches.</li>
