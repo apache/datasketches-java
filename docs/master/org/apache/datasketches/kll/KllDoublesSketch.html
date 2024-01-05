@@ -371,7 +371,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <tr id="i20" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withSummary,
-        boolean&nbsp;withData)</code></th>
+        boolean&nbsp;withDetail)</code></th>
 <td class="colLast">
 <div class="block">Returns a summary of the sketch as a string.</div>
 </td>
@@ -385,8 +385,8 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 </tr>
 <tr id="i22" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#weightedUpdate(double,int)">weightedUpdate</a></span>&#8203;(double&nbsp;item,
-              int&nbsp;weight)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(double,int)">update</a></span>&#8203;(double&nbsp;item,
+      int&nbsp;weight)</code></th>
 <td class="colLast">
 <div class="block">Weighted update.</div>
 </td>
@@ -969,7 +969,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <li class="blockList">
 <h4>toString</h4>
 <pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;withSummary,
-                       boolean&nbsp;withData)</pre>
+                       boolean&nbsp;withDetail)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="KllSketch.html#toString(boolean,boolean)">KllSketch</a></code></span></div>
 <div class="block">Returns a summary of the sketch as a string.</div>
 <dl>
@@ -977,7 +977,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <dd><code><a href="KllSketch.html#toString(boolean,boolean)">toString</a></code>&nbsp;in class&nbsp;<code><a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>withSummary</code> - if true includes sketch summary information</dd>
-<dd><code>withData</code> - if true include sketch data</dd>
+<dd><code>withDetail</code> - if true include detail of levels array and items array</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>string representation of sketch summary</dd>
 </dl>
@@ -1000,14 +1000,14 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 </dl>
 </li>
 </ul>
-<a id="weightedUpdate(double,int)">
+<a id="update(double,int)">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>weightedUpdate</h4>
-<pre class="methodSignature">public&nbsp;void&nbsp;weightedUpdate&#8203;(double&nbsp;item,
-                           int&nbsp;weight)</pre>
+<h4>update</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;update&#8203;(double&nbsp;item,
+                   int&nbsp;weight)</pre>
 <div class="block">Weighted update. Updates this sketch with the given item the number of times specified by the given integer weight.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
