@@ -53,7 +53,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * The data for level i lies in positions levelsArr[i] through levelsArr[i + 1] - 1 inclusive.
  * Hence, the levelsArr must contain (numLevels + 1) elements.
  * The valid portion of the itemsArr is completely packed and sorted, except for level 0,
- * which is filled from the top down. Any items below the index levelsArr[0] is garbage and will be
+ * which is filled from the top down. Any items below the index levelsArr[0] is free space and will be
  * overwritten by subsequent updates.
  *
  * Invariants:
@@ -287,11 +287,11 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Returns a summary of the sketch as a string.
    * @param withSummary if true includes sketch summary information
-   * @param withData if true include sketch data
+   * @param withDetail if true include detail of levels array and items array
    * @return string representation of sketch summary
    */
-  public String toString(final boolean withSummary, final boolean withData) {
-    return KllHelper.toStringImpl(this, withSummary, withData, getSerDe());
+  public String toString(final boolean withSummary, final boolean withDetail) {
+    return KllHelper.toStringImpl(this, withSummary, withDetail, getSerDe());
   }
 
   //restricted
@@ -390,14 +390,14 @@ public abstract class KllSketch implements QuantilesAPI {
 
   /**
    * Gets the serialized byte array of the valid retained items as a byte array.
-   * It does not include the preamble, the levels array, minimum or maximum items, or garbage data.
+   * It does not include the preamble, the levels array, minimum or maximum items, or free space.
    * @return the serialized bytes of the retained data.
    */
   abstract byte[] getRetainedItemsByteArr();
 
   /**
    * Gets the size in bytes of the valid retained items.
-   * It does not include the preamble, the levels array, minimum or maximum items, or garbage data.
+   * It does not include the preamble, the levels array, minimum or maximum items, or free space.
    * @return the size of the retained data in bytes.
    */
   abstract int getRetainedItemsSizeBytes();
@@ -423,7 +423,7 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Gets the serialized byte array of the entire internal items hypothetical structure.
    * It does not include the preamble, the levels array, or minimum or maximum items.
-   * It may include empty or garbage items.
+   * It may include empty or free space.
    * @return the serialized bytes of the retained data.
    */
   abstract byte[] getTotalItemsByteArr();
@@ -431,7 +431,7 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Gets the size in bytes of the entire internal items hypothetical structure.
    * It does not include the preamble, the levels array, or minimum or maximum items.
-   * It may include empty or garbage items.
+   * It may include empty or free space.
    * @return the size of the retained data in bytes.
    */
   abstract int getTotalItemsNumBytes();

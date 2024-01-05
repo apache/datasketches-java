@@ -365,10 +365,10 @@ final class KllHelper {
     final int k = sketch.getK();
     final int m = sketch.getM();
     final StringBuilder sb =  new StringBuilder();
-    sb.append("### KllSketch itemsArray & levelsArray data:").append(LS);
+    sb.append(LS + "### KLL ItemsArray & LevelsArray Detail:").append(LS);
     sb.append("Index, Value").append(LS);
     if (levelsArr[0] > 0) {
-      final String gbg = " Empty or Garbage, size = " + levelsArr[0];
+      final String gbg = " Free Space, Size = " + levelsArr[0];
       for (int i = 0; i < levelsArr[0]; i++) {
         sb.append("    ").append(i + ", ").append(sketch.getItemAsString(i));
         if (i == 0) { sb.append(gbg); }
@@ -381,10 +381,10 @@ final class KllHelper {
       final int toIndex = levelsArr[level + 1]; // exclusive
       String lvlData = "";
       if (fromIndex < toIndex) {
-        lvlData = " level[" + level + "]=" + levelsArr[level]
-            + ", cap=" + KllHelper.levelCapacity(k, numLevels, level, m)
-            + ", size=" + KllHelper.currentLevelSizeItems(level, numLevels, levelsArr)
-            + ", wt=" + (1 << level) + LS;
+        lvlData = " Level[" + level + "]=" + levelsArr[level]
+            + ", Cap=" + KllHelper.levelCapacity(k, numLevels, level, m)
+            + ", Size=" + KllHelper.currentLevelSizeItems(level, numLevels, levelsArr)
+            + ", Wt=" + (1 << level) + LS;
       }
 
       for (int i = fromIndex; i < toIndex; i++) {
@@ -393,10 +393,25 @@ final class KllHelper {
       }
       level++;
     }
-    sb.append("   ----------level[" + level + "]=" + levelsArr[level] + ": itemsArray[].length");
+    sb.append("   ----------Level[" + level + "]=" + levelsArr[level] + ": ItemsArray[].length");
     sb.append(LS);
-    sb.append("### End data").append(LS);
+    sb.append("### End ItemsArray & LevelsArray Detail").append(LS);
+    return sb.toString();
+  }
 
+  static String outputLevels(final int k, final int m, final int numLevels, final int[] levelsArr) {
+    final StringBuilder sb =  new StringBuilder();
+    sb.append(LS + "### KLL Levels Array:").append(LS)
+    .append(" Level, Offset: Nominal Capacity, Actual Capacity").append(LS);
+    int level = 0;
+    for ( ; level < numLevels; level++) {
+      sb.append("     ").append(level).append(", ").append(levelsArr[level]).append(": ")
+      .append(KllHelper.levelCapacity(k, numLevels, level, m))
+      .append(", ").append(KllHelper.currentLevelSizeItems(level, numLevels, levelsArr)).append(LS);
+    }
+    sb.append("     ").append(level).append(", ").append(levelsArr[level]).append(": ----ItemsArray[].length")
+    .append(LS);
+    sb.append("### End Levels Array").append(LS);
     return sb.toString();
   }
 
@@ -479,55 +494,58 @@ final class KllHelper {
 
   static <T> String toStringImpl(final KllSketch sketch, final boolean withSummary, final boolean withData,
       final ArrayOfItemsSerDe<T> serDe) {
-    final SketchType sketchType = sketch.sketchType;
-    final boolean hasMemory = sketch.hasMemory();
+    final StringBuilder sb = new StringBuilder();
     final int k = sketch.getK();
     final int m = sketch.getM();
-    final long n = sketch.getN();
     final int numLevels = sketch.getNumLevels();
     final int[] fullLevelsArr = sketch.getLevelsArray(UPDATABLE);
-    //final int[] levelsArr = sketch.getLevelsArray(sketch.sketchStructure);
-    final String epsPct = String.format("%.3f%%", sketch.getNormalizedRankError(false) * 100);
-    final String epsPMFPct = String.format("%.3f%%", sketch.getNormalizedRankError(true) * 100);
-    final boolean compact = sketch.isCompactMemoryFormat();
 
-    final StringBuilder sb = new StringBuilder();
-    final String directStr = hasMemory ? "Direct" : "";
-    final String compactStr = compact ? "Compact" : "";
-    final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "Memory") + ")") : "false";
-    final String skTypeStr = sketchType.getName();
-    final String className = "Kll" + directStr + compactStr + skTypeStr;
+    if (withSummary) {
+      final SketchType sketchType = sketch.sketchType;
+      final boolean hasMemory = sketch.hasMemory();
+      final long n = sketch.getN();
+      final String epsPct = String.format("%.3f%%", sketch.getNormalizedRankError(false) * 100);
+      final String epsPMFPct = String.format("%.3f%%", sketch.getNormalizedRankError(true) * 100);
+      final boolean compact = sketch.isCompactMemoryFormat();
 
-    sb.append(LS).append("### ").append(className).append(" Summary:").append(LS);
-    sb.append("   K                      : ").append(k).append(LS);
-    sb.append("   Dynamic min K          : ").append(sketch.getMinK()).append(LS);
-    sb.append("   M                      : ").append(m).append(LS);
-    sb.append("   N                      : ").append(n).append(LS);
-    sb.append("   Epsilon                : ").append(epsPct).append(LS);
-    sb.append("   Epsilon PMF            : ").append(epsPMFPct).append(LS);
-    sb.append("   Empty                  : ").append(sketch.isEmpty()).append(LS);
-    sb.append("   Estimation Mode        : ").append(sketch.isEstimationMode()).append(LS);
-    sb.append("   Levels                 : ").append(numLevels).append(LS);
-    sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(LS);
-    sb.append("   Capacity Items         : ").append(fullLevelsArr[numLevels]).append(LS);
-    sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(LS);
-    sb.append("   Empty/Garbage Items    : ").append(sketch.levelsArr[0]).append(LS);
-    sb.append("   ReadOnly               : ").append(readOnlyStr).append(LS);
-    if (sketchType != ITEMS_SKETCH) {
-      sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(LS);
+      final String directStr = hasMemory ? "Direct" : "";
+      final String compactStr = compact ? "Compact" : "";
+      final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "Memory") + ")") : "false";
+      final String skTypeStr = sketchType.getName();
+      final String className = "Kll" + directStr + compactStr + skTypeStr;
+
+      sb.append(LS + "### ").append(className).append(" Summary:").append(LS);
+      sb.append("   K                      : ").append(k).append(LS);
+      sb.append("   Dynamic min K          : ").append(sketch.getMinK()).append(LS);
+      sb.append("   M                      : ").append(m).append(LS);
+      sb.append("   N                      : ").append(n).append(LS);
+      sb.append("   Epsilon                : ").append(epsPct).append(LS);
+      sb.append("   Epsilon PMF            : ").append(epsPMFPct).append(LS);
+      sb.append("   Empty                  : ").append(sketch.isEmpty()).append(LS);
+      sb.append("   Estimation Mode        : ").append(sketch.isEstimationMode()).append(LS);
+      sb.append("   Levels                 : ").append(numLevels).append(LS);
+      sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(LS);
+      sb.append("   Capacity Items         : ").append(fullLevelsArr[numLevels]).append(LS);
+      sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(LS);
+      sb.append("   Free Space             : ").append(sketch.levelsArr[0]).append(LS);
+      sb.append("   ReadOnly               : ").append(readOnlyStr).append(LS);
+      if (sketchType != ITEMS_SKETCH) {
+        sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(LS);
+      }
+      sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(LS);
+
+      final String emptyStr = (sketchType == ITEMS_SKETCH) ? "Null" : "NaN";
+
+      sb.append("   Min Item               : ").append(sketch.isEmpty() ? emptyStr : sketch.getMinItemAsString())
+          .append(LS);
+      sb.append("   Max Item               : ").append(sketch.isEmpty() ? emptyStr : sketch.getMaxItemAsString())
+          .append(LS);
+      sb.append("### End sketch summary").append(LS);
     }
-    sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(LS);
-
-    final String emptyStr = (sketchType == ITEMS_SKETCH) ? "Null" : "NaN";
-
-    sb.append("   Min Item               : ").append(sketch.isEmpty() ? emptyStr : sketch.getMinItemAsString())
-        .append(LS);
-    sb.append("   Max Item               : ").append(sketch.isEmpty() ? emptyStr : sketch.getMaxItemAsString())
-        .append(LS);
-    sb.append("### End sketch summary").append(LS);
-
-    if (! withSummary) { sb.setLength(0); }
-    if (withData) { sb.append(outputData(sketch)); }
+    if (withData) {
+      sb.append(outputLevels(k, m, numLevels, fullLevelsArr));
+      sb.append(outputData(sketch));
+    }
     return sb.toString();
   }
 

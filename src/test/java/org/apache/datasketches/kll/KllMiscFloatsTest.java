@@ -506,7 +506,7 @@ public class KllMiscFloatsTest {
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
-    println(s); //note: heapify does not copy garbage, while toUpdatableByteArray does
+    println(s); //note: heapify does not copy free space, while toUpdatableByteArray does
     assertEquals(sk.getN(), sk2.getN());
     assertEquals(sk.getMinItem(), sk2.getMinItem());
     assertEquals(sk.getMaxItem(), sk2.getMaxItem());

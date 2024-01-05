@@ -337,7 +337,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   /**
    * @return a full array of items as if the sketch was in COMPACT_FULL or UPDATABLE format.
-   * This will include zeros and possibly some garbage items.
+   * This will include zeros and possibly some free space.
    */
   abstract T[] getTotalItemsArray();
 

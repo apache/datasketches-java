@@ -178,7 +178,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   //restricted
 
-  @Override //returns updatable, expanded array including empty/garbage space at bottom
+  @Override //returns updatable, expanded array including free space at bottom
   float[] getFloatItemsArray() {
     final int k = getK();
     if (sketchStructure == COMPACT_EMPTY) { return new float[k]; }
@@ -196,7 +196,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     return floatItemsArr;
   }
 
-  @Override //returns compact items array of retained items, no empty/garbage.
+  @Override //returns compact items array of retained items, no free space.
   float[] getFloatRetainedItemsArray() {
     if (sketchStructure == COMPACT_EMPTY) { return new float[0]; }
     if (sketchStructure == COMPACT_SINGLE) { return new float[] { getFloatSingleItem() }; }
