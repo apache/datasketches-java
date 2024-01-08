@@ -321,7 +321,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public void update(final double item) {
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    updateMinMax(item);
     KllDoublesHelper.updateDouble(this, item);
     kllDoublesSV = null;
   }
@@ -335,8 +334,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (Double.isNaN(item)) { return; } //ignore
-    updateMinMax(item);
+    if (weight == 1) { KllDoublesHelper.updateDouble(this, item); }
     KllDoublesHelper.updateDouble(this, item, weight);
     kllDoublesSV = null;
   }
@@ -407,7 +405,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setMinItem(double item);
 
-  private void updateMinMax(final double item) {
+  void updateMinMax(final double item) {
     if (isEmpty()) {
       setMinItem(item);
       setMaxItem(item);
