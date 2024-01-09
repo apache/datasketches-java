@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantilescommon;
 
-import static org.apache.datasketches.common.Util.intToFixedLengthString;
+import static org.apache.datasketches.common.Util.longToFixedLengthString;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.getTrueDoubleQuantile;
 import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.getTrueDoubleRank;
@@ -214,7 +214,7 @@ public class CrossCheckQuantilesTest {
     try { maxItemValue = Integer.parseInt(getMaxItemValue(set)); }
     catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
     for (int v = 5; v <= maxItemValue + 5; v += 5) {
-      String s = intToFixedLengthString(v, 2);
+      String s = longToFixedLengthString(v, 2);
       trueRank = getTrueItemRank(svCumWeights[set], svIValues[set], s, crit, comparator);
 
       testRank = kllItemsSV.getRank(s, crit);

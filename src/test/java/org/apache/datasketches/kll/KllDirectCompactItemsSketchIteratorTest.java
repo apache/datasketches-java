@@ -117,7 +117,7 @@ public class KllDirectCompactItemsSketchIteratorTest {
     for (int n = 1000; n < 100_000; n += 2000) {
       KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
       for (int i = 0; i < n; i++) {
-        sk.update(Util.intToFixedLengthString(i, digits));
+        sk.update(Util.longToFixedLengthString(i, digits));
       }
       byte[] byteArr = sk.toByteArray();
       KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);

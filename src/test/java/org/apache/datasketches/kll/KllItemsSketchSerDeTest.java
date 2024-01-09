@@ -97,7 +97,7 @@ public class KllItemsSketchSerDeTest {
     final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     final int n = 1000;
     for (int i = 0; i < n; i++) {
-      sk1.update(Util.intToFixedLengthString(i, 4));
+      sk1.update(Util.longToFixedLengthString(i, 4));
     }
     assertEquals(sk1.getMinItem(), "   0");
     assertEquals(sk1.getMaxItem(), " 999");

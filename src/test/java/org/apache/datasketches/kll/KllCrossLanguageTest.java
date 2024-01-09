@@ -73,7 +73,7 @@ public class KllCrossLanguageTest {
     for (int n: nArr) {
       final int digits = Util.numDigits(n);
       final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-      for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
+      for (int i = 1; i <= n; i++) { sk.update(Util.longToFixedLengthString(i, digits)); }
       Files.newOutputStream(javaPath.resolve("kll_string_n" + n + "_java.sk")).write(sk.toByteArray());
     }
   }

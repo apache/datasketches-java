@@ -103,7 +103,7 @@ public class KllItemsSketchiteratorTest {
     for (int n = 1000; n < 100_000; n += 2000) {
       KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
       for (int i = 0; i < n; i++) {
-        sketch.update(Util.intToFixedLengthString(i, digits));
+        sketch.update(Util.longToFixedLengthString(i, digits));
       }
       QuantilesGenericSketchIterator<String> it = sketch.iterator();
       int count = 0;
