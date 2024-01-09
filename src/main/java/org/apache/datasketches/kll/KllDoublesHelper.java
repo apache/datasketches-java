@@ -25,7 +25,6 @@ import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
 import static org.apache.datasketches.kll.KllSketch.DEFAULT_M;
-import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -317,6 +316,7 @@ final class KllDoublesHelper {
 
   //Called from KllDoublesSketch::update and merge
   static void updateDouble(final KllDoublesSketch dblSk, final double item) {
+    dblSk.updateMinMax(item);
     int freeSpace = dblSk.levelsArr[0];
     assert (freeSpace >= 0);
     if (freeSpace == 0) {
@@ -331,10 +331,12 @@ final class KllDoublesHelper {
     dblSk.setDoubleItemsArrayAt(nextPos, item);
   }
 
+  //Called from KllDoublesSketch::update with weight
   static void updateDouble(final KllDoublesSketch dblSk, final double item, final int weight) {
-    if (weight < dblSk.getLevelsArray(UPDATABLE)[0]) {
-      for (int i = 0; i < weight; i++) { dblSk.update(item); }
+    if (weight < dblSk.levelsArr[0]) {
+      for (int i = 0; i < weight; i++) { updateDouble(dblSk, item); }
     } else {
+      dblSk.updateMinMax(item);
       final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
       dblSk.merge(tmpSk);
     }

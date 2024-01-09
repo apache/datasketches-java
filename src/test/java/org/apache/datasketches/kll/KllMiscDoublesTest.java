@@ -773,7 +773,7 @@ public class KllMiscDoublesTest {
     printf("%s\n", s);
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format
