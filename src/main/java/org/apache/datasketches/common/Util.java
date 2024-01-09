@@ -747,7 +747,7 @@ public final class Util {
    * @param n the given number
    * @return the number of decimal digits of the number n
    */
-  public static int numDigits(int n) {
+  public static int numDigits(long n) {
     if (n % 10 == 0) { n++; }
     return (int) ceil(log(n) / log(10));
   }
