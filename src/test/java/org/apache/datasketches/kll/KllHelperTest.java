@@ -170,7 +170,7 @@ public class KllHelperTest {
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(200, Comparator.naturalOrder(), serDe);
     final int n = 533;
     final int digits = Util.numDigits(n);
-    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sk.update(Util.longToFixedLengthString(i, digits)); }
 
     int retained = sk.getNumRetained();
     int numLevels = ((KllSketch)sk).getNumLevels();
