@@ -370,8 +370,8 @@ implements <a href="../quantilescommon/QuantilesFloatsAPI.html" title="interface
 </tr>
 <tr id="i20" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withSummary,
-        boolean&nbsp;withData)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withLevels,
+        boolean&nbsp;withLevelsAndItems)</code></th>
 <td class="colLast">
 <div class="block">Returns a summary of the sketch as a string.</div>
 </td>
@@ -960,16 +960,16 @@ implements <a href="../quantilescommon/QuantilesFloatsAPI.html" title="interface
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;withSummary,
-                       boolean&nbsp;withData)</pre>
+<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;withLevels,
+                       boolean&nbsp;withLevelsAndItems)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="KllSketch.html#toString(boolean,boolean)">KllSketch</a></code></span></div>
 <div class="block">Returns a summary of the sketch as a string.</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="KllSketch.html#toString(boolean,boolean)">toString</a></code>&nbsp;in class&nbsp;<code><a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>withSummary</code> - if true includes sketch summary information</dd>
-<dd><code>withData</code> - if true include detail of levels array and items array</dd>
+<dd><code>withLevels</code> - if true includes sketch levels array summary information</dd>
+<dd><code>withLevelsAndItems</code> - if true include detail of levels array and items array together</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>string representation of sketch summary</dd>
 </dl>

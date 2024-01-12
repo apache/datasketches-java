@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":10,"i3":9,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":6,"i15":10,"i16":10};
+var data = {"i0":9,"i1":9,"i2":10,"i3":9,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":6,"i15":10,"i16":6};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -369,9 +369,9 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 </td>
 </tr>
 <tr id="i16" class="altColor">
-<td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withSummary,
-        boolean&nbsp;withDetail)</code></th>
+<td class="colFirst"><code>abstract <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withLevels,
+        boolean&nbsp;withLevelsAndItems)</code></th>
 <td class="colLast">
 <div class="block">Returns a summary of the sketch as a string.</div>
 </td>
@@ -729,13 +729,13 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <ul class="blockListLast">
 <li class="blockList">
 <h4>toString</h4>
-<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;withSummary,
-                       boolean&nbsp;withDetail)</pre>
+<pre class="methodSignature">public abstract&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;withLevels,
+                                boolean&nbsp;withLevelsAndItems)</pre>
 <div class="block">Returns a summary of the sketch as a string.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>withSummary</code> - if true includes sketch summary information</dd>
-<dd><code>withDetail</code> - if true include detail of levels array and items array</dd>
+<dd><code>withLevels</code> - if true includes sketch levels array summary information</dd>
+<dd><code>withLevelsAndItems</code> - if true include detail of levels array and items array together</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>string representation of sketch summary</dd>
 </dl>
