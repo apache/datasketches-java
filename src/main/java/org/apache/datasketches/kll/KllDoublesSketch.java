@@ -307,14 +307,14 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public String toString(final boolean withSummary, final boolean withDetail) {
+  public String toString(final boolean withLevels, final boolean withLevelsAndItems) {
     KllSketch sketch = this;
-    if (withDetail && sketchStructure != UPDATABLE) {
+    if (withLevelsAndItems && sketchStructure != UPDATABLE) {
       final Memory mem = getWritableMemory();
       assert mem != null;
       sketch = KllDoublesSketch.heapify(getWritableMemory());
     }
-    return KllHelper.toStringImpl(sketch, withSummary, withDetail, getSerDe());
+    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
   }
 
   @Override
@@ -335,7 +335,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
     if (weight == 1) { KllDoublesHelper.updateDouble(this, item); }
-    KllDoublesHelper.updateDouble(this, item, weight);
+    else { KllDoublesHelper.updateDouble(this, item, weight); }
     kllDoublesSV = null;
   }
 

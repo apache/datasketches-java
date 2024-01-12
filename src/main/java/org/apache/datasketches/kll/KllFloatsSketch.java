@@ -307,14 +307,14 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
-  public String toString(final boolean withSummary, final boolean withData) {
+  public String toString(final boolean withLevels, final boolean withLevelsAndItems) {
     KllSketch sketch = this;
-    if (withData && sketchStructure != UPDATABLE) {
+    if (withLevelsAndItems && sketchStructure != UPDATABLE) {
       final Memory mem = getWritableMemory();
       assert mem != null;
       sketch = KllFloatsSketch.heapify(getWritableMemory());
     }
-    return KllHelper.toStringImpl(sketch, withSummary, withData, getSerDe());
+    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
   }
 
   @Override
