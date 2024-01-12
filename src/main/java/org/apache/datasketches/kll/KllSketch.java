@@ -281,18 +281,16 @@ public abstract class KllSketch implements QuantilesAPI {
 
   @Override
   public final String toString() {
-    return toString(true, false);
+    return toString(false, false);
   }
 
   /**
    * Returns a summary of the sketch as a string.
-   * @param withSummary if true includes sketch summary information
-   * @param withDetail if true include detail of levels array and items array
+   * @param withLevels if true includes sketch levels array summary information
+   * @param withLevelsAndItems if true include detail of levels array and items array together
    * @return string representation of sketch summary
    */
-  public String toString(final boolean withSummary, final boolean withDetail) {
-    return KllHelper.toStringImpl(this, withSummary, withDetail, getSerDe());
-  }
+  public abstract String toString(final boolean withLevels, final boolean withLevelsAndItems);
 
   //restricted
 
