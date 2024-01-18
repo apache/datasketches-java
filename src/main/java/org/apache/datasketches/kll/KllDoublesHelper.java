@@ -324,7 +324,7 @@ final class KllDoublesHelper {
       freeSpace = dblSk.levelsArr[0];
       assert (freeSpace > 0);
     }
-    dblSk.incN();
+    dblSk.incN(1);
     dblSk.setLevelZeroSorted(false);
     final int nextPos = freeSpace - 1;
     dblSk.setLevelsArrayAt(0, nextPos);
@@ -339,6 +339,27 @@ final class KllDoublesHelper {
       dblSk.updateMinMax(item);
       final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
       dblSk.merge(tmpSk);
+    }
+  }
+
+  static void updateDouble(final KllDoublesSketch dblSk, final double[] items,
+                           final int offset, final int length) {
+    dblSk.updateMinMax(items, offset, length);
+    int count = 0;
+    while (count < length) {
+      if (dblSk.levelsArr[0] == 0) {
+        compressWhileUpdatingSketch(dblSk);
+      }
+      final int spaceNeeded = length - count;
+      final int freeSpace = dblSk.levelsArr[0];
+      assert (freeSpace > 0);
+      final int numItemsToCopy = Math.min(spaceNeeded, freeSpace);
+      final int dstOffset = freeSpace - numItemsToCopy;
+      dblSk.incN(numItemsToCopy);
+      dblSk.setLevelZeroSorted(false);
+      dblSk.setLevelsArrayAt(0, dstOffset);
+      dblSk.setDoubleItemsArrayAt(dstOffset, items, offset + count, numItemsToCopy);
+      count += numItemsToCopy;
     }
   }
 

@@ -186,6 +186,56 @@ public class KllDoublesSketchTest {
   }
 
   @Test
+  public void vectorizedUpdates() {
+    final int trials = 1000;
+    final int M = 1000;
+    final int N = 1000;
+    final long startTime = System.currentTimeMillis();
+    for (int t = 0; t < trials; t++) {
+      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+      final double[] values = new double[N];
+      for (int m = 0; m < M; m++) {
+        for (int n = 0; n < N; n++) {
+          values[n] = m * N + n;
+        }
+        sketch.update(values, 0, N);
+      }
+      assertEquals(sketch.getN(), M * N);
+      assertEquals(sketch.getMinItem(), 0.0);
+      assertEquals(sketch.getMaxItem(), M * N - 1.0);
+      assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
+    }
+    final long endTime = System.currentTimeMillis();
+    System.out.println("vectorizedUpdates: " + (endTime - startTime) + " ms");
+  }
+
+  @Test
+  public void nonVectorizedUpdates() {
+    final int trials = 1000;
+    final int M = 1000;
+    final int N = 1000;
+    final long startTime = System.currentTimeMillis();
+    for (int t = 0; t < trials; t++) {
+      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+      final double[] values = new double[N];
+      for (int m = 0; m < M; m++) {
+        for (int n = 0; n < N; n++) {
+          values[n] = m * N + n;
+        }
+        for (int i = 0; i < N; i++) {
+          sketch.update(values[i]);
+        }
+      }
+      assertEquals(sketch.getN(), M * N);
+      assertEquals(sketch.getMinItem(), 0.0);
+      assertEquals(sketch.getMaxItem(), M * N - 1.0);
+      assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
+    }
+    final long endTime = System.currentTimeMillis();
+    System.out.println("nonVectorizedUpdates: " + (endTime - startTime) + " ms");
+  }
+
+  @Test
   public void getRankGetCdfGetPmfConsistency() {
     final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     final int n = 1000;

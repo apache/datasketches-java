@@ -257,7 +257,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void incN() { n++; }
+  void incN(final int increment) { n += increment; }
 
   @Override
   void incNumLevels() {
@@ -272,6 +272,11 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   void setDoubleItemsArrayAt(final int index, final double item) { this.doubleItems[index] = item; }
+
+  @Override
+  void setDoubleItemsArrayAt(final int index, final double[] items, final int offset, final int length) {
+    System.arraycopy(items, offset, doubleItems, index, length);
+  }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted = sorted; }

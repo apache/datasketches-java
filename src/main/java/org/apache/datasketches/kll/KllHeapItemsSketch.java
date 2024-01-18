@@ -238,8 +238,8 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  void incN() {
-    n++;
+  void incN(final int increment) {
+    n += increment;
   }
 
   @Override
