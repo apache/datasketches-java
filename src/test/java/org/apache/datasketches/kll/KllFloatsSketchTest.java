@@ -163,8 +163,8 @@ public class KllFloatsSketchTest {
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
 
-    assertEquals(sketch.getMinItem(), 0f);
-    assertEquals(sketch.getMaxItem(), n - 1f);
+    assertEquals(sketch.getMinItem(), 0f); // min value is exact
+    assertEquals(sketch.getMaxItem(), n - 1f); // max value is exact
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];

@@ -160,7 +160,7 @@ public class KllDoublesValidationTest {
 
   private static int[] makeInputArray(int n, int stride) {
     assert isOdd(stride);
-    int mask = (1 << 23) - 1;
+    int mask = (1 << 23) - 1; // because library items are single-precision floats
     int cur = 0;
     int[] arr = new int[n];
     for (int i = 0; i < n; i++) {

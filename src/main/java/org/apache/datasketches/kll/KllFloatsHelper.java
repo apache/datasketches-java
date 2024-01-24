@@ -24,6 +24,7 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
+import static org.apache.datasketches.kll.KllSketch.DEFAULT_M;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -38,6 +39,20 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 //
 final class KllFloatsHelper {
+
+  /**
+   * Create Items Array from given item and weight.
+   * Used with weighted update only.
+   * @param item the given item
+   * @param weight the given weight
+   * @return the Items Array.
+   */
+  static float[] createItemsArray(final float item, final int weight) {
+    final int itemsArrLen = Integer.bitCount(weight);
+    final float[] itemsArr = new float[itemsArrLen];
+    Arrays.fill(itemsArr, item);
+    return itemsArr;
+  }
 
   /**
    * The following code is only valid in the special case of exactly reaching capacity while updating.
@@ -107,7 +122,7 @@ final class KllFloatsHelper {
     fltSk.setFloatItemsArray(myFloatItemsArr);
   }
 
-  //assumes readOnly = false, and UPDATABLE, called from KllFloatsSketch::merge
+  //assumes readOnly = false and UPDATABLE, called from KllFloatsSketch::merge
   static void mergeFloatImpl(final KllFloatsSketch mySketch,
       final KllFloatsSketch otherFltSk) {
     if (otherFltSk.isEmpty()) { return; }
@@ -140,7 +155,7 @@ final class KllFloatsHelper {
     final int[] myCurLevelsArr = mySketch.levelsArr;
     final float[] myCurFloatItemsArr = mySketch.getFloatItemsArray();
 
-    // then rename them and initialize in case there are no higher levels
+    // create aliases in case there are no higher levels
     int myNewNumLevels = myCurNumLevels;
     int[] myNewLevelsArr = myCurLevelsArr;
     float[] myNewFloatItemsArr = myCurFloatItemsArr;
@@ -150,11 +165,12 @@ final class KllFloatsHelper {
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final float[] workbuf = new float[tmpSpaceNeeded];
-      final int ub = KllHelper.ubOnNumLevels(finalN);
-      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
-      final int[] outlevels  = new int[ub + 2];
 
       final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
+
+      final int ub = max(KllHelper.ubOnNumLevels(finalN), provisionalNumLevels);
+      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
+      final int[] outlevels  = new int[ub + 2];
 
       populateFloatWorkArrays(workbuf, worklevels, provisionalNumLevels,
           myCurNumLevels, myCurLevelsArr, myCurFloatItemsArr,
@@ -199,7 +215,7 @@ final class KllFloatsHelper {
             KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewFloatItemsArr.length);
         mySketch.setWritableMemory(wmem);
       }
-    }
+    } //end of updating levels above level 0
 
     //Update Preamble:
     mySketch.setN(finalN);
@@ -298,29 +314,32 @@ final class KllFloatsHelper {
     }
   }
 
-  //Called from KllFloatsSketch::update and this
-  static void updateFloat(final KllFloatsSketch fltSk,
-      final float item) {
-    if (Float.isNaN(item)) { return; } //ignore
-    if (fltSk.isEmpty()) {
-      fltSk.setMinItem(item);
-      fltSk.setMaxItem(item);
-    } else {
-      fltSk.setMinItem(min(fltSk.getMinItem(), item));
-      fltSk.setMaxItem(max(fltSk.getMaxItem(), item));
-    }
-    int level0space = fltSk.levelsArr[0];
-    assert level0space >= 0;
-    if (level0space == 0) {
+  //Called from KllFloatsSketch::update and merge
+  static void updateFloat(final KllFloatsSketch fltSk, final float item) {
+    fltSk.updateMinMax(item);
+    int freeSpace = fltSk.levelsArr[0];
+    assert freeSpace >= 0;
+    if (freeSpace == 0) {
       compressWhileUpdatingSketch(fltSk);
-      level0space = fltSk.levelsArr[0];
-      assert (level0space > 0);
+      freeSpace = fltSk.levelsArr[0];
+      assert (freeSpace > 0);
     }
     fltSk.incN();
     fltSk.setLevelZeroSorted(false);
-    final int nextPos = level0space - 1;
+    final int nextPos = freeSpace - 1;
     fltSk.setLevelsArrayAt(0, nextPos);
     fltSk.setFloatItemsArrayAt(nextPos, item);
+  }
+
+  //Called from KllFloatsSketch::update with weight
+  static void updateFloat(final KllFloatsSketch fltSk, final float item, final int weight) {
+    if (weight < fltSk.levelsArr[0]) {
+      for (int i = 0; i < weight; i++) { updateFloat(fltSk, item); }
+    } else {
+      fltSk.updateMinMax(item);
+      final KllHeapFloatsSketch tmpSk = new KllHeapFloatsSketch(fltSk.getK(), DEFAULT_M, item, weight);
+      fltSk.merge(tmpSk);
+    }
   }
 
   /**
@@ -453,6 +472,7 @@ final class KllFloatsHelper {
     worklevels[0] = 0;
 
     // Note: the level zero data from "other" was already inserted into "self"
+    // This copies into workbuf.
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy( myCurFloatItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
     worklevels[1] = worklevels[0] + selfPopZero;
@@ -462,11 +482,14 @@ final class KllFloatsHelper {
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
 
+      if (selfPop == 0 && otherPop == 0) { continue; }
       if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurFloatItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
-      } else if (selfPop == 0 && otherPop > 0) {
+      } 
+      else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherFloatItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
-      } else if (selfPop > 0 && otherPop > 0) {
+      } 
+      else if (selfPop > 0 && otherPop > 0) {
         mergeSortedFloatArrays(
             myCurFloatItemsArr, myCurLevelsArr[lvl], selfPop,
             otherFloatItemsArr, otherLevelsArr[lvl], otherPop,
