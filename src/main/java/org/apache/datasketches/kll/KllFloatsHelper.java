@@ -37,7 +37,6 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-//
 final class KllFloatsHelper {
 
   /**
@@ -485,10 +484,10 @@ final class KllFloatsHelper {
       if (selfPop == 0 && otherPop == 0) { continue; }
       if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurFloatItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
-      } 
+      }
       else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherFloatItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
-      } 
+      }
       else if (selfPop > 0 && otherPop > 0) {
         mergeSortedFloatArrays(
             myCurFloatItemsArr, myCurLevelsArr[lvl], selfPop,

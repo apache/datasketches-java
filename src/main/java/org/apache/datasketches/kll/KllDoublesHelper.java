@@ -37,7 +37,6 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-//
 final class KllDoublesHelper {
 
   /**

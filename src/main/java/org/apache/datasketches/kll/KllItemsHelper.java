@@ -40,6 +40,20 @@ import org.apache.datasketches.common.Util;
 final class KllItemsHelper<T> {
 
   /**
+   * Create Items Array from given item and weight.
+   * Used with weighted update only.
+   * @param item the given item
+   * @param weight the given weight
+   * @return the Items Array.
+   */
+  static <T> T[] createItemsArray(final T item, final int weight) {
+    final int itemsArrLen = Integer.bitCount(weight);
+    final Object[] itemsArr = new Object[itemsArrLen];
+    Arrays.fill(itemsArr, item);
+    return (T[]) itemsArr;
+  }
+
+  /**
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
    * @param itmSk the current KllItemsSketch
