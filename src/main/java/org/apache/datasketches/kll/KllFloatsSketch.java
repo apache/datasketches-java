@@ -319,8 +319,23 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   @Override
   public void update(final float item) {
+    if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllFloatsHelper.updateFloat(this, item);
+    kllFloatsSV = null;
+  }
+
+  /**
+   * Weighted update. Updates this sketch with the given item the number of times specified by the given integer weight.
+   * @param item the item to be repeated. NaNs are ignored.
+   * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
+   */
+  public void update(final float item, final int weight) {
+    if (Float.isNaN(item)) { return; } //ignore
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
+    if (weight == 1) { KllFloatsHelper.updateFloat(this, item); }
+    else { KllFloatsHelper.updateFloat(this, item, weight); }
     kllFloatsSV = null;
   }
 
@@ -389,5 +404,15 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   abstract void setMaxItem(float item);
 
   abstract void setMinItem(float item);
+
+  void updateMinMax(final float item) {
+    if (isEmpty()) {
+      setMinItem(item);
+      setMaxItem(item);
+    } else {
+      setMinItem(min(getMinItem(), item));
+      setMaxItem(max(getMaxItem(), item));
+    }
+  }
 
 }

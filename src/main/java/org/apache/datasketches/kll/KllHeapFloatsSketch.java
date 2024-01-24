@@ -82,6 +82,25 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   /**
+   * Used for creating a temporary sketch for use with weighted updates.
+   */
+  KllHeapFloatsSketch(final int k, final int m, final float item, final int weight) {
+    super(UPDATABLE);
+    KllHelper.checkM(m);
+    KllHelper.checkK(k, m);
+    this.levelsArr = KllHelper.createLevelsArray(weight);
+    this.readOnly = false;
+    this.k = k;
+    this.m = m;
+    this.n = weight;
+    this.minK = k;
+    this.isLevelZeroSorted = false;
+    this.minFloatItem = item;
+    this.maxFloatItem = item;
+    this.floatItems = KllFloatsHelper.createItemsArray(item, weight);
+  }
+
+  /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
    * @param memValidate the MemoryValidate object
@@ -280,6 +299,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setWritableMemory(final WritableMemory wmem) { } //inheritance dummy
+  void setWritableMemory(final WritableMemory wmem) { }
 
 }

@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.Util.bitAt;
+import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -27,6 +30,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDirectFloatsSketch.KllDirectCompactFloatsSketch;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -38,6 +42,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("unused")
 public class KllMiscFloatsTest {
   static final String LS = System.getProperty("line.separator");
   private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
@@ -168,37 +173,50 @@ public class KllMiscFloatsTest {
   public void viewHeapCompactions() {
     int k = 20;
     int n = 108;
+    boolean withLevels = false;
+    boolean withLevelsAndItems = true;
     int compaction = 0;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
         println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
-        println(sk.toString(true, true));
+        println(sk.toString(withLevels, withLevelsAndItems));
         sk.update(++i);
         println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
-        println(sk.toString(true, true));
+        println(sk.toString(withLevels, withLevelsAndItems));
         assertEquals(sk.getFloatItemsArray()[sk.levelsArr[0]], i);
       }
     }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(withLevels, withLevelsAndItems));
+    println("");
   }
 
   @Test //set static enablePrinting = true for visual checking
   public void viewDirectCompactions() {
     int k = 20;
     int n = 108;
+    boolean withLevels = false;
+    boolean withLevelsAndItems = true;
+    int compaction = 0;
     int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, n, FLOATS_SKETCH, true);
     WritableMemory wmem = WritableMemory.allocate(sizeBytes);
     KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, wmem, memReqSvr);
     for (int i = 1; i <= n; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
-        println(sk.toString(true, true));
+        println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
+        println(sk.toString(withLevels, withLevelsAndItems));
         sk.update(++i);
-        println(sk.toString(true, true));
+        println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
+        println(sk.toString(withLevels, withLevelsAndItems));
         assertEquals(sk.getFloatItemsArray()[sk.levelsArr[0]], i);
       }
     }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(withLevels, withLevelsAndItems));
+    println("");
   }
 
   @Test //set static enablePrinting = true for visual checking
@@ -210,14 +228,177 @@ public class KllMiscFloatsTest {
     FloatsSortedView sv = sk.getSortedView();
     FloatsSortedViewIterator itr = sv.iterator();
     println("### SORTED VIEW");
-    printf("%12s%12s\n", "Value", "CumWeight");
+    printf("%12s%12s\n", "Value", "Weight");
+    long[] correct = {2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    int i = 0;
     while (itr.next()) {
       float v = itr.getQuantile();
       long wt = itr.getWeight();
       printf("%12.1f%12d\n", v, wt);
+      assertEquals(wt, correct[i++]);
     }
   }
 
+  @Test //set static enablePrinting = true for visual checking
+  public void checkWeightedUpdates1() {
+    int k = 20;
+    int weight = 127;
+    float item = 10.0F;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    println(sk.toString(true, true));
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 7);
+    assertEquals(sk.getN(), weight);
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 14);
+    assertEquals(sk.getN(), 254);
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkWeightedUpdates2() {
+    int k = 20;
+    int initial = 1000;
+    int weight = 127;
+    float item = 10.0F;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    for (int i = 1; i <= initial; i++) { sk.update(i + 1000); }
+    println(sk.toString(true, true));
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 65);
+    assertEquals(sk.getN(), 1127);
+
+    FloatsSortedViewIterator itr = sk.getSortedView().iterator();
+    println("### SORTED VIEW");
+    printf("%12s %12s %12s\n", "Value", "Weight", "NaturalRank");
+    long cumWt = 0;
+    while (itr.next()) {
+      double v = itr.getQuantile();
+      long wt = itr.getWeight();
+      long natRank = itr.getNaturalRank(INCLUSIVE);
+      cumWt += wt;
+      assertEquals(cumWt, natRank);
+      printf("%12.1f %12d %12d\n", v, wt, natRank);
+    }
+    assertEquals(cumWt, sk.getN());
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkCreateItemsArray() { //used with weighted updates
+    float item = 10.0F;
+    int weight = 108;
+    float[] itemsArr = KllFloatsHelper.createItemsArray(item, weight);
+    assertEquals(itemsArr.length, 4);
+    for (int i = 0; i < itemsArr.length; i++) { itemsArr[i] = item; }
+    outputItems(itemsArr);
+  }
+
+  private static void outputItems(float[] itemsArr) {
+    String[] hdr2 = {"Index", "Value"};
+    String hdr2fmt = "%6s %15s\n";
+    String d2fmt = "%6d %15f\n";
+    println("ItemsArr");
+    printf(hdr2fmt, (Object[]) hdr2);
+    for (int i = 0; i < itemsArr.length; i++) {
+      printf(d2fmt, i, itemsArr[i]);
+    }
+    println("");
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkCreateLevelsArray() { //used with weighted updates
+    int weight = 108;
+    int[] levelsArr = KllHelper.createLevelsArray(weight);
+    assertEquals(levelsArr.length, 8);
+    int[] correct = {0,0,0,1,2,2,3,4};
+    for (int i = 0; i < levelsArr.length; i++) {
+      assertEquals(levelsArr[i], correct[i]);
+    }
+    outputLevels(weight, levelsArr);
+  }
+
+  private static void outputLevels(int weight, int[] levelsArr) {
+    String[] hdr = {"Lvl", "StartAdr", "BitPattern", "Weight"};
+    String hdrfmt = "%3s %9s %10s %s\n";
+    String dfmt   = "%3d %9d %10d %d\n";
+    String dfmt_2 = "%3d %9d %s\n";
+    println("Count = " + weight + " => " + (Integer.toBinaryString(weight)));
+    println("LevelsArr");
+    printf(hdrfmt, (Object[]) hdr);
+    for (int i = 0; i < levelsArr.length; i++) {
+      if (i == levelsArr.length - 1) { printf(dfmt_2, i, levelsArr[i], "ItemsArr.length"); }
+      else {
+        int j = bitAt(weight, i);
+        printf(dfmt, i, levelsArr[i], j, 1 << (i));
+      }
+    }
+    println("");
+  }
+
+  @Test
+  public void viewMemorySketchData() {
+    int k = 20;
+    int n = 109;
+    boolean withLevels = true;
+    boolean withLevelsAndItems = true;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    byte[] byteArr = sk.toByteArray();
+    Memory mem = Memory.wrap(byteArr);
+    KllFloatsSketch fltSk = KllFloatsSketch.wrap(mem);
+    println(fltSk.toString(withLevels, withLevelsAndItems));
+    assertEquals(fltSk.getN(), n);
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+    public void checkIntCapAux() {
+      String[] hdr = {"level", "depth", "wt", "cap", "(end)", "MaxN"};
+      String hdrFmt =  "%6s %6s %28s %10s %10s %34s\n";
+      String dataFmt = "%6d %6d %,28d %,10d %,10d %,34.0f\n";
+      int k = 1000;
+      int m = 8;
+      int numLevels = 20;
+      println("k=" + k + ", m=" + m + ", numLevels=" + numLevels);
+      printf(hdrFmt, (Object[]) hdr);
+      double maxN = 0;
+      double[] correct = {0,1,1,2,2,3,5,8,12,17,26,39,59,88,132,198,296,444,667,1000};
+      for (int i = 0; i < numLevels; i++) {
+        int depth = numLevels - i - 1;
+        long cap = KllHelper.intCapAux(k, depth);
+        long end = Math.max(m, cap);
+        long wt = 1L << i;
+        maxN += (double)wt * (double)end;
+        printf(dataFmt, i, depth, wt, cap, end, maxN);
+        assertEquals(cap, correct[i]);
+      }
+    }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkIntCapAuxAux() {
+    String[] hdr = {"d","twoK","2k*2^d","3^d","tmp=2k*2^d/3^d","(tmp + 1)/2", "(end)"};
+    String hdrFmt =  "%6s %10s %20s %20s %15s %12s %10s\n";
+    String dataFmt = "%6d %10d %,20d %,20d %15d %12d %10d\n";
+    long k = (1L << 16) - 1L;
+    long m = 8;
+    println("k = " + k + ", m = " + m);
+    printf(hdrFmt, (Object[]) hdr);
+    long[] correct =
+ {65535,43690,29127,19418,12945,8630,5753,3836,2557,1705,1136,758,505,337,224,150,100,67,44,30,20,13,9,6,4,3,2,1,1,1,0};
+    for (int i = 0; i < 31; i++) {
+      long twoK = k << 1;
+      long twoKxtwoD = twoK << i;
+      long threeToD = KllHelper.powersOfThree[i];
+      long tmp = twoKxtwoD / threeToD;
+      long result = (tmp + 1L) >>> 1;
+      long end = Math.max(m, result); //performed later
+      printf(dataFmt, i, twoK, twoKxtwoD, threeToD, tmp, result, end);
+      assertEquals(result,correct[i]);
+      assertEquals(result, KllHelper.intCapAuxAux(k, i));
+    }
+  }
+  
   @Test
   public void checkGrowLevels() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);

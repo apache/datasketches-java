@@ -173,23 +173,23 @@ public class KllMiscDoublesTest {
   public void viewHeapCompactions() {
     int k = 20;
     int n = 108;
-    boolean withSummary = false;
-    boolean withDetail = true;
+    boolean withLevels = false;
+    boolean withLevelsAndItems = true;
     int compaction = 0;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
         println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
-        println(sk.toString(withSummary, withDetail));
+        println(sk.toString(withLevels, withLevelsAndItems));
         sk.update(++i);
         println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
-        println(sk.toString(withSummary, withDetail));
+        println(sk.toString(withLevels, withLevelsAndItems));
         assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
       }
     }
     println(LS + "#<<< END STATE # >>>");
-    println(sk.toString(withSummary, withDetail));
+    println(sk.toString(withLevels, withLevelsAndItems));
     println("");
   }
 
@@ -197,8 +197,8 @@ public class KllMiscDoublesTest {
   public void viewDirectCompactions() {
     int k = 20;
     int n = 108;
-    boolean withSummary = false;
-    boolean withDetail = true;
+    boolean withLevels = false;
+    boolean withLevelsAndItems = true;
     int compaction = 0;
     int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, n, DOUBLES_SKETCH, true);
     WritableMemory wmem = WritableMemory.allocate(sizeBytes);
@@ -207,15 +207,15 @@ public class KllMiscDoublesTest {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
         println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
-        println(sk.toString(withSummary, withDetail));
+        println(sk.toString(withLevels, withLevelsAndItems));
         sk.update(++i);
         println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
-        println(sk.toString(withSummary, withDetail));
+        println(sk.toString(withLevels, withLevelsAndItems));
         assertEquals(sk.getDoubleItemsArray()[sk.levelsArr[0]], i);
       }
     }
     println(LS + "#<<< END STATE # >>>");
-    println(sk.toString(withSummary, withDetail));
+    println(sk.toString(withLevels, withLevelsAndItems));
     println("");
   }
 
@@ -341,14 +341,14 @@ public class KllMiscDoublesTest {
   public void viewMemorySketchData() {
     int k = 20;
     int n = 109;
-    boolean withSummary = true;
-    boolean withDetail = true;
+    boolean withLevels = true;
+    boolean withLevelsAndItems = true;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toByteArray();
     Memory mem = Memory.wrap(byteArr);
     KllDoublesSketch ddSk = KllDoublesSketch.wrap(mem);
-    println(ddSk.toString(withSummary, withDetail));
+    println(ddSk.toString(withLevels, withLevelsAndItems));
     assertEquals(ddSk.getN(), n);
   }
 
