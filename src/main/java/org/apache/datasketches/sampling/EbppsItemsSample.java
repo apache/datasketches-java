@@ -34,7 +34,7 @@ class EbppsItemsSample<T> {
 
   private double c_;            // Current sample size, including fractional part
   private T partialItem_;       // a sample item corresponding to a partial weight
-  private ArrayList<T> data_;   // stored sampled items
+  private ArrayList<T> data_;   // full sample items
   
   private Random rand_;         // ThreadLocalRandom.current() in general
 
@@ -52,20 +52,6 @@ class EbppsItemsSample<T> {
     data_ = new ArrayList<>(other.data_);
     rand_ = other.rand_;
   }
-
-  /*
-  // constructor used to create a sample to merge one item
-  EbppsItemsSample(final T item, final double theta) {
-    c_ = theta;
-    if (theta == 1.0) {
-      data_ = new ArrayList<T>(1);
-      data_.add(item);
-    } else {
-      partialItem_ = item;
-    }
-    rand_ = ThreadLocalRandom.current();
-  }
-  */
 
   // constructor used for deserialization and testing
   // does NOT copy the incoming ArrayList since this is an internal

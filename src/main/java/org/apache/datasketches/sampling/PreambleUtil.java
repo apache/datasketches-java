@@ -102,7 +102,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *  </pre>
  *
  * <p><strong>VarOpt Union:</strong> VarOpt unions also store more information than a reservoir
- * sketch. As before, we keep values with similar o hte same meaning in corresponding locations
+ * sketch. As before, we keep values with similar to the same meaning in corresponding locations
  * actoss sketch and union formats. The items in the union are stored in a varopt sketch-compatible
  * format after the union preamble.</p>
  *
@@ -123,7 +123,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
  *  3   ||---------------------------Outer Tau Denominator (long)----------------------------|
  *  </pre>
- *
+ * 
  *  @author Jon Malkin
  *  @author Lee Rhodes
  */
@@ -159,9 +159,6 @@ final class PreambleUtil {
   static final int EBPPS_CUM_WT_DOUBLE   = 16;
   static final int EBPPS_MAX_WT_DOUBLE   = 24;
   static final int EBPPS_RHO_DOUBLE      = 32;
-  static final int EBPPS_C_DOUBLE        = 40;
-  static final int EBPPS_ITEMS_START     = 48;
-  
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
@@ -400,10 +397,6 @@ final class PreambleUtil {
     return mem.getDouble(EBPPS_RHO_DOUBLE);
   }
 
-  static double extractEbppsC(final Memory mem) {
-    return mem.getDouble(EBPPS_C_DOUBLE);
-  }
-
   // Insertion methods
 
   static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
@@ -475,10 +468,6 @@ final class PreambleUtil {
 
   static void insertEbppsRho(final WritableMemory wmem, final double rho) {
     wmem.putDouble(EBPPS_RHO_DOUBLE, rho);
-  }
-
-  static void insertEbppsC(final WritableMemory wmem, final double c) {
-    wmem.putDouble(EBPPS_C_DOUBLE, c);
   }
 
   /**

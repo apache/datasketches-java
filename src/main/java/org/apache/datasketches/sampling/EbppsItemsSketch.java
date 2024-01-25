@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.sampling;
 
-import static org.apache.datasketches.sampling.PreambleUtil.EBPPS_ITEMS_START;
 import static org.apache.datasketches.sampling.PreambleUtil.EBPPS_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 
@@ -35,6 +34,8 @@ import org.apache.datasketches.memory.WritableMemory;
 
 public class EbppsItemsSketch<T> {
   private static final int MAX_K = Integer.MAX_VALUE - 2;
+  private static final int EBPPS_C_DOUBLE        = 40;
+  private static final int EBPPS_ITEMS_START     = 48;
 
   private int k_;                      // max size of sketch, in items
   private long n_;                     // total number of items processed by the sketch
@@ -47,6 +48,10 @@ public class EbppsItemsSketch<T> {
 
   private EbppsItemsSample<T> tmp_;    // temporary storage
 
+  /**
+   * Constructor
+   * @param k The maximum number of samples to retain
+   */
   public EbppsItemsSketch(final int k) {
     checkK(k);
     k_ = k;
@@ -153,7 +158,8 @@ public class EbppsItemsSketch<T> {
       throw new SketchesArgumentException("Possible Corruption: rho cannot be negative: " + n);
     }
 
-    final double c = PreambleUtil.extractEbppsC(srcMem);
+    // extract C (part of sample_, not the preamble)
+    final double c = srcMem.getDouble(EBPPS_C_DOUBLE);
     if (c < 0) {
       throw new SketchesArgumentException("Possible Corruption: c cannot be negative: " + n);
     }
@@ -161,7 +167,7 @@ public class EbppsItemsSketch<T> {
     // extract items
     int numTotalItems = (int) Math.ceil(c);
     int numFullItems = (int) Math.floor(c); // floor() not strictly necessary
-    final int offsetBytes = PreambleUtil.EBPPS_ITEMS_START;
+    final int offsetBytes = EBPPS_ITEMS_START;
     final T[] rawItems = serDe.deserializeFromMemory(
             srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), 0, numTotalItems);
     final List<T> itemsList = Arrays.asList(rawItems);
@@ -180,10 +186,19 @@ public class EbppsItemsSketch<T> {
     return new EbppsItemsSketch<>(sample, k, n, cumWt, maxWt, rho);
   }
 
+  /**
+   * Updates this sketch with the given data item with weight 1.0.
+   * @param item an item from a stream of items
+   */
   public void update(final T item) {
     update(item, 1.0);
   }
 
+  /**
+   * Updates this sketch with the given data item with the given weight.
+   * @param item an item from a stream of items
+   * @param weight the weight of the item
+   */
   public void update(final T item, final double weight) {
     if (weight < 0.0 || Double.isNaN(weight) || Double.isInfinite(weight))
       throw new SketchesArgumentException("Item weights must be nonnegative and finite. "
@@ -229,8 +244,7 @@ public class EbppsItemsSketch<T> {
 
   /**
    * Merges the provided sketch into the current one.
-   * This method takes an lvalue.
-   * @param sketch the sketch to merge into the current object
+   * @param other the sketch to merge into the current object
    */
   public void merge(final EbppsItemsSketch<T> other) {
     if (other.getCumulativeWeight() == 0.0) return;
@@ -250,6 +264,7 @@ public class EbppsItemsSketch<T> {
     }
   }
 
+  // merge implementation called exclusively from public merge()
   private void internalMerge(EbppsItemsSketch<T> other) {
     // assumes that other.cumulativeWeight_ <= cumulativeWt_m
     // which must be checked before calling this
@@ -309,22 +324,63 @@ public class EbppsItemsSketch<T> {
     n_ = newN;
   }
 
+  /**
+   * Returns a copy of the current sample. The exact size may be
+   * probabilsitic, differing by at most 1 item.
+   * @return the current sketch sample
+   */
   public ArrayList<T> getResult() { return sample_.getSample(); }
 
+  /**
+   * Provides a human-readable summary of the sketch
+   * @return a summary of information in the sketch
+   */
   public String toString() {
     return null;
   }
 
+  /**
+   * Returns the configured maximum sample size.
+   * @return configured maximum sample size
+   */
   public int getK() { return k_; }
 
+  /**
+   * Returns the number of items processed by the sketch, regardless
+   * of item weight.
+   * @return count of items processed by the sketch
+   */
   public long getN() { return n_; }
 
+  /**
+   * Returns the cumulative weight of items processed by the sketch.
+   * @return cumulative weight of items seen
+   */
   public double getCumulativeWeight() { return cumulativeWt_; }
 
+  /**
+   * Returns the expected number of samples returned upon a call to
+   * getResult(). The number is a floating point value, where the 
+   * fractional portion represents the probability of including a
+   * "partial item" from the sample.
+   * 
+   * The value C should be no larger than the sketch's configured
+   * value of k, although numerical precision limitations mean it
+   * may exceed k by double precision floating point error margins
+   * in certain cases.
+   * @return The expected number of samples returned when querying the sketch
+   */
   public double getC() { return sample_.getC(); }
 
+  /**
+   * Returns true if the sketch is empty.
+   * @return empty flag
+   */
   public boolean isEmpty() { return n_ == 0; }
 
+  /**
+   * Resets the sketch to its default, empty state.
+   */
   public void reset() {
     n_ = 0;
     cumulativeWt_ = 0.0;
@@ -379,6 +435,49 @@ public class EbppsItemsSketch<T> {
     }
   }
 
+  /*
+  * An empty sketch requires 8 bytes.
+  *
+  * <pre>
+  * Long || Start Byte Adr:
+  * Adr:
+  *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+  *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
+  * </pre>
+  *
+  * A non-empty sketch requires 40 bytes of preamble. C looks like part of
+  * the preamble but is serialized as part of the internal sample state.
+  *
+  * The count of items seen is not used but preserved as the value seems like a useful
+  * count to track.
+  * 
+  * <pre>
+  * Long || Start Byte Adr:
+  * Adr:
+  *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+  *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
+  *
+  *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+  *  1   ||---------------------------Items Seen Count (N)--------------------------------|
+  *
+  *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+  *  2   ||----------------------------Cumulative Weight----------------------------------|
+  *
+  *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+  *  3   ||-----------------------------Max Item Weight-----------------------------------|
+  *
+  *      ||      32        |   33   |   34   |   35   |   36   |   37   |   38   |   39   |
+  *  4   ||----------------------------------Rho------------------------------------------|
+  *
+  *      ||      40        |   41   |   42   |   43   |   44   |   45   |   46   |   47   |
+  *  5   ||-----------------------------------C-------------------------------------------|
+  *
+  *      ||      40+                      |
+  *  6+  ||  {Items Array}                |
+  *      ||  {Optional Item (if needed)}  |
+  * </pre>
+  */
+
   /**
    * Returns a byte array representation of this sketch. Copies contents into an array of the
    * specified class for serialization to allow for polymorphic types.
@@ -421,7 +520,9 @@ public class EbppsItemsSketch<T> {
       PreambleUtil.insertEbppsCumulativeWeight(mem, cumulativeWt_);
       PreambleUtil.insertEbppsMaxWeight(mem, wtMax_);
       PreambleUtil.insertEbppsRho(mem, rho_);
-      PreambleUtil.insertEbppsC(mem, sample_.getC());
+      
+      // data from sample_ -- itemBytes includes the partial item
+      mem.putDouble(EBPPS_C_DOUBLE, sample_.getC());
       mem.putByteArray(EBPPS_ITEMS_START, itemBytes, 0, itemBytes.length);
     }
 
