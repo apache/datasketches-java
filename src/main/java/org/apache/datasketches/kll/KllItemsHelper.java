@@ -21,9 +21,11 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.reflect.Array.newInstance;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
+import static org.apache.datasketches.kll.KllSketch.DEFAULT_M;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -37,7 +39,7 @@ import org.apache.datasketches.common.Util;
  * @author Lee Rhodes
  */
 @SuppressWarnings("unchecked")
-final class KllItemsHelper<T> {
+final class KllItemsHelper {
 
   /**
    * Create Items Array from given item and weight.
@@ -46,11 +48,11 @@ final class KllItemsHelper<T> {
    * @param weight the given weight
    * @return the Items Array.
    */
-  static <T> T[] createItemsArray(final T item, final int weight) {
+  static <T> T[] createItemsArray(final Class<T> clazz, final T item, final int weight) {
     final int itemsArrLen = Integer.bitCount(weight);
-    final Object[] itemsArr = new Object[itemsArrLen];
+    final T[] itemsArr = (T[])newInstance(clazz, itemsArrLen);
     Arrays.fill(itemsArr, item);
-    return (T[]) itemsArr;
+    return itemsArr;
   }
 
   /**
@@ -140,12 +142,12 @@ final class KllItemsHelper<T> {
 
     //MERGE: update this sketch with level0 items from the other sketch
     if (otherItmSk.isCompactSingleItem()) {
-      updateItem(mySketch, otherItmSk.getSingleItem(), comp);
+      updateItem(mySketch, otherItmSk.getSingleItem());
       otherItemsArr = new Object[0];
     } else {
       otherItemsArr = otherItmSk.getTotalItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-       updateItem(mySketch, otherItemsArr[i], comp);
+       updateItem(mySketch, otherItemsArr[i]);
       }
     }
 
@@ -164,11 +166,12 @@ final class KllItemsHelper<T> {
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final Object[] workbuf = new Object[tmpSpaceNeeded];
-      final int ub = KllHelper.ubOnNumLevels(finalN);
-      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
-      final int[] outlevels  = new int[ub + 2];
 
       final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
+
+      final int ub = max(KllHelper.ubOnNumLevels(finalN), provisionalNumLevels);
+      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
+      final int[] outlevels  = new int[ub + 2];
 
       populateItemWorkArrays(workbuf, worklevels, provisionalNumLevels,
           myCurNumLevels, myCurLevelsArr, myCurItemsArr,
@@ -209,7 +212,11 @@ final class KllItemsHelper<T> {
 
       //MEMORY SPACE MANAGEMENT
       //not used
-    }
+      //extra spaces to make comparison with other helpers easier
+      //
+      //
+      //
+    } //end of updating levels above level 0
 
     //Update Preamble:
     mySketch.setN(finalN);
@@ -235,7 +242,7 @@ final class KllItemsHelper<T> {
     assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
   }
 
-  private static <T> void mergeSortedItemsArrays(
+  private static <T> void mergeSortedItemsArrays( //only bufC is modified
       final Object[] bufA, final int startA, final int lenA,
       final Object[] bufB, final int startB, final int lenB,
       final Object[] bufC, final int startC, final Comparator<? super T> comp) {
@@ -309,28 +316,32 @@ final class KllItemsHelper<T> {
   }
 
   //Called from KllItemsSketch::update and this
-  static <T> void updateItem(final KllItemsSketch<T> itmSk,
-      final Object item, final Comparator<? super T> comp) {
-    if (item == null) { return; } //ignore
-    if (itmSk.isEmpty()) {
-      itmSk.setMinItem(item);
-      itmSk.setMaxItem(item);
-    } else {
-      itmSk.setMinItem(Util.minT(itmSk.getMinItem(), item, comp));
-      itmSk.setMaxItem(Util.maxT(itmSk.getMaxItem(), item, comp));
-    }
-    int level0space = itmSk.levelsArr[0];
-    assert level0space >= 0;
-    if (level0space == 0) {
+  static <T> void updateItem(final KllItemsSketch<T> itmSk, final Object item) {
+    itmSk.updateMinMax((T)item);
+    int freeSpace = itmSk.levelsArr[0];
+    assert freeSpace >= 0;
+    if (freeSpace == 0) {
       compressWhileUpdatingSketch(itmSk);
-      level0space = itmSk.levelsArr[0];
-      assert (level0space > 0);
+      freeSpace = itmSk.levelsArr[0];
+      assert (freeSpace > 0);
     }
     itmSk.incN();
     itmSk.setLevelZeroSorted(false);
-    final int nextPos = level0space - 1;
+    final int nextPos = freeSpace - 1;
     itmSk.setLevelsArrayAt(0, nextPos);
     itmSk.setItemsArrayAt(nextPos, item);
+  }
+
+  //Called from KllItemsSketch::update with weight
+  static <T> void updateItem(final KllItemsSketch<T> itmSk, final T item, final int weight) {
+    if (weight < itmSk.levelsArr[0]) {
+      for (int i = 0; i < weight; i++) { updateItem(itmSk, item); }
+    } else {
+      itmSk.updateMinMax(item);
+      final KllHeapItemsSketch<T> tmpSk =
+          new KllHeapItemsSketch<>(itmSk.getK(), DEFAULT_M, item, weight, itmSk.comparator, itmSk.serDe);
+      itmSk.merge(tmpSk);
+    }
   }
 
   /**
@@ -462,7 +473,8 @@ final class KllItemsHelper<T> {
       final Comparator<? super T> comp) {
     worklevels[0] = 0;
 
-    // Note: the level zero data from "other" was already inserted into "self"
+    // Note: the level zero data from "other" was already inserted into "self".
+    // This copies into workbuf.
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy( myCurItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
     worklevels[1] = worklevels[0] + selfPopZero;
@@ -471,12 +483,15 @@ final class KllItemsHelper<T> {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
-
-      if (selfPop > 0 && otherPop == 0) {
+      assert selfPop >= 0 && otherPop >= 0;
+      if (selfPop == 0 && otherPop == 0) { continue; }
+      else if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
-      } else if (selfPop == 0 && otherPop > 0) {
+      }
+      else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
-      } else if (selfPop > 0 && otherPop > 0) {
+      }
+      else if (selfPop > 0 && otherPop > 0) {
         mergeSortedItemsArrays(
             myCurItemsArr, myCurLevelsArr[lvl], selfPop,
             otherItemsArr, otherLevelsArr[lvl], otherPop,
@@ -500,4 +515,3 @@ final class KllItemsHelper<T> {
   //    }
 
 }
-

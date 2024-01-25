@@ -32,6 +32,7 @@ import java.util.Random;
 import org.apache.datasketches.memory.WritableMemory;
 
 //
+//
 /**
  * Static methods to support KllDoublesSketch
  * @author Kevin Lang
@@ -337,6 +338,7 @@ final class KllDoublesHelper {
     } else {
       dblSk.updateMinMax(item);
       final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
+
       dblSk.merge(tmpSk);
     }
   }
@@ -470,7 +472,7 @@ final class KllDoublesHelper {
 
     workLevels[0] = 0;
 
-    // Note: the level zero data from "other" was already inserted into "self",
+    // Note: the level zero data from "other" was already inserted into "self".
     // This copies into workbuf.
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[0], workBuf, workLevels[0], selfPopZero);
@@ -480,7 +482,7 @@ final class KllDoublesHelper {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       workLevels[lvl + 1] = workLevels[lvl] + selfPop + otherPop;
-
+      assert selfPop >= 0 && otherPop >= 0;
       if (selfPop == 0 && otherPop == 0) { continue; }
       else if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);

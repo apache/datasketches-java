@@ -32,6 +32,7 @@ import java.util.Random;
 import org.apache.datasketches.memory.WritableMemory;
 
 //
+//
 /**
  * Static methods to support KllFloatsSketch
  * @author Kevin Lang
@@ -337,6 +338,7 @@ final class KllFloatsHelper {
     } else {
       fltSk.updateMinMax(item);
       final KllHeapFloatsSketch tmpSk = new KllHeapFloatsSketch(fltSk.getK(), DEFAULT_M, item, weight);
+
       fltSk.merge(tmpSk);
     }
   }
@@ -470,7 +472,7 @@ final class KllFloatsHelper {
 
     worklevels[0] = 0;
 
-    // Note: the level zero data from "other" was already inserted into "self"
+    // Note: the level zero data from "other" was already inserted into "self".
     // This copies into workbuf.
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy( myCurFloatItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
@@ -480,7 +482,7 @@ final class KllFloatsHelper {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
-
+      assert selfPop >= 0 && otherPop >= 0;
       if (selfPop == 0 && otherPop == 0) { continue; }
       if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurFloatItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);

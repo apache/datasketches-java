@@ -111,5 +111,5 @@ public abstract class ArrayOfItemsSerDe<T> {
    * Returns the concrete class of type T
    * @return the concrete class of type T
    */
-  public abstract Class<?> getClassOfT();
+  public abstract Class<T> getClassOfT();
 }

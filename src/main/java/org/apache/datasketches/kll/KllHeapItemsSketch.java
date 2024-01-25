@@ -25,6 +25,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 
 import java.lang.reflect.Array;
 import java.util.Comparator;
@@ -34,6 +35,14 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
+/**
+ * This class implements an on-heap doubles KllSketch.
+ *
+ * <p>Please refer to the documentation in the package-info:<br>
+ * {@link org.apache.datasketches.kll}</p>
+ *
+ * @author Lee Rhodes, Kevin Lang
+ */
 @SuppressWarnings("unchecked")
 final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   private final int k; // configured size of K.
@@ -46,14 +55,17 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   private Object[] itemsArr;
 
   /**
-   * Constructs a new empty instance of this sketch on the Java heap.
+   * New instance heap constructor.
+   * @param k parameter that controls size of the sketch and accuracy of estimates.
+   * @param m parameter controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * The DEFAULT_M, which is 8 is recommended. Other sizes of <em>m</em> should be considered
+   * experimental as they have not been as well characterized.
+   * @param comparator user specified comparator of type T.
+   * @param serDe serialization / deserialization class
    */
-  KllHeapItemsSketch(
-      final int k,
-      final int m,
-      final Comparator<? super T> comparator,
+  KllHeapItemsSketch(final int k, final int m, final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    super(SketchStructure.UPDATABLE, comparator, serDe);
+    super(UPDATABLE, comparator, serDe);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
     this.levelsArr = new int[] {k, k};
@@ -69,11 +81,27 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   /**
-   * The Heapify constructor, which constructs an image of this sketch from
-   * a Memory (or WritableMemory) object that was created by this sketch
-   * and has a type T consistent with the given comparator and serDe.
-   * Once the data from the given Memory has been transferred into this heap sketch,
-   * the reference to the Memory object is no longer retained.
+   * Used for creating a temporary sketch for use with weighted updates.
+   */
+  KllHeapItemsSketch(final int k, final int m, final T item, final int weight, final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
+    super(UPDATABLE, comparator, serDe);
+    KllHelper.checkM(m);
+    KllHelper.checkK(k, m);
+    this.levelsArr = KllHelper.createLevelsArray(weight);
+    this.readOnly = false;
+    this.k = k;
+    this.m = m;
+    this.n = weight;
+    this.minK = k;
+    this.isLevelZeroSorted = false;
+    this.minItem = item;
+    this.maxItem = item;
+    this.itemsArr = KllItemsHelper.createItemsArray(serDe.getClassOfT(), item, weight);
+  }
+
+  /**
+   * The Heapify constructor
    * @param srcMem the Source Memory image that contains data.
    * @param comparator the comparator for this sketch and given Memory.
    * @param serDe the serializer / deserializer for this sketch and the given Memory.

@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.Util.bitAt;
+import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -31,11 +34,19 @@ import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
+import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.testng.annotations.Test;
 
+/**
+ * @author Lee Rhodes
+ */
+@SuppressWarnings("unused")
 public class KllMiscItemsTest {
   static final String LS = System.getProperty("line.separator");
   public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
@@ -178,6 +189,8 @@ public class KllMiscItemsTest {
   public void viewHeapCompactions() {
     int k = 20;
     int n = 108;
+    boolean withLevels = false;
+    boolean withLevelsAndItems = true;
     int digits = Util.numDigits(n);
     int compaction = 0;
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
@@ -192,6 +205,9 @@ public class KllMiscItemsTest {
         assertEquals(sk.getTotalItemsArray()[sk.levelsArr[0]], Util.longToFixedLengthString(i, digits));
       }
     }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(withLevels, withLevelsAndItems));
+    println("");
   }
 
   @Test //set static enablePrinting = true for visual checking
@@ -205,12 +221,63 @@ public class KllMiscItemsTest {
     GenericSortedViewIterator<String> itr = sv.iterator();
     println("### SORTED VIEW");
     printf("%12s%12s\n", "Value", "CumWeight");
+    long[] correct = {2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    int i = 0;
     while (itr.next()) {
       String v = itr.getQuantile();
       long wt = itr.getWeight();
       printf("%12s%12d\n", v, wt);
+      assertEquals(wt, correct[i++]);
     }
   }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkWeightedUpdates1() {
+    int k = 20;
+    int weight = 127;
+    String item = "10";
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    println(sk.toString(true, true));
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 7);
+    assertEquals(sk.getN(), weight);
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 14);
+    assertEquals(sk.getN(), 254);
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkWeightedUpdates2() {
+    int k = 20;
+    int initial = 1000;
+    final int digits = 4;
+    int weight = 127;
+    String item = "  10";
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    for (int i = 1; i <= initial; i++) { sk.update(Util.longToFixedLengthString(i + 1000, digits)); }
+    println(sk.toString(true, true));
+    sk.update(item, weight);
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumRetained(), 65);
+    assertEquals(sk.getN(), 1127);
+
+    GenericSortedViewIterator<String> itr = sk.getSortedView().iterator();
+    println("### SORTED VIEW");
+    printf("%12s %12s %12s\n", "Value", "Weight", "NaturalRank");
+    long cumWt = 0;
+    while (itr.next()) {
+      String v = itr.getQuantile();
+      long wt = itr.getWeight();
+      long natRank = itr.getNaturalRank(INCLUSIVE);
+      cumWt += wt;
+      assertEquals(cumWt, natRank);
+      printf("%12s %12d %12d\n", v, wt, natRank);
+    }
+    assertEquals(cumWt, sk.getN());
+  }
+
 
   @Test
   public void checkGrowLevels() {
@@ -416,8 +483,57 @@ public class KllMiscItemsTest {
     assertEquals(compBytes, compBytes2);
   }
 
-  // public void checkMemoryToStringFloatUpdatable() Not Supported
-  // public void checkSimpleMerge() not supported
+  @Test //set static enablePrinting = true for visual checking
+  public void checkCreateItemsArray() { //used with weighted updates
+    String item = "10";
+    int weight = 108;
+    String[] itemsArr = KllItemsHelper.createItemsArray(String.class, item, weight);
+    assertEquals(itemsArr.length, 4);
+    for (int i = 0; i < itemsArr.length; i++) { itemsArr[i] = item; }
+    outputItems(itemsArr);
+  }
+
+  private static void outputItems(String[] itemsArr) {
+    String[] hdr2 = {"Index", "Value"};
+    String hdr2fmt = "%6s %15s\n";
+    String d2fmt = "%6d %15s\n";
+    println("ItemsArr");
+    printf(hdr2fmt, (Object[]) hdr2);
+    for (int i = 0; i < itemsArr.length; i++) {
+      printf(d2fmt, i, itemsArr[i]);
+    }
+    println("");
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void checkCreateLevelsArray() { //used with weighted updates
+    int weight = 108;
+    int[] levelsArr = KllHelper.createLevelsArray(weight);
+    assertEquals(levelsArr.length, 8);
+    int[] correct = {0,0,0,1,2,2,3,4};
+    for (int i = 0; i < levelsArr.length; i++) {
+      assertEquals(levelsArr[i], correct[i]);
+    }
+    outputLevels(weight, levelsArr);
+  }
+
+  private static void outputLevels(int weight, int[] levelsArr) {
+    String[] hdr = {"Lvl", "StartAdr", "BitPattern", "Weight"};
+    String hdrfmt = "%3s %9s %10s %s\n";
+    String dfmt   = "%3d %9d %10d %d\n";
+    String dfmt_2 = "%3d %9d %s\n";
+    println("Count = " + weight + " => " + (Integer.toBinaryString(weight)));
+    println("LevelsArr");
+    printf(hdrfmt, (Object[]) hdr);
+    for (int i = 0; i < levelsArr.length; i++) {
+      if (i == levelsArr.length - 1) { printf(dfmt_2, i, levelsArr[i], "ItemsArr.length"); }
+      else {
+        int j = bitAt(weight, i);
+        printf(dfmt, i, levelsArr[i], j, 1 << (i));
+      }
+    }
+    println("");
+  }
 
   @Test
   public void checkGetSingleItem() {

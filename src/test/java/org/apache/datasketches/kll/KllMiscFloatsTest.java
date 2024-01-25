@@ -62,7 +62,7 @@ public class KllMiscFloatsTest {
     }
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkBounds() {
     final KllFloatsSketch kll = KllFloatsSketch.newHeapInstance(); //default k = 200
     for (int i = 0; i < 1000; i++) {
@@ -398,7 +398,7 @@ public class KllMiscFloatsTest {
       assertEquals(result, KllHelper.intCapAuxAux(k, i));
     }
   }
-  
+
   @Test
   public void checkGrowLevels() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);

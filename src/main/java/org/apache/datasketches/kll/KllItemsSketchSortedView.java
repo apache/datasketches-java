@@ -95,7 +95,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
     this.comparator = sketch.comparator;
     this.maxItem = sketch.getMaxItem();
     this.minItem = sketch.getMinItem();
-    this.clazz = (Class<T>)sketch.serDe.getClassOfT();
+    this.clazz = sketch.serDe.getClassOfT();
 
     if (totalN == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
     if (!sketch.isLevelZeroSorted()) {
