@@ -25,7 +25,10 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class EbppsSketchTest {
@@ -169,4 +172,40 @@ public class EbppsSketchTest {
     assertEquals(sk1.getCumulativeWeight(), 1.375 * k, EPS);
   }
 
+  @Test
+  public void serializeDeserializeString() {
+    // since C <= k we don't have the usual sketch notion of exact vs estimation
+    // mode at any time. The only real serializaiton cases are empty and non-empty
+    // with and without a partial item
+    final int k = 10;
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(k);
+
+    // empty
+    byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe()));
+    Memory mem = Memory.wrap(bytes);
+    EbppsItemsSketch<String> sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+    checkIfEqual(sk, sk_heapify);
+    // TODO: deserialize too few bytes
+
+    // add uniform items
+    for (int i = 0; i < k; ++i)
+      sk.update(Integer.toString(i));
+
+    // non-empty, no partial item
+    bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe()));
+    mem = Memory.wrap(bytes);
+    sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+    checkIfEqual(sk, sk_heapify);
+  
+    // non-empty with partial item
+    sk.update(Integer.toString(2 * k), 2.5);
+    assertEquals(sk.getCumulativeWeight(), k + 2.5, EPS);
+    bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe()));
+    mem = Memory.wrap(bytes);
+    sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+    checkIfEqual(sk, sk_heapify);
+  }
 }

@@ -21,6 +21,7 @@ package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.common.Util.LS;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -122,12 +123,30 @@ class EbppsItemsSample<T> {
     return result;      
   }
 
-  // package-private for use in merge
+  @SuppressWarnings("unchecked")
+  T[] getAllSamples(final Class<?> clazz) {
+    // Is it faster to use sublist and append 1?
+    final T[] itemsArray = (T[]) Array.newInstance(clazz, getNumRetainedItems());
+    int i = 0;
+    if (data_ != null) {
+      for (T item : data_) {
+        if (item != null) {
+          itemsArray[i++] = item;
+        }
+      }
+    }
+    if (partialItem_ != null)
+      itemsArray[i] = partialItem_; // no need to increment i again
+
+    return itemsArray;
+  }
+
+  // package-private for use in merge and serialization
   ArrayList<T> getFullItems() {
     return data_;
   }
 
-  // package-private for use in merge
+  // package-private for use in merge and serialization
   T getPartialItem() {
     return partialItem_;
   }
@@ -296,28 +315,4 @@ class EbppsItemsSample<T> {
     return (data_ != null ? data_.size() : 0)
          + (partialItem_ != null ? 1 : 0);
   }
-
-  public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe) {
-    return -1;  
-  }
-
-  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
-    if (data_.size() == 0 && partialItem_ == null) {
-      // null class is ok since empty -- no need to call serDe
-      return toByteArray(serDe, null);
-    } else {
-      return toByteArray(serDe, data_.get(0).getClass());
-    }
-  }
-
-  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
-    return null;
-  }
-
-
-  public static <T> EbppsItemsSample<T> heapify(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
-    return new EbppsItemsSample<>(0);
-  }
-
-
 }
