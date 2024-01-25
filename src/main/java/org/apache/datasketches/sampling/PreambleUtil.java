@@ -155,6 +155,14 @@ final class PreambleUtil {
   static final int VO_PRELONGS_WARMUP    = 3;   // Doesn't match min or max prelongs in Family
   static final int VO_PRELONGS_FULL      = Family.VAROPT.getMaxPreLongs();
 
+  // constants and addresses used in EBPPS
+  static final int EBPPS_CUM_WT_DOUBLE   = 16;
+  static final int EBPPS_MAX_WT_DOUBLE   = 24;
+  static final int EBPPS_RHO_DOUBLE      = 32;
+  static final int EBPPS_C_DOUBLE        = 40;
+  static final int EBPPS_ITEMS_START     = 48;
+  
+
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
   //static final int READ_ONLY_FLAG_MASK  = 2;
@@ -162,7 +170,9 @@ final class PreambleUtil {
   static final int GADGET_FLAG_MASK     = 128;
 
   //Other constants
-  static final int SER_VER                    = 2;
+  static final int RESERVOIR_SER_VER    = 2;
+  static final int VAROPT_SER_VER       = 2;
+  static final int EBPPS_SER_VER        = 1;
 
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
@@ -378,6 +388,22 @@ final class PreambleUtil {
     return mem.getLong(OUTER_TAU_DENOM_LONG);
   }
 
+  static double extractEbppsCumulativeWeight(final Memory mem) {
+    return mem.getDouble(EBPPS_CUM_WT_DOUBLE);
+  }
+
+  static double extractEbppsMaxWeight(final Memory mem) {
+    return mem.getDouble(EBPPS_MAX_WT_DOUBLE);
+  }
+
+  static double extractEbppsRho(final Memory mem) {
+    return mem.getDouble(EBPPS_RHO_DOUBLE);
+  }
+
+  static double extractEbppsC(final Memory mem) {
+    return mem.getDouble(EBPPS_C_DOUBLE);
+  }
+
   // Insertion methods
 
   static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
@@ -437,6 +463,22 @@ final class PreambleUtil {
 
   static void insertOuterTauDenominator(final WritableMemory wmem, final long denom) {
     wmem.putLong(OUTER_TAU_DENOM_LONG, denom);
+  }
+
+  static void insertEbppsCumulativeWeight(final WritableMemory wmem, final double cumWt) {
+    wmem.putDouble(EBPPS_CUM_WT_DOUBLE, cumWt);
+  }
+
+  static void insertEbppsMaxWeight(final WritableMemory wmem, final double maxWt) {
+    wmem.putDouble(EBPPS_MAX_WT_DOUBLE, maxWt);
+  }
+
+  static void insertEbppsRho(final WritableMemory wmem, final double rho) {
+    wmem.putDouble(EBPPS_RHO_DOUBLE, rho);
+  }
+
+  static void insertEbppsC(final WritableMemory wmem, final double c) {
+    wmem.putDouble(EBPPS_C_DOUBLE, c);
   }
 
   /**
