@@ -236,7 +236,7 @@ public class KllMiscItemsTest {
     int k = 20;
     int weight = 127;
     String item = "10";
-    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     println(sk.toString(true, true));
     sk.update(item, weight);
     println(sk.toString(true, true));
@@ -255,7 +255,7 @@ public class KllMiscItemsTest {
     final int digits = 4;
     int weight = 127;
     String item = "  10";
-    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     for (int i = 1; i <= initial; i++) { sk.update(Util.longToFixedLengthString(i + 1000, digits)); }
     println(sk.toString(true, true));
     sk.update(item, weight);

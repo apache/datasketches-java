@@ -157,8 +157,11 @@ final class KllHelper {
    * @param weight the given weight
    * @return the Levels Array
    */
-  static int[] createLevelsArray(final int weight) {
-    final int numLevels = 32 - Integer.numberOfLeadingZeros(weight);
+  static int[] createLevelsArray(final long weight) {
+    final int numLevels = 64 - Long.numberOfLeadingZeros(weight);
+    if (numLevels > 61) {
+      throw new SketchesArgumentException("The requested weight must not exceed 2^61");
+    }
     final int[] levelsArr = new int[numLevels + 1]; //always one more than numLevels
     int itemsArrIndex = 0;
     levelsArr[0] = itemsArrIndex;

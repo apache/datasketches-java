@@ -82,7 +82,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   /**
    * Used for creating a temporary sketch for use with weighted updates.
    */
-  KllHeapDoublesSketch(final int k, final int m, final double item, final int weight) {
+  KllHeapDoublesSketch(final int k, final int m, final double item, final long weight) {
     super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);

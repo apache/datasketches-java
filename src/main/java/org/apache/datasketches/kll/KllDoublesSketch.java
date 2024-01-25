@@ -330,11 +330,11 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param item the item to be repeated. NaNs are ignored.
    * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
    */
-  public void update(final double item, final int weight) {
+  public void update(final double item, final long weight) {
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1) { KllDoublesHelper.updateDouble(this, item); }
+    if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
+    if (weight == 1L) { KllDoublesHelper.updateDouble(this, item); }
     else { KllDoublesHelper.updateDouble(this, item, weight); }
     kllDoublesSV = null;
   }

@@ -83,7 +83,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   /**
    * Used for creating a temporary sketch for use with weighted updates.
    */
-  KllHeapItemsSketch(final int k, final int m, final T item, final int weight, final Comparator<? super T> comparator,
+  KllHeapItemsSketch(final int k, final int m, final T item, final long weight, final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
     super(UPDATABLE, comparator, serDe);
     KllHelper.checkM(m);

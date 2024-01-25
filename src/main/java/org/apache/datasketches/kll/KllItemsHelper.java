@@ -48,8 +48,8 @@ final class KllItemsHelper {
    * @param weight the given weight
    * @return the Items Array.
    */
-  static <T> T[] createItemsArray(final Class<T> clazz, final T item, final int weight) {
-    final int itemsArrLen = Integer.bitCount(weight);
+  static <T> T[] createItemsArray(final Class<T> clazz, final T item, final long weight) {
+    final int itemsArrLen = Long.bitCount(weight);
     final T[] itemsArr = (T[])newInstance(clazz, itemsArrLen);
     Arrays.fill(itemsArr, item);
     return itemsArr;
@@ -333,9 +333,9 @@ final class KllItemsHelper {
   }
 
   //Called from KllItemsSketch::update with weight
-  static <T> void updateItem(final KllItemsSketch<T> itmSk, final T item, final int weight) {
+  static <T> void updateItem(final KllItemsSketch<T> itmSk, final T item, final long weight) {
     if (weight < itmSk.levelsArr[0]) {
-      for (int i = 0; i < weight; i++) { updateItem(itmSk, item); }
+      for (int i = 0; i < (int)weight; i++) { updateItem(itmSk, item); }
     } else {
       itmSk.updateMinMax(item);
       final KllHeapItemsSketch<T> tmpSk =

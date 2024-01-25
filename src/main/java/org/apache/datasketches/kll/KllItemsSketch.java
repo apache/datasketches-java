@@ -295,11 +295,16 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     kllItemsSV = null;
   }
 
-  public void update(final T item, final int weight) {
+  /**
+   * Weighted update. Updates this sketch with the given item the number of times specified by the given integer weight.
+   * @param item the item to be repeated. NaNs are ignored.
+   * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
+   */
+  public void update(final T item, final long weight) {
     if (item == null) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1) { KllItemsHelper.updateItem(this, item); }
+    if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
+    if (weight == 1L) { KllItemsHelper.updateItem(this, item); }
     else { KllItemsHelper.updateItem(this, item, weight); }
     kllItemsSV = null;
   }

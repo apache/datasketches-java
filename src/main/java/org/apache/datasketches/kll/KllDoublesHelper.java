@@ -47,8 +47,8 @@ final class KllDoublesHelper {
    * @param weight the given weight
    * @return the Items Array.
    */
-  static double[] createItemsArray(final double item, final int weight) {
-    final int itemsArrLen = Integer.bitCount(weight);
+  static double[] createItemsArray(final double item, final long weight) {
+    final int itemsArrLen = Long.bitCount(weight);
     final double[] itemsArr = new double[itemsArrLen];
     Arrays.fill(itemsArr, item);
     return itemsArr;
@@ -332,9 +332,9 @@ final class KllDoublesHelper {
   }
 
   //Called from KllDoublesSketch::update with weight
-  static void updateDouble(final KllDoublesSketch dblSk, final double item, final int weight) {
+  static void updateDouble(final KllDoublesSketch dblSk, final double item, final long weight) {
     if (weight < dblSk.levelsArr[0]) {
-      for (int i = 0; i < weight; i++) { updateDouble(dblSk, item); }
+      for (int i = 0; i < (int)weight; i++) { updateDouble(dblSk, item); }
     } else {
       dblSk.updateMinMax(item);
       final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);

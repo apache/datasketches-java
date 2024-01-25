@@ -47,8 +47,8 @@ final class KllFloatsHelper {
    * @param weight the given weight
    * @return the Items Array.
    */
-  static float[] createItemsArray(final float item, final int weight) {
-    final int itemsArrLen = Integer.bitCount(weight);
+  static float[] createItemsArray(final float item, final long weight) {
+    final int itemsArrLen = Long.bitCount(weight);
     final float[] itemsArr = new float[itemsArrLen];
     Arrays.fill(itemsArr, item);
     return itemsArr;
@@ -332,9 +332,9 @@ final class KllFloatsHelper {
   }
 
   //Called from KllFloatsSketch::update with weight
-  static void updateFloat(final KllFloatsSketch fltSk, final float item, final int weight) {
+  static void updateFloat(final KllFloatsSketch fltSk, final float item, final long weight) {
     if (weight < fltSk.levelsArr[0]) {
-      for (int i = 0; i < weight; i++) { updateFloat(fltSk, item); }
+      for (int i = 0; i < (int)weight; i++) { updateFloat(fltSk, item); }
     } else {
       fltSk.updateMinMax(item);
       final KllHeapFloatsSketch tmpSk = new KllHeapFloatsSketch(fltSk.getK(), DEFAULT_M, item, weight);

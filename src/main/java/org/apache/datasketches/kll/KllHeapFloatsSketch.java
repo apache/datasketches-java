@@ -82,7 +82,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   /**
    * Used for creating a temporary sketch for use with weighted updates.
    */
-  KllHeapFloatsSketch(final int k, final int m, final float item, final int weight) {
+  KllHeapFloatsSketch(final int k, final int m, final float item, final long weight) {
     super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
