@@ -26,9 +26,6 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
-import org.apache.datasketches.memory.Memory;
-
 // this is a supporting class used to hold the raw data sample
 class EbppsItemsSample<T> {
 

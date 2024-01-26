@@ -144,24 +144,24 @@ public class EbppsItemsSketch<T> {
     }
 
     final double cumWt = PreambleUtil.extractEbppsCumulativeWeight(srcMem);
-    if (cumWt < 0) {
-      throw new SketchesArgumentException("Possible Corruption: cumWt cannot be negative: " + n);
+    if (cumWt < 0 || Double.isNaN(cumWt) || Double.isInfinite(cumWt)) {
+      throw new SketchesArgumentException("Possible Corruption: cumWt must be nonnegative and finite: " + n);
     }
 
     final double maxWt = PreambleUtil.extractEbppsMaxWeight(srcMem);
-    if (maxWt < 0) {
-      throw new SketchesArgumentException("Possible Corruption: maxWt cannot be negative: " + n);
+    if (maxWt < 0 || Double.isNaN(maxWt) || Double.isInfinite(maxWt)) {
+      throw new SketchesArgumentException("Possible Corruption: maxWt must be nonnegative and finite: " + n);
     }
 
     final double rho = PreambleUtil.extractEbppsRho(srcMem);
-    if (rho < 0) {
-      throw new SketchesArgumentException("Possible Corruption: rho cannot be negative: " + n);
+    if (rho < 0 || Double.isNaN(rho) || Double.isInfinite(rho)) {
+      throw new SketchesArgumentException("Possible Corruption: rho must be nonnegative and finite: " + n);
     }
 
     // extract C (part of sample_, not the preamble)
     final double c = srcMem.getDouble(EBPPS_C_DOUBLE);
-    if (c < 0) {
-      throw new SketchesArgumentException("Possible Corruption: c cannot be negative: " + n);
+    if (c < 0 || Double.isNaN(c) || Double.isInfinite(c)) {
+      throw new SketchesArgumentException("Possible Corruption: c must be nonnegative and finite: " + n);
     }
 
     // extract items
@@ -398,7 +398,9 @@ public class EbppsItemsSketch<T> {
   public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe) {
     if (isEmpty())
       return Family.EBPPS.getMinPreLongs() << 3;
-    else
+    else if (sample_.getC() < 1.0)
+      return getSerializedSizeBytes(serDe, sample_.getPartialItem().getClass());
+    else 
       return getSerializedSizeBytes(serDe, sample_.getSample().get(0).getClass());
   }
 
@@ -427,12 +429,13 @@ public class EbppsItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
-    if (n_ == 0) {
+    if (n_ == 0)
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
-    } else {
+    else if (sample_.getC() < 1.0)
+      return toByteArray(serDe, sample_.getPartialItem().getClass());
+    else
       return toByteArray(serDe, sample_.getSample().get(0).getClass());
-    }
   }
 
   /*

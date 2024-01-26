@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -207,5 +208,101 @@ public class EbppsSketchTest {
     mem = Memory.wrap(bytes);
     sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeZeroK() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertK(mem, 0);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeTooLargeK() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertK(mem, Integer.MAX_VALUE);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeBadSerVer() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertSerVer(mem, -1);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeBadFamily() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertFamilyID(mem, 0);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeNegativeN() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    for (int i = 0; i < 10; ++i) sk.update(Integer.toString(i));
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertN(mem, -1000);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeNaNCumulativeWeight() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    for (int i = 0; i < 10; ++i) sk.update(Integer.toString(i));
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertEbppsCumulativeWeight(mem, Double.NaN);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeInfiniteMaxWeight() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    for (int i = 0; i < 10; ++i) sk.update(Integer.toString(i));
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertEbppsMaxWeight(mem, Double.POSITIVE_INFINITY);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeNegativeRho() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    for (int i = 0; i < 10; ++i) sk.update(Integer.toString(i));
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    PreambleUtil.insertEbppsRho(mem, -0.1);
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeNegativeC() {
+    EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
+    for (int i = 0; i < 10; ++i) sk.update(Integer.toString(i));
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    mem.putDouble(40, -2.0); // from the defined spec
+    EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void deserializeTooShort() {
+    EbppsItemsSketch<Long> sk = new EbppsItemsSketch<>(5);
+    for (long i = 0; i < 10; ++i) sk.update(i);
+    final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe());
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    final Memory shortMem = mem.region(0, mem.getCapacity() - 1);
+    EbppsItemsSketch.heapify(shortMem, new ArrayOfStringsSerDe());
   }
 }
