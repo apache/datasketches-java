@@ -32,12 +32,12 @@ import java.util.Random;
 import org.apache.datasketches.memory.WritableMemory;
 
 //
+//
 /**
  * Static methods to support KllDoublesSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-//
 final class KllDoublesHelper {
 
   /**
@@ -47,8 +47,8 @@ final class KllDoublesHelper {
    * @param weight the given weight
    * @return the Items Array.
    */
-  static double[] createItemsArray(final double item, final int weight) {
-    final int itemsArrLen = Integer.bitCount(weight);
+  static double[] createItemsArray(final double item, final long weight) {
+    final int itemsArrLen = Long.bitCount(weight);
     final double[] itemsArr = new double[itemsArrLen];
     Arrays.fill(itemsArr, item);
     return itemsArr;
@@ -332,12 +332,13 @@ final class KllDoublesHelper {
   }
 
   //Called from KllDoublesSketch::update with weight
-  static void updateDouble(final KllDoublesSketch dblSk, final double item, final int weight) {
+  static void updateDouble(final KllDoublesSketch dblSk, final double item, final long weight) {
     if (weight < dblSk.levelsArr[0]) {
-      for (int i = 0; i < weight; i++) { updateDouble(dblSk, item); }
+      for (int i = 0; i < (int)weight; i++) { updateDouble(dblSk, item); }
     } else {
       dblSk.updateMinMax(item);
       final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
+
       dblSk.merge(tmpSk);
     }
   }
@@ -471,7 +472,7 @@ final class KllDoublesHelper {
 
     workLevels[0] = 0;
 
-    // Note: the level zero data from "other" was already inserted into "self",
+    // Note: the level zero data from "other" was already inserted into "self".
     // This copies into workbuf.
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[0], workBuf, workLevels[0], selfPopZero);
@@ -481,7 +482,7 @@ final class KllDoublesHelper {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       workLevels[lvl + 1] = workLevels[lvl] + selfPop + otherPop;
-
+      assert selfPop >= 0 && otherPop >= 0;
       if (selfPop == 0 && otherPop == 0) { continue; }
       else if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);

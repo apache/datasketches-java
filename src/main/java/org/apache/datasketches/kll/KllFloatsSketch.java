@@ -330,11 +330,11 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
    * @param item the item to be repeated. NaNs are ignored.
    * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
    */
-  public void update(final float item, final int weight) {
+  public void update(final float item, final long weight) {
     if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    if (weight < 1) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1) { KllFloatsHelper.updateFloat(this, item); }
+    if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
+    if (weight == 1L) { KllFloatsHelper.updateFloat(this, item); }
     else { KllFloatsHelper.updateFloat(this, item, weight); }
     kllFloatsSV = null;
   }

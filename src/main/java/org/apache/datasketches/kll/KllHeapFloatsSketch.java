@@ -59,8 +59,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
    *
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * <em>k</em> can be between <em>m</em> and 65535, inclusive.
-   * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
-   * Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
    * @param m parameter controls the minimum level width in items. It can be 2, 4, 6 or 8.
    * The DEFAULT_M, which is 8 is recommended. Other sizes of <em>m</em> should be considered
    * experimental as they have not been as well characterized.
@@ -84,7 +82,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   /**
    * Used for creating a temporary sketch for use with weighted updates.
    */
-  KllHeapFloatsSketch(final int k, final int m, final float item, final int weight) {
+  KllHeapFloatsSketch(final int k, final int m, final float item, final long weight) {
     super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);

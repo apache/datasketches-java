@@ -32,12 +32,12 @@ import java.util.Random;
 import org.apache.datasketches.memory.WritableMemory;
 
 //
+//
 /**
  * Static methods to support KllFloatsSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-//
 final class KllFloatsHelper {
 
   /**
@@ -47,8 +47,8 @@ final class KllFloatsHelper {
    * @param weight the given weight
    * @return the Items Array.
    */
-  static float[] createItemsArray(final float item, final int weight) {
-    final int itemsArrLen = Integer.bitCount(weight);
+  static float[] createItemsArray(final float item, final long weight) {
+    final int itemsArrLen = Long.bitCount(weight);
     final float[] itemsArr = new float[itemsArrLen];
     Arrays.fill(itemsArr, item);
     return itemsArr;
@@ -332,12 +332,13 @@ final class KllFloatsHelper {
   }
 
   //Called from KllFloatsSketch::update with weight
-  static void updateFloat(final KllFloatsSketch fltSk, final float item, final int weight) {
+  static void updateFloat(final KllFloatsSketch fltSk, final float item, final long weight) {
     if (weight < fltSk.levelsArr[0]) {
-      for (int i = 0; i < weight; i++) { updateFloat(fltSk, item); }
+      for (int i = 0; i < (int)weight; i++) { updateFloat(fltSk, item); }
     } else {
       fltSk.updateMinMax(item);
       final KllHeapFloatsSketch tmpSk = new KllHeapFloatsSketch(fltSk.getK(), DEFAULT_M, item, weight);
+
       fltSk.merge(tmpSk);
     }
   }
@@ -471,7 +472,7 @@ final class KllFloatsHelper {
 
     worklevels[0] = 0;
 
-    // Note: the level zero data from "other" was already inserted into "self"
+    // Note: the level zero data from "other" was already inserted into "self".
     // This copies into workbuf.
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy( myCurFloatItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
@@ -481,14 +482,14 @@ final class KllFloatsHelper {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
-
+      assert selfPop >= 0 && otherPop >= 0;
       if (selfPop == 0 && otherPop == 0) { continue; }
       if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurFloatItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
-      } 
+      }
       else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherFloatItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
-      } 
+      }
       else if (selfPop > 0 && otherPop > 0) {
         mergeSortedFloatArrays(
             myCurFloatItemsArr, myCurLevelsArr[lvl], selfPop,

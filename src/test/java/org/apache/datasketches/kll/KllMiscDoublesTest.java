@@ -62,7 +62,7 @@ public class KllMiscDoublesTest {
     }
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkBounds() {
     final KllDoublesSketch kll = KllDoublesSketch.newHeapInstance(); // default k = 200
     for (int i = 0; i < 1000; i++) {
