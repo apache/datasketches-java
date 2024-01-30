@@ -60,6 +60,9 @@ public class EbppsSketchTest {
       }
       // nothing to test if one is null and the other isn't
     } else {
+      // sk1.getC() >= 1.0 and sk2.getC() >= 1.0 (they're equal per above)
+      // so the samples shouldn't be null
+      assertTrue(sample1 != null && sample2 != null);
       final int len = Math.min(sample1.size(), sample2.size());
       for (int i = 0; i < len; ++i) {
         assertEquals(sample1.get(i), sample2.get(i)); 
@@ -187,7 +190,6 @@ public class EbppsSketchTest {
     Memory mem = Memory.wrap(bytes);
     EbppsItemsSketch<String> sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
-    // TODO: deserialize too few bytes
 
     // add uniform items
     for (int i = 0; i < k; ++i)

@@ -97,8 +97,8 @@ class EbppsItemsSample<T> {
       return null;
 
     ArrayList<T> result = new ArrayList<>(resultSize);
-    for (T item : data_)
-      result.add(item);
+    if (data_ != null)
+      result.addAll(data_);
 
     if (includePartial)
       result.add(partialItem_);

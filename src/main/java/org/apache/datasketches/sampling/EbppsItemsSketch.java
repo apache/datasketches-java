@@ -335,7 +335,8 @@ public class EbppsItemsSketch<T> {
    * Provides a human-readable summary of the sketch
    * @return a summary of information in the sketch
    */
-  public String toString() {
+  @Override
+   public String toString() {
     return null;
   }
 
