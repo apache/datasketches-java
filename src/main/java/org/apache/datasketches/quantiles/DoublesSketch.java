@@ -21,7 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.quantiles.ClassicUtil.MAX_PRELONGS;
 import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkIsCompactMemory;
@@ -456,7 +456,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     final int metaPre = MAX_PRELONGS + 2; //plus min, max
     final int totLevels = computeNumLevelsNeeded(k, n);
     if (n <= k) {
-      final int ceil = Math.max(ceilingIntPowerOf2((int)n), MIN_K * 2);
+      final int ceil = Math.max(ceilingPowerOf2((int)n), MIN_K * 2);
       return metaPre + ceil << 3;
     }
     return metaPre + (2 + totLevels) * k << 3;

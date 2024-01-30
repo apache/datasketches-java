@@ -290,67 +290,45 @@ public final class Util {
   //Powers of 2 or powers of base related
 
   /**
-   * Returns true if given int argument is exactly a positive power of 2 and greater than zero.
+   * Returns true if given long argument is exactly a positive power of 2.
    *
-   * @param powerOf2 The input argument.
-   * @return true if argument is exactly a positive power of 2 and greater than zero.
+   * @param n The input argument.
+   * @return true if argument is exactly a positive power of 2.
    */
-  public static boolean isIntPowerOf2(final int powerOf2) {
-    return powerOf2 > 0 && (powerOf2 & powerOf2 - 1) == 0; //or (v > 0) && ((v & -v) == v)
+  public static boolean isPowerOf2(final long n) {
+    return (n > 0) && ((n & (n - 1L)) == 0); //or (n > 0) && ((n & -n) == n)
   }
 
   /**
-   * Returns true if given long argument is exactly a positive power of 2 and greater than zero.
-   *
-   * @param powerOf2 The input argument.
-   * @return true if argument is exactly a positive power of 2 and greater than zero.
+   * Checks the given long argument if it is a positive integer power of 2.
+   * If not, it throws an exception with the user supplied local argument name, if not null.
+   * @param n The input long argument must be a positive integer power of 2.
+   * @param argName Used in the thrown exception. It may be null.
+   * @throws SketchesArgumentException if not a positive integer power of 2.
    */
-  public static boolean isLongPowerOf2(final long powerOf2) {
-    return powerOf2 > 0 && (powerOf2 & powerOf2 - 1L) == 0; //or (v > 0) && ((v & -v) == v)
-  }
-
-  /**
-   * Checks the given int argument to make sure it is a positive power of 2 and greater than zero.
-   * If not it throws an exception with the user supplied local argument name.
-   * @param powerOf2 The input int argument must be a power of 2 and greater than zero.
-   * @param argName Used in the thrown exception.
-   * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
-   */
-  public static void checkIfIntPowerOf2(final int powerOf2, final String argName) {
-    if (isIntPowerOf2(powerOf2)) { return; }
-    throw new SketchesArgumentException("The value of the int argument \"" + argName + "\""
-        + " must be a positive integer-power of 2" + " and greater than 0: " + powerOf2);
-  }
-
-  /**
-   * Checks the given long argument to make sure it is a positive power of 2 and greater than zero.
-   * If not, it throws an exception with the user supplied local argument name.
-   * @param powerOf2 The input long argument must be a power of 2 and greater than zero.
-   * @param argName Used in the thrown exception.
-   * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
-   */
-  public static void checkIfLongPowerOf2(final long powerOf2, final String argName) {
-    if (isLongPowerOf2(powerOf2)) { return; }
-    throw new SketchesArgumentException("The value of the int argument \"" + argName + "\""
-        + " must be a positive integer-power of 2" + " and greater than 0: " + powerOf2);
+  public static void checkIfPowerOf2(final long n, String argName) {
+    if (isPowerOf2(n)) { return; }
+    argName = (argName == null) ? "" : argName;
+    throw new SketchesArgumentException("The value of the argument \"" + argName + "\""
+        + " must be a positive integer power of 2: " + n);
   }
 
   /**
    * Computes the int ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
-   * of 2 that is equal to or greater than the given n and a mathematical integer.
+   * of 2 that is equal to or greater than the given n and a positive integer.
    *
    * <p>For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
    * <li>2^30 &le; n &le; 2^31 -1 : returns 2^30</li>
    * <li>n == an exact power of 2 : returns n</li>
-   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a mathematical integer</li>
+   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a positive integer</li>
    * </ul>
    *
    * @param n The input int argument.
    * @return the ceiling power of 2.
    */
-  public static int ceilingIntPowerOf2(final int n) {
+  public static int ceilingPowerOf2(final int n) {
     if (n <= 1) { return 1; }
     final int topIntPwrOf2 = 1 << 30;
     return n >= topIntPwrOf2 ? topIntPwrOf2 : Integer.highestOneBit(n - 1 << 1);
@@ -358,20 +336,20 @@ public final class Util {
 
   /**
    * Computes the long ceiling power of 2 within the range [1, 2^62]. This is the smallest positive power
-   * of 2 that is equal to or greater than the given n and a mathematical long.
+   * of 2 that is equal to or greater than the given n and a positive long.
    *
    * <p>For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
    * <li>2^62 &le; n &le; 2^63 -1 : returns 2^62</li>
    * <li>n == an exact power of 2 : returns n</li>
-   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a mathematical integer</li>
+   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a positive long</li>
    * </ul>
    *
    * @param n The input long argument.
    * @return the ceiling power of 2.
    */
-  public static long ceilingLongPowerOf2(final long n) {
+  public static long ceilingPowerOf2(final long n) {
     if (n <= 1L) { return 1L; }
     final long topIntPwrOf2 = 1L << 62;
     return n >= topIntPwrOf2 ? topIntPwrOf2 : Long.highestOneBit(n - 1L << 1);
@@ -380,7 +358,7 @@ public final class Util {
   /**
    * Computes the floor power of 2 given <i>n</i> is in the range [1, 2^31-1].
    * This is the largest positive power of 2 that equal to or less than the given n and equal
-   * to a mathematical integer.
+   * to a positive integer.
    *
    * <p>For:
    * <ul>
@@ -402,7 +380,7 @@ public final class Util {
   /**
    * Computes the floor power of 2 given <i>n</i> is in the range [1, 2^63-1].
    * This is the largest positive power of 2 that is equal to or less than the given <i>n</i> and
-   * equal to a mathematical integer.
+   * equal to a positive integer.
    *
    * <p>For:
    * <ul>
@@ -534,7 +512,7 @@ public final class Util {
    * Returns the ceiling of a given <i>n</i> given a <i>base</i>, where the ceiling is an integral power of the base.
    * This is the smallest positive power of <i>base</i> that is equal to or greater than the given <i>n</i>
    * and equal to a mathematical integer.
-   * The result of this function is consistent with {@link #ceilingIntPowerOf2(int)} for values
+   * The result of this function is consistent with {@link #ceilingPowerOf2(int)} for values
    * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
    *
    * <p>The formula is: <i>base<sup>ceiling(log<sub>base</sub>(x))</sup></i></p>
@@ -622,7 +600,7 @@ public final class Util {
    * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
    */
   public static int exactLog2OfInt(final int powerOf2, final String argName) {
-    checkIfIntPowerOf2(powerOf2, argName);
+    checkIfPowerOf2(powerOf2, argName);
     return Integer.numberOfTrailingZeros(powerOf2);
   }
 
@@ -635,7 +613,7 @@ public final class Util {
    * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
    */
   public static int exactLog2OfLong(final long powerOf2, final String argName) {
-    checkIfLongPowerOf2(powerOf2, argName);
+    checkIfPowerOf2(powerOf2, argName);
     return Long.numberOfTrailingZeros(powerOf2);
   }
 
@@ -646,7 +624,7 @@ public final class Util {
    * @return the log2 of the given int value if it is an exact power of 2 and greater than zero.
    */
   public static int exactLog2OfInt(final int powerOf2) {
-    if (!isIntPowerOf2(powerOf2)) {
+    if (!isPowerOf2(powerOf2)) {
       throw new SketchesArgumentException("Argument 'powerOf2' must be a positive power of 2.");
     }
     return Long.numberOfTrailingZeros(powerOf2);
@@ -659,7 +637,7 @@ public final class Util {
    * @return the log2 of the given long value if it is an exact power of 2 and greater than zero.
    */
   public static int exactLog2OfLong(final long powerOf2) {
-    if (!isLongPowerOf2(powerOf2)) {
+    if (!isPowerOf2(powerOf2)) {
       throw new SketchesArgumentException("Argument 'powerOf2' must be a positive power of 2.");
     }
     return Long.numberOfTrailingZeros(powerOf2);

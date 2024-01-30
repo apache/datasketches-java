@@ -22,7 +22,7 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.Util.LS;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -196,7 +196,7 @@ public abstract class Sketch {
    * Converts this sketch to a ordered CompactSketch.
    *
    * <p>If <i>this.isCompact() == true</i> this method returns <i>this</i>,
-   * otherwise, this method is equivalent to 
+   * otherwise, this method is equivalent to
    * {@link #compact(boolean, WritableMemory) compact(true, null)}.
    *
    * <p>A CompactSketch is always immutable.</p>
@@ -220,14 +220,14 @@ public abstract class Sketch {
    * then <i>rebuild()</i> should be called on the <i>UpdateSketch</i> prior to calling this method.</p>
    *
    * <p>A <i>CompactSketch</i> is always immutable.</p>
-   * 
+   *
    * <p>A new <i>CompactSketch</i> object is created:</p>
    * <ul><li>if <i>dstMem != null</i></li>
    * <li>if <i>dstMem == null</i> and <i>this.hasMemory() == true</i></li>
    * <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
    * and <i>dstOrdered == true</i>.</li>
    *</ul>
-   * 
+   *
    * <p>Otherwise, this operation returns <i>this</i>.</p>
    *
    * @param dstOrdered assumed true if this sketch is empty or has only one value
@@ -313,7 +313,7 @@ public abstract class Sketch {
    * nomEntries
    */
   public static int getMaxUpdateSketchBytes(final int nomEntries) {
-    final int nomEnt = ceilingIntPowerOf2(nomEntries);
+    final int nomEnt = ceilingPowerOf2(nomEntries);
     return (nomEnt << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
   }
 

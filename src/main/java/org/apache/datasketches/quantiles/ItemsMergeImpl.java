@@ -20,7 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.System.arraycopy;
-import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.common.Util.checkIfPowerOf2;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -144,7 +144,7 @@ final class ItemsMergeImpl {
     }
 
     final int downFactor = sourceK / targetK;
-    checkIfIntPowerOf2(downFactor, "source.getK()/target.getK() ratio");
+    checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
     final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
 
     final Object[] sourceLevels     = src.getCombinedBuffer(); // aliasing is a bit dangerous

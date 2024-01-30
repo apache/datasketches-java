@@ -79,7 +79,7 @@ final class ReservoirSize {
     final int p = Util.exactLog2OfInt(Util.floorPowerOf2(k), "computeSize: p");
 
     // because of floor() + 1 below, need to check power of 2 here
-    if (Util.isIntPowerOf2(k)) {
+    if (Util.isPowerOf2(k)) {
       return (short) (((p & EXPONENT_MASK) << EXPONENT_SHIFT) & OUTPUT_MASK);
     }
 

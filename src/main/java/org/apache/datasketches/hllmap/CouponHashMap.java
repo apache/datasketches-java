@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.hllmap;
 
-import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.common.Util.checkIfPowerOf2;
 import static org.apache.datasketches.common.Util.invPow2;
 
 import java.util.Arrays;
@@ -266,7 +266,7 @@ final class CouponHashMap extends Map {
   }
 
   private static final void checkMaxCouponsPerKey(final int maxCouponsPerKey) {
-    checkIfIntPowerOf2(maxCouponsPerKey, "maxCouponsPerKey");
+    checkIfPowerOf2(maxCouponsPerKey, "maxCouponsPerKey");
     final int cpk = maxCouponsPerKey;
     if ((cpk < 16) || (cpk > 256)) {
       throw new SketchesArgumentException(

@@ -21,7 +21,7 @@ package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.TAB;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
@@ -139,7 +139,7 @@ public class UpdateSketchBuilder {
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setLocalNominalEntries(final int nomEntries) {
-    bLocalLgNomLongs = Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries));
+    bLocalLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     if ((bLocalLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException(
           "Nominal Entries must be >= 16 and <= 67108864: " + nomEntries);

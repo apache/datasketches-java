@@ -140,7 +140,7 @@ public final class ThetaUtil {
    * @return The Log2 of the ceiling power of 2 of the given nomLongs.
    */
   public static int checkNomLongs(final int nomLongs) {
-    final int lgNomLongs = Integer.numberOfTrailingZeros(Util.ceilingIntPowerOf2(nomLongs));
+    final int lgNomLongs = Integer.numberOfTrailingZeros(Util.ceilingPowerOf2(nomLongs));
     if (lgNomLongs > MAX_LG_NOM_LONGS || lgNomLongs < MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomLongs);

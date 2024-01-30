@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
@@ -123,7 +123,7 @@ class HashTables {
   }
 
   static int getLgTableSize(final int numKeys) {
-    final int tableSize = max(ceilingIntPowerOf2((int) ceil(numKeys / 0.75)), 1 << ThetaUtil.MIN_LG_NOM_LONGS);
+    final int tableSize = max(ceilingPowerOf2((int) ceil(numKeys / 0.75)), 1 << ThetaUtil.MIN_LG_NOM_LONGS);
     return Integer.numberOfTrailingZeros(tableSize);
   }
 

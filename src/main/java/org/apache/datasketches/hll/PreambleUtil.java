@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
@@ -460,7 +460,7 @@ final class PreambleUtil {
     //value is missing, recompute
     final CurMode curMode = extractCurMode(mem);
     if (curMode == CurMode.LIST) { return HllUtil.LG_INIT_LIST_SIZE; }
-    int ceilPwr2 = ceilingIntPowerOf2(count);
+    int ceilPwr2 = ceilingPowerOf2(count);
     if ((RESIZE_DENOM * count) > (RESIZE_NUMER * ceilPwr2)) { ceilPwr2 <<= 1; }
     if (curMode == CurMode.SET) {
       return Math.max(LG_INIT_SET_SIZE, exactLog2OfLong(ceilPwr2));

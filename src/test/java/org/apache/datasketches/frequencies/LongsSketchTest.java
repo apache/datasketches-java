@@ -464,7 +464,7 @@ public class LongsSketchTest {
     int numSketches = 1;
     int n = 2222;
     double error_tolerance = 1.0/100;
-    int sketchSize = Util.ceilingIntPowerOf2((int) (1.0 /(error_tolerance*ReversePurgeLongHashMap.getLoadFactor())));
+    int sketchSize = Util.ceilingPowerOf2((int) (1.0 /(error_tolerance*ReversePurgeLongHashMap.getLoadFactor())));
     //println("sketchSize: "+sketchSize);
 
     LongsSketch[] sketches = new LongsSketch[numSketches];
@@ -608,7 +608,7 @@ public class LongsSketchTest {
 
   private static LongsSketch newFrequencySketch(double eps) {
     double loadFactor = ReversePurgeLongHashMap.getLoadFactor();
-    int maxMapSize = Util.ceilingIntPowerOf2((int) (1.0 /(eps*loadFactor)));
+    int maxMapSize = Util.ceilingPowerOf2((int) (1.0 /(eps*loadFactor)));
     return new LongsSketch(maxMapSize);
   }
 

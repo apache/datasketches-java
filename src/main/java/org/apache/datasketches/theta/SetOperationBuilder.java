@@ -21,7 +21,7 @@ package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.TAB;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
@@ -71,7 +71,7 @@ public class SetOperationBuilder {
    * @return this SetOperationBuilder
    */
   public SetOperationBuilder setNominalEntries(final int nomEntries) {
-    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries));
+    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     if ((bLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomEntries);

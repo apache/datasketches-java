@@ -20,7 +20,7 @@
 package org.apache.datasketches.tuple;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.memory.XxHash.hashCharArr;
 import static org.apache.datasketches.memory.XxHash.hashString;
@@ -97,7 +97,7 @@ public final class Util {
   public static int getStartingCapacity(final int nomEntries, final int lgResizeFactor) {
     return 1 << ThetaUtil.startingSubMultiple(
       // target table size is twice the number of nominal entries
-      Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries) * 2),
+      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),
       lgResizeFactor,
       ThetaUtil.MIN_LG_ARR_LONGS
     );
