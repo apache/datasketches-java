@@ -449,14 +449,14 @@ extends <a href="Sketch.html" title="class in org.apache.datasketches.theta">Ske
  then <i>rebuild()</i> should be called on the <i>UpdateSketch</i> prior to calling this method.</p>
 
  <p>A <i>CompactSketch</i> is always immutable.</p>
- 
+
  <p>A new <i>CompactSketch</i> object is created:</p>
  <ul><li>if <i>dstMem != null</i></li>
  <li>if <i>dstMem == null</i> and <i>this.hasMemory() == true</i></li>
  <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
  and <i>dstOrdered == true</i>.</li>
 </ul>
- 
+
  <p>Otherwise, this operation returns <i>this</i>.</p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>

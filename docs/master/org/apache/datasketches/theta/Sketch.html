@@ -564,7 +564,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Converts this sketch to a ordered CompactSketch.
 
  <p>If <i>this.isCompact() == true</i> this method returns <i>this</i>,
- otherwise, this method is equivalent to 
+ otherwise, this method is equivalent to
  <a href="#compact(boolean,org.apache.datasketches.memory.WritableMemory)"><code>compact(true, null)</code></a>.
 
  <p>A CompactSketch is always immutable.</p></div>
@@ -594,14 +594,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  then <i>rebuild()</i> should be called on the <i>UpdateSketch</i> prior to calling this method.</p>
 
  <p>A <i>CompactSketch</i> is always immutable.</p>
- 
+
  <p>A new <i>CompactSketch</i> object is created:</p>
  <ul><li>if <i>dstMem != null</i></li>
  <li>if <i>dstMem == null</i> and <i>this.hasMemory() == true</i></li>
  <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
  and <i>dstOrdered == true</i>.</li>
 </ul>
- 
+
  <p>Otherwise, this operation returns <i>this</i>.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
