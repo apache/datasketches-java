@@ -20,7 +20,7 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.common.Family.idToFamily;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 
@@ -203,7 +203,7 @@ public abstract class SetOperation {
    * @return the maximum required storage bytes given a nomEntries parameter
    */
   public static int getMaxUnionBytes(final int nomEntries) {
-    final int nomEnt = ceilingIntPowerOf2(nomEntries);
+    final int nomEnt = ceilingPowerOf2(nomEntries);
     return (nomEnt << 4) + (Family.UNION.getMaxPreLongs() << 3);
   }
 
@@ -215,7 +215,7 @@ public abstract class SetOperation {
    * @return the maximum required storage bytes given a nomEntries parameter
    */
   public static int getMaxIntersectionBytes(final int nomEntries) {
-    final int nomEnt = ceilingIntPowerOf2(nomEntries);
+    final int nomEnt = ceilingPowerOf2(nomEntries);
     final int bytes = (nomEnt << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
     return bytes;
   }
@@ -227,7 +227,7 @@ public abstract class SetOperation {
    * @return the maximum number of bytes.
    */
   public static int getMaxAnotBResultBytes(final int nomEntries) {
-    final int ceil = ceilingIntPowerOf2(nomEntries);
+    final int ceil = ceilingPowerOf2(nomEntries);
     return 24 + (15 * ceil);
   }
 

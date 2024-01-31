@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
@@ -115,7 +115,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
    */
   static int getMaxBytes(final int nomEntries, final int numValues) {
     return ENTRIES_START
-        + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingIntPowerOf2(nomEntries) * 2;
+        + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
   }
 
   // non-public methods below

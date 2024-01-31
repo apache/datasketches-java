@@ -23,13 +23,11 @@ import static java.lang.Math.pow;
 import static org.apache.datasketches.common.Util.bytesToInt;
 import static org.apache.datasketches.common.Util.bytesToLong;
 import static org.apache.datasketches.common.Util.bytesToString;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.common.Util.ceilingLongPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.ceilingPowerBaseOfDouble;
 import static org.apache.datasketches.common.Util.characterPad;
 import static org.apache.datasketches.common.Util.checkBounds;
-import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
-import static org.apache.datasketches.common.Util.checkIfLongPowerOf2;
+import static org.apache.datasketches.common.Util.checkIfPowerOf2;
 import static org.apache.datasketches.common.Util.checkIfMultipleOf8AndGT0;
 import static org.apache.datasketches.common.Util.checkProbability;
 import static org.apache.datasketches.common.Util.convertToLongArray;
@@ -40,9 +38,8 @@ import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.common.Util.intToBytes;
 import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.common.Util.isEven;
-import static org.apache.datasketches.common.Util.isIntPowerOf2;
 import static org.apache.datasketches.common.Util.isLessThanUnsigned;
-import static org.apache.datasketches.common.Util.isLongPowerOf2;
+import static org.apache.datasketches.common.Util.isPowerOf2;
 import static org.apache.datasketches.common.Util.isMultipleOf8AndGT0;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.common.Util.longToBytes;
@@ -92,48 +89,23 @@ public class UtilTest {
   }
 
   @Test
-  public void checkIsIntPowerOf2() {
-    Assert.assertEquals(isIntPowerOf2(0), false);
-    Assert.assertEquals(isIntPowerOf2(1), true);
-    Assert.assertEquals(isIntPowerOf2(2), true);
-    Assert.assertEquals(isIntPowerOf2(4), true);
-    Assert.assertEquals(isIntPowerOf2(8), true);
-    Assert.assertEquals(isIntPowerOf2(1 << 30), true);
-    Assert.assertEquals(isIntPowerOf2(3), false);
-    Assert.assertEquals(isIntPowerOf2(5), false);
-    Assert.assertEquals(isIntPowerOf2( -1), false);
+  public void checkIsPowerOf2() {
+    Assert.assertEquals(isPowerOf2(0), false);
+    Assert.assertEquals(isPowerOf2(1), true);
+    Assert.assertEquals(isPowerOf2(2), true);
+    Assert.assertEquals(isPowerOf2(4), true);
+    Assert.assertEquals(isPowerOf2(8), true);
+    Assert.assertEquals(isPowerOf2(1L << 62), true);
+    Assert.assertEquals(isPowerOf2(3), false);
+    Assert.assertEquals(isPowerOf2(5), false);
+    Assert.assertEquals(isPowerOf2( -1), false);
   }
 
   @Test
-  public void checkIsLongPowerOf2() {
-    Assert.assertEquals(isLongPowerOf2(0), false);
-    Assert.assertEquals(isLongPowerOf2(1), true);
-    Assert.assertEquals(isLongPowerOf2(2), true);
-    Assert.assertEquals(isLongPowerOf2(4), true);
-    Assert.assertEquals(isLongPowerOf2(8), true);
-    Assert.assertEquals(isLongPowerOf2(1L << 62), true);
-    Assert.assertEquals(isLongPowerOf2(3), false);
-    Assert.assertEquals(isLongPowerOf2(5), false);
-    Assert.assertEquals(isLongPowerOf2( -1), false);
-  }
-
-  @Test
-  public void checkCheckIfIntPowerOf2() {
-    checkIfIntPowerOf2(8, "Test 8");
+  public void checkCheckIfPowerOf2() {
+    checkIfPowerOf2(8L, "Test 8");
     try {
-      checkIfIntPowerOf2(7, "Test 7");
-      Assert.fail("Expected SketchesArgumentException");
-    }
-    catch (final SketchesArgumentException e) {
-      //pass
-    }
-  }
-
-  @Test
-  public void checkCheckIfLongPowerOf2() {
-    checkIfLongPowerOf2(8L, "Test 8");
-    try {
-      checkIfLongPowerOf2(7L, "Test 7");
+      checkIfPowerOf2(7L, "Test 7");
       Assert.fail("Expected SketchesArgumentException");
     }
     catch (final SketchesArgumentException e) {
@@ -143,22 +115,22 @@ public class UtilTest {
 
   @Test
   public void checkCeilingIntPowerOf2() {
-    Assert.assertEquals(ceilingIntPowerOf2(Integer.MAX_VALUE), 1 << 30);
-    Assert.assertEquals(ceilingIntPowerOf2(1 << 30), 1 << 30);
-    Assert.assertEquals(ceilingIntPowerOf2(64), 64);
-    Assert.assertEquals(ceilingIntPowerOf2(65), 128);
-    Assert.assertEquals(ceilingIntPowerOf2(0), 1);
-    Assert.assertEquals(ceilingIntPowerOf2( -1), 1);
+    Assert.assertEquals(ceilingPowerOf2(Integer.MAX_VALUE), 1 << 30);
+    Assert.assertEquals(ceilingPowerOf2(1 << 30), 1 << 30);
+    Assert.assertEquals(ceilingPowerOf2(64), 64);
+    Assert.assertEquals(ceilingPowerOf2(65), 128);
+    Assert.assertEquals(ceilingPowerOf2(0), 1);
+    Assert.assertEquals(ceilingPowerOf2( -1), 1);
   }
 
   @Test
   public void checkCeilingLongPowerOf2() {
-    Assert.assertEquals(ceilingLongPowerOf2(Long.MAX_VALUE), 1L << 62);
-    Assert.assertEquals(ceilingLongPowerOf2(1L << 62), 1L << 62);
-    Assert.assertEquals(ceilingLongPowerOf2(64), 64);
-    Assert.assertEquals(ceilingLongPowerOf2(65), 128);
-    Assert.assertEquals(ceilingLongPowerOf2(0), 1L);
-    Assert.assertEquals(ceilingLongPowerOf2( -1L), 1L);
+    Assert.assertEquals(ceilingPowerOf2(Long.MAX_VALUE), 1L << 62);
+    Assert.assertEquals(ceilingPowerOf2(1L << 62), 1L << 62);
+    Assert.assertEquals(ceilingPowerOf2(64L), 64L);
+    Assert.assertEquals(ceilingPowerOf2(65L), 128L);
+    Assert.assertEquals(ceilingPowerOf2(0L), 1L);
+    Assert.assertEquals(ceilingPowerOf2( -1L), 1L);
   }
 
 

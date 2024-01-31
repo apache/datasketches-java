@@ -20,7 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.log2;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.CompressedState.importFromMemory;
@@ -109,7 +109,7 @@ public class CompressionCharacterization {
 
     while (n <= maxN) {
       final double lgT = (slope * log2(n)) + lgMaxT;
-      final int totTrials = Math.max(ceilingIntPowerOf2((int) Math.pow(2.0, lgT)), (1 << lgMinT));
+      final int totTrials = Math.max(ceilingPowerOf2((int) Math.pow(2.0, lgT)), (1 << lgMinT));
       doTrialsAtLgKAtN(lgK, n, totTrials);
       n = Math.round(powerSeriesNextDouble(uPPO, n, true, 2.0));
     }

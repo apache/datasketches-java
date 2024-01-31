@@ -22,7 +22,7 @@ package org.apache.datasketches.frequencies;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
-import static org.apache.datasketches.common.Util.isIntPowerOf2;
+import static org.apache.datasketches.common.Util.isPowerOf2;
 import static org.apache.datasketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.frequencies.PreambleUtil.SER_VER;
 import static org.apache.datasketches.frequencies.PreambleUtil.extractActiveItems;
@@ -321,7 +321,7 @@ public class ItemsSketch<T> {
    * @return epsilon used to compute <i>a priori</i> error.
    */
   public static double getEpsilon(final int maxMapSize) {
-    if (!isIntPowerOf2(maxMapSize)) {
+    if (!isPowerOf2(maxMapSize)) {
       throw new SketchesArgumentException("maxMapSize is not a power of 2.");
     }
     return 3.5 / maxMapSize;
