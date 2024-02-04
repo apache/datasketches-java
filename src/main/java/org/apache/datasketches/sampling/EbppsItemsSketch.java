@@ -32,6 +32,21 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
+/**
+ * An implementation of an Exact and Bounded Sampling Proportional to Size sketch.
+ * 
+ * From: "Exact PPS Sampling with Bounded Sample Size",
+ * B. Hentschel, P. J. Haas, Y. Tian. Information Processing Letters, 2023.
+ * 
+ * This sketch samples data from a stream of items proportional to the weight of each item.
+ * The sample guarantees the presence of an item in the result is proportional to that item's
+ * portion of the total weight seen by the sketch, and returns a sample no larger than size k.
+ * 
+ * The sample may be smaller than k and the resulting size of the sample potentially includes
+ * a probabilistic component, meaning the resulting sample size is not always constant.
+ *
+ * @author Jon Malkin
+ */
 public class EbppsItemsSketch<T> {
   private static final int MAX_K = Integer.MAX_VALUE - 2;
   private static final int EBPPS_C_DOUBLE        = 40;
@@ -144,24 +159,25 @@ public class EbppsItemsSketch<T> {
     }
 
     final double cumWt = PreambleUtil.extractEbppsCumulativeWeight(srcMem);
-    if (cumWt < 0 || Double.isNaN(cumWt) || Double.isInfinite(cumWt)) {
-      throw new SketchesArgumentException("Possible Corruption: cumWt must be nonnegative and finite: " + n);
+    if (cumWt < 0.0 || Double.isNaN(cumWt) || Double.isInfinite(cumWt)) {
+      throw new SketchesArgumentException("Possible Corruption: cumWt must be nonnegative and finite: " + cumWt);
     }
 
     final double maxWt = PreambleUtil.extractEbppsMaxWeight(srcMem);
-    if (maxWt < 0 || Double.isNaN(maxWt) || Double.isInfinite(maxWt)) {
-      throw new SketchesArgumentException("Possible Corruption: maxWt must be nonnegative and finite: " + n);
+    if (maxWt < 0.0 || Double.isNaN(maxWt) || Double.isInfinite(maxWt)) {
+      throw new SketchesArgumentException("Possible Corruption: maxWt must be nonnegative and finite: " + maxWt);
     }
 
     final double rho = PreambleUtil.extractEbppsRho(srcMem);
-    if (rho < 0 || Double.isNaN(rho) || Double.isInfinite(rho)) {
-      throw new SketchesArgumentException("Possible Corruption: rho must be nonnegative and finite: " + n);
+    if (rho < 0.0 || rho > 1.0 ||  Double.isNaN(rho) || Double.isInfinite(rho)) {
+      throw new SketchesArgumentException("Possible Corruption: rho must be in [0.0, 1.0]: " + rho);
     }
 
     // extract C (part of sample_, not the preamble)
+    // due to numeric precision issues, c may occasionally be very slightly larger than k
     final double c = srcMem.getDouble(EBPPS_C_DOUBLE);
-    if (c < 0 || Double.isNaN(c) || Double.isInfinite(c)) {
-      throw new SketchesArgumentException("Possible Corruption: c must be nonnegative and finite: " + n);
+    if (c < 0 || c >= (k + 1) || Double.isNaN(c) || Double.isInfinite(c)) {
+      throw new SketchesArgumentException("Possible Corruption: c must be between 0 and k: " + c);
     }
 
     // extract items

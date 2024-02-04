@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+
 // this is a supporting class used to hold the raw data sample
 class EbppsItemsSample<T> {
 
@@ -55,7 +57,10 @@ class EbppsItemsSample<T> {
   // class's package-private constructor, not something directly
   // taking user data
   EbppsItemsSample(ArrayList<T> data, T partialItem, final double c) {
-    c_ = c;
+    if (c < 0.0 || Double.isNaN(c) || Double.isInfinite(c))
+      throw new SketchesArgumentException("C must be nonnegative and finite. Found: " + c);
+    
+      c_ = c;
     partialItem_ = partialItem;
     data_ = data;
     rand_ = ThreadLocalRandom.current();
@@ -67,7 +72,10 @@ class EbppsItemsSample<T> {
   // rand_ is not set since it is not expected to be used from
   // this object
   void replaceContent(final T item, final double theta) {
-    c_ = theta;
+    if (theta < 0.0 || theta > 1.0 || Double.isNaN(theta))
+      throw new SketchesArgumentException("Theta must be in the range [0.0, 1.0]. Found: " + theta);
+    
+      c_ = theta;
     if (theta == 1.0) {
       if (data_ != null && data_.size() == 1) {
         data_.set(0, item);
@@ -82,13 +90,13 @@ class EbppsItemsSample<T> {
     }
   }
 
-  public void reset() {
+  void reset() {
     c_ = 0.0;
     partialItem_ = null;
     data_.clear();
   }
 
-  public ArrayList<T> getSample() {
+  ArrayList<T> getSample() {
     final double cFrac = c_ % 1;
     final boolean includePartial = partialItem_ != null && rand_.nextDouble() < cFrac;
     final int resultSize = (data_ != null ? data_.size() : 0) + (includePartial ? 1 : 0);
@@ -134,7 +142,7 @@ class EbppsItemsSample<T> {
     return partialItem_;
   }
 
-  public double getC() { return c_; }
+  double getC() { return c_; }
 
   boolean hasPartialItem() { return partialItem_ != null; }
 
@@ -143,7 +151,7 @@ class EbppsItemsSample<T> {
     rand_ = r;
   }
 
-  public void downsample(final double theta) {
+  void downsample(final double theta) {
     if (theta >= 1.0) return;
 
     double newC = theta * c_;
@@ -182,7 +190,7 @@ class EbppsItemsSample<T> {
     c_ = newC;
   }
 
-  public void merge(final EbppsItemsSample<T> other) {
+  void merge(final EbppsItemsSample<T> other) {
     //double cInt = Math.floor(c_);
     double cFrac = c_ % 1;
     double otherCFrac = other.c_ % 1;
@@ -294,7 +302,7 @@ class EbppsItemsSample<T> {
     data_.remove(lastIdx);
   }
 
-  public int getNumRetainedItems() {
+  int getNumRetainedItems() {
     return (data_ != null ? data_.size() : 0)
          + (partialItem_ != null ? 1 : 0);
   }
