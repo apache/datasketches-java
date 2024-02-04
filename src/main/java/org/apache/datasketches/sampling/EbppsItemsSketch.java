@@ -550,7 +550,7 @@ public class EbppsItemsSketch<T> {
   }
 
   private void checkK(final int k) {
-    if (k == 0 || k > MAX_K)
+    if (k <= 0 || k > MAX_K)
       throw new SketchesArgumentException("k must be strictly positive and less than " + MAX_K);
   }
 }
