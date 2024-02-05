@@ -49,7 +49,7 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public class EbppsItemsSketch<T> {
   private static final int MAX_K = Integer.MAX_VALUE - 2;
-  private static final int EBPPS_C_DOUBLE        = 40;
+  private static final int EBPPS_C_DOUBLE        = 40; // part of sample state, not preamble
   private static final int EBPPS_ITEMS_START     = 48;
 
   private int k_;                      // max size of sketch, in items
@@ -455,50 +455,7 @@ public class EbppsItemsSketch<T> {
       return toByteArray(serDe, sample_.getSample().get(0).getClass());
   }
 
-  /*
-  * An empty sketch requires 8 bytes.
-  *
-  * <pre>
-  * Long || Start Byte Adr:
-  * Adr:
-  *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
-  *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
-  * </pre>
-  *
-  * A non-empty sketch requires 40 bytes of preamble. C looks like part of
-  * the preamble but is serialized as part of the internal sample state.
-  *
-  * The count of items seen is not used but preserved as the value seems like a useful
-  * count to track.
-  * 
-  * <pre>
-  * Long || Start Byte Adr:
-  * Adr:
-  *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
-  *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
-  *
-  *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
-  *  1   ||---------------------------Items Seen Count (N)--------------------------------|
-  *
-  *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
-  *  2   ||----------------------------Cumulative Weight----------------------------------|
-  *
-  *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
-  *  3   ||-----------------------------Max Item Weight-----------------------------------|
-  *
-  *      ||      32        |   33   |   34   |   35   |   36   |   37   |   38   |   39   |
-  *  4   ||----------------------------------Rho------------------------------------------|
-  *
-  *      ||      40        |   41   |   42   |   43   |   44   |   45   |   46   |   47   |
-  *  5   ||-----------------------------------C-------------------------------------------|
-  *
-  *      ||      40+                      |
-  *  6+  ||  {Items Array}                |
-  *      ||  {Optional Item (if needed)}  |
-  * </pre>
-  */
-
-  /**
+   /**
    * Returns a byte array representation of this sketch. Copies contents into an array of the
    * specified class for serialization to allow for polymorphic types.
    *

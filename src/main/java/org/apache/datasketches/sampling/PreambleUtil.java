@@ -35,12 +35,10 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class defines the preamble items structure and provides basic utilities for some of the key
- * fields.
+ * fields. Fields are presented in Little Endian format, but multi-byte values (int, long, double)
+ * are stored in native byte order. All <tt>byte</tt> values are treated as unsigned.
  *
- * <p>
- * MAP: Low significance bytes of this <i>long</i> items structure are on the right. However, the
- * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
- * <i>byte</i> values are treated as unsigned.</p>
+ * Reservoir Sampling
  *
  * <p><strong>Sketch:</strong> The count of items seen is limited to 48 bits (~256 trillion) even
  * though there are adjacent unused preamble bits. The acceptance probability for an item is a
@@ -54,11 +52,11 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||----------------------------Items Seen Count (N)-------------------------------|
  *  </pre>
  *
  * <p><strong>Union:</strong> The reservoir union has fewer internal parameters to track and uses
@@ -74,10 +72,13 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  * </pre>
  *
+ * 
+ * VarOpt Sampling
+ * 
  * <p><strong>VarOpt:</strong> A VarOpt sketch has a more complex internal items structure and
  * requires a larger preamble. Values serving a similar purpose in both reservoir and varopt sampling
  * share the same byte ranges, allowing method re-use where practical.</p>
@@ -88,17 +89,17 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||----------------------------Items Seen Count (N)-------------------------------|
  *
- *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
- *  2   ||---------Item Count in R-----------|-----------Item Count in H---------------------|
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||--------Item Count in R-----------|-----------Item Count in H------------------|
  *
- *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
- *  3   ||--------------------------------Total Weight in R----------------------------------|
+ *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+ *  3   ||------------------------------Total Weight in R--------------------------------|
  *  </pre>
  *
  * <p><strong>VarOpt Union:</strong> VarOpt unions also store more information than a reservoir
@@ -111,18 +112,62 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||----------------------------Items Seen Count (N)-------------------------------|
  *
- *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
- *  2   ||---------------------------Outer Tau Numerator (double)----------------------------|
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||-------------------------Outer Tau Numerator (double)--------------------------|
  *
- *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
- *  3   ||---------------------------Outer Tau Denominator (long)----------------------------|
+ *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+ *  3   ||-------------------------Outer Tau Denominator (long)--------------------------|
  *  </pre>
+ *
+ * 
+ * EPPS Sampling
+ * 
+ * An empty sketch requires 8 bytes.
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
+ * </pre>
+ *
+ * A non-empty sketch requires 40 bytes of preamble. C looks like part of
+ * the preamble but is treated as part of the sample state.
+ *
+ * The count of items seen is not used but preserved as the value seems like a useful
+ * count to track.
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
+ *
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||---------------------------Items Seen Count (N)--------------------------------|
+ *
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||----------------------------Cumulative Weight----------------------------------|
+ *
+ *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+ *  3   ||-----------------------------Max Item Weight-----------------------------------|
+ *
+ *      ||      32        |   33   |   34   |   35   |   36   |   37   |   38   |   39   |
+ *  4   ||----------------------------------Rho------------------------------------------|
+ *
+ *      ||      40        |   41   |   42   |   43   |   44   |   45   |   46   |   47   |
+ *  5   ||-----------------------------------C-------------------------------------------|
+ *
+ *      ||      40+                      |
+ *  6+  ||  {Items Array}                |
+ *      ||  {Optional Item (if needed)}  |
+ * </pre>
  * 
  *  @author Jon Malkin
  *  @author Lee Rhodes
