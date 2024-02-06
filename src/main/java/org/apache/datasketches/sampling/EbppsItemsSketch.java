@@ -21,6 +21,7 @@ package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.sampling.PreambleUtil.EBPPS_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.sampling.PreambleUtil.HAS_PARTIAL_ITEM_MASK;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -121,6 +122,7 @@ public class EbppsItemsSketch<T> {
     final int familyId = PreambleUtil.extractFamilyID(srcMem);
     final int flags = PreambleUtil.extractFlags(srcMem);
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
+    final boolean hasPartialItem = (flags & HAS_PARTIAL_ITEM_MASK) != 0;
 
     // Check values
     if (isEmpty) {
@@ -189,8 +191,11 @@ public class EbppsItemsSketch<T> {
     final List<T> itemsList = Arrays.asList(rawItems);
     final ArrayList<T> data;
     final T partialItem;
-    if (numFullItems < numTotalItems) {
-      data = new ArrayList<>(itemsList.subList(0, numFullItems));
+    if (hasPartialItem) {
+      if (numFullItems >= numTotalItems)
+        throw new SketchesArgumentException("Possible Corruption: Expected partial item but none found");
+
+        data = new ArrayList<>(itemsList.subList(0, numFullItems));
       partialItem = itemsList.get(numFullItems); // 0-based, so last item
     } else {
       data = new ArrayList<>(itemsList);
@@ -487,7 +492,7 @@ public class EbppsItemsSketch<T> {
     if (empty) {
       PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);        // Byte 3
     } else {
-      PreambleUtil.insertFlags(mem, 0);
+      PreambleUtil.insertFlags(mem, sample_.hasPartialItem() ? HAS_PARTIAL_ITEM_MASK : 0);
     }
     PreambleUtil.insertK(mem, k_);                           // Bytes 4-7
     
