@@ -209,6 +209,7 @@ final class PreambleUtil {
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
   //static final int READ_ONLY_FLAG_MASK  = 2;
   static final int EMPTY_FLAG_MASK      = 4;
+  static final int HAS_PARTIAL_ITEM_MASK = 8; // EBPPS only
   static final int GADGET_FLAG_MASK     = 128;
 
   //Other constants
