@@ -380,6 +380,30 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </tr>
 <tbody>
 <tr class="altColor">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">EbppsItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/EbppsItemsSketch.html#getSerializedSizeBytes(org.apache.datasketches.common.ArrayOfItemsSerDe)">getSerializedSizeBytes</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/EbppsItemsSketch.html" title="type parameter in EbppsItemsSketch">T</a>&gt;&nbsp;serDe)</code></th>
+<td class="colLast">
+<div class="block">Returns the size of a byte array representation of this sketch.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">EbppsItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/EbppsItemsSketch.html#getSerializedSizeBytes(org.apache.datasketches.common.ArrayOfItemsSerDe,java.lang.Class)">getSerializedSizeBytes</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/EbppsItemsSketch.html" title="type parameter in EbppsItemsSketch">T</a>&gt;&nbsp;serDe,
+                      <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;?&gt;&nbsp;clazz)</code></th>
+<td class="colLast">
+<div class="block">Returns the length of a byte array representation of this sketch.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../sampling/EbppsItemsSketch.html" title="class in org.apache.datasketches.sampling">EbppsItemsSketch</a>&lt;T&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">EbppsItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/EbppsItemsSketch.html#heapify(org.apache.datasketches.memory.Memory,org.apache.datasketches.common.ArrayOfItemsSerDe)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
+       <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
+<td class="colLast">
+<div class="block">Returns a sketch instance of this class from the given srcMem,
+ which must be a Memory representation of this sketch class.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../sampling/ReservoirItemsSketch.html" title="class in org.apache.datasketches.sampling">ReservoirItemsSketch</a>&lt;T&gt;</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReservoirItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/ReservoirItemsSketch.html#heapify(org.apache.datasketches.memory.Memory,org.apache.datasketches.common.ArrayOfItemsSerDe)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
        <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
@@ -388,7 +412,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  which must be a Memory representation of this sketch class.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../sampling/ReservoirItemsUnion.html" title="class in org.apache.datasketches.sampling">ReservoirItemsUnion</a>&lt;T&gt;</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReservoirItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/ReservoirItemsUnion.html#heapify(org.apache.datasketches.memory.Memory,org.apache.datasketches.common.ArrayOfItemsSerDe)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
        <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
@@ -396,7 +420,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Instantiates a Union from Memory</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../sampling/VarOptItemsSketch.html" title="class in org.apache.datasketches.sampling">VarOptItemsSketch</a>&lt;T&gt;</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">VarOptItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/VarOptItemsSketch.html#heapify(org.apache.datasketches.memory.Memory,org.apache.datasketches.common.ArrayOfItemsSerDe)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
        <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
@@ -405,7 +429,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  which must be a Memory representation of this sketch class.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../sampling/VarOptItemsUnion.html" title="class in org.apache.datasketches.sampling">VarOptItemsUnion</a>&lt;T&gt;</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">VarOptItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/VarOptItemsUnion.html#heapify(org.apache.datasketches.memory.Memory,org.apache.datasketches.common.ArrayOfItemsSerDe)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
        <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
@@ -413,14 +437,29 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Instantiates a Union from Memory</div>
 </td>
 </tr>
+<tr class="rowColor">
+<td class="colFirst"><code>byte[]</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">EbppsItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/EbppsItemsSketch.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/EbppsItemsSketch.html" title="type parameter in EbppsItemsSketch">T</a>&gt;&nbsp;serDe)</code></th>
+<td class="colLast">
+<div class="block">Returns a byte array representation of this sketch.</div>
+</td>
+</tr>
 <tr class="altColor">
+<td class="colFirst"><code>byte[]</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">EbppsItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/EbppsItemsSketch.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe,java.lang.Class)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/EbppsItemsSketch.html" title="type parameter in EbppsItemsSketch">T</a>&gt;&nbsp;serDe,
+           <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;?&gt;&nbsp;clazz)</code></th>
+<td class="colLast">
+<div class="block">Returns a byte array representation of this sketch.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReservoirItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/ReservoirItemsSketch.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/ReservoirItemsSketch.html" title="type parameter in ReservoirItemsSketch">T</a>&gt;&nbsp;serDe)</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this sketch.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReservoirItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/ReservoirItemsSketch.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe,java.lang.Class)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/ReservoirItemsSketch.html" title="type parameter in ReservoirItemsSketch">T</a>&gt;&nbsp;serDe,
            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;?&gt;&nbsp;clazz)</code></th>
@@ -428,14 +467,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns a byte array representation of this sketch.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReservoirItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/ReservoirItemsUnion.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="../../sampling/ReservoirItemsUnion.html" title="type parameter in ReservoirItemsUnion">T</a>&gt;&nbsp;serDe)</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this union</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReservoirItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/ReservoirItemsUnion.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe,java.lang.Class)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="../../sampling/ReservoirItemsUnion.html" title="type parameter in ReservoirItemsUnion">T</a>&gt;&nbsp;serDe,
            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;?&gt;&nbsp;clazz)</code></th>
@@ -443,14 +482,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns a byte array representation of this union.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">VarOptItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/VarOptItemsSketch.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/VarOptItemsSketch.html" title="type parameter in VarOptItemsSketch">T</a>&gt;&nbsp;serDe)</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this sketch.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">VarOptItemsSketch.</span><code><span class="memberNameLink"><a href="../../sampling/VarOptItemsSketch.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe,java.lang.Class)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;? super <a href="../../sampling/VarOptItemsSketch.html" title="type parameter in VarOptItemsSketch">T</a>&gt;&nbsp;serDe,
            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;?&gt;&nbsp;clazz)</code></th>
@@ -458,14 +497,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns a byte array representation of this sketch.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">VarOptItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/VarOptItemsUnion.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="../../sampling/VarOptItemsUnion.html" title="type parameter in VarOptItemsUnion">T</a>&gt;&nbsp;serDe)</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this union</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">VarOptItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/VarOptItemsUnion.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe,java.lang.Class)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="../../sampling/VarOptItemsUnion.html" title="type parameter in VarOptItemsUnion">T</a>&gt;&nbsp;serDe,
            <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;?&gt;&nbsp;clazz)</code></th>
@@ -473,7 +512,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns a byte array representation of this union.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">ReservoirItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/ReservoirItemsUnion.html#update(org.apache.datasketches.memory.Memory,org.apache.datasketches.common.ArrayOfItemsSerDe)">update</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
       <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="../../sampling/ReservoirItemsUnion.html" title="type parameter in ReservoirItemsUnion">T</a>&gt;&nbsp;serDe)</code></th>
@@ -481,7 +520,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Union the given Memory image of the sketch.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><span class="typeNameLabel">VarOptItemsUnion.</span><code><span class="memberNameLink"><a href="../../sampling/VarOptItemsUnion.html#update(org.apache.datasketches.memory.Memory,org.apache.datasketches.common.ArrayOfItemsSerDe)">update</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
       <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="../../sampling/VarOptItemsUnion.html" title="type parameter in VarOptItemsUnion">T</a>&gt;&nbsp;serDe)</code></th>
