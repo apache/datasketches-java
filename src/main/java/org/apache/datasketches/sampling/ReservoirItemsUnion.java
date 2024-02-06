@@ -22,7 +22,7 @@ package org.apache.datasketches.sampling;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
-import static org.apache.datasketches.sampling.PreambleUtil.SER_VER;
+import static org.apache.datasketches.sampling.PreambleUtil.RESERVOIR_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.extractEncodedReservoirSize;
 import static org.apache.datasketches.sampling.PreambleUtil.extractFlags;
 import static org.apache.datasketches.sampling.PreambleUtil.extractMaxK;
@@ -109,13 +109,13 @@ public final class ReservoirItemsUnion<T> {
           + Family.RESERVOIR_UNION.getMinPreLongs() + "preLongs");
     }
 
-    if (serVer != SER_VER) {
+    if (serVer != RESERVOIR_SER_VER) {
       if (serVer == 1) {
         final short encMaxK = extractEncodedReservoirSize(srcMem);
         maxK = ReservoirSize.decodeValue(encMaxK);
       } else {
         throw new SketchesArgumentException(
-                "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+                "Possible Corruption: Ser Ver must be " + RESERVOIR_SER_VER + ": " + serVer);
       }
     }
 
@@ -304,7 +304,7 @@ public final class ReservoirItemsUnion<T> {
 
     // build preLong
     PreambleUtil.insertPreLongs(mem, preLongs);                       // Byte 0
-    PreambleUtil.insertSerVer(mem, SER_VER);                          // Byte 1
+    PreambleUtil.insertSerVer(mem, RESERVOIR_SER_VER);                // Byte 1
     PreambleUtil.insertFamilyID(mem, Family.RESERVOIR_UNION.getID()); // Byte 2
     if (empty) {
       PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);

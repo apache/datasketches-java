@@ -35,12 +35,10 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class defines the preamble items structure and provides basic utilities for some of the key
- * fields.
+ * fields. Fields are presented in Little Endian format, but multi-byte values (int, long, double)
+ * are stored in native byte order. All <tt>byte</tt> values are treated as unsigned.
  *
- * <p>
- * MAP: Low significance bytes of this <i>long</i> items structure are on the right. However, the
- * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
- * <i>byte</i> values are treated as unsigned.</p>
+ * Reservoir Sampling
  *
  * <p><strong>Sketch:</strong> The count of items seen is limited to 48 bits (~256 trillion) even
  * though there are adjacent unused preamble bits. The acceptance probability for an item is a
@@ -54,11 +52,11 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||----------------------------Items Seen Count (N)-------------------------------|
  *  </pre>
  *
  * <p><strong>Union:</strong> The reservoir union has fewer internal parameters to track and uses
@@ -74,10 +72,13 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  * </pre>
  *
+ * 
+ * VarOpt Sampling
+ * 
  * <p><strong>VarOpt:</strong> A VarOpt sketch has a more complex internal items structure and
  * requires a larger preamble. Values serving a similar purpose in both reservoir and varopt sampling
  * share the same byte ranges, allowing method re-use where practical.</p>
@@ -88,21 +89,21 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||--------Reservoir Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||----------------------------Items Seen Count (N)-------------------------------|
  *
- *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
- *  2   ||---------Item Count in R-----------|-----------Item Count in H---------------------|
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||--------Item Count in R-----------|-----------Item Count in H------------------|
  *
- *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
- *  3   ||--------------------------------Total Weight in R----------------------------------|
+ *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+ *  3   ||------------------------------Total Weight in R--------------------------------|
  *  </pre>
  *
  * <p><strong>VarOpt Union:</strong> VarOpt unions also store more information than a reservoir
- * sketch. As before, we keep values with similar o hte same meaning in corresponding locations
+ * sketch. As before, we keep values with similar to the same meaning in corresponding locations
  * actoss sketch and union formats. The items in the union are stored in a varopt sketch-compatible
  * format after the union preamble.</p>
  *
@@ -111,19 +112,63 @@ import org.apache.datasketches.memory.WritableMemory;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||---------Max Res. Size (K)---------|  Flags | FamID  | SerVer |   Preamble_Longs   |
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------Items Seen Count (N)---------------------------------|
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||----------------------------Items Seen Count (N)-------------------------------|
  *
- *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16              |
- *  2   ||---------------------------Outer Tau Numerator (double)----------------------------|
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||-------------------------Outer Tau Numerator (double)--------------------------|
  *
- *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
- *  3   ||---------------------------Outer Tau Denominator (long)----------------------------|
+ *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+ *  3   ||-------------------------Outer Tau Denominator (long)--------------------------|
  *  </pre>
  *
+ * 
+ * EPPS Sampling
+ * 
+ * An empty sketch requires 8 bytes.
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
+ * </pre>
+ *
+ * A non-empty sketch requires 40 bytes of preamble. C looks like part of
+ * the preamble but is treated as part of the sample state.
+ *
+ * The count of items seen is not used but preserved as the value seems like a useful
+ * count to track.
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
+ *
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||---------------------------Items Seen Count (N)--------------------------------|
+ *
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||----------------------------Cumulative Weight----------------------------------|
+ *
+ *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+ *  3   ||-----------------------------Max Item Weight-----------------------------------|
+ *
+ *      ||      32        |   33   |   34   |   35   |   36   |   37   |   38   |   39   |
+ *  4   ||----------------------------------Rho------------------------------------------|
+ *
+ *      ||      40        |   41   |   42   |   43   |   44   |   45   |   46   |   47   |
+ *  5   ||-----------------------------------C-------------------------------------------|
+ *
+ *      ||      40+                      |
+ *  6+  ||  {Items Array}                |
+ *      ||  {Optional Item (if needed)}  |
+ * </pre>
+ * 
  *  @author Jon Malkin
  *  @author Lee Rhodes
  */
@@ -155,6 +200,11 @@ final class PreambleUtil {
   static final int VO_PRELONGS_WARMUP    = 3;   // Doesn't match min or max prelongs in Family
   static final int VO_PRELONGS_FULL      = Family.VAROPT.getMaxPreLongs();
 
+  // constants and addresses used in EBPPS
+  static final int EBPPS_CUM_WT_DOUBLE   = 16;
+  static final int EBPPS_MAX_WT_DOUBLE   = 24;
+  static final int EBPPS_RHO_DOUBLE      = 32;
+
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
   //static final int READ_ONLY_FLAG_MASK  = 2;
@@ -162,7 +212,9 @@ final class PreambleUtil {
   static final int GADGET_FLAG_MASK     = 128;
 
   //Other constants
-  static final int SER_VER                    = 2;
+  static final int RESERVOIR_SER_VER    = 2;
+  static final int VAROPT_SER_VER       = 2;
+  static final int EBPPS_SER_VER        = 1;
 
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
@@ -378,6 +430,18 @@ final class PreambleUtil {
     return mem.getLong(OUTER_TAU_DENOM_LONG);
   }
 
+  static double extractEbppsCumulativeWeight(final Memory mem) {
+    return mem.getDouble(EBPPS_CUM_WT_DOUBLE);
+  }
+
+  static double extractEbppsMaxWeight(final Memory mem) {
+    return mem.getDouble(EBPPS_MAX_WT_DOUBLE);
+  }
+
+  static double extractEbppsRho(final Memory mem) {
+    return mem.getDouble(EBPPS_RHO_DOUBLE);
+  }
+
   // Insertion methods
 
   static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
@@ -437,6 +501,18 @@ final class PreambleUtil {
 
   static void insertOuterTauDenominator(final WritableMemory wmem, final long denom) {
     wmem.putLong(OUTER_TAU_DENOM_LONG, denom);
+  }
+
+  static void insertEbppsCumulativeWeight(final WritableMemory wmem, final double cumWt) {
+    wmem.putDouble(EBPPS_CUM_WT_DOUBLE, cumWt);
+  }
+
+  static void insertEbppsMaxWeight(final WritableMemory wmem, final double maxWt) {
+    wmem.putDouble(EBPPS_MAX_WT_DOUBLE, maxWt);
+  }
+
+  static void insertEbppsRho(final WritableMemory wmem, final double rho) {
+    wmem.putDouble(EBPPS_RHO_DOUBLE, rho);
   }
 
   /**

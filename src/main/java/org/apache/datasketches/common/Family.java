@@ -146,7 +146,12 @@ public enum Family {
   /**
    * CountMin Sketch
    */
-  COUNTMIN(18, "COUNTMIN", 2, 2);
+  COUNTMIN(18, "COUNTMIN", 2, 2),
+
+  /**
+   * Exact and Bounded, Probability Proportional to Size (EBPPS)
+   */
+  EBPPS(19, "EBPPS", 1, 5);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
