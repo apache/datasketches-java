@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+
 /**
  * Iterator over quantile sketches of generic type.
  * @param <T> The generic quantile type
@@ -32,10 +34,10 @@ public class GenericSortedViewIterator<T> extends SortedViewIterator {
   }
 
   /**
-   * Gets the quantile at the current index.
+   * Gets the quantile at the current index
+   * This is equivalent to <i>getQuantile(INCLUSIVE)</i>.
    *
-   * <p>Don't call this before calling next() for the first time
-   * or after getting false from next().</p>
+   * <p>Don't call this before calling next() for the first time or after getting false from next().</p>
    *
    * @return the quantile at the current index.
    */
@@ -43,4 +45,21 @@ public class GenericSortedViewIterator<T> extends SortedViewIterator {
     return quantiles[index];
   }
 
+  /**
+   * Gets the quantile at the current index (or previous index)
+   * based on the chosen search criterion.
+   *
+   * <p>Don't call this before calling next() for the first time or after getting false from next().</p>
+   *
+   * @param searchCrit if INCLUSIVE, includes the quantile at the current index.
+   * Otherwise, returns the quantile of the previous index.
+   *
+   * @return the quantile at the current index (or previous index)
+   * based on the chosen search criterion. If the chosen search criterion is <i>EXCLUSIVE</i> and
+   * the current index is at zero, this will return <i>null</i>.
+   */
+  public T getQuantile(final QuantileSearchCriteria searchCrit) {
+    if (searchCrit == INCLUSIVE) { return quantiles[index]; }
+    return (index == 0) ? null : quantiles[index - 1];
+  }
 }

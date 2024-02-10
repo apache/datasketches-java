@@ -49,16 +49,28 @@ public class SortedViewIterator {
   }
 
   /**
+   * Gets the natural rank at the current index.
+   * This is equivalent to <i>getNaturalRank(INCLUSIVE)</i>.
+   *
+   * <p>Don't call this before calling next() for the first time or after getting false from next().</p>
+   *
+   * @return the natural rank at the current index.
+   */
+  public long getNaturalRank() {
+    return cumWeights[index];
+  }
+
+  /**
    * Gets the natural rank at the current index (or previous index) based on the chosen search criterion.
    * This is also referred to as the "cumulative weight". The natural rank is a number in the range <i>[1, N]</i>,
    * where <i>N</i> ({@link #getN()}) is the total number of items fed to the sketch.
    *
-   * <p>Don't call this before calling next() for the first time
-   * or after getting false from next().</p>
+   * <p>Don't call this before calling next() for the first time or after getting false from next().</p>
    *
    * @param searchCrit if INCLUSIVE, includes the weight of the item at the current index in the computation of
    * the natural rank.
    * Otherwise, it will return the natural rank of the previous index.
+   *
    * @return the natural rank at the current index (or previous index) based on the chosen search criterion.
    */
   public long getNaturalRank(final QuantileSearchCriteria searchCrit) {
@@ -75,15 +87,27 @@ public class SortedViewIterator {
   }
 
   /**
+   * Gets the normalized rank at the current index.
+   * This is equivalent to <i>getNormalizedRank(INCLUSIVE)</i>.
+   *
+   * <p>Don't call this before calling next() for the first time or after getting false from next().</p>
+   *
+   * @return the normalized rank at the current index
+   */
+  public double getNormalizedRank() {
+    return (double) getNaturalRank() / totalN;
+  }
+
+  /**
    * Gets the normalized rank at the current index (or previous index)
    * based on the chosen search criterion. Where <i>normalized rank = natural rank / N</i> ({@link #getN()})
    * and is a fraction in the range (0,1.0].
    *
-   * <p>Don't call this before calling next() for the first time
-   * or after getting false from next().</p>
+   * <p>Don't call this before calling next() for the first time or after getting false from next().</p>
    *
    * @param searchCrit if INCLUSIVE, includes the normalized rank at the current index.
    * Otherwise, returns the normalized rank of the previous index.
+   *
    * @return the normalized rank at the current index (or previous index)
    * based on the chosen search criterion.
    */
@@ -94,8 +118,7 @@ public class SortedViewIterator {
   /**
    * Gets the weight contribution of the item at the current index.
    *
-   * <p>Don't call this before calling next() for the first time
-   * or after getting false from next().</p>
+   * <p>Don't call this before calling next() for the first time or after getting false from next().</p>
    *
    * @return the weight contribution of the item at the current index.
    */

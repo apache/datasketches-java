@@ -156,26 +156,58 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     final long totalN = this.totalN;
     final int svLen = cumWeights.length;
-    //adjust ends of sortedView arrays
-    cumWeights[0] = 1L;
-    cumWeights[svLen - 1] = totalN;
-    quantiles[0] = this.getMinItem();
-    quantiles[svLen - 1] = this.getMaxItem();
+    if (numEquallySized > svLen / 2) {
+      throw new IllegalArgumentException(QuantilesAPI.UNSUPPORTED_MSG
+          + " Number of requested partitions is too large for this sized sketch. "
+          + "Requested Partitions: " + numEquallySized + " > "
+          + "Retained Items: " + svLen + " / 2.");
+    }
 
-    final double[] evSpNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySized + 1);
-    final int len = evSpNormRanks.length;
-    final T[] evSpQuantiles = (T[]) Array.newInstance(clazz, len);
-    final long[] evSpNatRanks = new long[len];
-    for (int i = 0; i < len; i++) {
-      final int index = getQuantileIndex(evSpNormRanks[i], searchCrit);
-      evSpQuantiles[i] = quantiles[index];
-      evSpNatRanks[i] = cumWeights[index];
+    final double[] searchNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySized + 1);
+    final int partArrLen = searchNormRanks.length;
+    final T[] partQuantiles = (T[]) Array.newInstance(clazz, partArrLen);
+    final long[] partNatRanks = new long[partArrLen];
+    final double[] partNormRanks = new double[partArrLen];
+    //adjust ends
+    int adjLen = svLen;
+    final boolean adjLow = quantiles[0] != minItem;
+    final boolean adjHigh = quantiles[svLen - 1] != maxItem;
+    adjLen += adjLow ? 1 : 0;
+    adjLen += adjHigh ? 1 : 0;
+
+    final T[] adjQuantiles;
+    final long[] adjCumWeights;
+    if (adjLen > svLen) {
+      adjQuantiles = (T[]) new Object[adjLen];
+      adjCumWeights = new long[adjLen];
+      final int offset = adjLow ? 1 : 0;
+      System.arraycopy(quantiles, 0, adjQuantiles, offset, svLen);
+      System.arraycopy(cumWeights,0, adjCumWeights, offset, svLen);
+      if (adjLow) {
+        adjQuantiles[0] = minItem;
+        adjCumWeights[0] = 1;
+      }
+      if (adjHigh) {
+        adjQuantiles[adjLen - 1] = maxItem;
+        adjCumWeights[adjLen - 1] = cumWeights[svLen - 1];
+        adjCumWeights[adjLen - 2] = cumWeights[svLen - 1] - 1;
+      }
+    } else {
+      adjQuantiles = quantiles;
+      adjCumWeights = cumWeights;
+    }
+    for (int i = 0; i < partArrLen; i++) {
+      final int index = getQuantileIndex(searchNormRanks[i], adjCumWeights, searchCrit);
+      partQuantiles[i] = adjQuantiles[index];
+      final long cumWt = adjCumWeights[index];
+      partNatRanks[i] = cumWt;
+      partNormRanks[i] = (double)cumWt / totalN;
     }
     final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>(
         this.totalN,
-        evSpQuantiles,
-        evSpNatRanks,
-        evSpNormRanks,
+        partQuantiles,
+        partNatRanks,
+        partNormRanks,
         getMaxItem(),
         getMinItem(),
         searchCrit);
@@ -198,13 +230,14 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
-    final int index = getQuantileIndex(rank, searchCrit);
+    final int index = getQuantileIndex(rank, cumWeights, searchCrit);
     return quantiles[index];
   }
 
-  private int getQuantileIndex(final double rank, final QuantileSearchCriteria searchCrit) {
+  private int getQuantileIndex(final double normRank, final long[] cumWeights,
+      final QuantileSearchCriteria searchCrit) {
     final int len = cumWeights.length;
-    final double naturalRank = getNaturalRank(rank, totalN, searchCrit);
+    final double naturalRank = getNaturalRank(normRank, totalN, searchCrit);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) { return len - 1; }
