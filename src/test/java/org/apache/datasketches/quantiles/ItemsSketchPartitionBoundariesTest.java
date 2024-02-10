@@ -67,7 +67,7 @@ public class ItemsSketchPartitionBoundariesTest {
     println("PRINTING: "+this.getClass().getName());
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format
