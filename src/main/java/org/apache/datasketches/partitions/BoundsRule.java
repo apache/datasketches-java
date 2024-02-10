@@ -33,5 +33,10 @@ public enum BoundsRule {
   /**
    * Include only the lower bound but not the upper bound
    */
-  INCLUDE_LOWER
+  INCLUDE_LOWER,
+  /**
+   * Include none
+   */
+  INCLUDE_NEITHER;
+
 }
