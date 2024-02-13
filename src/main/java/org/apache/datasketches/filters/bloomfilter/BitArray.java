@@ -122,6 +122,14 @@ class BitArray {
     numBitsSet_ = numBitsSet;
   }
 
+  // applies bitwise inversion
+  void invert() {
+    final long numBitsSet = getCapacity() - numBitsSet_;
+    for (int i = 0; i < data_.length; ++i)
+      data_[i] = ~data_[i];
+    numBitsSet_ = numBitsSet;
+  }
+
   long getSerializedSizeBytes() {
     // We only really need an int for array length but this will keep everything
     // aligned to 8 bytes.

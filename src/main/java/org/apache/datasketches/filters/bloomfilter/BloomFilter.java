@@ -156,48 +156,75 @@ public class BloomFilter {
   }
   
   public boolean check(final long item) {
-    boolean valueExists = true;
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
       final long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
-      valueExists &= bitArray_.getBit(hashIndex);
+      if (!bitArray_.getBit(hashIndex))
+        return false;
     }
-    return valueExists;
+    return true;
   }
 
   public boolean check(final double item) {
-    boolean valueExists = true;
     final long numBits = bitArray_.getCapacity();
     final double[] val = { item };
     for (long seed : seeds_) {
       // right shift to ensure positive
       final long hashIndex = (XxHash.hashDoubleArr(val, 0, 1, seed) >>> 1) % numBits;
-      valueExists &= bitArray_.getBit(hashIndex);
+      if (!bitArray_.getBit(hashIndex))
+        return false;
     }
-    return valueExists;
+    return true;
   }
 
   public boolean check(final String item) {
-    boolean valueExists = true;
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
       final long hashIndex = (XxHash.hashString(item, 0, item.length(), seed) >>> 1) % numBits;
-      valueExists &= bitArray_.getBit(hashIndex);
+      if (!bitArray_.getBit(hashIndex))
+        return false;
     }
-    return valueExists;
+    return true;
   }
 
   public boolean check(final byte[] data) {
-    boolean valueExists = true;
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
       final long hashIndex = (XxHash.hashByteArr(data, 0, data.length, seed) >>> 1) % numBits;
-      valueExists &= bitArray_.getBit(hashIndex);
+      if (!bitArray_.getBit(hashIndex))
+        return false;
     }
-    return valueExists;
+    return true;
+  }
+
+  public void union(final BloomFilter other) {
+    if (!isCompatible(other))
+      throw new SketchesArgumentException("Cannot union sketches with different seeds, hash functions, or sizes");
+
+    bitArray_.union(other.bitArray_);
+  }
+
+  public void intersect(final BloomFilter other) {
+    if (!isCompatible(other))
+      throw new SketchesArgumentException("Cannot union sketches with different seeds, hash functions, or sizes");
+
+    bitArray_.intersect(other.bitArray_);
+  }
+
+  public void invert() {
+    bitArray_.invert();
+  }
+
+  public boolean isCompatible(final BloomFilter other) {
+    if (baseSeed_ != other.baseSeed_
+        || seeds_.length != other.seeds_.length
+        || bitArray_.getArrayLength() != other.bitArray_.getArrayLength()) {
+          return false;
+    }
+    return true;
   }
 
   public long getSerializedSizeBytes() {
@@ -225,7 +252,7 @@ public class BloomFilter {
     wmem.putLong(offsetBytes, seeds_[0]);
     offsetBytes += Long.BYTES;
 
-    bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - (Family.BLOOMFILTER.getMaxPreLongs() * Long.BYTES)));
+    bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - offsetBytes));
 
     return bytes;
   }
@@ -246,7 +273,7 @@ public class BloomFilter {
     wmem.putLong(offsetBytes, seeds_[0]);
     offsetBytes += Long.BYTES;
 
-    bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - (Family.BLOOMFILTER.getMinPreLongs() * Long.BYTES)));
+    bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - offsetBytes));
 
     return longs;
   }
@@ -255,7 +282,7 @@ public class BloomFilter {
     final long[] seeds = new long[numSeeds];
     seeds[0] = baseSeed;
     for (int i = 1; i < numSeeds; ++i) {
-      seeds_[i] = XxHash.hashLong((seeds_[i-1] + INVERSE_GOLDEN_U64) | 1L, 0);
+      seeds[i] = XxHash.hashLong((seeds[i-1] + INVERSE_GOLDEN_U64) | 1L, 0);
     }
     return seeds;
   }

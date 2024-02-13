@@ -65,6 +65,22 @@ public class BitArrayTest {
     assertEquals(ba.getNumBitsSet(), 0);
   }
 
+  @Test
+  public void inversionTest() {
+    final int numBits = 1024;
+    final BitArray ba = new BitArray(numBits);
+    for (int i = 0; i < numBits; i += numBits / 8) {
+      ba.getAndSetBit(i);
+    }
+    assertTrue(ba.getBit(0));
+
+    final long numSet = ba.getNumBitsSet();
+    ba.invert();
+
+    assertEquals(ba.getNumBitsSet(), numBits - numSet);
+    assertFalse(ba.getBit(0));    
+  }
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidUnionTest() {
     final BitArray ba = new BitArray(128);
