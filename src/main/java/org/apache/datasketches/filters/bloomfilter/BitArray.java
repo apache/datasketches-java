@@ -58,6 +58,9 @@ class BitArray {
 
   static BitArray heapify(final Memory mem, final boolean isEmpty) {
     final int numLongs = mem.getInt(0);
+    if (numLongs < 0)
+      throw new SketchesArgumentException("Possible corruption: Must have strictly positive array size. Found: " + numLongs);
+    
     if (isEmpty)
       return new BitArray(numLongs * Long.SIZE);
 
@@ -161,5 +164,4 @@ class BitArray {
     data_ = new long[numLongs];
     numBitsSet_ = 0;
   }
-
 }

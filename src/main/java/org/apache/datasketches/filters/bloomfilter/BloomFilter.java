@@ -20,8 +20,8 @@
 package org.apache.datasketches.filters.bloomfilter;
 
 import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
-import static org.apache.datasketches.common.Util.bitAt;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.datasketches.common.Family;
@@ -48,9 +48,10 @@ public class BloomFilter {
 
   // Creates a BloomFilter with the given base seed
   public BloomFilter(final long numBits, final int numHashes, final long baseSeed) {
-    if (numBits > MAX_SIZE)
-      throw new SketchesArgumentException("Size of BloomFilter must be <= " + MAX_SIZE
-        + ". Requested: " + numBits);
+    checkArgument(numBits > MAX_SIZE, "Size of BloomFilter must be <= " + MAX_SIZE
+      + ". Requested: " + numBits);
+    checkArgument(numHashes < 1, "Must specify a strictly positive number of hash functions. "
+      + "Requested: " + numHashes);
 
     baseSeed_ = baseSeed;
     seeds_ = generateSeeds(numHashes, baseSeed);
@@ -65,14 +66,21 @@ public class BloomFilter {
   }
 
   public static BloomFilter heapify(final Memory mem) {
-    // TODO: check values
     int offsetBytes = 0;
     final int preLongs = mem.getByte(offsetBytes++);
     final int serVer = mem.getByte(offsetBytes++);
     final int familyID = mem.getByte(offsetBytes++);
     final int flags = mem.getByte(offsetBytes++);
+
+    checkArgument(preLongs < Family.BLOOMFILTER.getMinPreLongs() || preLongs > Family.BLOOMFILTER.getMaxPreLongs(),
+      "Possible corruption: Incorrect number of preamble bytes specified in header");
+    checkArgument(serVer != SER_VER, "Possible corruption: Unrecognized serialization version: " + serVer);
+    checkArgument(familyID != Family.BLOOMFILTER.getID(), "Possible corruption: Incorrect FamilyID for bloom filter. Found: " + familyID);
+    
     final int numHashes = mem.getShort(offsetBytes);
     offsetBytes += Integer.BYTES; // increment by 4 even after reading 2
+    checkArgument(numHashes < 1, "Possible corruption: Need strictly positive number of hash functions. Found: " + numHashes);
+
     final long baseSeed = mem.getLong(offsetBytes);
     offsetBytes += Long.BYTES;
 
@@ -102,7 +110,7 @@ public class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
+      final long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
       // returns old value of bit
       valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
     }
@@ -115,7 +123,7 @@ public class BloomFilter {
     final double val[] = { item };
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashDoubleArr(val, 0, 1, seed) >>> 1) % numBits;
+      final long hashIndex = (XxHash.hashDoubleArr(val, 0, 1, seed) >>> 1) % numBits;
       // returns old value of bit
       valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
     }
@@ -127,7 +135,8 @@ public class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashString(item, 0, item.length(), seed) >>> 1) % numBits;
+      final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
+      final long hashIndex = (XxHash.hashByteArr(strBytes, 0, strBytes.length, seed) >>> 1) % numBits;
       // returns old value of bit
       valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
     }
@@ -139,7 +148,7 @@ public class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashByteArr(data, 0, data.length, seed) >>> 1) % numBits;
+      final long hashIndex = (XxHash.hashByteArr(data, 0, data.length, seed) >>> 1) % numBits;
       // returns old value of bit
       valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
     }
@@ -151,7 +160,7 @@ public class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
+      final long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
       valueExists &= bitArray_.getBit(hashIndex);
     }
     return valueExists;
@@ -163,7 +172,7 @@ public class BloomFilter {
     final double[] val = { item };
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashDoubleArr(val, 0, 1, seed) >>> 1) % numBits;
+      final long hashIndex = (XxHash.hashDoubleArr(val, 0, 1, seed) >>> 1) % numBits;
       valueExists &= bitArray_.getBit(hashIndex);
     }
     return valueExists;
@@ -174,7 +183,7 @@ public class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashString(item, 0, item.length(), seed) >>> 1) % numBits;
+      final long hashIndex = (XxHash.hashString(item, 0, item.length(), seed) >>> 1) % numBits;
       valueExists &= bitArray_.getBit(hashIndex);
     }
     return valueExists;
@@ -185,7 +194,7 @@ public class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     for (long seed : seeds_) {
       // right shift to ensure positive
-      long hashIndex = (XxHash.hashByteArr(data, 0, data.length, seed) >>> 1) % numBits;
+      final long hashIndex = (XxHash.hashByteArr(data, 0, data.length, seed) >>> 1) % numBits;
       valueExists &= bitArray_.getBit(hashIndex);
     }
     return valueExists;
@@ -249,6 +258,10 @@ public class BloomFilter {
       seeds_[i] = XxHash.hashLong((seeds_[i-1] + INVERSE_GOLDEN_U64) | 1L, 0);
     }
     return seeds;
+  }
+
+  private static void checkArgument(boolean val, String message) {
+    if (val) throw new SketchesArgumentException(message);
   }
 
   @Override
