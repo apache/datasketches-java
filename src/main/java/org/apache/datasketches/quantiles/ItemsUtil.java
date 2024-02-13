@@ -20,6 +20,9 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeValidLevels;
+import static org.apache.datasketches.quantiles.ClassicUtil.getNormalizedRankError;
 
 import java.util.Arrays;
 
@@ -85,7 +88,7 @@ final class ItemsUtil {
     final long bitPattern = sketch.getBitPattern();
 
     if (dataDetail) {
-      sb.append(ClassicUtil.LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(ClassicUtil.LS);
+      sb.append(LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(LS);
       final Object[] items  = sketch.getCombinedBuffer();
 
       //output the base buffer
@@ -95,7 +98,7 @@ final class ItemsUtil {
           sb.append(' ').append(items[i]);
         }
       }
-      sb.append(ClassicUtil.LS);
+      sb.append(LS);
       //output all the levels
       final int numItems = combAllocCount;
       if (numItems > (2 * k)) {
@@ -105,46 +108,45 @@ final class ItemsUtil {
             final int levelNum = j > (2 * k) ? (j - (2 * k)) / k : 0;
             final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
             final String lvl = String.format("%5d", levelNum);
-            sb.append(ClassicUtil.LS).append("   ").append(validLvl).append(" ").append(lvl).append(":");
+            sb.append(LS).append("   ").append(validLvl).append(" ").append(lvl).append(":");
           }
           sb.append(' ').append(items[j]);
         }
-        sb.append(ClassicUtil.LS);
+        sb.append(LS);
       }
-      sb.append("### END DATA DETAIL").append(ClassicUtil.LS);
+      sb.append("### END DATA DETAIL").append(LS);
     }
 
     if (sketchSummary) {
       final long n = sketch.getN();
       final String nStr = String.format("%,d", n);
-      final int numLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
-      final String bufCntStr = String.format("%,d", combAllocCount);
+      final String baseBufCntStr = String.format("%,d", bbCount);
+      final String cBufCntStr = String.format("%,d", combAllocCount);
+      final int totNumLevels = computeNumLevelsNeeded(k, n);
+      final int numValidSamples = sketch.getNumRetained();
+      final String numValidSampStr = String.format("%,d", numValidSamples);
       final int preBytes = sketch.isEmpty() ? Long.BYTES : 2 * Long.BYTES;
-      final double epsPmf = ClassicUtil.getNormalizedRankError(k, true);
+      final double epsPmf = getNormalizedRankError(k, true);
       final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
-      final double eps =  ClassicUtil.getNormalizedRankError(k, false);
+      final double eps =  getNormalizedRankError(k, false);
       final String epsPctStr = String.format("%.3f%%", eps * 100.0);
-      final int numSamples = sketch.getNumRetained();
-      final String numSampStr = String.format("%,d", numSamples);
       final T minItem = sketch.isEmpty() ? null : sketch.getMinItem();
       final T maxItem = sketch.isEmpty() ? null : sketch.getMaxItem();
-      sb.append(ClassicUtil.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(ClassicUtil.LS);
-      sb.append("   K                            : ").append(k).append(ClassicUtil.LS);
-      sb.append("   N                            : ").append(nStr).append(ClassicUtil.LS);
-      sb.append("   BaseBufferCount              : ").append(bbCount).append(ClassicUtil.LS);
-      sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(ClassicUtil.LS);
-      sb.append("   Total Levels                 : ").append(numLevels).append(ClassicUtil.LS);
-      sb.append("   Valid Levels                 : ").append(ClassicUtil.computeValidLevels(bitPattern))
-        .append(ClassicUtil.LS);
-      sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern))
-        .append(ClassicUtil.LS);
-      sb.append("   Valid Samples                : ").append(numSampStr).append(ClassicUtil.LS);
-      sb.append("   Preamble Bytes               : ").append(preBytes).append(ClassicUtil.LS);
+      sb.append(LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+      sb.append("   K                            : ").append(k).append(LS);
+      sb.append("   N                            : ").append(nStr).append(LS);
+      sb.append("   BaseBufferCount              : ").append(baseBufCntStr).append(LS);
+      sb.append("   CombinedBufferAllocatedCount : ").append(cBufCntStr).append(LS);
+      sb.append("   Total Levels                 : ").append(totNumLevels).append(LS);
+      sb.append("   Valid Levels                 : ").append(computeValidLevels(bitPattern)).append(LS);
+      sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(LS);
+      sb.append("   Valid Samples                : ").append(numValidSampStr).append(LS);
+      sb.append("   Preamble Bytes               : ").append(preBytes).append(LS);
       sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
       sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-      sb.append("   Min Quantile                 : ").append(minItem).append(ClassicUtil.LS);
-      sb.append("   Max Quantile                 : ").append(maxItem).append(ClassicUtil.LS);
-      sb.append("### END SKETCH SUMMARY").append(ClassicUtil.LS);
+      sb.append("   Min Quantile                 : ").append(minItem).append(LS);
+      sb.append("   Max Quantile                 : ").append(maxItem).append(LS);
+      sb.append("### END SKETCH SUMMARY").append(LS);
     }
     return sb.toString();
   }
