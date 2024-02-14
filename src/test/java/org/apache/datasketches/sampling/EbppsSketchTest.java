@@ -300,16 +300,13 @@ public class EbppsSketchTest {
     EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
   }
 
-  //@Test
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeTooShort() {
     EbppsItemsSketch<Long> sk = new EbppsItemsSketch<>(5);
     for (long i = 0; i < 10; ++i) sk.update(i);
     final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe());
-    final byte[] bytes2 = Arrays.copyOf(bytes, bytes.length - 1);
-    final Memory shortMem = Memory.wrap(bytes2);
-    try {
-      EbppsItemsSketch.heapify(shortMem, new ArrayOfStringsSerDe());
-      fail("Did not throw SketchesArgumentException");
-    } catch (final SketchesArgumentException e) { }
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    final Memory shortMem = mem.region(0, mem.getCapacity() - 1);
+    EbppsItemsSketch.heapify(shortMem, new ArrayOfLongsSerDe());
   }
 }
