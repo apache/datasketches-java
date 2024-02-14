@@ -38,7 +38,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * fields. Fields are presented in Little Endian format, but multi-byte values (int, long, double)
  * are stored in native byte order. All <tt>byte</tt> values are treated as unsigned.
  *
- * Reservoir Sampling
+ * <h1>Reservoir Sampling</h1>
  *
  * <p><strong>Sketch:</strong> The count of items seen is limited to 48 bits (~256 trillion) even
  * though there are adjacent unused preamble bits. The acceptance probability for an item is a
@@ -77,7 +77,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * </pre>
  *
  * 
- * VarOpt Sampling
+ * <h1>VarOpt Sampling</h1>
  * 
  * <p><strong>VarOpt:</strong> A VarOpt sketch has a more complex internal items structure and
  * requires a larger preamble. Values serving a similar purpose in both reservoir and varopt sampling
@@ -126,9 +126,9 @@ import org.apache.datasketches.memory.WritableMemory;
  *  </pre>
  *
  * 
- * EPPS Sampling
+ * <h1>EPPS Sampling</h1>
  * 
- * An empty sketch requires 8 bytes.
+ * <p>An empty sketch requires 8 bytes.
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -137,10 +137,10 @@ import org.apache.datasketches.memory.WritableMemory;
  *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  * </pre>
  *
- * A non-empty sketch requires 40 bytes of preamble. C looks like part of
+ * <p>A non-empty sketch requires 40 bytes of preamble. C looks like part of
  * the preamble but is treated as part of the sample state.
  *
- * The count of items seen is not used but preserved as the value seems like a useful
+ * <p>The count of items seen is not used but preserved as the value seems like a useful
  * count to track.
  *
  * <pre>
