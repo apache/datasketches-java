@@ -120,8 +120,8 @@ public class EbppsSketchTest {
     sk = createUnweightedSketch(k, n);
     assertFalse(sk.isEmpty());
     assertEquals(sk.getN(), n);
-    assertEquals(sk.getC(), (double) k);
-    assertEquals(sk.getCumulativeWeight(), (double) n);
+    assertEquals(sk.getC(), k);
+    assertEquals(sk.getCumulativeWeight(), n);
     assertEquals(sk.getResult().size(), sk.getK());
     for (Integer val : sk.getResult())
       assertTrue(val < n);
@@ -131,14 +131,14 @@ public class EbppsSketchTest {
     sk = createUnweightedSketch(k, n);
     assertFalse(sk.isEmpty());
     assertEquals(sk.getN(), n);
-    assertEquals(sk.getCumulativeWeight(), (double) n);
-    assertEquals(sk.getC(), (double) k, EPS);
+    assertEquals(sk.getCumulativeWeight(), n);
+    assertEquals(sk.getC(), k, EPS);
     assertEquals(sk.getResult().size(), sk.getK());
     for (Integer val : sk.getResult())
       assertTrue(val < n);
 
     // add a very heavy item
-    sk.update(n, (double) n);
+    sk.update(n, n);
     assertTrue(sk.getC() < sk.getK());
   }
 
@@ -148,7 +148,7 @@ public class EbppsSketchTest {
 
     final EbppsItemsSketch<Integer> sk1 = createUnweightedSketch(k, k);
     final EbppsItemsSketch<Integer> sk2 = new EbppsItemsSketch<>(k / 2);
-    sk2.update(-1, k / 10.0); // on eheavy item, but less than sk1 weight
+    sk2.update(-1, k / 10.0); // one heavy item, but less than sk1 weight
 
     sk1.merge(sk2);
     assertEquals(sk1.getK(), k / 2);
@@ -179,7 +179,7 @@ public class EbppsSketchTest {
   @Test
   public void serializeDeserializeString() {
     // since C <= k we don't have the usual sketch notion of exact vs estimation
-    // mode at any time. The only real serializaiton cases are empty and non-empty
+    // mode at any time. The only real serialization cases are empty and non-empty
     // with and without a partial item
     final int k = 10;
     EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(k);

@@ -62,7 +62,7 @@ public class EbppsItemsSketch<T> {
 
   private EbppsItemsSample<T> sample_; // Object holding the current state of the sample
 
-  private EbppsItemsSample<T> tmp_;    // temporary storage
+  final private EbppsItemsSample<T> tmp_;    // temporary storage
 
   /**
    * Constructor
@@ -76,14 +76,13 @@ public class EbppsItemsSketch<T> {
     tmp_ = new EbppsItemsSample<>(1);
   }
 
-  // private copy constrcutor
+  // private copy constructor
   private EbppsItemsSketch(EbppsItemsSketch<T> other) {
     k_ = other.k_;
     n_ = other.n_;
     rho_ = other.rho_;
     cumulativeWt_ = other.cumulativeWt_;
     wtMax_ = other.wtMax_;
-    rho_ = other.rho_;
     sample_ = new EbppsItemsSample<>(other.sample_);
     tmp_ = new EbppsItemsSample<>(1);
   }
@@ -153,7 +152,7 @@ public class EbppsItemsSketch<T> {
     }
 
     if (isEmpty)
-      return new EbppsItemsSketch<T>(k);
+      return new EbppsItemsSketch<>(k);
 
     final long n = PreambleUtil.extractN(srcMem);
     if (n < 0) {
@@ -195,14 +194,14 @@ public class EbppsItemsSketch<T> {
       if (numFullItems >= numTotalItems)
         throw new SketchesArgumentException("Possible Corruption: Expected partial item but none found");
 
-        data = new ArrayList<>(itemsList.subList(0, numFullItems));
+      data = new ArrayList<>(itemsList.subList(0, numFullItems));
       partialItem = itemsList.get(numFullItems); // 0-based, so last item
     } else {
       data = new ArrayList<>(itemsList);
       partialItem = null; // just to be explicit
     }
 
-    EbppsItemsSample<T> sample = new EbppsItemsSample<T>(data, partialItem, c);
+    EbppsItemsSample<T> sample = new EbppsItemsSample<>(data, partialItem, c);
 
     return new EbppsItemsSketch<>(sample, k, n, cumWt, maxWt, rho);
   }
@@ -268,7 +267,8 @@ public class EbppsItemsSketch<T> {
    * @param other the sketch to merge into the current object
    */
   public void merge(final EbppsItemsSketch<T> other) {
-    if (other.getCumulativeWeight() == 0.0) return;
+    if (other.getCumulativeWeight() == 0.0)
+      return;
     else if (other.getCumulativeWeight() > cumulativeWt_) {
       // need to swap this with other
       // make a copy of other, merge into it, and take the result
@@ -307,15 +307,15 @@ public class EbppsItemsSketch<T> {
     final double avgWt = other.cumulativeWt_ / other.getC();
     ArrayList<T> items = other.sample_.getFullItems();
     if (items != null) {
-      for (int i = 0; i < items.size(); ++i) {
+      for (T item : items) {
         // newWtMax is pre-computed
         final double newCumWt = cumulativeWt_ + avgWt;
         final double newRho = Math.min(1.0 / newWtMax, k_ / newCumWt);
 
         if (cumulativeWt_ > 0.0)
           sample_.downsample(newRho / rho_);
-      
-        tmp_.replaceContent(items.get(i), newRho * avgWt);
+
+        tmp_.replaceContent(item, newRho * avgWt);
         sample_.merge(tmp_);
 
         cumulativeWt_ = newCumWt;
@@ -335,7 +335,7 @@ public class EbppsItemsSketch<T> {
       tmp_.replaceContent(other.sample_.getPartialItem(), newRho * otherCFrac * avgWt);
       sample_.merge(tmp_);
 
-      cumulativeWt_ = newCumWt;
+      // cumulativeWt_ will be assigned momentarily
       rho_ = newRho;
     }
 
@@ -511,7 +511,7 @@ public class EbppsItemsSketch<T> {
     return outArr;
   }
 
-  private void checkK(final int k) {
+  private static void checkK(final int k) {
     if (k <= 0 || k > MAX_K)
       throw new SketchesArgumentException("k must be strictly positive and less than " + MAX_K);
   }

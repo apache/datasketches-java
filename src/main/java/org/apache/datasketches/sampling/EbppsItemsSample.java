@@ -60,7 +60,7 @@ class EbppsItemsSample<T> {
     if (c < 0.0 || Double.isNaN(c) || Double.isInfinite(c))
       throw new SketchesArgumentException("C must be nonnegative and finite. Found: " + c);
     
-      c_ = c;
+    c_ = c;
     partialItem_ = partialItem;
     data_ = data;
     rand_ = ThreadLocalRandom.current();
@@ -75,12 +75,12 @@ class EbppsItemsSample<T> {
     if (theta < 0.0 || theta > 1.0 || Double.isNaN(theta))
       throw new SketchesArgumentException("Theta must be in the range [0.0, 1.0]. Found: " + theta);
     
-      c_ = theta;
+    c_ = theta;
     if (theta == 1.0) {
       if (data_ != null && data_.size() == 1) {
         data_.set(0, item);
       } else {
-        data_ = new ArrayList<T>(1);
+        data_ = new ArrayList<>(1);
         data_.add(item);  
       }
       partialItem_ = null;
@@ -247,7 +247,7 @@ class EbppsItemsSample<T> {
       sb.append("\t").append(idx++).append(":\t").append(item.toString()).append(LS);
     sb.append("  partial: ");
     if (partialItem_ != null)
-      sb.append(partialItem_.toString()).append(LS);
+      sb.append(partialItem_).append(LS);
     else
       sb.append("NULL").append(LS);
 
