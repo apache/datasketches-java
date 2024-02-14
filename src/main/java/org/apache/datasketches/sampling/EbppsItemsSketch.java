@@ -36,14 +36,14 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * An implementation of an Exact and Bounded Sampling Proportional to Size sketch.
  * 
- * From: "Exact PPS Sampling with Bounded Sample Size",
+ * <p>From: "Exact PPS Sampling with Bounded Sample Size",
  * B. Hentschel, P. J. Haas, Y. Tian. Information Processing Letters, 2023.
  * 
- * This sketch samples data from a stream of items proportional to the weight of each item.
+ * <p>This sketch samples data from a stream of items proportional to the weight of each item.
  * The sample guarantees the presence of an item in the result is proportional to that item's
  * portion of the total weight seen by the sketch, and returns a sample no larger than size k.
  * 
- * The sample may be smaller than k and the resulting size of the sample potentially includes
+ * <p>The sample may be smaller than k and the resulting size of the sample potentially includes
  * a probabilistic component, meaning the resulting sample size is not always constant.
  *
  * @author Jon Malkin
@@ -77,7 +77,7 @@ public class EbppsItemsSketch<T> {
   }
 
   // private copy constructor
-  private EbppsItemsSketch(EbppsItemsSketch<T> other) {
+  private EbppsItemsSketch(final EbppsItemsSketch<T> other) {
     k_ = other.k_;
     n_ = other.n_;
     rho_ = other.rho_;
@@ -151,8 +151,9 @@ public class EbppsItemsSketch<T> {
               + "and less than " + MAX_K + ". Found: " + k);
     }
 
-    if (isEmpty)
+    if (isEmpty) {
       return new EbppsItemsSketch<>(k);
+    }
 
     final long n = PreambleUtil.extractN(srcMem);
     if (n < 0) {
@@ -182,8 +183,8 @@ public class EbppsItemsSketch<T> {
     }
 
     // extract items
-    int numTotalItems = (int) Math.ceil(c);
-    int numFullItems = (int) Math.floor(c); // floor() not strictly necessary
+    final int numTotalItems = (int) Math.ceil(c);
+    final int numFullItems = (int) Math.floor(c); // floor() not strictly necessary
     final int offsetBytes = EBPPS_ITEMS_START;
     final T[] rawItems = serDe.deserializeFromMemory(
             srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), 0, numTotalItems);
@@ -191,8 +192,9 @@ public class EbppsItemsSketch<T> {
     final ArrayList<T> data;
     final T partialItem;
     if (hasPartialItem) {
-      if (numFullItems >= numTotalItems)
+      if (numFullItems >= numTotalItems) {
         throw new SketchesArgumentException("Possible Corruption: Expected partial item but none found");
+      }
 
       data = new ArrayList<>(itemsList.subList(0, numFullItems));
       partialItem = itemsList.get(numFullItems); // 0-based, so last item
@@ -201,7 +203,7 @@ public class EbppsItemsSketch<T> {
       partialItem = null; // just to be explicit
     }
 
-    EbppsItemsSample<T> sample = new EbppsItemsSample<>(data, partialItem, c);
+    final EbppsItemsSample<T> sample = new EbppsItemsSample<>(data, partialItem, c);
 
     return new EbppsItemsSketch<>(sample, k, n, cumWt, maxWt, rho);
   }
@@ -220,18 +222,21 @@ public class EbppsItemsSketch<T> {
    * @param weight the weight of the item
    */
   public void update(final T item, final double weight) {
-    if (weight < 0.0 || Double.isNaN(weight) || Double.isInfinite(weight))
+    if (weight < 0.0 || Double.isNaN(weight) || Double.isInfinite(weight)) {
       throw new SketchesArgumentException("Item weights must be nonnegative and finite. "
         + "Found: " + weight);
-    if (weight == 0.0)
+    }
+    if (weight == 0.0) {
       return;
+    }
 
     final double newCumWt = cumulativeWt_ + weight;
     final double newWtMax = Math.max(wtMax_, weight);
     final double newRho = Math.min(1.0 / newWtMax, k_ / newCumWt);
 
-    if (cumulativeWt_ > 0.0)
+    if (cumulativeWt_ > 0.0) {
       sample_.downsample((newRho / rho_));
+    }
 
     tmp_.replaceContent(item, newRho * weight);
     sample_.merge(tmp_);
@@ -267,12 +272,12 @@ public class EbppsItemsSketch<T> {
    * @param other the sketch to merge into the current object
    */
   public void merge(final EbppsItemsSketch<T> other) {
-    if (other.getCumulativeWeight() == 0.0)
+    if (other.getCumulativeWeight() == 0.0) {
       return;
-    else if (other.getCumulativeWeight() > cumulativeWt_) {
+    } else if (other.getCumulativeWeight() > cumulativeWt_) {
       // need to swap this with other
       // make a copy of other, merge into it, and take the result
-      EbppsItemsSketch<T> copy = new EbppsItemsSketch<>(other);
+      final EbppsItemsSketch<T> copy = new EbppsItemsSketch<>(other);
       copy.internalMerge(this);
       k_ = copy.k_;
       n_ = copy.n_;
@@ -286,7 +291,7 @@ public class EbppsItemsSketch<T> {
   }
 
   // merge implementation called exclusively from public merge()
-  private void internalMerge(EbppsItemsSketch<T> other) {
+  private void internalMerge(final EbppsItemsSketch<T> other) {
     // assumes that other.cumulativeWeight_ <= cumulativeWt_m
     // which must be checked before calling this
 
@@ -305,15 +310,16 @@ public class EbppsItemsSketch<T> {
     // it as a full item would be correct on average but would
     // introduce bias for any specific merge operation.
     final double avgWt = other.cumulativeWt_ / other.getC();
-    ArrayList<T> items = other.sample_.getFullItems();
+    final ArrayList<T> items = other.sample_.getFullItems();
     if (items != null) {
       for (T item : items) {
         // newWtMax is pre-computed
         final double newCumWt = cumulativeWt_ + avgWt;
         final double newRho = Math.min(1.0 / newWtMax, k_ / newCumWt);
 
-        if (cumulativeWt_ > 0.0)
+        if (cumulativeWt_ > 0.0) {
           sample_.downsample(newRho / rho_);
+        }
 
         tmp_.replaceContent(item, newRho * avgWt);
         sample_.merge(tmp_);
@@ -329,8 +335,9 @@ public class EbppsItemsSketch<T> {
       final double newCumWt = cumulativeWt_ + (otherCFrac * avgWt);
       final double newRho = Math.min(1.0 / newWtMax, k_ / newCumWt);
 
-      if (cumulativeWt_ > 0.0)
+      if (cumulativeWt_ > 0.0) {
         sample_.downsample(newRho / rho_);
+      }
   
       tmp_.replaceContent(other.sample_.getPartialItem(), newRho * otherCFrac * avgWt);
       sample_.merge(tmp_);
@@ -385,8 +392,8 @@ public class EbppsItemsSketch<T> {
    * getResult(). The number is a floating point value, where the 
    * fractional portion represents the probability of including a
    * "partial item" from the sample.
-   * 
-   * The value C should be no larger than the sketch's configured
+   *
+   * <p>The value C should be no larger than the sketch's configured
    * value of k, although numerical precision limitations mean it
    * may exceed k by double precision floating point error margins
    * in certain cases.
@@ -418,12 +425,13 @@ public class EbppsItemsSketch<T> {
    * @return the length of a byte array representation of this sketch
    */
   public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe) {
-    if (isEmpty())
+    if (isEmpty()) {
       return Family.EBPPS.getMinPreLongs() << 3;
-    else if (sample_.getC() < 1.0)
+    } else if (sample_.getC() < 1.0) {
       return getSerializedSizeBytes(serDe, sample_.getPartialItem().getClass());
-    else 
+    } else {
       return getSerializedSizeBytes(serDe, sample_.getSample().get(0).getClass());
+    }
   }
 
   /**
@@ -435,8 +443,9 @@ public class EbppsItemsSketch<T> {
    * @return the length of a byte array representation of this sketch
    */
   public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
-    if (n_ == 0)
+    if (n_ == 0) {
       return Family.EBPPS.getMinPreLongs() << 3;
+    }
 
     final int preLongs = Family.EBPPS.getMaxPreLongs();
     final byte[] itemBytes = serDe.serializeToByteArray(sample_.getAllSamples(clazz));
@@ -451,13 +460,14 @@ public class EbppsItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
-    if (n_ == 0)
+    if (n_ == 0) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
-    else if (sample_.getC() < 1.0)
+    } else if (sample_.getC() < 1.0) {
       return toByteArray(serDe, sample_.getPartialItem().getClass());
-    else
+    } else {
       return toByteArray(serDe, sample_.getSample().get(0).getClass());
+    }
   }
 
    /**
@@ -512,7 +522,8 @@ public class EbppsItemsSketch<T> {
   }
 
   private static void checkK(final int k) {
-    if (k <= 0 || k > MAX_K)
+    if (k <= 0 || k > MAX_K) {
       throw new SketchesArgumentException("k must be strictly positive and less than " + MAX_K);
+    }
   }
 }
