@@ -136,14 +136,14 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
 <div class="block">An implementation of an Exact and Bounded Sampling Proportional to Size sketch.
  
- From: "Exact PPS Sampling with Bounded Sample Size",
+ <p>From: "Exact PPS Sampling with Bounded Sample Size",
  B. Hentschel, P. J. Haas, Y. Tian. Information Processing Letters, 2023.
  
- This sketch samples data from a stream of items proportional to the weight of each item.
+ <p>This sketch samples data from a stream of items proportional to the weight of each item.
  The sample guarantees the presence of an item in the result is proportional to that item's
  portion of the total weight seen by the sketch, and returns a sample no larger than size k.
  
- The sample may be smaller than k and the resulting size of the sample potentially includes
+ <p>The sample may be smaller than k and the resulting size of the sample potentially includes
  a probabilistic component, meaning the resulting sample size is not always constant.</div>
 <dl>
 <dt><span class="simpleTagLabel">Author:</span></dt>
@@ -514,8 +514,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  getResult(). The number is a floating point value, where the 
  fractional portion represents the probability of including a
  "partial item" from the sample.
- 
- The value C should be no larger than the sketch's configured
+
+ <p>The value C should be no larger than the sketch's configured
  value of k, although numerical precision limitations mean it
  may exceed k by double precision floating point error margins
  in certain cases.</div>
