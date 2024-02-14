@@ -27,7 +27,7 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * This class holds an array of bits suitable for use in a Bloom Filter
  * 
- * Rounds the number of bits up to the smallest multiple of 64 (one long)
+ * <p>Rounds the number of bits up to the smallest multiple of 64 (one long)
  * that is not smaller than the specified number.
  */
 class BitArray {
@@ -39,10 +39,12 @@ class BitArray {
   private long[] data_;
 
   BitArray(final long numBits) {
-    if (numBits <= 0)
+    if (numBits <= 0) {
       throw new SketchesArgumentException("Number of bits must be strictly positive. Found: " + numBits);
-    if (numBits > MAX_BITS)
+    }
+    if (numBits > MAX_BITS) {
       throw new SketchesArgumentException("Number of bits may not exceed " + MAX_BITS + ". Found: " + numBits);
+    }
 
     final int numLongs = (int) Math.ceil(numBits / 64.0);
     numBitsSet_ = 0;
@@ -52,17 +54,20 @@ class BitArray {
   BitArray(final long[] data) {
     data_ = data;
     numBitsSet_ = 0;
-    for (long val : data)
+    for (long val : data) {
       numBitsSet_ += Long.bitCount(val);
+    }
   }
 
   static BitArray heapify(final Memory mem, final boolean isEmpty) {
     final int numLongs = mem.getInt(0);
-    if (numLongs < 0)
+    if (numLongs < 0) {
       throw new SketchesArgumentException("Possible corruption: Must have strictly positive array size. Found: " + numLongs);
+    }
     
-    if (isEmpty)
+    if (isEmpty) {
       return new BitArray(numLongs * Long.SIZE);
+    }
 
     final long[] data = new long[numLongs];
     mem.getLongArray(DATA_OFFSET, data, 0, numLongs);
@@ -98,8 +103,9 @@ class BitArray {
 
   // applies logical OR
   void union(final BitArray other) {
-    if (data_.length != other.data_.length)
+    if (data_.length != other.data_.length) {
       throw new SketchesArgumentException("Cannot union bit arrays with unequal lengths");
+    }
 
     long numBitsSet = 0;
     for (int i = 0; i < data_.length; ++i) {
@@ -111,8 +117,9 @@ class BitArray {
 
   // applies logical AND
   void intersect(final BitArray other) {
-    if (data_.length != other.data_.length)
+    if (data_.length != other.data_.length) {
       throw new SketchesArgumentException("Cannot intersect bit arrays with unequal lengths");
+    }
 
     long numBitsSet = 0;
     for (int i = 0; i < data_.length; ++i) {
@@ -125,8 +132,9 @@ class BitArray {
   // applies bitwise inversion
   void invert() {
     final long numBitsSet = getCapacity() - numBitsSet_;
-    for (int i = 0; i < data_.length; ++i)
+    for (int i = 0; i < data_.length; ++i) {
       data_[i] = ~data_[i];
+    }
     numBitsSet_ = numBitsSet;
   }
 
@@ -138,18 +146,20 @@ class BitArray {
   }
 
   void writeToMemory(final WritableMemory wmem) {
-    if (wmem.getCapacity() < getSerializedSizeBytes())
+    if (wmem.getCapacity() < getSerializedSizeBytes()) {
       throw new SketchesStateException("Attempt to serialize BitArray into WritableMemory with insufficient capacity");
+    }
     
     wmem.putInt(0, data_.length);
     
-    if (!isEmpty())
+    if (!isEmpty()) {
       wmem.putLongArray(DATA_OFFSET, data_, 0, data_.length);
+    }
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     for (int i = 0; i < data_.length; ++i) {
       sb.append(i + ": ")
         .append(printLong(data_[i]))
@@ -158,11 +168,11 @@ class BitArray {
     return sb.toString();
   }
 
-  String printLong(long val) {
-    StringBuilder sb = new StringBuilder();
+  String printLong(final long val) {
+    final StringBuilder sb = new StringBuilder();
     for (int j = 0; j < Long.SIZE; ++j) {
       sb.append((val & (1L << j)) != 0 ? "1" : "0");
-      if (j % 8 == 7) sb.append(" ");
+      if (j % 8 == 7) { sb.append(" "); }
     }
     return sb.toString();
   }

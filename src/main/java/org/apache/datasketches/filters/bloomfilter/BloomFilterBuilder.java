@@ -21,27 +21,27 @@ package org.apache.datasketches.filters.bloomfilter;
 
 public class BloomFilterBuilder {
 
-  public static int suggestNumHashes(long maxDistinctItems, long numFilterBits) {
+  public static int suggestNumHashes(final long maxDistinctItems, final long numFilterBits) {
     return (int) Math.max(1, (int) Math.round((double) numFilterBits / maxDistinctItems * Math.log(2.0)));
   }
 
-  public static int suggestNumHashes(double targetFalsePositiveProb) {
+  public static int suggestNumHashes(final double targetFalsePositiveProb) {
     // TODO: should this be Math.ceil of the value?
     return (int) (- Math.log(targetFalsePositiveProb) / Math.log(2));
   }
 
-  public static long suggestNumFilterBits(long maxDistinctItems, double targetFalsePositiveProb) {
+  public static long suggestNumFilterBits(final long maxDistinctItems, final double targetFalsePositiveProb) {
     return (long) Math.round(-maxDistinctItems * Math.log(targetFalsePositiveProb) / (Math.log(2) * Math.log(2)));
   }
 
-  public static BloomFilter newBloomFilter(long maxDistinctItems, double targetFalsePositiveProb) {
+  public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb) {
     // TODO validate inputs
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
     final int numHashes = suggestNumHashes(maxDistinctItems, numBits);
     return new BloomFilter(numBits, numHashes);
   }
 
-  public static BloomFilter newBloomFilter(long maxDistinctItems, double targetFalsePositiveProb, long seed) {
+  public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
     // TODO validate inputs
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
     final int numHashes = suggestNumHashes(maxDistinctItems, numBits);
