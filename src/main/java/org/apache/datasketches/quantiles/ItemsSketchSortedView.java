@@ -92,7 +92,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
   ItemsSketchSortedView(final ItemsSketch<T> sketch) {
     if (sketch.isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     this.totalN = sketch.getN();
-    final int k = sketch.getK();
     final int numQuantiles = sketch.getNumRetained();
     this.quantiles = (T[]) Array.newInstance(sketch.clazz, numQuantiles);
     this.minItem = sketch.minItem_;
