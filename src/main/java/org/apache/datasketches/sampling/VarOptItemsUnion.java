@@ -22,7 +22,7 @@ package org.apache.datasketches.sampling;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
-import static org.apache.datasketches.sampling.PreambleUtil.SER_VER;
+import static org.apache.datasketches.sampling.PreambleUtil.VAROPT_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.extractFlags;
 import static org.apache.datasketches.sampling.PreambleUtil.extractMaxK;
 import static org.apache.datasketches.sampling.PreambleUtil.extractN;
@@ -165,9 +165,9 @@ public final class VarOptItemsUnion<T> {
       outerTauDenom = extractOuterTauDenominator(srcMem);
     }
 
-    if (serVer != SER_VER) {
+    if (serVer != VAROPT_SER_VER) {
       throw new SketchesArgumentException(
-              "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+              "Possible Corruption: Ser Ver must be " + VAROPT_SER_VER + ": " + serVer);
     }
 
     final boolean preLongsEqMin = (numPreLongs == Family.VAROPT_UNION.getMinPreLongs());
@@ -332,7 +332,7 @@ public final class VarOptItemsUnion<T> {
 
     // build preLong
     PreambleUtil.insertPreLongs(mem, preLongs);                    // Byte 0
-    PreambleUtil.insertSerVer(mem, SER_VER);                       // Byte 1
+    PreambleUtil.insertSerVer(mem, VAROPT_SER_VER);                // Byte 1
     PreambleUtil.insertFamilyID(mem, Family.VAROPT_UNION.getID()); // Byte 2
     if (empty) {
       PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);

@@ -22,7 +22,7 @@ package org.apache.datasketches.sampling;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.GADGET_FLAG_MASK;
-import static org.apache.datasketches.sampling.PreambleUtil.SER_VER;
+import static org.apache.datasketches.sampling.PreambleUtil.VAROPT_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.TOTAL_WEIGHT_R_DOUBLE;
 import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_EMPTY;
 import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_FULL;
@@ -291,9 +291,9 @@ public final class VarOptItemsSketch<T> {
                 + " or " + VO_PRELONGS_FULL + " for a non-empty sketch. Found: " + numPreLongs);
       }
     }
-    if (serVer != SER_VER) {
+    if (serVer != VAROPT_SER_VER) {
         throw new SketchesArgumentException(
-                "Possible Corruption: Ser Ver must be " + SER_VER + ": " + serVer);
+                "Possible Corruption: Ser Ver must be " + VAROPT_SER_VER + ": " + serVer);
     }
     final int reqFamilyId = Family.VAROPT.getID();
     if (familyId != reqFamilyId) {
@@ -587,7 +587,7 @@ public final class VarOptItemsSketch<T> {
     // build first preLong
     PreambleUtil.insertPreLongs(mem, preLongs);               // Byte 0
     PreambleUtil.insertLgResizeFactor(mem, rf_.lg());
-    PreambleUtil.insertSerVer(mem, SER_VER);                  // Byte 1
+    PreambleUtil.insertSerVer(mem, VAROPT_SER_VER);           // Byte 1
     PreambleUtil.insertFamilyID(mem, Family.VAROPT.getID());  // Byte 2
     PreambleUtil.insertFlags(mem, flags);                     // Byte 3
     PreambleUtil.insertK(mem, k_);                            // Bytes 4-7
