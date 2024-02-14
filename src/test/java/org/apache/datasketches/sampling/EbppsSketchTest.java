@@ -22,8 +22,10 @@ package org.apache.datasketches.sampling;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
@@ -65,7 +67,7 @@ public class EbppsSketchTest {
       assertTrue(sample1 != null && sample2 != null);
       final int len = Math.min(sample1.size(), sample2.size());
       for (int i = 0; i < len; ++i) {
-        assertEquals(sample1.get(i), sample2.get(i)); 
+        assertEquals(sample1.get(i), sample2.get(i));
       }
       assertTrue((len == Math.floor(sk1.getC()) || len == Math.ceil(sk1.getC())));
 
@@ -201,7 +203,7 @@ public class EbppsSketchTest {
     mem = Memory.wrap(bytes);
     sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
-  
+
     // non-empty with partial item
     sk.update(Integer.toString(2 * k), 2.5);
     assertEquals(sk.getCumulativeWeight(), k + 2.5, EPS);
@@ -298,13 +300,16 @@ public class EbppsSketchTest {
     EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void deserializeTooShort() {
     EbppsItemsSketch<Long> sk = new EbppsItemsSketch<>(5);
     for (long i = 0; i < 10; ++i) sk.update(i);
     final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe());
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    final Memory shortMem = mem.region(0, mem.getCapacity() - 1);
-    EbppsItemsSketch.heapify(shortMem, new ArrayOfStringsSerDe());
+    final byte[] bytes2 = Arrays.copyOf(bytes, bytes.length - 1);
+    final Memory shortMem = Memory.wrap(bytes2);
+    try {
+      EbppsItemsSketch.heapify(shortMem, new ArrayOfStringsSerDe());
+      fail("Did not throw SketchesArgumentException");
+    } catch (final SketchesArgumentException e) { }
   }
 }
