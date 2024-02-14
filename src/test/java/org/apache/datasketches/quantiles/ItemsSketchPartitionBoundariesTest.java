@@ -29,6 +29,7 @@ import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.testng.annotations.Test;
 
 public class ItemsSketchPartitionBoundariesTest {
+  private static final int k = 128;
 
   @Test
   public void checkSimpleEndsAdjustment() {
@@ -39,7 +40,7 @@ public class ItemsSketchPartitionBoundariesTest {
     final String maxItem = "8";
     final String minItem = "1";
     ItemsSketchSortedViewString sv = new ItemsSketchSortedViewString(
-        quantiles, cumWeights, totalN, comparator, maxItem, minItem);
+        quantiles, cumWeights, totalN, comparator, maxItem, minItem, k);
 
     GenericSortedViewIterator<String> itr = sv.iterator();
     while (itr.next()) {
