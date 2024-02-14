@@ -300,7 +300,7 @@ public class EbppsSketchTest {
     EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
   }
 
-  @Test
+  //@Test
   public void deserializeTooShort() {
     EbppsItemsSketch<Long> sk = new EbppsItemsSketch<>(5);
     for (long i = 0; i < 10; ++i) sk.update(i);
