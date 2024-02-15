@@ -22,10 +22,8 @@ package org.apache.datasketches.sampling;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
