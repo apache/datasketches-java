@@ -2462,6 +2462,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.SketchType.html#getName()">getName()</a></span> - Method in enum org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getNaturalRank()">getNaturalRank()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dd>
+<div class="block">Gets the natural rank at the current index.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#getNaturalRank(double,long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank(double, long, QuantileSearchCriteria)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
@@ -2478,6 +2482,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html#getNominalEntries()">getNominalEntries()</a></span> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUpdatableSketch</a></dt>
 <dd>
 <div class="block">Gets the configured nominal number of entries</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getNormalizedRank()">getNormalizedRank()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
+<dd>
+<div class="block">Gets the normalized rank at the current index.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></dt>
 <dd>
@@ -2707,7 +2715,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getQuantile()">getQuantile()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
 <dd>
-<div class="block">Gets the quantile at the current index.</div>
+<div class="block">Gets the quantile at the current index
+ This is equivalent to <i>getQuantile(INCLUSIVE)</i>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesSketchIterator.html#getQuantile()">getQuantile()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesSketchIterator</a></dt>
 <dd>
@@ -2783,6 +2792,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getQuantile(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
+<dd>
+<div class="block">Gets the quantile at the current index (or previous index)
+ based on the chosen search criterion.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getQuantileLowerBound(double)">getQuantileLowerBound(double)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>
 <div class="block">Gets the lower bound of the quantile confidence interval in which the quantile of the
@@ -4063,6 +4077,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#INCLUDE_LOWER">INCLUDE_LOWER</a></span> - org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
 <dd>
 <div class="block">Include only the lower bound but not the upper bound</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#INCLUDE_NEITHER">INCLUDE_NEITHER</a></span> - org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
+<dd>
+<div class="block">Include none</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/BoundsRule.html#INCLUDE_UPPER">INCLUDE_UPPER</a></span> - org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></dt>
 <dd>

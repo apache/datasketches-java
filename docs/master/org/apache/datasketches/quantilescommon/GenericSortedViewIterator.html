@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10};
+var data = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -207,7 +207,16 @@ extends <a href="SortedViewIterator.html" title="class in org.apache.datasketche
 <td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile()">getQuantile</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Gets the quantile at the current index.</div>
+<div class="block">Gets the quantile at the current index
+ This is equivalent to <i>getQuantile(INCLUSIVE)</i>.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">
+<div class="block">Gets the quantile at the current index (or previous index)
+ based on the chosen search criterion.</div>
 </td>
 </tr>
 </table>
@@ -216,7 +225,7 @@ extends <a href="SortedViewIterator.html" title="class in org.apache.datasketche
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.apache.datasketches.quantilescommon.<a href="SortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">SortedViewIterator</a></h3>
-<code><a href="SortedViewIterator.html#getN()">getN</a>, <a href="SortedViewIterator.html#getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a>, <a href="SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a>, <a href="SortedViewIterator.html#getWeight()">getWeight</a>, <a href="SortedViewIterator.html#next()">next</a></code></li>
+<code><a href="SortedViewIterator.html#getN()">getN</a>, <a href="SortedViewIterator.html#getNaturalRank()">getNaturalRank</a>, <a href="SortedViewIterator.html#getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a>, <a href="SortedViewIterator.html#getNormalizedRank()">getNormalizedRank</a>, <a href="SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a>, <a href="SortedViewIterator.html#getWeight()">getWeight</a>, <a href="SortedViewIterator.html#next()">next</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -266,17 +275,39 @@ extends <a href="SortedViewIterator.html" title="class in org.apache.datasketche
 <a id="getQuantile()">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getQuantile</h4>
 <pre class="methodSignature">public&nbsp;<a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>&nbsp;getQuantile()</pre>
-<div class="block">Gets the quantile at the current index.
+<div class="block">Gets the quantile at the current index
+ This is equivalent to <i>getQuantile(INCLUSIVE)</i>.
 
- <p>Don't call this before calling next() for the first time
- or after getting false from next().</p></div>
+ <p>Don't call this before calling next() for the first time or after getting false from next().</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the quantile at the current index.</dd>
+</dl>
+</li>
+</ul>
+<a id="getQuantile(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getQuantile</h4>
+<pre class="methodSignature">public&nbsp;<a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>&nbsp;getQuantile&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Gets the quantile at the current index (or previous index)
+ based on the chosen search criterion.
+
+ <p>Don't call this before calling next() for the first time or after getting false from next().</p></div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>searchCrit</code> - if INCLUSIVE, includes the quantile at the current index.
+ Otherwise, returns the quantile of the previous index.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the quantile at the current index (or previous index)
+ based on the chosen search criterion. If the chosen search criterion is <i>EXCLUSIVE</i> and
+ the current index is at zero, this will return <i>null</i>.</dd>
 </dl>
 </li>
 </ul>

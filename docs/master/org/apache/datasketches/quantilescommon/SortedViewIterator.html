@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -216,12 +216,26 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNaturalRank()">getNaturalRank</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the natural rank at the current index.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a></span>&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
 <div class="block">Gets the natural rank at the current index (or previous index) based on the chosen search criterion.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNormalizedRank()">getNormalizedRank</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the normalized rank at the current index.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
@@ -229,14 +243,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  based on the chosen search criterion.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getWeight()">getWeight</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the weight contribution of the item at the current index.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#next()">next</a></span>()</code></th>
 <td class="colLast">
@@ -304,6 +318,23 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a id="getNaturalRank()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNaturalRank</h4>
+<pre class="methodSignature">public&nbsp;long&nbsp;getNaturalRank()</pre>
+<div class="block">Gets the natural rank at the current index.
+ This is equivalent to <i>getNaturalRank(INCLUSIVE)</i>.
+
+ <p>Don't call this before calling next() for the first time or after getting false from next().</p></div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the natural rank at the current index.</dd>
+</dl>
+</li>
+</ul>
 <a id="getNaturalRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
@@ -315,8 +346,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  This is also referred to as the "cumulative weight". The natural rank is a number in the range <i>[1, N]</i>,
  where <i>N</i> (<a href="#getN()"><code>getN()</code></a>) is the total number of items fed to the sketch.
 
- <p>Don't call this before calling next() for the first time
- or after getting false from next().</p></div>
+ <p>Don't call this before calling next() for the first time or after getting false from next().</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>searchCrit</code> - if INCLUSIVE, includes the weight of the item at the current index in the computation of
@@ -341,6 +371,23 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
+<a id="getNormalizedRank()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNormalizedRank</h4>
+<pre class="methodSignature">public&nbsp;double&nbsp;getNormalizedRank()</pre>
+<div class="block">Gets the normalized rank at the current index.
+ This is equivalent to <i>getNormalizedRank(INCLUSIVE)</i>.
+
+ <p>Don't call this before calling next() for the first time or after getting false from next().</p></div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the normalized rank at the current index</dd>
+</dl>
+</li>
+</ul>
 <a id="getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
@@ -352,8 +399,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  based on the chosen search criterion. Where <i>normalized rank = natural rank / N</i> (<a href="#getN()"><code>getN()</code></a>)
  and is a fraction in the range (0,1.0].
 
- <p>Don't call this before calling next() for the first time
- or after getting false from next().</p></div>
+ <p>Don't call this before calling next() for the first time or after getting false from next().</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>searchCrit</code> - if INCLUSIVE, includes the normalized rank at the current index.
@@ -373,8 +419,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre class="methodSignature">public&nbsp;long&nbsp;getWeight()</pre>
 <div class="block">Gets the weight contribution of the item at the current index.
 
- <p>Don't call this before calling next() for the first time
- or after getting false from next().</p></div>
+ <p>Don't call this before calling next() for the first time or after getting false from next().</p></div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the weight contribution of the item at the current index.</dd>
