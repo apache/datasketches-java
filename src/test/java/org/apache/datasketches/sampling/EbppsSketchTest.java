@@ -65,7 +65,7 @@ public class EbppsSketchTest {
       assertTrue(sample1 != null && sample2 != null);
       final int len = Math.min(sample1.size(), sample2.size());
       for (int i = 0; i < len; ++i) {
-        assertEquals(sample1.get(i), sample2.get(i)); 
+        assertEquals(sample1.get(i), sample2.get(i));
       }
       assertTrue((len == Math.floor(sk1.getC()) || len == Math.ceil(sk1.getC())));
 
@@ -201,7 +201,7 @@ public class EbppsSketchTest {
     mem = Memory.wrap(bytes);
     sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
-  
+
     // non-empty with partial item
     sk.update(Integer.toString(2 * k), 2.5);
     assertEquals(sk.getCumulativeWeight(), k + 2.5, EPS);
@@ -305,6 +305,6 @@ public class EbppsSketchTest {
     final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe());
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     final Memory shortMem = mem.region(0, mem.getCapacity() - 1);
-    EbppsItemsSketch.heapify(shortMem, new ArrayOfStringsSerDe());
+    EbppsItemsSketch.heapify(shortMem, new ArrayOfLongsSerDe());
   }
 }

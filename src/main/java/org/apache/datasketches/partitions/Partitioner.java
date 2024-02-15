@@ -26,6 +26,10 @@ import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static java.util.Collections.unmodifiableList;
+import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_BOTH;
+import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_LOWER;
+import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_NEITHER;
+import static org.apache.datasketches.partitions.BoundsRule.INCLUDE_UPPER;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
@@ -184,33 +188,35 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
 
     public PartitionBoundsRow(final StackElement<T> se) {
       final GenericPartitionBoundaries<T> gpb = se.gpb;
-      this.part = se.part;
-      this.levelPartId = se.levelPartId + "." + part;
       final QuantileSearchCriteria searchCrit = gpb.getSearchCriteria();
       final T[] boundaries = gpb.getBoundaries();
       final int numParts = gpb.getNumPartitions();
+      this.part = se.part;
+      this.levelPartId = se.levelPartId + "." + part;
+      final long num;
+      this.approxNumDeltaItems = num = gpb.getNumDeltaItems()[part];
       if (searchCrit == INCLUSIVE) {
         if (part == 1) {
           lowerBound = gpb.getMinItem();
           upperBound = boundaries[part];
-          rule = BoundsRule.INCLUDE_BOTH;
+          rule = (num == 0) ? INCLUDE_NEITHER : (lowerBound == upperBound) ? INCLUDE_UPPER : INCLUDE_BOTH;
         } else {
           lowerBound = boundaries[part - 1];
           upperBound = boundaries[part];
-          rule = BoundsRule.INCLUDE_UPPER;
+          rule = (num == 0) ? INCLUDE_NEITHER : INCLUDE_UPPER;
         }
-      } else { //EXCLUSIVE
+      }
+      else { //EXCLUSIVE
         if (part == numParts) {
           lowerBound = boundaries[part - 1];
           upperBound = gpb.getMaxItem();
-          rule = BoundsRule.INCLUDE_BOTH;
+          rule = (num == 0) ? INCLUDE_NEITHER : (lowerBound == upperBound) ? INCLUDE_LOWER : INCLUDE_BOTH;
         } else {
           lowerBound = boundaries[part - 1];
           upperBound = boundaries[part];
-          rule = BoundsRule.INCLUDE_LOWER;
+          rule = (num == 0) ? INCLUDE_NEITHER : INCLUDE_LOWER;
         }
       }
-      approxNumDeltaItems = gpb.getNumDeltaItems()[part];
     }
   }
 
