@@ -164,14 +164,14 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     final int svLen = cumWeights.length;
     if (numEquallySized > maxParts) {
       throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
-          + "Requested number of partitions is too large for this sized sketch. "
-          + "It exceeds maximum number of partitions allowed by the error threshold for this size sketch."
+          + "The requested number of partitions is too large for the 'k' of this sketch "
+          + "if it exceeds the maximum number of partitions allowed by the error threshold for the 'k' of this sketch."
           + "Requested Partitions: " + numEquallySized + " > " + maxParts);
     }
-    if (numEquallySized > svLen / 2) {
+    if (numEquallySized > svLen / 2.0) {
       throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
-          + "Requested number of partitions is too large for this sized sketch. "
-          + "It exceeds maximum number of retained items divided by 2."
+          + "The requested number of partitions is too large for the number of retained items "
+          + "if it exceeds maximum number of retained items divided by 2."
           + "Requested Partitions: " + numEquallySized + " > "
           + "Retained Items / 2: " + (svLen / 2));
     }
@@ -181,34 +181,49 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
     final T[] partQuantiles = (T[]) Array.newInstance(clazz, partArrLen);
     final long[] partNatRanks = new long[partArrLen];
     final double[] partNormRanks = new double[partArrLen];
-    //adjust ends
-    int adjLen = svLen;
-    final boolean adjLow = quantiles[0] != minItem;
-    final boolean adjHigh = quantiles[svLen - 1] != maxItem;
+
+    //Adjust End Points: The ends of the Sorted View arrays may be missing the actual MinItem and MaxItem bounds,
+    // which are absolutely required when partitioning, especially inner partitions.
+
+    //Are the minItem and maxItem already in place?
+    int adjLen = svLen; //this will be the length of the local copies of quantiles and cumWeights
+    final boolean adjLow = quantiles[0] != minItem; //if true, adjust the low end
+    final boolean adjHigh = quantiles[svLen - 1] != maxItem; //if true, adjust the high end
     adjLen += adjLow ? 1 : 0;
     adjLen += adjHigh ? 1 : 0;
 
+    //These are local copies of the quantiles and cumWeights arrays just for partitioning.
+    //The rest of the SV remains unchanged.
     final T[] adjQuantiles;
     final long[] adjCumWeights;
-    if (adjLen > svLen) {
+    if (adjLen > svLen) { //is any adjustment required at all?
       adjQuantiles = (T[]) new Object[adjLen];
       adjCumWeights = new long[adjLen];
       final int offset = adjLow ? 1 : 0;
       System.arraycopy(quantiles, 0, adjQuantiles, offset, svLen);
       System.arraycopy(cumWeights,0, adjCumWeights, offset, svLen);
+
+      //Adjust the low end if required.
       if (adjLow) {
         adjQuantiles[0] = minItem;
         adjCumWeights[0] = 1;
       }
+      //When inserting a MaxItem, if required, we can't just add it at the top of the quantiles array,
+      // we have to adjust the cumulative weight of the item just before it as well so that the maximum cumulative
+      // weight at the upper end still equals totalN. (This is not the case at the low end. Quiz #1: Why? )
+      // If the maxItem is missing, the quantile that is currently in the top
+      // position must have a weight >= 2. (Quiz #2: Why?). Thus, it is safe to subtract 1.
       if (adjHigh) {
         adjQuantiles[adjLen - 1] = maxItem;
         adjCumWeights[adjLen - 1] = cumWeights[svLen - 1];
         adjCumWeights[adjLen - 2] = cumWeights[svLen - 1] - 1;
       }
-    } else {
+    } else { //both min and max are already in place, no adjustments are required.
       adjQuantiles = quantiles;
       adjCumWeights = cumWeights;
-    }
+    } //END of Adjust End Points
+
+    //compute the quantiles and natural and normalized ranks for the partition boundaries.
     for (int i = 0; i < partArrLen; i++) {
       final int index = getQuantileIndex(searchNormRanks[i], adjCumWeights, searchCrit);
       partQuantiles[i] = adjQuantiles[index];
@@ -216,6 +231,7 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
       partNatRanks[i] = cumWt;
       partNormRanks[i] = (double)cumWt / totalN;
     }
+    //Return the GPB of the complete specification of the boundaries.
     final GenericPartitionBoundaries<T> gpb = new GenericPartitionBoundaries<>(
         this.totalN,
         partQuantiles,
