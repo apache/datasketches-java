@@ -58,7 +58,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   S[] summaryTable_;
 
   @Override
-  protected final void finalize() {
+  protected final void finalize() throws Throwable {
+    super.finalize();
     // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
   }
 
