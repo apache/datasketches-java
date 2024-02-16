@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.sampling;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EBPPS_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.HAS_PARTIAL_ITEM_MASK;
@@ -370,7 +371,20 @@ public class EbppsItemsSketch<T> {
    */
   @Override
    public String toString() {
-    return null;
+    final StringBuilder sb = new StringBuilder();
+
+    sb.append(LS);
+    final String thisSimpleName = this.getClass().getSimpleName();
+    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("   k            : ").append(k_).append(LS);
+    sb.append("   n            : ").append(n_).append(LS);
+    sb.append("   Cum. weight  : ").append(cumulativeWt_).append(LS);
+    sb.append("   wtMax        : ").append(wtMax_).append(LS);
+    sb.append("   rho          : ").append(rho_).append(LS);
+    sb.append("   C            : ").append(sample_.getC()).append(LS);
+    sb.append("### END SKETCH SUMMARY").append(LS);
+
+    return sb.toString();
   }
 
   /**
