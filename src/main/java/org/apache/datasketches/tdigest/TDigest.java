@@ -21,6 +21,12 @@ package org.apache.datasketches.tdigest;
 
 import java.util.function.Function;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.memory.Buffer;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableBuffer;
+import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
@@ -53,6 +59,16 @@ public final class TDigest {
   private long[] bufferWeights_;
   private long bufferedWeight_;
 
+  private static final byte PREAMBLE_LONGS_EMPTY = 1;
+  private static final byte PREAMBLE_LONGS_NON_EMPTY = 2;
+  private static final byte SERIAL_VERSION = 1;
+  private static final byte SKETCH_TYPE = 20;
+
+  private static final int COMPAT_DOUBLE = 1;
+  private static final int COMPAT_FLOAT = 2;
+
+  enum flags { IS_EMPTY, REVERSE_MERGE };
+
   public TDigest(final int k) {
     this(false, k, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, null, null, 0);
   }
@@ -63,7 +79,7 @@ public final class TDigest {
     k_ = k;
     minValue_ = min;
     maxValue_ = max;
-    if (k < 10) throw new IllegalArgumentException("k must be at least 10");
+    if (k < 10) throw new SketchesArgumentException("k must be at least 10");
     int fudge = 0;
     if (USE_WEIGHT_LIMIT) {
       fudge = 10;
@@ -84,6 +100,12 @@ public final class TDigest {
     numBuffered_ = 0;
     centroidsWeight_ = 0;
     bufferedWeight_ = 0;
+    if (weight > 0) {
+      System.arraycopy(means, 0, centroidMeans_, 0, means.length);
+      System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
+      numCentroids_ = means.length;
+      centroidsWeight_ = weight;
+    }
   }
 
   public int getK() {
@@ -138,12 +160,12 @@ public final class TDigest {
   }
 
   public double getMinValue() {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
     return minValue_;
   }
 
   public double getMaxValue() {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
     return maxValue_;
   }
 
@@ -152,8 +174,8 @@ public final class TDigest {
   }
 
   public double getRank(final double value) {
-    if (isEmpty()) throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG);
-    if (Double.isNaN(value)) throw new IllegalArgumentException("Operation is undefined for Nan");
+    if (isEmpty()) throw new SketchesStateException(QuantilesAPI.EMPTY_MSG);
+    if (Double.isNaN(value)) throw new SketchesArgumentException("Operation is undefined for Nan");
     if (value < minValue_) return 0;
     if (value > maxValue_) return 1;
     if (numCentroids_ + numBuffered_ == 1) return 0.5;
@@ -181,9 +203,9 @@ public final class TDigest {
     }
 
     int lower = BinarySearch.lowerBound(centroidMeans_, 0, numCentroids_, value);
-    if (lower == numCentroids_) throw new RuntimeException("lower == end in getRank()");
+    if (lower == numCentroids_) throw new SketchesStateException("lower == end in getRank()");
     int upper = BinarySearch.upperBound(centroidMeans_, lower, numCentroids_, value);
-    if (upper == 0) throw new RuntimeException("upper == begin in getRank()");
+    if (upper == 0) throw new SketchesStateException("upper == begin in getRank()");
     if (value < centroidMeans_[lower]) lower--;
     if (upper == numCentroids_ || !(centroidMeans_[upper - 1] < value)) upper--;
 
@@ -203,9 +225,9 @@ public final class TDigest {
   }
 
   public double getQuantile(final double rank) {
-    if (isEmpty()) throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG);
-    if (Double.isNaN(rank)) throw new IllegalArgumentException("Operation is undefined for Nan");
-    if (rank < 0 || rank > 1) throw new IllegalArgumentException("Normalized rank must be within [0, 1]"); 
+    if (isEmpty()) throw new SketchesStateException(QuantilesAPI.EMPTY_MSG);
+    if (Double.isNaN(rank)) throw new SketchesArgumentException("Operation is undefined for Nan");
+    if (rank < 0 || rank > 1) throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); 
     
     mergeBuffered(); // side effect
 
@@ -256,7 +278,66 @@ public final class TDigest {
    * @return byte array
    */
   public byte[] toByteArray() {
-    return new byte[0];
+    mergeBuffered(); // side effect
+    final byte preambleLongs = isEmpty() ? PREAMBLE_LONGS_EMPTY : PREAMBLE_LONGS_NON_EMPTY;
+    final int sizeBytes = preambleLongs * Long.BYTES + 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_;
+    final byte[] bytes = new byte[sizeBytes];
+    final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
+    wbuf.putByte(preambleLongs);
+    wbuf.putByte(SERIAL_VERSION);
+    wbuf.putByte(SKETCH_TYPE);
+    wbuf.putShort((short) k_);
+    wbuf.putByte((byte) (
+      (isEmpty() ? 1 << flags.IS_EMPTY.ordinal() : 0) |
+      (reverseMerge_ ? 1 << flags.REVERSE_MERGE.ordinal() : 0)
+    ));
+    wbuf.putShort((short) 0); // unused
+    if (isEmpty()) return bytes;
+    wbuf.putInt(numCentroids_);
+    wbuf.putInt(0); // unused
+    wbuf.putDouble(minValue_);
+    wbuf.putDouble(maxValue_);
+    for (int i = 0; i < numCentroids_; i++) {
+      wbuf.putDouble(centroidMeans_[i]);
+      wbuf.putLong(centroidWeights_[i]);
+    }
+    return bytes;
+  }
+
+  public static TDigest heapify(final Memory mem) {
+    final Buffer buff = mem.asBuffer();
+    final byte preambleLongs = buff.getByte();
+    final byte serialVersion = buff.getByte();
+    final byte sketchType = buff.getByte();
+    if (sketchType != SKETCH_TYPE) {
+      throw new SketchesArgumentException("Sketch type mismatch: expected " + SKETCH_TYPE + ", actual " + sketchType);
+    }
+    if (serialVersion != SERIAL_VERSION) {
+      throw new SketchesArgumentException("Serial version mismatch: expected " + SERIAL_VERSION + ", actual " + serialVersion);
+    }
+    final int k = buff.getShort();
+    final byte flagsByte = buff.getByte();
+    final boolean isEmpty = (flagsByte & (1 << flags.IS_EMPTY.ordinal())) > 0;
+    final byte expectedPreambleLongs = isEmpty ? PREAMBLE_LONGS_EMPTY : PREAMBLE_LONGS_NON_EMPTY;
+    if (preambleLongs != expectedPreambleLongs) {
+      throw new SketchesArgumentException("Preamble longs mismatch: expected " + expectedPreambleLongs + ", actual " + preambleLongs);
+    }
+    buff.getShort(); // unused
+    if (isEmpty) return new TDigest(k);
+    final int numCentroids = buff.getInt();
+    buff.getInt(); // unused
+    final double min = buff.getDouble();
+    final double max = buff.getDouble();
+    final double[] means = new double[numCentroids];
+    final long[] weights = new long[numCentroids];
+    long totalWeight = 0;
+    for (int i = 0; i < numCentroids; i++) {
+      means[i] = buff.getDouble();
+      weights[i] = buff.getLong();
+      totalWeight += weights[i];
+    }
+    final boolean reverseMerge = (flagsByte & (1 << flags.REVERSE_MERGE.ordinal())) > 0;
+    return new TDigest(reverseMerge, k, min, max, means, weights, totalWeight);
   }
 
   /**

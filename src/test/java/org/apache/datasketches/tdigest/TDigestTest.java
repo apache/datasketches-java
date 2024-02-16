@@ -24,6 +24,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 public class TDigestTest {
@@ -34,10 +36,10 @@ public class TDigestTest {
     assertTrue(td.isEmpty());
     assertEquals(td.getK(), 100);
     assertEquals(td.getTotalWeight(), 0);
-    assertThrows(IllegalArgumentException.class, () -> td.getMinValue());
-    assertThrows(IllegalArgumentException.class, () -> td.getMaxValue());
-    assertThrows(IllegalArgumentException.class, () -> td.getRank(0));
-    assertThrows(IllegalArgumentException.class, () -> td.getQuantile(0.5));
+    assertThrows(SketchesStateException.class, () -> td.getMinValue());
+    assertThrows(SketchesStateException.class, () -> td.getMaxValue());
+    assertThrows(SketchesStateException.class, () -> td.getRank(0));
+    assertThrows(SketchesStateException.class, () -> td.getQuantile(0.5));
   }
 
   @Test
@@ -111,4 +113,28 @@ public class TDigestTest {
 //    System.out.println(td1.toString(true));
   }
 
+  @Test
+  public void serializeDeserializeEmpty() {
+    final TDigest td1 = new TDigest(100);
+    final byte[] bytes = td1.toByteArray();
+    final TDigest td2 = TDigest.heapify(Memory.wrap(bytes));
+    assertEquals(td2.getK(), td1.getK());
+    assertEquals(td2.getTotalWeight(), td1.getTotalWeight());
+    assertEquals(td2.isEmpty(), td1.isEmpty());
+  }
+
+  @Test
+  public void serializeDeserializeNonEmpty() {
+    final TDigest td1 = new TDigest(100);
+    for (int i = 0; i < 10000; i++) td1.update(i);
+    final byte[] bytes = td1.toByteArray();
+    final TDigest td2 = TDigest.heapify(Memory.wrap(bytes));
+    assertEquals(td2.getK(), td1.getK());
+    assertEquals(td2.getTotalWeight(), td1.getTotalWeight());
+    assertEquals(td2.isEmpty(), td1.isEmpty());
+    assertEquals(td2.getMinValue(), td1.getMinValue());
+    assertEquals(td2.getMaxValue(), td1.getMaxValue());
+    assertEquals(td2.getRank(5000), td1.getRank(5000));
+    assertEquals(td2.getQuantile(0.5), td1.getQuantile(0.5));
+  }
 }
