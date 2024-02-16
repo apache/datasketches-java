@@ -30,7 +30,7 @@ import java.util.Random;
 
 import org.testng.annotations.Test;
 
-public class EbppsSampleTest {
+public class EbppsItemsSampleTest {
   private static final double EPS = 1e-14;
 
   @Test

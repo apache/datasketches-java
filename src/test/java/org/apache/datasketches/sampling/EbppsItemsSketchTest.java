@@ -33,7 +33,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-public class EbppsSketchTest {
+public class EbppsItemsSketchTest {
   private static final double EPS = 1e-13;
 
   static EbppsItemsSketch<Integer> createUnweightedSketch(int k, long n) {
