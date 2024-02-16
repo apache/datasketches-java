@@ -21,6 +21,7 @@ package org.apache.datasketches.sampling;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -210,6 +211,8 @@ public class EbppsSketchTest {
     mem = Memory.wrap(bytes);
     sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
+
+    assertNotNull(sk.toString());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
