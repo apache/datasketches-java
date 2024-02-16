@@ -45,6 +45,11 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   private int keysOffset_;
   private int valuesOffset_;
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   /**
    * Construct a new sketch using the given Memory as its backing store.
    *

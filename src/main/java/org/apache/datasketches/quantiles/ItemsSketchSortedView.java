@@ -56,6 +56,11 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T>, Partition
   private final T minItem;
   private final Class<T> clazz;
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   /**
    * Construct from elements for testing.
    * @param quantiles sorted array of quantiles

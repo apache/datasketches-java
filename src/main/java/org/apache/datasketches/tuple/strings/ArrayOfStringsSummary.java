@@ -33,7 +33,7 @@ import org.apache.datasketches.tuple.UpdatableSummary;
 /**
  * @author Lee Rhodes
  */
-public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
+public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
 
   private String[] nodesArr = null;
 

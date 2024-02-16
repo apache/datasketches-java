@@ -42,7 +42,7 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * @author Lee Rhodes
  */
-class DirectCouponHashSet extends DirectCouponList {
+final class DirectCouponHashSet extends DirectCouponList {
 
   //Constructs this sketch with data.
   DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType,

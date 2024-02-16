@@ -61,6 +61,11 @@ class DirectCouponList extends AbstractCoupons {
   Memory mem;
   final boolean compact;
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   //called from newInstance, writableWrap and DirectCouponHashSet
   DirectCouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode,
       final WritableMemory wmem) {

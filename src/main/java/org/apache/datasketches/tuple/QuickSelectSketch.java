@@ -57,6 +57,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private long[] hashTable_;
   S[] summaryTable_;
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   /**
    * This is to create an instance of a QuickSelectSketch with default resize factor.
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than

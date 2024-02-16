@@ -39,6 +39,11 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   int numItems_;
   int offset_;
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   DoublesSketchAccessor(final DoublesSketch ds, final boolean forceSize, final int level) {
     ds_ = ds;
     forceSize_ = forceSize;

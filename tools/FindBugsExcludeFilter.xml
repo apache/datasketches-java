@@ -79,4 +79,10 @@ under the License.
     <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
   </Match>
 
+  <Match>
+    <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
+    <Class name="org.apache.datasketches.sampling.EbppsItemsSample" />
+    <Method name="merge" />
+  </Match>
+
 </FindBugsFilter>
