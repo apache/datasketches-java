@@ -22,12 +22,13 @@ package org.apache.datasketches.filters.bloomfilter;
 public class BloomFilterBuilder {
 
   public static int suggestNumHashes(final long maxDistinctItems, final long numFilterBits) {
-    return (int) Math.max(1, (int) Math.round((double) numFilterBits / maxDistinctItems * Math.log(2.0)));
+    // ceil to ensure we never average worse than the target
+    return (int) Math.max(1, (int) Math.ceil((double) numFilterBits / maxDistinctItems * Math.log(2.0)));
   }
 
   public static int suggestNumHashes(final double targetFalsePositiveProb) {
-    // TODO: should this be Math.ceil of the value?
-    return (int) (- Math.log(targetFalsePositiveProb) / Math.log(2));
+    // ceil to ensure we never average worse than the target
+    return (int) Math.ceil((- Math.log(targetFalsePositiveProb) / Math.log(2)));
   }
 
   public static long suggestNumFilterBits(final long maxDistinctItems, final double targetFalsePositiveProb) {
