@@ -41,6 +41,11 @@ class CouponList extends AbstractCoupons {
   int couponCount;
   int[] couponIntArr;
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   /**
    * New instance constructor for LIST or SET.
    * @param lgConfigK the configured Lg K

@@ -36,7 +36,7 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * @author Lee Rhodes
  */
-class DirectAuxHashMap implements AuxHashMap {
+final class DirectAuxHashMap implements AuxHashMap {
   private final DirectHllArray host; //hosts the WritableMemory and read-only Memory
   private final boolean readOnly;
 

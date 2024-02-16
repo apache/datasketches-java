@@ -39,6 +39,11 @@ public class GenericPartitionBoundaries<T> implements PartitionBoundaries {
   private long[] numDeltaItems; //num of items in each part
   private int numPartitions;    //num of partitions
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   public GenericPartitionBoundaries(
       final long totalN,
       final T[] boundaries,

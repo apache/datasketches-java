@@ -81,6 +81,11 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     super(seed, wmem);
   }
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   /**
    * Construct a new sketch instance and initialize the given Memory as its backing store.
    *

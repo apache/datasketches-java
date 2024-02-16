@@ -59,6 +59,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   long memAdd;
   final boolean compact;
 
+  @Override
+  protected final void finalize() {
+    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  }
+
   //Memory must be already initialized and may have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
     super(lgConfigK, tgtHllType, CurMode.HLL);

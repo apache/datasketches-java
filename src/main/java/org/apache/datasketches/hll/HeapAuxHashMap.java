@@ -33,7 +33,7 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class HeapAuxHashMap implements AuxHashMap {
+final class HeapAuxHashMap implements AuxHashMap {
   private final int lgConfigK; //required for #slot bits
   private int lgAuxArrInts;
   private int auxCount;
