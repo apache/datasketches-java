@@ -117,6 +117,19 @@ public class BloomFilter {
     return valueAlreadyExists;
   }
 
+  public boolean fastCheckAndUpdate(final long item) {
+    boolean valueAlreadyExists = true;
+    final long numBits = bitArray_.getCapacity();
+    final long h0 = XxHash.hashLong(item, seeds_[0]);
+    final long h1 = XxHash.hashLong(item, h0);
+    for (int i = 1; i <= seeds_.length; ++i) {
+      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
+      // returns old value of bit
+      valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
+    }
+    return valueAlreadyExists;
+  }
+  
   public boolean checkAndUpdate(final double item) {
     boolean valueAlreadyExists = true;
     final long numBits = bitArray_.getCapacity();
@@ -161,6 +174,20 @@ public class BloomFilter {
       // right shift to ensure positive
       final long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
       if (!bitArray_.getBit(hashIndex)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public boolean fastCheck(final long item) {
+    final long numBits = bitArray_.getCapacity();
+    final long h0 = XxHash.hashLong(item, seeds_[0]);
+    final long h1 = XxHash.hashLong(item, h0);
+    for (int i = 1; i <= seeds_.length; ++i) {
+      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
+      // returns old value of bit
+      if (!bitArray_.getAndSetBit(hashIndex)) {
         return false;
       }
     }
