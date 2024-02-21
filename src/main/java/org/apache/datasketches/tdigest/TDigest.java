@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tdigest;
 
+import java.nio.ByteOrder;
 import java.util.function.Function;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -280,7 +281,7 @@ public final class TDigest {
   public byte[] toByteArray() {
     mergeBuffered(); // side effect
     final byte preambleLongs = isEmpty() ? PREAMBLE_LONGS_EMPTY : PREAMBLE_LONGS_NON_EMPTY;
-    final int sizeBytes = preambleLongs * Long.BYTES + 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_;
+    int sizeBytes = preambleLongs * Long.BYTES + (isEmpty() ? 0 : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_);
     final byte[] bytes = new byte[sizeBytes];
     final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
     wbuf.putByte(preambleLongs);
@@ -310,6 +311,7 @@ public final class TDigest {
     final byte serialVersion = buff.getByte();
     final byte sketchType = buff.getByte();
     if (sketchType != SKETCH_TYPE) {
+      if (preambleLongs == 0 && serialVersion == 0 && sketchType == 0) return heapifyCompat(mem);
       throw new SketchesArgumentException("Sketch type mismatch: expected " + SKETCH_TYPE + ", actual " + sketchType);
     }
     if (serialVersion != SERIAL_VERSION) {
@@ -338,6 +340,48 @@ public final class TDigest {
     }
     final boolean reverseMerge = (flagsByte & (1 << flags.REVERSE_MERGE.ordinal())) > 0;
     return new TDigest(reverseMerge, k, min, max, means, weights, totalWeight);
+  }
+
+  // compatibility with the format of the reference implementation
+  // default byte order of ByteBuffer is used there, which is big endian
+  private static TDigest heapifyCompat(final Memory mem) {
+    final Buffer buff = mem.asBuffer(ByteOrder.BIG_ENDIAN);
+    final int type = buff.getInt();
+    if (type != COMPAT_DOUBLE && type != COMPAT_FLOAT) {
+      throw new SketchesArgumentException("unexpected compatibility type " + type);
+    }
+    if (type == COMPAT_DOUBLE) { // compatibility with asBytes()
+      final double min = buff.getDouble();
+      final double max = buff.getDouble();
+      final int k = (int) buff.getDouble();
+      final int numCentroids = buff.getInt();
+      final double[] means = new double[numCentroids];
+      final long[] weights = new long[numCentroids];
+      long totalWeight = 0;
+      for (int i = 0; i < numCentroids; i++) {
+        weights[i] = (long) buff.getDouble();
+        means[i] = buff.getDouble();
+        totalWeight += weights[i];
+      }
+      return new TDigest(false, k, min, max, means, weights, totalWeight);
+    }
+    // COMPAT_FLOAT: compatibility with asSmallBytes()
+    final double min = buff.getDouble(); // reference implementation uses doubles for min and max
+    final double max = buff.getDouble();
+    final int k = (int) buff.getFloat();
+    // reference implementation stores capacities of the array of centroids and the buffer as shorts
+    // they can be derived from k in the constructor
+    buff.getInt(); // unused
+    final int numCentroids = buff.getShort();
+    final double[] means = new double[numCentroids];
+    final long[] weights = new long[numCentroids];
+    long totalWeight = 0;
+    for (int i = 0; i < numCentroids; i++) {
+      weights[i] = (long) buff.getFloat();
+      means[i] = buff.getFloat();
+      totalWeight += weights[i];
+    }
+    return new TDigest(false, k, min, max, means, weights, totalWeight);
   }
 
   /**
