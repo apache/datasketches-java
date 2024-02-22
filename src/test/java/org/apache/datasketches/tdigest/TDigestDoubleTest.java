@@ -29,11 +29,11 @@ import org.apache.datasketches.common.TestUtil;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
-public class TDigestTest {
+public class TDigestDoubleTest {
 
   @Test
   public void empty() {
-    final TDigest td = new TDigest(100);
+    final TDigestDouble td = new TDigestDouble(100);
     assertTrue(td.isEmpty());
     assertEquals(td.getK(), 100);
     assertEquals(td.getTotalWeight(), 0);
@@ -45,7 +45,7 @@ public class TDigestTest {
 
   @Test
   public void oneValue() {
-    final TDigest td = new TDigest(100);
+    final TDigestDouble td = new TDigestDouble(100);
     td.update(1);
     assertFalse(td.isEmpty());
     assertEquals(td.getK(), 100);
@@ -62,7 +62,7 @@ public class TDigestTest {
 
   @Test
   public void manyValues() {
-    final TDigest td = new TDigest(100);
+    final TDigestDouble td = new TDigestDouble(100);
     final int n = 10000;
     for (int i = 0; i < n; i++) td.update(i);
 //    System.out.println(td.toString(true));
@@ -86,10 +86,10 @@ public class TDigestTest {
 
   @Test
   public void mergeSmall() {
-    final TDigest td1 = new TDigest(100);
+    final TDigestDouble td1 = new TDigestDouble(100);
     td1.update(1);
     td1.update(2);
-    final TDigest td2 = new TDigest(100);
+    final TDigestDouble td2 = new TDigestDouble(100);
     td2.update(2);
     td2.update(3);
     td1.merge(td2);
@@ -101,8 +101,8 @@ public class TDigestTest {
   @Test
   public void mergeLarge() {
     final int n = 10000;
-    final TDigest td1 = new TDigest(100);
-    final TDigest td2 = new TDigest(100);
+    final TDigestDouble td1 = new TDigestDouble(100);
+    final TDigestDouble td2 = new TDigestDouble(100);
     for (int i = 0; i < n / 2; i++) {
       td1.update(i);
       td2.update(n / 2 + i);
@@ -116,9 +116,9 @@ public class TDigestTest {
 
   @Test
   public void serializeDeserializeEmpty() {
-    final TDigest td1 = new TDigest(100);
+    final TDigestDouble td1 = new TDigestDouble(100);
     final byte[] bytes = td1.toByteArray();
-    final TDigest td2 = TDigest.heapify(Memory.wrap(bytes));
+    final TDigestDouble td2 = TDigestDouble.heapify(Memory.wrap(bytes));
     assertEquals(td2.getK(), td1.getK());
     assertEquals(td2.getTotalWeight(), td1.getTotalWeight());
     assertEquals(td2.isEmpty(), td1.isEmpty());
@@ -126,10 +126,10 @@ public class TDigestTest {
 
   @Test
   public void serializeDeserializeNonEmpty() {
-    final TDigest td1 = new TDigest(100);
+    final TDigestDouble td1 = new TDigestDouble(100);
     for (int i = 0; i < 10000; i++) td1.update(i);
     final byte[] bytes = td1.toByteArray();
-    final TDigest td2 = TDigest.heapify(Memory.wrap(bytes));
+    final TDigestDouble td2 = TDigestDouble.heapify(Memory.wrap(bytes));
     assertEquals(td2.getK(), td1.getK());
     assertEquals(td2.getTotalWeight(), td1.getTotalWeight());
     assertEquals(td2.isEmpty(), td1.isEmpty());
@@ -142,7 +142,7 @@ public class TDigestTest {
   @Test
   public void deserializeFromReferenceImplementationDouble() {
     final byte[] bytes = TestUtil.getResourceBytes("tdigest_ref_k100_n10000_double.sk");
-    final TDigest td = TDigest.heapify(Memory.wrap(bytes));
+    final TDigestDouble td = TDigestDouble.heapify(Memory.wrap(bytes));
     final int n = 10000;
     assertEquals(td.getTotalWeight(), n);
     assertEquals(td.getMinValue(), 0);
@@ -157,7 +157,7 @@ public class TDigestTest {
   @Test
   public void deserializeFromReferenceImplementationFloat() {
     final byte[] bytes = TestUtil.getResourceBytes("tdigest_ref_k100_n10000_float.sk");
-    final TDigest td = TDigest.heapify(Memory.wrap(bytes));
+    final TDigestDouble td = TDigestDouble.heapify(Memory.wrap(bytes));
     final int n = 10000;
     assertEquals(td.getTotalWeight(), n);
     assertEquals(td.getMinValue(), 0);

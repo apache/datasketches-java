@@ -38,7 +38,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * https://github.com/tdunning/t-digest
  * This implementation is similar to MergingDigest in the above implementation
  */
-public final class TDigest {
+public final class TDigestDouble {
 
   public static final boolean USE_ALTERNATING_SORT = true;
   public static final boolean USE_TWO_LEVEL_COMPRESSION = true;
@@ -70,11 +70,11 @@ public final class TDigest {
 
   enum flags { IS_EMPTY, REVERSE_MERGE };
 
-  public TDigest(final int k) {
+  public TDigestDouble(final int k) {
     this(false, k, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, null, null, 0);
   }
 
-  private TDigest(final boolean reverseMerge, final int k, final double min, final double max,
+  private TDigestDouble(final boolean reverseMerge, final int k, final double min, final double max,
       final double[] means, final long[] weights, final long weight) {
     reverseMerge_ = reverseMerge; 
     k_ = k;
@@ -99,13 +99,12 @@ public final class TDigest {
     bufferWeights_ = new long[bufferCapacity_];
     numCentroids_ = 0;
     numBuffered_ = 0;
-    centroidsWeight_ = 0;
+    centroidsWeight_ = weight;
     bufferedWeight_ = 0;
     if (weight > 0) {
       System.arraycopy(means, 0, centroidMeans_, 0, means.length);
       System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
       numCentroids_ = means.length;
-      centroidsWeight_ = weight;
     }
   }
 
@@ -124,7 +123,7 @@ public final class TDigest {
     maxValue_ = Math.max(maxValue_, value);
   }
 
-  public void merge(final TDigest other) {
+  public void merge(final TDigestDouble other) {
     if (other.isEmpty()) return;
     int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
     if (num <= bufferCapacity_) {
@@ -305,7 +304,11 @@ public final class TDigest {
     return bytes;
   }
 
-  public static TDigest heapify(final Memory mem) {
+  public static TDigestDouble heapify(final Memory mem) {
+    return heapify(mem, false);
+  }
+
+  public static TDigestDouble heapify(final Memory mem, final boolean isFloat) {
     final Buffer buff = mem.asBuffer();
     final byte preambleLongs = buff.getByte();
     final byte serialVersion = buff.getByte();
@@ -325,26 +328,33 @@ public final class TDigest {
       throw new SketchesArgumentException("Preamble longs mismatch: expected " + expectedPreambleLongs + ", actual " + preambleLongs);
     }
     buff.getShort(); // unused
-    if (isEmpty) return new TDigest(k);
+    if (isEmpty) return new TDigestDouble(k);
     final int numCentroids = buff.getInt();
     buff.getInt(); // unused
-    final double min = buff.getDouble();
-    final double max = buff.getDouble();
+    final double min;
+    final double max;
+    if (isFloat) {
+      min = buff.getFloat();
+      max = buff.getFloat();
+    } else {
+      min = buff.getDouble();
+      max = buff.getDouble();
+    }
     final double[] means = new double[numCentroids];
     final long[] weights = new long[numCentroids];
     long totalWeight = 0;
     for (int i = 0; i < numCentroids; i++) {
-      means[i] = buff.getDouble();
-      weights[i] = buff.getLong();
+      means[i] = isFloat ? buff.getFloat() : buff.getDouble();
+      weights[i] = isFloat ? buff.getInt() : buff.getLong();
       totalWeight += weights[i];
     }
     final boolean reverseMerge = (flagsByte & (1 << flags.REVERSE_MERGE.ordinal())) > 0;
-    return new TDigest(reverseMerge, k, min, max, means, weights, totalWeight);
+    return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight);
   }
 
   // compatibility with the format of the reference implementation
   // default byte order of ByteBuffer is used there, which is big endian
-  private static TDigest heapifyCompat(final Memory mem) {
+  private static TDigestDouble heapifyCompat(final Memory mem) {
     final Buffer buff = mem.asBuffer(ByteOrder.BIG_ENDIAN);
     final int type = buff.getInt();
     if (type != COMPAT_DOUBLE && type != COMPAT_FLOAT) {
@@ -363,7 +373,7 @@ public final class TDigest {
         means[i] = buff.getDouble();
         totalWeight += weights[i];
       }
-      return new TDigest(false, k, min, max, means, weights, totalWeight);
+      return new TDigestDouble(false, k, min, max, means, weights, totalWeight);
     }
     // COMPAT_FLOAT: compatibility with asSmallBytes()
     final double min = buff.getDouble(); // reference implementation uses doubles for min and max
@@ -381,7 +391,7 @@ public final class TDigest {
       means[i] = buff.getFloat();
       totalWeight += weights[i];
     }
-    return new TDigest(false, k, min, max, means, weights, totalWeight);
+    return new TDigestDouble(false, k, min, max, means, weights, totalWeight);
   }
 
   /**
