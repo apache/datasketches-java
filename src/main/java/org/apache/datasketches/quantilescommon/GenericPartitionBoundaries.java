@@ -27,7 +27,7 @@ import org.apache.datasketches.common.SketchesStateException;
 /**
  * Implements PartitionBoundaries
  */
-public class GenericPartitionBoundaries<T> implements PartitionBoundaries {
+final public class GenericPartitionBoundaries<T> implements PartitionBoundaries {
   private long totalN; //totalN of source sketch
   private T[] boundaries;       //quantiles at the boundaries
   private long[] natRanks;      //natural ranks at the boundaries
@@ -38,11 +38,6 @@ public class GenericPartitionBoundaries<T> implements PartitionBoundaries {
   //computed
   private long[] numDeltaItems; //num of items in each part
   private int numPartitions;    //num of partitions
-
-  @Override
-  protected final void finalize() {
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
-  }
 
   public GenericPartitionBoundaries(
       final long totalN,

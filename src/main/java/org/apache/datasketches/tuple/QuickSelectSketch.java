@@ -47,24 +47,18 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
-  static final int DEFAULT_LG_RESIZE_FACTOR = ResizeFactor.X8.lg();
+  private static final int DEFAULT_LG_RESIZE_FACTOR = ResizeFactor.X8.lg();
   private final int nomEntries_;
-  private int lgCurrentCapacity_;
   private final int lgResizeFactor_;
-  private int count_;
   private final float samplingProbability_;
+  private int lgCurrentCapacity_;
+  private int retEntries_;
   private int rebuildThreshold_;
   private long[] hashTable_;
   S[] summaryTable_;
 
-  @Override
-  protected final void finalize() throws Throwable {
-    super.finalize();
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
-  }
-
   /**
-   * This is to create an instance of a QuickSelectSketch with default resize factor.
+   * This is to create a new instance of a QuickSelectSketch with default resize factor.
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param summaryFactory An instance of a SummaryFactory.
@@ -76,7 +70,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   /**
-   * This is to create an instance of a QuickSelectSketch with custom resize factor
+   * This is to create a new instance of a QuickSelectSketch with custom resize factor
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
@@ -96,7 +90,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   /**
-   * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling
+   * This is to create a new instance of a QuickSelectSketch with custom resize factor and sampling
    * probability
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * or equal to the given value.
@@ -124,38 +118,50 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     );
   }
 
-  QuickSelectSketch(
+  /**
+   * Target constructor for above constructors for a new instance.
+   * @param nomEntries Nominal number of entries.
+   * @param lgResizeFactor log2(resizeFactor)
+   * @param samplingProbability the given sampling probability
+   * @param summaryFactory An instance of a SummaryFactory.
+   * @param startingSize starting size of the sketch.
+   */
+  private QuickSelectSketch(
       final int nomEntries,
       final int lgResizeFactor,
       final float samplingProbability,
       final SummaryFactory<S> summaryFactory,
       final int startingSize) {
+    super(
+        (long) (Long.MAX_VALUE * (double) samplingProbability),
+        true,
+        summaryFactory);
     nomEntries_ = ceilingIntPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
-    summaryFactory_ = summaryFactory; //super
-    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability); //super
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingSize);
-    hashTable_ = new long[startingSize];
+    retEntries_ = 0;
+    hashTable_ = new long[startingSize]; //must be before setRebuildThreshold
+    rebuildThreshold_ = setRebuildThreshold(hashTable_, nomEntries_);
     summaryTable_ = null; // wait for the first summary to call Array.newInstance()
-    setRebuildThreshold();
   }
 
   /**
    * Copy constructor
-   * @param sketch the QuickSelectSketch to be copied.
+   * @param sketch the QuickSelectSketch to be deep copied.
    */
   QuickSelectSketch(final QuickSelectSketch<S> sketch) {
+    super(
+        sketch.thetaLong_,
+        sketch.empty_,
+        sketch.summaryFactory_);
     nomEntries_ = sketch.nomEntries_;
-    lgCurrentCapacity_ = sketch.lgCurrentCapacity_;
     lgResizeFactor_ = sketch.lgResizeFactor_;
-    count_ = sketch.count_;
     samplingProbability_ = sketch.samplingProbability_;
-    rebuildThreshold_ = sketch.rebuildThreshold_;
-    thetaLong_ = sketch.thetaLong_;
-    empty_ = sketch.empty_;
-    summaryFactory_ = sketch.summaryFactory_;
+    lgCurrentCapacity_ = sketch.lgCurrentCapacity_;
+    retEntries_ = sketch.retEntries_;
     hashTable_ = sketch.hashTable_.clone();
+    rebuildThreshold_ = sketch.rebuildThreshold_;
     summaryTable_ = Util.copySummaryArray(sketch.summaryTable_);
   }
 
@@ -164,75 +170,128 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized QuickSelectSketch
    * @param deserializer the SummaryDeserializer
    * @param summaryFactory the SummaryFactory
-   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
    * This capability will be removed in a future release.
    * Heapifying a CompactSketch is not deprecated.
    */
-  @Deprecated
   QuickSelectSketch(
       final Memory mem,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    Objects.requireNonNull(mem, "SourceMemory must not be null.");
-    Objects.requireNonNull(deserializer, "Deserializer must not be null.");
-    checkBounds(0, 8, mem.getCapacity());
-    summaryFactory_ = summaryFactory;
-    int offset = 0;
-    final byte preambleLongs = mem.getByte(offset++); //byte 0 PreLongs
-    final byte version = mem.getByte(offset++);       //byte 1 SerVer
-    final byte familyId = mem.getByte(offset++);      //byte 2 FamID
-    SerializerDeserializer.validateFamily(familyId, preambleLongs);
-    if (version > serialVersionUID) {
-      throw new SketchesArgumentException(
-          "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: "
-              + version);
-    }
-    SerializerDeserializer.validateType(mem.getByte(offset++), //byte 3
-        SerializerDeserializer.SketchType.QuickSelectSketch);
-    final byte flags = mem.getByte(offset++); //byte 4
-    final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesArgumentException("Endian byte order mismatch");
-    }
-    nomEntries_ = 1 << mem.getByte(offset++); //byte 5
-    lgCurrentCapacity_ = mem.getByte(offset++); //byte 6
-    lgResizeFactor_ = mem.getByte(offset++); //byte 7
-
-    checkBounds(0, preambleLongs * 8L, mem.getCapacity());
-    final boolean isInSamplingMode = (flags & 1 << Flags.IS_IN_SAMPLING_MODE.ordinal()) > 0;
-    samplingProbability_ = isInSamplingMode ? mem.getFloat(offset) : 1f; //bytes 8 - 11
-    if (isInSamplingMode) {
-      offset += Float.BYTES;
-    }
-
-    final boolean isThetaIncluded = (flags & 1 << Flags.IS_THETA_INCLUDED.ordinal()) > 0;
-    if (isThetaIncluded) {
-      thetaLong_ = mem.getLong(offset);
-      offset += Long.BYTES;
-    } else {
-      thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
-    }
-
-    int count = 0;
-    final boolean hasEntries = (flags & 1 << Flags.HAS_ENTRIES.ordinal()) > 0;
-    if (hasEntries) {
-      count = mem.getInt(offset);
-      offset += Integer.BYTES;
-    }
-    final int currentCapacity = 1 << lgCurrentCapacity_;
-    hashTable_ = new long[currentCapacity];
-    for (int i = 0; i < count; i++) {
-      final long hash = mem.getLong(offset);
-      offset += Long.BYTES;
-      final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
-      final DeserializeResult<S> summaryResult = deserializer.heapifySummary(memRegion);
-      final S summary = summaryResult.getObject();
-      offset += summaryResult.getSize();
-      insert(hash, summary);
-    }
-    empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
-    setRebuildThreshold();
+    this(new Validate<>(), mem, deserializer, summaryFactory);
   }
+
+  /*
+   * This private constructor is used to protect against "Finalizer attacks".
+   * The private static inner class Validate performs validation and deserialization
+   * from the input Memory and may throw exceptions. In order to protect against the attack, we must
+   * perform this validation prior to the constructor's super reaches the Object class.
+   * Making QuickSelectSketch final won't work here because UpdatableSketch is a subclass.
+   * Using an empty final finalizer() is not recommended and is deprecated as of Java9.
+   */
+  private QuickSelectSketch(
+      final Validate<S> val,
+      final Memory mem,
+      final SummaryDeserializer<S> deserializer,
+      final SummaryFactory<S> summaryFactory) {
+    super(val.validate(mem, deserializer), val.myEmpty, summaryFactory);
+    nomEntries_ = val.myNomEntries;
+    lgResizeFactor_ = val.myLgResizeFactor;
+    samplingProbability_ = val.mySamplingProbability;
+    lgCurrentCapacity_ = val.myLgCurrentCapacity;
+    retEntries_ = val.myRetEntries;
+    rebuildThreshold_ = val.myRebuildThreshold;
+    hashTable_ = val.myHashTable;
+    summaryTable_ = val.mySummaryTable;
+  }
+
+  private static final class Validate<S> {
+    //super fields
+    long myThetaLong;
+    boolean myEmpty;
+    //this fields
+    int myNomEntries;
+    int myLgResizeFactor;
+    float mySamplingProbability;
+    int myLgCurrentCapacity;
+    int myRetEntries;
+    int myRebuildThreshold;
+    long[] myHashTable;
+    S[] mySummaryTable;
+
+    @SuppressWarnings("unchecked")
+    long validate(
+        final Memory mem,
+        final SummaryDeserializer<?> deserializer) {
+      Objects.requireNonNull(mem, "SourceMemory must not be null.");
+      Objects.requireNonNull(deserializer, "Deserializer must not be null.");
+      checkBounds(0, 8, mem.getCapacity());
+
+      int offset = 0;
+      final byte preambleLongs = mem.getByte(offset++); //byte 0 PreLongs
+      final byte version = mem.getByte(offset++);       //byte 1 SerVer
+      final byte familyId = mem.getByte(offset++);      //byte 2 FamID
+      SerializerDeserializer.validateFamily(familyId, preambleLongs);
+      if (version > serialVersionUID) {
+        throw new SketchesArgumentException(
+            "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: "
+                + version);
+      }
+      SerializerDeserializer.validateType(mem.getByte(offset++), //byte 3
+          SerializerDeserializer.SketchType.QuickSelectSketch);
+      final byte flags = mem.getByte(offset++); //byte 4
+      final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
+      if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+        throw new SketchesArgumentException("Endian byte order mismatch");
+      }
+      myNomEntries = 1 << mem.getByte(offset++); //byte 5
+      myLgCurrentCapacity = mem.getByte(offset++); //byte 6
+      myLgResizeFactor = mem.getByte(offset++); //byte 7
+
+      checkBounds(0, preambleLongs * 8L, mem.getCapacity());
+      final boolean isInSamplingMode = (flags & 1 << Flags.IS_IN_SAMPLING_MODE.ordinal()) > 0;
+      mySamplingProbability = isInSamplingMode ? mem.getFloat(offset) : 1f; //bytes 8 - 11
+      if (isInSamplingMode) {
+        offset += Float.BYTES;
+      }
+
+      final boolean isThetaIncluded = (flags & 1 << Flags.IS_THETA_INCLUDED.ordinal()) > 0;
+      if (isThetaIncluded) {
+        myThetaLong = mem.getLong(offset);
+        offset += Long.BYTES;
+      } else {
+        myThetaLong = (long) (Long.MAX_VALUE * (double) mySamplingProbability);
+      }
+
+      int count = 0;
+      final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
+      if (hasEntries) {
+        count = mem.getInt(offset);
+        offset += Integer.BYTES;
+      }
+      final int currentCapacity = 1 << myLgCurrentCapacity;
+      myHashTable = new long[currentCapacity];
+      for (int i = 0; i < count; i++) {
+        final long hash = mem.getLong(offset);
+        offset += Long.BYTES;
+        final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
+        final DeserializeResult<?> summaryResult = deserializer.heapifySummary(memRegion);
+        final S summary = (S) summaryResult.getObject();
+        offset += summaryResult.getSize();
+        //in-place equivalent to insert(hash, summary):
+        final int index = HashOperations.hashInsertOnly(myHashTable, myLgCurrentCapacity, hash);
+        if (mySummaryTable == null) {
+          mySummaryTable = (S[]) Array.newInstance(summary.getClass(), myHashTable.length);
+        }
+        mySummaryTable[index] = summary;
+        myRetEntries++;
+        myEmpty = false;
+      }
+      myEmpty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+      myRebuildThreshold = setRebuildThreshold(myHashTable, myNomEntries);
+      return myThetaLong;
+    }
+
+  } //end class Validate
 
   /**
    * @return a deep copy of this sketch
@@ -247,7 +306,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   @Override
   public int getRetainedEntries() {
-    return count_;
+    return retEntries_;
   }
 
   @Override
@@ -303,7 +362,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * Rebuilds reducing the actual number of entries to the nominal number of entries if needed
    */
   public void trim() {
-    if (count_ > nomEntries_) {
+    if (retEntries_ > nomEntries_) {
       updateTheta();
       resize(hashTable_.length);
     }
@@ -314,13 +373,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    */
   public void reset() {
     empty_ = true;
-    count_ = 0;
+    retEntries_ = 0;
     thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
     final int startingCapacity = Util.getStartingCapacity(nomEntries_, lgResizeFactor_);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     hashTable_ = new long[startingCapacity];
     summaryTable_ = null; // wait for the first summary to call Array.newInstance()
-    setRebuildThreshold();
+    rebuildThreshold_ = setRebuildThreshold(hashTable_, nomEntries_);
   }
 
   /**
@@ -364,8 +423,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   public byte[] toByteArray() {
     byte[][] summariesBytes = null;
     int summariesBytesLength = 0;
-    if (count_ > 0) {
-      summariesBytes = new byte[count_][];
+    if (retEntries_ > 0) {
+      summariesBytes = new byte[retEntries_][];
       int i = 0;
       for (int j = 0; j < summaryTable_.length; j++) {
         if (summaryTable_[j] != null) {
@@ -392,10 +451,10 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     if (isThetaIncluded) {
       sizeBytes += Long.BYTES;
     }
-    if (count_ > 0) {
+    if (retEntries_ > 0) {
       sizeBytes += Integer.BYTES; // count
     }
-    sizeBytes += Long.BYTES * count_ + summariesBytesLength;
+    sizeBytes += Long.BYTES * retEntries_ + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
     bytes[offset++] = PREAMBLE_LONGS;
@@ -407,7 +466,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
       | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
       | (empty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
-      | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
+      | (retEntries_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     );
     bytes[offset++] = (byte) Integer.numberOfTrailingZeros(nomEntries_);
@@ -421,11 +480,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       ByteArrayUtil.putLongLE(bytes, offset, thetaLong_);
       offset += Long.BYTES;
     }
-    if (count_ > 0) {
-      ByteArrayUtil.putIntLE(bytes, offset, count_);
+    if (retEntries_ > 0) {
+      ByteArrayUtil.putIntLE(bytes, offset, retEntries_);
       offset += Integer.BYTES;
     }
-    if (count_ > 0) {
+    if (retEntries_ > 0) {
       int i = 0;
       for (int j = 0; j < hashTable_.length; j++) {
         if (summaryTable_[j] != null) {
@@ -473,13 +532,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   int findOrInsert(final long hash) {
     final int index = HashOperations.hashSearchOrInsert(hashTable_, lgCurrentCapacity_, hash);
     if (index < 0) {
-      count_++;
+      retEntries_++;
     }
     return index;
   }
 
   boolean rebuildIfNeeded() {
-    if (count_ <= rebuildThreshold_) {
+    if (retEntries_ <= rebuildThreshold_) {
       return false;
     }
     if (hashTable_.length > nomEntries_) {
@@ -498,12 +557,12 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   void insert(final long hash, final S summary) {
     final int index = HashOperations.hashInsertOnly(hashTable_, lgCurrentCapacity_, hash);
     insertSummary(index, summary);
-    count_++;
+    retEntries_++;
     empty_ = false;
   }
 
   private void updateTheta() {
-    final long[] hashArr = new long[count_];
+    final long[] hashArr = new long[retEntries_];
     int i = 0;
     //Because of the association of the hashTable with the summaryTable we cannot destroy the
     // hashTable structure. So we must copy. May as well compact at the same time.
@@ -514,7 +573,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
         hashArr[i++] = hashTable_[j];
       }
     }
-    thetaLong_ = QuickSelect.select(hashArr, 0, count_ - 1, nomEntries_);
+    thetaLong_ = QuickSelect.select(hashArr, 0, retEntries_ - 1, nomEntries_);
   }
 
   private void resize(final int newSize) {
@@ -523,20 +582,20 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     hashTable_ = new long[newSize];
     summaryTable_ = Util.newSummaryArray(summaryTable_, newSize);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newSize);
-    count_ = 0;
+    retEntries_ = 0;
     for (int i = 0; i < oldHashTable.length; i++) {
       if (oldSummaryTable[i] != null && oldHashTable[i] < thetaLong_) {
         insert(oldHashTable[i], oldSummaryTable[i]);
       }
     }
-    setRebuildThreshold();
+    rebuildThreshold_ = setRebuildThreshold(hashTable_, nomEntries_);
   }
 
-  private void setRebuildThreshold() {
-    if (hashTable_.length > nomEntries_) {
-      rebuildThreshold_ = (int) (hashTable_.length * ThetaUtil.REBUILD_THRESHOLD);
+  private static int setRebuildThreshold(final long[] hashTable, final int nomEntries) {
+    if (hashTable.length > nomEntries) {
+      return (int) (hashTable.length * ThetaUtil.REBUILD_THRESHOLD);
     } else {
-      rebuildThreshold_ = (int) (hashTable_.length * ThetaUtil.RESIZE_THRESHOLD);
+      return (int) (hashTable.length * ThetaUtil.RESIZE_THRESHOLD);
     }
   }
 
