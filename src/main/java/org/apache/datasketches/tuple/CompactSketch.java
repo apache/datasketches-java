@@ -39,22 +39,17 @@ import org.apache.datasketches.memory.Memory;
  *
  * @param <S> type of Summary
  */
-public class CompactSketch<S extends Summary> extends Sketch<S> {
+public final class CompactSketch<S extends Summary> extends Sketch<S> {
   private static final byte serialVersionWithSummaryClassNameUID = 1;
   private static final byte serialVersionUIDLegacy = 2;
   private static final byte serialVersionUID = 3;
   private static final short defaultSeedHash = (short) 37836; // for compatibility with C++
-  private long[] hashArr_;
+  private final long[] hashArr_;
   private S[] summaryArr_;
 
   private enum FlagsLegacy { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
   private enum Flags { IS_BIG_ENDIAN, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
-
-  @Override
-  protected final void finalize() {
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
-  }
 
   /**
    * Create a CompactSketch from correct components
@@ -64,10 +59,11 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param empty empty flag
    */
   CompactSketch(final long[] hashArr, final S[] summaryArr, final long thetaLong, final boolean empty) {
+    super(thetaLong, empty, null);
+    super.thetaLong_ = thetaLong;
+    super.empty_ = empty;
     hashArr_ = hashArr;
     summaryArr_ = summaryArr;
-    thetaLong_ = thetaLong;
-    empty_ = empty;
   }
 
   /**
@@ -77,6 +73,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param deserializer the SummaryDeserializer
    */
   CompactSketch(final Memory mem, final SummaryDeserializer<S> deserializer) {
+    super(Long.MAX_VALUE, true, null);
     int offset = 0;
     final byte preambleLongs = mem.getByte(offset++);
     final byte version = mem.getByte(offset++);
@@ -114,6 +111,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
           offset += classNameLength;
         }
         hashArr_ = new long[count];
+
         for (int i = 0; i < count; i++) {
           hashArr_[i] = mem.getLong(offset);
           offset += Long.BYTES;
@@ -121,6 +119,9 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         for (int i = 0; i < count; i++) {
           offset += readSummary(mem, offset, i, count, deserializer);
         }
+      } else {
+        hashArr_ = new long[0];
+        summaryArr_ = null;
       }
     } else { // current serial format
       offset++; //skip unused byte
@@ -143,6 +144,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         }
       }
       hashArr_ = new long[count];
+
       for (int i = 0; i < count; i++) {
         hashArr_[i] = mem.getLong(offset);
         offset += Long.BYTES;

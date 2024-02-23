@@ -56,6 +56,7 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
@@ -79,11 +80,6 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       final long seed,
       final WritableMemory wmem) {
     super(seed, wmem);
-  }
-
-  @Override
-  protected final void finalize() {
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
   }
 
   /**
@@ -111,8 +107,29 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       final MemoryRequestServer memReqSvr,
       final WritableMemory dstMem,
       final boolean unionGadget) {
-    super(seed, dstMem);
+    this(
+        checkMemSize(lgNomLongs, rf, dstMem, unionGadget),
+        //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
+        //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
+        lgNomLongs,
+        seed,
+        p,
+        rf,
+        memReqSvr,
+        dstMem,
+        unionGadget);
+  }
 
+  private DirectQuickSelectSketch(
+      final boolean secure,
+      final int lgNomLongs,
+      final long seed,
+      final float p,
+      final ResizeFactor rf,
+      final MemoryRequestServer memReqSvr,
+      final WritableMemory dstMem,
+      final boolean unionGadget) {
+    super(seed, dstMem);
     //Choose family, preambleLongs
     final Family family;
     final int preambleLongs;
@@ -128,14 +145,6 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     //Choose RF, minReqBytes, lgArrLongs.
     final int lgRF = rf.lg();
     final int lgArrLongs = (lgRF == 0) ? lgNomLongs + 1 : ThetaUtil.MIN_LG_ARR_LONGS;
-    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
-
-    //Make sure Memory is large enough
-    final long curMemCapBytes = dstMem.getCapacity();
-    if (curMemCapBytes < minReqBytes) {
-      throw new SketchesArgumentException(
-        "Memory capacity is too small: " + curMemCapBytes + " < " + minReqBytes);
-    }
 
     //@formatter:off
     //Build preamble
@@ -162,6 +171,20 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     memReqSvr_ = memReqSvr;
+  }
+
+  private static final boolean checkMemSize(
+      final int lgNomLongs, final ResizeFactor rf, final Memory dstMem, final boolean unionGadget) {
+    final int preambleLongs = (unionGadget) ? Family.UNION.getMinPreLongs() : Family.QUICKSELECT.getMinPreLongs();
+    final int lgRF = rf.lg();
+    final int lgArrLongs = (lgRF == 0) ? lgNomLongs + 1 : ThetaUtil.MIN_LG_ARR_LONGS;
+    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    final long curMemCapBytes = dstMem.getCapacity();
+    if (curMemCapBytes < minReqBytes) {
+      throw new SketchesArgumentException(
+        "Memory capacity is too small: " + curMemCapBytes + " < " + minReqBytes);
+    }
+    return true;
   }
 
   /**

@@ -79,10 +79,27 @@ under the License.
     <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
   </Match>
 
-  <Match>
+  <Match> <!-- False Positive: These are intentional -->
     <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
     <Class name="org.apache.datasketches.sampling.EbppsItemsSample" />
-    <Method name="merge" />
+    <Or>
+      <Method name="merge" />
+      <Method name="downsample" />
+    </Or>
+  </Match>
+
+  <Match> <!-- False Positive: Application is single threaded. -->
+    <Bug pattern="SING_SINGLETON_GETTER_NOT_SYNCHRONIZED" />
+    <Class name="org.apache.datasketches.theta.EmptyCompactSketch"/>
+    <Method name="getHeapInstance" />
+  </Match>
+
+  <Match> <!-- False Positive: Code is the recommended solution for Finalizer Attack. -->
+    <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    <Or>
+      <Class name="org.apache.datasketches.tuple.arrayofdoubles.DirectArrayOfDoublesQuickSelectSketch"/>
+      <Class name="org.apache.datasketches.theta.DirectQuickSelectSketch"/>
+    </Or>
   </Match>
 
 </FindBugsFilter>

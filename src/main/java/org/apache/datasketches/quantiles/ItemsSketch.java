@@ -36,7 +36,9 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
+//import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
@@ -44,6 +46,7 @@ import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
@@ -545,13 +548,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
 
   // Restricted
 
-  private final ItemsSketchSortedView<T> refreshSortedView() {
-    final ItemsSketchSortedView<T> sv = (classicQisSV == null)
-        ? classicQisSV = new ItemsSketchSortedView<>(this)
-        : classicQisSV;
-    return sv;
-  }
-
   /**
    * Returns the base buffer count
    * @return the base buffer count
@@ -624,6 +620,87 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
     final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
     sketch.combinedBufferItemCapacity_ = newSize;
     sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
+  }
+
+  private final ItemsSketchSortedView<T> refreshSortedView() {
+    if (classicQisSV == null) {
+      final CreateSortedView csv = new CreateSortedView();
+      classicQisSV = csv.getSV();
+    }
+    return classicQisSV;
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private final class CreateSortedView {
+    final long n = getN();
+    final int numQuantiles = getNumRetained();
+    T[] quantiles = (T[]) Array.newInstance(clazz, numQuantiles);
+    long[] cumWeights = new long[numQuantiles];
+    final int k = getK();
+
+    final T[] combinedBuffer = (T[]) getCombinedBuffer();
+    final int baseBufferCount = getBaseBufferCount();
+    final Comparator<? super T> comparator = ItemsSketch.this.comparator_;
+
+    ItemsSketchSortedView<T> getSV() {
+      long weight = 1;
+      int index = 0;
+      long bits = getBitPattern();
+      assert bits == (n / (2L * k)); // internal consistency check
+      for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
+        weight *= 2;
+        if ((bits & 1L) > 0L) {
+          final int offset = (2 + lvl) * k;
+          for (int i = 0; i < k; i++) {
+            quantiles[index] = combinedBuffer[i + offset];
+            cumWeights[index] = weight;
+            index++;
+          }
+        }
+      }
+
+      weight = 1; //NOT a mistake! We just copied the highest level; now we need to copy the base buffer
+      final int startOfBaseBufferBlock = index;
+
+      // Copy BaseBuffer over, along with weight = 1
+      for (int i = 0; i < baseBufferCount; i++) {
+        quantiles[index] = combinedBuffer[i];
+        cumWeights[index] = weight;
+        index++;
+      }
+      assert index == numQuantiles;
+
+      // Must sort the items that came from the base buffer.
+      // Don't need to sort the corresponding weights because they are all the same.
+      Arrays.sort(quantiles, startOfBaseBufferBlock, numQuantiles, comparator);
+
+      // Sort the first "numSamples" slots of the two arrays in tandem,
+      // taking advantage of the already sorted blocks of length k
+      ItemsMergeImpl.blockyTandemMergeSort(quantiles, cumWeights, numQuantiles, k, comparator);
+
+      if (convertToCumulative(cumWeights) != n) {
+        throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
+      }
+
+      return new ItemsSketchSortedView(
+          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), getK());
+    }
+
+  }
+
+  /**
+   * Convert the individual weights into cumulative weights.
+   * An array of {1,1,1,1} becomes {1,2,3,4}
+   * @param array of actual weights from the sketch, none of the weights may be zero
+   * @return total weight
+   */
+  private static long convertToCumulative(final long[] array) {
+    long subtotal = 0;
+    for (int i = 0; i < array.length; i++) {
+      final long newSubtotal = subtotal + array[i];
+      subtotal = array[i] = newSubtotal;
+    }
+    return subtotal;
   }
 
 }

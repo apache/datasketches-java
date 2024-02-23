@@ -29,18 +29,13 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.datasketches.common.SketchesArgumentException;
 
 // this is a supporting class used to hold the raw data sample
-class EbppsItemsSample<T> {
+final class EbppsItemsSample<T> {
 
   private double c_;            // Current sample size, including fractional part
   private T partialItem_;       // a sample item corresponding to a partial weight
   private ArrayList<T> data_;   // full sample items
 
   private Random rand_;         // ThreadLocalRandom.current() in general
-
-  @Override
-  protected final void finalize() {
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
-  }
 
   // basic constructor
   EbppsItemsSample(final int reservedSize) {

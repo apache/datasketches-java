@@ -35,9 +35,13 @@ public abstract class Sketch<S extends Summary> {
 
   long thetaLong_;
   boolean empty_ = true;
-  protected SummaryFactory<S> summaryFactory_;
+  protected SummaryFactory<S> summaryFactory_ = null;
 
-  Sketch() {}
+  Sketch(final long thetaLong, final boolean empty, final SummaryFactory<S> summaryFactory) {
+    this.thetaLong_ = thetaLong;
+    this.empty_ = empty;
+    this.summaryFactory_ = summaryFactory;
+  }
 
   /**
    * Converts this sketch to a CompactSketch on the Java heap.

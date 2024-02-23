@@ -49,7 +49,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Jon Malkin
  */
-public class EbppsItemsSketch<T> {
+public final class EbppsItemsSketch<T> {
   private static final int MAX_K = Integer.MAX_VALUE - 2;
   private static final int EBPPS_C_DOUBLE        = 40; // part of sample state, not preamble
   private static final int EBPPS_ITEMS_START     = 48;
@@ -64,11 +64,6 @@ public class EbppsItemsSketch<T> {
   private EbppsItemsSample<T> sample_; // Object holding the current state of the sample
 
   final private EbppsItemsSample<T> tmp_;    // temporary storage
-
-  @Override
-  protected final void finalize() {
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
-  }
 
   /**
    * Constructor

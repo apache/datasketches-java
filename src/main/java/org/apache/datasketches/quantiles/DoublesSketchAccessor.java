@@ -22,6 +22,7 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * This allows access to package-private levels and data in whatever quantiles sketch you give
@@ -39,16 +40,28 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   int numItems_;
   int offset_;
 
-  @Override
-  protected final void finalize() {
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
+  DoublesSketchAccessor(
+    final DoublesSketch ds,
+    final boolean forceSize,
+    final int level) {
+    this(checkLvl(level), ds, forceSize, level);
   }
 
-  DoublesSketchAccessor(final DoublesSketch ds, final boolean forceSize, final int level) {
+  private DoublesSketchAccessor(
+      final boolean secure,
+      final DoublesSketch ds,
+      final boolean forceSize,
+      final int level) {
     ds_ = ds;
     forceSize_ = forceSize;
-
     setLevel(level);
+  }
+
+  private static final boolean checkLvl(final int level) {
+    if (level != BB_LVL_IDX && level < 0) {
+      throw new SketchesArgumentException("Parameter level is < 0.");
+    }
+    return true;
   }
 
   static DoublesSketchAccessor wrap(final DoublesSketch ds) {
@@ -71,7 +84,6 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
       numItems_ = (forceSize_ ? ds_.getK() * 2 : ds_.getBaseBufferCount());
       offset_ = (ds_.hasMemory() ? COMBINED_BUFFER : 0);
     } else {
-      assert lvl >= 0;
       if (((ds_.getBitPattern() & (1L << lvl)) > 0) || forceSize_) {
         numItems_ = ds_.getK();
       } else {

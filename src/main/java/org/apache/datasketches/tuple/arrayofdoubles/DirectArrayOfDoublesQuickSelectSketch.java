@@ -45,11 +45,6 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   private int keysOffset_;
   private int valuesOffset_;
 
-  @Override
-  protected final void finalize() {
-    // SpotBugs CT_CONSTUCTOR_THROW, OBJ11-J
-  }
-
   /**
    * Construct a new sketch using the given Memory as its backing store.
    *
@@ -66,12 +61,33 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor,
-      final float samplingProbability, final int numValues, final long seed, final WritableMemory dstMem) {
+  DirectArrayOfDoublesQuickSelectSketch(
+      final int nomEntries,
+      final int lgResizeFactor,
+      final float samplingProbability,
+      final int numValues,
+      final long seed,
+      final WritableMemory dstMem) {
+    this(validate1(nomEntries, lgResizeFactor, numValues, dstMem),
+        nomEntries,
+        lgResizeFactor,
+        samplingProbability,
+        numValues,
+        seed,
+        dstMem);
+  }
+
+  private DirectArrayOfDoublesQuickSelectSketch(
+      final boolean secure,
+      final int nomEntries,
+      final int lgResizeFactor,
+      final float samplingProbability,
+      final int numValues,
+      final long seed,
+      final WritableMemory dstMem) {
     super(numValues, seed);
     mem_ = dstMem;
     final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
-    checkIfEnoughMemory(dstMem, startingCapacity, numValues);
     mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
@@ -99,19 +115,52 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     setRebuildThreshold();
   }
 
+  private static final boolean validate1(
+      final int nomEntries,
+      final int lgResizeFactor,
+      final int numValues,
+      final WritableMemory dstMem) {
+    final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
+    checkIfEnoughMemory(dstMem, startingCapacity, numValues);
+    return true;
+  }
+
   /**
    * Wraps the given Memory.
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed update seed
    */
-  DirectArrayOfDoublesQuickSelectSketch(final WritableMemory mem, final long seed) {
+  DirectArrayOfDoublesQuickSelectSketch(
+      final WritableMemory mem,
+      final long seed) {
+    this(validate2(mem), mem, seed);
+    //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
+    //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
+  }
+
+  private DirectArrayOfDoublesQuickSelectSketch(
+      final boolean secure,
+      final WritableMemory mem,
+      final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
     mem_ = mem;
     SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE),
         mem.getByte(PREAMBLE_LONGS_BYTE));
     SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
-    final byte version = mem_.getByte(SERIAL_VERSION_BYTE);
+
+    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    keysOffset_ = ENTRIES_START;
+    valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * getCurrentCapacity());
+    // to do: make parent take care of its own parts
+    lgCurrentCapacity_ = Integer.numberOfTrailingZeros(getCurrentCapacity());
+    thetaLong_ = mem_.getLong(THETA_LONG);
+    isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
+    setRebuildThreshold();
+  }
+
+  private static final boolean validate2(final Memory mem) {
+    final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
@@ -121,14 +170,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
-    keysOffset_ = ENTRIES_START;
-    valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * getCurrentCapacity());
-    // to do: make parent take care of its own parts
-    lgCurrentCapacity_ = Integer.numberOfTrailingZeros(getCurrentCapacity());
-    thetaLong_ = mem_.getLong(THETA_LONG);
-    isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    setRebuildThreshold();
+    return true;
   }
 
   @Override
