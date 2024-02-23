@@ -70,48 +70,25 @@ public final class TDigestDouble {
 
   enum flags { IS_EMPTY, REVERSE_MERGE };
 
+  /**
+   * Constructor
+   * @param k affects the size of TDigest and its estimation error
+   */
   public TDigestDouble(final int k) {
     this(false, k, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, null, null, 0);
   }
 
-  private TDigestDouble(final boolean reverseMerge, final int k, final double min, final double max,
-      final double[] means, final long[] weights, final long weight) {
-    reverseMerge_ = reverseMerge; 
-    k_ = k;
-    minValue_ = min;
-    maxValue_ = max;
-    if (k < 10) throw new SketchesArgumentException("k must be at least 10");
-    int fudge = 0;
-    if (USE_WEIGHT_LIMIT) {
-      fudge = 10;
-      if (k < 30) fudge += 20;
-    }
-    centroidsCapacity_ = k_ * 2 + fudge;
-    bufferCapacity_ = centroidsCapacity_ * 5;
-    double scale = Math.max(1.0, (double) bufferCapacity_ / centroidsCapacity_ - 1.0);
-    if (!USE_TWO_LEVEL_COMPRESSION) scale = 1;
-    internalK_ = (int) Math.ceil(Math.sqrt(scale) * k_);
-    centroidsCapacity_ = Math.max(centroidsCapacity_, internalK_ + fudge);
-    bufferCapacity_ = Math.max(bufferCapacity_, centroidsCapacity_ * 2);
-    centroidMeans_ = new double[centroidsCapacity_];
-    centroidWeights_ = new long[centroidsCapacity_];
-    bufferValues_ =  new double[bufferCapacity_];
-    bufferWeights_ = new long[bufferCapacity_];
-    numCentroids_ = 0;
-    numBuffered_ = 0;
-    centroidsWeight_ = weight;
-    bufferedWeight_ = 0;
-    if (weight > 0) {
-      System.arraycopy(means, 0, centroidMeans_, 0, means.length);
-      System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
-      numCentroids_ = means.length;
-    }
-  }
-
+  /**
+   * @return parameter k (compression) that was used to configure this TDigest
+   */
   public int getK() {
     return k_;
   }
 
+  /**
+   * Update this TDigest with the given value
+   * @param value to update the TDigest with
+   */
   public void update(final double value) {
     if (Double.isNaN(value)) return;
     if (numBuffered_ == bufferCapacity_ - numCentroids_) mergeBuffered();
@@ -123,6 +100,10 @@ public final class TDigestDouble {
     maxValue_ = Math.max(maxValue_, value);
   }
 
+  /**
+   * Merge the given TDigest into this one
+   * @param other TDigest to merge
+   */
   public void merge(final TDigestDouble other) {
     if (other.isEmpty()) return;
     int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
@@ -151,28 +132,48 @@ public final class TDigestDouble {
     }
   }
 
+  /**
+   * Process buffered values and merge centroids if needed
+   */
   public void compress() {
     mergeBuffered();
   }
 
+  /**
+   * @return true if TDigest has not seen any data
+   */
   public boolean isEmpty() {
     return numCentroids_ == 0 && numBuffered_ == 0;
   }
 
+  /**
+   * @return minimum value seen by TDigest
+   */
   public double getMinValue() {
     if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
     return minValue_;
   }
 
+  /**
+   * @return maximum value seen by TDigest
+   */
   public double getMaxValue() {
     if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
     return maxValue_;
   }
 
+  /**
+   * @return total weight
+   */
   public long getTotalWeight() {
     return centroidsWeight_ + bufferedWeight_;
   }
 
+  /**
+   * Compute approximate normalized rank of the given value.
+   * @param value to be ranked
+   * @return normalized rank (from 0 to 1 inclusive)
+   */
   public double getRank(final double value) {
     if (isEmpty()) throw new SketchesStateException(QuantilesAPI.EMPTY_MSG);
     if (Double.isNaN(value)) throw new SketchesArgumentException("Operation is undefined for Nan");
@@ -224,6 +225,11 @@ public final class TDigestDouble {
     return (weightBelow + weightDelta / 2.0) / centroidsWeight_;
   }
 
+  /**
+   * Compute approximate quantile value corresponding to the given normalized rank
+   * @param rank normalized rank (from 0 to 1 inclusive)
+   * @return quantile value corresponding to the given rank
+   */
   public double getQuantile(final double rank) {
     if (isEmpty()) throw new SketchesStateException(QuantilesAPI.EMPTY_MSG);
     if (Double.isNaN(rank)) throw new SketchesArgumentException("Operation is undefined for Nan");
@@ -304,10 +310,24 @@ public final class TDigestDouble {
     return bytes;
   }
 
+  /**
+   * Deserialize TDigest from a given memory.
+   * Supports reading format of the reference implementation (autodetected).
+   * @param mem instance of Memory
+   * @return an instance of TDigest
+   */
   public static TDigestDouble heapify(final Memory mem) {
     return heapify(mem, false);
   }
 
+  /**
+   * Deserialize TDigest from a given memory. Supports reading compact format
+   * with (float, int) centroids as opposed to (double, long) to represent (mean, weight).
+   * Supports reading format of the reference implementation (autodetected).
+   * @param mem instance of Memory
+   * @param isFloat if true the input represents (float, int) format
+   * @return an instance of TDigest
+   */
   public static TDigestDouble heapify(final Memory mem, final boolean isFloat) {
     final Buffer buff = mem.asBuffer();
     final byte preambleLongs = buff.getByte();
@@ -395,14 +415,19 @@ public final class TDigestDouble {
   }
 
   /**
-   * Returns summary information about this TDigest. Used for debugging.
-   * @return summary of the TDigest
+   * Human-readable summary of this TDigest as a string
+   * @return summary of this TDigest
    */
   @Override
   public String toString() {
     return toString(false);
   }
 
+  /**
+   * Human-readable summary of this TDigest as a string
+   * @param printCentroids if true append the list of centroids with weights
+   * @return summary of this TDigest
+   */
   public String toString(boolean printCentroids) {
     String str = "MergingDigest\n"
         + " Nominal Compression: " + k_ + "\n"
@@ -434,6 +459,40 @@ public final class TDigestDouble {
       }
     }
     return str;
+  }
+
+  private TDigestDouble(final boolean reverseMerge, final int k, final double min, final double max,
+      final double[] means, final long[] weights, final long weight) {
+    reverseMerge_ = reverseMerge; 
+    k_ = k;
+    minValue_ = min;
+    maxValue_ = max;
+    if (k < 10) throw new SketchesArgumentException("k must be at least 10");
+    int fudge = 0;
+    if (USE_WEIGHT_LIMIT) {
+      fudge = 10;
+      if (k < 30) fudge += 20;
+    }
+    centroidsCapacity_ = k_ * 2 + fudge;
+    bufferCapacity_ = centroidsCapacity_ * 5;
+    double scale = Math.max(1.0, (double) bufferCapacity_ / centroidsCapacity_ - 1.0);
+    if (!USE_TWO_LEVEL_COMPRESSION) scale = 1;
+    internalK_ = (int) Math.ceil(Math.sqrt(scale) * k_);
+    centroidsCapacity_ = Math.max(centroidsCapacity_, internalK_ + fudge);
+    bufferCapacity_ = Math.max(bufferCapacity_, centroidsCapacity_ * 2);
+    centroidMeans_ = new double[centroidsCapacity_];
+    centroidWeights_ = new long[centroidsCapacity_];
+    bufferValues_ =  new double[bufferCapacity_];
+    bufferWeights_ = new long[bufferCapacity_];
+    numCentroids_ = 0;
+    numBuffered_ = 0;
+    centroidsWeight_ = weight;
+    bufferedWeight_ = 0;
+    if (weight > 0) {
+      System.arraycopy(means, 0, centroidMeans_, 0, means.length);
+      System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
+      numCentroids_ = means.length;
+    }
   }
 
   private void mergeBuffered() {
@@ -500,11 +559,12 @@ public final class TDigestDouble {
     maxValue_ = Math.max(maxValue_, centroidMeans_[numCentroids_ - 1]);
   }
 
-  /**
+  /*
    * Generates cluster sizes proportional to q*(1-q).
    * The use of a normalizing function results in a strictly bounded number of clusters no matter how many samples.
+   * Corresponds to K_2 in the reference implementation
    */
-  static class ScaleFunction {
+  private static class ScaleFunction {
     static double k(final double q, final double normalizer) {
       return limit(new Function<Double, Double>() {
         @Override
