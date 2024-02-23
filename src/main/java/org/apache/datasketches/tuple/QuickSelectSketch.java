@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
@@ -124,7 +124,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       final float samplingProbability,
       final SummaryFactory<S> summaryFactory,
       final int startingSize) {
-    nomEntries_ = ceilingIntPowerOf2(nomEntries);
+    nomEntries_ = ceilingPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     summaryFactory_ = summaryFactory; //super

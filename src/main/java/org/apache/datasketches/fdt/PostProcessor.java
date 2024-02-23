@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.fdt;
 
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsert;
 import static org.apache.datasketches.tuple.Util.stringHash;
 
@@ -64,7 +64,7 @@ public class PostProcessor {
     this.sketch = sketch.copy();
     this.sep = sep;
     final int numEntries = sketch.getRetainedEntries();
-    mapArrSize = ceilingIntPowerOf2((int)(numEntries / 0.75));
+    mapArrSize = ceilingPowerOf2((int)(numEntries / 0.75));
     hashArr = new long[mapArrSize];
     priKeyArr = new String[mapArrSize];
     counterArr = new int[mapArrSize];

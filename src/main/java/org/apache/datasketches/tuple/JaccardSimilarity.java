@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets.getEstimateOfBoverA;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets.getLowerBoundForBoverA;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets.getUpperBoundForBoverA;
@@ -74,7 +74,7 @@ public final class JaccardSimilarity {
     //Create the Union
     final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
     final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
-    final int newK = max(min(ceilingIntPowerOf2(countA + countB), maxK), minK);
+    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
     final Union<S> union = new Union<>(newK, summarySetOps);
     union.union(sketchA);
     union.union(sketchB);
@@ -142,7 +142,7 @@ public final class JaccardSimilarity {
     //Create the Union
     final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
     final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
-    final int newK = max(min(ceilingIntPowerOf2(countA + countB), maxK), minK);
+    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
     final Union<S> union = new Union<>(newK, summarySetOps);
     union.union(sketchA);
     union.union(sketchB, summary);
@@ -196,7 +196,7 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries();
 
     //Create the Union
-    final Union<S> union = new Union<>(ceilingIntPowerOf2(countA + countB), summarySetOps);
+    final Union<S> union = new Union<>(ceilingPowerOf2(countA + countB), summarySetOps);
     union.union(sketchA);
     union.union(sketchB);
     final Sketch<S> unionAB = union.getResult();
@@ -242,7 +242,7 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries(true);
 
     //Create the Union
-    final Union<S> union = new Union<>(ceilingIntPowerOf2(countA + countB), summarySetOps);
+    final Union<S> union = new Union<>(ceilingPowerOf2(countA + countB), summarySetOps);
     union.union(sketchA);
     union.union(sketchB, summary);
     final Sketch<S> unionAB = union.getResult();

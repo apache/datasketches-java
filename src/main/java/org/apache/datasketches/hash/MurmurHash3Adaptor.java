@@ -20,7 +20,7 @@
 package org.apache.datasketches.hash;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.nio.ByteBuffer;
@@ -368,7 +368,7 @@ public final class MurmurHash3Adaptor {
       throw new SketchesStateException(
           "Internal Error: Failed to find integer &lt; n within 10000 iterations.");
     }
-    final long mask = ceilingIntPowerOf2(n) - 1;
+    final long mask = ceilingPowerOf2(n) - 1;
     while (++cnt < 10000) {
       final long[] h = MurmurHash3.hash(data, seed);
       t = (int) (h[0] & mask);
