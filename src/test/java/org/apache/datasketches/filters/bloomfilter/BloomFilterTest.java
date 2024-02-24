@@ -52,7 +52,7 @@ public class BloomFilterTest {
     
     final long n = 1000;
     for (long i = 0; i < n; ++i) {
-      bf.checkAndUpdate(i);
+      bf.queryAndUpdate(i);
     }
 
     assertFalse(bf.isEmpty());
@@ -62,7 +62,7 @@ public class BloomFilterTest {
 
     int numFound = 0;
     for (long i = 0; i < 2 * n; ++i) {
-      if (bf.check(i))
+      if (bf.query(i))
         ++numFound;
     }
     assertTrue(numFound >= n);
@@ -78,7 +78,7 @@ public class BloomFilterTest {
 
     final int n = 500;
     for (int i = 0; i < n; ++i) {
-      bf.checkAndUpdate(Integer.toString(i));
+      bf.queryAndUpdate(Integer.toString(i));
     }
     
     final long numBitsSet = bf.getBitsUsed();
@@ -88,14 +88,14 @@ public class BloomFilterTest {
     // original items should be mostly not-present
     int count = 0;
     for (int i = 0; i < n; ++i) {
-      count += bf.check(Integer.toString(i)) ? 1 : 0;
+      count += bf.query(Integer.toString(i)) ? 1 : 0;
     }
     assertTrue(count < numBits / 10);
 
     // many other items should be present
     count = 0;
     for (int i = n; i < numBits; ++i) {
-      count += bf.check(Integer.toString(i)) ? 1 : 0;
+      count += bf.query(Integer.toString(i)) ? 1 : 0;
     }
     assertTrue(count > n);
 
@@ -112,18 +112,18 @@ public class BloomFilterTest {
     final int n = 1000;
     final int maxItem = 3 * n / 2 - 1;
     for (int i = 0; i < n; ++i) {
-      bf1.checkAndUpdate(i);
-      bf2.checkAndUpdate(n / 2 + i);
+      bf1.queryAndUpdate(i);
+      bf2.queryAndUpdate(n / 2 + i);
     }
     
     bf1.union(bf2);
     for (int i = 0; i < maxItem; ++i) {
-      assertTrue(bf1.check(i));
+      assertTrue(bf1.query(i));
     }
 
     int count = 0;
     for (int i = maxItem; i < numBits; ++i) {
-      count += bf1.check(i) ? 1 : 0;
+      count += bf1.query(i) ? 1 : 0;
     }
 
     assertTrue(count < numBits / 10); // not being super strict
@@ -140,21 +140,21 @@ public class BloomFilterTest {
     final int n = 1024;
     final int maxItem = 3 * n / 2 - 1;
     for (int i = 0; i < n; ++i) {
-      bf1.checkAndUpdate(i);
-      bf2.checkAndUpdate(n / 2 + i);
+      bf1.queryAndUpdate(i);
+      bf2.queryAndUpdate(n / 2 + i);
     }
     
     bf1.intersect(bf2);
     for (int i = n / 2; i < n; ++i) {
-      assertTrue(bf1.check(i));
+      assertTrue(bf1.query(i));
     }
     
     int count = 0;
     for (int i = 0; i < n / 2; ++i) {
-      count += bf1.check(i) ? 1 : 0;
+      count += bf1.query(i) ? 1 : 0;
     }
     for (int i = maxItem; i < numBits; ++i) {
-      count += bf1.check(i) ? 1 : 0;
+      count += bf1.query(i) ? 1 : 0;
     }
 
     assertTrue(count < numBits / 10); // not being super strict
@@ -189,14 +189,14 @@ public class BloomFilterTest {
 
     final int n = 2500;
     for (int i = 0; i < n; ++i) {
-      bf.checkAndUpdate(0.5 + i);
+      bf.queryAndUpdate(0.5 + i);
     }
     final long numBitsSet = bf.getBitsUsed();
 
     // test a bunch more items w/o updating
     int count = 0;
     for (int i = n; i < numBits; ++i) {
-      count += bf.check(0.5 + i) ? 1 : 0;
+      count += bf.query(0.5 + i) ? 1 : 0;
     }
 
     final byte[] bytes = bf.toByteArray();
@@ -208,7 +208,7 @@ public class BloomFilterTest {
     assertEquals(fromBytes.getNumHashes(), numHashes);
     int fromBytesCount = 0;
     for (int i = 0; i < numBits; ++i) {
-      boolean val = fromBytes.check(0.5 + i);
+      boolean val = fromBytes.query(0.5 + i);
       if (val) ++fromBytesCount;
       if (i < n) assertTrue(val);
     }
@@ -223,7 +223,7 @@ public class BloomFilterTest {
     assertEquals(fromLongs.getNumHashes(), numHashes);
     int fromLongsCount = 0;
     for (int i = 0; i < numBits; ++i) {
-      boolean val = fromLongs.check(0.5 + i);
+      boolean val = fromLongs.query(0.5 + i);
       if (val) ++fromLongsCount;
       if (i < n) assertTrue(val);
     }

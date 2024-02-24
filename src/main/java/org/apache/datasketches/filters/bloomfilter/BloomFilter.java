@@ -40,23 +40,26 @@ public final class BloomFilter {
   private BitArray bitArray_;    // the actual data bits
 
   // Creates a BloomFilter with a random base seed
-  public BloomFilter(final long numBits, final short numHashes) {
+  public BloomFilter(final long numBits, final int numHashes) {
     this(numBits, numHashes, ThreadLocalRandom.current().nextLong());   
   }
 
   // Creates a BloomFilter with the given base seed
-  public BloomFilter(final long numBits, final short numHashes, final long seed) {
+  public BloomFilter(final long numBits, final int numHashes, final long seed) {
     checkArgument(numBits > MAX_SIZE, "Size of BloomFilter must be <= " + MAX_SIZE
       + ". Requested: " + numBits);
     checkArgument(numHashes < 1, "Must specify a strictly positive number of hash functions. "
       + "Requested: " + numHashes);
-
+    checkArgument(numHashes > Short.MAX_VALUE, "Number of hashes cannot exceed " + Short.MAX_VALUE
+      + ". Requested: " + numHashes);
+    
     seed_ = seed;
     bitArray_ = new BitArray(numBits);
   }
 
-  BloomFilter(final int numHashes, final long seed, final BitArray bitArray) {
+  BloomFilter(final short numHashes, final long seed, final BitArray bitArray) {
     seed_ = seed;
+    numHashes_ = numHashes;
     bitArray_ = bitArray;
   }
 
@@ -108,22 +111,60 @@ public final class BloomFilter {
   }
 
   public void update(final double item) {
-    final double val[] = { item };
-    final long h0 = XxHash.hashDoubleArr(val, 0, 1, seed_);
-    final long h1 = XxHash.hashDoubleArr(val, 0, 1, h0);
+    // canonicalize all NaN & +/- infinity forms    
+    final long[] data = { Double.doubleToLongBits(item) };
+    final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
+    final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
+    updateInternal(h0, h1);
+  }
+
+  public void update(final String item) {
+    if (item == null || item.isEmpty()) { return; }
+    final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
+    final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
+    final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
     updateInternal(h0, h1);
   }
 
   public void update(final byte[] data) {
+    if (data == null) { return; }
     final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
     updateInternal(h0, h1);
   }
 
-  public void update(final String item) {
-    final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
-    final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
-    final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
+  public void update(final char[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashCharArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashCharArr(data, 0, data.length, h0);
+    updateInternal(h0, h1);
+  }
+
+  public void update(final short[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashShortArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashShortArr(data, 0, data.length, h0);
+    updateInternal(h0, h1);
+  }
+
+  public void update(final int[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashIntArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashIntArr(data, 0, data.length, h0);
+    updateInternal(h0, h1);
+  }
+
+  public void update(final long[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashLongArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashLongArr(data, 0, data.length, h0);
+    updateInternal(h0, h1);
+  }
+
+  public void update(final Memory mem) {
+    if (mem == null) { return; }
+    final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
+    final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
     updateInternal(h0, h1);
   }
 
@@ -144,13 +185,15 @@ public final class BloomFilter {
   }
   
   public boolean queryAndUpdate(final double item) {
-    final double val[] = { item };
-    final long h0 = XxHash.hashDoubleArr(val, 0, 1, seed_);
-    final long h1 = XxHash.hashDoubleArr(val, 0, 1, h0);
+    // canonicalize all NaN & +/- infinity forms    
+    final long[] data = { Double.doubleToLongBits(item) };
+    final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
+    final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
     return queryAndUpdateInternal(h0, h1);
   }
 
   public boolean queryAndUpdate(final String item) {
+    if (item == null || item.isEmpty()) { return false; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
     final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
     final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
@@ -163,6 +206,41 @@ public final class BloomFilter {
     return queryAndUpdateInternal(h0, h1);
   }
   
+  public void queryAndUpdate(final char[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashCharArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashCharArr(data, 0, data.length, h0);
+    queryAndUpdateInternal(h0, h1);
+  }
+
+  public void queryAndUpdate(final short[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashShortArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashShortArr(data, 0, data.length, h0);
+    queryAndUpdateInternal(h0, h1);
+  }
+
+  public void queryAndUpdate(final int[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashIntArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashIntArr(data, 0, data.length, h0);
+    queryAndUpdateInternal(h0, h1);
+  }
+
+  public void queryAndUpdate(final long[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashLongArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashLongArr(data, 0, data.length, h0);
+    queryAndUpdateInternal(h0, h1);
+  }
+
+  public void queryAndUpdate(final Memory mem) {
+    if (mem == null) { return; }
+    final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
+    final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
+    queryAndUpdateInternal(h0, h1);
+  }
+
   private boolean queryAndUpdateInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
     boolean valueAlreadyExists = true;
@@ -182,13 +260,15 @@ public final class BloomFilter {
   }
 
   public boolean query(final double item) {
-    final double val[] = { item };
-    final long h0 = XxHash.hashDoubleArr(val, 0, 1, seed_);
-    final long h1 = XxHash.hashDoubleArr(val, 0, 1, h0);
+    // canonicalize all NaN & +/- infinity forms    
+    final long[] data = { Double.doubleToLongBits(item) };
+    final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
+    final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
     return queryInternal(h0, h1);
   }
 
   public boolean query(final String item) {
+    if (item == null || item.isEmpty()) { return false; }    
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
     final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
     final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
@@ -199,6 +279,41 @@ public final class BloomFilter {
     final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
     return queryInternal(h0, h1);
+  }
+
+  public void query(final char[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashCharArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashCharArr(data, 0, data.length, h0);
+    queryInternal(h0, h1);
+  }
+
+  public void query(final short[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashShortArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashShortArr(data, 0, data.length, h0);
+    queryInternal(h0, h1);
+  }
+
+  public void query(final int[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashIntArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashIntArr(data, 0, data.length, h0);
+    queryInternal(h0, h1);
+  }
+
+  public void query(final long[] data) {
+    if (data == null) { return; }
+    final long h0 = XxHash.hashLongArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashLongArr(data, 0, data.length, h0);
+    queryInternal(h0, h1);
+  }
+
+  public void query(final Memory mem) {
+    if (mem == null) { return; }
+    final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
+    final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
+    queryInternal(h0, h1);
   }
 
   private boolean queryInternal(final long h0, final long h1) {
