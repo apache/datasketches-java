@@ -45,7 +45,7 @@ public class BitArrayTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void createTooLargeBitArrayTest() {
-    new BitArray(1L + Integer.MAX_VALUE * Long.SIZE);
+    new BitArray(1L + (long) Integer.MAX_VALUE * Long.SIZE);
   }
 
   @Test

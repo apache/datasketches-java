@@ -54,6 +54,7 @@ public final class BloomFilter {
       + ". Requested: " + numHashes);
     
     seed_ = seed;
+    numHashes_ = (short) numHashes;
     bitArray_ = new BitArray(numBits);
   }
 
