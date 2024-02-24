@@ -55,7 +55,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T>, Partit
   private final Class<T> clazz;
 
   /**
-   * Construct from elements for testing only.
+   * Construct from elements, also used in testing.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
