@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
-import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
-
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -31,37 +29,34 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.memory.XxHash;
 
-public class BloomFilter {
+public final class BloomFilter {
   // maximum number of longs in the array with space for a header at serialization
   private static final long MAX_SIZE = Integer.MAX_VALUE * (long) Long.SIZE - 3;
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
 
-  private final long baseSeed_;  // base seed for hashes
-  private long seeds_[];         // array of seeds
+  private long seed_;            // hash seed
+  private short numHashes_;      // number of hash values
   private BitArray bitArray_;    // the actual data bits
 
   // Creates a BloomFilter with a random base seed
-  public BloomFilter(final long numBits, final int numHashes) {
+  public BloomFilter(final long numBits, final short numHashes) {
     this(numBits, numHashes, ThreadLocalRandom.current().nextLong());   
   }
 
   // Creates a BloomFilter with the given base seed
-  public BloomFilter(final long numBits, final int numHashes, final long baseSeed) {
+  public BloomFilter(final long numBits, final short numHashes, final long seed) {
     checkArgument(numBits > MAX_SIZE, "Size of BloomFilter must be <= " + MAX_SIZE
       + ". Requested: " + numBits);
     checkArgument(numHashes < 1, "Must specify a strictly positive number of hash functions. "
       + "Requested: " + numHashes);
 
-    baseSeed_ = baseSeed;
-    seeds_ = generateSeeds(numHashes, baseSeed);
-
+    seed_ = seed;
     bitArray_ = new BitArray(numBits);
   }
 
-  BloomFilter(final int numHashes, final long baseSeed, final BitArray bitArray) {
-    baseSeed_ = baseSeed;
-    seeds_ = generateSeeds(numHashes, baseSeed);
+  BloomFilter(final int numHashes, final long seed, final BitArray bitArray) {
+    seed_ = seed;
     bitArray_ = bitArray;
   }
 
@@ -77,18 +72,18 @@ public class BloomFilter {
     checkArgument(serVer != SER_VER, "Possible corruption: Unrecognized serialization version: " + serVer);
     checkArgument(familyID != Family.BLOOMFILTER.getID(), "Possible corruption: Incorrect FamilyID for bloom filter. Found: " + familyID);
     
-    final int numHashes = mem.getShort(offsetBytes);
+    final short numHashes = mem.getShort(offsetBytes);
     offsetBytes += Integer.BYTES; // increment by 4 even after reading 2
     checkArgument(numHashes < 1, "Possible corruption: Need strictly positive number of hash functions. Found: " + numHashes);
 
-    final long baseSeed = mem.getLong(offsetBytes);
+    final long seed = mem.getLong(offsetBytes);
     offsetBytes += Long.BYTES;
 
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
 
     final BitArray bitArray = BitArray.heapify(mem.region(offsetBytes, mem.getCapacity() - offsetBytes), isEmpty);
 
-    return new BloomFilter(numHashes, baseSeed, bitArray);
+    return new BloomFilter(numHashes, seed, bitArray);
   }
 
   public boolean isEmpty() { return bitArray_.isEmpty(); }
@@ -97,109 +92,120 @@ public class BloomFilter {
 
   public long getCapacity() { return bitArray_.getCapacity(); }
 
-  public int getNumHashes() { return seeds_.length; }
+  public short getNumHashes() { return numHashes_; }
 
-  public long getSeed() { return baseSeed_; }
+  public long getSeed() { return seed_; }
 
   public double getFillPercentage() {
     return (double) bitArray_.getNumBitsSet() / bitArray_.getCapacity();
   }
 
-  public boolean checkAndUpdate(final long item) {
-    boolean valueAlreadyExists = true;
-    final long numBits = bitArray_.getCapacity();
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
-      // returns old value of bit
-      valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
-    }
-    return valueAlreadyExists;
+  // UPDATE METHODS
+  public void update(final long item) {
+    final long h0 = XxHash.hashLong(item, seed_);
+    final long h1 = XxHash.hashLong(item, h0);
+    updateInternal(h0, h1);
   }
 
-  public boolean fastCheckAndUpdate(final long item) {
-    boolean valueAlreadyExists = true;
-    final long numBits = bitArray_.getCapacity();
-    final long h0 = XxHash.hashLong(item, seeds_[0]);
-    final long h1 = XxHash.hashLong(item, h0);
-    for (int i = 1; i <= seeds_.length; ++i) {
-      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
-      // returns old value of bit
-      valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
-    }
-    return valueAlreadyExists;
-  }
-  
-  public boolean checkAndUpdate(final double item) {
-    boolean valueAlreadyExists = true;
-    final long numBits = bitArray_.getCapacity();
+  public void update(final double item) {
     final double val[] = { item };
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final long hashIndex = (XxHash.hashDoubleArr(val, 0, 1, seed) >>> 1) % numBits;
-      // returns old value of bit
-      valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
-    }
-    return valueAlreadyExists;
+    final long h0 = XxHash.hashDoubleArr(val, 0, 1, seed_);
+    final long h1 = XxHash.hashDoubleArr(val, 0, 1, h0);
+    updateInternal(h0, h1);
   }
 
-  public boolean checkAndUpdate(final String item) {
-    boolean valueAlreadyExists = true;
-    final long numBits = bitArray_.getCapacity();
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
-      final long hashIndex = (XxHash.hashByteArr(strBytes, 0, strBytes.length, seed) >>> 1) % numBits;
-      // returns old value of bit
-      valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
-    }
-    return valueAlreadyExists;
+  public void update(final byte[] data) {
+    final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
+    updateInternal(h0, h1);
   }
 
-  public boolean checkAndUpdate(final byte[] data) {
-    boolean valueAlreadyExists = true;
+  public void update(final String item) {
+    final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
+    final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
+    final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
+    updateInternal(h0, h1);
+  }
+
+  private void updateInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final long hashIndex = (XxHash.hashByteArr(data, 0, data.length, seed) >>> 1) % numBits;
-      // returns old value of bit
-      valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
+    for (int i = 1; i <= numHashes_; ++i) {
+      // right-shift to ensure non-negative value
+      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
+      bitArray_.setBit(hashIndex);
     }
-    return valueAlreadyExists;
+  }
+
+  // QUERY-AND-UPDATE METHODS 
+  public boolean queryAndUpdate(final long item) {
+    final long h0 = XxHash.hashLong(item, seed_);
+    final long h1 = XxHash.hashLong(item, h0);
+    return queryAndUpdateInternal(h0, h1);
   }
   
-  public boolean check(final long item) {
-    final long numBits = bitArray_.getCapacity();
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final long hashIndex = (XxHash.hashLong(item, seed) >>> 1) % numBits;
-      if (!bitArray_.getBit(hashIndex)) {
-        return false;
-      }
-    }
-    return true;
+  public boolean queryAndUpdate(final double item) {
+    final double val[] = { item };
+    final long h0 = XxHash.hashDoubleArr(val, 0, 1, seed_);
+    final long h1 = XxHash.hashDoubleArr(val, 0, 1, h0);
+    return queryAndUpdateInternal(h0, h1);
   }
 
-  public boolean fastCheck(final long item) {
+  public boolean queryAndUpdate(final String item) {
+    final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
+    final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
+    final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
+    return queryAndUpdateInternal(h0, h1);
+  }
+
+  public boolean queryAndUpdate(final byte[] data) {
+    final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
+    return queryAndUpdateInternal(h0, h1);
+  }
+  
+  private boolean queryAndUpdateInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
-    final long h0 = XxHash.hashLong(item, seeds_[0]);
-    final long h1 = XxHash.hashLong(item, h0);
-    for (int i = 1; i <= seeds_.length; ++i) {
+    boolean valueAlreadyExists = true;
+    for (int i = 1; i <= numHashes_; ++i) {
       final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
       // returns old value of bit
-      if (!bitArray_.getAndSetBit(hashIndex)) {
-        return false;
-      }
+      valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
     }
-    return true;
+    return valueAlreadyExists;
   }
 
-  public boolean check(final double item) {
+  // QUERY METHODS
+  public boolean query(final long item) {
+    final long h0 = XxHash.hashLong(item, seed_);
+    final long h1 = XxHash.hashLong(item, h0);
+    return queryInternal(h0, h1);
+  }
+
+  public boolean query(final double item) {
+    final double val[] = { item };
+    final long h0 = XxHash.hashDoubleArr(val, 0, 1, seed_);
+    final long h1 = XxHash.hashDoubleArr(val, 0, 1, h0);
+    return queryInternal(h0, h1);
+  }
+
+  public boolean query(final String item) {
+    final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
+    final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
+    final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
+    return queryInternal(h0, h1);
+  }
+
+  public boolean query(final byte[] data) {
+    final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
+    final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
+    return queryInternal(h0, h1);
+  }
+
+  private boolean queryInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
-    final double[] val = { item };
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final long hashIndex = (XxHash.hashDoubleArr(val, 0, 1, seed) >>> 1) % numBits;
+    for (int i = 1; i <= numHashes_; ++i) {
+      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
+      // returns old value of bit
       if (!bitArray_.getBit(hashIndex)) {
         return false;
       }
@@ -207,30 +213,7 @@ public class BloomFilter {
     return true;
   }
 
-  public boolean check(final String item) {
-    final long numBits = bitArray_.getCapacity();
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final long hashIndex = (XxHash.hashString(item, 0, item.length(), seed) >>> 1) % numBits;
-      if (!bitArray_.getBit(hashIndex)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public boolean check(final byte[] data) {
-    final long numBits = bitArray_.getCapacity();
-    for (long seed : seeds_) {
-      // right shift to ensure positive
-      final long hashIndex = (XxHash.hashByteArr(data, 0, data.length, seed) >>> 1) % numBits;
-      if (!bitArray_.getBit(hashIndex)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
+  // OTHER OPERATIONS
   public void union(final BloomFilter other) {
     if (!isCompatible(other)) {
       throw new SketchesArgumentException("Cannot union sketches with different seeds, hash functions, or sizes");
@@ -252,8 +235,8 @@ public class BloomFilter {
   }
 
   public boolean isCompatible(final BloomFilter other) {
-    if (baseSeed_ != other.baseSeed_
-        || seeds_.length != other.seeds_.length
+    if (seed_ != other.seed_
+        || numHashes_ != other.numHashes_
         || bitArray_.getArrayLength() != other.bitArray_.getArrayLength()) {
           return false;
     }
@@ -280,9 +263,9 @@ public class BloomFilter {
     wmem.putByte(offsetBytes++, (byte) SER_VER); // to do: add constant
     wmem.putByte(offsetBytes++, (byte) Family.BLOOMFILTER.getID());
     wmem.putByte(offsetBytes++, (byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wmem.putShort(offsetBytes, (short) seeds_.length);
+    wmem.putShort(offsetBytes, numHashes_);
     offsetBytes += Integer.BYTES; // wrote a short and skipping the next 2 bytes
-    wmem.putLong(offsetBytes, seeds_[0]);
+    wmem.putLong(offsetBytes, seed_);
     offsetBytes += Long.BYTES;
 
     bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - offsetBytes));
@@ -301,23 +284,14 @@ public class BloomFilter {
     wmem.putByte(offsetBytes++, (byte) SER_VER); // to do: add constant
     wmem.putByte(offsetBytes++, (byte) Family.BLOOMFILTER.getID());
     wmem.putByte(offsetBytes++, (byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wmem.putShort(offsetBytes, (short) seeds_.length);
+    wmem.putShort(offsetBytes, numHashes_);
     offsetBytes += Integer.BYTES; // wrote a short and skipping the next 2 bytes
-    wmem.putLong(offsetBytes, seeds_[0]);
+    wmem.putLong(offsetBytes, seed_);
     offsetBytes += Long.BYTES;
 
     bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - offsetBytes));
 
     return longs;
-  }
-
-  private long[] generateSeeds(final int numSeeds, final long baseSeed) {
-    final long[] seeds = new long[numSeeds];
-    seeds[0] = baseSeed;
-    for (int i = 1; i < numSeeds; ++i) {
-      seeds[i] = XxHash.hashLong((seeds[i - 1] + INVERSE_GOLDEN_U64) | 1L, 0);
-    }
-    return seeds;
   }
 
   private static void checkArgument(final boolean val, final String message) {

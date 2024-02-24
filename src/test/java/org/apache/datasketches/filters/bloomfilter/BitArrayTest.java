@@ -60,6 +60,11 @@ public class BitArrayTest {
     assertEquals(ba.getBit(68), true);
     assertFalse(ba.isEmpty());
     
+    assertFalse(ba.getBit(5));
+    ba.setBit(5);
+    assertTrue(ba.getAndSetBit(5));
+    assertEquals(ba.getNumBitsSet(), 7);
+
     ba.reset();
     assertTrue(ba.isEmpty());
     assertEquals(ba.getNumBitsSet(), 0);

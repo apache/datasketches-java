@@ -30,12 +30,12 @@ import org.apache.datasketches.memory.WritableMemory;
  * <p>Rounds the number of bits up to the smallest multiple of 64 (one long)
  * that is not smaller than the specified number.
  */
-class BitArray {
+final class BitArray {
   // MAX_BITS using longs, based on array indices being capped at Integer.MAX_VALUE
   private static final long MAX_BITS = Integer.MAX_VALUE * (long) Long.SIZE; 
   private static final long DATA_OFFSET = 8; // offset into memory for start of data array
 
-  private long numBitsSet_;
+  private long numBitsSet_;  // if -1, need to recompute value
   private long[] data_;
 
   BitArray(final long numBits) {
@@ -82,6 +82,11 @@ class BitArray {
     return (data_[(int) index >>> 6] & (1L << index)) != 0 ? true : false;
   }
 
+  void setBit(final long index) {
+    data_[(int) index >>> 6] |= 1L << index;
+    numBitsSet_ = -1; // use as a dirty flag
+  }
+
   // returns existing value of bit
   boolean getAndSetBit(final long index) {
     final int offset = (int) index >>> 6;
@@ -95,7 +100,15 @@ class BitArray {
     }
   }
 
-  long getNumBitsSet() { return numBitsSet_; }
+  long getNumBitsSet() {
+    if (numBitsSet_ == -1) {
+      numBitsSet_ = 0;
+      for (long val : data_) {
+        numBitsSet_ += Long.bitCount(val);
+      }  
+    }
+    return numBitsSet_;
+  }
 
   long getCapacity() { return (long) data_.length * Long.SIZE; }
 
@@ -131,11 +144,18 @@ class BitArray {
 
   // applies bitwise inversion
   void invert() {
-    final long numBitsSet = getCapacity() - numBitsSet_;
-    for (int i = 0; i < data_.length; ++i) {
-      data_[i] = ~data_[i];
+    if (numBitsSet_ == -1) {
+      numBitsSet_ = 0;
+      for (int i = 0; i < data_.length; ++i) {
+        data_[i] = ~data_[i];
+        numBitsSet_ += Long.bitCount(data_[i]);
+      }
+    } else {
+      for (int i = 0; i < data_.length; ++i) {
+        data_[i] = ~data_[i];
+      }
+      numBitsSet_ = getCapacity() - numBitsSet_;  
     }
-    numBitsSet_ = numBitsSet;
   }
 
   long getSerializedSizeBytes() {

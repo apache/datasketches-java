@@ -19,16 +19,16 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
-public class BloomFilterBuilder {
+public final class BloomFilterBuilder {
 
-  public static int suggestNumHashes(final long maxDistinctItems, final long numFilterBits) {
+  public static short suggestNumHashes(final long maxDistinctItems, final long numFilterBits) {
     // ceil to ensure we never average worse than the target
-    return (int) Math.max(1, (int) Math.ceil((double) numFilterBits / maxDistinctItems * Math.log(2.0)));
+    return (short) Math.max(1, (int) Math.ceil((double) numFilterBits / maxDistinctItems * Math.log(2.0)));
   }
 
-  public static int suggestNumHashes(final double targetFalsePositiveProb) {
+  public static short suggestNumHashes(final double targetFalsePositiveProb) {
     // ceil to ensure we never average worse than the target
-    return (int) Math.ceil((- Math.log(targetFalsePositiveProb) / Math.log(2)));
+    return (short) Math.ceil((- Math.log(targetFalsePositiveProb) / Math.log(2)));
   }
 
   public static long suggestNumFilterBits(final long maxDistinctItems, final double targetFalsePositiveProb) {
@@ -38,14 +38,14 @@ public class BloomFilterBuilder {
   public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb) {
     // TODO validate inputs
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
-    final int numHashes = suggestNumHashes(maxDistinctItems, numBits);
+    final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
     return new BloomFilter(numBits, numHashes);
   }
 
   public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
     // TODO validate inputs
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
-    final int numHashes = suggestNumHashes(maxDistinctItems, numBits);
+    final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
     return new BloomFilter(numBits, numHashes, seed);
   }
 }
