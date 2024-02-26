@@ -29,6 +29,30 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.memory.XxHash;
 
+/**
+ * <p>A Bloom filter is a data structure that can be used for probabilistic
+ * set membership.</p>
+ * 
+ * <p>When querying a Bloom filter, there are no false positives. Specifically:
+ * When querying an item that has already been inserted to the filter, the filter will
+ * always indicate that the item is present. There is a chance of false positives, where
+ * querying an item that has never been presented to the filter will indicate that the
+ * item has already been seen. Consequently, any query should be interpreted as
+ * "might have seen."</p>
+ * 
+ * <p>A standard Bloom filter is unlike typical sketches in that it is not sub-linear
+ * in size and does not resize itself. A Bloom filter will work up to a target number of
+ * distinct items, beyond which it will saturate and the false positive rate will start to
+ * increase. The size of a Bloom filter will be linear in the expected number of
+ * distinct items.</p>
+ * 
+ * <p>See the BloomFilterBuilder class for methods to create a filter sized correctly
+ * for a target number of distinct elements and a target false positive probability.</p>
+ * 
+ * <p>This implementaiton uses xxHash64 and follows the approach in Kirsch and Mitzenmacher,
+ * "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008,
+ * pp. 187-218.</p>
+ */
 public final class BloomFilter {
   // maximum number of longs in the array with space for a header at serialization
   private static final long MAX_SIZE = Integer.MAX_VALUE * (long) Long.SIZE - 3;
@@ -39,12 +63,25 @@ public final class BloomFilter {
   private short numHashes_;      // number of hash values
   private BitArray bitArray_;    // the actual data bits
 
-  // Creates a BloomFilter with a random base seed
+  /**
+   * Creates a BloomFilter with given number of bits and number of hash functions,
+   * and a random seed.
+   *
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   */
   public BloomFilter(final long numBits, final int numHashes) {
     this(numBits, numHashes, ThreadLocalRandom.current().nextLong());   
   }
 
-  // Creates a BloomFilter with the given base seed
+  /**
+   * Creates a BloomFilter with given number of bits and number of hash functions,
+   * and a user-specified  seed.
+   * 
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   * @param seed The base hash seed
+   */
   public BloomFilter(final long numBits, final int numHashes, final long seed) {
     checkArgument(numBits > MAX_SIZE, "Size of BloomFilter must be <= " + MAX_SIZE
       + ". Requested: " + numBits);
@@ -58,12 +95,18 @@ public final class BloomFilter {
     bitArray_ = new BitArray(numBits);
   }
 
+  // Constructor used with heapify()
   BloomFilter(final short numHashes, final long seed, final BitArray bitArray) {
     seed_ = seed;
     numHashes_ = numHashes;
     bitArray_ = bitArray;
   }
 
+  /**
+   * Reads a serialized image of a BloomFilter from the provided Memory
+   * @param mem Memory containing a previously serialized BloomFilter
+   * @return a BloomFilter object
+   */
   public static BloomFilter heapify(final Memory mem) {
     int offsetBytes = 0;
     final int preLongs = mem.getByte(offsetBytes++);
@@ -90,27 +133,60 @@ public final class BloomFilter {
     return new BloomFilter(numHashes, seed, bitArray);
   }
 
+  /**
+   * Checks if the BloomFilter has processed any items
+   * @return True if the BloomFilter is empty, otherwise False
+   */
   public boolean isEmpty() { return bitArray_.isEmpty(); }
   
+  /**
+   * Returns the number of bits in the BloomFilter that are set to 1.
+   * @return The number of bits in use in this filter
+   */
   public long getBitsUsed() { return bitArray_.getNumBitsSet(); }
 
+  /**
+   * Returns the total number of bits in the BloomFilter.
+   * @return The total size of the BloomFilter
+   */
   public long getCapacity() { return bitArray_.getCapacity(); }
 
+  /**
+   * Returns the configured number of hash functions for this BloomFilter
+   * @return The number of hash functions to apply to inputs
+   */
   public short getNumHashes() { return numHashes_; }
 
+  /**
+   * Returns the hash seed for this BloomFilter.
+   * @return The hash seed for this filter
+   */
   public long getSeed() { return seed_; }
 
+  /**
+   * Returns the percentage of all bits in the BloomFilter set to 1.
+   * @return the percentage of bits in the filter set to 1
+   */
   public double getFillPercentage() {
     return (double) bitArray_.getNumBitsSet() / bitArray_.getCapacity();
   }
 
   // UPDATE METHODS
+  /**
+   * Updates the filter with the provided long value.
+   * @param item an item with which to update the filter
+   */
   public void update(final long item) {
     final long h0 = XxHash.hashLong(item, seed_);
     final long h1 = XxHash.hashLong(item, h0);
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided double value. The value is
+   * canonicalized (NaN and infinities) prior to updating.
+   * @param item an item with which to update the filter
+   */
   public void update(final double item) {
     // canonicalize all NaN & +/- infinity forms    
     final long[] data = { Double.doubleToLongBits(item) };
@@ -119,6 +195,10 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided String.
+   * @param item an item with which to update the filter
+   */
   public void update(final String item) {
     if (item == null || item.isEmpty()) { return; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
@@ -127,6 +207,10 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided byte[].
+   * @param data an array with which to update the filter
+   */
   public void update(final byte[] data) {
     if (data == null) { return; }
     final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
@@ -134,6 +218,10 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided char[].
+   * @param data an array with which to update the filter
+   */
   public void update(final char[] data) {
     if (data == null) { return; }
     final long h0 = XxHash.hashCharArr(data, 0, data.length, seed_);
@@ -141,6 +229,10 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided short[].
+   * @param data an array with which to update the filter
+   */
   public void update(final short[] data) {
     if (data == null) { return; }
     final long h0 = XxHash.hashShortArr(data, 0, data.length, seed_);
@@ -148,6 +240,10 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided int[].
+   * @param data an array with which to update the filter
+   */
   public void update(final int[] data) {
     if (data == null) { return; }
     final long h0 = XxHash.hashIntArr(data, 0, data.length, seed_);
@@ -155,6 +251,10 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided long[].
+   * @param data an array with which to update the filter
+   */
   public void update(final long[] data) {
     if (data == null) { return; }
     final long h0 = XxHash.hashLongArr(data, 0, data.length, seed_);
@@ -162,6 +262,10 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the data in the provided Memory.
+   * @param mem a Memory object with which to update the filter
+   */
   public void update(final Memory mem) {
     if (mem == null) { return; }
     final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
@@ -169,6 +273,7 @@ public final class BloomFilter {
     updateInternal(h0, h1);
   }
 
+  // Internal method to apply updates given pre-computed hashes
   private void updateInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
     for (int i = 1; i <= numHashes_; ++i) {
