@@ -57,9 +57,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   int rebuildThreshold_; //absolute value relative to current capacity
   int lgCurrentCapacity_;
 
-  ArrayOfDoublesQuickSelectSketch(
-      final int numValues,
-      final long seed) {
+  ArrayOfDoublesQuickSelectSketch(final int numValues, final long seed) {
     super(numValues, seed);
   }
 

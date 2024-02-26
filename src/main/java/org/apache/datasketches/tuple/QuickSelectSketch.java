@@ -170,9 +170,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized QuickSelectSketch
    * @param deserializer the SummaryDeserializer
    * @param summaryFactory the SummaryFactory
+   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
    * This capability will be removed in a future release.
    * Heapifying a CompactSketch is not deprecated.
    */
+  @Deprecated
   QuickSelectSketch(
       final Memory mem,
       final SummaryDeserializer<S> deserializer,
