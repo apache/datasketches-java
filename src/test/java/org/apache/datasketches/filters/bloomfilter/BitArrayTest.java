@@ -28,7 +28,7 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class BitArrayTest {
-  
+
   @Test
   public void createBitArrayTest() {
     final BitArray ba = new BitArray(119);

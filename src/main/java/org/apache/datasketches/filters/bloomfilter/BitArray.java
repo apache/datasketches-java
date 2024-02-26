@@ -38,6 +38,7 @@ final class BitArray {
   private long numBitsSet_;  // if -1, need to recompute value
   private long[] data_;
 
+  // creates an array of a given size
   BitArray(final long numBits) {
     if (numBits <= 0) {
       throw new SketchesArgumentException("Number of bits must be strictly positive. Found: " + numBits);
@@ -51,6 +52,7 @@ final class BitArray {
     data_ = new long[numLongs];
   }
 
+  // uses the provided array
   BitArray(final long[] data) {
     data_ = data;
     numBitsSet_ = 0;
@@ -59,6 +61,8 @@ final class BitArray {
     }
   }
 
+  // reads a serialized image, but the BitArray is not fully self-describing so requires
+  // a flag to indicate whether the array is empty
   static BitArray heapify(final Memory mem, final boolean isEmpty) {
     final int numLongs = mem.getInt(0);
     if (numLongs < 0) {
@@ -78,10 +82,14 @@ final class BitArray {
     return numBitsSet_ == 0;
   }
 
+  // queries a single bit in the array
   boolean getBit(final long index) {
     return (data_[(int) index >>> 6] & (1L << index)) != 0 ? true : false;
   }
 
+  // sets a single bit in the array without querying, meaning the method
+  // cannot properly track the number of bits set. 
+  // instead changes numBitsSet_ to indicate that the value is unreliable
   void setBit(final long index) {
     data_[(int) index >>> 6] |= 1L << index;
     numBitsSet_ = -1; // use as a dirty flag
@@ -95,11 +103,14 @@ final class BitArray {
       return true; // already seen
     } else {
       data_[offset] |= mask;
-      ++numBitsSet_;
+      if (numBitsSet_ != -1) { ++numBitsSet_; }
       return false; // new set
     }
   }
 
+  // may need to recompute value:
+  // O(1) if only getAndSetBit() has been used
+  // O(data_.length) if setBit() has ever been used
   long getNumBitsSet() {
     if (numBitsSet_ == -1) {
       numBitsSet_ = 0;
@@ -177,6 +188,7 @@ final class BitArray {
     }
   }
 
+  // prints the raw BitArray as 0s and 1s, one long per row
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
@@ -188,7 +200,8 @@ final class BitArray {
     return sb.toString();
   }
 
-  String printLong(final long val) {
+  // prints a long as a series of 0s and 1s as little endian
+  private String printLong(final long val) {
     final StringBuilder sb = new StringBuilder();
     for (int j = 0; j < Long.SIZE; ++j) {
       sb.append((val & (1L << j)) != 0 ? "1" : "0");
@@ -197,6 +210,7 @@ final class BitArray {
     return sb.toString();
   }
 
+  // clears the array
   void reset() {
     final int numLongs = data_.length;
     data_ = new long[numLongs];

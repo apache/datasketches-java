@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import static org.apache.datasketches.common.Util.LS;
+
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -197,6 +199,12 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided String.
+   * The string is converted to a byte array using UTF8 encoding.
+   *
+   * <p>Note: this will not produce the same output hash values as the {@link #update(char[])}
+   * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
+   * </p>
+   *
    * @param item an item with which to update the filter
    */
   public void update(final String item) {
@@ -284,12 +292,26 @@ public final class BloomFilter {
   }
 
   // QUERY-AND-UPDATE METHODS 
+
+  /**
+   * Updates the filter with the provided long and 
+   * returns the result from quering that value prior to the update.
+   * @param item an item with which to update the filter
+   * @return The query result prior to applying the update
+   */
   public boolean queryAndUpdate(final long item) {
     final long h0 = XxHash.hashLong(item, seed_);
     final long h1 = XxHash.hashLong(item, h0);
     return queryAndUpdateInternal(h0, h1);
   }
   
+  /**
+   * Updates the filter with the provided double and 
+   * returns the result from quering that value prior to the update.
+   * The double is canonicalized (NaN and +/- infinity) in the call.
+   * @param item an item with which to update the filter
+   * @return The query result prior to applying the update
+   */
   public boolean queryAndUpdate(final double item) {
     // canonicalize all NaN & +/- infinity forms    
     final long[] data = { Double.doubleToLongBits(item) };
@@ -298,6 +320,18 @@ public final class BloomFilter {
     return queryAndUpdateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided String and 
+   * returns the result from quering that value prior to the update.
+   * The string is converted to a byte array using UTF8 encoding.
+   *
+   * <p>Note: this will not produce the same output hash values as the {@link #queryAndUpdate(char[])}
+   * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
+   * </p>
+   *
+   * @param item an item with which to update the filter
+   * @return The query result prior to applying the update, or false if item is null
+   */
   public boolean queryAndUpdate(final String item) {
     if (item == null || item.isEmpty()) { return false; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
@@ -306,47 +340,84 @@ public final class BloomFilter {
     return queryAndUpdateInternal(h0, h1);
   }
 
+  /**
+   * Updates the filter with the provided byte[] and 
+   * returns the result from quering that array prior to the update.
+   * @param data an array with which to update the filter
+   * @return The query result prior to applying the update, or false if data is null
+   */
   public boolean queryAndUpdate(final byte[] data) {
     final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
     return queryAndUpdateInternal(h0, h1);
   }
   
-  public void queryAndUpdate(final char[] data) {
-    if (data == null) { return; }
+  /**
+   * Updates the filter with the provided char[] and 
+   * returns the result from quering that array prior to the update.
+   * @param data an array with which to update the filter
+   * @return The query result prior to applying the update, or false if data is null
+   */
+  public boolean queryAndUpdate(final char[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashCharArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashCharArr(data, 0, data.length, h0);
-    queryAndUpdateInternal(h0, h1);
+    return queryAndUpdateInternal(h0, h1);
   }
 
-  public void queryAndUpdate(final short[] data) {
-    if (data == null) { return; }
+  /**
+   * Updates the filter with the provided short[] and 
+   * returns the result from quering that array prior to the update.
+   * @param data an array with which to update the filter
+   * @return The query result prior to applying the update, or false if data is null
+   */
+  public boolean queryAndUpdate(final short[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashShortArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashShortArr(data, 0, data.length, h0);
-    queryAndUpdateInternal(h0, h1);
+    return queryAndUpdateInternal(h0, h1);
   }
 
-  public void queryAndUpdate(final int[] data) {
-    if (data == null) { return; }
+  /**
+   * Updates the filter with the provided int[] and 
+   * returns the result from quering that array prior to the update.
+   * @param data an array with which to update the filter
+   * @return The query result prior to applying the update, or false if data is null
+   */
+  public boolean queryAndUpdate(final int[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashIntArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashIntArr(data, 0, data.length, h0);
-    queryAndUpdateInternal(h0, h1);
+    return queryAndUpdateInternal(h0, h1);
   }
 
-  public void queryAndUpdate(final long[] data) {
-    if (data == null) { return; }
+  /**
+   * Updates the filter with the provided long[] and 
+   * returns the result from quering that array prior to the update.
+   * @param data an array with which to update the filter
+   * @return The query result prior to applying the update, or false if data is null
+   */
+  public boolean queryAndUpdate(final long[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashLongArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, data.length, h0);
-    queryAndUpdateInternal(h0, h1);
+    return queryAndUpdateInternal(h0, h1);
   }
 
-  public void queryAndUpdate(final Memory mem) {
-    if (mem == null) { return; }
+  /**
+   * Updates the filter with the provided Memory and 
+   * returns the result from quering that Memory prior to the update.
+   * @param mem an array with which to update the filter
+   * @return The query result prior to applying the update, or false if mem is null
+   */
+  public boolean queryAndUpdate(final Memory mem) {
+    if (mem == null) { return false; }
     final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
     final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
-    queryAndUpdateInternal(h0, h1);
+    return queryAndUpdateInternal(h0, h1);
   }
 
+  // Internal query-and-update method given pre-computed hashes
   private boolean queryAndUpdateInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
     boolean valueAlreadyExists = true;
@@ -359,12 +430,29 @@ public final class BloomFilter {
   }
 
   // QUERY METHODS
+  /**
+   * Queries the filter with the provided long and returns whether the
+   * value <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * @param item an item with which to query the filter
+   * @return The result of querying the filter with the given item
+   */
   public boolean query(final long item) {
     final long h0 = XxHash.hashLong(item, seed_);
     final long h1 = XxHash.hashLong(item, h0);
     return queryInternal(h0, h1);
   }
 
+  /**
+   * Queries the filter with the provided double and returns whether the
+   * value <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible. Double values are
+   * canonicalized (NaN and +/- infinity) before querying.
+   * @param item an item with which to query the filter
+   * @return The result of querying the filter with the given item
+   */
   public boolean query(final double item) {
     // canonicalize all NaN & +/- infinity forms    
     final long[] data = { Double.doubleToLongBits(item) };
@@ -373,6 +461,20 @@ public final class BloomFilter {
     return queryInternal(h0, h1);
   }
 
+  /**
+   * Queries the filter with the provided double and returns whether the
+   * value <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * The string is converted to a byte array using UTF8 encoding.
+   *
+   * <p>Note: this will not produce the same output hash values as the {@link #update(char[])}
+   * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
+   * </p>
+   *
+   * @param item an item with which to query the filter
+   * @return The result of querying the filter with the given item, or false if item is null
+   */
   public boolean query(final String item) {
     if (item == null || item.isEmpty()) { return false; }    
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
@@ -381,47 +483,97 @@ public final class BloomFilter {
     return queryInternal(h0, h1);
   }
 
+  /**
+   * Queries the filter with the provided byte[] and returns whether the
+   * array <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * @param data an array with which to query the filter
+   * @return The result of querying the filter with the given data, or false if data is null
+   */
   public boolean query(final byte[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashByteArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
     return queryInternal(h0, h1);
   }
 
-  public void query(final char[] data) {
-    if (data == null) { return; }
+  /**
+   * Queries the filter with the provided char[] and returns whether the
+   * array <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * @param data an array with which to query the filter
+   * @return The result of querying the filter with the given data, or false if data is null
+   */
+  public boolean query(final char[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashCharArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashCharArr(data, 0, data.length, h0);
-    queryInternal(h0, h1);
+    return queryInternal(h0, h1);
   }
 
-  public void query(final short[] data) {
-    if (data == null) { return; }
+  /**
+   * Queries the filter with the provided short[] and returns whether the
+   * array <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * @param data an array with which to query the filter
+   * @return The result of querying the filter with the given data, or false if data is null
+   */
+  public boolean query(final short[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashShortArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashShortArr(data, 0, data.length, h0);
-    queryInternal(h0, h1);
+    return queryInternal(h0, h1);
   }
 
-  public void query(final int[] data) {
-    if (data == null) { return; }
+  /**
+   * Queries the filter with the provided int[] and returns whether the
+   * array <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * @param data an array with which to query the filter
+   * @return The result of querying the filter with the given data, or false if data is null
+   */
+  public boolean query(final int[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashIntArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashIntArr(data, 0, data.length, h0);
-    queryInternal(h0, h1);
+    return queryInternal(h0, h1);
   }
 
-  public void query(final long[] data) {
-    if (data == null) { return; }
+  /**
+   * Queries the filter with the provided long[] and returns whether the
+   * array <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * @param data an array with which to query the filter
+   * @return The result of querying the filter with the given data, or false if data is null
+   */
+  public boolean query(final long[] data) {
+    if (data == null) { return false; }
     final long h0 = XxHash.hashLongArr(data, 0, data.length, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, data.length, h0);
-    queryInternal(h0, h1);
+    return queryInternal(h0, h1);
   }
 
-  public void query(final Memory mem) {
-    if (mem == null) { return; }
+  /**
+   * Queries the filter with the provided Memory and returns whether the
+   * data <em>might</em> have been seen previously. The filter's expected
+   * False Positive Probability determines the chances of a true result being
+   * a false positive. False negatives are never possible.
+   * @param mem a Memory array with which to query the filter
+   * @return The result of querying the filter with the given Memory, or false if data is null
+   */
+  public boolean query(final Memory mem) {
+    if (mem == null) { return false; }
     final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
     final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
-    queryInternal(h0, h1);
+    return queryInternal(h0, h1);
   }
 
+  // Internal method to query the filter given pre-computed hashes
   private boolean queryInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
     for (int i = 1; i <= numHashes_; ++i) {
@@ -435,7 +587,13 @@ public final class BloomFilter {
   }
 
   // OTHER OPERATIONS
+  /**
+   * Unions two BloomFilters by applying a logical OR. The result will recognized
+   * any values seen by either filter (as well as false positives).
+   * @param other A BloomFilter to union with this one
+   */
   public void union(final BloomFilter other) {
+    if (other == null) { return; }
     if (!isCompatible(other)) {
       throw new SketchesArgumentException("Cannot union sketches with different seeds, hash functions, or sizes");
     }
@@ -443,7 +601,13 @@ public final class BloomFilter {
     bitArray_.union(other.bitArray_);
   }
 
+  /**
+   * Intersects two BloomFilters by applying a logical AND. The result will recognize
+   * only values seen by both filters (as well as false positives).
+   * @param other A BloomFilter to union with this one
+   */
   public void intersect(final BloomFilter other) {
+    if (other == null) { return; }
     if (!isCompatible(other)) {
       throw new SketchesArgumentException("Cannot union sketches with different seeds, hash functions, or sizes");
     }
@@ -451,12 +615,21 @@ public final class BloomFilter {
     bitArray_.intersect(other.bitArray_);
   }
 
+  /**
+   * Inverts all the bits of the BloomFilter. Approximately inverts the notion of set-membership.
+   */
   public void invert() {
     bitArray_.invert();
   }
 
+  /**
+   * Helps identify if two BloomFilters may be unioned or intersected.
+   * @param other A BloomFilter to check for compatibility with this one
+   * @return True if the filters are compatible, otherwise false
+   */
   public boolean isCompatible(final BloomFilter other) {
-    if (seed_ != other.seed_
+    if (other == null
+        || seed_ != other.seed_
         || numHashes_ != other.numHashes_
         || bitArray_.getArrayLength() != other.bitArray_.getArrayLength()) {
           return false;
@@ -464,16 +637,26 @@ public final class BloomFilter {
     return true;
   }
 
+  /**
+   * Returns the length of this BloomFilter when serialized, in bytes
+   * @return The length of this BloomFilter when serialized, in bytes
+   */
   public long getSerializedSizeBytes() {
     long sizeBytes = 2 * Long.BYTES; // basic sketch info + baseSeed
     sizeBytes += bitArray_.getSerializedSizeBytes();
     return sizeBytes;
   }
 
+  /**
+   * Serializes the current BloomFilter to an array of bytes.
+   *
+   * <p>Note: Method throws if the serialized size exceeds <tt>Integer.MAX_VALUE</tt>.</p>
+   * @return A serialized image of the current BloomFilter as byte[]
+   */
   public byte[] toByteArray() {
     final long sizeBytes = getSerializedSizeBytes();
     if (sizeBytes > Integer.MAX_VALUE) {
-      throw new SketchesStateException("Cannot serialize a Bloom Filter of this size using toByteArray(); use toLongArray() instead.");
+      throw new SketchesStateException("Cannot serialize a BloomFilter of this size using toByteArray(); use toLongArray() instead.");
     }
 
     final byte[] bytes = new byte[(int) sizeBytes];
@@ -494,6 +677,12 @@ public final class BloomFilter {
     return bytes;
   }
 
+  /**
+   * Serializes the current BloomFilter to an array of longs. Unlike {@link #toByteArray()},
+   * this method can handle any size filter.
+   *
+   * @return A serialized image of the current BloomFilter as long[]
+   */
   public long[] toLongArray() {
     final long sizeBytes = getSerializedSizeBytes();
 
@@ -515,14 +704,25 @@ public final class BloomFilter {
     return longs;
   }
 
-  private static void checkArgument(final boolean val, final String message) {
-    if (val) { throw new SketchesArgumentException(message); }
+  // Throws an exception with the provided message if the given condition is false
+  private static void checkArgument(final boolean condition, final String message) {
+    if (condition) { throw new SketchesArgumentException(message); }
   }
 
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append(bitArray_.toString());
+
+    sb.append(LS);
+    final String thisSimpleName = this.getClass().getSimpleName();
+    sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("   numBits      : ").append(bitArray_.getCapacity()).append(LS);
+    sb.append("   numHashes    : ").append(numHashes_).append(LS);
+    sb.append("   seed         : ").append(seed_).append(LS);
+    sb.append("   bitsUsed     : ").append(bitArray_.getNumBitsSet()).append(LS);
+    sb.append("   fill %       : ").append(getFillPercentage()).append(LS);
+    sb.append("### END SKETCH SUMMARY").append(LS);
+
     return sb.toString();
   }
 }
