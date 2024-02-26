@@ -56,11 +56,12 @@ class EbppsItemsSample<T> {
   // does NOT copy the incoming ArrayList since this is an internal
   // class's package-private constructor, not something directly
   // taking user data
-  EbppsItemsSample(ArrayList<T> data, T partialItem, final double c) {
-    if (c < 0.0 || Double.isNaN(c) || Double.isInfinite(c))
+  EbppsItemsSample(final ArrayList<T> data, final T partialItem, final double c) {
+    if (c < 0.0 || Double.isNaN(c) || Double.isInfinite(c)) {
       throw new SketchesArgumentException("C must be nonnegative and finite. Found: " + c);
+    }
     
-      c_ = c;
+    c_ = c;
     partialItem_ = partialItem;
     data_ = data;
     rand_ = ThreadLocalRandom.current();
@@ -72,15 +73,16 @@ class EbppsItemsSample<T> {
   // rand_ is not set since it is not expected to be used from
   // this object
   void replaceContent(final T item, final double theta) {
-    if (theta < 0.0 || theta > 1.0 || Double.isNaN(theta))
+    if (theta < 0.0 || theta > 1.0 || Double.isNaN(theta)) {
       throw new SketchesArgumentException("Theta must be in the range [0.0, 1.0]. Found: " + theta);
+    }
     
-      c_ = theta;
+    c_ = theta;
     if (theta == 1.0) {
       if (data_ != null && data_.size() == 1) {
         data_.set(0, item);
       } else {
-        data_ = new ArrayList<T>(1);
+        data_ = new ArrayList<>(1);
         data_.add(item);  
       }
       partialItem_ = null;
@@ -101,15 +103,18 @@ class EbppsItemsSample<T> {
     final boolean includePartial = partialItem_ != null && rand_.nextDouble() < cFrac;
     final int resultSize = (data_ != null ? data_.size() : 0) + (includePartial ? 1 : 0);
 
-    if (resultSize == 0)
+    if (resultSize == 0) {
       return null;
+    }
 
-    ArrayList<T> result = new ArrayList<>(resultSize);
-    if (data_ != null)
+    final ArrayList<T> result = new ArrayList<>(resultSize);
+    if (data_ != null) {
       result.addAll(data_);
+    }
 
-    if (includePartial)
+    if (includePartial) {
       result.add(partialItem_);
+    }
 
     return result;      
   }
@@ -126,8 +131,9 @@ class EbppsItemsSample<T> {
         }
       }
     }
-    if (partialItem_ != null)
+    if (partialItem_ != null) {
       itemsArray[i] = partialItem_; // no need to increment i again
+    }
 
     return itemsArray;
   }
@@ -147,18 +153,18 @@ class EbppsItemsSample<T> {
   boolean hasPartialItem() { return partialItem_ != null; }
 
   // for testing to allow setting the seed
-  void replaceRandom(Random r) {
+  void replaceRandom(final Random r) {
     rand_ = r;
   }
 
   void downsample(final double theta) {
-    if (theta >= 1.0) return;
+    if (theta >= 1.0) { return; }
 
-    double newC = theta * c_;
-    double newCInt = Math.floor(newC);
-    double newCFrac = newC % 1;
-    double cInt = Math.floor(c_);
-    double cFrac = c_ % 1;
+    final double newC = theta * c_;
+    final double newCInt = Math.floor(newC);
+    final double newCFrac = newC % 1;
+    final double cInt = Math.floor(c_);
+    final double cFrac = c_ % 1;
 
     if (newCInt == 0.0) {
       // no full items retained
@@ -168,7 +174,7 @@ class EbppsItemsSample<T> {
       data_.clear();
     } else if (newCInt == cInt) {
       // no items deleted
-      if (rand_.nextDouble() > (1 - theta * cFrac)/(1 - newCFrac)) {
+      if (rand_.nextDouble() > (1 - theta * cFrac) / (1 - newCFrac)) {
         swapWithPartialItem();
       }
     } else {
@@ -184,22 +190,24 @@ class EbppsItemsSample<T> {
       }
     }
 
-    if (newC == newCInt)
+    if (newC == newCInt) {
       partialItem_ = null;
+    }
 
     c_ = newC;
   }
 
   void merge(final EbppsItemsSample<T> other) {
     //double cInt = Math.floor(c_);
-    double cFrac = c_ % 1;
-    double otherCFrac = other.c_ % 1;
+    final double cFrac = c_ % 1;
+    final double otherCFrac = other.c_ % 1;
 
     // update c_ here but do NOT recompute fractional part yet
     c_ += other.c_;
 
-    if (other.data_ != null)
+    if (other.data_ != null) {
       data_.addAll(other.data_);
+    }
 
     // This modifies the original algorithm slightly due to numeric
     // precision issues. Specifically, the test if cFrac + otherCFrac == 1.0
@@ -243,13 +251,15 @@ class EbppsItemsSample<T> {
 
     sb.append("  sample:").append(LS);
     int idx = 0;
-    for (T item : data_)
+    for (T item : data_) {
       sb.append("\t").append(idx++).append(":\t").append(item.toString()).append(LS);
+    }
     sb.append("  partial: ");
-    if (partialItem_ != null)
-      sb.append(partialItem_.toString()).append(LS);
-    else
+    if (partialItem_ != null) {
+      sb.append(partialItem_).append(LS);
+    } else {
       sb.append("NULL").append(LS);
+    }
 
     return sb.toString();
   }
@@ -261,13 +271,13 @@ class EbppsItemsSample<T> {
     // point from anywhere in the initial array would be eligible
     // to end up in the final subsample.
 
-    if (numSamples == data_.size()) return;
+    if (numSamples == data_.size()) { return; }
 
-    int dataLen = data_.size();
+    final int dataLen = data_.size();
     for (int i = 0; i < numSamples; ++i) {
-      int j = i + rand_.nextInt(dataLen - i);
+      final int j = i + rand_.nextInt(dataLen - i);
       // swap i and j
-      T tmp = data_.get(i);
+      final T tmp = data_.get(i);
       data_.set(i, data_.get(j));
       data_.set(j, tmp);
     }
@@ -280,19 +290,19 @@ class EbppsItemsSample<T> {
     if (partialItem_ == null) {
       moveOneToPartialItem();
     } else {
-      int idx = rand_.nextInt(data_.size());
-      T tmp = partialItem_;
+      final int idx = rand_.nextInt(data_.size());
+      final T tmp = partialItem_;
       partialItem_ = data_.get(idx);
       data_.set(idx, tmp);
     }
   }
 
   void moveOneToPartialItem() {
-    int idx = rand_.nextInt(data_.size());
+    final int idx = rand_.nextInt(data_.size());
     // swap selected item to end so we can delete it easily
-    int lastIdx = data_.size() - 1;
+    final int lastIdx = data_.size() - 1;
     if (idx != lastIdx) {
-      T tmp = data_.get(idx);
+      final T tmp = data_.get(idx);
       data_.set(idx, data_.get(lastIdx));
       partialItem_ = tmp;
     } else {

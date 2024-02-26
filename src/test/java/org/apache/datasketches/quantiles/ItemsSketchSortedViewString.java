@@ -32,7 +32,8 @@ public class ItemsSketchSortedViewString extends ItemsSketchSortedView<String> {
       final long totalN,
       final Comparator<String> comparator,
       final String maxItem,
-      final String minItem) {
-    super(quantiles, cumWeights, totalN, comparator, maxItem, minItem);
+      final String minItem,
+      final int k) {
+    super(quantiles, cumWeights, totalN, comparator, maxItem, minItem, k);
   }
 }

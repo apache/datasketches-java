@@ -30,7 +30,7 @@ import java.util.Random;
 
 import org.testng.annotations.Test;
 
-public class EbppsSampleTest {
+public class EbppsItemsSampleTest {
   private static final double EPS = 1e-14;
 
   @Test
@@ -136,7 +136,7 @@ public class EbppsSampleTest {
     for (int i = 1; i <= k; ++i) {
       s.replaceContent(i, 1.0);
       sample.merge(s);
-      assertEquals(sample.getC(), (double) i);
+      assertEquals(sample.getC(), i);
       assertEquals(sample.getNumRetainedItems(), i);
     }
 

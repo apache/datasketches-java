@@ -21,6 +21,7 @@ package org.apache.datasketches.sampling;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-public class EbppsSketchTest {
+public class EbppsItemsSketchTest {
   private static final double EPS = 1e-13;
 
   static EbppsItemsSketch<Integer> createUnweightedSketch(int k, long n) {
@@ -65,7 +66,7 @@ public class EbppsSketchTest {
       assertTrue(sample1 != null && sample2 != null);
       final int len = Math.min(sample1.size(), sample2.size());
       for (int i = 0; i < len; ++i) {
-        assertEquals(sample1.get(i), sample2.get(i)); 
+        assertEquals(sample1.get(i), sample2.get(i));
       }
       assertTrue((len == Math.floor(sk1.getC()) || len == Math.ceil(sk1.getC())));
 
@@ -120,8 +121,8 @@ public class EbppsSketchTest {
     sk = createUnweightedSketch(k, n);
     assertFalse(sk.isEmpty());
     assertEquals(sk.getN(), n);
-    assertEquals(sk.getC(), (double) k);
-    assertEquals(sk.getCumulativeWeight(), (double) n);
+    assertEquals(sk.getC(), k);
+    assertEquals(sk.getCumulativeWeight(), n);
     assertEquals(sk.getResult().size(), sk.getK());
     for (Integer val : sk.getResult())
       assertTrue(val < n);
@@ -131,14 +132,14 @@ public class EbppsSketchTest {
     sk = createUnweightedSketch(k, n);
     assertFalse(sk.isEmpty());
     assertEquals(sk.getN(), n);
-    assertEquals(sk.getCumulativeWeight(), (double) n);
-    assertEquals(sk.getC(), (double) k, EPS);
+    assertEquals(sk.getCumulativeWeight(), n);
+    assertEquals(sk.getC(), k, EPS);
     assertEquals(sk.getResult().size(), sk.getK());
     for (Integer val : sk.getResult())
       assertTrue(val < n);
 
     // add a very heavy item
-    sk.update(n, (double) n);
+    sk.update(n, n);
     assertTrue(sk.getC() < sk.getK());
   }
 
@@ -148,7 +149,7 @@ public class EbppsSketchTest {
 
     final EbppsItemsSketch<Integer> sk1 = createUnweightedSketch(k, k);
     final EbppsItemsSketch<Integer> sk2 = new EbppsItemsSketch<>(k / 2);
-    sk2.update(-1, k / 10.0); // on eheavy item, but less than sk1 weight
+    sk2.update(-1, k / 10.0); // one heavy item, but less than sk1 weight
 
     sk1.merge(sk2);
     assertEquals(sk1.getK(), k / 2);
@@ -179,7 +180,7 @@ public class EbppsSketchTest {
   @Test
   public void serializeDeserializeString() {
     // since C <= k we don't have the usual sketch notion of exact vs estimation
-    // mode at any time. The only real serializaiton cases are empty and non-empty
+    // mode at any time. The only real serialization cases are empty and non-empty
     // with and without a partial item
     final int k = 10;
     EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(k);
@@ -201,7 +202,7 @@ public class EbppsSketchTest {
     mem = Memory.wrap(bytes);
     sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
-  
+
     // non-empty with partial item
     sk.update(Integer.toString(2 * k), 2.5);
     assertEquals(sk.getCumulativeWeight(), k + 2.5, EPS);
@@ -210,6 +211,8 @@ public class EbppsSketchTest {
     mem = Memory.wrap(bytes);
     sk_heapify = EbppsItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
+
+    assertNotNull(sk.toString());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -305,6 +308,6 @@ public class EbppsSketchTest {
     final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe());
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     final Memory shortMem = mem.region(0, mem.getCapacity() - 1);
-    EbppsItemsSketch.heapify(shortMem, new ArrayOfStringsSerDe());
+    EbppsItemsSketch.heapify(shortMem, new ArrayOfLongsSerDe());
   }
 }

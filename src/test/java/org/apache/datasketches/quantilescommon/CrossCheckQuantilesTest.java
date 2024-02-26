@@ -349,7 +349,7 @@ public class CrossCheckQuantilesTest {
     kllItemsSV = new KllItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set],
         comparator, svImax, svImin);
     itemsSV = new ItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set],
-        comparator, svImax, svImin);
+        comparator, svImax, svImin, k);
   }
 
   private final static ReqSketchSortedView getRawReqSV(
