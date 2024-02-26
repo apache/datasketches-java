@@ -32,24 +32,24 @@ import org.apache.datasketches.memory.XxHash;
 /**
  * <p>A Bloom filter is a data structure that can be used for probabilistic
  * set membership.</p>
- * 
+ *
  * <p>When querying a Bloom filter, there are no false positives. Specifically:
  * When querying an item that has already been inserted to the filter, the filter will
  * always indicate that the item is present. There is a chance of false positives, where
  * querying an item that has never been presented to the filter will indicate that the
  * item has already been seen. Consequently, any query should be interpreted as
  * "might have seen."</p>
- * 
+ *
  * <p>A standard Bloom filter is unlike typical sketches in that it is not sub-linear
  * in size and does not resize itself. A Bloom filter will work up to a target number of
  * distinct items, beyond which it will saturate and the false positive rate will start to
  * increase. The size of a Bloom filter will be linear in the expected number of
  * distinct items.</p>
- * 
+ *
  * <p>See the BloomFilterBuilder class for methods to create a filter sized correctly
  * for a target number of distinct elements and a target false positive probability.</p>
- * 
- * <p>This implementaiton uses xxHash64 and follows the approach in Kirsch and Mitzenmacher,
+ *
+ * <p>This implementation uses xxHash64 and follows the approach in Kirsch and Mitzenmacher,
  * "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008,
  * pp. 187-218.</p>
  */
