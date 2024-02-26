@@ -26,11 +26,9 @@ import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import java.lang.reflect.Array;
-//import java.util.Arrays;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-//import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
