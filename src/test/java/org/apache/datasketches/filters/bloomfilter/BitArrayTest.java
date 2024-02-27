@@ -17,7 +17,7 @@
  * under the License.
  */
 
- package org.apache.datasketches.filters.bloomfilter;
+package org.apache.datasketches.filters.bloomfilter;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
