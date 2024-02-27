@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 
 public final class BloomFilterBuilder {
@@ -27,10 +29,13 @@ public final class BloomFilterBuilder {
    * Returns the optimal number of hash functions to given target numbers of distinct items
    * and the BloomFliter size in bits.
    * @param maxDistinctItems The maximum expected number of distinct items to add to the filter
-   * @param numFilterBits The target size, in bits, of the Bloom Filter
+   * @param numFilterBits The intended size of the Bloom Filter in bits
    * @return The suggested number of hash functions to use with the filter
    */
   public static short suggestNumHashes(final long maxDistinctItems, final long numFilterBits) {
+    if (maxDistinctItems < 1 || numFilterBits < 1) {
+      throw new SketchesArgumentException("maxDistinctItems and numFilterBits must be strictly positive");
+    }
     // ceil to ensure we never average worse than the target
     return (short) Math.max(1, (int) Math.ceil((double) numFilterBits / maxDistinctItems * Math.log(2.0)));
   }
@@ -72,15 +77,7 @@ public final class BloomFilterBuilder {
    * @return A new BloomFilter configured for the given input parameters
    */
   public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb) {
-    if (maxDistinctItems <= 0) {
-      throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
-    }
-    if (targetFalsePositiveProb <= 0.0 || targetFalsePositiveProb > 1.0) {
-      throw new SketchesArgumentException("targetFalsePositiveProb must be a valid probability and strictly greater than 0");
-    }
-    final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
-    final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
-    return new BloomFilter(numBits, numHashes);
+    return newBloomFilter(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong());
   }
 
   /**
@@ -92,6 +89,12 @@ public final class BloomFilterBuilder {
    * @return A new BloomFilter configured for the given input parameters
    */
   public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
+    if (maxDistinctItems <= 0) {
+      throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
+    }
+    if (targetFalsePositiveProb <= 0.0 || targetFalsePositiveProb > 1.0) {
+      throw new SketchesArgumentException("targetFalsePositiveProb must be a valid probability and strictly greater than 0");
+    }
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
     final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
     return new BloomFilter(numBits, numHashes, seed);
