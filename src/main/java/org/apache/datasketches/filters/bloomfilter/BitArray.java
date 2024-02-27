@@ -70,7 +70,7 @@ final class BitArray {
     }
     
     if (isEmpty) {
-      return new BitArray(numLongs * Long.SIZE);
+      return new BitArray((long) numLongs * Long.SIZE);
     }
 
     final long[] data = new long[numLongs];
@@ -173,7 +173,7 @@ final class BitArray {
     // We only really need an int for array length but this will keep everything
     // aligned to 8 bytes.
     // Always write array length, even if empty
-    return isEmpty() ? Long.BYTES : Long.BYTES * (1 + data_.length);
+    return isEmpty() ? Long.BYTES : Long.BYTES * (1L + data_.length);
   }
 
   void writeToMemory(final WritableMemory wmem) {

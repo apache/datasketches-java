@@ -642,7 +642,7 @@ public final class BloomFilter {
    * @return The length of this BloomFilter when serialized, in bytes
    */
   public long getSerializedSizeBytes() {
-    long sizeBytes = 2 * Long.BYTES; // basic sketch info + baseSeed
+    long sizeBytes = 2L * Long.BYTES; // basic sketch info + baseSeed
     sizeBytes += bitArray_.getSerializedSizeBytes();
     return sizeBytes;
   }
