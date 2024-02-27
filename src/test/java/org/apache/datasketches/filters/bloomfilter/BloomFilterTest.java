@@ -22,6 +22,7 @@ package org.apache.datasketches.filters.bloomfilter;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -102,6 +103,40 @@ public class BloomFilterTest {
   }
 
   @Test
+  public void incompatibleSetOperationsTest() {
+    final int numBits = 128;
+    final int numHashes = 4;
+    final BloomFilter bf1 = new BloomFilter(numBits, numHashes);
+
+    // mismatched num bits
+    try {
+      final BloomFilter bf2 = new BloomFilter(numBits * 2, numHashes, bf1.getSeed());
+      bf1.union(bf2);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+
+    // mismatched num hashes
+    try {
+      final BloomFilter bf2 = new BloomFilter(numBits, numHashes * 2, bf1.getSeed());
+      bf1.intersect(bf2);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+
+    // mismatched seed
+    try {
+      final BloomFilter bf2 = new BloomFilter(numBits, numHashes, bf1.getSeed() - 1);
+      bf1.union(bf2);
+      fail();
+    } catch (final SketchesArgumentException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void basicUnionTest() {
     final long numBits = 12288;
     final int numHashes = 4;
@@ -116,6 +151,7 @@ public class BloomFilterTest {
       bf2.queryAndUpdate(n / 2 + i);
     }
     
+    bf1.union(null); // no-op
     bf1.union(bf2);
     for (int i = 0; i < maxItem; ++i) {
       assertTrue(bf1.query(i));
@@ -144,6 +180,7 @@ public class BloomFilterTest {
       bf2.queryAndUpdate(n / 2 + i);
     }
     
+    bf1.intersect(null); // no-op
     bf1.intersect(bf2);
     for (int i = n / 2; i < n; ++i) {
       assertTrue(bf1.query(i));
@@ -229,5 +266,97 @@ public class BloomFilterTest {
     }
     assertEquals(fromLongsCount, n + count); // same numbers of items should match
   }
-}
 
+  @Test
+  public void testBasicUpdateMethods() {
+    final int numDistinct = 100;
+    final double fpp = 1e-6;
+    final BloomFilter bf = BloomFilterBuilder.newBloomFilter(numDistinct, fpp);
+
+    // empty/null String should do nothing
+    bf.update("");
+    bf.update((String) null);
+    assertFalse(bf.queryAndUpdate(""));
+    assertFalse(bf.queryAndUpdate((String) null));
+    assertEquals(bf.getBitsUsed(), 0);
+
+    bf.update("abc");
+    assertFalse(bf.queryAndUpdate("def"));
+    bf.update(932);
+    assertFalse(bf.queryAndUpdate(543));
+    bf.update(Double.NaN);
+    assertFalse(bf.queryAndUpdate(Double.POSITIVE_INFINITY));
+    assertTrue(bf.getBitsUsed() <= bf.getNumHashes() * 6);
+    assertFalse(bf.isEmpty());
+  }
+
+  @Test
+  public void testArrayUpdateMethods() {
+    // 3 doubles = 24 bytes
+    final double rawData[] = { 1.414, 2.71, 3.1415926538 };
+    final Memory mem = Memory.wrap(rawData);
+
+    final int numDistinct = 100;
+    final double fpp = 1e-6;
+
+    // for each BloomFilter update type, call update() then queryAndUpdate(), where
+    // the latter should return true. query() should likewise return true.
+    // A final intersection should have the same number of bits set as the raw input.
+    final BloomFilter bfMem = BloomFilterBuilder.newBloomFilter(numDistinct, fpp);
+    bfMem.update(mem);
+    assertTrue(bfMem.queryAndUpdate(mem));
+    assertTrue(bfMem.query(mem));
+    final long numBitsSet = bfMem.getBitsUsed();
+    final long seed = bfMem.getSeed();
+
+    final BloomFilter bfBytes = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final byte[] bytes = new byte[24];
+    mem.getByteArray(0, bytes, 0, 24);
+    bfBytes.update(bytes);
+    assertTrue(bfBytes.queryAndUpdate(bytes));
+    assertTrue(bfBytes.query(bytes));
+    assertEquals(bfBytes.getBitsUsed(), numBitsSet);
+
+    final BloomFilter bfChars = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final char[] chars = new char[12];
+    mem.getCharArray(0, chars, 0, 12);
+    bfChars.update(chars);
+    assertTrue(bfChars.queryAndUpdate(chars));
+    assertTrue(bfChars.query(chars));
+    assertEquals(bfChars.getBitsUsed(), numBitsSet);
+
+    final BloomFilter bfShorts = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final short[] shorts = new short[12];
+    mem.getShortArray(0, shorts, 0, 12);
+    bfShorts.update(shorts);
+    assertTrue(bfShorts.queryAndUpdate(shorts));
+    assertTrue(bfShorts.query(shorts));
+    assertEquals(bfShorts.getBitsUsed(), numBitsSet);
+
+    final BloomFilter bfInts = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final int[] ints = new int[6];
+    mem.getIntArray(0, ints, 0, 6);
+    bfInts.update(ints);
+    assertTrue(bfInts.queryAndUpdate(ints));
+    assertTrue(bfInts.query(ints));
+    assertEquals(bfInts.getBitsUsed(), numBitsSet);
+
+    final BloomFilter bfLongs = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final long[] longs = new long[3];
+    mem.getLongArray(0, longs, 0, 3);
+    bfLongs.update(longs);
+    assertTrue(bfLongs.queryAndUpdate(longs));
+    assertTrue(bfLongs.query(longs));
+    assertEquals(bfLongs.getBitsUsed(), numBitsSet);
+
+    // intersect all the sketches into a new one
+    final BloomFilter bf = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    bf.intersect(bfMem);
+    bf.intersect(bfBytes);
+    bf.intersect(bfChars);
+    bf.intersect(bfShorts);
+    bf.intersect(bfInts);
+    bf.intersect(bfLongs);
+    assertEquals(bfLongs.getBitsUsed(), numBitsSet);
+  }
+}

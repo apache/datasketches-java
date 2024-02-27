@@ -647,10 +647,29 @@ public final class BloomFilter {
     return sizeBytes;
   }
 
+/*
+ * A Bloom Filter's serialized image always uses 3 longs of preamble, whether empty or not:
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
+ *  0   || Preamble_Longs | SerVer | FamID  |  Flags |----Num Hashes---|-----Unused------|
+ *
+ *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
+ *  1   ||---------------------------------Hash Seed-------------------------------------|
+ *
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||-------BitArray Length (in longs)----------|-----------Unused------------------|
+ *  </pre>
+ * 
+ * The raw BitArray bits, if non-empty start at byte 24.
+ */
+
   /**
    * Serializes the current BloomFilter to an array of bytes.
    *
-   * <p>Note: Method throws if the serialized size exceeds <tt>Integer.MAX_VALUE</tt>.</p>
+   * <p>Note: Method throws if the serialized size exceeds <code>Integer.MAX_VALUE</code>.</p>
    * @return A serialized image of the current BloomFilter as byte[]
    */
   public byte[] toByteArray() {
