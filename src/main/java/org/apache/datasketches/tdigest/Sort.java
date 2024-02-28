@@ -106,15 +106,15 @@ public final class Sort {
     }
   }
 
-  private static void stableLimitedInsertionSort(final double[] keys, final long[] values, int from, int to, final int limit) {
-    for (int i = from + 1; i < to; i++) {
+  private static void stableLimitedInsertionSort(final double[] keys, final long[] values, int start, int n, final int limit) {
+    for (int i = start + 1; i < n; i++) {
       final double k = keys[i];
       final long v = values[i];
-      final int m = Math.max(i - limit, from);
-      // values in [from, i) are ordered
+      final int m = Math.max(i - limit, start);
+      // values in [start, i) are ordered
       // scan backwards to find where to stick the current key
       for (int j = i; j >= m; j--) {
-        if (j == 0 || keys[j - 1] < k || (keys[j - 1] == k && (j - 1 <= i))) {
+        if (j == 0 || keys[j - 1] <= k) {
           if (j < i) {
             System.arraycopy(keys, j, keys, j + 1, i - j);
             System.arraycopy(values, j, values, j + 1, i - j);
