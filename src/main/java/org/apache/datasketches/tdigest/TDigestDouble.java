@@ -488,7 +488,7 @@ public final class TDigestDouble {
     numBuffered_ = 0;
     centroidsWeight_ = weight;
     bufferedWeight_ = 0;
-    if (weight > 0) {
+    if (means != null && weights!= null) {
       System.arraycopy(means, 0, centroidMeans_, 0, means.length);
       System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
       numCentroids_ = means.length;
