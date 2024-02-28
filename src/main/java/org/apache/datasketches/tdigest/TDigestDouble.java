@@ -22,6 +22,7 @@ package org.apache.datasketches.tdigest;
 import java.nio.ByteOrder;
 import java.util.function.Function;
 
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Buffer;
@@ -63,7 +64,6 @@ public final class TDigestDouble {
   private static final byte PREAMBLE_LONGS_EMPTY = 1;
   private static final byte PREAMBLE_LONGS_NON_EMPTY = 2;
   private static final byte SERIAL_VERSION = 1;
-  private static final byte SKETCH_TYPE = 20;
 
   private static final int COMPAT_DOUBLE = 1;
   private static final int COMPAT_FLOAT = 2;
@@ -291,7 +291,7 @@ public final class TDigestDouble {
     final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
     wbuf.putByte(preambleLongs);
     wbuf.putByte(SERIAL_VERSION);
-    wbuf.putByte(SKETCH_TYPE);
+    wbuf.putByte((byte) Family.TDIGEST.getID());
     wbuf.putShort((short) k_);
     wbuf.putByte((byte) (
       (isEmpty() ? 1 << flags.IS_EMPTY.ordinal() : 0) |
@@ -333,9 +333,9 @@ public final class TDigestDouble {
     final byte preambleLongs = buff.getByte();
     final byte serialVersion = buff.getByte();
     final byte sketchType = buff.getByte();
-    if (sketchType != SKETCH_TYPE) {
+    if (sketchType != (byte) Family.TDIGEST.getID()) {
       if (preambleLongs == 0 && serialVersion == 0 && sketchType == 0) return heapifyCompat(mem);
-      throw new SketchesArgumentException("Sketch type mismatch: expected " + SKETCH_TYPE + ", actual " + sketchType);
+      throw new SketchesArgumentException("Sketch type mismatch: expected " + Family.TDIGEST.getID() + ", actual " + sketchType);
     }
     if (serialVersion != SERIAL_VERSION) {
       throw new SketchesArgumentException("Serial version mismatch: expected " + SERIAL_VERSION + ", actual " + serialVersion);

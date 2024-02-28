@@ -151,7 +151,12 @@ public enum Family {
   /**
    * Exact and Bounded, Probability Proportional to Size (EBPPS)
    */
-  EBPPS(19, "EBPPS", 1, 5);
+  EBPPS(19, "EBPPS", 1, 5),
+
+  /**
+   * t-Digest for estimating quantiles and ranks
+   */
+  TDIGEST(20, "TDigest", 1, 2);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
