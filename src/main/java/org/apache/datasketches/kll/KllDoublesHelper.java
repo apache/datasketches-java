@@ -123,8 +123,7 @@ final class KllDoublesHelper {
   }
 
   //assumes readOnly = false and UPDATABLE, called from KllDoublesSketch::merge
-  static void mergeDoubleImpl(final KllDoublesSketch mySketch,
-      final KllDoublesSketch otherDblSk) {
+  static void mergeDoubleImpl(final KllDoublesSketch mySketch, final KllDoublesSketch otherDblSk) {
     if (otherDblSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -133,6 +132,8 @@ final class KllDoublesHelper {
     final double myMax = myEmpty ? Double.NaN : mySketch.getMaxItem();
     final int myMinK = mySketch.getMinK();
     final long finalN = mySketch.getN() + otherDblSk.getN();
+    assert finalN <= Long.MAX_VALUE && finalN >= 0 :
+      "The input count has exceeded the capacity of a long and the capability of this sketch.";
 
     //buffers that are referenced multiple times
     final int otherNumLevels = otherDblSk.getNumLevels();
@@ -400,6 +401,8 @@ final class KllDoublesHelper {
       // If we are at the current top level, add an empty level above it for convenience,
       // but do not increment numLevels until later
       if (curLevel == (numLevels - 1)) {
+        assert curLevel + 2 < 60 :
+          "The number of levels has exceeded the capability of this sketch.";
         inLevels[curLevel + 2] = inLevels[curLevel + 1];
       }
 

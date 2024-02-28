@@ -209,6 +209,7 @@ public interface QuantilesAPI {
   static String NOT_SINGLE_ITEM_MSG = "Sketch does not have just one item. ";
   static String MEM_REQ_SVR_NULL_MSG = "MemoryRequestServer must not be null. ";
   static String TGT_IS_READ_ONLY_MSG = "Target sketch is Read Only, cannot write. ";
+  static String SELF_MERGE_MSG = "A sketch cannot merge with itself. ";
 
   /**
    * Gets the user configured parameter k, which controls the accuracy of the sketch

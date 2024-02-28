@@ -99,4 +99,22 @@ public final class Shuffle {
     array[i2] = value;
   }
 
+  /**
+   * Shuffle the given input array of type T
+   * @param array input array
+   */
+  public static <T> void shuffle(final T[] array) {
+    final int arrLen = array.length;
+    for (int i = 0; i < arrLen; i++) {
+      final int r = rand.nextInt(i + 1);
+      swap(array, i, r);
+    }
+  }
+
+  private static<T> void swap(final T[] array, final int i1, final int i2) {
+    final T value = array[i1];
+    array[i1] = array[i2];
+    array[i2] = value;
+  }
+
 }
