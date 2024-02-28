@@ -57,7 +57,7 @@ import org.apache.datasketches.memory.XxHash;
  */
 public final class BloomFilter {
   // maximum number of longs in the array with space for a header at serialization
-  private static final long MAX_SIZE = Integer.MAX_VALUE * (long) Long.SIZE - 3;
+  private static final long MAX_SIZE = (Integer.MAX_VALUE - 3) * (long) Long.SIZE;
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
 
