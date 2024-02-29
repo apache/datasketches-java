@@ -57,7 +57,7 @@ import org.apache.datasketches.memory.XxHash;
  */
 public final class BloomFilter {
   // maximum number of longs in the array with space for a header at serialization
-  private static final long MAX_SIZE = (Integer.MAX_VALUE - 3) * (long) Long.SIZE;
+  private static final long MAX_SIZE = (Integer.MAX_VALUE - Family.BLOOMFILTER.getMaxPreLongs()) * (long) Long.SIZE;
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
 
@@ -133,6 +133,13 @@ public final class BloomFilter {
     final BitArray bitArray = BitArray.heapify(mem.region(offsetBytes, mem.getCapacity() - offsetBytes), isEmpty);
 
     return new BloomFilter(numHashes, seed, bitArray);
+  }
+
+  /**
+   * Resets the BloomFilter to an empty state
+   */
+  public void reset() {
+    bitArray_.reset();
   }
 
   /**
@@ -648,7 +655,7 @@ public final class BloomFilter {
   }
 
 /*
- * A Bloom Filter's serialized image always uses 3 longs of preamble, whether empty or not:
+ * A Bloom Filter's serialized image always uses 4 longs of preamble, whether empty or not:
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -661,6 +668,9 @@ public final class BloomFilter {
  *
  *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
  *  2   ||-------BitArray Length (in longs)----------|-----------Unused------------------|
+ *
+ *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
+ *  2   ||---------------------------------NumBitsSet------------------------------------|
  *  </pre>
  * 
  * The raw BitArray bits, if non-empty start at byte 24.

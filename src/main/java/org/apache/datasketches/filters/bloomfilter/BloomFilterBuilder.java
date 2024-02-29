@@ -23,6 +23,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 
+/**
+ * <p>This class provides methods to help estimate the correct paramters to use when
+ * creating a Bloom filter, and methods to create the filter using those values.</p>
+ * 
+ * <p>The underlying math is described in the
+ * <a href='https://en.wikipedia.org/wiki/Bloom_filter#Optimal_number_of_hash_functions'>
+ * Wikipedia article on Bloom filters</a>.</p>
+ */
 public final class BloomFilterBuilder {
 
   /**
