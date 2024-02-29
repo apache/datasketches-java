@@ -119,7 +119,7 @@ final class BitArray {
   long getNumBitsSet() {
     if (isDirty_) {
       numBitsSet_ = 0;
-      for (long val : data_) {
+      for (final long val : data_) {
         numBitsSet_ += Long.bitCount(val);
       }  
     }
@@ -136,12 +136,11 @@ final class BitArray {
       throw new SketchesArgumentException("Cannot union bit arrays with unequal lengths");
     }
 
-    long numBitsSet = 0;
+    numBitsSet_ = 0;
     for (int i = 0; i < data_.length; ++i) {
       data_[i] |= other.data_[i];
-      numBitsSet += Long.bitCount(data_[i]);
+      numBitsSet_ += Long.bitCount(data_[i]);
     }
-    numBitsSet_ = numBitsSet;
     isDirty_ = false;
   }
 
@@ -151,12 +150,11 @@ final class BitArray {
       throw new SketchesArgumentException("Cannot intersect bit arrays with unequal lengths");
     }
 
-    long numBitsSet = 0;
+    numBitsSet_ = 0;
     for (int i = 0; i < data_.length; ++i) {
       data_[i] &= other.data_[i];
-      numBitsSet += Long.bitCount(data_[i]);
+      numBitsSet_ += Long.bitCount(data_[i]);
     }
-    numBitsSet_ = numBitsSet;
     isDirty_ = false;
   }
 
