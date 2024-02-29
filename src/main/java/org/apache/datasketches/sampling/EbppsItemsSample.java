@@ -29,12 +29,12 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.datasketches.common.SketchesArgumentException;
 
 // this is a supporting class used to hold the raw data sample
-class EbppsItemsSample<T> {
+final class EbppsItemsSample<T> {
 
   private double c_;            // Current sample size, including fractional part
   private T partialItem_;       // a sample item corresponding to a partial weight
   private ArrayList<T> data_;   // full sample items
-  
+
   private Random rand_;         // ThreadLocalRandom.current() in general
 
   // basic constructor
@@ -60,7 +60,7 @@ class EbppsItemsSample<T> {
     if (c < 0.0 || Double.isNaN(c) || Double.isInfinite(c)) {
       throw new SketchesArgumentException("C must be nonnegative and finite. Found: " + c);
     }
-    
+
     c_ = c;
     partialItem_ = partialItem;
     data_ = data;
@@ -76,14 +76,14 @@ class EbppsItemsSample<T> {
     if (theta < 0.0 || theta > 1.0 || Double.isNaN(theta)) {
       throw new SketchesArgumentException("Theta must be in the range [0.0, 1.0]. Found: " + theta);
     }
-    
+
     c_ = theta;
     if (theta == 1.0) {
       if (data_ != null && data_.size() == 1) {
         data_.set(0, item);
       } else {
         data_ = new ArrayList<>(1);
-        data_.add(item);  
+        data_.add(item);
       }
       partialItem_ = null;
     } else {
@@ -116,7 +116,7 @@ class EbppsItemsSample<T> {
       result.add(partialItem_);
     }
 
-    return result;      
+    return result;
   }
 
   @SuppressWarnings("unchecked")

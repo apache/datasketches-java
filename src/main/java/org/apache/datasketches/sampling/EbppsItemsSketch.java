@@ -36,20 +36,20 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * An implementation of an Exact and Bounded Sampling Proportional to Size sketch.
- * 
+ *
  * <p>From: "Exact PPS Sampling with Bounded Sample Size",
  * B. Hentschel, P. J. Haas, Y. Tian. Information Processing Letters, 2023.
- * 
+ *
  * <p>This sketch samples data from a stream of items proportional to the weight of each item.
  * The sample guarantees the presence of an item in the result is proportional to that item's
  * portion of the total weight seen by the sketch, and returns a sample no larger than size k.
- * 
+ *
  * <p>The sample may be smaller than k and the resulting size of the sample potentially includes
  * a probabilistic component, meaning the resulting sample size is not always constant.
  *
  * @author Jon Malkin
  */
-public class EbppsItemsSketch<T> {
+public final class EbppsItemsSketch<T> {
   private static final int MAX_K = Integer.MAX_VALUE - 2;
   private static final int EBPPS_C_DOUBLE        = 40; // part of sample state, not preamble
   private static final int EBPPS_ITEMS_START     = 48;
@@ -257,7 +257,7 @@ public class EbppsItemsSketch<T> {
    * pathological cases, most obvious with k=2 and A.cum_wt == B.cum_wt where that
    * approach will always take exactly 1 item from A and 1 from B, meaning the
    * co-occurrence rate for two items from either sketch is guaranteed to be 0.0.
-   * 
+   *
    * With EBPPS, once an item is accepted into the sketch we no longer need to
    * track the item's weight: All accepted items are treated equally. As a result, we
    * can take inspiration from the reservoir sampling merge in the datasketches-java
@@ -339,7 +339,7 @@ public class EbppsItemsSketch<T> {
       if (cumulativeWt_ > 0.0) {
         sample_.downsample(newRho / rho_);
       }
-  
+
       tmp_.replaceContent(other.sample_.getPartialItem(), newRho * otherCFrac * avgWt);
       sample_.merge(tmp_);
 
@@ -355,7 +355,7 @@ public class EbppsItemsSketch<T> {
 
   /**
    * Returns a copy of the current sample. The exact size may be
-   * probabilsitic, differing by at most 1 item.
+   * probabilistic, differing by at most 1 item.
    * @return the current sketch sample
    */
   public ArrayList<T> getResult() { return sample_.getSample(); }
@@ -403,7 +403,7 @@ public class EbppsItemsSketch<T> {
 
   /**
    * Returns the expected number of samples returned upon a call to
-   * getResult(). The number is a floating point value, where the 
+   * getResult(). The number is a floating point value, where the
    * fractional portion represents the probability of including a
    * "partial item" from the sample.
    *
@@ -519,14 +519,14 @@ public class EbppsItemsSketch<T> {
       PreambleUtil.insertFlags(mem, sample_.hasPartialItem() ? HAS_PARTIAL_ITEM_MASK : 0);
     }
     PreambleUtil.insertK(mem, k_);                           // Bytes 4-7
-    
+
     // conditional elements
     if (!empty) {
       PreambleUtil.insertN(mem, n_);
       PreambleUtil.insertEbppsCumulativeWeight(mem, cumulativeWt_);
       PreambleUtil.insertEbppsMaxWeight(mem, wtMax_);
       PreambleUtil.insertEbppsRho(mem, rho_);
-      
+
       // data from sample_ -- itemBytes includes the partial item
       mem.putDouble(EBPPS_C_DOUBLE, sample_.getC());
       mem.putByteArray(EBPPS_ITEMS_START, itemBytes, 0, itemBytes.length);
