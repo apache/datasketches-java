@@ -36,7 +36,6 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-//import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;

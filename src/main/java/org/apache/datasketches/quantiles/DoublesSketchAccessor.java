@@ -45,10 +45,12 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
     final boolean forceSize,
     final int level) {
     this(checkLvl(level), ds, forceSize, level);
+    //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
+    //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
   }
 
   private DoublesSketchAccessor(
-      final boolean secure,
+      final boolean secure, //required part of Finalizer Attack prevention
       final DoublesSketch ds,
       final boolean forceSize,
       final int level) {

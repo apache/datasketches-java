@@ -68,7 +68,9 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       final int numValues,
       final long seed,
       final WritableMemory dstMem) {
-    this(validate1(nomEntries, lgResizeFactor, numValues, dstMem),
+    this(checkMemory(nomEntries, lgResizeFactor, numValues, dstMem),
+    //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
+    //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
         nomEntries,
         lgResizeFactor,
         samplingProbability,
@@ -78,7 +80,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   private DirectArrayOfDoublesQuickSelectSketch(
-      final boolean secure,
+      final boolean secure, //required part of Finalizer Attack prevention
       final int nomEntries,
       final int lgResizeFactor,
       final float samplingProbability,
@@ -115,7 +117,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     setRebuildThreshold();
   }
 
-  private static final boolean validate1(
+  private static final boolean checkMemory(
       final int nomEntries,
       final int lgResizeFactor,
       final int numValues,
@@ -133,13 +135,13 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   DirectArrayOfDoublesQuickSelectSketch(
       final WritableMemory mem,
       final long seed) {
-    this(validate2(mem), mem, seed);
+    this(checkSerVer_Endianness(mem), mem, seed);
     //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
     //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
   }
 
   private DirectArrayOfDoublesQuickSelectSketch(
-      final boolean secure,
+      final boolean secure, //required part of Finalizer Attack prevention
       final WritableMemory mem,
       final long seed) {
     super(mem.getByte(NUM_VALUES_BYTE), seed);
@@ -159,7 +161,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     setRebuildThreshold();
   }
 
-  private static final boolean validate2(final Memory mem) {
+  private static final boolean checkSerVer_Endianness(final Memory mem) {
     final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
