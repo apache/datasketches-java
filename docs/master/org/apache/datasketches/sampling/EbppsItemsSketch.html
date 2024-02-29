@@ -132,17 +132,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <hr>
-<pre>public class <span class="typeNameLabel">EbppsItemsSketch&lt;T&gt;</span>
+<pre>public final class <span class="typeNameLabel">EbppsItemsSketch&lt;T&gt;</span>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
 <div class="block">An implementation of an Exact and Bounded Sampling Proportional to Size sketch.
- 
+
  <p>From: "Exact PPS Sampling with Bounded Sample Size",
  B. Hentschel, P. J. Haas, Y. Tian. Information Processing Letters, 2023.
- 
+
  <p>This sketch samples data from a stream of items proportional to the weight of each item.
  The sample guarantees the presence of an item in the result is proportional to that item's
  portion of the total weight seen by the sketch, and returns a sample no larger than size k.
- 
+
  <p>The sample may be smaller than k and the resulting size of the sample potentially includes
  a probabilistic component, meaning the resulting sample size is not always constant.</div>
 <dl>
@@ -437,7 +437,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>getResult</h4>
 <pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/util/ArrayList.html?is-external=true" title="class or interface in java.util" class="externalLink">ArrayList</a>&lt;<a href="EbppsItemsSketch.html" title="type parameter in EbppsItemsSketch">T</a>&gt;&nbsp;getResult()</pre>
 <div class="block">Returns a copy of the current sample. The exact size may be
- probabilsitic, differing by at most 1 item.</div>
+ probabilistic, differing by at most 1 item.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the current sketch sample</dd>
@@ -511,7 +511,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>getC</h4>
 <pre class="methodSignature">public&nbsp;double&nbsp;getC()</pre>
 <div class="block">Returns the expected number of samples returned upon a call to
- getResult(). The number is a floating point value, where the 
+ getResult(). The number is a floating point value, where the
  fractional portion represents the probability of including a
  "partial item" from the sample.
 
