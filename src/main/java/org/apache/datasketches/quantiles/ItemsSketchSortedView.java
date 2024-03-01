@@ -28,7 +28,6 @@ import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRa
 import java.lang.reflect.Array;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.GenericSortedView;

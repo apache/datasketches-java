@@ -682,7 +682,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
       }
 
       return new ItemsSketchSortedView(
-          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), getK());
+          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem());
     }
 
   }
