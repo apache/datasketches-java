@@ -730,7 +730,7 @@ public class KllItemsSketchTest {
     try { sk.setWritableMemory(null); fail(); } catch (SketchesArgumentException e) { }
     byte[] byteArr = sk.toByteArray();
     final KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
-    try { sk2.incN(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incN(1); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setItemsArray(null); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setItemsArrayAt(0, null); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(false); fail(); } catch (SketchesArgumentException e) { }

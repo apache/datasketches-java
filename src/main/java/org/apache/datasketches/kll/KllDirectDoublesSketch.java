@@ -284,10 +284,10 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void incN() {
+  void incN(final int increment) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     long n = getMemoryN(wmem);
-    setMemoryN(wmem, ++n);
+    setMemoryN(wmem, n + increment);
   }
 
   @Override
@@ -315,6 +315,13 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     final int offset =
         DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
     wmem.putDouble(offset, item);
+  }
+
+  @Override
+  void setDoubleItemsArrayAt(final int index, final double[] items, final int srcOffset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
+    wmem.putDoubleArray(offset, items, srcOffset, length);
   }
 
   @Override

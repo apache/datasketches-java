@@ -235,7 +235,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  void incN() {
+  void incN(final int increment) {
     throw new SketchesArgumentException(UNSUPPORTED_MSG);
   }
 

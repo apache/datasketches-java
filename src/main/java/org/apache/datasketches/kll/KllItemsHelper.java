@@ -325,7 +325,7 @@ final class KllItemsHelper {
       freeSpace = itmSk.levelsArr[0];
       assert (freeSpace > 0);
     }
-    itmSk.incN();
+    itmSk.incN(1);
     itmSk.setLevelZeroSorted(false);
     final int nextPos = freeSpace - 1;
     itmSk.setLevelsArrayAt(0, nextPos);

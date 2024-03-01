@@ -339,6 +339,31 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     kllDoublesSV = null;
   }
 
+  public void update(final double[] items, final int offset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (length == 0) { return; }
+    boolean hasNaN = false;
+    boolean allNaNs = true;
+    for (int i = 0; i < length; i++) {
+      final boolean isNaN = Double.isNaN(items[offset + i]);
+      hasNaN |= isNaN;
+      allNaNs &= isNaN;
+    }
+
+    if (allNaNs) { return; }
+    else if (!hasNaN) { // fast path
+      KllDoublesHelper.updateDouble(this, items, offset, length);
+    } else {
+      for (int i = 0; i < length; i++) {
+        final double v = items[offset + i];
+        if (!Double.isNaN(v)) {
+          KllDoublesHelper.updateDouble(this, v);
+        }
+      }
+    }
+    kllDoublesSV = null;
+  }
+
   //restricted
 
   /**
@@ -401,6 +426,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setDoubleItemsArrayAt(int index, double item);
 
+  abstract void setDoubleItemsArrayAt(int index, double[] items, int offset, int length);
+
   abstract void setMaxItem(double item);
 
   abstract void setMinItem(double item);
@@ -415,4 +442,20 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     }
   }
 
+  void updateMinMax(final double[] items, final int offset, final int length) {
+    double min = items[offset];
+    double max = min;
+    for (int i = 1; i < length; i++) {
+      final double v = items[offset + i];
+      min = Math.min(min, v);
+      max = Math.max(max, v);
+    }
+    if (isEmpty()) {
+      setMinItem(min);
+      setMaxItem(max);
+    } else {
+      setMinItem(Math.min(getMinItem(), min));
+      setMaxItem(Math.max(getMaxItem(), max));
+    }
+  }
 }

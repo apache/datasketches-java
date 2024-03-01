@@ -284,10 +284,10 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void incN() {
+  void incN(final int increment) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     long n = getMemoryN(wmem);
-    setMemoryN(wmem, ++n);
+    setMemoryN(wmem, n + increment);
   }
 
   @Override
