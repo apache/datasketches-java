@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import java.util.Arrays;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
@@ -33,9 +35,11 @@ import org.apache.datasketches.memory.WritableMemory;
 final class BitArray {
   // MAX_BITS using longs, based on array indices being capped at Integer.MAX_VALUE
   private static final long MAX_BITS = Integer.MAX_VALUE * (long) Long.SIZE; 
-  private static final long DATA_OFFSET = 8; // offset into memory for start of data array
+  private static final long NUMBITSSET_OFFSET = 8; // offset into memory for numBitsSet
+  private static final long DATA_OFFSET = 16; // offset into memory for start of data array
 
   private long numBitsSet_;  // if -1, need to recompute value
+  private boolean isDirty_;
   private long[] data_;
 
   // creates an array of a given size
@@ -49,16 +53,15 @@ final class BitArray {
 
     final int numLongs = (int) Math.ceil(numBits / 64.0);
     numBitsSet_ = 0;
+    isDirty_ = false;
     data_ = new long[numLongs];
   }
 
   // uses the provided array
-  BitArray(final long[] data) {
+  BitArray(final long numBitsSet, final long[] data) {
     data_ = data;
-    numBitsSet_ = 0;
-    for (long val : data) {
-      numBitsSet_ += Long.bitCount(val);
-    }
+    isDirty_ = numBitsSet < 0;
+    numBitsSet_ = numBitsSet;
   }
 
   // reads a serialized image, but the BitArray is not fully self-describing so requires
@@ -71,15 +74,18 @@ final class BitArray {
     
     if (isEmpty) {
       return new BitArray((long) numLongs * Long.SIZE);
-    }
+    }    
+
+    // will be -1 if dirty
+    final long numBitsSet = mem.getLong(NUMBITSSET_OFFSET);
 
     final long[] data = new long[numLongs];
     mem.getLongArray(DATA_OFFSET, data, 0, numLongs);
-    return new BitArray(data);
+    return new BitArray(numBitsSet, data);
   }
 
   boolean isEmpty() {
-    return numBitsSet_ == 0;
+    return getNumBitsSet() == 0;
   }
 
   // queries a single bit in the array
@@ -88,11 +94,10 @@ final class BitArray {
   }
 
   // sets a single bit in the array without querying, meaning the method
-  // cannot properly track the number of bits set. 
-  // instead changes numBitsSet_ to indicate that the value is unreliable
+  // cannot properly track the number of bits set so set isDirty = true
   void setBit(final long index) {
     data_[(int) index >>> 6] |= 1L << index;
-    numBitsSet_ = -1; // use as a dirty flag
+    isDirty_ = true;
   }
 
   // returns existing value of bit
@@ -103,7 +108,7 @@ final class BitArray {
       return true; // already seen
     } else {
       data_[offset] |= mask;
-      if (numBitsSet_ != -1) { ++numBitsSet_; }
+      ++numBitsSet_; // increment regardless of isDirty_
       return false; // new set
     }
   }
@@ -112,9 +117,9 @@ final class BitArray {
   // O(1) if only getAndSetBit() has been used
   // O(data_.length) if setBit() has ever been used
   long getNumBitsSet() {
-    if (numBitsSet_ == -1) {
+    if (isDirty_) {
       numBitsSet_ = 0;
-      for (long val : data_) {
+      for (final long val : data_) {
         numBitsSet_ += Long.bitCount(val);
       }  
     }
@@ -131,12 +136,12 @@ final class BitArray {
       throw new SketchesArgumentException("Cannot union bit arrays with unequal lengths");
     }
 
-    long numBitsSet = 0;
+    numBitsSet_ = 0;
     for (int i = 0; i < data_.length; ++i) {
       data_[i] |= other.data_[i];
-      numBitsSet += Long.bitCount(data_[i]);
+      numBitsSet_ += Long.bitCount(data_[i]);
     }
-    numBitsSet_ = numBitsSet;
+    isDirty_ = false;
   }
 
   // applies logical AND
@@ -145,35 +150,36 @@ final class BitArray {
       throw new SketchesArgumentException("Cannot intersect bit arrays with unequal lengths");
     }
 
-    long numBitsSet = 0;
+    numBitsSet_ = 0;
     for (int i = 0; i < data_.length; ++i) {
       data_[i] &= other.data_[i];
-      numBitsSet += Long.bitCount(data_[i]);
+      numBitsSet_ += Long.bitCount(data_[i]);
     }
-    numBitsSet_ = numBitsSet;
+    isDirty_ = false;
   }
 
   // applies bitwise inversion
   void invert() {
-    if (numBitsSet_ == -1) {
+    if (isDirty_) {
       numBitsSet_ = 0;
       for (int i = 0; i < data_.length; ++i) {
         data_[i] = ~data_[i];
         numBitsSet_ += Long.bitCount(data_[i]);
       }
+      isDirty_ = false;
     } else {
       for (int i = 0; i < data_.length; ++i) {
         data_[i] = ~data_[i];
       }
-      numBitsSet_ = getCapacity() - numBitsSet_;  
+      numBitsSet_ = getCapacity() - numBitsSet_;
     }
   }
 
   long getSerializedSizeBytes() {
     // We only really need an int for array length but this will keep everything
     // aligned to 8 bytes.
-    // Always write array length, even if empty
-    return isEmpty() ? Long.BYTES : Long.BYTES * (1L + data_.length);
+    // Always write array length and numBitsSet, even if empty
+    return isEmpty() ? Long.BYTES : Long.BYTES * (2L + data_.length);
   }
 
   void writeToMemory(final WritableMemory wmem) {
@@ -184,6 +190,7 @@ final class BitArray {
     wmem.putInt(0, data_.length);
     
     if (!isEmpty()) {
+      wmem.putLong(NUMBITSSET_OFFSET, isDirty_ ? -1 : numBitsSet_);
       wmem.putLongArray(DATA_OFFSET, data_, 0, data_.length);
     }
   }
@@ -212,8 +219,8 @@ final class BitArray {
 
   // clears the array
   void reset() {
-    final int numLongs = data_.length;
-    data_ = new long[numLongs];
+    Arrays.fill(data_, 0);
     numBitsSet_ = 0;
+    isDirty_ = false;
   }
 }

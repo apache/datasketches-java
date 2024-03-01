@@ -156,7 +156,7 @@ public enum Family {
   /**
    * Bloom Filter
    */
-  BLOOMFILTER(21, "BLOOMFILTER", 3, 3);
+  BLOOMFILTER(21, "BLOOMFILTER", 4, 4);
   ;
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
