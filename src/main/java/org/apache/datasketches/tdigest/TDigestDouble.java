@@ -45,9 +45,11 @@ public final class TDigestDouble {
   public static final boolean USE_TWO_LEVEL_COMPRESSION = true;
   public static final boolean USE_WEIGHT_LIMIT = true;
 
+  public static final short DEFAULT_K = 200;
+
   private boolean reverseMerge_;
-  private final int k_;
-  private final int internalK_;
+  private final short k_;
+  private final short internalK_;
   private double minValue_;
   private double maxValue_;
   private int centroidsCapacity_;
@@ -61,27 +63,34 @@ public final class TDigestDouble {
   private long[] bufferWeights_;
   private long bufferedWeight_;
 
-  private static final byte PREAMBLE_LONGS_EMPTY = 1;
-  private static final byte PREAMBLE_LONGS_NON_EMPTY = 2;
+  private static final byte PREAMBLE_LONGS_EMPTY_OR_SINGLE = 1;
+  private static final byte PREAMBLE_LONGS_MULTIPLE = 2;
   private static final byte SERIAL_VERSION = 1;
 
   private static final int COMPAT_DOUBLE = 1;
   private static final int COMPAT_FLOAT = 2;
 
-  enum flags { IS_EMPTY, REVERSE_MERGE };
+  enum flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE };
+
+  /**
+   * Constructor with the default K
+   */
+  public TDigestDouble() {
+    this(DEFAULT_K);
+  }
 
   /**
    * Constructor
    * @param k affects the size of TDigest and its estimation error
    */
-  public TDigestDouble(final int k) {
+  public TDigestDouble(final short k) {
     this(false, k, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, null, null, 0);
   }
 
   /**
    * @return parameter k (compression) that was used to configure this TDigest
    */
-  public int getK() {
+  public short getK() {
     return k_;
   }
 
@@ -285,20 +294,26 @@ public final class TDigestDouble {
    */
   public byte[] toByteArray() {
     mergeBuffered(); // side effect
-    final byte preambleLongs = isEmpty() ? PREAMBLE_LONGS_EMPTY : PREAMBLE_LONGS_NON_EMPTY;
-    int sizeBytes = preambleLongs * Long.BYTES + (isEmpty() ? 0 : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_);
+    final byte preambleLongs = isEmpty() || isSingleValue() ? PREAMBLE_LONGS_EMPTY_OR_SINGLE : PREAMBLE_LONGS_MULTIPLE;
+    int sizeBytes = preambleLongs * Long.BYTES +
+        (isEmpty() ? 0 : (isSingleValue() ? Double.BYTES : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_));
     final byte[] bytes = new byte[sizeBytes];
     final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
     wbuf.putByte(preambleLongs);
     wbuf.putByte(SERIAL_VERSION);
     wbuf.putByte((byte) Family.TDIGEST.getID());
-    wbuf.putShort((short) k_);
+    wbuf.putShort(k_);
     wbuf.putByte((byte) (
       (isEmpty() ? 1 << flags.IS_EMPTY.ordinal() : 0) |
+      (isSingleValue() ? 1 << flags.IS_SINGLE_VALUE.ordinal() : 0) |
       (reverseMerge_ ? 1 << flags.REVERSE_MERGE.ordinal() : 0)
     ));
     wbuf.putShort((short) 0); // unused
     if (isEmpty()) return bytes;
+    if (isSingleValue()) {
+      wbuf.putDouble(minValue_);
+      return bytes;
+    }
     wbuf.putInt(numCentroids_);
     wbuf.putInt(0); // unused
     wbuf.putDouble(minValue_);
@@ -340,15 +355,26 @@ public final class TDigestDouble {
     if (serialVersion != SERIAL_VERSION) {
       throw new SketchesArgumentException("Serial version mismatch: expected " + SERIAL_VERSION + ", actual " + serialVersion);
     }
-    final int k = buff.getShort();
+    final short k = buff.getShort();
     final byte flagsByte = buff.getByte();
     final boolean isEmpty = (flagsByte & (1 << flags.IS_EMPTY.ordinal())) > 0;
-    final byte expectedPreambleLongs = isEmpty ? PREAMBLE_LONGS_EMPTY : PREAMBLE_LONGS_NON_EMPTY;
+    final boolean isSingleValue = (flagsByte & (1 << flags.IS_SINGLE_VALUE.ordinal())) > 0;
+    final byte expectedPreambleLongs = isEmpty || isSingleValue ? PREAMBLE_LONGS_EMPTY_OR_SINGLE : PREAMBLE_LONGS_MULTIPLE;
     if (preambleLongs != expectedPreambleLongs) {
       throw new SketchesArgumentException("Preamble longs mismatch: expected " + expectedPreambleLongs + ", actual " + preambleLongs);
     }
     buff.getShort(); // unused
     if (isEmpty) return new TDigestDouble(k);
+    final boolean reverseMerge = (flagsByte & (1 << flags.REVERSE_MERGE.ordinal())) > 0;
+    if (isSingleValue) {
+      final double value;
+      if (isFloat) {
+        value = buff.getFloat();
+      } else {
+        value = buff.getDouble();
+      }
+      return new TDigestDouble(reverseMerge, k, value, value, new double[] {value}, new long[] {1}, 1);
+    }
     final int numCentroids = buff.getInt();
     buff.getInt(); // unused
     final double min;
@@ -368,7 +394,6 @@ public final class TDigestDouble {
       weights[i] = isFloat ? buff.getInt() : buff.getLong();
       totalWeight += weights[i];
     }
-    final boolean reverseMerge = (flagsByte & (1 << flags.REVERSE_MERGE.ordinal())) > 0;
     return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight);
   }
 
@@ -383,7 +408,7 @@ public final class TDigestDouble {
     if (type == COMPAT_DOUBLE) { // compatibility with asBytes()
       final double min = buff.getDouble();
       final double max = buff.getDouble();
-      final int k = (int) buff.getDouble();
+      final short k = (short) buff.getDouble();
       final int numCentroids = buff.getInt();
       final double[] means = new double[numCentroids];
       final long[] weights = new long[numCentroids];
@@ -398,7 +423,7 @@ public final class TDigestDouble {
     // COMPAT_FLOAT: compatibility with asSmallBytes()
     final double min = buff.getDouble(); // reference implementation uses doubles for min and max
     final double max = buff.getDouble();
-    final int k = (int) buff.getFloat();
+    final short k = (short) buff.getFloat();
     // reference implementation stores capacities of the array of centroids and the buffer as shorts
     // they can be derived from k in the constructor
     buff.getInt(); // unused
@@ -461,7 +486,7 @@ public final class TDigestDouble {
     return str;
   }
 
-  private TDigestDouble(final boolean reverseMerge, final int k, final double min, final double max,
+  private TDigestDouble(final boolean reverseMerge, final short k, final double min, final double max,
       final double[] means, final long[] weights, final long weight) {
     reverseMerge_ = reverseMerge; 
     k_ = k;
@@ -477,7 +502,7 @@ public final class TDigestDouble {
     bufferCapacity_ = centroidsCapacity_ * 5;
     double scale = Math.max(1.0, (double) bufferCapacity_ / centroidsCapacity_ - 1.0);
     if (!USE_TWO_LEVEL_COMPRESSION) scale = 1;
-    internalK_ = (int) Math.ceil(Math.sqrt(scale) * k_);
+    internalK_ = (short) Math.ceil(Math.sqrt(scale) * k_);
     centroidsCapacity_ = Math.max(centroidsCapacity_, internalK_ + fudge);
     bufferCapacity_ = Math.max(bufferCapacity_, centroidsCapacity_ * 2);
     centroidMeans_ = new double[centroidsCapacity_];
@@ -557,6 +582,10 @@ public final class TDigestDouble {
     reverseMerge_ = !reverseMerge_;
     minValue_ = Math.min(minValue_, centroidMeans_[0]);
     maxValue_ = Math.max(maxValue_, centroidMeans_[numCentroids_ - 1]);
+  }
+
+  private boolean isSingleValue() {
+    return getTotalWeight() == 1;
   }
 
   /*

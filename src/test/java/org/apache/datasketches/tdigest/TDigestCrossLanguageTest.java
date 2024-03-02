@@ -82,7 +82,7 @@ public class TDigestCrossLanguageTest {
   public void generateForCppDouble() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final TDigestDouble td = new TDigestDouble(100);
+      final TDigestDouble td = new TDigestDouble((short) 100);
       for (int i = 1; i <= n; i++) td.update(i);
       Files.newOutputStream(javaPath.resolve("tdigest_double_n" + n + "_java.sk")).write(td.toByteArray());
     }
