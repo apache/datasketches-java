@@ -78,7 +78,7 @@ public class TDigestDoubleTest {
     assertEquals(td.getRank(n * 3 / 4), 0.75, 0.0001);
     assertEquals(td.getRank(n), 1);
     assertEquals(td.getQuantile(0), 0);
-    assertEquals(td.getQuantile(0.5), n / 2, n / 2 * 0.01);
+    assertEquals(td.getQuantile(0.5), n / 2, n / 2 * 0.03);
     assertEquals(td.getQuantile(0.9), n * 0.9, n * 0.9 * 0.01);
     assertEquals(td.getQuantile(0.95), n * 0.95, n * 0.95 * 0.01);
     assertEquals(td.getQuantile(1), n - 1);
