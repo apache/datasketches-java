@@ -115,7 +115,7 @@ public final class TDigestDouble {
    */
   public void merge(final TDigestDouble other) {
     if (other.isEmpty()) return;
-    int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
+    final int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
     if (num <= bufferCapacity_) {
       System.arraycopy(other.bufferValues_, 0, bufferValues_, numBuffered_, other.numBuffered_);
       System.arraycopy(other.bufferWeights_, 0, bufferWeights_, numBuffered_, other.numBuffered_);
@@ -137,7 +137,7 @@ public final class TDigestDouble {
       System.arraycopy(other.centroidMeans_, 0, values, numBuffered_, other.numCentroids_);
       System.arraycopy(other.centroidWeights_, 0, weights, numBuffered_, other.numCentroids_);
       numBuffered_ += other.numCentroids_;
-      merge(values, weights, bufferedWeight_ + other.centroidsWeight_, numBuffered_);
+      merge(values, weights, bufferedWeight_ + other.getTotalWeight(), numBuffered_);
     }
   }
 
