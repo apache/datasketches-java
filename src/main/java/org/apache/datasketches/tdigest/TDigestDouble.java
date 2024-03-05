@@ -47,6 +47,8 @@ public final class TDigestDouble {
 
   public static final short DEFAULT_K = 200;
 
+  public static final String LS = System.getProperty("line.separator");
+
   private boolean reverseMerge_;
   private final short k_;
   private final short internalK_;
@@ -454,36 +456,38 @@ public final class TDigestDouble {
    * @return summary of this TDigest
    */
   public String toString(boolean printCentroids) {
-    String str = "MergingDigest\n"
-        + " Nominal Compression: " + k_ + "\n"
-        + " Internal Compression: " + internalK_ + "\n"
-        + " Centroids: " + numCentroids_ + "\n"
-        + " Buffered: " + numBuffered_ + "\n"
-        + " Centroids Capacity: " + centroidsCapacity_ + "\n"
-        + " Buffer Capacity: " + bufferCapacity_ + "\n"
-        + " Centroids Weight: " + centroidsWeight_ + "\n"
-        + " Buffered Weight: " + bufferedWeight_ + "\n"
-        + " Total Weight: " + getTotalWeight() + "\n"
-        + " Reverse Merge: " + reverseMerge_ + "\n";
+    final StringBuilder sb = new StringBuilder();
+
+    sb.append("MergingDigest").append(LS)
+      .append(" Nominal Compression: ").append(k_).append(LS)
+      .append(" Internal Compression: ").append(internalK_).append(LS)
+      .append(" Centroids: ").append(numCentroids_).append(LS)
+      .append(" Buffered: ").append(numBuffered_).append(LS)
+      .append(" Centroids Capacity: ").append(centroidsCapacity_).append(LS)
+      .append(" Buffer Capacity: ").append(bufferCapacity_).append(LS)
+      .append("Centroids Weight: ").append(centroidsWeight_).append(LS)
+      .append(" Buffered Weight: ").append(bufferedWeight_).append(LS)
+      .append(" Total Weight: ").append(getTotalWeight()).append(LS)
+      .append(" Reverse Merge: ").append(reverseMerge_).append(LS);
     if (!isEmpty()) {
-      str += " Min: " + minValue_ + "\n"
-           + " Max: " + maxValue_ + "\n";
+      sb.append(" Min: ").append(minValue_).append(LS)
+        .append(" Max: ").append(maxValue_).append(LS);
     }
     if (printCentroids) {
       if (numCentroids_ > 0) {
-        str += "Centroids:\n";
+        sb.append("Centroids:").append(LS);
         for (int i = 0; i < numCentroids_; i++) {
-          str += i + ": " + centroidMeans_[i] + ", " + centroidWeights_[i] + "\n";
+          sb.append(i).append(": ").append(centroidMeans_[i]).append(", ").append(centroidWeights_[i]).append(LS);
         }
       }
       if (numBuffered_ > 0) {
-        str += "Buffer:\n";
+        sb.append("Buffer:").append(LS);
         for (int i = 0; i < numBuffered_; i++) {
-          str += i + ": " + bufferValues_[i] + ", " + bufferWeights_[i] + "\n";
+          sb.append(i).append(": ").append(bufferValues_[i]).append(", ").append(bufferWeights_[i]).append(LS);
         }
       }
     }
-    return str;
+    return sb.toString();
   }
 
   private TDigestDouble(final boolean reverseMerge, final short k, final double min, final double max,
