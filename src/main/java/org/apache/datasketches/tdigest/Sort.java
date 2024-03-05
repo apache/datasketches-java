@@ -19,11 +19,19 @@
 
 package org.apache.datasketches.tdigest;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Specialized sorting algorithm that can sort one array and permute another array the same way
+ */
 public final class Sort {
-  private static final Random prng = new Random();
 
+  /**
+   * Stable sort two arrays. The first array is sorted while the second array is permuted the same way.
+   * @param keys array to be sorted
+   * @param values array to be permuted the same way
+   * @param n number of elements to sort from the beginning of the arrays
+   */
   public static void stableSort(final double[] keys, final long[] values, final int n) {
     stableLimitedQuickSort(keys, values, 0, n, 64);
     stableLimitedInsertionSort(keys, values, 0, n, 64);
@@ -33,7 +41,7 @@ public final class Sort {
     // the while loop implements tail-recursion to avoid excessive stack calls on nasty cases
     while (end - start > limit) {
 
-      final int pivotIndex = start + prng.nextInt(end - start);
+      final int pivotIndex = start + ThreadLocalRandom.current().nextInt(end - start);
       double pivotValue = keys[pivotIndex];
 
       // move pivot to beginning of array
