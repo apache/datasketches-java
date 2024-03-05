@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tdigest;
 
+/**
+ * Algorithms with logarithmic complexity for searching in an array.
+ */
 public final class BinarySearch {
 
   /**
@@ -39,9 +42,8 @@ public final class BinarySearch {
     int step;
     int count = last - first; 
     while (count > 0) {
-      current = first;
       step = count / 2;
-      current += step;
+      current = first + step;
       if (values[current] < value) {
         first = ++current;
         count -= step + 1;
@@ -70,9 +72,8 @@ public final class BinarySearch {
     int step;
     int count = last - first; 
     while (count > 0) {
-      current = first; 
       step = count / 2; 
-      current += step;
+      current = first + step;
       if (!(value < values[current])) {
         first = ++current;
         count -= step + 1;
