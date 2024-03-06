@@ -50,7 +50,7 @@ public class TDigestCrossLanguageTest {
         if (n == 1) {
           assertEquals(td.getRank(n), 0.5);
         } else {
-          assertEquals(td.getRank(n / 2), 0.5, n * 0.01);
+          assertEquals(td.getRank(n / 2), 0.5, 0.05);
         }
       }
     }
@@ -72,7 +72,7 @@ public class TDigestCrossLanguageTest {
         if (n == 1) {
           assertEquals(td.getRank(n), 0.5);
         } else {
-          assertEquals(td.getRank(n / 2), 0.5, n * 0.01);
+          assertEquals(td.getRank(n / 2), 0.5, 0.05);
         }
       }
     }
