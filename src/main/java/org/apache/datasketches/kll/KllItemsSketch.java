@@ -25,18 +25,19 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.PartitioningFeature;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
-import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
@@ -154,7 +155,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
       final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllItemsSV.getPartitionBoundaries(numEquallySized, searchCrit);
   }
@@ -307,13 +308,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   abstract int getMinMaxSizeBytes();
 
-  private final KllItemsSketchSortedView<T> refreshSortedView() {
-    final KllItemsSketchSortedView<T> sv = (kllItemsSV == null)
-        ? kllItemsSV = new KllItemsSketchSortedView<>(this)
-        : kllItemsSV;
-    return sv;
-  }
-
   abstract T[] getRetainedItemsArray();
 
   @Override
@@ -373,5 +367,145 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   void setWritableMemory(final WritableMemory wmem) {
     throw new SketchesArgumentException(UNSUPPORTED_MSG + "Sketch not writable.");
   }
+
+  void updateMinMax(final T item) {
+    if (isEmpty()) {
+      setMinItem(item);
+      setMaxItem(item);
+    } else {
+      setMinItem(Util.minT(getMinItem(), item, comparator));
+      setMaxItem(Util.maxT(getMaxItem(), item, comparator));
+    }
+  }
+
+  private final KllItemsSketchSortedView<T> refreshSortedView() {
+    if (kllItemsSV == null) {
+      final CreateSortedView csv = new CreateSortedView();
+      kllItemsSV = csv.getSV();
+    }
+    return kllItemsSV;
+  }
+
+  private final class CreateSortedView {
+    T[] quantiles;
+    long[] cumWeights;
+
+    KllItemsSketchSortedView<T> getSV() {
+      if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+      if (getN() == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
+      final T[] srcQuantiles = getTotalItemsArray();
+      final int[] srcLevels = levelsArr;
+      final int srcNumLevels = getNumLevels();
+
+      if (!isLevelZeroSorted()) {
+        Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1], comparator);
+        if (!hasMemory()) { setLevelZeroSorted(true); }
+      }
+      final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove free space
+      quantiles = (T[]) Array.newInstance(serDe.getClassOfT(), numQuantiles);
+      cumWeights = new long[numQuantiles];
+      populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
+      return new KllItemsSketchSortedView<>(quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem());
+    }
+
+    private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevels,
+        final int srcNumLevels, final int numItems) {
+        final int[] myLevels = new int[srcNumLevels + 1];
+        final int offset = srcLevels[0];
+        System.arraycopy(srcQuantiles, offset, quantiles, 0, numItems);
+        int srcLevel = 0;
+        int dstLevel = 0;
+        long weight = 1;
+        while (srcLevel < srcNumLevels) {
+          final int fromIndex = srcLevels[srcLevel] - offset;
+          final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
+          if (fromIndex < toIndex) { // if equal, skip empty level
+            Arrays.fill(cumWeights, fromIndex, toIndex, weight);
+            myLevels[dstLevel] = fromIndex;
+            myLevels[dstLevel + 1] = toIndex;
+            dstLevel++;
+          }
+          srcLevel++;
+          weight *= 2;
+        }
+        final int numLevels = dstLevel;
+        blockyTandemMergeSort(quantiles, cumWeights, myLevels, numLevels, comparator); //create unit weights
+        KllHelper.convertToCumulative(cumWeights);
+      }
+  }
+
+    private static <T> void blockyTandemMergeSort(final Object[] quantiles, final long[] weights,
+        final int[] levels, final int numLevels, final Comparator<? super T> comp) {
+      if (numLevels == 1) { return; }
+
+      // duplicate the input in preparation for the "ping-pong" copy reduction strategy.
+      final Object[] quantilesTmp = Arrays.copyOf(quantiles, quantiles.length);
+      final long[] weightsTmp = Arrays.copyOf(weights, quantiles.length); // don't need the extra one here
+
+      blockyTandemMergeSortRecursion(quantilesTmp, weightsTmp, quantiles, weights, levels, 0, numLevels, comp);
+    }
+
+    private static <T> void blockyTandemMergeSortRecursion(
+        final Object[] quantilesSrc, final long[] weightsSrc,
+        final Object[] quantilesDst, final long[] weightsDst,
+        final int[] levels, final int startingLevel, final int numLevels, final Comparator<? super T> comp) {
+      if (numLevels == 1) { return; }
+      final int numLevels1 = numLevels / 2;
+      final int numLevels2 = numLevels - numLevels1;
+      assert numLevels1 >= 1;
+      assert numLevels2 >= numLevels1;
+      final int startingLevel1 = startingLevel;
+      final int startingLevel2 = startingLevel + numLevels1;
+      // swap roles of src and dst
+      blockyTandemMergeSortRecursion(
+          quantilesDst, weightsDst,
+          quantilesSrc, weightsSrc,
+          levels, startingLevel1, numLevels1, comp);
+      blockyTandemMergeSortRecursion(
+          quantilesDst, weightsDst,
+          quantilesSrc, weightsSrc,
+          levels, startingLevel2, numLevels2, comp);
+      tandemMerge(
+          quantilesSrc, weightsSrc,
+          quantilesDst, weightsDst,
+          levels,
+          startingLevel1, numLevels1,
+          startingLevel2, numLevels2, comp);
+    }
+
+    private static <T> void tandemMerge(
+        final Object[] quantilesSrc, final long[] weightsSrc,
+        final Object[] quantilesDst, final long[] weightsDst,
+        final int[] levelStarts,
+        final int startingLevel1, final int numLevels1,
+        final int startingLevel2, final int numLevels2, final Comparator<? super T> comp) {
+      final int fromIndex1 = levelStarts[startingLevel1];
+      final int toIndex1 = levelStarts[startingLevel1 + numLevels1]; // exclusive
+      final int fromIndex2 = levelStarts[startingLevel2];
+      final int toIndex2 = levelStarts[startingLevel2 + numLevels2]; // exclusive
+      int iSrc1 = fromIndex1;
+      int iSrc2 = fromIndex2;
+      int iDst = fromIndex1;
+
+      while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
+        if (Util.lt((T) quantilesSrc[iSrc1], (T) quantilesSrc[iSrc2], comp)) {
+          quantilesDst[iDst] = quantilesSrc[iSrc1];
+          weightsDst[iDst] = weightsSrc[iSrc1];
+          iSrc1++;
+        } else {
+          quantilesDst[iDst] = quantilesSrc[iSrc2];
+          weightsDst[iDst] = weightsSrc[iSrc2];
+          iSrc2++;
+        }
+        iDst++;
+      }
+      if (iSrc1 < toIndex1) {
+        System.arraycopy(quantilesSrc, iSrc1, quantilesDst, iDst, toIndex1 - iSrc1);
+        System.arraycopy(weightsSrc, iSrc1, weightsDst, iDst, toIndex1 - iSrc1);
+      } else if (iSrc2 < toIndex2) {
+        System.arraycopy(quantilesSrc, iSrc2, quantilesDst, iDst, toIndex2 - iSrc2);
+        System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
+      }
+    }
 
 }

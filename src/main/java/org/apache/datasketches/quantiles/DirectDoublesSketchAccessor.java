@@ -26,7 +26,7 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * @author Jon Malkin
  */
-class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
+final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
   DirectDoublesSketchAccessor(final DoublesSketch ds,
                               final boolean forceSize,
                               final int level) {

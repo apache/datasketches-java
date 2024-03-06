@@ -59,15 +59,19 @@ abstract class DirectHllArray extends AbstractHllArray {
   long memAdd;
   final boolean compact;
 
+  private static int checkMemCompactFlag(final WritableMemory wmem, final int lgConfigK) {
+    assert !extractCompactFlag(wmem);
+    return lgConfigK;
+  }
+
   //Memory must be already initialized and may have data
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
-    super(lgConfigK, tgtHllType, CurMode.HLL);
+    super(checkMemCompactFlag(wmem, lgConfigK), tgtHllType, CurMode.HLL);
     this.wmem = wmem;
     mem = wmem;
     memObj = wmem.getArray();
     memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(mem);
-    assert !compact;
     insertEmptyFlag(wmem, false);
   }
 

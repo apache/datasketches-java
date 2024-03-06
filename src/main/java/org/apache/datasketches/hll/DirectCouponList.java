@@ -61,19 +61,21 @@ class DirectCouponList extends AbstractCoupons {
   Memory mem;
   final boolean compact;
 
-  //called from newInstance, writableWrap and DirectCouponHashSet
-  DirectCouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode,
-      final WritableMemory wmem) {
-    super(lgConfigK, tgtHllType, curMode);
+  private static int checkMemCompactFlag(final WritableMemory wmem, final int lgConfigK) {
+    assert !extractCompactFlag(wmem);
+    return lgConfigK;
+  }
+
+  //called from newInstance, writableWrap and DirectCouponHashSet, must be compact
+  DirectCouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode, final WritableMemory wmem) {
+    super(checkMemCompactFlag(wmem, lgConfigK), tgtHllType, curMode);
     this.wmem = wmem;
     mem = wmem;
     compact = extractCompactFlag(wmem);
-    assert !compact;
   }
 
-  //called from HllSketch.wrap and from DirectCouponHashSet constructor, may be compact
-  DirectCouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode,
-      final Memory mem) {
+  //called from HllSketch.wrap and from DirectCouponHashSet constructor, may or may not be compact
+  DirectCouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode, final Memory mem) {
     super(lgConfigK, tgtHllType, curMode);
     wmem = null;
     this.mem = mem;

@@ -42,7 +42,7 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class CouponHashSet extends CouponList {
+final class CouponHashSet extends CouponList {
 
   /**
    * Constructs this sketch with the intent of loading it with data
