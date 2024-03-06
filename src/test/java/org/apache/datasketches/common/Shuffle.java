@@ -28,10 +28,19 @@ public final class Shuffle {
   private static final Random rand = new Random();
 
   /**
-   * Shuffle the given input float array
-   * @param array input array
+   * Shuffle the given input array using a default source of randomness.
+   * @param array the array to be shuffled.
    */
   public static void shuffle(final float[] array) {
+    shuffle(array, rand);
+  }
+
+  /**
+   * Shuffle the given input array using the given source of randomness.
+   * @param array the array to be shuffled.
+   * @param rand the source of randomness used to shuffle the list.
+   */
+  public static void shuffle(final float[] array, final Random rand) {
     final int arrLen = array.length;
     for (int i = 0; i < arrLen; i++) {
       final int r = rand.nextInt(i + 1);
@@ -46,10 +55,19 @@ public final class Shuffle {
   }
 
   /**
-   * Shuffle the given input double array
-   * @param array input array
+   * Shuffle the given input array using a default source of randomness.
+   * @param array the array to be shuffled.
    */
   public static void shuffle(final double[] array) {
+    shuffle(array, rand);
+  }
+
+  /**
+   * Shuffle the given input array using the given source of randomness.
+   * @param array the array to be shuffled.
+   * @param rand the source of randomness used to shuffle the list.
+   */
+  public static void shuffle(final double[] array, final Random rand) {
     final int arrLen = array.length;
     for (int i = 0; i < arrLen; i++) {
       final int r = rand.nextInt(i + 1);
@@ -64,10 +82,19 @@ public final class Shuffle {
   }
 
   /**
-   * Shuffle the given input long array
-   * @param array input array
+   * Shuffle the given input array using a default source of randomness.
+   * @param array the array to be shuffled.
    */
   public static void shuffle(final long[] array) {
+    shuffle(array, rand);
+  }
+
+  /**
+   * Shuffle the given input array using the given source of randomness.
+   * @param array the array to be shuffled.
+   * @param rand the source of randomness used to shuffle the list.
+   */
+  public static void shuffle(final long[] array, final Random rand) {
     final int arrLen = array.length;
     for (int i = 0; i < arrLen; i++) {
       final int r = rand.nextInt(i + 1);
@@ -82,10 +109,19 @@ public final class Shuffle {
   }
 
   /**
-   * Shuffle the given input int array
-   * @param array input array
+   * Shuffle the given input array using a default source of randomness.
+   * @param array the array to be shuffled.
    */
   public static void shuffle(final int[] array) {
+    shuffle(array, rand);
+  }
+
+  /**
+   * Shuffle the given input array using the given source of randomness.
+   * @param array the array to be shuffled.
+   * @param rand the source of randomness used to shuffle the list.
+   */
+  public static void shuffle(final int[] array, final Random rand) {
     final int arrLen = array.length;
     for (int i = 0; i < arrLen; i++) {
       final int r = rand.nextInt(i + 1);
@@ -95,6 +131,35 @@ public final class Shuffle {
 
   private static void swap(final int[] array, final int i1, final int i2) {
     final int value = array[i1];
+    array[i1] = array[i2];
+    array[i2] = value;
+  }
+
+  /**
+   * Shuffle the given input array using a default source of randomness.
+   * @param array the array to be shuffled.
+   * @param <T> the component type of the given array.
+   */
+  public static <T> void shuffle(final T[] array) {
+    shuffle(array, rand);
+  }
+
+  /**
+   * Shuffle the given input array using the given source of randomness.
+   * @param array the array to be shuffled.
+   * @param rand the source of randomness used to shuffle the list.
+   * @param <T> the component type of the given array.
+   */
+  public static <T> void shuffle(final T[] array, final Random rand) {
+    final int arrLen = array.length;
+    for (int i = 0; i < arrLen; i++) {
+      final int r = rand.nextInt(i + 1);
+      swap(array, i, r);
+    }
+  }
+
+  private static<T> void swap(final T[] array, final int i1, final int i2) {
+    final T value = array[i1];
     array[i1] = array[i2];
     array[i2] = value;
   }

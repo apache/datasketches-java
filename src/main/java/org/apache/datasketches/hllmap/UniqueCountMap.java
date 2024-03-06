@@ -80,7 +80,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * @author Alexander Saydakov
  * @author Kevin Lang
  */
-public class UniqueCountMap {
+public final class UniqueCountMap {
   private static final String LS = System.getProperty("line.separator");
   private static final int NUM_LEVELS = 10; // total of single coupon + traverse + coupon maps + hll
   private static final int NUM_TRAVERSE_MAPS = 3;

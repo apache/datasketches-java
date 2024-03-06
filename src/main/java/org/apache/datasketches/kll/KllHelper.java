@@ -313,9 +313,9 @@ final class KllHelper {
    * @return the capacity of a specific level
    */
   static int levelCapacity(final int k, final int numLevels, final int level, final int m) {
-    assert (k <= (1 << 29));
-    assert (numLevels >= 1) && (numLevels <= 61);
-    assert (level >= 0) && (level < numLevels);
+    assert (k <= (1 << 29)) : "The given k is > 2^29.";
+    assert (numLevels >= 1) && (numLevels <= 61) : "The given numLevels is < 1 or > 61";
+    assert (level >= 0) && (level < numLevels) : "The given level is < 0 or >= numLevels.";
     final int depth = numLevels - level - 1; //depth is # levels from the top level (= 0)
     return (int) Math.max(m, intCapAux(k, depth));
   }

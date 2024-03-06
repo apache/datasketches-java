@@ -41,6 +41,11 @@ class CouponList extends AbstractCoupons {
   int couponCount;
   int[] couponIntArr;
 
+  private static int checkLgConfigK(final CurMode curMode, final int lgConfigK) {
+    if (curMode == CurMode.SET) { assert lgConfigK > 7; }
+    return lgConfigK;
+  }
+
   /**
    * New instance constructor for LIST or SET.
    * @param lgConfigK the configured Lg K
@@ -48,12 +53,11 @@ class CouponList extends AbstractCoupons {
    * @param curMode LIST or SET
    */
   CouponList(final int lgConfigK, final TgtHllType tgtHllType, final CurMode curMode) {
-    super(lgConfigK, tgtHllType, curMode);
+    super(checkLgConfigK(curMode, lgConfigK), tgtHllType, curMode);
     if (curMode == CurMode.LIST) {
       lgCouponArrInts = LG_INIT_LIST_SIZE;
     } else { //SET
       lgCouponArrInts = LG_INIT_SET_SIZE;
-      assert lgConfigK > 7;
     }
     couponIntArr = new int[1 << lgCouponArrInts];
     couponCount = 0;

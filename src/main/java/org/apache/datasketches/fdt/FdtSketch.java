@@ -46,7 +46,7 @@ import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
  *
  * @author Lee Rhodes
  */
-public class FdtSketch extends ArrayOfStringsSketch {
+public final class FdtSketch extends ArrayOfStringsSketch {
 
   /**
    * Create new instance of Frequent Distinct Tuples sketch with the given

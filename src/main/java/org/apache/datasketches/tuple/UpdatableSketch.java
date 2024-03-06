@@ -69,7 +69,9 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * Heapifying a CompactSketch is not deprecated.
    */
   @Deprecated
-  public UpdatableSketch(final Memory srcMem, final SummaryDeserializer<S> deserializer,
+  public UpdatableSketch(
+      final Memory srcMem,
+      final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
     super(srcMem, deserializer, summaryFactory);
   }
