@@ -352,7 +352,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Contains common equality binary search algorithms.</div>
 </dd>
+<dt><a href="org/apache/datasketches/tdigest/BinarySearch.html" title="class in org.apache.datasketches.tdigest"><span class="typeNameLink">BinarySearch</span></a> - Class in <a href="org/apache/datasketches/tdigest/package-summary.html">org.apache.datasketches.tdigest</a></dt>
+<dd>
+<div class="block">Algorithms with logarithmic complexity for searching in an array.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/BinarySearch.html#%3Cinit%3E()">BinarySearch()</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/BinarySearch.html" title="class in org.apache.datasketches.quantilescommon">BinarySearch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/BinarySearch.html#%3Cinit%3E()">BinarySearch()</a></span> - Constructor for class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/BinarySearch.html" title="class in org.apache.datasketches.tdigest">BinarySearch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/thetacommon/BinomialBoundsN.html" title="class in org.apache.datasketches.thetacommon"><span class="typeNameLink">BinomialBoundsN</span></a> - Class in <a href="org/apache/datasketches/thetacommon/package-summary.html">org.apache.datasketches.thetacommon</a></dt>
 <dd>
@@ -737,6 +743,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">This compareTo is strictly limited to the Row.getEstimate() value and does not imply any
  ordering whatsoever to the other elements of the row: item and upper and lower bounds.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#compress()">compress()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Process buffered values and merge centroids if needed</div>
+</dd>
 <dt><a href="org/apache/datasketches/cpc/CompressionCharacterization.html" title="class in org.apache.datasketches.cpc"><span class="typeNameLink">CompressionCharacterization</span></a> - Class in <a href="org/apache/datasketches/cpc/package-summary.html">org.apache.datasketches.cpc</a></dt>
 <dd>
 <div class="block">This code is used both by unit tests, for short running tests,
@@ -893,6 +903,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The default K</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#DEFAULT_K">DEFAULT_K</a></span> - Static variable in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/CpcSketch.html#DEFAULT_LG_K">DEFAULT_LG_K</a></span> - Static variable in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/CpcSketch.html" title="class in org.apache.datasketches.cpc">CpcSketch</a></dt>
 <dd>
 <div class="block">The default Log_base2 of K</div>
@@ -2031,6 +2043,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns the sketch's value of <i>k</i>, the maximum number of samples stored in the
  sketch.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getK()">getK()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketchIterator.html#getKey()">getKey()</a></span> - Method in interface org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketchIterator.html" title="interface in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketchIterator</a></dt>
 <dd>
 <div class="block">Gets a key from the current entry in the sketch, which is a hash
@@ -2345,6 +2359,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Ref: <a href="org/apache/datasketches/theta/Sketch.html#getMaxUpdateSketchBytes(int)"><code>Sketch.getMaxUpdateSketchBytes(int)</code></a></div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getMaxValue()">getMaxValue()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/SetOperationBuilder.html#getMemoryRequestServer()">getMemoryRequestServer()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/SetOperationBuilder.html" title="class in org.apache.datasketches.theta">SetOperationBuilder</a></dt>
 <dd>
 <div class="block">Returns the MemoryRequestServer</div>
@@ -2407,6 +2423,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns the minimum preamble size for this family in longs</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getMinValue()">getMinValue()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
@@ -2744,6 +2762,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">This is equivalent to <a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getQuantile(rank, INCLUSIVE)</code></a></div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getQuantile(double)">getQuantile(double)</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Compute approximate quantile value corresponding to the given normalized rank</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
@@ -2951,6 +2973,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getRank(double)">getRank(double)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
 <div class="block">This is equivalent to <a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getRank(quantile, INCLUSIVE)</code></a></div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getRank(double)">getRank(double)</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Compute approximate normalized rank of the given value.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>
@@ -3453,6 +3479,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/SampleSubsetSummary.html#getTotalSketchWeight()">getTotalSketchWeight()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/SampleSubsetSummary.html" title="class in org.apache.datasketches.sampling">SampleSubsetSummary</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getTotalWeight()">getTotalWeight()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.CornerCase.html#getUnionAction()">getUnionAction()</a></span> - Method in enum org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.CornerCase.html" title="enum in org.apache.datasketches.thetacommon">SetOperationCornerCases.CornerCase</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/HllSketch.html#getUpdatableSerializationBytes()">getUpdatableSerializationBytes()</a></span> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
@@ -3860,6 +3888,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Instantiates a Union from Memory</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#heapify(org.apache.datasketches.memory.Memory)">heapify(Memory)</a></span> - Static method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Deserialize TDigest from a given memory.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/CompactSketch.html#heapify(org.apache.datasketches.memory.Memory)">heapify(Memory)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></dt>
 <dd>
 <div class="block">Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.</div>
@@ -3889,6 +3921,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html#heapify(org.apache.datasketches.memory.Memory)">heapify(Memory)</a></span> - Static method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUpdatableSketch</a></dt>
 <dd>
 <div class="block">Heapify the given Memory as an ArrayOfDoublesUpdatableSketch</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#heapify(org.apache.datasketches.memory.Memory,boolean)">heapify(Memory, boolean)</a></span> - Static method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Deserialize TDigest from a given memory.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/CpcSketch.html#heapify(org.apache.datasketches.memory.Memory,long)">heapify(Memory, long)</a></span> - Static method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/CpcSketch.html" title="class in org.apache.datasketches.cpc">CpcSketch</a></dt>
 <dd>
@@ -4349,6 +4385,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns true if the sketch is empty.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketch.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block"><a href="./resources/dictionary.html#empty">See Empty</a></div>
@@ -4761,6 +4799,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The java line separator character as a String.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#LS">LS</a></span> - Static variable in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#lt(java.lang.Object,java.lang.Object,java.util.Comparator)">lt(Object, Object, Comparator&lt;? super T&gt;)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Is item1 Less-Than item2</div>
@@ -4834,6 +4874,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/EbppsItemsSketch.html#merge(org.apache.datasketches.sampling.EbppsItemsSketch)">merge(EbppsItemsSketch&lt;T&gt;)</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/EbppsItemsSketch.html" title="class in org.apache.datasketches.sampling">EbppsItemsSketch</a></dt>
 <dd>
 <div class="block">Merges the provided sketch into the current one.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#merge(org.apache.datasketches.tdigest.TDigestDouble)">merge(TDigestDouble)</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Merge the given TDigest into this one</div>
 </dd>
 <dt><a href="org/apache/datasketches/cpc/MergingValidation.html" title="class in org.apache.datasketches.cpc"><span class="typeNameLink">MergingValidation</span></a> - Class in <a href="org/apache/datasketches/cpc/package-summary.html">org.apache.datasketches.cpc</a></dt>
 <dd>
@@ -5136,6 +5180,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">This package is dedicated to streaming algorithms that enable fixed size, uniform sampling of
  weighted and unweighted items from a stream.</div>
+</dd>
+<dt><a href="org/apache/datasketches/tdigest/package-summary.html">org.apache.datasketches.tdigest</a> - package org.apache.datasketches.tdigest</dt>
+<dd>
+<div class="block">t-Digest for estimating quantiles and ranks.</div>
 </dd>
 <dt><a href="org/apache/datasketches/theta/package-summary.html">org.apache.datasketches.theta</a> - package org.apache.datasketches.theta</dt>
 <dd>
@@ -5591,6 +5639,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">For the Families that accept this configuration parameter, it controls the size multiple that
  affects how fast the internal cache grows, when more space is required.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/Sort.html#reverse(double%5B%5D,int)">reverse(double[], int)</a></span> - Static method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/Sort.html" title="class in org.apache.datasketches.tdigest">Sort</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/Sort.html#reverse(long%5B%5D,int)">reverse(long[], int)</a></span> - Static method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/Sort.html" title="class in org.apache.datasketches.tdigest">Sort</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#rule">rule</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
 <dd>&nbsp;</dd>
 </dl>
@@ -5994,6 +6046,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.html#sketchStateId(boolean,int,long)">sketchStateId(boolean, int, long)</a></span> - Static method in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.html" title="class in org.apache.datasketches.thetacommon">SetOperationCornerCases</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/apache/datasketches/tdigest/Sort.html" title="class in org.apache.datasketches.tdigest"><span class="typeNameLink">Sort</span></a> - Class in <a href="org/apache/datasketches/tdigest/package-summary.html">org.apache.datasketches.tdigest</a></dt>
+<dd>
+<div class="block">Specialized sorting algorithm that can sort one array and permute another array the same way</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/Sort.html#%3Cinit%3E()">Sort()</a></span> - Constructor for class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/Sort.html" title="class in org.apache.datasketches.tdigest">Sort</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/SortedView.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">SortedView</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
 <div class="block">This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.</div>
@@ -6002,6 +6060,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
  from a quantile-type sketch.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/Sort.html#stableSort(double%5B%5D,long%5B%5D,int)">stableSort(double[], long[], int)</a></span> - Static method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/Sort.html" title="class in org.apache.datasketches.tdigest">Sort</a></dt>
+<dd>
+<div class="block">Stable sort two arrays.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.StackElement.html#%3Cinit%3E(org.apache.datasketches.quantilescommon.GenericPartitionBoundaries,int,java.lang.String)">StackElement(GenericPartitionBoundaries&lt;T&gt;, int, String)</a></span> - Constructor for class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions">Partitioner.StackElement</a></dt>
 <dd>&nbsp;</dd>
@@ -6087,6 +6149,22 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#tailRoundingFactor">tailRoundingFactor</a></span> - Static variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Family.html#TDIGEST">TDIGEST</a></span> - org.apache.datasketches.common.<a href="org/apache/datasketches/common/Family.html" title="enum in org.apache.datasketches.common">Family</a></dt>
+<dd>
+<div class="block">t-Digest for estimating quantiles and ranks</div>
+</dd>
+<dt><a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest"><span class="typeNameLink">TDigestDouble</span></a> - Class in <a href="org/apache/datasketches/tdigest/package-summary.html">org.apache.datasketches.tdigest</a></dt>
+<dd>
+<div class="block">t-Digest for estimating quantiles and ranks.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#%3Cinit%3E()">TDigestDouble()</a></span> - Constructor for class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Constructor with the default K</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#%3Cinit%3E(short)">TDigestDouble(short)</a></span> - Constructor for class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Constructor</div>
+</dd>
 <dt><a href="org/apache/datasketches/cpc/TestUtil.html" title="class in org.apache.datasketches.cpc"><span class="typeNameLink">TestUtil</span></a> - Class in <a href="org/apache/datasketches/cpc/package-summary.html">org.apache.datasketches.cpc</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/TestUtil.html#%3Cinit%3E()">TestUtil()</a></span> - Constructor for class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/TestUtil.html" title="class in org.apache.datasketches.cpc">TestUtil</a></dt>
@@ -6138,6 +6216,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/ReservoirLongsUnion.html#toByteArray()">toByteArray()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/ReservoirLongsUnion.html" title="class in org.apache.datasketches.sampling">ReservoirLongsUnion</a></dt>
 <dd>
 <div class="block">Returns a byte array representation of this union</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#toByteArray()">toByteArray()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Serialize this TDigest to a byte array form.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Intersection.html#toByteArray()">toByteArray()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Intersection.html" title="class in org.apache.datasketches.theta">Intersection</a></dt>
 <dd>
@@ -6316,6 +6398,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns a human-readable summary of the sketch, without items.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#toString()">toString()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Human-readable summary of this TDigest as a string</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/SetOperationBuilder.html#toString()">toString()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/SetOperationBuilder.html" title="class in org.apache.datasketches.theta">SetOperationBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketch.html#toString()">toString()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
@@ -6331,6 +6417,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/CpcSketch.html#toString(boolean)">toString(boolean)</a></span> - Method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/CpcSketch.html" title="class in org.apache.datasketches.cpc">CpcSketch</a></dt>
 <dd>
 <div class="block">Return a human-readable string summary of this sketch</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#toString(boolean)">toString(boolean)</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Human-readable summary of this TDigest as a string</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#toString(boolean,boolean)">toString(boolean, boolean)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>
@@ -6706,6 +6796,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Updates this sketch with the given item.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#update(double)">update(double)</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Update this TDigest with the given value</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Union.html#update(double)">update(double)</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Union.html" title="class in org.apache.datasketches.theta">Union</a></dt>
 <dd>
 <div class="block">Update <i>this</i> union with the given double (or float) data item.</div>
@@ -6973,6 +7067,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Constructor for building a new UpdateSketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html#upperBound">upperBound</a></span> - Variable in class org.apache.datasketches.partitions.<a href="org/apache/datasketches/partitions/Partitioner.PartitionBoundsRow.html" title="class in org.apache.datasketches.partitions">Partitioner.PartitionBoundsRow</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#USE_ALTERNATING_SORT">USE_ALTERNATING_SORT</a></span> - Static variable in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#USE_TWO_LEVEL_COMPRESSION">USE_TWO_LEVEL_COMPRESSION</a></span> - Static variable in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#USE_WEIGHT_LIMIT">USE_WEIGHT_LIMIT</a></span> - Static variable in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common"><span class="typeNameLink">Util</span></a> - Class in <a href="org/apache/datasketches/common/package-summary.html">org.apache.datasketches.common</a></dt>
 <dd>

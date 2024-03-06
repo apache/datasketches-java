@@ -12,6 +12,7 @@ org.apache.datasketches.quantiles
 org.apache.datasketches.quantilescommon
 org.apache.datasketches.req
 org.apache.datasketches.sampling
+org.apache.datasketches.tdigest
 org.apache.datasketches.theta
 org.apache.datasketches.thetacommon
 org.apache.datasketches.tuple
