@@ -131,9 +131,7 @@ final class KllDoublesHelper {
     final double myMin = myEmpty ? Double.NaN : mySketch.getMinItem();
     final double myMax = myEmpty ? Double.NaN : mySketch.getMaxItem();
     final int myMinK = mySketch.getMinK();
-    final long finalN = mySketch.getN() + otherDblSk.getN();
-    assert finalN <= Long.MAX_VALUE && finalN >= 0 :
-      "The input count has exceeded the capacity of a long and the capability of this sketch.";
+    final long finalN = Math.addExact(mySketch.getN(), otherDblSk.getN());
 
     //buffers that are referenced multiple times
     final int otherNumLevels = otherDblSk.getNumLevels();
@@ -399,10 +397,8 @@ final class KllDoublesHelper {
       curLevel++; // start out at level 0
 
       // If we are at the current top level, add an empty level above it for convenience,
-      // but do not increment numLevels until later
+      // but do not actually increment numLevels until later
       if (curLevel == (numLevels - 1)) {
-        assert curLevel + 2 < 60 :
-          "The number of levels has exceeded the capability of this sketch.";
         inLevels[curLevel + 2] = inLevels[curLevel + 1];
       }
 

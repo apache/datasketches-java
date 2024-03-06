@@ -632,7 +632,6 @@ final class KllHelper {
       //grow levels arr by one and copy the old data to the new array, extra space at the top.
       myNewLevelsArr = Arrays.copyOf(myCurLevelsArr, myCurNumLevels + 2);
       assert myNewLevelsArr.length == myCurLevelsArr.length + 1;
-      assert myNewLevelsArr.length <= 60 : "The number of levels has exceeded the capability of this sketch.";
       myNewNumLevels = myCurNumLevels + 1;
       sketch.incNumLevels(); //increment for off-heap
     } else {
