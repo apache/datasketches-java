@@ -123,8 +123,7 @@ final class KllDoublesHelper {
   }
 
   //assumes readOnly = false and UPDATABLE, called from KllDoublesSketch::merge
-  static void mergeDoubleImpl(final KllDoublesSketch mySketch,
-      final KllDoublesSketch otherDblSk) {
+  static void mergeDoubleImpl(final KllDoublesSketch mySketch, final KllDoublesSketch otherDblSk) {
     if (otherDblSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -132,7 +131,7 @@ final class KllDoublesHelper {
     final double myMin = myEmpty ? Double.NaN : mySketch.getMinItem();
     final double myMax = myEmpty ? Double.NaN : mySketch.getMaxItem();
     final int myMinK = mySketch.getMinK();
-    final long finalN = mySketch.getN() + otherDblSk.getN();
+    final long finalN = Math.addExact(mySketch.getN(), otherDblSk.getN());
 
     //buffers that are referenced multiple times
     final int otherNumLevels = otherDblSk.getNumLevels();
@@ -398,7 +397,7 @@ final class KllDoublesHelper {
       curLevel++; // start out at level 0
 
       // If we are at the current top level, add an empty level above it for convenience,
-      // but do not increment numLevels until later
+      // but do not actually increment numLevels until later
       if (curLevel == (numLevels - 1)) {
         inLevels[curLevel + 2] = inLevels[curLevel + 1];
       }
