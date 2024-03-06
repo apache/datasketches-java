@@ -251,6 +251,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   public final void merge(final KllSketch other) {
     if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllItemsSketch<T> othItmSk = (KllItemsSketch<T>)other;
     if (othItmSk.isEmpty()) { return; }
     KllItemsHelper.mergeItemImpl(this, othItmSk, comparator);

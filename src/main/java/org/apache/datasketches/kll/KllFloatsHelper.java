@@ -123,8 +123,7 @@ final class KllFloatsHelper {
   }
 
   //assumes readOnly = false and UPDATABLE, called from KllFloatsSketch::merge
-  static void mergeFloatImpl(final KllFloatsSketch mySketch,
-      final KllFloatsSketch otherFltSk) {
+  static void mergeFloatImpl(final KllFloatsSketch mySketch, final KllFloatsSketch otherFltSk) {
     if (otherFltSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -132,7 +131,7 @@ final class KllFloatsHelper {
     final float myMin = myEmpty ? Float.NaN : mySketch.getMinItem();
     final float myMax = myEmpty ? Float.NaN : mySketch.getMaxItem();
     final int myMinK = mySketch.getMinK();
-    final long finalN = mySketch.getN() + otherFltSk.getN();
+    final long finalN = Math.addExact(mySketch.getN(), otherFltSk.getN());
 
     //buffers that are referenced multiple times
     final int otherNumLevels = otherFltSk.getNumLevels();
@@ -398,7 +397,7 @@ final class KllFloatsHelper {
       curLevel++; // start out at level 0
 
       // If we are at the current top level, add an empty level above it for convenience,
-      // but do not increment numLevels until later
+      // but do not actually increment numLevels until later
       if (curLevel == (numLevels - 1)) {
         inLevels[curLevel + 2] = inLevels[curLevel + 1];
       }
@@ -465,7 +464,7 @@ final class KllFloatsHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static void populateFloatWorkArrays(
+  private static void populateFloatWorkArrays( //workBuf and workLevels are modified
       final float[] workbuf, final int[] worklevels, final int provisionalNumLevels,
       final int myCurNumLevels, final int[] myCurLevelsArr, final float[] myCurFloatItemsArr,
       final int otherNumLevels, final int[] otherLevelsArr, final float[] otherFloatItemsArr) {
