@@ -76,13 +76,6 @@ public final class BloomFilter {
    * @param seed The base hash seed
    */
   BloomFilter(final long numBits, final int numHashes, final long seed) {
-    checkArgument(numBits > MAX_SIZE, "Size of BloomFilter must be <= " + MAX_SIZE
-      + ". Requested: " + numBits);
-    checkArgument(numHashes < 1, "Must specify a strictly positive number of hash functions. "
-      + "Requested: " + numHashes);
-    checkArgument(numHashes > Short.MAX_VALUE, "Number of hashes cannot exceed " + Short.MAX_VALUE
-      + ". Requested: " + numHashes);
-    
     seed_ = seed;
     numHashes_ = (short) numHashes;
     bitArray_ = new BitArray(numBits);

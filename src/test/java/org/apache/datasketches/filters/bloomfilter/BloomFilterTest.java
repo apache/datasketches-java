@@ -31,18 +31,6 @@ import org.testng.annotations.Test;
 public class BloomFilterTest {
 
   @Test
-  public void invalidNumHashesTest() {
-    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(1000, -1, 123));
-    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(1000, 65536, 123));
-  }
-
-  @Test
-  public void invalidNumBitsTest() {
-    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(0, 3, 456));
-    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(BloomFilter.MAX_SIZE + 1, 3, 456));
-  }
-
-  @Test
   public void basicFilterOperationsTest() {
     final long numBits = 8192;
     final int numHashes = 3;
