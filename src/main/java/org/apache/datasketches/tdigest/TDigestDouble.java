@@ -72,7 +72,7 @@ public final class TDigestDouble {
   private static final int COMPAT_DOUBLE = 1;
   private static final int COMPAT_FLOAT = 2;
 
-  enum flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE };
+  enum Flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE };
 
   /**
    * Constructor with the default K
@@ -101,8 +101,8 @@ public final class TDigestDouble {
    * @param value to update the TDigest with
    */
   public void update(final double value) {
-    if (Double.isNaN(value)) return;
-    if (numBuffered_ == bufferCapacity_ - numCentroids_) mergeBuffered();
+    if (Double.isNaN(value)) { return; }
+    if (numBuffered_ == bufferCapacity_ - numCentroids_) { mergeBuffered(); }
     bufferValues_[numBuffered_] = value;
     bufferWeights_[numBuffered_] = 1;
     numBuffered_++;
@@ -116,7 +116,7 @@ public final class TDigestDouble {
    * @param other TDigest to merge
    */
   public void merge(final TDigestDouble other) {
-    if (other.isEmpty()) return;
+    if (other.isEmpty()) { return; }
     final int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
     if (num <= bufferCapacity_) {
       System.arraycopy(other.bufferValues_, 0, bufferValues_, numBuffered_, other.numBuffered_);
@@ -186,11 +186,11 @@ public final class TDigestDouble {
    * @return normalized rank (from 0 to 1 inclusive)
    */
   public double getRank(final double value) {
-    if (isEmpty()) throw new SketchesStateException(QuantilesAPI.EMPTY_MSG);
-    if (Double.isNaN(value)) throw new SketchesArgumentException("Operation is undefined for Nan");
-    if (value < minValue_) return 0;
-    if (value > maxValue_) return 1;
-    if (numCentroids_ + numBuffered_ == 1) return 0.5;
+    if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
+    if (Double.isNaN(value)) { throw new SketchesArgumentException("Operation is undefined for Nan"); }
+    if (value < minValue_) { return 0; }
+    if (value > maxValue_) { return 1; }
+    if (numCentroids_ + numBuffered_ == 1) { return 0.5; }
 
     mergeBuffered(); // side effect
 
@@ -198,7 +198,7 @@ public final class TDigestDouble {
     final double firstMean = centroidMeans_[0];
     if (value < firstMean) {
       if (firstMean - minValue_ > 0) {
-        if (value == minValue_) return 0.5 / centroidsWeight_;
+        if (value == minValue_) { return 0.5 / centroidsWeight_; }
         return (1.0 + (value - minValue_) / (firstMean - minValue_) * (centroidWeights_[0] / 2.0 - 1.0));
       }
       return 0; // should never happen
@@ -208,30 +208,32 @@ public final class TDigestDouble {
     final double lastMean = centroidMeans_[numCentroids_ - 1];
     if (value > lastMean) {
       if (maxValue_ - lastMean > 0) {
-        if (value == maxValue_) return 1.0 - 0.5 / centroidsWeight_;
-        return 1.0 - ((1.0 + (maxValue_ - value) / (maxValue_ - lastMean) * (centroidWeights_[numCentroids_ - 1] / 2.0 - 1.0)) / centroidsWeight_);
+        if (value == maxValue_) { return 1.0 - 0.5 / centroidsWeight_; }
+        return 1.0 - ((1.0 + (maxValue_ - value) / (maxValue_ - lastMean)
+            * (centroidWeights_[numCentroids_ - 1] / 2.0 - 1.0)) / centroidsWeight_);
       }
       return 1; // should never happen
     }
 
     int lower = BinarySearch.lowerBound(centroidMeans_, 0, numCentroids_, value);
-    if (lower == numCentroids_) throw new SketchesStateException("lower == end in getRank()");
+    if (lower == numCentroids_) { throw new SketchesStateException("lower == end in getRank()"); }
     int upper = BinarySearch.upperBound(centroidMeans_, lower, numCentroids_, value);
-    if (upper == 0) throw new SketchesStateException("upper == begin in getRank()");
-    if (value < centroidMeans_[lower]) lower--;
-    if (upper == numCentroids_ || !(centroidMeans_[upper - 1] < value)) upper--;
+    if (upper == 0) { throw new SketchesStateException("upper == begin in getRank()"); }
+    if (value < centroidMeans_[lower]) { lower--; }
+    if (upper == numCentroids_ || !(centroidMeans_[upper - 1] < value)) { upper--; }
 
     double weightBelow = 0;
     int i = 0;
-    while (i != lower) weightBelow += centroidWeights_[i++];
+    while (i != lower) { weightBelow += centroidWeights_[i++]; }
     weightBelow += centroidWeights_[lower] / 2.0;
 
     double weightDelta = 0;
-    while (i != upper) weightDelta += centroidWeights_[i++];
+    while (i != upper) { weightDelta += centroidWeights_[i++]; }
     weightDelta -= centroidWeights_[lower] / 2.0;
     weightDelta += centroidWeights_[upper] / 2.0;
     if (centroidMeans_[upper] - centroidMeans_[lower] > 0) {
-      return (weightBelow + weightDelta * (value - centroidMeans_[lower]) / (centroidMeans_[upper] - centroidMeans_[lower])) / centroidsWeight_;
+      return (weightBelow + weightDelta * (value - centroidMeans_[lower])
+          / (centroidMeans_[upper] - centroidMeans_[lower])) / centroidsWeight_;
     }
     return (weightBelow + weightDelta / 2.0) / centroidsWeight_;
   }
@@ -242,18 +244,18 @@ public final class TDigestDouble {
    * @return quantile value corresponding to the given rank
    */
   public double getQuantile(final double rank) {
-    if (isEmpty()) throw new SketchesStateException(QuantilesAPI.EMPTY_MSG);
-    if (Double.isNaN(rank)) throw new SketchesArgumentException("Operation is undefined for Nan");
-    if (rank < 0 || rank > 1) throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); 
+    if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
+    if (Double.isNaN(rank)) { throw new SketchesArgumentException("Operation is undefined for Nan"); }
+    if (rank < 0 || rank > 1) { throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); } 
     
     mergeBuffered(); // side effect
 
-    if (numCentroids_ == 1) return centroidMeans_[0];
+    if (numCentroids_ == 1) { return centroidMeans_[0]; }
 
     // at least 2 centroids
     final double weight = rank * centroidsWeight_;
-    if (weight < 1) return minValue_;
-    if (weight > centroidsWeight_ - 1.0) return maxValue_;
+    if (weight < 1) { return minValue_; }
+    if (weight > centroidsWeight_ - 1.0) { return maxValue_; }
     final double firstWeight = centroidWeights_[0];
     if (firstWeight > 1 && weight < firstWeight / 2.0) {
       return minValue_ + (weight - 1.0) / (firstWeight / 2.0 - 1.0) * (centroidMeans_[0] - minValue_);
@@ -271,12 +273,12 @@ public final class TDigestDouble {
         // the target weight is between centroids i and i+1
         double leftWeight = 0;
         if (centroidWeights_[i] == 1) {
-          if (weight - weightSoFar < 0.5) return centroidMeans_[i];
+          if (weight - weightSoFar < 0.5) { return centroidMeans_[i]; }
           leftWeight = 0.5;
         }
         double rightWeight = 0;
         if (centroidWeights_[i + 1] == 1) {
-          if (weightSoFar + dw - weight <= 0.5) return centroidMeans_[i + 1];
+          if (weightSoFar + dw - weight <= 0.5) { return centroidMeans_[i + 1]; }
           rightWeight = 0.5;
         }
         final double w1 = weight - weightSoFar - leftWeight;
@@ -297,8 +299,8 @@ public final class TDigestDouble {
   public byte[] toByteArray() {
     mergeBuffered(); // side effect
     final byte preambleLongs = isEmpty() || isSingleValue() ? PREAMBLE_LONGS_EMPTY_OR_SINGLE : PREAMBLE_LONGS_MULTIPLE;
-    int sizeBytes = preambleLongs * Long.BYTES +
-        (isEmpty() ? 0 : (isSingleValue() ? Double.BYTES : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_));
+    final int sizeBytes = preambleLongs * Long.BYTES
+        + (isEmpty() ? 0 : (isSingleValue() ? Double.BYTES : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_));
     final byte[] bytes = new byte[sizeBytes];
     final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
     wbuf.putByte(preambleLongs);
@@ -306,12 +308,12 @@ public final class TDigestDouble {
     wbuf.putByte((byte) Family.TDIGEST.getID());
     wbuf.putShort(k_);
     wbuf.putByte((byte) (
-      (isEmpty() ? 1 << flags.IS_EMPTY.ordinal() : 0) |
-      (isSingleValue() ? 1 << flags.IS_SINGLE_VALUE.ordinal() : 0) |
-      (reverseMerge_ ? 1 << flags.REVERSE_MERGE.ordinal() : 0)
+      (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0) |
+      (isSingleValue() ? 1 << Flags.IS_SINGLE_VALUE.ordinal() : 0) |
+      (reverseMerge_ ? 1 << Flags.REVERSE_MERGE.ordinal() : 0)
     ));
     wbuf.putShort((short) 0); // unused
-    if (isEmpty()) return bytes;
+    if (isEmpty()) { return bytes; }
     if (isSingleValue()) {
       wbuf.putDouble(minValue_);
       return bytes;
@@ -351,7 +353,7 @@ public final class TDigestDouble {
     final byte serialVersion = buff.getByte();
     final byte sketchType = buff.getByte();
     if (sketchType != (byte) Family.TDIGEST.getID()) {
-      if (preambleLongs == 0 && serialVersion == 0 && sketchType == 0) return heapifyCompat(mem);
+      if (preambleLongs == 0 && serialVersion == 0 && sketchType == 0) { return heapifyCompat(mem); }
       throw new SketchesArgumentException("Sketch type mismatch: expected " + Family.TDIGEST.getID() + ", actual " + sketchType);
     }
     if (serialVersion != SERIAL_VERSION) {
@@ -359,15 +361,15 @@ public final class TDigestDouble {
     }
     final short k = buff.getShort();
     final byte flagsByte = buff.getByte();
-    final boolean isEmpty = (flagsByte & (1 << flags.IS_EMPTY.ordinal())) > 0;
-    final boolean isSingleValue = (flagsByte & (1 << flags.IS_SINGLE_VALUE.ordinal())) > 0;
+    final boolean isEmpty = (flagsByte & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+    final boolean isSingleValue = (flagsByte & (1 << Flags.IS_SINGLE_VALUE.ordinal())) > 0;
     final byte expectedPreambleLongs = isEmpty || isSingleValue ? PREAMBLE_LONGS_EMPTY_OR_SINGLE : PREAMBLE_LONGS_MULTIPLE;
     if (preambleLongs != expectedPreambleLongs) {
       throw new SketchesArgumentException("Preamble longs mismatch: expected " + expectedPreambleLongs + ", actual " + preambleLongs);
     }
     buff.getShort(); // unused
-    if (isEmpty) return new TDigestDouble(k);
-    final boolean reverseMerge = (flagsByte & (1 << flags.REVERSE_MERGE.ordinal())) > 0;
+    if (isEmpty) { return new TDigestDouble(k); }
+    final boolean reverseMerge = (flagsByte & (1 << Flags.REVERSE_MERGE.ordinal())) > 0;
     if (isSingleValue) {
       final double value;
       if (isFloat) {
@@ -455,7 +457,7 @@ public final class TDigestDouble {
    * @param printCentroids if true append the list of centroids with weights
    * @return summary of this TDigest
    */
-  public String toString(boolean printCentroids) {
+  public String toString(final boolean printCentroids) {
     final StringBuilder sb = new StringBuilder();
 
     sb.append("MergingDigest").append(LS)
@@ -496,16 +498,16 @@ public final class TDigestDouble {
     k_ = k;
     minValue_ = min;
     maxValue_ = max;
-    if (k < 10) throw new SketchesArgumentException("k must be at least 10");
+    if (k < 10) { throw new SketchesArgumentException("k must be at least 10"); }
     int fudge = 0;
     if (USE_WEIGHT_LIMIT) {
       fudge = 10;
-      if (k < 30) fudge += 20;
+      if (k < 30) { fudge += 20; }
     }
     centroidsCapacity_ = k_ * 2 + fudge;
     bufferCapacity_ = centroidsCapacity_ * 5;
     double scale = Math.max(1.0, (double) bufferCapacity_ / centroidsCapacity_ - 1.0);
-    if (!USE_TWO_LEVEL_COMPRESSION) scale = 1;
+    if (!USE_TWO_LEVEL_COMPRESSION) { scale = 1; }
     internalK_ = (short) Math.ceil(Math.sqrt(scale) * k_);
     centroidsCapacity_ = Math.max(centroidsCapacity_, internalK_ + fudge);
     bufferCapacity_ = Math.max(bufferCapacity_, centroidsCapacity_ * 2);
@@ -517,7 +519,7 @@ public final class TDigestDouble {
     numBuffered_ = 0;
     centroidsWeight_ = weight;
     bufferedWeight_ = 0;
-    if (means != null && weights!= null) {
+    if (means != null && weights != null) {
       System.arraycopy(means, 0, centroidMeans_, 0, means.length);
       System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
       numCentroids_ = means.length;
@@ -525,7 +527,7 @@ public final class TDigestDouble {
   }
 
   private void mergeBuffered() {
-    if (numBuffered_ == 0) return;
+    if (numBuffered_ == 0) { return; }
     merge(bufferValues_, bufferWeights_, bufferedWeight_, numBuffered_);
   }
 
@@ -564,7 +566,8 @@ public final class TDigestDouble {
       }
       if (addThis) { // merge into existing centroid
         centroidWeights_[numCentroids_ - 1] += weights[current];
-        centroidMeans_[numCentroids_ - 1] += (values[current] - centroidMeans_[numCentroids_ - 1]) * weights[current] / centroidWeights_[numCentroids_ - 1];
+        centroidMeans_[numCentroids_ - 1] += (values[current] - centroidMeans_[numCentroids_ - 1])
+            * weights[current] / centroidWeights_[numCentroids_ - 1];
       } else { // copy to a new centroid
         weightSoFar += centroidWeights_[numCentroids_ - 1];
         if (!USE_WEIGHT_LIMIT) {
@@ -601,7 +604,7 @@ public final class TDigestDouble {
     static double k(final double q, final double normalizer) {
       return limit(new Function<Double, Double>() {
         @Override
-        public Double apply(Double q) {
+        public Double apply(final Double q) {
           return Math.log(q / (1 - q)) * normalizer;
         }
       }, q, 1e-15, 1 - 1e-15);
