@@ -27,7 +27,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.memory.XxHash;
 
@@ -110,27 +112,26 @@ public final class BloomFilter {
    * @return a BloomFilter object
    */
   public static BloomFilter heapify(final Memory mem) {
-    int offsetBytes = 0;
-    final int preLongs = mem.getByte(offsetBytes++);
-    final int serVer = mem.getByte(offsetBytes++);
-    final int familyID = mem.getByte(offsetBytes++);
-    final int flags = mem.getByte(offsetBytes++);
+    final Buffer buf = mem.asBuffer();
+    final int preLongs = buf.getByte();
+    final int serVer = buf.getByte();
+    final int familyID = buf.getByte();
+    final int flags = buf.getByte();
 
     checkArgument(preLongs < Family.BLOOMFILTER.getMinPreLongs() || preLongs > Family.BLOOMFILTER.getMaxPreLongs(),
       "Possible corruption: Incorrect number of preamble bytes specified in header");
     checkArgument(serVer != SER_VER, "Possible corruption: Unrecognized serialization version: " + serVer);
     checkArgument(familyID != Family.BLOOMFILTER.getID(), "Possible corruption: Incorrect FamilyID for bloom filter. Found: " + familyID);
     
-    final short numHashes = mem.getShort(offsetBytes);
-    offsetBytes += Integer.BYTES; // increment by 4 even after reading 2
+    final short numHashes = buf.getShort();
+    buf.getShort(); // unused
     checkArgument(numHashes < 1, "Possible corruption: Need strictly positive number of hash functions. Found: " + numHashes);
 
-    final long seed = mem.getLong(offsetBytes);
-    offsetBytes += Long.BYTES;
+    final long seed = buf.getLong();
 
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
 
-    final BitArray bitArray = BitArray.heapify(mem.region(offsetBytes, mem.getCapacity() - offsetBytes), isEmpty);
+    final BitArray bitArray = BitArray.heapify(buf, isEmpty);
 
     return new BloomFilter(numHashes, seed, bitArray);
   }
@@ -689,19 +690,17 @@ public final class BloomFilter {
     }
 
     final byte[] bytes = new byte[(int) sizeBytes];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
+    final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
 
-    int offsetBytes = 0;
-    wmem.putByte(offsetBytes++, (byte) Family.BLOOMFILTER.getMinPreLongs());
-    wmem.putByte(offsetBytes++, (byte) SER_VER); // to do: add constant
-    wmem.putByte(offsetBytes++, (byte) Family.BLOOMFILTER.getID());
-    wmem.putByte(offsetBytes++, (byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wmem.putShort(offsetBytes, numHashes_);
-    offsetBytes += Integer.BYTES; // wrote a short and skipping the next 2 bytes
-    wmem.putLong(offsetBytes, seed_);
-    offsetBytes += Long.BYTES;
+    wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
+    wbuf.putByte((byte) SER_VER); // to do: add constant
+    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+    wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+    wbuf.putShort(numHashes_);
+    wbuf.putShort((short) 0); // unused
+    wbuf.putLong(seed_);
 
-    bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - offsetBytes));
+    bitArray_.writeToBuffer(wbuf);
 
     return bytes;
   }
@@ -716,19 +715,17 @@ public final class BloomFilter {
     final long sizeBytes = getSerializedSizeBytes();
 
     final long[] longs = new long[(int) (sizeBytes >> 3)];
-    final WritableMemory wmem = WritableMemory.writableWrap(longs);
+    final WritableBuffer wbuf = WritableMemory.writableWrap(longs).asWritableBuffer();
 
-    int offsetBytes = 0;
-    wmem.putByte(offsetBytes++, (byte) Family.BLOOMFILTER.getMinPreLongs());
-    wmem.putByte(offsetBytes++, (byte) SER_VER); // to do: add constant
-    wmem.putByte(offsetBytes++, (byte) Family.BLOOMFILTER.getID());
-    wmem.putByte(offsetBytes++, (byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wmem.putShort(offsetBytes, numHashes_);
-    offsetBytes += Integer.BYTES; // wrote a short and skipping the next 2 bytes
-    wmem.putLong(offsetBytes, seed_);
-    offsetBytes += Long.BYTES;
+    wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
+    wbuf.putByte((byte) SER_VER); // to do: add constant
+    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+    wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+    wbuf.putShort(numHashes_);
+    wbuf.putShort((short) 0); // unused
+    wbuf.putLong(seed_);
 
-    bitArray_.writeToMemory(wmem.writableRegion(offsetBytes, sizeBytes - offsetBytes));
+    bitArray_.writeToBuffer(wbuf);
 
     return longs;
   }

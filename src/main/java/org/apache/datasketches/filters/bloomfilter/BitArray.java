@@ -22,9 +22,8 @@ package org.apache.datasketches.filters.bloomfilter;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.memory.Buffer;
+import org.apache.datasketches.memory.WritableBuffer;
 
 /**
  * This class holds an array of bits suitable for use in a Bloom Filter
@@ -35,8 +34,6 @@ import org.apache.datasketches.memory.WritableMemory;
 final class BitArray {
   // MAX_BITS using longs, based on array indices being capped at Integer.MAX_VALUE
   private static final long MAX_BITS = Integer.MAX_VALUE * (long) Long.SIZE; 
-  private static final long NUMBITSSET_OFFSET = 8; // offset into memory for numBitsSet
-  private static final long DATA_OFFSET = 16; // offset into memory for start of data array
 
   private long numBitsSet_;  // if -1, need to recompute value
   private boolean isDirty_;
@@ -66,8 +63,8 @@ final class BitArray {
 
   // reads a serialized image, but the BitArray is not fully self-describing so requires
   // a flag to indicate whether the array is empty
-  static BitArray heapify(final Memory mem, final boolean isEmpty) {
-    final int numLongs = mem.getInt(0);
+  static BitArray heapify(final Buffer buffer, final boolean isEmpty) {
+    final int numLongs = buffer.getInt();
     if (numLongs < 0) {
       throw new SketchesArgumentException("Possible corruption: Must have strictly positive array size. Found: " + numLongs);
     }
@@ -76,16 +73,18 @@ final class BitArray {
       return new BitArray((long) numLongs * Long.SIZE);
     }    
 
+    buffer.getInt(); // unused
+
     // will be -1 if dirty
-    final long numBitsSet = mem.getLong(NUMBITSSET_OFFSET);
+    final long numBitsSet = buffer.getLong();
 
     final long[] data = new long[numLongs];
-    mem.getLongArray(DATA_OFFSET, data, 0, numLongs);
+    buffer.getLongArray(data, 0, numLongs);
     return new BitArray(numBitsSet, data);
   }
 
   boolean isEmpty() {
-    return getNumBitsSet() == 0;
+    return getNumBitsSet() == 0 && !isDirty_;
   }
 
   // queries a single bit in the array
@@ -182,16 +181,13 @@ final class BitArray {
     return isEmpty() ? Long.BYTES : Long.BYTES * (2L + data_.length);
   }
 
-  void writeToMemory(final WritableMemory wmem) {
-    if (wmem.getCapacity() < getSerializedSizeBytes()) {
-      throw new SketchesStateException("Attempt to serialize BitArray into WritableMemory with insufficient capacity");
-    }
-    
-    wmem.putInt(0, data_.length);
+  void writeToBuffer(final WritableBuffer wbuf) {
+    wbuf.putInt(data_.length);
+    wbuf.putInt(0); // unused
     
     if (!isEmpty()) {
-      wmem.putLong(NUMBITSSET_OFFSET, isDirty_ ? -1 : numBitsSet_);
-      wmem.putLongArray(DATA_OFFSET, data_, 0, data_.length);
+      wbuf.putLong(isDirty_ ? -1 : numBitsSet_);
+      wbuf.putLongArray(data_, 0, data_.length);
     }
   }
 

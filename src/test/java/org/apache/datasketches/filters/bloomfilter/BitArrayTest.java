@@ -24,6 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -124,9 +125,10 @@ public class BitArrayTest {
   @Test
   public void serializeEmptyTest() {
     final BitArray ba = new BitArray(64);
-    final WritableMemory wmem = WritableMemory.allocate((int) ba.getSerializedSizeBytes());
-    ba.writeToMemory(wmem);
-    final BitArray newBA = BitArray.heapify(wmem, true);
+    final WritableBuffer wbuf = WritableMemory.allocate((int) ba.getSerializedSizeBytes()).asWritableBuffer();
+    ba.writeToBuffer(wbuf);
+    wbuf.resetPosition();
+    final BitArray newBA = BitArray.heapify(wbuf, true);
     assertEquals(newBA.getArrayLength(), ba.getArrayLength());
     assertEquals(newBA.getCapacity(), ba.getCapacity());
     assertEquals(newBA.getNumBitsSet(), ba.getNumBitsSet());
@@ -139,9 +141,10 @@ public class BitArrayTest {
     final BitArray ba = new BitArray(n);
     for (int i = 0; i < n; i += 3)
       ba.getAndSetBit(i);
-    final WritableMemory wmem = WritableMemory.allocate((int) ba.getSerializedSizeBytes());
-    ba.writeToMemory(wmem);
-    final BitArray newBA = BitArray.heapify(wmem, false);
+    final WritableBuffer wbuf = WritableMemory.allocate((int) ba.getSerializedSizeBytes()).asWritableBuffer();
+    ba.writeToBuffer(wbuf);
+    wbuf.resetPosition();
+    final BitArray newBA = BitArray.heapify(wbuf, false);
     assertEquals(newBA.getArrayLength(), ba.getArrayLength());
     assertEquals(newBA.getCapacity(), ba.getCapacity());
     assertEquals(newBA.getNumBitsSet(), ba.getNumBitsSet());
