@@ -84,8 +84,8 @@ public final class BloomFilterBuilder {
    * @param targetFalsePositiveProb A desired false positive probability per item
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter create(final long maxDistinctItems, final double targetFalsePositiveProb) {
-    return create(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong());
+  public static BloomFilter createByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb) {
+    return createByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong());
   }
 
   /**
@@ -96,7 +96,7 @@ public final class BloomFilterBuilder {
    * @param seed A base hash seed 
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter create(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
+  public static BloomFilter createByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
     if (maxDistinctItems <= 0) {
       throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
     }
@@ -116,8 +116,8 @@ public final class BloomFilterBuilder {
    * @param numHashes The number of hash functions to apply to items
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter createFromSize(final long numBits, final int numHashes) {
-    return createFromSize(numBits, numHashes, ThreadLocalRandom.current().nextLong());
+  public static BloomFilter createBySize(final long numBits, final int numHashes) {
+    return createBySize(numBits, numHashes, ThreadLocalRandom.current().nextLong());
   }
 
    /**
@@ -129,7 +129,7 @@ public final class BloomFilterBuilder {
    * @param seed A base hash seed
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter createFromSize(final long numBits, final int numHashes, final long seed) {
+  public static BloomFilter createBySize(final long numBits, final int numHashes, final long seed) {
     if (numBits > BloomFilter.MAX_SIZE) {
       throw new SketchesArgumentException("Size of BloomFilter must be <= "
       + BloomFilter.MAX_SIZE + ". Requested: " + numBits);

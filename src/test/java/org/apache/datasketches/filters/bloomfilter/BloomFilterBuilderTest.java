@@ -59,14 +59,14 @@ public class BloomFilterBuilderTest {
   @Test
   public void testCreateFromSize() {
     // invalid number of hashes
-    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(1000, -1, 123));
-    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(1000, 65536, 123));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(1000, -1, 123));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(1000, 65536, 123));
   
     // invalid number of bits
-    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(0, 3, 456));
-    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(BloomFilter.MAX_SIZE + 1, 3, 456));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(0, 3, 456));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(BloomFilter.MAX_SIZE + 1, 3, 456));
   
-    final BloomFilter bf = BloomFilterBuilder.createFromSize(1L << 21, 3);
+    final BloomFilter bf = BloomFilterBuilder.createBySize(1L << 21, 3);
     assertEquals(bf.getCapacity(), 1 << 21L);
     assertEquals(bf.getNumHashes(), 3);
     assertEquals(bf.getBitsUsed(), 0);
@@ -85,13 +85,13 @@ public class BloomFilterBuilderTest {
 
     // manually computed values based on formula
     assertEquals(BloomFilterBuilder.suggestNumFilterBits(250_000, 0.01), 2396265);
-    BloomFilter bf = BloomFilterBuilder.create(250_000, 0.01);
+    BloomFilter bf = BloomFilterBuilder.createByAccuracy(250_000, 0.01);
     assertEquals(bf.getCapacity(), 2396288); // next smallest multiple of 64
     assertEquals(bf.getNumHashes(), BloomFilterBuilder.suggestNumHashes(250_000, 2396288));
 
     assertEquals(BloomFilterBuilder.suggestNumFilterBits(5_000_000, 1e-4), 95850584);
     final long seed = 19805243;
-    bf = BloomFilterBuilder.create(5_000_000, 1e-4, seed);
+    bf = BloomFilterBuilder.createByAccuracy(5_000_000, 1e-4, seed);
     assertEquals(bf.getCapacity(), 95850624); // next smallest multiple of 64
     assertEquals(bf.getNumHashes(), BloomFilterBuilder.suggestNumHashes(5_000_000, 95850624));
     assertEquals(bf.getSeed(), seed);
