@@ -288,7 +288,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   void setNumLevels(final int numLevels) {
-  //the heap sketch computes num levels from the array itself, so this is not used on-heap
+    //the heap sketch computes num levels from the array itself, so this is not used on-heap
   }
 
   @Override

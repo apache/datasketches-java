@@ -276,6 +276,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Override
   public final void merge(final KllSketch other) {
     if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
     if (othFltSk.isEmpty()) { return; }
     KllFloatsHelper.mergeFloatImpl(this, othFltSk);

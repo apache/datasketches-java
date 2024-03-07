@@ -133,7 +133,7 @@ final class KllItemsHelper {
     final Object myMin = myEmpty ? null : mySketch.getMinItem();
     final Object myMax = myEmpty ? null : mySketch.getMaxItem();
     final int myMinK = mySketch.getMinK();
-    final long finalN = mySketch.getN() + otherItmSk.getN();
+    final long finalN = Math.addExact(mySketch.getN(), otherItmSk.getN());
 
     //buffers that are referenced multiple times
     final int otherNumLevels = otherItmSk.getNumLevels();
@@ -399,7 +399,7 @@ final class KllItemsHelper {
       curLevel++; // start out at level 0
 
       // If we are at the current top level, add an empty level above it for convenience,
-      // but do not increment numLevels until later
+      // but do not actually increment numLevels until later
       if (curLevel == (numLevels - 1)) {
         inLevels[curLevel + 2] = inLevels[curLevel + 1];
       }
@@ -466,7 +466,7 @@ final class KllItemsHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static <T> void populateItemWorkArrays(
+  private static <T> void populateItemWorkArrays( //workBuf and workLevels are modified
       final Object[] workbuf, final int[] worklevels, final int provisionalNumLevels,
       final int myCurNumLevels, final int[] myCurLevelsArr, final Object[] myCurItemsArr,
       final int otherNumLevels, final int[] otherLevelsArr, final Object[] otherItemsArr,
