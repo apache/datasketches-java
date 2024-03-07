@@ -26,7 +26,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 /**
  * <p>This class provides methods to help estimate the correct paramters to use when
  * creating a Bloom filter, and methods to create the filter using those values.</p>
- * 
+ *
  * <p>The underlying math is described in the
  * <a href='https://en.wikipedia.org/wiki/Bloom_filter#Optimal_number_of_hash_functions'>
  * Wikipedia article on Bloom filters</a>.</p>
@@ -75,7 +75,7 @@ public final class BloomFilterBuilder {
     if (targetFalsePositiveProb <= 0.0 || targetFalsePositiveProb > 1.0) {
       throw new SketchesArgumentException("targetFalsePositiveProb must be a valid probability and strictly greater than 0");
     }
-    return (long) Math.round(-maxDistinctItems * Math.log(targetFalsePositiveProb) / (Math.log(2) * Math.log(2)));
+    return Math.round(-maxDistinctItems * Math.log(targetFalsePositiveProb) / (Math.log(2) * Math.log(2)));
   }
 
   /**
@@ -93,7 +93,7 @@ public final class BloomFilterBuilder {
    * using the provided base seed for the hash function.
    * @param maxDistinctItems The maximum expected number of distinct items to add to the filter
    * @param targetFalsePositiveProb A desired false positive probability per item
-   * @param seed A base hash seed 
+   * @param seed A base hash seed
    * @return A new BloomFilter configured for the given input parameters
    */
   public static BloomFilter createByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {

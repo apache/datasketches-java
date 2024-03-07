@@ -27,13 +27,13 @@ import org.apache.datasketches.memory.WritableBuffer;
 
 /**
  * This class holds an array of bits suitable for use in a Bloom Filter
- * 
+ *
  * <p>Rounds the number of bits up to the smallest multiple of 64 (one long)
  * that is not smaller than the specified number.
  */
 final class BitArray {
   // MAX_BITS using longs, based on array indices being capped at Integer.MAX_VALUE
-  private static final long MAX_BITS = Integer.MAX_VALUE * (long) Long.SIZE; 
+  private static final long MAX_BITS = Integer.MAX_VALUE * (long) Long.SIZE;
 
   private long numBitsSet_;  // if -1, need to recompute value
   private boolean isDirty_;
@@ -68,10 +68,10 @@ final class BitArray {
     if (numLongs < 0) {
       throw new SketchesArgumentException("Possible corruption: Must have strictly positive array size. Found: " + numLongs);
     }
-    
+
     if (isEmpty) {
       return new BitArray((long) numLongs * Long.SIZE);
-    }    
+    }
 
     buffer.getInt(); // unused
 
@@ -120,7 +120,7 @@ final class BitArray {
       numBitsSet_ = 0;
       for (final long val : data_) {
         numBitsSet_ += Long.bitCount(val);
-      }  
+      }
     }
     return numBitsSet_;
   }
@@ -184,7 +184,7 @@ final class BitArray {
   void writeToBuffer(final WritableBuffer wbuf) {
     wbuf.putInt(data_.length);
     wbuf.putInt(0); // unused
-    
+
     if (!isEmpty()) {
       wbuf.putLong(isDirty_ ? -1 : numBitsSet_);
       wbuf.putLongArray(data_, 0, data_.length);
@@ -204,7 +204,7 @@ final class BitArray {
   }
 
   // prints a long as a series of 0s and 1s as little endian
-  private String printLong(final long val) {
+  private static String printLong(final long val) {
     final StringBuilder sb = new StringBuilder();
     for (int j = 0; j < Long.SIZE; ++j) {
       sb.append((val & (1L << j)) != 0 ? "1" : "0");
