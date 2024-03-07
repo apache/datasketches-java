@@ -2,6 +2,8 @@ org.apache.datasketches
 org.apache.datasketches.common
 org.apache.datasketches.cpc
 org.apache.datasketches.fdt
+org.apache.datasketches.filters
+org.apache.datasketches.filters.bloomfilter
 org.apache.datasketches.frequencies
 org.apache.datasketches.hash
 org.apache.datasketches.hll
