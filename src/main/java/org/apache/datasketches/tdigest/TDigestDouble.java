@@ -72,7 +72,7 @@ public final class TDigestDouble {
   private static final int COMPAT_DOUBLE = 1;
   private static final int COMPAT_FLOAT = 2;
 
-  enum Flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE };
+  enum Flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE }
 
   /**
    * Constructor with the default K
@@ -308,9 +308,9 @@ public final class TDigestDouble {
     wbuf.putByte((byte) Family.TDIGEST.getID());
     wbuf.putShort(k_);
     wbuf.putByte((byte) (
-      (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0) |
-      (isSingleValue() ? 1 << Flags.IS_SINGLE_VALUE.ordinal() : 0) |
-      (reverseMerge_ ? 1 << Flags.REVERSE_MERGE.ordinal() : 0)
+        (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
+      | (isSingleValue() ? 1 << Flags.IS_SINGLE_VALUE.ordinal() : 0)
+      | (reverseMerge_ ? 1 << Flags.REVERSE_MERGE.ordinal() : 0)
     ));
     wbuf.putShort((short) 0); // unused
     if (isEmpty()) { return bytes; }
@@ -600,7 +600,7 @@ public final class TDigestDouble {
    * The use of a normalizing function results in a strictly bounded number of clusters no matter how many samples.
    * Corresponds to K_2 in the reference implementation
    */
-  private static class ScaleFunction {
+  private static final class ScaleFunction {
     static double k(final double q, final double normalizer) {
       return limit(new Function<Double, Double>() {
         @Override
