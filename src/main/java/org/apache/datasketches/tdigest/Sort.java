@@ -22,12 +22,14 @@ package org.apache.datasketches.tdigest;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Specialized sorting algorithm that can sort one array and permute another array the same way
+ * Specialized sorting algorithm that can sort one array and permute another array the same way.
  */
 public final class Sort {
 
   /**
-   * Stable sort two arrays. The first array is sorted while the second array is permuted the same way.
+   * Stable sort two arrays.
+   * The first array is sorted while the second array is permuted the same way.
+   *
    * @param keys array to be sorted
    * @param values array to be permuted the same way
    * @param n number of elements to sort from the beginning of the arrays
@@ -37,12 +39,13 @@ public final class Sort {
     stableLimitedInsertionSort(keys, values, 0, n, 64);
   }
 
-  private static void stableLimitedQuickSort(final double[] keys, final long[] values, int start, int end, final int limit) {
+  private static void stableLimitedQuickSort(final double[] keys, final long[] values,
+      int start, int end, final int limit) {
     // the while loop implements tail-recursion to avoid excessive stack calls on nasty cases
     while (end - start > limit) {
 
       final int pivotIndex = start + ThreadLocalRandom.current().nextInt(end - start);
-      double pivotValue = keys[pivotIndex];
+      final double pivotValue = keys[pivotIndex];
 
       // move pivot to beginning of array
       swap(keys, start, pivotIndex);
@@ -77,10 +80,11 @@ public final class Sort {
         }
       }
       // assert i == high || low == high therefore, we are done with partition
-      // at this point, i==high, from [start,low) are == pivot, [low,high) are < and [high,end) are >
-      // we have to move the values equal to the pivot into the middle. To do this, we swap pivot
-      // values into the top end of the [low,high) range stopping when we run out of destinations
-      // or when we run out of values to copy
+      // at this point, i == high, [start, low) == pivot,
+      // [low, high) < pivot and [high, end) > pivot
+      // we have to move the values equal to the pivot into the middle.
+      // To do this, we swap pivot values into the top end of the [low, high) range
+      // stopping when we run out of destinations or when we run out of values to copy
       int from = start;
       int to = high - 1;
       for (i = 0; from < low && to >= low; i++) {
@@ -114,7 +118,8 @@ public final class Sort {
     }
   }
 
-  private static void stableLimitedInsertionSort(final double[] keys, final long[] values, int start, int n, final int limit) {
+  private static void stableLimitedInsertionSort(final double[] keys, final long[] values,
+      final int start, final int n, final int limit) {
     for (int i = start + 1; i < n; i++) {
       final double k = keys[i];
       final long v = values[i];
@@ -147,12 +152,24 @@ public final class Sort {
     values[j] = tmpValue;
   }
 
+  /**
+   * Reverse the first n elements of the given array.
+   *
+   * @param values array to be reversed
+   * @param n number of elements to reverse
+   */
   public static void reverse(final double[] values, final int n) {
     for (int i = 0; i < n / 2; i++) {
       swap(values, i, n - i - 1);
     }
   }
 
+  /**
+   * Reverse the first n elements of the given array.
+   *
+   * @param values array to be reversed
+   * @param n number of elements to reverse
+   */
   public static void reverse(final long[] values, final int n) {
     for (int i = 0; i < n / 2; i++) {
       swap(values, i, n - i - 1);

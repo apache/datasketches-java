@@ -25,12 +25,15 @@ package org.apache.datasketches.tdigest;
 public final class BinarySearch {
 
   /**
-   * Returns an index to the first element in the range [first, last) such that element < value is false,
-   * (i.e. that is greater than or equal to value), or last if no such element is found.
+   * Returns an index to the first element in the range [first, last) such that
+   * element < value is false (i.e. that is greater than or equal to value),
+   * or last if no such element is found.
    * The range [first, last) must be partitioned with respect to the expression element < value,
-   * i.e., all elements for which the expression is true must precede all elements for which the expression is false.
+   * i.e., all elements for which the expression is true must precede all elements
+   * for which the expression is false.
    * A fully-sorted range meets this criterion.
    * The number of comparisons performed is logarithmic in the distance between first and last.
+   *
    * @param values array of values
    * @param first index to the first element in the range
    * @param last index to the element past the end of the range
@@ -55,12 +58,15 @@ public final class BinarySearch {
   }
 
   /**
-   * Returns an index to the first element in the range [first, last) such that value < element is true
-   * (i.e. that is strictly greater than value), or last if no such element is found.
+   * Returns an index to the first element in the range [first, last) such that
+   * value < element is true (i.e. that is strictly greater than value),
+   * or last if no such element is found.
    * The range [first, last) must be partitioned with respect to the expression !(value < element),
-   * i.e., all elements for which the expression is true must precede all elements for which the expression is false.
+   * i.e., all elements for which the expression is true must precede all elements
+   * for which the expression is false.
    * A fully-sorted range meets this criterion.
    * The number of comparisons performed is logarithmic in the distance between first and last.
+   *
    * @param values array of values
    * @param first index to the first element in the range
    * @param last index to the element past the end of the range
