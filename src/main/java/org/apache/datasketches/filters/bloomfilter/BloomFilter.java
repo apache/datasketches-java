@@ -49,7 +49,7 @@ import org.apache.datasketches.memory.XxHash;
  * increase. The size of a Bloom filter will be linear in the expected number of
  * distinct items.</p>
  *
- * <p>See the BloomFilterBuilder class for methods to create a filter, especiall
+ * <p>See the BloomFilterBuilder class for methods to create a filter, especially
  * one sized correctly for a target number of distinct elements and a target
  * false positive probability.</p>
  *
