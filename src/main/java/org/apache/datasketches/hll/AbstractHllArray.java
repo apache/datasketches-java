@@ -246,7 +246,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     //update kxq0 and kxq1; subtract first, then add.
     if (oldValue < 32) { host.putKxQ0(kxq0 -= invPow2(oldValue)); }
     else               { host.putKxQ1(kxq1 -= invPow2(oldValue)); }
-    if (newValue < 32) { host.putKxQ0(kxq0 += invPow2(newValue)); }
-    else               { host.putKxQ1(kxq1 += invPow2(newValue)); }
+    if (newValue < 32) { host.putKxQ0(kxq0 + invPow2(newValue)); }
+    else               { host.putKxQ1(kxq1 + invPow2(newValue)); }
   }
 }

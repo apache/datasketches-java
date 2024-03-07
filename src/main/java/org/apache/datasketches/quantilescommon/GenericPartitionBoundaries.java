@@ -48,9 +48,9 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
       final T minItem,
       final QuantileSearchCriteria searchCrit) {
     this.totalN = totalN;
-    this.boundaries = boundaries; //SpotBugs copy
-    this.natRanks = natRanks;
-    this.normRanks = normRanks;
+    this.boundaries = boundaries; //SpotBugs EI_EXPOSE_REP2 copying from sketch class to this "friend" class.
+    this.natRanks = natRanks;     // "
+    this.normRanks = normRanks;   // "
     this.maxItem = maxItem;
     this.minItem = minItem;
     this.searchCrit = searchCrit;
@@ -98,16 +98,16 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
    *
    * @return an array of boundaries that sequentially define the upper and lower boundaries of partitions.
    */
-  public T[] getBoundaries() { return boundaries; }
+  public T[] getBoundaries() { return boundaries.clone(); }
 
   @Override
-  public long[] getNaturalRanks() { return natRanks; }
+  public long[] getNaturalRanks() { return natRanks.clone(); }
 
   @Override
-  public double[] getNormalizedRanks() { return normRanks; }
+  public double[] getNormalizedRanks() { return normRanks.clone(); }
 
   @Override
-  public long[] getNumDeltaItems() { return numDeltaItems; }
+  public long[] getNumDeltaItems() { return numDeltaItems.clone(); }
 
   @Override
   public int getNumPartitions() { return numPartitions; }

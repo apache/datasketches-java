@@ -29,57 +29,26 @@ under the License.
     <Class name="~.*\.*TestUtil" />
   </Match>
 
-  <!-- Harmless, Too many False Positives May 2, 2023-->
-  <Match>
-    <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
-  </Match>
-
-  <!-- Harmless, Too many False Positives May 2, 2023-->
-  <Match>
-    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
-  </Match>
-
-  <!-- Harmless, Too many False Positives May 2, 2023-->
-  <Match>
-    <Bug pattern="BIT_SIGNED_CHECK" />
-  </Match>
-
-  <!-- Harmless, Too many False Positives May 2, 2023 -->
+  <!-- Harmless, False Positive Mar 6, 2024. Alex may fix this. -->
   <Match>   
     <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+    <Class name="org.apache.datasketches.tdigest.TDigestDouble"/>
+    <Method name="merge" />
   </Match>
 
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP"/>
-    <Class name="org.apache.datasketches.quantilescommon.GenericPartitionBoundaries"/>
-  </Match>
-
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP2"/>
-    <Class name="org.apache.datasketches.quantilescommon.FloatsSortedViewIterator"/>
-  </Match>
-
+  <!-- Complaining about copying of arrays from one internal class to another. 
+       This is harmless since both classes are part of our library and work together. -->
   <Match>
     <Bug pattern="EI_EXPOSE_REP2"/>
-    <Class name="org.apache.datasketches.quantilescommon.DoublesSortedViewIterator"/>
-  </Match>
-  
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP2"/>
-    <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
-  </Match>
-
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP2"/>
-    <Class name="org.apache.datasketches.quantilescommon.GenericPartitionBoundaries"/>
+    <Or>
+      <Class name="org.apache.datasketches.quantilescommon.FloatsSortedViewIterator"/>
+      <Class name="org.apache.datasketches.quantilescommon.DoublesSortedViewIterator"/>
+      <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
+      <Class name="org.apache.datasketches.quantilescommon.GenericPartitionBoundaries"/>
+    </Or>
   </Match>
 
-  <Match> <!-- False Positive: Inside scope of TWR -->
-    <Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
-    <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
-  </Match>
-
-  <Match> <!-- False Positive: These are intentional -->
+  <Match> <!-- False Positive: These are intentional and we know what we are doing. -->
     <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
     <Class name="org.apache.datasketches.sampling.EbppsItemsSample" />
     <Or>
@@ -88,13 +57,7 @@ under the License.
     </Or>
   </Match>
 
-  <Match> <!-- False Positive: Application is single threaded. -->
-    <Bug pattern="SING_SINGLETON_GETTER_NOT_SYNCHRONIZED" />
-    <Class name="org.apache.datasketches.theta.EmptyCompactSketch"/>
-    <Method name="getHeapInstance" />
-  </Match>
-
-  <Match> <!-- False Positive: Code is the recommended solution for Finalizer Attack. -->
+  <Match> <!-- False Positive: Code is the recommended solution for preventing a Finalizer Attack. -->
     <Bug pattern="CT_CONSTRUCTOR_THROW" />
     <Or>
       <Class name="org.apache.datasketches.tuple.arrayofdoubles.DirectArrayOfDoublesQuickSelectSketch"/>

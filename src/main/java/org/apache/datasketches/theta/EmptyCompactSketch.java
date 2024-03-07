@@ -41,12 +41,12 @@ final class EmptyCompactSketch extends CompactSketch {
 
   private EmptyCompactSketch() {}
 
-  static EmptyCompactSketch getInstance() {
+  static synchronized EmptyCompactSketch getInstance() {
     return EMPTY_COMPACT_SKETCH;
   }
 
   //This should be a heapify
-  static EmptyCompactSketch getHeapInstance(final Memory srcMem) {
+  static synchronized EmptyCompactSketch getHeapInstance(final Memory srcMem) {
     final long pre0 = srcMem.getLong(0);
     if (testCandidatePre0(pre0)) {
       return EMPTY_COMPACT_SKETCH;
