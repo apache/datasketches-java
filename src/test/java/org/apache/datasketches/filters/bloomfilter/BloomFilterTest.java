@@ -21,8 +21,8 @@ package org.apache.datasketches.filters.bloomfilter;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -30,14 +30,16 @@ import org.testng.annotations.Test;
 
 public class BloomFilterTest {
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void invalidNumHashesTest() {
-    new BloomFilter(1000, -1);
+    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(1000, -1, 123));
+    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(1000, 65536, 123));
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void invalidNumBitsTest() {
-    new BloomFilter(0, 3);
+    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(0, 3, 456));
+    assertThrows(SketchesArgumentException.class, () -> new BloomFilter(BloomFilter.MAX_SIZE + 1, 3, 456));
   }
 
   @Test
@@ -45,7 +47,7 @@ public class BloomFilterTest {
     final long numBits = 8192;
     final int numHashes = 3;
     
-    final BloomFilter bf = new BloomFilter(numBits, numHashes);
+    final BloomFilter bf = BloomFilterBuilder.createFromSize(numBits, numHashes);
     assertTrue(bf.isEmpty());
     assertEquals(bf.getCapacity(), numBits); // n is multiple of 64 so should be exact
     assertEquals(bf.getNumHashes(), numHashes);
@@ -75,7 +77,7 @@ public class BloomFilterTest {
     final long numBits = 8192;
     final int numHashes = 3;
     
-    final BloomFilter bf = new BloomFilter(numBits, numHashes);
+    final BloomFilter bf = BloomFilterBuilder.createFromSize(numBits, numHashes);
 
     final int n = 500;
     for (int i = 0; i < n; ++i) {
@@ -106,34 +108,19 @@ public class BloomFilterTest {
   public void incompatibleSetOperationsTest() {
     final int numBits = 128;
     final int numHashes = 4;
-    final BloomFilter bf1 = new BloomFilter(numBits, numHashes);
+    final BloomFilter bf1 = BloomFilterBuilder.createFromSize(numBits, numHashes);
 
     // mismatched num bits
-    try {
-      final BloomFilter bf2 = new BloomFilter(numBits * 2, numHashes, bf1.getSeed());
-      bf1.union(bf2);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    final BloomFilter bf2 = BloomFilterBuilder.createFromSize(numBits * 2, numHashes, bf1.getSeed());
+    assertThrows(SketchesArgumentException.class, () -> bf1.union(bf2));
 
     // mismatched num hashes
-    try {
-      final BloomFilter bf2 = new BloomFilter(numBits, numHashes * 2, bf1.getSeed());
-      bf1.intersect(bf2);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    final BloomFilter bf3 = BloomFilterBuilder.createFromSize(numBits, numHashes * 2, bf1.getSeed());
+    assertThrows(SketchesArgumentException.class, () -> bf1.intersect(bf3));
 
     // mismatched seed
-    try {
-      final BloomFilter bf2 = new BloomFilter(numBits, numHashes, bf1.getSeed() - 1);
-      bf1.union(bf2);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    final BloomFilter bf4 = BloomFilterBuilder.createFromSize(numBits, numHashes, bf1.getSeed() - 1);
+    assertThrows(SketchesArgumentException.class, () -> bf1.union(bf4));
   }
 
   @Test
@@ -141,8 +128,8 @@ public class BloomFilterTest {
     final long numBits = 12288;
     final int numHashes = 4;
 
-    final BloomFilter bf1 = new BloomFilter(numBits, numHashes);
-    final BloomFilter bf2 = new BloomFilter(numBits, numHashes, bf1.getSeed());
+    final BloomFilter bf1 = BloomFilterBuilder.createFromSize(numBits, numHashes);
+    final BloomFilter bf2 = BloomFilterBuilder.createFromSize(numBits, numHashes, bf1.getSeed());
 
     final int n = 1000;
     final int maxItem = 3 * n / 2 - 1;
@@ -170,8 +157,8 @@ public class BloomFilterTest {
     final long numBits = 8192;
     final int numHashes = 5;
 
-    final BloomFilter bf1 = new BloomFilter(numBits, numHashes);
-    final BloomFilter bf2 = new BloomFilter(numBits, numHashes, bf1.getSeed());
+    final BloomFilter bf1 = BloomFilterBuilder.createFromSize(numBits, numHashes);
+    final BloomFilter bf2 = BloomFilterBuilder.createFromSize(numBits, numHashes, bf1.getSeed());
 
     final int n = 1024;
     final int maxItem = 3 * n / 2 - 1;
@@ -201,7 +188,7 @@ public class BloomFilterTest {
   public void emptySerializationTest() {
     final long numBits = 32768;
     final int numHashes = 7;
-    final BloomFilter bf = new BloomFilter(numBits, numHashes);
+    final BloomFilter bf = BloomFilterBuilder.createFromSize(numBits, numHashes);
 
     final byte[] bytes = bf.toByteArray();
     Memory mem = Memory.wrap(bytes);
@@ -222,7 +209,7 @@ public class BloomFilterTest {
   public void nonEmptySerializationTest() {
     final long numBits = 32768;
     final int numHashes = 5;
-    final BloomFilter bf = new BloomFilter(numBits, numHashes);
+    final BloomFilter bf = BloomFilterBuilder.createFromSize(numBits, numHashes);
 
     final int n = 2500;
     for (int i = 0; i < n; ++i) {
@@ -271,7 +258,7 @@ public class BloomFilterTest {
   public void testBasicUpdateMethods() {
     final int numDistinct = 100;
     final double fpp = 1e-6;
-    final BloomFilter bf = BloomFilterBuilder.newBloomFilter(numDistinct, fpp);
+    final BloomFilter bf = BloomFilterBuilder.create(numDistinct, fpp);
 
     // empty/null String should do nothing
     bf.update("");
@@ -302,14 +289,14 @@ public class BloomFilterTest {
     // for each BloomFilter update type, call update() then queryAndUpdate(), where
     // the latter should return true. query() should likewise return true.
     // A final intersection should have the same number of bits set as the raw input.
-    final BloomFilter bfMem = BloomFilterBuilder.newBloomFilter(numDistinct, fpp);
+    final BloomFilter bfMem = BloomFilterBuilder.create(numDistinct, fpp);
     bfMem.update(mem);
     assertTrue(bfMem.queryAndUpdate(mem));
     assertTrue(bfMem.query(mem));
     final long numBitsSet = bfMem.getBitsUsed();
     final long seed = bfMem.getSeed();
 
-    final BloomFilter bfBytes = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final BloomFilter bfBytes = BloomFilterBuilder.create(numDistinct, fpp, seed);
     final byte[] bytes = new byte[24];
     mem.getByteArray(0, bytes, 0, 24);
     bfBytes.update(bytes);
@@ -317,7 +304,7 @@ public class BloomFilterTest {
     assertTrue(bfBytes.query(bytes));
     assertEquals(bfBytes.getBitsUsed(), numBitsSet);
 
-    final BloomFilter bfChars = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final BloomFilter bfChars = BloomFilterBuilder.create(numDistinct, fpp, seed);
     final char[] chars = new char[12];
     mem.getCharArray(0, chars, 0, 12);
     bfChars.update(chars);
@@ -325,7 +312,7 @@ public class BloomFilterTest {
     assertTrue(bfChars.query(chars));
     assertEquals(bfChars.getBitsUsed(), numBitsSet);
 
-    final BloomFilter bfShorts = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final BloomFilter bfShorts = BloomFilterBuilder.create(numDistinct, fpp, seed);
     final short[] shorts = new short[12];
     mem.getShortArray(0, shorts, 0, 12);
     bfShorts.update(shorts);
@@ -333,7 +320,7 @@ public class BloomFilterTest {
     assertTrue(bfShorts.query(shorts));
     assertEquals(bfShorts.getBitsUsed(), numBitsSet);
 
-    final BloomFilter bfInts = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final BloomFilter bfInts = BloomFilterBuilder.create(numDistinct, fpp, seed);
     final int[] ints = new int[6];
     mem.getIntArray(0, ints, 0, 6);
     bfInts.update(ints);
@@ -341,7 +328,7 @@ public class BloomFilterTest {
     assertTrue(bfInts.query(ints));
     assertEquals(bfInts.getBitsUsed(), numBitsSet);
 
-    final BloomFilter bfLongs = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final BloomFilter bfLongs = BloomFilterBuilder.create(numDistinct, fpp, seed);
     final long[] longs = new long[3];
     mem.getLongArray(0, longs, 0, 3);
     bfLongs.update(longs);
@@ -350,7 +337,7 @@ public class BloomFilterTest {
     assertEquals(bfLongs.getBitsUsed(), numBitsSet);
 
     // intersect all the sketches into a new one
-    final BloomFilter bf = BloomFilterBuilder.newBloomFilter(numDistinct, fpp, seed);
+    final BloomFilter bf = BloomFilterBuilder.create(numDistinct, fpp, seed);
     bf.intersect(bfMem);
     bf.intersect(bfBytes);
     bf.intersect(bfChars);

@@ -22,7 +22,6 @@ package org.apache.datasketches.filters.bloomfilter;
 import static org.apache.datasketches.common.Util.LS;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -50,8 +49,9 @@ import org.apache.datasketches.memory.XxHash;
  * increase. The size of a Bloom filter will be linear in the expected number of
  * distinct items.</p>
  *
- * <p>See the BloomFilterBuilder class for methods to create a filter sized correctly
- * for a target number of distinct elements and a target false positive probability.</p>
+ * <p>See the BloomFilterBuilder class for methods to create a filter, especiall
+ * one sized correctly for a target number of distinct elements and a target
+ * false positive probability.</p>
  *
  * <p>This implementation uses xxHash64 and follows the approach in Kirsch and Mitzenmacher,
  * "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008,
@@ -59,7 +59,7 @@ import org.apache.datasketches.memory.XxHash;
  */
 public final class BloomFilter {
   // maximum number of longs in the array with space for a header at serialization
-  private static final long MAX_SIZE = (Integer.MAX_VALUE - Family.BLOOMFILTER.getMaxPreLongs()) * (long) Long.SIZE;
+  static final long MAX_SIZE = (Integer.MAX_VALUE - Family.BLOOMFILTER.getMaxPreLongs()) * (long) Long.SIZE;
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
 
@@ -69,24 +69,13 @@ public final class BloomFilter {
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * and a random seed.
-   *
-   * @param numBits The size of the BloomFilter, in bits
-   * @param numHashes The number of hash functions to apply to items
-   */
-  public BloomFilter(final long numBits, final int numHashes) {
-    this(numBits, numHashes, ThreadLocalRandom.current().nextLong());   
-  }
-
-  /**
-   * Creates a BloomFilter with given number of bits and number of hash functions,
    * and a user-specified  seed.
    * 
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
    * @param seed The base hash seed
    */
-  public BloomFilter(final long numBits, final int numHashes, final long seed) {
+  BloomFilter(final long numBits, final int numHashes, final long seed) {
     checkArgument(numBits > MAX_SIZE, "Size of BloomFilter must be <= " + MAX_SIZE
       + ". Requested: " + numBits);
     checkArgument(numHashes < 1, "Must specify a strictly positive number of hash functions. "

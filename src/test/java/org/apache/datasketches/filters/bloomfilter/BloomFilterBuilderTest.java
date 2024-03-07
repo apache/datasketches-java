@@ -20,7 +20,7 @@
 package org.apache.datasketches.filters.bloomfilter;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.assertThrows;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
@@ -30,20 +30,10 @@ public class BloomFilterBuilderTest {
   @Test
   public void testSuggestHashesFromSizes() {
     // invalid distinct items
-    try {
-      BloomFilterBuilder.suggestNumHashes(0, 32768);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.suggestNumHashes(0, 32768));
 
     // invalid filter size
-    try {
-      BloomFilterBuilder.suggestNumHashes(10_000, -1);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.suggestNumHashes(10_000, -1));
 
     // manually computed values based on formula
     assertEquals(BloomFilterBuilder.suggestNumHashes(100, 1L << 16), 455);
@@ -55,20 +45,10 @@ public class BloomFilterBuilderTest {
   @Test
   public void testSuggestHashesFromProbability() {
     // negative probability
-    try {
-      BloomFilterBuilder.suggestNumHashes(-0.5);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.suggestNumHashes(-0.5));
 
     // probability > 1
-    try {
-      BloomFilterBuilder.suggestNumHashes(2.5);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.suggestNumHashes(2.5));
 
     // manually computed values based on formula
     assertEquals(BloomFilterBuilder.suggestNumHashes(0.333), 2);
@@ -77,40 +57,41 @@ public class BloomFilterBuilderTest {
   }
 
   @Test
+  public void testCreateFromSize() {
+    // invalid number of hashes
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(1000, -1, 123));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(1000, 65536, 123));
+  
+    // invalid number of bits
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(0, 3, 456));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createFromSize(BloomFilter.MAX_SIZE + 1, 3, 456));
+  
+    final BloomFilter bf = BloomFilterBuilder.createFromSize(1L << 21, 3);
+    assertEquals(bf.getCapacity(), 1 << 21L);
+    assertEquals(bf.getNumHashes(), 3);
+    assertEquals(bf.getBitsUsed(), 0);
+  }
+
+  @Test
   public void testSuggestNumFilterBits() {
     // non-positive number distincts
-    try {
-      BloomFilterBuilder.suggestNumFilterBits(0, 0.01);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.suggestNumFilterBits(0, 0.01));
 
     // non-positive probability
-    try {
-      BloomFilterBuilder.suggestNumFilterBits(2500, 0.0);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.suggestNumFilterBits(2500, 0.0));
 
     // probability > 1
-    try {
-      BloomFilterBuilder.suggestNumFilterBits(1000, 2.5);
-      fail();
-    } catch (final SketchesArgumentException e) {
-      // expected
-    }
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.suggestNumFilterBits(1000, 2.5));
 
     // manually computed values based on formula
     assertEquals(BloomFilterBuilder.suggestNumFilterBits(250_000, 0.01), 2396265);
-    BloomFilter bf = BloomFilterBuilder.newBloomFilter(250_000, 0.01);
+    BloomFilter bf = BloomFilterBuilder.create(250_000, 0.01);
     assertEquals(bf.getCapacity(), 2396288); // next smallest multiple of 64
     assertEquals(bf.getNumHashes(), BloomFilterBuilder.suggestNumHashes(250_000, 2396288));
 
     assertEquals(BloomFilterBuilder.suggestNumFilterBits(5_000_000, 1e-4), 95850584);
     final long seed = 19805243;
-    bf = BloomFilterBuilder.newBloomFilter(5_000_000, 1e-4, seed);
+    bf = BloomFilterBuilder.create(5_000_000, 1e-4, seed);
     assertEquals(bf.getCapacity(), 95850624); // next smallest multiple of 64
     assertEquals(bf.getNumHashes(), BloomFilterBuilder.suggestNumHashes(5_000_000, 95850624));
     assertEquals(bf.getSeed(), seed);

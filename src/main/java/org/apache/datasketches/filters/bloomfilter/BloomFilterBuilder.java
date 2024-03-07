@@ -84,8 +84,8 @@ public final class BloomFilterBuilder {
    * @param targetFalsePositiveProb A desired false positive probability per item
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb) {
-    return newBloomFilter(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong());
+  public static BloomFilter create(final long maxDistinctItems, final double targetFalsePositiveProb) {
+    return create(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong());
   }
 
   /**
@@ -96,7 +96,7 @@ public final class BloomFilterBuilder {
    * @param seed A base hash seed 
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter newBloomFilter(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
+  public static BloomFilter create(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
     if (maxDistinctItems <= 0) {
       throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
     }
@@ -105,6 +105,44 @@ public final class BloomFilterBuilder {
     }
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
     final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
+    return new BloomFilter(numBits, numHashes, seed);
+  }
+
+  /**
+   * Creates a BloomFilter with given number of bits and number of hash functions,
+   * and a random seed.
+   *
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   * @return A new BloomFilter configured for the given input parameters
+   */
+  public static BloomFilter createFromSize(final long numBits, final int numHashes) {
+    return createFromSize(numBits, numHashes, ThreadLocalRandom.current().nextLong());
+  }
+
+   /**
+   * Creates a BloomFilter with given number of bits and number of hash functions,
+   * and a random seed.
+   *
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   * @param seed A base hash seed
+   * @return A new BloomFilter configured for the given input parameters
+   */
+  public static BloomFilter createFromSize(final long numBits, final int numHashes, final long seed) {
+    if (numBits > BloomFilter.MAX_SIZE) {
+      throw new SketchesArgumentException("Size of BloomFilter must be <= "
+      + BloomFilter.MAX_SIZE + ". Requested: " + numBits);
+    }
+    if (numHashes < 1) {
+      throw new SketchesArgumentException("Must specify a strictly positive number of hash functions. "
+      + "Requested: " + numHashes);
+    }
+    if (numHashes > Short.MAX_VALUE) {
+      throw new SketchesArgumentException("Number of hashes cannot exceed " + Short.MAX_VALUE
+      + ". Requested: " + numHashes);
+    }
+
     return new BloomFilter(numBits, numHashes, seed);
   }
 }
