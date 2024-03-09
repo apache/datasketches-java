@@ -30,7 +30,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public interface GenericSortedView<T> extends SortedView {
+public interface GenericSortedView<T> extends PartitioningFeature<T>, SortedView {
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream

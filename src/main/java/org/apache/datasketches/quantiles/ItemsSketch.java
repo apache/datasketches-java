@@ -49,7 +49,7 @@ import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
-import org.apache.datasketches.quantilescommon.PartitioningFeature;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
@@ -74,7 +74,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  *
  * @param <T> The sketch data type
  */
-public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, PartitioningFeature<T> {
+public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   final Class<T> clazz;
   private final Comparator<? super T> comparator_;
   final int k_;
@@ -629,11 +629,11 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
     return classicQisSV;
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings({"rawtypes","unchecked"})
   private final class CreateSortedView {
     final long n = getN();
     final int numQuantiles = getNumRetained();
-    T[] quantiles = (T[]) Array.newInstance(clazz, numQuantiles);
+    final T[] quantiles = (T[]) Array.newInstance(clazz, numQuantiles);
     long[] cumWeights = new long[numQuantiles];
     final int k = getK();
 
@@ -680,11 +680,10 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
       if (convertToCumulative(cumWeights) != n) {
         throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
       }
-
+      final double normRankErr = getNormalizedRankError(getK(), true);
       return new ItemsSketchSortedView(
-          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), getK());
+          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), normRankErr);
     }
-
   }
 
   /**

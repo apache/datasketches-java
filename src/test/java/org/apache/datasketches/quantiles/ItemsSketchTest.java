@@ -41,6 +41,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -619,7 +620,8 @@ public class ItemsSketchTest {
     Double[] qArr = {8.0, 10.0, 10.0, 20.0};
     long[] cwArr =  {1,  3,  4,  5};
     Comparator<Double> comp = Comparator.naturalOrder();
-    ItemsSketchSortedView<Double> sv = new ItemsSketchSortedView<>(qArr, cwArr, 5L, comp, 20.0, 8.0, DEFAULT_K);
+    final double normRankErr = ItemsSketch.getNormalizedRankError(DEFAULT_K, true);
+    ItemsSketchSortedView<Double> sv = new ItemsSketchSortedView<>(qArr, cwArr, 5L, comp, 20.0, 8.0, normRankErr);
     double[] ranks = {0, .1, .2, .3, .6, .7, .8, .9, 1.0};
     Double[] qOut = new Double[9];
     for (int i = 0; i < ranks.length; i++) {

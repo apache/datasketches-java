@@ -26,6 +26,7 @@ import java.util.Comparator;
 
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.testng.annotations.Test;
 
 public class ItemsSketchPartitionBoundariesTest {
@@ -39,8 +40,9 @@ public class ItemsSketchPartitionBoundariesTest {
     final Comparator<String> comparator = Comparator.naturalOrder();
     final String maxItem = "8";
     final String minItem = "1";
-    ItemsSketchSortedViewString sv = new ItemsSketchSortedViewString(
-        quantiles, cumWeights, totalN, comparator, maxItem, minItem, k);
+    final double normRankErr = ItemsSketch.getNormalizedRankError(k, true);
+    ItemsSketchSortedView<String> sv = new ItemsSketchSortedView<>(
+        quantiles, cumWeights, totalN, comparator, maxItem, minItem, normRankErr);
 
     GenericSortedViewIterator<String> itr = sv.iterator();
     while (itr.next()) {

@@ -44,11 +44,10 @@ import org.apache.datasketches.kll.KllDoublesSketchSortedView;
 import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.kll.KllFloatsSketchSortedView;
 import org.apache.datasketches.kll.KllItemsSketch;
-import org.apache.datasketches.kll.KllItemsSketchSortedViewString;
+import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.quantiles.DoublesSketch;
 import org.apache.datasketches.quantiles.DoublesSketchSortedView;
 import org.apache.datasketches.quantiles.ItemsSketch;
-import org.apache.datasketches.quantiles.ItemsSketchSortedViewString;
 import org.apache.datasketches.quantiles.UpdateDoublesSketch;
 import org.apache.datasketches.req.ReqSketch;
 import org.apache.datasketches.req.ReqSketchSortedView;
@@ -149,8 +148,8 @@ public class CrossCheckQuantilesTest {
   KllFloatsSketchSortedView kllFloatsSV = null;
   KllDoublesSketchSortedView kllDoublesSV = null;
   DoublesSketchSortedView classicDoublesSV = null;
-  KllItemsSketchSortedViewString kllItemsSV = null;
-  ItemsSketchSortedViewString itemsSV = null;
+  ItemsSketchSortedView<String> kllItemsSV = null;
+  ItemsSketchSortedView<String> itemsSV = null;
 
   public CrossCheckQuantilesTest() {}
 
@@ -346,10 +345,12 @@ public class CrossCheckQuantilesTest {
         svMaxDValues[set], svMinDValues[set]);
     String svImax = svIValues[set][svIValues[set].length - 1];
     String svImin = svIValues[set][0];
-    kllItemsSV = new KllItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set],
-        comparator, svImax, svImin);
-    itemsSV = new ItemsSketchSortedViewString(svIValues[set], svCumWeights[set], totalN[set],
-        comparator, svImax, svImin, k);
+    double normRankErr = KllSketch.getNormalizedRankError(k, true);
+    kllItemsSV = new ItemsSketchSortedView<>(svIValues[set], svCumWeights[set], totalN[set],
+        comparator, svImax, svImin, normRankErr);
+    normRankErr = ItemsSketch.getNormalizedRankError(k, true);
+    itemsSV = new ItemsSketchSortedView<>(svIValues[set], svCumWeights[set], totalN[set],
+        comparator, svImax, svImin, normRankErr);
   }
 
   private final static ReqSketchSortedView getRawReqSV(

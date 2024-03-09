@@ -25,6 +25,7 @@ import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.*;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.testng.annotations.Test;
