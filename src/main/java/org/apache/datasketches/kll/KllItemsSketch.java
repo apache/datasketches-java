@@ -54,7 +54,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   final Comparator<? super T> comparator;
   final ArrayOfItemsSerDe<T> serDe;
 
-  KllItemsSketch(
+  KllItemsSketch( //pass-through constructor
       final SketchStructure skStructure,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
@@ -79,8 +79,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public static <T> KllItemsSketch<T> newHeapInstance(
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk =
-          new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
+    final KllItemsSketch<T> itmSk =
+        new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
     return itmSk;
   }
 
@@ -144,6 +144,9 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   //END of Constructors
+
+  @Override
+  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {

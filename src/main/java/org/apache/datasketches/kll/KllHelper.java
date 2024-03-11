@@ -402,7 +402,7 @@ final class KllHelper {
     return sb.toString();
   }
 
-  static String outputLevels(final int k, final int m, final int numLevels, final int[] levelsArr) {
+  private static String outputLevels(final int k, final int m, final int numLevels, final int[] levelsArr) {
     final StringBuilder sb =  new StringBuilder();
     sb.append(LS + "### KLL Levels Array:").append(LS)
     .append(" Level, Offset: Nominal Capacity, Actual Capacity").append(LS);

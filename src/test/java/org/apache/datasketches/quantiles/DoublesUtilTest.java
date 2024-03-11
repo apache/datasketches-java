@@ -37,11 +37,11 @@ public class DoublesUtilTest {
 
     byte[] byteArr = qs.toByteArray(false);
     Memory mem = Memory.wrap(byteArr);
-    println(DoublesUtil.memToString(true, true, mem));
+    println(memToString(true, true, mem));
 
     byteArr = qs.toByteArray(true);
     mem = Memory.wrap(byteArr);
-    println(DoublesUtil.memToString(true, true, mem));
+    println(memToString(true, true, mem));
   }
 
   @Test
@@ -52,7 +52,13 @@ public class DoublesUtilTest {
 
     final byte[] byteArr = qs.toByteArray();
     final Memory mem = Memory.wrap(byteArr);
-    println(DoublesUtil.memToString(true, true, mem));
+    println(memToString(true, true, mem));
+  }
+
+  static String memToString(final boolean withLevels, final boolean withLevelsAndItems,
+      final Memory mem) {
+    final DoublesSketch ds = DoublesSketch.heapify(mem);
+    return ds.toString(withLevels, withLevelsAndItems);
   }
 
   @Test

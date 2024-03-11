@@ -249,15 +249,28 @@ public class DoublesSketchTest {
   }
 
   @Test
+  public void checkToStringHeap() {
+    DoublesSketch sk = DoublesSketch.builder().setK(8).build();
+    final int n = 32;
+    for (int i = 1; i <= n; i++) {
+      final double item = i;
+      sk.update(item);
+    }
+    println(sk.toString(true, false));
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
 
+  private final static boolean enablePrinting = false;
+
   /**
-   * @param o value to print
+   * @param o the Object to println
    */
-  static void println(Object o) {
-    //System.out.println(o.toString()); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }

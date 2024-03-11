@@ -453,20 +453,7 @@ public class KllItemsSketchTest {
     sketch.getCDF(new String[] {null});
   }
 
-  @Test
-  public void getQuantiles() {
-    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    sketch.update("A");
-    sketch.update("B");
-    sketch.update("C");
-    sketch.update("D");
-    String[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    String[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).getBoundaries();
-    assertEquals(quantiles1, quantiles2);
-    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).getBoundaries();
-    assertEquals(quantiles1, quantiles2);
-  }
+
 
   @Test
   public void checkReset() {

@@ -268,6 +268,11 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
   double[] getRanks(T[] quantiles, QuantileSearchCriteria searchCrit);
 
   /**
+   * @return the sketch item class
+   */
+  Class<T> getClassOfT();
+
+  /**
    * Gets the sorted view of this sketch
    * @return the sorted view of this sketch
    */

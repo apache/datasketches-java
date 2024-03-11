@@ -293,7 +293,7 @@ public final class ItemsUnion<T> {
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         assert other != null;
         if (!other.isEstimationMode()) { //other is exact, stream items in
-          ret = ItemsSketch.getInstance(other.getSketchType(), myMaxK, comparator);
+          ret = ItemsSketch.getInstance(other.getClassOfT(), myMaxK, comparator);
           final int otherCnt = other.getBaseBufferCount();
           final Object[] combBuf = other.getCombinedBuffer();
           for (int i = 0; i < otherCnt; i++) {
@@ -333,7 +333,7 @@ public final class ItemsUnion<T> {
       }
       case 4: {
         assert other != null;
-        ret = ItemsSketch.getInstance(other.getSketchType(), Math.min(myMaxK, other.getK()), comparator);
+        ret = ItemsSketch.getInstance(other.getClassOfT(), Math.min(myMaxK, other.getK()), comparator);
         break;
       }
       default: break; //This cannot happen

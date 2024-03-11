@@ -48,10 +48,12 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   private final double minItem;
 
   /**
-   * Construct from elements for testing.
+   * Construct from elements, also used in testing.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
+   * @param maxItem of type double
+   * @param minItem of type double
    */
   DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN,
       final double maxItem, final double minItem) {

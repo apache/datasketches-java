@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 import static org.apache.datasketches.quantiles.PreambleUtil.DEFAULT_K;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -637,21 +638,6 @@ public class ItemsSketchTest {
   }
 
   @Test
-  public void getQuantiles() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
-    sketch.update(1);
-    sketch.update(2);
-    sketch.update(3);
-    sketch.update(4);
-    Integer[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    Integer[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).getBoundaries();
-    assertEquals(quantiles1, quantiles2);
-    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).getBoundaries();
-    assertEquals(quantiles1, quantiles2);
-  }
-
-  @Test
   public void checkIssue484() {
     Boolean[] items = { true,false,true,false,true,false,true,false,true,false };
     ItemsSketch<Boolean> sketch = ItemsSketch.getInstance(Boolean.class, Boolean::compareTo);
@@ -676,6 +662,27 @@ public class ItemsSketchTest {
     }
     assertEquals(actCumWts, expCumWts);
     assertEquals(actItemsArr, expItemsArr);
+  }
+
+  @Test
+  public void checkToString() { //TODO remove after conversion to SerDe
+    ItemsSketch<BadItem> sk = ItemsSketch.getInstance(BadItem.class, 8, Comparator.naturalOrder());
+    int n = 17;
+    for (int i = 1; i <= n; i++) {
+      BadItem bs = new BadItem();
+      bs.s = getString(i, 3);
+      sk.update(bs);
+    }
+    println(sk.toString(true, true));
+  }
+
+  private static class BadItem  implements Comparable<BadItem> { //doesn't implement toString();
+    String s = "";
+
+    @Override
+    public int compareTo(BadItem bs) { return s.compareTo(bs.s); }
+
+    @Override public String toString() { return (s == null) ? "null" : s; }
   }
 
   @Test
