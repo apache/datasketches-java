@@ -734,7 +734,7 @@ public class KllItemsSketchTest {
   //There is no guarantee that L0 is sorted after a merge.
   //The issue is, during a merge, L0 must be sorted prior to a compaction to a higher level.
   //Otherwise the higher levels would not be sorted properly.
-  public void checkL0SortDuringMerge() {
+  public void checkL0SortDuringMerge() throws NumberFormatException {
     final Random rand = new Random();
     final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(8, Comparator.reverseOrder(), serDe);
     final KllItemsSketch<String> sk2 = KllItemsSketch.newHeapInstance(8, Comparator.reverseOrder(), serDe);
