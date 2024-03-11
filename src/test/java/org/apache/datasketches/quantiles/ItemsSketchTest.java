@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 import static org.apache.datasketches.quantiles.PreambleUtil.DEFAULT_K;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -662,27 +661,6 @@ public class ItemsSketchTest {
     }
     assertEquals(actCumWts, expCumWts);
     assertEquals(actItemsArr, expItemsArr);
-  }
-
-  @Test
-  public void checkToString() { //TODO remove after conversion to SerDe
-    ItemsSketch<BadItem> sk = ItemsSketch.getInstance(BadItem.class, 8, Comparator.naturalOrder());
-    int n = 17;
-    for (int i = 1; i <= n; i++) {
-      BadItem bs = new BadItem();
-      bs.s = getString(i, 3);
-      sk.update(bs);
-    }
-    println(sk.toString(true, true));
-  }
-
-  private static class BadItem  implements Comparable<BadItem> { //doesn't implement toString();
-    String s = "";
-
-    @Override
-    public int compareTo(BadItem bs) { return s.compareTo(bs.s); }
-
-    @Override public String toString() { return (s == null) ? "null" : s; }
   }
 
   @Test

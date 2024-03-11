@@ -201,7 +201,7 @@ final class DoublesUtil {
       for (int i = 0; i < combBufCap; i++) {
         final int levelNum = getLevelNum(k, i);
         final String lvlStr = (levelNum == -1) ? "BB" : ("" + levelNum);
-        final String validLvl = getValidFromIndex(levelNum, bitPattern, i, k, bbCount) ? "T" : "F";
+        final String validLvl = getValidFromIndex(levelNum, bitPattern, i, bbCount) ? "T" : "F";
         final String row = String.format("%7s %7s %7s   %s", i, lvlStr, validLvl, items[i]);
         sb.append(row).append(LS);
       }
@@ -211,7 +211,7 @@ final class DoublesUtil {
   }
 
   private static boolean getValidFromIndex(final int levelNum, final long bitPattern, final int index,
-      final int k, final int bbCount) {
+      final int bbCount) {
     return ((levelNum == -1) && (index < bbCount)) || getValidFromLevel(levelNum, bitPattern);
   }
 

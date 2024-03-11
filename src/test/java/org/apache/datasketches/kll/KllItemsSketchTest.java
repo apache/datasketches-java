@@ -20,8 +20,12 @@
 package org.apache.datasketches.kll;
 
 import static java.lang.Math.ceil;
-import static org.apache.datasketches.kll.KllSketch.SketchStructure.*;
-import static org.apache.datasketches.kll.KllSketch.SketchType.*;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
+import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -31,20 +35,19 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.util.Comparator;
+import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchType;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("unused")
 public class KllItemsSketchTest {
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
@@ -725,6 +728,35 @@ public class KllItemsSketchTest {
     try { sk2.setMinItem(null); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(0); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(0); fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  //There is no guarantee that L0 is sorted after a merge.
+  //The issue is, during a merge, L0 must be sorted prior to a compaction to a higher level.
+  //Otherwise the higher levels would not be sorted properly.
+  public void checkL0SortDuringMerge() {
+    final Random rand = new Random();
+    final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(8, Comparator.reverseOrder(), serDe);
+    final KllItemsSketch<String> sk2 = KllItemsSketch.newHeapInstance(8, Comparator.reverseOrder(), serDe);
+    final int n = 26; //don't change this
+    for (int i = 1; i <= n; i++ ) {
+      final int j = rand.nextInt(n) + 1;
+      sk1.update(getString(j, 3));
+      sk2.update(getString(j +100, 3));
+    }
+    sk1.merge(sk2);
+    println(sk1.toString(true, true)); //L1 and above should be sorted in reverse. Ignore L0.
+    final int lvl1size = sk1.levelsArr[2] - sk1.levelsArr[1];
+    final QuantilesGenericSketchIterator<String> itr = sk1.iterator();
+    itr.next();
+    int prev = Integer.parseInt(itr.getQuantile().trim());
+    for (int i = 1; i < lvl1size; i++) {
+      if (itr.next()) {
+        int v = Integer.parseInt(itr.getQuantile().trim());
+        assertTrue(v <= prev);
+        prev = v;
+      }
+    }
   }
 
   @Test
