@@ -41,10 +41,6 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  */
 public final class TDigestDouble {
 
-  public static final boolean USE_ALTERNATING_SORT = true;
-  public static final boolean USE_TWO_LEVEL_COMPRESSION = true;
-  public static final boolean USE_WEIGHT_LIMIT = true;
-
   public static final short DEFAULT_K = 200;
 
   public static final String LS = System.getProperty("line.separator");
@@ -72,7 +68,7 @@ public final class TDigestDouble {
   private static final int COMPAT_DOUBLE = 1;
   private static final int COMPAT_FLOAT = 2;
 
-  enum Flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE }
+  private enum Flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE }
 
   /**
    * Constructor with the default K
@@ -499,15 +495,10 @@ public final class TDigestDouble {
     minValue_ = min;
     maxValue_ = max;
     if (k < 10) { throw new SketchesArgumentException("k must be at least 10"); }
-    int fudge = 0;
-    if (USE_WEIGHT_LIMIT) {
-      fudge = 10;
-      if (k < 30) { fudge += 20; }
-    }
+    final int fudge = k < 30 ? 30 : 10;
     centroidsCapacity_ = k_ * 2 + fudge;
     bufferCapacity_ = centroidsCapacity_ * 5;
-    double scale = Math.max(1.0, (double) bufferCapacity_ / centroidsCapacity_ - 1.0);
-    if (!USE_TWO_LEVEL_COMPRESSION) { scale = 1; }
+    final double scale = Math.max(1.0, (double) bufferCapacity_ / centroidsCapacity_ - 1.0);
     internalK_ = (short) Math.ceil(Math.sqrt(scale) * k_);
     centroidsCapacity_ = Math.max(centroidsCapacity_, internalK_ + fudge);
     bufferCapacity_ = Math.max(bufferCapacity_, centroidsCapacity_ * 2);
@@ -533,14 +524,13 @@ public final class TDigestDouble {
 
   // assumes that there is enough room in the input arrays to add centroids from this TDigest
   private void merge(final double[] values, final long[] weights, final long weight, int num) {
-    final boolean reverse = USE_ALTERNATING_SORT & reverseMerge_;
     System.arraycopy(centroidMeans_, 0, values, num, numCentroids_);
     System.arraycopy(centroidWeights_, 0, weights, num, numCentroids_);
     num += numCentroids_;
     centroidsWeight_ += weight;
     numCentroids_ = 0;
     Sort.stableSort(values, weights, num);
-    if (reverse) { // this might be avoidable if stableSort could be implemented with a boolean parameter to invert the logic
+    if (reverseMerge_) { // this might be avoidable if stableSort could be implemented with a boolean parameter to invert the logic
       Sort.reverse(values, num);
       Sort.reverse(weights, num);
     }
@@ -549,20 +539,14 @@ public final class TDigestDouble {
     numCentroids_++;
     int current = 1;
     double weightSoFar = 0;
-    final double normalizer = ScaleFunction.normalizer(internalK_, centroidsWeight_);
-    double k1 = ScaleFunction.k(0, normalizer);
-    double wLimit = centroidsWeight_ * ScaleFunction.q(k1 + 1, normalizer);
     while (current != num) {
       final double proposedWeight = centroidWeights_[numCentroids_ - 1] + weights[current];
-      final boolean addThis;
-      if (current == 1 || current == num - 1) {
-        addThis = false;
-      } else if (USE_WEIGHT_LIMIT) {
+      boolean addThis = false;
+      if (current != 1 && current != num - 1) {
         final double q0 = weightSoFar / centroidsWeight_;
         final double q2 = (weightSoFar + proposedWeight) / centroidsWeight_;
+        final double normalizer = ScaleFunction.normalizer(internalK_, centroidsWeight_);
         addThis = proposedWeight <= centroidsWeight_ * Math.min(ScaleFunction.max(q0, normalizer), ScaleFunction.max(q2, normalizer));
-      } else {
-        addThis = weightSoFar + proposedWeight <= wLimit;
       }
       if (addThis) { // merge into existing centroid
         centroidWeights_[numCentroids_ - 1] += weights[current];
@@ -570,17 +554,13 @@ public final class TDigestDouble {
             * weights[current] / centroidWeights_[numCentroids_ - 1];
       } else { // copy to a new centroid
         weightSoFar += centroidWeights_[numCentroids_ - 1];
-        if (!USE_WEIGHT_LIMIT) {
-          k1 = ScaleFunction.k(weightSoFar / centroidsWeight_, normalizer);
-          wLimit = centroidsWeight_ * ScaleFunction.q(k1 + 1, normalizer);
-        }
         centroidMeans_[numCentroids_] = values[current];
         centroidWeights_[numCentroids_] = weights[current];
         numCentroids_++;
       }
       current++;
     }
-    if (reverse) {
+    if (reverseMerge_) {
       Sort.reverse(centroidMeans_, numCentroids_);
       Sort.reverse(centroidWeights_, numCentroids_);
     }
@@ -601,20 +581,6 @@ public final class TDigestDouble {
    * Corresponds to K_2 in the reference implementation
    */
   private static final class ScaleFunction {
-    static double k(final double q, final double normalizer) {
-      return limit(new Function<Double, Double>() {
-        @Override
-        public Double apply(final Double q) {
-          return Math.log(q / (1 - q)) * normalizer;
-        }
-      }, q, 1e-15, 1 - 1e-15);
-    }
-
-    static double q(final double k, final double normalizer) {
-      final double w = Math.exp(k / normalizer);
-      return w / (1 + w);
-    }
-
     static double max(final double q, final double normalizer) {
       return q * (1 - q) / normalizer;
     }
@@ -625,15 +591,6 @@ public final class TDigestDouble {
 
     static double z(final double compression, final double n) {
       return 4 * Math.log(n / compression) + 24;
-    }
-
-    static double limit(final Function<Double, Double> f, final double x, final double low, final double high) {
-      if (x < low) {
-        return f.apply(low);
-      } else if (x > high) {
-        return f.apply(high);
-      }
-      return f.apply(x);
     }
   }
   
