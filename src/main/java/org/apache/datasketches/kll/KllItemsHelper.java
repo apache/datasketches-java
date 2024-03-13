@@ -434,7 +434,7 @@ final class KllItemsHelper {
 
         // level zero might not be sorted, so we must sort it if we wish to compact it
         if ((curLevel == 0) && !isLevelZeroSorted) {
-          Arrays.sort(inBuf, adjBeg, adjBeg + adjPop);
+          Arrays.sort((T[])inBuf, adjBeg, adjBeg + adjPop, comp);
         }
 
         if (popAbove == 0) { // Level above is empty, so halve up

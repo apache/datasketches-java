@@ -36,6 +36,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
@@ -59,7 +60,7 @@ public class KllMiscItemsTest {
     for (int i = 1; i <= n; i++) {
       sk.update(Util.longToFixedLengthString(i, digits));
     }
-    KllItemsSketchSortedView<String> sv = sk.getSortedView();
+    ItemsSketchSortedView<String> sv = sk.getSortedView();
     long[] cumWeights = sv.getCumulativeWeights();
     String[] values = sv.getQuantiles();
     assertEquals(cumWeights.length, 20);
@@ -217,7 +218,7 @@ public class KllMiscItemsTest {
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     for (int i = 1; i <= n; i++) { sk.update(Util.longToFixedLengthString(i, digits)); }
     println(sk.toString(true, true));
-    KllItemsSketchSortedView<String> sv = sk.getSortedView();
+    ItemsSketchSortedView<String> sv = sk.getSortedView();
     GenericSortedViewIterator<String> itr = sv.iterator();
     println("### SORTED VIEW");
     printf("%12s%12s\n", "Value", "CumWeight");
@@ -566,8 +567,8 @@ public class KllMiscItemsTest {
   }
 
   private static <T> void checkSketchesEqual(KllItemsSketch<T> expected, KllItemsSketch<T> actual) {
-    KllItemsSketchSortedView<T> expSV = expected.getSortedView();
-    KllItemsSketchSortedView<T> actSV = actual.getSortedView();
+    ItemsSketchSortedView<T> expSV = expected.getSortedView();
+    ItemsSketchSortedView<T> actSV = actual.getSortedView();
     int N = (int)actSV.getN();
     long[] expCumWts = expSV.getCumulativeWeights();
     Boolean[] expItemsArr = (Boolean[])expSV.getQuantiles();

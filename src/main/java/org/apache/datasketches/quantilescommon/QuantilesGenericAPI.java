@@ -27,7 +27,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
  * @param <T> The given item type
  * @author Lee Rhodes
  */
-public interface QuantilesGenericAPI<T> extends QuantilesAPI {
+public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeature<T> {
 
   /**
    * This is equivalent to {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
@@ -266,6 +266,11 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double[] getRanks(T[] quantiles, QuantileSearchCriteria searchCrit);
+
+  /**
+   * @return the sketch item class
+   */
+  Class<T> getClassOfT();
 
   /**
    * Gets the sorted view of this sketch

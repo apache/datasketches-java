@@ -353,23 +353,29 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return DoublesByteArrayImpl.toByteArray(this, compact, compact);
   }
 
+  /**
+   * Returns human readable summary information about this sketch.
+   * Used for debugging.
+   */
   @Override
   public String toString() {
     return toString(true, false);
   }
 
   /**
-   * Returns summary information about this sketch. Used for debugging.
-   * @param sketchSummary if true includes sketch summary
-   * @param dataDetail if true includes data detail
-   * @return summary information about the sketch.
+   * Returns human readable summary information about this sketch.
+   * Used for debugging.
+   * @param withLevels if true includes sketch levels array summary information
+   * @param withLevelsAndItems if true include detail of levels array and items array together
+   * @return human readable summary information about this sketch.
    */
-  public String toString(final boolean sketchSummary, final boolean dataDetail) {
-    return DoublesUtil.toString(sketchSummary, dataDetail, this);
+  public String toString(final boolean withLevels, final boolean withLevelsAndItems) {
+    return DoublesUtil.toString(withLevels, withLevelsAndItems, this);
   }
 
   /**
    * Returns a human readable string of the preamble of a byte array image of a DoublesSketch.
+   * Used for debugging.
    * @param byteArr the given byte array
    * @return a human readable string of the preamble of a byte array image of a DoublesSketch.
    */
@@ -379,6 +385,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * Returns a human readable string of the preamble of a Memory image of a DoublesSketch.
+   * Used for debugging.
    * @param mem the given Memory
    * @return a human readable string of the preamble of a Memory image of a DoublesSketch.
    */

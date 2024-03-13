@@ -279,16 +279,21 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   public abstract void merge(KllSketch other);
 
+  /**
+   * Returns human readable summary information about this sketch.
+   * Used for debugging.
+   */
   @Override
   public final String toString() {
     return toString(false, false);
   }
 
   /**
-   * Returns a summary of the sketch as a string.
+   * Returns human readable summary information about this sketch.
+   * Used for debugging.
    * @param withLevels if true includes sketch levels array summary information
    * @param withLevelsAndItems if true include detail of levels array and items array together
-   * @return string representation of sketch summary
+   * @return human readable summary information about this sketch.
    */
   public abstract String toString(final boolean withLevels, final boolean withLevelsAndItems);
 

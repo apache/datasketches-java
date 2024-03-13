@@ -30,7 +30,6 @@ import static org.apache.datasketches.quantiles.ClassicUtil.getNormalizedRankErr
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Utilities that support the doubles quantiles algorithms.
@@ -98,22 +97,17 @@ final class DoublesUtil {
     }
   }
 
-  static String toString(final boolean sketchSummary, final boolean dataDetail,
-      final DoublesSketch sketch) {
+  static String toString(final boolean withLevels, final boolean withLevelsAndItems,
+      final DoublesSketch sk) {
     final StringBuilder sb = new StringBuilder();
-    if (dataDetail) {
-      sb.append(getDataDetail(sketch));
+    sb.append(getSummary(sk));
+    if (withLevels) {
+      sb.append(outputLevels(sk));
     }
-    if (sketchSummary) {
-      sb.append(getSummary(sketch));
+    if (withLevelsAndItems) {
+      sb.append(outputDataDetail(sk));
     }
     return sb.toString();
-  }
-
-  static String memToString(final boolean sketchSummary, final boolean dataDetail,
-      final Memory mem) {
-    final DoublesSketch ds = DoublesSketch.heapify(mem);
-    return ds.toString(sketchSummary, dataDetail);
   }
 
   private static String getSummary(final DoublesSketch sk) {
@@ -130,6 +124,7 @@ final class DoublesUtil {
     final int totalLevels = computeTotalLevels(bitPattern);
     final int validLevels = computeValidLevels(bitPattern);
     final String retItemsStr = String.format("%,d", sk.getNumRetained());
+    final int preBytes = sk.isEmpty() ? Long.BYTES : 2 * Long.BYTES;
     final String cmptBytesStr = String.format("%,d", sk.getCurrentCompactSerializedSizeBytes());
     final String updtBytesStr = String.format("%,d", sk.getCurrentUpdatableSerializedSizeBytes());
     final double epsPmf = getNormalizedRankError(k, true);
@@ -140,70 +135,93 @@ final class DoublesUtil {
     final double minItem = sk.isEmpty() ? Double.NaN : sk.getMinItem();
     final double maxItem = sk.isEmpty() ? Double.NaN : sk.getMaxItem();
 
-    sb.append(LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
+    sb.append(LS).append("### Classic Quantiles ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
+    sb.append("    Empty                        : ").append(sk.isEmpty()).append(LS);
+    sb.append("    Memory, Capacity bytes       : ").append(sk.hasMemory()).append(", ").append(memCap).append(LS);
+    sb.append("    Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
+    sb.append("    K                            : ").append(kStr).append(LS);
+    sb.append("    N                            : ").append(nStr).append(LS);
+    sb.append("    Levels (Needed, Total, Valid): ").append(neededLevels + ", " + totalLevels + ", " + validLevels)
       .append(LS);
-    sb.append("   Empty                        : ").append(sk.isEmpty()).append(LS);
-    sb.append("   Memory, Capacity bytes       : ").append(sk.hasMemory())
-      .append(", ").append(memCap).append(LS);
-    sb.append("   Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
-    sb.append("   K                            : ").append(kStr).append(LS);
-    sb.append("   N                            : ").append(nStr).append(LS);
-    sb.append("   Levels (Needed, Total, Valid): ")
-      .append(neededLevels + ", " + totalLevels + ", " + validLevels).append(LS);
-    sb.append("   Level Bit Pattern            : ")
-      .append(Long.toBinaryString(bitPattern)).append(LS);
-    sb.append("   BaseBufferCount              : ").append(bbCntStr).append(LS);
-    sb.append("   Combined Buffer Capacity     : ").append(combBufCapStr).append(LS);
-    sb.append("   Retained Items               : ").append(retItemsStr).append(LS);
-    sb.append("   Compact Storage Bytes        : ").append(cmptBytesStr).append(LS);
-    sb.append("   Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
-    sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
-    sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-    sb.append("   Min Item                     : ")
+    sb.append("    Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(LS);
+    sb.append("    Base Buffer Count            : ").append(bbCntStr).append(LS);
+    sb.append("    Combined Buffer Capacity     : ").append(combBufCapStr).append(LS);
+    sb.append("    Retained Items               : ").append(retItemsStr).append(LS);
+    sb.append("    Preamble Bytes               : ").append(preBytes).append(LS);
+    sb.append("    Compact Storage Bytes        : ").append(cmptBytesStr).append(LS);
+    sb.append("    Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
+    sb.append("    Normalized Rank Error        : ").append(epsPctStr).append(LS);
+    sb.append("    Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
+    sb.append("    Min Item                     : ")
       .append(String.format("%12.6e", minItem)).append(LS);
-    sb.append("   Max Item                     : ")
+    sb.append("    Max Item                     : ")
       .append(String.format("%12.6e", maxItem)).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }
 
-  private static String getDataDetail(final DoublesSketch sketchIn) {
-    final DoublesSketch sketch = sketchIn.isCompact() ? copyToHeap(sketchIn) : sketchIn;
-    final StringBuilder sb = new StringBuilder();
-    final String skName = sketch.getClass().getSimpleName();
-    sb.append(LS).append("### Quantiles ").append(skName).append(" DATA DETAIL: ").append(LS);
-
-    final int k = sketch.getK();
-    final long n = sketch.getN();
-    final int bbCount = sketch.getBaseBufferCount();
-    final long bitPattern = sketch.getBitPattern();
-    final double[] combBuf = sketch.getCombinedBuffer();
-
-    //output the base buffer
-
-    sb.append("   BaseBuffer   : ");
-    for (int i = 0; i < bbCount; i++) {
-      sb.append(String.format("%10.1f", combBuf[i]));
-    }
-    sb.append(LS);
-
-    //output all the levels
-    final int combBufSize = combBuf.length;
-    if (n >= (2 * k)) {
-      sb.append("   Valid | Level");
-      for (int j = 2 * k; j < combBufSize; j++) { //output level data starting at 2K
-        if ((j % k) == 0) { //start output of new level
-          final int levelNum = (j / k) - 2;
-          final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
-          final String lvl = String.format("%5d", levelNum);
-          sb.append(LS).append("   ").append(validLvl).append(" ").append(lvl).append(": ");
-        }
-        sb.append(String.format("%10.1f", combBuf[j]));
+  private static <T> String outputLevels(final DoublesSketch sk) {
+    final String name = sk.getClass().getSimpleName();
+    final int k = sk.getK();
+    final long n = sk.getN();
+    final int totNumLevels = computeNumLevelsNeeded(k, n);
+    final long bitPattern = sk.getBitPattern();
+    final StringBuilder sb =  new StringBuilder();
+    sb.append(LS).append("### ").append(name).append(" LEVELS ABOVE BASE BUF:").append(LS);
+    if (totNumLevels == 0) {
+      sb.append("    <NONE>").append(LS);
+    } else {
+      sb.append("    Level |  Valid |  Weight").append(LS);
+      for (int i = 0; i < totNumLevels; i++) {
+        final String wt = "" + (1L << (i + 1));
+        final String valid = getValidFromLevel(i, bitPattern) ? "T" : "F";
+        final String row = String.format("  %7s %8s %9s", i, valid, wt);
+        sb.append(row).append(LS);
       }
-      sb.append(LS);
+    }
+    sb.append("### END LEVELS ABOVE BASE BUF").append(LS);
+    return sb.toString();
+  }
+
+  private static <T> String outputDataDetail(final DoublesSketch sk) {
+    final String name = sk.getClass().getSimpleName();
+    final int k = sk.getK();
+    final long n = sk.getN();
+    final long bitPattern = sk.getBitPattern();
+    final int bbCount = sk.getBaseBufferCount();
+    final int combBufCap = sk.getCombinedBufferItemCapacity();
+    final StringBuilder sb =  new StringBuilder();
+
+    sb.append(LS).append("### ").append(name).append(" DATA DETAIL: ").append(LS);
+    final double[] items  = sk.getCombinedBuffer();
+    if (n == 0) {
+      sb.append("    <NO DATA>").append(LS);
+    } else {
+      sb.append("  Index | Level | Valid | Item").append(LS);
+      for (int i = 0; i < combBufCap; i++) {
+        final int levelNum = getLevelNum(k, i);
+        final String lvlStr = (levelNum == -1) ? "BB" : ("" + levelNum);
+        final String validLvl = getValidFromIndex(levelNum, bitPattern, i, bbCount) ? "T" : "F";
+        final String row = String.format("%7s %7s %7s   %s", i, lvlStr, validLvl, items[i]);
+        sb.append(row).append(LS);
+      }
     }
     sb.append("### END DATA DETAIL").append(LS);
     return sb.toString();
+  }
+
+  private static boolean getValidFromIndex(final int levelNum, final long bitPattern, final int index,
+      final int bbCount) {
+    return ((levelNum == -1) && (index < bbCount)) || getValidFromLevel(levelNum, bitPattern);
+  }
+
+  private static boolean getValidFromLevel(final int levelNum, final long bitPattern) {
+    return ((1L << levelNum) & bitPattern) > 0;
+  }
+
+  private static int getLevelNum(final int k, final int index) {
+    final int twoK = 2 * k;
+    return index < twoK ? - 1 : (index - twoK) / k;
   }
 
 }

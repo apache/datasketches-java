@@ -57,6 +57,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *  1   ||-----------------------------------N_LONG--------------------------------------|
  *
  *  Applies only to DoublesSketch:
+ *  (ItemsSketch has elements in the same order, but size depends on sizeOf(T)
  *
  *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
  *  2   ||---------------------------START OF DATA, MIN_DOUBLE---------------------------|

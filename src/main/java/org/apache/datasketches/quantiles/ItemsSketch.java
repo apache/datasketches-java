@@ -49,7 +49,7 @@ import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
-import org.apache.datasketches.quantilescommon.PartitioningFeature;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
@@ -74,7 +74,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  *
  * @param <T> The sketch data type
  */
-public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, PartitioningFeature<T> {
+public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   final Class<T> clazz;
   private final Comparator<? super T> comparator_;
   final int k_;
@@ -83,7 +83,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
   T minItem_; //The smallest item ever seen in the stream.
 
   /**
-   * In the initial on-heap version, equals combinedBuffer_.length.
+   * In the on-heap version, this equals combinedBuffer_.length.
    * May differ in later versions that grow space more aggressively.
    * Also, in the off-heap version, combinedBuffer_ won't even be a java array,
    * so it won't know its own length.
@@ -255,16 +255,14 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
   //END of Constructors
 
   @Override
+  public Class<T> getClassOfT() { return clazz; }
+
+  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return classicQisSV.getCDF(splitPoints, searchCrit);
   }
-
-  /**
-   * @return the sketch item type
-   */
-  public Class<T> getSketchType() { return clazz; }
 
   @Override
   public T getMaxItem() {
@@ -457,17 +455,28 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
   }
 
   /**
-   * Returns summary information about this sketch. Used for debugging.
-   * @param sketchSummary if true includes sketch summary
-   * @param dataDetail if true includes data detail
-   * @return summary information about the sketch.
+   * Returns human readable summary information about this sketch.
+   * Used for debugging.
    */
-  public String toString(final boolean sketchSummary, final boolean dataDetail) {
-    return ItemsUtil.toString(sketchSummary, dataDetail, this);
+  @Override
+  public String toString() {
+    return toString(false, false);
+  }
+
+  /**
+   * Returns human readable summary information about this sketch.
+   * Used for debugging.
+   * @param withLevels if true includes sketch levels array summary information
+   * @param withLevelsAndItems if true include detail of levels array and items array together
+   * @return human readable summary information about this sketch.
+   */
+  public String toString(final boolean withLevels, final boolean withLevelsAndItems) {
+    return ItemsUtil.toString(withLevels, withLevelsAndItems, this);
   }
 
   /**
    * Returns a human readable string of the preamble of a byte array image of an ItemsSketch.
+   * Used for debugging.
    * @param byteArr the given byte array
    * @return a human readable string of the preamble of a byte array image of an ItemsSketch.
    */
@@ -477,6 +486,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
 
   /**
    * Returns a human readable string of the preamble of a Memory image of an ItemsSketch.
+   * Used for debugging.
    * @param mem the given Memory
    * @return a human readable string of the preamble of a Memory image of an ItemsSketch.
    */
@@ -629,11 +639,11 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
     return classicQisSV;
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings({"rawtypes","unchecked"})
   private final class CreateSortedView {
     final long n = getN();
     final int numQuantiles = getNumRetained();
-    T[] quantiles = (T[]) Array.newInstance(clazz, numQuantiles);
+    final T[] quantiles = (T[]) Array.newInstance(clazz, numQuantiles);
     long[] cumWeights = new long[numQuantiles];
     final int k = getK();
 
@@ -680,11 +690,10 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T>, Partitionin
       if (convertToCumulative(cumWeights) != n) {
         throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
       }
-
+      final double normRankErr = getNormalizedRankError(getK(), true);
       return new ItemsSketchSortedView(
-          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), getK());
+          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), normRankErr);
     }
-
   }
 
   /**

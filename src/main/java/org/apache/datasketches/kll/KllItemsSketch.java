@@ -36,7 +36,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
-import org.apache.datasketches.quantilescommon.PartitioningFeature;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
@@ -49,12 +49,12 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  * @see org.apache.datasketches.kll.KllSketch
  */
 @SuppressWarnings("unchecked")
-public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T>, PartitioningFeature<T> {
-  private KllItemsSketchSortedView<T> kllItemsSV = null;
+public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
+  private ItemsSketchSortedView<T> itemsSV = null;
   final Comparator<? super T> comparator;
   final ArrayOfItemsSerDe<T> serDe;
 
-  KllItemsSketch(
+  KllItemsSketch( //pass-through constructor
       final SketchStructure skStructure,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
@@ -79,8 +79,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public static <T> KllItemsSketch<T> newHeapInstance(
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk =
-          new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
+    final KllItemsSketch<T> itmSk =
+        new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
     return itmSk;
   }
 
@@ -146,10 +146,13 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //END of Constructors
 
   @Override
+  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
+
+  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllItemsSV.getCDF(splitPoints, searchCrit);
+    return itemsSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
@@ -157,21 +160,21 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllItemsSV.getPartitionBoundaries(numEquallySized, searchCrit);
+    return itemsSV.getPartitionBoundaries(numEquallySized, searchCrit);
   }
 
   @Override
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllItemsSV.getPMF(splitPoints, searchCrit);
+    return itemsSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllItemsSV.getQuantile(rank, searchCrit);
+    return itemsSV.getQuantile(rank, searchCrit);
   }
 
   @Override
@@ -181,7 +184,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     final int len = ranks.length;
     final T[] quantiles = (T[]) Array.newInstance(getMinItem().getClass(), len);
     for (int i = 0; i < len; i++) {
-      quantiles[i] = kllItemsSV.getQuantile(ranks[i], searchCrit);
+      quantiles[i] = itemsSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
   }
@@ -200,7 +203,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllItemsSV.getRank(quantile, searchCrit);
+    return itemsSV.getRank(quantile, searchCrit);
   }
 
   /**
@@ -230,16 +233,16 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     final int len = quantiles.length;
     final double[] ranks = new double[len];
     for (int i = 0; i < len; i++) {
-      ranks[i] = kllItemsSV.getRank(quantiles[i], searchCrit);
+      ranks[i] = itemsSV.getRank(quantiles[i], searchCrit);
     }
     return ranks;
   }
 
   @Override
-  public final KllItemsSketchSortedView<T> getSortedView() {
+  public final ItemsSketchSortedView<T> getSortedView() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return refreshSortedView();
-    //return kllItemsSV; //SpotBugs EI_EXPOSE_REP, Suppressed by FindBugsExcludeFilter
+    //return itemsSV; //SpotBugs EI_EXPOSE_REP, Suppressed by FindBugsExcludeFilter
   }
 
   @Override
@@ -255,7 +258,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     final KllItemsSketch<T> othItmSk = (KllItemsSketch<T>)other;
     if (othItmSk.isEmpty()) { return; }
     KllItemsHelper.mergeItemImpl(this, othItmSk, comparator);
-    kllItemsSV = null;
+    itemsSV = null;
   }
 
   @Override
@@ -270,7 +273,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     setMinItem(null);
     setMaxItem(null);
     setItemsArray(new Object[k]);
-    kllItemsSV = null;
+    itemsSV = null;
   }
 
   public byte[] toByteArray() {
@@ -293,7 +296,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     if (item == null) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllItemsHelper.updateItem(this, item);
-    kllItemsSV = null;
+    itemsSV = null;
   }
 
   /**
@@ -307,7 +310,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
     if (weight == 1L) { KllItemsHelper.updateItem(this, item); }
     else { KllItemsHelper.updateItem(this, item, weight); }
-    kllItemsSV = null;
+    itemsSV = null;
   }
 
   //restricted
@@ -394,19 +397,20 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     }
   }
 
-  private final KllItemsSketchSortedView<T> refreshSortedView() {
-    if (kllItemsSV == null) {
+  private final ItemsSketchSortedView<T> refreshSortedView() {
+    if (itemsSV == null) {
       final CreateSortedView csv = new CreateSortedView();
-      kllItemsSV = csv.getSV();
+      itemsSV = csv.getSV();
     }
-    return kllItemsSV;
+    return itemsSV;
   }
 
+  @SuppressWarnings({"rawtypes"})
   private final class CreateSortedView {
     T[] quantiles;
     long[] cumWeights;
 
-    KllItemsSketchSortedView<T> getSV() {
+    ItemsSketchSortedView<T> getSV() {
       if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
       if (getN() == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
       final T[] srcQuantiles = getTotalItemsArray();
@@ -417,11 +421,13 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
         Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1], comparator);
         if (!hasMemory()) { setLevelZeroSorted(true); }
       }
-      final int numQuantiles = srcLevels[srcNumLevels] - srcLevels[0]; //remove free space
+      final int numQuantiles = getNumRetained();
       quantiles = (T[]) Array.newInstance(serDe.getClassOfT(), numQuantiles);
       cumWeights = new long[numQuantiles];
       populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
-      return new KllItemsSketchSortedView<>(quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem());
+      final double normRankErr = getNormalizedRankError(getK(), true);
+      return new ItemsSketchSortedView(
+          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), normRankErr);
     }
 
     private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevels,
