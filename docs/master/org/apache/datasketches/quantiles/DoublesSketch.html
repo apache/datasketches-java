@@ -539,15 +539,15 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Returns a summary of the key parameters of the sketch.</div>
+<div class="block">Returns human readable summary information about this sketch.</div>
 </td>
 </tr>
 <tr id="i40" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;sketchSummary,
-        boolean&nbsp;dataDetail)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withLevels,
+        boolean&nbsp;withLevelsAndItems)</code></th>
 <td class="colLast">
-<div class="block">Returns summary information about this sketch.</div>
+<div class="block">Returns human readable summary information about this sketch.</div>
 </td>
 </tr>
 <tr id="i41" class="rowColor">
@@ -1227,8 +1227,8 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 <li class="blockList">
 <h4>toString</h4>
 <pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html#toString()">QuantilesAPI</a></code></span></div>
-<div class="block">Returns a summary of the key parameters of the sketch.</div>
+<div class="block">Returns human readable summary information about this sketch.
+ Used for debugging.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../quantilescommon/QuantilesAPI.html#toString()">toString</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code></dd>
@@ -1245,15 +1245,16 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;sketchSummary,
-                       boolean&nbsp;dataDetail)</pre>
-<div class="block">Returns summary information about this sketch. Used for debugging.</div>
+<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;withLevels,
+                       boolean&nbsp;withLevelsAndItems)</pre>
+<div class="block">Returns human readable summary information about this sketch.
+ Used for debugging.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>sketchSummary</code> - if true includes sketch summary</dd>
-<dd><code>dataDetail</code> - if true includes data detail</dd>
+<dd><code>withLevels</code> - if true includes sketch levels array summary information</dd>
+<dd><code>withLevelsAndItems</code> - if true include detail of levels array and items array together</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>summary information about the sketch.</dd>
+<dd>human readable summary information about this sketch.</dd>
 </dl>
 </li>
 </ul>
@@ -1264,7 +1265,8 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 <li class="blockList">
 <h4>toString</h4>
 <pre class="methodSignature">public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(byte[]&nbsp;byteArr)</pre>
-<div class="block">Returns a human readable string of the preamble of a byte array image of a DoublesSketch.</div>
+<div class="block">Returns a human readable string of the preamble of a byte array image of a DoublesSketch.
+ Used for debugging.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>byteArr</code> - the given byte array</dd>
@@ -1280,7 +1282,8 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 <li class="blockList">
 <h4>toString</h4>
 <pre class="methodSignature">public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</pre>
-<div class="block">Returns a human readable string of the preamble of a Memory image of a DoublesSketch.</div>
+<div class="block">Returns a human readable string of the preamble of a Memory image of a DoublesSketch.
+ Used for debugging.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>mem</code> - the given Memory</dd>

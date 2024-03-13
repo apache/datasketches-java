@@ -124,6 +124,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  analysis of the distribution of a stream of quantiles.</div>
 </td>
 </tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="#org.apache.datasketches.quantilescommon">org.apache.datasketches.quantilescommon</a></th>
+<td class="colLast">
+<div class="block">This package contains common tools and methods for the <i>quantiles</i>, <i>kll</i> and
+ <i>req</i> packages.</div>
+</td>
+</tr>
 </tbody>
 </table>
 </li>
@@ -147,13 +154,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a>&lt;T&gt;</span></code></th>
 <td class="colLast">
 <div class="block">This variation of the KllSketch implements generic data types.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>class&nbsp;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../../kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a>&lt;T&gt;</span></code></th>
-<td class="colLast">
-<div class="block">The SortedView of the KllItemsSketch.</div>
 </td>
 </tr>
 </tbody>
@@ -215,11 +215,52 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  by Agarwal, Cormode, Huang, Phillips, Wei, and Yi:</div>
 </td>
 </tr>
-<tr class="rowColor">
-<td class="colFirst"><code>class&nbsp;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../../quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a>&lt;T&gt;</span></code></th>
+</tbody>
+</table>
+</section>
+</li>
+<li class="blockList">
+<section><a id="org.apache.datasketches.quantilescommon">
+<!--   -->
+</a>
+<h3>Uses of <a href="../PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a> in <a href="../package-summary.html">org.apache.datasketches.quantilescommon</a></h3>
+<table class="useSummary">
+<caption><span>Subinterfaces of <a href="../PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a> in <a href="../package-summary.html">org.apache.datasketches.quantilescommon</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colSecond" scope="col">Interface</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><code>interface&nbsp;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedView</a>&lt;T&gt;</span></code></th>
 <td class="colLast">
-<div class="block">The SortedView of the Classic Quantiles ItemsSketch.</div>
+<div class="block">The Sorted View for quantiles of generic type.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>interface&nbsp;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;T&gt;</span></code></th>
+<td class="colLast">
+<div class="block">The Quantiles API for item type <i>generic</i>.</div>
+</td>
+</tr>
+</tbody>
+</table>
+<table class="useSummary">
+<caption><span>Classes in <a href="../package-summary.html">org.apache.datasketches.quantilescommon</a> that implement <a href="../PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colSecond" scope="col">Class</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><code>class&nbsp;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="../ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">ItemsSketchSortedView</a>&lt;T&gt;</span></code></th>
+<td class="colLast">
+<div class="block">The SortedView for the KllItemsSketch and the classic ItemsSketch.</div>
 </td>
 </tr>
 </tbody>

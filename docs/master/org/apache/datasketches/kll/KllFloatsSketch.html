@@ -373,7 +373,7 @@ implements <a href="../quantilescommon/QuantilesFloatsAPI.html" title="interface
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withLevels,
         boolean&nbsp;withLevelsAndItems)</code></th>
 <td class="colLast">
-<div class="block">Returns a summary of the sketch as a string.</div>
+<div class="block">Returns human readable summary information about this sketch.</div>
 </td>
 </tr>
 <tr id="i21" class="rowColor">
@@ -971,7 +971,8 @@ implements <a href="../quantilescommon/QuantilesFloatsAPI.html" title="interface
 <pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(boolean&nbsp;withLevels,
                        boolean&nbsp;withLevelsAndItems)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="KllSketch.html#toString(boolean,boolean)">KllSketch</a></code></span></div>
-<div class="block">Returns a summary of the sketch as a string.</div>
+<div class="block">Returns human readable summary information about this sketch.
+ Used for debugging.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="KllSketch.html#toString(boolean,boolean)">toString</a></code>&nbsp;in class&nbsp;<code><a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></code></dd>
@@ -979,7 +980,7 @@ implements <a href="../quantilescommon/QuantilesFloatsAPI.html" title="interface
 <dd><code>withLevels</code> - if true includes sketch levels array summary information</dd>
 <dd><code>withLevelsAndItems</code> - if true include detail of levels array and items array together</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>string representation of sketch summary</dd>
+<dd>human readable summary information about this sketch.</dd>
 </dl>
 </li>
 </ul>

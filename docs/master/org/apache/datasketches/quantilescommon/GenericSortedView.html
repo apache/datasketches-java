@@ -129,15 +129,15 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
+<dd><code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><code><a href="../quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></code>, <code><a href="../kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a></code></dd>
+<dd><code><a href="ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">ItemsSketchSortedView</a></code></dd>
 </dl>
 <hr>
 <pre>public interface <span class="typeNameLabel">GenericSortedView&lt;T&gt;</span>
-extends <a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></pre>
+extends <a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;, <a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></pre>
 <div class="block">The Sorted View for quantiles of generic type.</div>
 <dl>
 <dt><span class="simpleTagLabel">Author:</span></dt>
@@ -238,6 +238,13 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 </td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.PartitioningFeature">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></h3>
+<code><a href="PartitioningFeature.html#getPartitionBoundaries(int)">getPartitionBoundaries</a>, <a href="PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></code></li>
+</ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.SortedView">
 <!--   -->
