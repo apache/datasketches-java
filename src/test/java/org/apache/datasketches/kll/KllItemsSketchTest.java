@@ -731,10 +731,21 @@ public class KllItemsSketchTest {
   }
 
   @Test
+  public void checkSortedViewAfterReset() {
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    sk.update("1");
+    GenericSortedView<String> sv = sk.getSortedView();
+    String ssv = sv.getQuantile(1.0, INCLUSIVE);
+    assertEquals(ssv, "1");
+    sk.reset();
+    try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
   //There is no guarantee that L0 is sorted after a merge.
   //The issue is, during a merge, L0 must be sorted prior to a compaction to a higher level.
   //Otherwise the higher levels would not be sorted properly.
-  public void checkL0SortDuringMerge() throws NumberFormatException {
+  public void checkL0SortDuringMergeIssue527() throws NumberFormatException {
     final Random rand = new Random();
     final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(8, Comparator.reverseOrder(), serDe);
     final KllItemsSketch<String> sk2 = KllItemsSketch.newHeapInstance(8, Comparator.reverseOrder(), serDe);
@@ -758,18 +769,6 @@ public class KllItemsSketchTest {
       }
     }
   }
-
-  @Test
-  public void checkSortedViewAfterReset() {
-    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
-    sk.update("1");
-    GenericSortedView<String> sv = sk.getSortedView();
-    String ssv = sv.getQuantile(1.0, INCLUSIVE);
-    assertEquals(ssv, "1");
-    sk.reset();
-    try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
-  }
-
 
   private final static boolean enablePrinting = false;
 

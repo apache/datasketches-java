@@ -20,6 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.PreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -30,6 +31,7 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
@@ -42,6 +44,7 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -661,6 +664,43 @@ public class ItemsSketchTest {
     }
     assertEquals(actCumWts, expCumWts);
     assertEquals(actItemsArr, expItemsArr);
+  }
+
+  @Test
+  //There is no guarantee that BaseBuffer is sorted after a merge.
+  //The issue is, during a merge, BB must be sorted prior to a compaction to a higher level.
+  //Otherwise the higher levels would not be sorted properly.
+  public void checkL0SortDuringMergeIssue527() throws NumberFormatException {
+    final Random rand = new Random();
+    final ItemsSketch<String> sk1 = ItemsSketch.getInstance(String.class, 8, Comparator.reverseOrder());
+    final ItemsSketch<String> sk2 = ItemsSketch.getInstance(String.class, 8, Comparator.reverseOrder());
+    final int n = 24; //don't change this
+    for (int i = 1; i <= n; i++ ) {
+      final int j = rand.nextInt(n) + 1;
+      sk1.update(getString(j, 3));
+      sk2.update(getString(j +100, 3));
+    }
+    int k = 8;
+    ItemsUnion<String> union = ItemsUnion.getInstance(String.class, k, Comparator.reverseOrder());
+    union.union(sk1);
+    union.union(sk2);
+    ItemsSketch<String> sk3 = union.getResult();
+    println(sk3.toString(true, true)); //L0 and above should be sorted in reverse. Ignore BB.
+
+    final QuantilesGenericSketchIterator<String> itr = sk3.iterator();
+    itr.next();
+    int prev = Integer.parseInt(itr.getQuantile().trim());
+    for (int i = 1; i < (2 * k); i++) {
+      if (itr.next()) {
+        int v = Integer.parseInt(itr.getQuantile().trim());
+        if (i == k) {
+          prev = Integer.parseInt(itr.getQuantile().trim());
+          continue;
+        }
+        assertTrue(v <= prev);
+        prev = v;
+      }
+    }
   }
 
   @Test
