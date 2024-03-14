@@ -33,7 +33,7 @@ under the License.
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>5.0.1</version>
+  <version>5.0.2</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
@@ -734,7 +734,7 @@ under the License.
         </pluginManagement>
       </build>
     </profile>
-    
+
     <profile>
       <id>check-cpp-historical-files</id>
       <build>
