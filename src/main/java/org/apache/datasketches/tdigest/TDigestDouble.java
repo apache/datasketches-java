@@ -20,7 +20,7 @@
 package org.apache.datasketches.tdigest;
 
 import java.nio.ByteOrder;
-import java.util.function.Function;
+import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -47,7 +47,6 @@ public final class TDigestDouble {
 
   private boolean reverseMerge_;
   private final short k_;
-  private final short internalK_;
   private double minValue_;
   private double maxValue_;
   private int centroidsCapacity_;
@@ -55,11 +54,10 @@ public final class TDigestDouble {
   private double[] centroidMeans_;
   private long[] centroidWeights_;
   private long centroidsWeight_;
-  private int bufferCapacity_;
   private int numBuffered_;
   private double[] bufferValues_;
-  private long[] bufferWeights_;
-  private long bufferedWeight_;
+
+  private static final int BUFFER_MULTIPLIER = 4;
 
   private static final byte PREAMBLE_LONGS_EMPTY_OR_SINGLE = 1;
   private static final byte PREAMBLE_LONGS_MULTIPLE = 2;
@@ -82,7 +80,7 @@ public final class TDigestDouble {
    * @param k affects the size of TDigest and its estimation error
    */
   public TDigestDouble(final short k) {
-    this(false, k, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, null, null, 0);
+    this(false, k, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, null, null, 0, null);
   }
 
   /**
@@ -98,11 +96,9 @@ public final class TDigestDouble {
    */
   public void update(final double value) {
     if (Double.isNaN(value)) { return; }
-    if (numBuffered_ == bufferCapacity_ - numCentroids_) { mergeBuffered(); }
+    if (numBuffered_ == centroidsCapacity_ * BUFFER_MULTIPLIER) { compress(); }
     bufferValues_[numBuffered_] = value;
-    bufferWeights_[numBuffered_] = 1;
     numBuffered_++;
-    bufferedWeight_++;
     minValue_ = Math.min(minValue_, value);
     maxValue_ = Math.max(maxValue_, value);
   }
@@ -114,36 +110,28 @@ public final class TDigestDouble {
   public void merge(final TDigestDouble other) {
     if (other.isEmpty()) { return; }
     final int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
-    if (num <= bufferCapacity_) {
-      System.arraycopy(other.bufferValues_, 0, bufferValues_, numBuffered_, other.numBuffered_);
-      System.arraycopy(other.bufferWeights_, 0, bufferWeights_, numBuffered_, other.numBuffered_);
-      numBuffered_ += other.numBuffered_;
-      System.arraycopy(other.centroidMeans_, 0, bufferValues_, numBuffered_, other.numCentroids_);
-      System.arraycopy(other.centroidWeights_, 0, bufferWeights_, numBuffered_, other.numCentroids_);
-      numBuffered_ += other.numCentroids_;
-      bufferedWeight_ += other.getTotalWeight();
-      minValue_ = Math.min(minValue_, other.minValue_);
-      maxValue_ = Math.max(maxValue_, other.maxValue_);
-    } else {
-      final double[] values = new double[num];
-      final long[] weights = new long[num];
-      System.arraycopy(bufferValues_, 0, values, 0, numBuffered_);
-      System.arraycopy(bufferWeights_, 0, weights, 0, numBuffered_);
-      System.arraycopy(other.bufferValues_, 0, values, numBuffered_, other.numBuffered_);
-      System.arraycopy(other.bufferWeights_, 0, weights, numBuffered_, other.numBuffered_);
-      numBuffered_ += other.numBuffered_;
-      System.arraycopy(other.centroidMeans_, 0, values, numBuffered_, other.numCentroids_);
-      System.arraycopy(other.centroidWeights_, 0, weights, numBuffered_, other.numCentroids_);
-      numBuffered_ += other.numCentroids_;
-      merge(values, weights, bufferedWeight_ + other.getTotalWeight(), numBuffered_);
-    }
+    final double[] values = new double[num];
+    final long[] weights = new long[num];
+    System.arraycopy(bufferValues_, 0, values, 0, numBuffered_);
+    Arrays.fill(weights, 0, numBuffered_, 1);
+    System.arraycopy(other.bufferValues_, 0, values, numBuffered_, other.numBuffered_);
+    Arrays.fill(weights, numBuffered_, numBuffered_ + other.numBuffered_, 1);
+    System.arraycopy(other.centroidMeans_, 0, values, numBuffered_ + other.numBuffered_, other.numCentroids_);
+    System.arraycopy(other.centroidWeights_, 0, weights, numBuffered_ + other.numBuffered_, other.numCentroids_);
+    merge(values, weights, numBuffered_ + other.getTotalWeight(), numBuffered_ + other.numBuffered_ + other.numCentroids_);
   }
 
   /**
    * Process buffered values and merge centroids if needed
    */
   public void compress() {
-    mergeBuffered();
+    if (numBuffered_ == 0) { return; }
+    final int num = numBuffered_ + numCentroids_;
+    final double[] values =  new double[num];
+    final long[] weights = new long[num];
+    System.arraycopy(bufferValues_, 0, values, 0, numBuffered_);
+    Arrays.fill(weights, 0, numBuffered_, 1);
+    merge(values, weights, numBuffered_, numBuffered_);
   }
 
   /**
@@ -173,7 +161,7 @@ public final class TDigestDouble {
    * @return total weight
    */
   public long getTotalWeight() {
-    return centroidsWeight_ + bufferedWeight_;
+    return centroidsWeight_ + numBuffered_;
   }
 
   /**
@@ -188,7 +176,7 @@ public final class TDigestDouble {
     if (value > maxValue_) { return 1; }
     if (numCentroids_ + numBuffered_ == 1) { return 0.5; }
 
-    mergeBuffered(); // side effect
+    compress(); // side effect
 
     // left tail
     final double firstMean = centroidMeans_[0];
@@ -244,7 +232,7 @@ public final class TDigestDouble {
     if (Double.isNaN(rank)) { throw new SketchesArgumentException("Operation is undefined for Nan"); }
     if (rank < 0 || rank > 1) { throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); } 
     
-    mergeBuffered(); // side effect
+    compress(); // side effect
 
     if (numCentroids_ == 1) { return centroidMeans_[0]; }
 
@@ -293,7 +281,7 @@ public final class TDigestDouble {
    * @return size in bytes needed to serialize this tdigest
    */
   int getSerializedSizeBytes() {
-    mergeBuffered(); // side effect
+    compress(); // side effect
     return getPreambleLongs() * Long.BYTES
     + (isEmpty() ? 0 : (isSingleValue() ? Double.BYTES : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_));
   }
@@ -303,7 +291,7 @@ public final class TDigestDouble {
    * @return byte array
    */
   public byte[] toByteArray() {
-    mergeBuffered(); // side effect
+    compress(); // side effect
     final byte[] bytes = new byte[getSerializedSizeBytes()];
     final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
     wbuf.putByte((byte) getPreambleLongs());
@@ -380,7 +368,7 @@ public final class TDigestDouble {
       } else {
         value = buff.getDouble();
       }
-      return new TDigestDouble(reverseMerge, k, value, value, new double[] {value}, new long[] {1}, 1);
+      return new TDigestDouble(reverseMerge, k, value, value, new double[] {value}, new long[] {1}, 1, null);
     }
     final int numCentroids = buff.getInt();
     buff.getInt(); // unused
@@ -401,7 +389,7 @@ public final class TDigestDouble {
       weights[i] = isFloat ? buff.getInt() : buff.getLong();
       totalWeight += weights[i];
     }
-    return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight);
+    return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight, null);
   }
 
   // compatibility with the format of the reference implementation
@@ -425,7 +413,7 @@ public final class TDigestDouble {
         means[i] = buff.getDouble();
         totalWeight += weights[i];
       }
-      return new TDigestDouble(false, k, min, max, means, weights, totalWeight);
+      return new TDigestDouble(false, k, min, max, means, weights, totalWeight, null);
     }
     // COMPAT_FLOAT: compatibility with asSmallBytes()
     final double min = buff.getDouble(); // reference implementation uses doubles for min and max
@@ -443,7 +431,7 @@ public final class TDigestDouble {
       means[i] = buff.getFloat();
       totalWeight += weights[i];
     }
-    return new TDigestDouble(false, k, min, max, means, weights, totalWeight);
+    return new TDigestDouble(false, k, min, max, means, weights, totalWeight, null);
   }
 
   /**
@@ -464,14 +452,12 @@ public final class TDigestDouble {
     final StringBuilder sb = new StringBuilder();
 
     sb.append("MergingDigest").append(LS)
-      .append(" Nominal Compression: ").append(k_).append(LS)
-      .append(" Internal Compression: ").append(internalK_).append(LS)
+      .append(" Compression: ").append(k_).append(LS)
       .append(" Centroids: ").append(numCentroids_).append(LS)
       .append(" Buffered: ").append(numBuffered_).append(LS)
       .append(" Centroids Capacity: ").append(centroidsCapacity_).append(LS)
-      .append(" Buffer Capacity: ").append(bufferCapacity_).append(LS)
+      .append(" Buffer Capacity: ").append(centroidsCapacity_ * BUFFER_MULTIPLIER).append(LS)
       .append("Centroids Weight: ").append(centroidsWeight_).append(LS)
-      .append(" Buffered Weight: ").append(bufferedWeight_).append(LS)
       .append(" Total Weight: ").append(getTotalWeight()).append(LS)
       .append(" Reverse Merge: ").append(reverseMerge_).append(LS);
     if (!isEmpty()) {
@@ -488,7 +474,7 @@ public final class TDigestDouble {
       if (numBuffered_ > 0) {
         sb.append("Buffer:").append(LS);
         for (int i = 0; i < numBuffered_; i++) {
-          sb.append(i).append(": ").append(bufferValues_[i]).append(", ").append(bufferWeights_[i]).append(LS);
+          sb.append(i).append(": ").append(bufferValues_[i]).append(LS);
         }
       }
     }
@@ -496,7 +482,7 @@ public final class TDigestDouble {
   }
 
   private TDigestDouble(final boolean reverseMerge, final short k, final double min, final double max,
-      final double[] means, final long[] weights, final long weight) {
+      final double[] means, final long[] weights, final long weight, final double[] buffer) {
     reverseMerge_ = reverseMerge; 
     k_ = k;
     minValue_ = min;
@@ -504,29 +490,21 @@ public final class TDigestDouble {
     if (k < 10) { throw new SketchesArgumentException("k must be at least 10"); }
     final int fudge = k < 30 ? 30 : 10;
     centroidsCapacity_ = k_ * 2 + fudge;
-    bufferCapacity_ = centroidsCapacity_ * 5;
-    final double scale = Math.max(1.0, (double) bufferCapacity_ / centroidsCapacity_ - 1.0);
-    internalK_ = (short) Math.ceil(Math.sqrt(scale) * k_);
-    centroidsCapacity_ = Math.max(centroidsCapacity_, internalK_ + fudge);
-    bufferCapacity_ = Math.max(bufferCapacity_, centroidsCapacity_ * 2);
     centroidMeans_ = new double[centroidsCapacity_];
     centroidWeights_ = new long[centroidsCapacity_];
-    bufferValues_ =  new double[bufferCapacity_];
-    bufferWeights_ = new long[bufferCapacity_];
+    bufferValues_ =  new double[centroidsCapacity_ * BUFFER_MULTIPLIER];
     numCentroids_ = 0;
     numBuffered_ = 0;
     centroidsWeight_ = weight;
-    bufferedWeight_ = 0;
     if (means != null && weights != null) {
       System.arraycopy(means, 0, centroidMeans_, 0, means.length);
       System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
       numCentroids_ = means.length;
     }
-  }
-
-  private void mergeBuffered() {
-    if (numBuffered_ == 0) { return; }
-    merge(bufferValues_, bufferWeights_, bufferedWeight_, numBuffered_);
+    if (buffer != null) {
+      System.arraycopy(buffer, 0, bufferValues_, 0, buffer.length);
+      numBuffered_ = buffer.length;
+    }
   }
 
   // assumes that there is enough room in the input arrays to add centroids from this TDigest
@@ -552,7 +530,7 @@ public final class TDigestDouble {
       if (current != 1 && current != num - 1) {
         final double q0 = weightSoFar / centroidsWeight_;
         final double q2 = (weightSoFar + proposedWeight) / centroidsWeight_;
-        final double normalizer = ScaleFunction.normalizer(internalK_, centroidsWeight_);
+        final double normalizer = ScaleFunction.normalizer(k_ * 2, centroidsWeight_);
         addThis = proposedWeight <= centroidsWeight_ * Math.min(ScaleFunction.max(q0, normalizer), ScaleFunction.max(q2, normalizer));
       }
       if (addThis) { // merge into existing centroid
@@ -572,7 +550,6 @@ public final class TDigestDouble {
       Sort.reverse(centroidWeights_, numCentroids_);
     }
     numBuffered_ = 0;
-    bufferedWeight_ = 0;
     reverseMerge_ = !reverseMerge_;
     minValue_ = Math.min(minValue_, centroidMeans_[0]);
     maxValue_ = Math.max(maxValue_, centroidMeans_[numCentroids_ - 1]);
