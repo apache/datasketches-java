@@ -36,28 +36,23 @@ public final class ReflectUtilityTest {
 
   static final Class<?> REQ_SV;
   static final Class<?> KLL_FLOATS_SV;
-  static final Class<?> KLL_DOUBLES_SV;
-  static final Class<?> CLASSIC_DOUBLES_SV;
+  static final Class<?> DOUBLES_SV;
 
   static final Constructor<?> REQ_SV_CTOR;
   static final Constructor<?> KLL_FLOATS_SV_CTOR;
-  static final Constructor<?> KLL_DOUBLES_SV_CTOR;
-  static final Constructor<?> CLASSIC_DOUBLES_SV_CTOR;
+  static final Constructor<?> DOUBLES_SV_CTOR;
 
   static {
     REQ_SV = getClass("org.apache.datasketches.req.ReqSketchSortedView");
     KLL_FLOATS_SV = getClass("org.apache.datasketches.kll.KllFloatsSketchSortedView");
-    KLL_DOUBLES_SV = getClass("org.apache.datasketches.kll.KllDoublesSketchSortedView");
-    CLASSIC_DOUBLES_SV = getClass("org.apache.datasketches.quantiles.DoublesSketchSortedView");
+    DOUBLES_SV = getClass("org.apache.datasketches.quantilescommon.DoublesSketchSortedView");
 
     REQ_SV_CTOR =
         getConstructor(REQ_SV, float[].class, long[].class, long.class, float.class, float.class);
     KLL_FLOATS_SV_CTOR =
         getConstructor(KLL_FLOATS_SV, float[].class, long[].class, long.class, float.class, float.class);
-    KLL_DOUBLES_SV_CTOR =
-        getConstructor(KLL_DOUBLES_SV, double[].class, long[].class, long.class, double.class, double.class);
-    CLASSIC_DOUBLES_SV_CTOR =
-        getConstructor(CLASSIC_DOUBLES_SV, double[].class, long[].class, long.class, double.class, double.class);
+    DOUBLES_SV_CTOR =
+        getConstructor(DOUBLES_SV, double[].class, long[].class, long.class, double.class, double.class);
   }
 
   @Test //Example

@@ -21,6 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.System.arraycopy;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.quantiles.ClassicUtil.MAX_PRELONGS;
 import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
@@ -28,13 +29,16 @@ import static org.apache.datasketches.quantiles.ClassicUtil.checkIsCompactMemory
 import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
+import static org.apache.datasketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesAPI;
@@ -108,7 +112,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   final int k_;
 
-  DoublesSketchSortedView classicQdsSV = null;
+  DoublesSketchSortedView doublesSV = null;
 
   DoublesSketch(final int k) {
     checkK(k);
@@ -160,7 +164,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
   if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
-    return classicQdsSV.getCDF(splitPoints, searchCrit);
+    return doublesSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
@@ -173,14 +177,14 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
   if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
-    return classicQdsSV.getPMF(splitPoints, searchCrit);
+    return doublesSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
   if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
-    return classicQdsSV.getQuantile(rank, searchCrit);
+    return doublesSV.getQuantile(rank, searchCrit);
   }
 
   @Override
@@ -190,7 +194,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     final int len = ranks.length;
     final double[] quantiles = new double[len];
     for (int i = 0; i < len; i++) {
-      quantiles[i] = classicQdsSV.getQuantile(ranks[i], searchCrit);
+      quantiles[i] = doublesSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
   }
@@ -219,7 +223,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
-    return classicQdsSV.getRank(quantile, searchCrit);
+    return doublesSV.getRank(quantile, searchCrit);
   }
 
   /**
@@ -249,7 +253,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     final int len = quantiles.length;
     final double[] ranks = new double[len];
     for (int i = 0; i < len; i++) {
-      ranks[i] = classicQdsSV.getRank(quantiles[i], searchCrit);
+      ranks[i] = doublesSV.getRank(quantiles[i], searchCrit);
     }
     return ranks;
   }
@@ -508,11 +512,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return new DoublesSketchIterator(this, getBitPattern());
   }
 
-  @Override
-  public DoublesSortedView getSortedView() {
-    return new DoublesSketchSortedView(this);
-  }
-
   /**
    * {@inheritDoc}
    * <p>The parameter <i>k</i> will not change.</p>
@@ -537,10 +536,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;
   }
-
-private final void refreshSortedView() {
-  classicQdsSV = (classicQdsSV == null) ? new DoublesSketchSortedView(this) : classicQdsSV;
-}
 
   //Restricted abstract
 
@@ -579,4 +574,225 @@ private final void refreshSortedView() {
    * @return the Memory if it exists, otherwise returns null.
    */
   abstract WritableMemory getMemory();
+
+  //************SORTED VIEW****************************
+
+  @Override
+  public DoublesSketchSortedView getSortedView() {
+    return refreshSortedView();
+  }
+
+  private final DoublesSketchSortedView refreshSortedView() {
+    return (doublesSV == null) ? (doublesSV = getSV()) : doublesSV;
+  }
+
+  private DoublesSketchSortedView getSV() {
+    final long totalN = getN();
+    if (isEmpty() || (totalN == 0)) { throw new SketchesArgumentException(EMPTY_MSG); }
+    final int numQuantiles = getNumRetained();
+    final double[] svQuantiles = new double[numQuantiles];
+    final long[] svCumWeights = new long[numQuantiles];
+    final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(this);
+
+    // Populate from DoublesSketch:
+    //  copy over the "levels" and then the base buffer, all with appropriate weights
+    populateFromDoublesSketch(getK(), totalN, getBitPattern(), sketchAccessor, svQuantiles, svCumWeights);
+
+    // Sort the first "numSamples" slots of the two arrays in tandem,
+    // taking advantage of the already sorted blocks of length k
+    blockyTandemMergeSort(svQuantiles, svCumWeights, numQuantiles, getK());
+
+    if (convertToCumulative(svCumWeights) != totalN) {
+      throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
+    }
+    return new DoublesSketchSortedView(svQuantiles, svCumWeights, totalN, getMaxItem(), getMinItem());
+  }
+
+  private final static void populateFromDoublesSketch(
+      final int k, final long totalN, final long bitPattern,
+      final DoublesSketchAccessor sketchAccessor,
+      final double[] svQuantiles, final long[] svCumWeights) {
+    long weight = 1;
+    int index = 0;
+    long bits = bitPattern;
+    assert bits == (totalN / (2L * k)); // internal consistency check
+    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
+      weight <<= 1; // X2
+      if ((bits & 1L) > 0L) {
+        sketchAccessor.setLevel(lvl);
+        for (int i = 0; i < sketchAccessor.numItems(); i++) {
+          svQuantiles[index] = sketchAccessor.get(i);
+          svCumWeights[index] = weight;
+          index++;
+        }
+      }
+    }
+
+    weight = 1; //NOT a mistake! We just copied the highest level; now we need to copy the base buffer
+    final int startOfBaseBufferBlock = index;
+
+    // Copy BaseBuffer over, along with weight = 1
+    sketchAccessor.setLevel(BB_LVL_IDX);
+    for (int i = 0; i < sketchAccessor.numItems(); i++) {
+      svQuantiles[index] = sketchAccessor.get(i);
+      svCumWeights[index] = weight;
+      index++;
+    }
+    assert index == svQuantiles.length;
+
+    // Must sort the items that came from the base buffer.
+    // Don't need to sort the corresponding weights because they are all the same.
+    final int numSamples = index;
+    Arrays.sort(svQuantiles, startOfBaseBufferBlock, numSamples);
+  }
+
+  /**
+   * blockyTandemMergeSort() is an implementation of top-down merge sort specialized
+   * for the case where the input contains successive equal-length blocks
+   * that have already been sorted, so that only the top part of the
+   * merge tree remains to be executed. Also, two arrays are sorted in tandem,
+   * as discussed below.
+   * @param svQuantiles array of quantiles for sorted view
+   * @param svCumWts array of cumulative weights for sorted view
+   * @param arrLen length of quantiles array and cumWts array
+   * @param blkSize size of internal sorted blocks, equal to k
+   */
+  //used by this and UtilTest
+  static void blockyTandemMergeSort(final double[] svQuantiles, final long[] svCumWts, final int arrLen,
+      final int blkSize) {
+    assert blkSize >= 1;
+    if (arrLen <= blkSize) { return; }
+    int numblks = arrLen / blkSize;
+    if ((numblks * blkSize) < arrLen) { numblks += 1; }
+    assert ((numblks * blkSize) >= arrLen);
+
+    // duplication of the input arrays is preparation for the "ping-pong" copy reduction strategy.
+    final double[] qSrc = Arrays.copyOf(svQuantiles, arrLen);
+    final long[] cwSrc   = Arrays.copyOf(svCumWts, arrLen);
+
+    blockyTandemMergeSortRecursion(qSrc, cwSrc,
+                                   svQuantiles, svCumWts,
+                                   0, numblks,
+                                   blkSize, arrLen);
+  }
+
+  /**
+   *  blockyTandemMergeSortRecursion() is called by blockyTandemMergeSort().
+   *  In addition to performing the algorithm's top down recursion,
+   *  it manages the buffer swapping that eliminates most copying.
+   *  It also maps the input's pre-sorted blocks into the subarrays
+   *  that are processed by tandemMerge().
+   * @param qSrc source array of quantiles
+   * @param cwSrc source weights array
+   * @param qDst destination quantiles array
+   * @param cwDst destination weights array
+   * @param grpStart group start, refers to pre-sorted blocks such as block 0, block 1, etc.
+   * @param grpLen group length, refers to pre-sorted blocks such as block 0, block 1, etc.
+   * @param blkSize block size
+   * @param arrLim array limit
+   */
+  private static void blockyTandemMergeSortRecursion(final double[] qSrc, final long[] cwSrc,
+      final double[] qDst, final long[] cwDst, final int grpStart, final int grpLen,
+      /* indices of blocks */ final int blkSize, final int arrLim) {
+    // Important note: grpStart and grpLen do NOT refer to positions in the underlying array.
+    // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
+
+    assert (grpLen > 0);
+    if (grpLen == 1) { return; }
+    final int grpLen1 = grpLen / 2;
+    final int grpLen2 = grpLen - grpLen1;
+    assert (grpLen1 >= 1);
+    assert (grpLen2 >= grpLen1);
+
+    final int grpStart1 = grpStart;
+    final int grpStart2 = grpStart + grpLen1;
+
+    //swap roles of src and dst
+    blockyTandemMergeSortRecursion(qDst, cwDst,
+                           qSrc, cwSrc,
+                           grpStart1, grpLen1, blkSize, arrLim);
+
+    //swap roles of src and dst
+    blockyTandemMergeSortRecursion(qDst, cwDst,
+                           qSrc, cwSrc,
+                           grpStart2, grpLen2, blkSize, arrLim);
+
+    // here we convert indices of blocks into positions in the underlying array.
+    final int arrStart1 = grpStart1 * blkSize;
+    final int arrStart2 = grpStart2 * blkSize;
+    final int arrLen1   = grpLen1   * blkSize;
+    int arrLen2         = grpLen2   * blkSize;
+
+    // special case for the final block which might be shorter than blkSize.
+    if ((arrStart2 + arrLen2) > arrLim) { arrLen2 = arrLim - arrStart2; }
+
+    tandemMerge(qSrc, cwSrc,
+                arrStart1, arrLen1,
+                arrStart2, arrLen2,
+                qDst, cwDst,
+                arrStart1); // which will be arrStart3
+  }
+
+  /**
+   *  Performs two merges in tandem. One of them provides the sort keys
+   *  while the other one passively undergoes the same data motion.
+   * @param qSrc quantiles source
+   * @param cwSrc cumulative weights source
+   * @param arrStart1 Array 1 start offset
+   * @param arrLen1 Array 1 length
+   * @param arrStart2 Array 2 start offset
+   * @param arrLen2 Array 2 length
+   * @param qDst quantiles destination
+   * @param cwDst cumulative weights destination
+   * @param arrStart3 Array 3 start offset
+   */
+  private static void tandemMerge(final double[] qSrc, final long[] cwSrc,
+                                  final int arrStart1, final int arrLen1,
+                                  final int arrStart2, final int arrLen2,
+                                  final double[] qDst, final long[] cwDst,
+                                  final int arrStart3) {
+    final int arrStop1 = arrStart1 + arrLen1;
+    final int arrStop2 = arrStart2 + arrLen2;
+
+    int i1 = arrStart1;
+    int i2 = arrStart2;
+    int i3 = arrStart3;
+    while ((i1 < arrStop1) && (i2 < arrStop2)) {
+      if (qSrc[i2] < qSrc[i1]) {
+        qDst[i3] = qSrc[i2];
+        cwDst[i3] = cwSrc[i2];
+        i2++;
+      } else {
+        qDst[i3] = qSrc[i1];
+        cwDst[i3] = cwSrc[i1];
+        i1++;
+      }
+      i3++;
+    }
+
+    if (i1 < arrStop1) {
+      arraycopy(qSrc, i1, qDst, i3, arrStop1 - i1);
+      arraycopy(cwSrc, i1, cwDst, i3, arrStop1 - i1);
+    } else {
+      assert i2 < arrStop2;
+      arraycopy(qSrc, i2, qDst, i3, arrStop2 - i2);
+      arraycopy(cwSrc, i2, cwDst, i3, arrStop2 - i2);
+    }
+  }
+
+  /**
+   * Convert the individual weights into cumulative weights.
+   * An array of {1,1,1,1} becomes {1,2,3,4}
+   * @param array of actual weights from the sketch, none of the weights may be zero
+   * @return total weight
+   */
+  private static long convertToCumulative(final long[] array) {
+    long subtotal = 0;
+    for (int i = 0; i < array.length; i++) {
+      final long newSubtotal = subtotal + array[i];
+      subtotal = array[i] = newSubtotal;
+    }
+    return subtotal;
+  }
+
 }

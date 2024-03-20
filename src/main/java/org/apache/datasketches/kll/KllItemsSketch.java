@@ -242,7 +242,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public final ItemsSketchSortedView<T> getSortedView() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return refreshSortedView();
-    //return itemsSV; //SpotBugs EI_EXPOSE_REP, Suppressed by FindBugsExcludeFilter
   }
 
   @Override
@@ -454,7 +453,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
         blockyTandemMergeSort(quantiles, cumWeights, myLevels, numLevels, comparator); //create unit weights
         KllHelper.convertToCumulative(cumWeights);
       }
-  }
+  } //End of class CreateSortedView
 
     private static <T> void blockyTandemMergeSort(final Object[] quantiles, final long[] weights,
         final int[] levels, final int numLevels, final Comparator<? super T> comp) {

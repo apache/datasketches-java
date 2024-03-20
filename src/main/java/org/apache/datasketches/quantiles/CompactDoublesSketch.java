@@ -23,7 +23,7 @@ import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**
- * Compact sketches are inherently <i>read ony</i>.
+ * Compact sketches are inherently <i>read only</i>.
  * @author Jon Malkin
  */
 public abstract class CompactDoublesSketch extends DoublesSketch {

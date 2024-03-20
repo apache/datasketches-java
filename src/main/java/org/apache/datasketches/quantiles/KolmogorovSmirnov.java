@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
+import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
+
 /**
  * Kolmogorov-Smirnov Test
  * See <a href="https://en.wikipedia.org/wiki/Kolmogorov-Smirnov_test">Kolmogorov–Smirnov Test</a>
@@ -36,8 +38,8 @@ final class KolmogorovSmirnov {
    * @return the raw delta area between two quantile sketches
    */
   public static double computeKSDelta(final DoublesSketch sketch1, final DoublesSketch sketch2) {
-    final DoublesSketchSortedView p = new DoublesSketchSortedView(sketch1);
-    final DoublesSketchSortedView q = new DoublesSketchSortedView(sketch2);
+    final DoublesSketchSortedView p = sketch1.getSortedView();
+    final DoublesSketchSortedView q = sketch2.getSortedView();
 
     final double[] pSamplesArr = p.getQuantiles();
     final double[] qSamplesArr = q.getQuantiles();

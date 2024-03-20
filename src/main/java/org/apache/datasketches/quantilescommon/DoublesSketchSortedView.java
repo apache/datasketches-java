@@ -17,25 +17,20 @@
  * under the License.
  */
 
-package org.apache.datasketches.kll;
+package org.apache.datasketches.quantilescommon;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.quantilescommon.DoublesSortedView;
-import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
-import org.apache.datasketches.quantilescommon.InequalitySearch;
-import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
-import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
- * The SortedView of the KllDoublesSketch.
+ * The SortedView of the Quantiles Classic DoublesSketch and the KllDoublesSketch.
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public final class KllDoublesSketchSortedView implements DoublesSortedView {
+public final class DoublesSketchSortedView implements DoublesSortedView {
   private final double[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
@@ -43,14 +38,14 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   private final double minItem;
 
   /**
-   * Construct from elements for testing.
+   * Construct from elements, also used in testing.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
    * @param maxItem of type double
    * @param minItem of type double
    */
-  KllDoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN,
+  public DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN,
       final double maxItem, final double minItem) {
     this.quantiles = quantiles;
     this.cumWeights  = cumWeights;

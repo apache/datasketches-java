@@ -531,12 +531,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   @Override
-  public ItemsSketchSortedView<T> getSortedView() {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    return refreshSortedView();
-  }
-
-  @Override
   public void update(final T item) {
     // this method only uses the base buffer part of the combined buffer
 
@@ -631,69 +625,84 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
-  private final ItemsSketchSortedView<T> refreshSortedView() {
-    if (classicQisSV == null) {
-      final CreateSortedView csv = new CreateSortedView();
-      classicQisSV = csv.getSV();
-    }
-    return classicQisSV;
+  //************SORTED VIEW****************************
+
+  @Override
+  public ItemsSketchSortedView<T> getSortedView() {
+    return refreshSortedView();
   }
 
-  @SuppressWarnings({"rawtypes","unchecked"})
-  private final class CreateSortedView {
-    final long n = getN();
-    final int numQuantiles = getNumRetained();
-    final T[] quantiles = (T[]) Array.newInstance(clazz, numQuantiles);
-    long[] cumWeights = new long[numQuantiles];
-    final int k = getK();
+  private final ItemsSketchSortedView<T> refreshSortedView() {
+    return (classicQisSV == null) ? (classicQisSV = getSV(this)) : classicQisSV;
+  }
 
-    final T[] combinedBuffer = (T[]) getCombinedBuffer();
-    final int baseBufferCount = getBaseBufferCount();
-    final Comparator<? super T> comparator = ItemsSketch.this.comparator_;
+  @SuppressWarnings({"unchecked"})
+  private static <T> ItemsSketchSortedView<T> getSV(final ItemsSketch<T> sk) {
+    final long totalN = sk.getN();
+    if (sk.isEmpty() || (totalN == 0)) { throw new SketchesArgumentException(EMPTY_MSG); }
+    final int k = sk.getK();
+    final int numQuantiles = sk.getNumRetained();
+    final T[] svQuantiles = (T[]) Array.newInstance(sk.clazz, numQuantiles);
+    final long[] svCumWeights = new long[numQuantiles];
+    final Comparator<? super T> comparator = sk.comparator_;
 
-    ItemsSketchSortedView<T> getSV() {
-      long weight = 1;
-      int index = 0;
-      long bits = getBitPattern();
-      assert bits == (n / (2L * k)); // internal consistency check
-      for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
-        weight *= 2;
-        if ((bits & 1L) > 0L) {
-          final int offset = (2 + lvl) * k;
-          for (int i = 0; i < k; i++) {
-            quantiles[index] = combinedBuffer[i + offset];
-            cumWeights[index] = weight;
-            index++;
-          }
+    final T[] combinedBuffer = (T[]) sk.getCombinedBuffer();
+    final int baseBufferCount = sk.getBaseBufferCount();
+
+    // Populate from ItemsSketch:
+    // copy over the "levels" and then the base buffer, all with appropriate weights
+    populateFromItemsSketch(k, totalN, sk.getBitPattern(), combinedBuffer, baseBufferCount,
+        numQuantiles, svQuantiles, svCumWeights, sk.getComparator());
+
+    // Sort the first "numSamples" slots of the two arrays in tandem,
+    // taking advantage of the already sorted blocks of length k
+    ItemsMergeImpl.blockyTandemMergeSort(svQuantiles, svCumWeights, numQuantiles, k, comparator);
+
+    if (convertToCumulative(svCumWeights) != totalN) {
+      throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
+    }
+
+    final double normRankErr = getNormalizedRankError(sk.getK(), true);
+    return new ItemsSketchSortedView<>(
+        svQuantiles, svCumWeights, sk.getN(), comparator, sk.getMaxItem(), sk.getMinItem(), normRankErr);
+
+  }
+
+  private final static <T> void populateFromItemsSketch(
+      final int k, final long totalN, final long bitPattern, final T[] combinedBuffer,
+      final int baseBufferCount, final int numQuantiles, final T[] svQuantiles, final long[] svCumWeights,
+      final Comparator<? super T> comparator) {
+
+    long weight = 1;
+    int index = 0;
+    long bits = bitPattern;
+    assert bits == (totalN / (2L * k)); // internal consistency check
+    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
+      weight <<= 1; // X2
+      if ((bits & 1L) > 0L) {
+        final int offset = (2 + lvl) * k;
+        for (int i = 0; i < k; i++) {
+          svQuantiles[index] = combinedBuffer[i + offset];
+          svCumWeights[index] = weight;
+          index++;
         }
       }
-
-      weight = 1; //NOT a mistake! We just copied the highest level; now we need to copy the base buffer
-      final int startOfBaseBufferBlock = index;
-
-      // Copy BaseBuffer over, along with weight = 1
-      for (int i = 0; i < baseBufferCount; i++) {
-        quantiles[index] = combinedBuffer[i];
-        cumWeights[index] = weight;
-        index++;
-      }
-      assert index == numQuantiles;
-
-      // Must sort the items that came from the base buffer.
-      // Don't need to sort the corresponding weights because they are all the same.
-      Arrays.sort(quantiles, startOfBaseBufferBlock, numQuantiles, comparator);
-
-      // Sort the first "numSamples" slots of the two arrays in tandem,
-      // taking advantage of the already sorted blocks of length k
-      ItemsMergeImpl.blockyTandemMergeSort(quantiles, cumWeights, numQuantiles, k, comparator);
-
-      if (convertToCumulative(cumWeights) != n) {
-        throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
-      }
-      final double normRankErr = getNormalizedRankError(getK(), true);
-      return new ItemsSketchSortedView(
-          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), normRankErr);
     }
+
+    weight = 1; //NOT a mistake! We just copied the highest level; now we need to copy the base buffer
+    final int startOfBaseBufferBlock = index;
+
+    // Copy BaseBuffer over, along with weight = 1
+    for (int i = 0; i < baseBufferCount; i++) {
+      svQuantiles[index] = combinedBuffer[i];
+      svCumWeights[index] = weight;
+      index++;
+    }
+    assert index == numQuantiles;
+
+    // Must sort the items that came from the base buffer.
+    // Don't need to sort the corresponding weights because they are all the same.
+    Arrays.sort(svQuantiles, startOfBaseBufferBlock, numQuantiles, comparator);
   }
 
   /**
