@@ -20,7 +20,6 @@
 package org.apache.datasketches.tdigest;
 
 import java.nio.ByteOrder;
-import java.util.function.Function;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -242,8 +241,8 @@ public final class TDigestDouble {
   public double getQuantile(final double rank) {
     if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
     if (Double.isNaN(rank)) { throw new SketchesArgumentException("Operation is undefined for Nan"); }
-    if (rank < 0 || rank > 1) { throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); } 
-    
+    if (rank < 0 || rank > 1) { throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); }
+
     mergeBuffered(); // side effect
 
     if (numCentroids_ == 1) { return centroidMeans_[0]; }
@@ -497,7 +496,7 @@ public final class TDigestDouble {
 
   private TDigestDouble(final boolean reverseMerge, final short k, final double min, final double max,
       final double[] means, final long[] weights, final long weight) {
-    reverseMerge_ = reverseMerge; 
+    reverseMerge_ = reverseMerge;
     k_ = k;
     minValue_ = min;
     maxValue_ = max;
@@ -604,7 +603,7 @@ public final class TDigestDouble {
       return 4 * Math.log(n / compression) + 24;
     }
   }
-  
+
   private static double weightedAverage(final double x1, final double w1, final double x2, final double w2) {
     return (x1 * w1 + x2 * w2) / (w1 + w2);
   }
