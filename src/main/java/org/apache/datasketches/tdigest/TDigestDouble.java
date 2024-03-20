@@ -289,17 +289,24 @@ public final class TDigestDouble {
   }
 
   /**
+   * Computes size needed to serialize the current state.
+   * @return size in bytes needed to serialize this tdigest
+   */
+  int getSerializedSizeBytes() {
+    mergeBuffered(); // side effect
+    return getPreambleLongs() * Long.BYTES
+    + (isEmpty() ? 0 : (isSingleValue() ? Double.BYTES : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_));
+  }
+
+  /**
    * Serialize this TDigest to a byte array form.
    * @return byte array
    */
   public byte[] toByteArray() {
     mergeBuffered(); // side effect
-    final byte preambleLongs = isEmpty() || isSingleValue() ? PREAMBLE_LONGS_EMPTY_OR_SINGLE : PREAMBLE_LONGS_MULTIPLE;
-    final int sizeBytes = preambleLongs * Long.BYTES
-        + (isEmpty() ? 0 : (isSingleValue() ? Double.BYTES : 2 * Double.BYTES + (Double.BYTES + Long.BYTES) * numCentroids_));
-    final byte[] bytes = new byte[sizeBytes];
+    final byte[] bytes = new byte[getSerializedSizeBytes()];
     final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
-    wbuf.putByte(preambleLongs);
+    wbuf.putByte((byte) getPreambleLongs());
     wbuf.putByte(SERIAL_VERSION);
     wbuf.putByte((byte) Family.TDIGEST.getID());
     wbuf.putShort(k_);
@@ -573,6 +580,10 @@ public final class TDigestDouble {
 
   private boolean isSingleValue() {
     return getTotalWeight() == 1;
+  }
+
+  private int getPreambleLongs() {
+    return isEmpty() || isSingleValue() ? PREAMBLE_LONGS_EMPTY_OR_SINGLE : PREAMBLE_LONGS_MULTIPLE;
   }
 
   /*
