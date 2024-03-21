@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -46,7 +47,10 @@ public class CpcSketchTest {
     sk.update(1L);
     sk.update(2.0);
     sk.update("3");
-    sk.update(new byte[] { 4 });
+    byte[] bytes = new byte[] { 4, 4 };
+    sk.update(bytes);
+    sk.update(ByteBuffer.wrap(bytes));  // same as previous
+    sk.update(ByteBuffer.wrap(bytes, 0, 1));
     sk.update(new char[] { 5 });
     sk.update(new int[] { 6 });
     sk.update(new long[] { 7 });
@@ -106,6 +110,7 @@ public class CpcSketchTest {
     est = (int) Math.round(sk.getEstimate());
     assertEquals(est, 1);
     barr = new byte[0];
+    sk.update(barr);
     est = (int) Math.round(sk.getEstimate());
     assertEquals(est, 1);
 

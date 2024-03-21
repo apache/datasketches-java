@@ -29,6 +29,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
@@ -706,22 +707,24 @@ public class DirectUnionTest {
     union.update(byteArr); //empty byte[]
     byteArr = "Byte Array".getBytes(UTF_8);
     union.update(byteArr); //#3 actual byte[]
+    union.update(ByteBuffer.wrap(byteArr)); // same as previous
+    union.update(ByteBuffer.wrap(byteArr, 0, 4)); // #4 byte slice
     int[] intArr = null;
     union.update(intArr); //null int[]
     intArr = new int[0];
     union.update(intArr); //empty int[]
     final int[] intArr2 = { 1, 2, 3, 4, 5 };
-    union.update(intArr2); //#4 actual int[]
+    union.update(intArr2); //#5 actual int[]
     long[] longArr = null;
     union.update(longArr); //null long[]
     longArr = new long[0];
     union.update(longArr); //empty long[]
     final long[] longArr2 = { 6, 7, 8, 9 };
-    union.update(longArr2); //#5 actual long[]
+    union.update(longArr2); //#6 actual long[]
     final CompactSketch comp = union.getResult();
     final double est = comp.getEstimate();
     final boolean empty = comp.isEmpty();
-    assertEquals(est, 7.0, 0.0);
+    assertEquals(est, 8.0, 0.0);
     assertFalse(empty);
   }
 

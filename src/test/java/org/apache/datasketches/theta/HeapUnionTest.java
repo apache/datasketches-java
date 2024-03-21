@@ -26,6 +26,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
@@ -597,34 +598,37 @@ public class HeapUnionTest {
     union.update(byteArr); //null byte[]
     byteArr = new byte[0];
     union.update(byteArr); //empty byte[]
+    union.update(ByteBuffer.wrap(byteArr)); // empty ByteBuffer
     byteArr = "Byte Array".getBytes(UTF_8);
     union.update(byteArr); //#5 actual byte[]
+    union.update(ByteBuffer.wrap(byteArr)); // same as previous
+    union.update(ByteBuffer.wrap(byteArr, 0, 4)); // #6 byte slice
 
     char[] charArr = null;
     union.update(charArr); //null char[]
     charArr = new char[0];
     union.update(charArr); //empty char[]
     charArr = "String".toCharArray();
-    union.update(charArr); //#6 actual char[]
+    union.update(charArr); //#7 actual char[]
 
     int[] intArr = null;
     union.update(intArr); //null int[]
     intArr = new int[0];
     union.update(intArr); //empty int[]
     final int[] intArr2 = { 1, 2, 3, 4, 5 };
-    union.update(intArr2); //#7 actual int[]
+    union.update(intArr2); //#8 actual int[]
 
     long[] longArr = null;
     union.update(longArr); //null long[]
     longArr = new long[0];
     union.update(longArr); //empty long[]
     final long[] longArr2 = { 6, 7, 8, 9 };
-    union.update(longArr2); //#8 actual long[]
+    union.update(longArr2); //#9 actual long[]
 
     final CompactSketch comp = union.getResult();
     final double est = comp.getEstimate();
     final boolean empty = comp.isEmpty();
-    assertEquals(est, 8.0, 0.0);
+    assertEquals(est, 9.0, 0.0);
     assertFalse(empty);
   }
 

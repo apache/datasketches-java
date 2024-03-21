@@ -47,6 +47,8 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
+import java.nio.ByteBuffer;
+
 /**
  * Shared code for the HeapUnion and DirectUnion implementations.
  *
@@ -477,6 +479,11 @@ final class UnionImpl extends Union {
 
   @Override
   public void update(final byte[] data) {
+    gadget_.update(data);
+  }
+
+  @Override
+  public void update(ByteBuffer data) {
     gadget_.update(data);
   }
 
