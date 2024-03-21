@@ -26,6 +26,8 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
 
+import java.nio.ByteBuffer;
+
 /**
  * The top level for updatable tuple sketches of type ArrayOfDoubles.
  */
@@ -118,6 +120,18 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    */
   public void update(final byte[] key, final double[] values) {
     if (key == null || key.length == 0) { return; }
+    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
+  }
+
+  /**
+   * Updates this sketch with a ByteBuffer key and double values.
+   * The values will be stored or added to the ones associated with the key
+   *
+   * @param key The given ByteBuffer key
+   * @param values The given values
+   */
+  public void update(final ByteBuffer key, final double[] values) {
+    if (key == null || key.hasRemaining() == false) { return; }
     insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
   }
 

@@ -23,6 +23,8 @@ import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
+import java.nio.ByteBuffer;
+
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.
  * Summary objects are created using a user-defined SummaryFactory class,
@@ -135,6 +137,18 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
   public void update(final byte[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
     insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+  }
+
+  /**
+   * Updates this sketch with a ByteBuffer and U value
+   * The value is passed to the update() method of the Summary object associated with the key
+   *
+   * @param buffer The given ByteBuffer key
+   * @param value The given U value
+   */
+  public void update(final ByteBuffer buffer, final U value) {
+    if (buffer == null || buffer.hasRemaining() == false) { return; }
+    insertOrIgnore(MurmurHash3.hash(buffer, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**

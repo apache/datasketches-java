@@ -42,6 +42,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.getMemBytes;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
@@ -273,6 +274,21 @@ public abstract class UpdateSketch extends Sketch {
       return RejectedNullOrEmpty;
     }
     return hashUpdate(hash(data, getSeed())[0] >>> 1);
+  }
+
+  /**
+   * Present this sketch with the given ByteBuffer
+   * If the ByteBuffer is null or empty, no update attempt is made and the method returns.
+   *
+   * @param buffer the input ByteBuffer
+   * @return
+   * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
+   */
+  public UpdateReturnState update(ByteBuffer buffer) {
+    if (buffer == null || buffer.hasRemaining() == false) {
+      return RejectedNullOrEmpty;
+    }
+    return hashUpdate(hash(buffer, getSeed())[0] >>> 1);
   }
 
   /**

@@ -34,10 +34,14 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * @author Lee Rhodes
@@ -63,32 +67,35 @@ public class UpdateSketchTest {
     sk1.update(byteArr); //null byte[]
     byteArr = new byte[0];
     sk1.update(byteArr); //empty byte[]
+    sk1.update(ByteBuffer.wrap(byteArr)); // empty byte[]
     byteArr = "Byte Array".getBytes(UTF_8);
     sk1.update(byteArr); //#5 actual byte[]
+    sk1.update(ByteBuffer.wrap(byteArr, 0, 10));  // whole byte array
+    sk1.update(ByteBuffer.wrap(byteArr, 2, 6));   // #6 byte array slice
 
     char[] charArr = null;
     sk1.update(charArr); //null char[]
     charArr = new char[0];
     sk1.update(charArr); //empty char[]
     charArr = "String".toCharArray();
-    sk1.update(charArr); //#6 actual char[]
+    sk1.update(charArr); //#7 actual char[]
 
     int[] intArr = null;
     sk1.update(intArr); //null int[]
     intArr = new int[0];
     sk1.update(intArr); //empty int[]
     int[] intArr2 = { 1, 2, 3, 4, 5 };
-    sk1.update(intArr2); //#7 actual int[]
+    sk1.update(intArr2); //#8 actual int[]
 
     long[] longArr = null;
     sk1.update(longArr); //null long[]
     longArr = new long[0];
     sk1.update(longArr); //empty long[]
     long[] longArr2 = { 6, 7, 8, 9 };
-    sk1.update(longArr2); //#8 actual long[]
+    sk1.update(longArr2); //#9 actual long[]
 
     double est = sk1.getEstimate();
-    assertEquals(est, 8.0, 0.0);
+    assertEquals(est, 9.0, 0.0);
   }
 
   @Test

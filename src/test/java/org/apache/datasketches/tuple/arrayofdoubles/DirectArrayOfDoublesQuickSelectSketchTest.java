@@ -21,9 +21,13 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class DirectArrayOfDoublesQuickSelectSketchTest {
   @Test
@@ -178,11 +182,14 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
         build(WritableMemory.writableWrap(new byte[1000000]));
     sketch.update(1L, new double[] {1.0});
     sketch.update(2.0, new double[] {1.0});
-    sketch.update(new byte[] {3}, new double[] {1.0});
+    final byte[] bytes = new byte[] {3, 4};
+    sketch.update(bytes, new double[] {1.0});
+    sketch.update(ByteBuffer.wrap(bytes), new double[] {1.0}); // same as previous
+    sketch.update(ByteBuffer.wrap(bytes, 0, 1), new double[] {1.0}); // slice
     sketch.update(new int[] {4}, new double[] {1.0});
     sketch.update(new long[] {5L}, new double[] {1.0});
     sketch.update("a", new double[] {1.0});
-    Assert.assertEquals(sketch.getEstimate(), 6.0);
+    Assert.assertEquals(sketch.getEstimate(), 7.0);
   }
 
   @Test
