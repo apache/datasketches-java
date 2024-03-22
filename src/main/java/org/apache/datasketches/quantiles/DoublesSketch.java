@@ -578,7 +578,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   //************SORTED VIEW****************************
 
   @Override
-  public DoublesSketchSortedView getSortedView() {
+  public final DoublesSketchSortedView getSortedView() {
     return refreshSortedView();
   }
 
@@ -653,7 +653,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    * merge tree remains to be executed. Also, two arrays are sorted in tandem,
    * as discussed below.
    * @param svQuantiles array of quantiles for sorted view
-   * @param svCumWts array of cumulative weights for sorted view
+   * @param svCumWts array for the cumulative weights (but not yet cumulative) for sorted view
    * @param arrLen length of quantiles array and cumWts array
    * @param blkSize size of internal sorted blocks, equal to k
    */
