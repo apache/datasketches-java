@@ -33,6 +33,9 @@ import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class AdoubleTest {
   private final DoubleSummary.Mode mode = Mode.Sum;
 
@@ -216,14 +219,16 @@ public class AdoubleTest {
         new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch.update(1L, 1.0);
     sketch.update(2.0, 1.0);
-    final byte[] bytes = { 3 };
+    final byte[] bytes = { 3, 3 };
     sketch.update(bytes, 1.0);
+    sketch.update(ByteBuffer.wrap(bytes), 1.0);   // same as previous
+    sketch.update(ByteBuffer.wrap(bytes, 0, 1), 1.0); // slice of previous
     final int[] ints = { 4 };
     sketch.update(ints, 1.0);
     final long[] longs = { 5L };
     sketch.update(longs, 1.0);
     sketch.update("a", 1.0);
-    Assert.assertEquals(sketch.getEstimate(), 6.0);
+    Assert.assertEquals(sketch.getEstimate(), 7.0);
   }
 
   @Test

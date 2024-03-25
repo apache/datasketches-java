@@ -23,6 +23,8 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
+import java.nio.ByteBuffer;
+
 /**
  * Compute the union of two or more theta sketches.
  * A new instance represents an empty set.
@@ -180,6 +182,17 @@ public abstract class Union extends SetOperation {
    * @param data The given byte array.
    */
   public abstract void update(byte[] data);
+
+  /**
+   * Update <i>this</i> union with the given ByteBuffer item.
+   * If the ByteBuffer is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this is not a Sketch Union operation. This treats the given ByteBuffer as a data
+   * item.</p>
+   *
+   * @param data The given ByteBuffer.
+   */
+  public abstract void update(ByteBuffer data);
 
   /**
    * Update <i>this</i> union with the given integer array item.

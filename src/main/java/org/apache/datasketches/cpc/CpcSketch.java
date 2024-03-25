@@ -29,6 +29,7 @@ import static org.apache.datasketches.cpc.CpcUtil.checkLgK;
 import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
@@ -358,6 +359,18 @@ public final class CpcSketch {
    */
   public void update(final byte[] data) {
     if ((data == null) || (data.length == 0)) { return; }
+    final long[] arr = hash(data, seed);
+    hashUpdate(arr[0], arr[1]);
+  }
+
+  /**
+   * Present the given ByteBuffer as a potential unique item
+   * If the ByteBuffer is null or empty no update attempt is made and the method returns
+   *
+   * @param data The given ByteBuffer
+   */
+  public void update(final ByteBuffer data) {
+    if ((data == null) || data.hasRemaining() == false) { return; }
     final long[] arr = hash(data, seed);
     hashUpdate(arr[0], arr[1]);
   }
