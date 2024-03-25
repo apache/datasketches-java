@@ -733,7 +733,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantiles/CompactDoublesSketch.html" title="class in org.apache.datasketches.quantiles"><span class="typeNameLink">CompactDoublesSketch</span></a> - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
 <dd>
-<div class="block">Compact sketches are inherently <i>read ony</i>.</div>
+<div class="block">Compact sketches are inherently <i>read only</i>.</div>
 </dd>
 <dt><a href="org/apache/datasketches/theta/CompactSketch.html" title="class in org.apache.datasketches.theta"><span class="typeNameLink">CompactSketch</span></a> - Class in <a href="org/apache/datasketches/theta/package-summary.html">org.apache.datasketches.theta</a></dt>
 <dd>
@@ -1107,13 +1107,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Iterator over DoublesSketch.</div>
 </dd>
-<dt><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles"><span class="typeNameLink">DoublesSketchSortedView</span></a> - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
+<dt><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">DoublesSketchSortedView</span></a> - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
-<div class="block">The SortedView of the Classic Quantiles DoublesSketch.</div>
+<div class="block">The SortedView of the Quantiles Classic DoublesSketch and the KllDoublesSketch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#%3Cinit%3E(org.apache.datasketches.quantiles.DoublesSketch)">DoublesSketchSortedView(DoublesSketch)</a></span> - Constructor for class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#%3Cinit%3E(double%5B%5D,long%5B%5D,long,double,double)">DoublesSketchSortedView(double[], long[], long, double, double)</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>
-<div class="block">Constructs this Sorted View given the sketch</div>
+<div class="block">Construct from elements, also used in testing.</div>
 </dd>
 <dt><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon"><span class="typeNameLink">DoublesSortedView</span></a> - Interface in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
@@ -1746,11 +1746,9 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns the cumulative weight of items processed by the sketch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/ItemsSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">ItemsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
@@ -2292,15 +2290,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxIntersectionBytes(int)"><code>SetOperation.getMaxIntersectionBytes(int)</code></a></div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
 <dd>
@@ -2420,15 +2416,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns total bytes used by all internal maps</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getMinItem()">getMinItem()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
 <dd>
@@ -2470,15 +2464,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getMinValue()">getMinValue()</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
 <dd>&nbsp;</dd>
@@ -2811,8 +2803,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketch.html" title="class in org.apache.datasketches.kll">KllFloatsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
@@ -2821,9 +2811,9 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
 <dd>
@@ -2901,11 +2891,9 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getQuantileLowerBound(double,int)">getQuantileLowerBound(double, int)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
 <dd>
@@ -3017,11 +3005,9 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(double, QuantileSearchCriteria)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
 <dd>
@@ -4406,15 +4392,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/Union.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/Union.html" title="class in org.apache.datasketches.hll">Union</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesUnion.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesUnion.html" title="class in org.apache.datasketches.quantiles">DoublesUnion</a></dt>
 <dd>
@@ -4426,6 +4408,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns true if this union is empty</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/ItemsSketchSortedView.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">ItemsSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#isEmpty()">isEmpty()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></dt>
@@ -4611,8 +4595,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketch.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketch.html" title="class in org.apache.datasketches.kll">KllFloatsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllFloatsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllFloatsSketchSortedView</a></dt>
@@ -4621,9 +4603,9 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantiles">DoublesSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html#iterator()">iterator()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></dt>
 <dd>&nbsp;</dd>
@@ -4719,14 +4701,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><a href="org/apache/datasketches/kll/KllDoublesSketchIterator.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllDoublesSketchIterator</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
 <dd>
 <div class="block">Iterator over KllDoublesSketch.</div>
-</dd>
-<dt><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllDoublesSketchSortedView</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
-<dd>
-<div class="block">The SortedView of the KllDoublesSketch.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html#%3Cinit%3E(org.apache.datasketches.kll.KllDoublesSketch)">KllDoublesSketchSortedView(KllDoublesSketch)</a></span> - Constructor for class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketchSortedView.html" title="class in org.apache.datasketches.kll">KllDoublesSketchSortedView</a></dt>
-<dd>
-<div class="block">Constructs this Sorted View given the sketch</div>
 </dd>
 <dt><a href="org/apache/datasketches/kll/KllFloatsSketch.html" title="class in org.apache.datasketches.kll"><span class="typeNameLink">KllFloatsSketch</span></a> - Class in <a href="org/apache/datasketches/kll/package-summary.html">org.apache.datasketches.kll</a></dt>
 <dd>

@@ -426,7 +426,7 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 </td>
 </tr>
 <tr id="i24" class="altColor">
-<td class="colFirst"><code><a href="../quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></code></td>
+<td class="colFirst"><code><a href="../quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSortedView()">getSortedView</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the sorted view of this sketch</div>
@@ -1466,27 +1466,10 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 </dl>
 </li>
 </ul>
-<a id="getSortedView()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getSortedView</h4>
-<pre class="methodSignature">public&nbsp;<a href="../quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a>&nbsp;getSortedView()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html#getSortedView()">QuantilesDoublesAPI</a></code></span></div>
-<div class="block">Gets the sorted view of this sketch</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/QuantilesDoublesAPI.html#getSortedView()">getSortedView</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the sorted view of this sketch</dd>
-</dl>
-</li>
-</ul>
 <a id="reset()">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>reset</h4>
 <pre class="methodSignature">public abstract&nbsp;void&nbsp;reset()</pre>
@@ -1498,6 +1481,23 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../quantilescommon/QuantilesAPI.html#reset()">reset</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code></dd>
+</dl>
+</li>
+</ul>
+<a id="getSortedView()">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getSortedView</h4>
+<pre class="methodSignature">public final&nbsp;<a href="../quantilescommon/DoublesSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">DoublesSketchSortedView</a>&nbsp;getSortedView()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html#getSortedView()">QuantilesDoublesAPI</a></code></span></div>
+<div class="block">Gets the sorted view of this sketch</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../quantilescommon/QuantilesDoublesAPI.html#getSortedView()">getSortedView</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the sorted view of this sketch</dd>
 </dl>
 </li>
 </ul>
