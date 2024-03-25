@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":42,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":42,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -380,6 +380,15 @@ extends <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Ske
 <div class="block">Updates this sketch with a String key and U value.</div>
 </td>
 </tr>
+<tr id="i20" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(java.nio.ByteBuffer,U)">update</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio" class="externalLink">ByteBuffer</a>&nbsp;buffer,
+      <a href="UpdatableSketch.html" title="type parameter in UpdatableSketch">U</a>&nbsp;value)</code></th>
+<td class="colLast">
+<div class="block">Updates this sketch with a ByteBuffer and U value
+ The value is passed to the update() method of the Summary object associated with the key</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.tuple.Sketch">
@@ -571,6 +580,25 @@ public&nbsp;UpdatableSketch&#8203;(org.apache.datasketches.memory.Memory&nbsp;sr
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>key</code> - The given byte[] key</dd>
+<dd><code>value</code> - The given U value</dd>
+</dl>
+</li>
+</ul>
+<a id="update(java.nio.ByteBuffer,java.lang.Object)">
+<!--   -->
+</a><a id="update(java.nio.ByteBuffer,U)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>update</h4>
+<pre class="methodSignature">public&nbsp;void&nbsp;update&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio" class="externalLink">ByteBuffer</a>&nbsp;buffer,
+                   <a href="UpdatableSketch.html" title="type parameter in UpdatableSketch">U</a>&nbsp;value)</pre>
+<div class="block">Updates this sketch with a ByteBuffer and U value
+ The value is passed to the update() method of the Summary object associated with the key</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>buffer</code> - The given ByteBuffer key</dd>
 <dd><code>value</code> - The given U value</dd>
 </dl>
 </li>

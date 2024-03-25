@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":10,"i2":10,"i3":6,"i4":6,"i5":9,"i6":9,"i7":10,"i8":10,"i9":6,"i10":6,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":9,"i19":9};
+var data = {"i0":9,"i1":10,"i2":10,"i3":6,"i4":6,"i5":9,"i6":9,"i7":10,"i8":10,"i9":6,"i10":6,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":9,"i20":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -297,13 +297,21 @@ extends <a href="Sketch.html" title="class in org.apache.datasketches.theta">Ske
 </td>
 </tr>
 <tr id="i18" class="altColor">
+<td class="colFirst"><code><a href="UpdateReturnState.html" title="enum in org.apache.datasketches.theta">UpdateReturnState</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(java.nio.ByteBuffer)">update</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio" class="externalLink">ByteBuffer</a>&nbsp;buffer)</code></th>
+<td class="colLast">
+<div class="block">Present this sketch with the given ByteBuffer
+ If the ByteBuffer is null or empty, no update attempt is made and the method returns.</div>
+</td>
+</tr>
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static <a href="UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.WritableMemory)">wrap</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Wrap takes the sketch image in Memory and refers to it directly.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>static <a href="UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.WritableMemory,long)">wrap</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem,
     long&nbsp;expectedSeed)</code></th>
@@ -646,6 +654,23 @@ extends <a href="Sketch.html" title="class in org.apache.datasketches.theta">Ske
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>data</code> - The given byte array.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd><a href="../../../../resources/dictionary.html#updateReturnState">See Update Return State</a></dd>
+</dl>
+</li>
+</ul>
+<a id="update(java.nio.ByteBuffer)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>update</h4>
+<pre class="methodSignature">public&nbsp;<a href="UpdateReturnState.html" title="enum in org.apache.datasketches.theta">UpdateReturnState</a>&nbsp;update&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/ByteBuffer.html?is-external=true" title="class or interface in java.nio" class="externalLink">ByteBuffer</a>&nbsp;buffer)</pre>
+<div class="block">Present this sketch with the given ByteBuffer
+ If the ByteBuffer is null or empty, no update attempt is made and the method returns.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>buffer</code> - the input ByteBuffer</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><a href="../../../../resources/dictionary.html#updateReturnState">See Update Return State</a></dd>
 </dl>
