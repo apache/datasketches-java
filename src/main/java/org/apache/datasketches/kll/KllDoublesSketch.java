@@ -25,6 +25,7 @@ import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
@@ -35,7 +36,7 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
@@ -46,7 +47,7 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
  * @see org.apache.datasketches.kll.KllSketch
  */
 public abstract class KllDoublesSketch extends KllSketch implements QuantilesDoublesAPI {
-  private KllDoublesSketchSortedView kllDoublesSV = null;
+  private DoublesSketchSortedView doublesSV = null;
   final static int ITEM_BYTES = Double.BYTES;
 
   KllDoublesSketch(
@@ -171,21 +172,21 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllDoublesSV.getCDF(splitPoints, searchCrit);
+    return doublesSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
   public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllDoublesSV.getPMF(splitPoints, searchCrit);
+    return doublesSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllDoublesSV.getQuantile(rank, searchCrit);
+    return doublesSV.getQuantile(rank, searchCrit);
   }
 
   @Override
@@ -195,7 +196,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     final int len = ranks.length;
     final double[] quantiles = new double[len];
     for (int i = 0; i < len; i++) {
-      quantiles[i] = kllDoublesSV.getQuantile(ranks[i], searchCrit);
+      quantiles[i] = doublesSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
   }
@@ -224,7 +225,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllDoublesSV.getRank(quantile, searchCrit);
+    return doublesSV.getRank(quantile, searchCrit);
   }
 
   /**
@@ -254,17 +255,17 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     final int len = quantiles.length;
     final double[] ranks = new double[len];
     for (int i = 0; i < len; i++) {
-      ranks[i] = kllDoublesSV.getRank(quantiles[i], searchCrit);
+      ranks[i] = doublesSV.getRank(quantiles[i], searchCrit);
     }
     return ranks;
   }
 
   @Override
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
-  public DoublesSortedView getSortedView() {
+  public DoublesSketchSortedView getSortedView() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllDoublesSV;
+    return doublesSV;
   }
 
   @Override
@@ -278,9 +279,9 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
-    if (othDblSk.isEmpty()) { return; } //then check empty
+    if (othDblSk.isEmpty()) { return; }
     KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
-    kllDoublesSV = null;
+    doublesSV = null;
   }
 
   /**
@@ -299,7 +300,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     setMinItem(Double.NaN);
     setMaxItem(Double.NaN);
     setDoubleItemsArray(new double[k]);
-    kllDoublesSV = null;
+    doublesSV = null;
   }
 
   @Override
@@ -323,7 +324,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllDoublesHelper.updateDouble(this, item);
-    kllDoublesSV = null;
+    doublesSV = null;
   }
 
   /**
@@ -337,7 +338,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
     if (weight == 1L) { KllDoublesHelper.updateDouble(this, item); }
     else { KllDoublesHelper.updateDouble(this, item, weight); }
-    kllDoublesSV = null;
+    doublesSV = null;
   }
 
   //restricted
@@ -393,11 +394,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     return levelsArr[getNumLevels()] * Double.BYTES;
   }
 
-  private final void refreshSortedView() {
-    kllDoublesSV = (kllDoublesSV == null)
-        ? new KllDoublesSketchSortedView(this) : kllDoublesSV;
-  }
-
   abstract void setDoubleItemsArray(double[] doubleItems);
 
   abstract void setDoubleItemsArrayAt(int index, double item);
@@ -413,6 +409,137 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     } else {
       setMinItem(min(getMinItem(), item));
       setMaxItem(max(getMaxItem(), item));
+    }
+  }
+
+  private final DoublesSketchSortedView refreshSortedView() {
+    if (doublesSV == null) {
+      final CreateSortedView csv = new CreateSortedView();
+      doublesSV = csv.getSV();
+    }
+    return doublesSV;
+  }
+
+  private final class CreateSortedView {
+    double[] quantiles;
+    long[] cumWeights;
+
+    DoublesSketchSortedView getSV() {
+      if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+      if (getN() == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
+      final double[] srcQuantiles = getDoubleItemsArray();
+      final int[] srcLevels = levelsArr;
+      final int srcNumLevels = getNumLevels();
+
+      if (!isLevelZeroSorted()) {
+        Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1]);
+        if (!hasMemory()) { setLevelZeroSorted(true); }
+      }
+      final int numQuantiles = getNumRetained();
+      quantiles = new double[numQuantiles];
+      cumWeights = new long[numQuantiles];
+      populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
+      return new DoublesSketchSortedView(
+          quantiles, cumWeights, getN(), getMaxItem(), getMinItem());
+    }
+
+    private void populateFromSketch(final double[] srcQuantiles, final int[] srcLevels,
+      final int srcNumLevels, final int numItems) {
+      final int[] myLevels = new int[srcNumLevels + 1];
+      final int offset = srcLevels[0];
+      System.arraycopy(srcQuantiles, offset, quantiles, 0, numItems);
+      int srcLevel = 0;
+      int dstLevel = 0;
+      long weight = 1;
+      while (srcLevel < srcNumLevels) {
+        final int fromIndex = srcLevels[srcLevel] - offset;
+        final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
+        if (fromIndex < toIndex) { // if equal, skip empty level
+          Arrays.fill(cumWeights, fromIndex, toIndex, weight);
+          myLevels[dstLevel] = fromIndex;
+          myLevels[dstLevel + 1] = toIndex;
+          dstLevel++;
+        }
+        srcLevel++;
+        weight *= 2;
+      }
+      final int numLevels = dstLevel;
+      blockyTandemMergeSort(quantiles, cumWeights, myLevels, numLevels); //create unit weights
+      KllHelper.convertToCumulative(cumWeights);
+    }
+  } //End of class CreateSortedView
+
+  private static void blockyTandemMergeSort(final double[] quantiles, final long[] weights,
+      final int[] levels, final int numLevels) {
+    if (numLevels == 1) { return; }
+
+    // duplicate the input in preparation for the "ping-pong" copy reduction strategy.
+    final double[] quantilesTmp = Arrays.copyOf(quantiles, quantiles.length);
+    final long[] weightsTmp = Arrays.copyOf(weights, quantiles.length); // don't need the extra one
+
+    blockyTandemMergeSortRecursion(quantilesTmp, weightsTmp, quantiles, weights, levels, 0, numLevels);
+  }
+
+  private static void blockyTandemMergeSortRecursion(
+      final double[] quantilesSrc, final long[] weightsSrc,
+      final double[] quantilesDst, final long[] weightsDst,
+      final int[] levels, final int startingLevel, final int numLevels) {
+    if (numLevels == 1) { return; }
+    final int numLevels1 = numLevels / 2;
+    final int numLevels2 = numLevels - numLevels1;
+    assert numLevels1 >= 1;
+    assert numLevels2 >= numLevels1;
+    final int startingLevel1 = startingLevel;
+    final int startingLevel2 = startingLevel + numLevels1;
+    // swap roles of src and dst
+    blockyTandemMergeSortRecursion(
+        quantilesDst, weightsDst,
+        quantilesSrc, weightsSrc,
+        levels, startingLevel1, numLevels1);
+    blockyTandemMergeSortRecursion(
+        quantilesDst, weightsDst,
+        quantilesSrc, weightsSrc,
+        levels, startingLevel2, numLevels2);
+    tandemMerge(
+        quantilesSrc, weightsSrc,
+        quantilesDst, weightsDst,
+        levels,
+        startingLevel1, numLevels1,
+        startingLevel2, numLevels2);
+  }
+
+  private static void tandemMerge(
+      final double[] quantilesSrc, final long[] weightsSrc,
+      final double[] quantilesDst, final long[] weightsDst,
+      final int[] levelStarts,
+      final int startingLevel1, final int numLevels1,
+      final int startingLevel2, final int numLevels2) {
+    final int fromIndex1 = levelStarts[startingLevel1];
+    final int toIndex1 = levelStarts[startingLevel1 + numLevels1]; // exclusive
+    final int fromIndex2 = levelStarts[startingLevel2];
+    final int toIndex2 = levelStarts[startingLevel2 + numLevels2]; // exclusive
+    int iSrc1 = fromIndex1;
+    int iSrc2 = fromIndex2;
+    int iDst = fromIndex1;
+
+    while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
+      if (quantilesSrc[iSrc1] < quantilesSrc[iSrc2]) {
+        quantilesDst[iDst] = quantilesSrc[iSrc1];
+        weightsDst[iDst] = weightsSrc[iSrc1];
+        iSrc1++;
+      } else {
+        quantilesDst[iDst] = quantilesSrc[iSrc2];
+        weightsDst[iDst] = weightsSrc[iSrc2];
+        iSrc2++;
+      }
+      iDst++;
+    }
+    if (iSrc1 < toIndex1) {
+      System.arraycopy(quantilesSrc, iSrc1, quantilesDst, iDst, toIndex1 - iSrc1);
+      System.arraycopy(weightsSrc, iSrc1, weightsDst, iDst, toIndex1 - iSrc1);
+    } else if (iSrc2 < toIndex2) {
+      System.arraycopy(quantilesSrc, iSrc2, quantilesDst, iDst, toIndex2 - iSrc2);
+      System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
   }
 

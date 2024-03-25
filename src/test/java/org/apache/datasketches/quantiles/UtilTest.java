@@ -165,7 +165,6 @@ public class UtilTest {
  }
 
  /**
-  *
   * @param numTries number of tries
   * @param maxArrLen maximum length of array size
   */
@@ -178,7 +177,7 @@ public class UtilTest {
          arr = makeMergeTestInput(arrLen, blkSize);
          long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
-         DoublesSketchSortedView.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
+         DoublesSketch.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
          for (int i = 0; i < (arrLen-1); i++) {
            assert arr[i] <= arr[i+1];

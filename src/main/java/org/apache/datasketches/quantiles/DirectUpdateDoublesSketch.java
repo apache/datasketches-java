@@ -193,7 +193,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
       //bit pattern on direct is always derived, no need to save it.
     }
     putN(newN);
-    classicQdsSV = null;
+    doublesSV = null;
   }
 
   @Override

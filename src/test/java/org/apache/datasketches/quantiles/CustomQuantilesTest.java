@@ -26,6 +26,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 import static org.testng.Assert.assertEquals;
 
+import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
 import org.testng.annotations.Test;
 
 public class CustomQuantilesTest {
@@ -55,7 +56,7 @@ public class CustomQuantilesTest {
       }
     }
     long N = sk.getN();
-    DoublesSketchSortedView sv = new DoublesSketchSortedView(sk);
+    DoublesSketchSortedView sv = sk.getSortedView();
     double[] quantilesArr = sv.getQuantiles();
     long[] cumWtsArr = sv.getCumulativeWeights();
     int lenQ = quantilesArr.length;

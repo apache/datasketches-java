@@ -67,8 +67,7 @@ final class DoublesArrayAccessor extends DoublesBufferAccessor {
   }
 
   @Override
-  void putArray(final double[] srcArray, final int srcIndex,
-                       final int dstIndex, final int numItems) {
+  void putArray(final double[] srcArray, final int srcIndex, final int dstIndex, final int numItems) {
     System.arraycopy(srcArray, srcIndex, buffer_, dstIndex, numItems);
   }
 

@@ -483,7 +483,7 @@ public final class TDigestDouble {
 
   private TDigestDouble(final boolean reverseMerge, final short k, final double min, final double max,
       final double[] means, final long[] weights, final long weight, final double[] buffer) {
-    reverseMerge_ = reverseMerge; 
+    reverseMerge_ = reverseMerge;
     k_ = k;
     minValue_ = min;
     maxValue_ = max;
@@ -581,7 +581,7 @@ public final class TDigestDouble {
       return 4 * Math.log(n / compression) + 24;
     }
   }
-  
+
   private static double weightedAverage(final double x1, final double w1, final double x2, final double w2) {
     return (x1 * w1 + x2 * w2) / (w1 + w2);
   }
