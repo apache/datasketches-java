@@ -361,13 +361,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return n_;
   }
 
-  /**
-   * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
-   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   */
+  @Override
   public double getNormalizedRankError(final boolean pmf) {
     return getNormalizedRankError(k_, pmf);
   }
