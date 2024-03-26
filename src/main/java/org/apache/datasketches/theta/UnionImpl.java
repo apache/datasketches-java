@@ -38,6 +38,8 @@ import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
 import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
 
+import java.nio.ByteBuffer;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -46,8 +48,6 @@ import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
-
-import java.nio.ByteBuffer;
 
 /**
  * Shared code for the HeapUnion and DirectUnion implementations.
@@ -483,7 +483,7 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public void update(ByteBuffer data) {
+  public void update(final ByteBuffer data) {
     gadget_.update(data);
   }
 

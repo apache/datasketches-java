@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.tuple;
 
+import java.nio.ByteBuffer;
+
 import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
-
-import java.nio.ByteBuffer;
 
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.

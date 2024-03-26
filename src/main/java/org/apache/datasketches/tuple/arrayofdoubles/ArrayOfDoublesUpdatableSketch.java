@@ -19,14 +19,14 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.nio.ByteBuffer;
+
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
-
-import java.nio.ByteBuffer;
 
 /**
  * The top level for updatable tuple sketches of type ArrayOfDoubles.
