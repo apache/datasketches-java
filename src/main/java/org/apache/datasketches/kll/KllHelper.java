@@ -688,7 +688,6 @@ final class KllHelper {
       itmSk.setMaxItem(maxItem);
       itmSk.setItemsArray(myNewItemsArr);
     }
-
   }
 
   /**

@@ -168,6 +168,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   //END of Constructors
 
+  abstract void addN(int numItems);
+
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
@@ -341,6 +343,37 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     doublesSV = null;
   }
 
+  /**
+   * Vector update. Updates this sketch with the given array (vector) of items, starting at the items
+   * offset for a length number of items.
+   * @param items the vector of items
+   * @param offset the starting index of the items[] array
+   * @param length the number of items
+   */
+  public void update(final double[] items, final int offset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    boolean hasNaN = false;
+    boolean allNaNs = true;
+    for (int i = 0; i < length; i++) {
+      final boolean isNaN = Double.isNaN(items[offset + i]);
+      hasNaN |= isNaN;
+      allNaNs &= isNaN;
+    }
+    if (allNaNs) { return; }
+    else if (!hasNaN) { // fast path
+      KllDoublesHelper.updateDouble(this, items, offset, length);
+    }
+    else {
+      for (int i = 0; i < length; i++) {
+        final double v = items[offset + i];
+        if (!Double.isNaN(v)) {
+          KllDoublesHelper.updateDouble(this, v);
+        }
+      }
+    }
+    doublesSV = null;
+  }
+
   //restricted
 
   /**
@@ -409,6 +442,13 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     } else {
       setMinItem(min(getMinItem(), item));
       setMaxItem(max(getMaxItem(), item));
+    }
+  }
+
+  void updateMinMax(final double[] items, final int offset, final int length) {
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      updateMinMax(items[i]);
     }
   }
 

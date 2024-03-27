@@ -369,4 +369,9 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     }
   }
 
+  @Override
+  void addN(final int numItems) {
+    throw new UnsupportedOperationException(UNSUPPORTED_MSG);
+  }
+
 }

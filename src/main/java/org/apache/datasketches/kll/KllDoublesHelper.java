@@ -342,6 +342,30 @@ final class KllDoublesHelper {
     }
   }
 
+  //called only from KllDoublesSketch
+  static void updateDouble(final KllDoublesSketch dblSk,
+      final double[] items, final int offset, final int length) {
+    dblSk.updateMinMax(items, offset, length);
+    int count = 0;
+    while (count < length) {
+      if (dblSk.levelsArr[0] == 0) {
+        compressWhileUpdatingSketch(dblSk);
+      }
+      final int spaceNeeded = length - count;
+      final int freeSpace = dblSk.levelsArr[0];
+      assert (freeSpace > 0);
+      final int numItemsToCopy = Math.min(spaceNeeded, freeSpace);
+      final int dstOffset = freeSpace - numItemsToCopy;
+      // For KllHeapDoublesSketch
+      System.arraycopy(items, offset + count, dblSk.getDoubleItemsArray(), dstOffset, numItemsToCopy);
+      count += numItemsToCopy;
+      dblSk.addN(numItemsToCopy);
+      dblSk.setLevelZeroSorted(false);
+      dblSk.setLevelsArrayAt(0, dstOffset);
+      System.out.println(dblSk.toString(true, true));
+    }
+  }
+
   /**
    * Compression algorithm used to merge higher levels.
    * <p>Here is what we do for each level:</p>

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -37,6 +38,7 @@ import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.annotations.Test;
 
 public class KllDoublesSketchTest {
+  private static final String LS = System.getProperty("line.separator");
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
   private static final double PMF_EPS_FOR_K_256 = 0.013; // PMF rank error (epsilon) for k=256
@@ -608,7 +610,28 @@ public class KllDoublesSketchTest {
     try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
   }
 
-  private final static boolean enablePrinting = false;
+  @Test
+  public void checkVectorUpdate() {
+    boolean withLevels = false;
+    boolean withLevelsAndItems = true;
+    int k = 20;
+    int n = 21;//108;
+    int maxVsz = 10;  //max vector size
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    int j = 1;
+    int rem;
+    while ((rem = n - j + 1) > 0) {
+      int vecSz = min(rem, maxVsz);
+      double[] v = new double[vecSz];
+      for (int i = 0; i < vecSz; i++) { v[i] = j++; }
+      sk.update(v, 0, vecSz);
+    }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(withLevels, withLevelsAndItems));
+    println("");
+  }
+
+  private final static boolean enablePrinting = true;
 
   /**
    * @param format the format
