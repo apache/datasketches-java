@@ -342,7 +342,7 @@ final class KllDoublesHelper {
     }
   }
 
-  //called only from KllDoublesSketch
+  //called only from KllDoublesSketch for VECTOR UPDATE
   static void updateDouble(final KllDoublesSketch dblSk,
       final double[] items, final int offset, final int length) {
     dblSk.updateMinMax(items, offset, length);
@@ -356,7 +356,6 @@ final class KllDoublesHelper {
       assert (freeSpace > 0);
       final int numItemsToCopy = Math.min(spaceNeeded, freeSpace);
       final int dstOffset = freeSpace - numItemsToCopy;
-      // For KllHeapDoublesSketch
       System.arraycopy(items, offset + count, dblSk.getDoubleItemsArray(), dstOffset, numItemsToCopy);
       count += numItemsToCopy;
       dblSk.addN(numItemsToCopy);

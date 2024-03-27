@@ -168,8 +168,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   //END of Constructors
 
-  abstract void addN(int numItems);
-
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
@@ -343,14 +341,19 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     doublesSV = null;
   }
 
+  // VECTOR UPDATE
+
   /**
    * Vector update. Updates this sketch with the given array (vector) of items, starting at the items
-   * offset for a length number of items.
+   * offset for a length number of items. This is not supported for direct sketches.
    * @param items the vector of items
    * @param offset the starting index of the items[] array
    * @param length the number of items
    */
   public void update(final double[] items, final int offset, final int length) {
+    if (this instanceof KllDirectDoublesSketch) {
+      throw new UnsupportedOperationException(UNSUPPORTED_MSG);
+    }
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     boolean hasNaN = false;
     boolean allNaNs = true;
@@ -375,6 +378,17 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   //restricted
+
+  abstract void addN(int numItems);
+
+  void updateMinMax(final double[] items, final int offset, final int length) {
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      updateMinMax(items[i]);
+    }
+  }
+
+  // END VECTOR UPDATE
 
   /**
    * @return full size of internal items array including empty space at bottom.
@@ -442,13 +456,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     } else {
       setMinItem(min(getMinItem(), item));
       setMaxItem(max(getMaxItem(), item));
-    }
-  }
-
-  void updateMinMax(final double[] items, final int offset, final int length) {
-    final int end = offset + length;
-    for (int i = offset; i < end; i++) {
-      updateMinMax(items[i]);
     }
   }
 

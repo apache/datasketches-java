@@ -161,9 +161,6 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   //End of constructors
 
   @Override
-  void addN(final int numItems) { n += numItems; }
-
-  @Override
   String getItemAsString(final int index) {
     if (isEmpty()) { return "NaN"; }
     return Double.toString(doubleItems[index]);
@@ -201,6 +198,9 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   //restricted
 
+  @Override //VECTOR UPDATE
+  void addN(final int numItems) { n += numItems; }
+  
   @Override
   double[] getDoubleItemsArray() { return doubleItems; }
 

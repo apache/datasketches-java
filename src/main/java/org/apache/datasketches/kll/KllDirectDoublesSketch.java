@@ -369,7 +369,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     }
   }
 
-  @Override
+  @Override  //VECTOR UPDATE NOT SUPPORTED
   void addN(final int numItems) {
     throw new UnsupportedOperationException(UNSUPPORTED_MSG);
   }

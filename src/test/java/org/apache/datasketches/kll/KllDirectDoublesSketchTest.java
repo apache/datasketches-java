@@ -644,6 +644,22 @@ public class KllDirectDoublesSketchTest {
     try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
   }
 
+  @Test(expectedExceptions = UnsupportedOperationException.class)
+  public void checkVectorUpdate() {
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
+    //for (int i = 1; i <= 21; i++) { sk.update(i); }
+    //println(sk.toString(true, true));
+    final double[] v = new double[21];
+    for (int i = 0; i < 21; i++) { v[i] = i + 1; }
+    sk.update(v, 0, 21);
+  }
+
+  @Test
+  public void checkWeightedUpdate() {
+
+  }
+
   private static KllDoublesSketch getUpdatableDirectDoublesSketch(final int k, final int n) {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
@@ -653,7 +669,7 @@ public class KllDirectDoublesSketchTest {
     return ddsk;
   }
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param o the Object to println
