@@ -21,20 +21,19 @@ package org.apache.datasketches.tuple.adouble;
 
 import static org.testng.Assert.assertEquals;
 
+import java.nio.ByteBuffer;
+
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Sketches;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class AdoubleTest {
   private final DoubleSummary.Mode mode = Mode.Sum;
