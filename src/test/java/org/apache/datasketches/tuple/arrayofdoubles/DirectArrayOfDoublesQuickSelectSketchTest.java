@@ -19,15 +19,13 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.nio.ByteBuffer;
+
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 public class DirectArrayOfDoublesQuickSelectSketchTest {
   @Test

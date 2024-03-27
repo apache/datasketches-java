@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.theta;
 
+import java.nio.ByteBuffer;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-
-import java.nio.ByteBuffer;
 
 /**
  * Compute the union of two or more theta sketches.

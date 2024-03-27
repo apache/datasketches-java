@@ -284,7 +284,7 @@ public abstract class UpdateSketch extends Sketch {
    * @return
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  public UpdateReturnState update(ByteBuffer buffer) {
+  public UpdateReturnState update(final ByteBuffer buffer) {
     if (buffer == null || buffer.hasRemaining() == false) {
       return RejectedNullOrEmpty;
     }

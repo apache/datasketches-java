@@ -104,6 +104,11 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
   }
 
   @Override
+  public int getNumRetained() {
+    return quantiles.length;
+  }
+
+  @Override
   public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
