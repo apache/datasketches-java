@@ -49,6 +49,12 @@ public interface SortedView {
   long getN();
 
   /**
+   * Gets the number of quantiles retained by the sketch.
+   * @return the number of quantiles retained by the sketch
+   */
+  int getNumRetained();
+
+  /**
    * Returns true if this sorted view is empty.
    * @return true if this sorted view is empty.
    */

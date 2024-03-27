@@ -46,7 +46,7 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final T maxItem;
   private final T minItem;
   private final Class<T> clazz;
-  private final double normRankErr;
+  private final double normRankErr;//assumes PMF type error
 
   /**
    * Construct from elements, also used in testing.
@@ -110,6 +110,11 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   @Override
   public long getN() {
     return totalN;
+  }
+
+  @Override
+  public int getNumRetained() {
+    return quantiles.length;
   }
 
   @Override

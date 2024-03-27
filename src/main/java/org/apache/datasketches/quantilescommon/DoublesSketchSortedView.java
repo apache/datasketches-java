@@ -75,6 +75,11 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
+  public int getNumRetained() {
+    return quantiles.length;
+  }
+
+  @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
