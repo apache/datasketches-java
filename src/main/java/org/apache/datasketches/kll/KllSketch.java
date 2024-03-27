@@ -193,15 +193,7 @@ public abstract class KllSketch implements QuantilesAPI {
     return KllHelper.getNormalizedRankError(k, pmf);
   }
 
-  /**
-   * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
-   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
-   * in thousands of trials.
-   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @return if pmf is true, returns the "double-sided" normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   */
+  @Override
   public final double getNormalizedRankError(final boolean pmf) {
     return getNormalizedRankError(getMinK(), pmf);
   }
@@ -279,10 +271,6 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   public abstract void merge(KllSketch other);
 
-  /**
-   * Returns human readable summary information about this sketch.
-   * Used for debugging.
-   */
   @Override
   public final String toString() {
     return toString(false, false);

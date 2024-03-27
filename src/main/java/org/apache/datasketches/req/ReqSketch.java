@@ -236,6 +236,15 @@ public final class ReqSketch extends BaseReqSketch {
   }
 
   @Override
+  /**
+   * This is an unsupported operation for this sketch
+   */
+  public double getNormalizedRankError(final boolean pmf) {
+    throw new UnsupportedOperationException(UNSUPPORTED_MSG);
+
+  }
+
+  @Override
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
