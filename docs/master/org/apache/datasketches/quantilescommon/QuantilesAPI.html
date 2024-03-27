@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6};
+var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -398,13 +398,20 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNormalizedRankError(boolean)">getNormalizedRankError</a></span>&#8203;(boolean&nbsp;pmf)</code></th>
+<td class="colLast">
+<div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNumRetained()">getNumRetained</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the number of quantiles retained by the sketch.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankLowerBound(double)">getRankLowerBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -412,7 +419,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankUpperBound(double)">getRankUpperBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -420,49 +427,49 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#hasMemory()">hasMemory</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isDirect()">isDirect</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch's data structure is off-heap (a.k.a., Direct or Native memory).</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is empty.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEstimationMode()">isEstimationMode</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is in estimation mode.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isReadOnly()">isReadOnly</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is read only.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#reset()">reset</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Resets this sketch to the empty state.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
 <td class="colLast">
@@ -601,6 +608,26 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the length of the input stream offered to the sketch.</dd>
+</dl>
+</li>
+</ul>
+<a id="getNormalizedRankError(boolean)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNormalizedRankError</h4>
+<pre class="methodSignature">double&nbsp;getNormalizedRankError&#8203;(boolean&nbsp;pmf)</pre>
+<div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+ The epsilon returned is a best fit to 99 percent confidence empirically measured max error
+ in thousands of trials.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>pmf</code> - if true, returns the "double-sided" normalized rank error for the getPMF() function.
+ Otherwise, it is the "single-sided" normalized rank error for all the other queries.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>if pmf is true, returns the "double-sided" normalized rank error for the getPMF() function.
+ Otherwise, it is the "single-sided" normalized rank error for all the other queries.</dd>
 </dl>
 </li>
 </ul>

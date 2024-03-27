@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":9,"i22":10,"i23":10,"i24":10,"i25":9,"i26":10,"i27":10,"i28":10,"i29":10,"i30":10,"i31":10,"i32":10,"i33":10,"i34":10,"i35":10,"i36":10};
+var data = {"i0":9,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":9,"i23":10,"i24":10,"i25":10,"i26":9,"i27":10,"i28":10,"i29":10,"i30":10,"i31":10,"i32":10,"i33":10,"i34":10,"i35":10,"i36":10,"i37":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -274,13 +274,20 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </td>
 </tr>
 <tr id="i7" class="rowColor">
+<td class="colFirst"><code>double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNormalizedRankError(boolean)">getNormalizedRankError</a></span>&#8203;(boolean&nbsp;pmf)</code></th>
+<td class="colLast">
+<div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNumRetained()">getNumRetained</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the number of quantiles retained by the sketch.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(float[]&nbsp;splitPoints,
       <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -290,7 +297,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;normRank,
            <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -298,7 +305,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileLowerBound(double)">getQuantileLowerBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -306,13 +313,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileLowerBound(double,int)">getQuantileLowerBound</a></span>&#8203;(double&nbsp;rank,
                      int&nbsp;numStdDev)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>float[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;normRanks,
             <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -320,7 +327,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Gets an array of quantiles from the given array of normalized ranks.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileUpperBound(double)">getQuantileUpperBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -328,13 +335,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>float</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileUpperBound(double,int)">getQuantileUpperBound</a></span>&#8203;(double&nbsp;rank,
                      int&nbsp;numStdDev)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(float,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(float&nbsp;quantile,
        <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -342,7 +349,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankLowerBound(double)">getRankLowerBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -350,7 +357,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankLowerBound(double,int)">getRankLowerBound</a></span>&#8203;(double&nbsp;rank,
                  int&nbsp;numStdDev)</code></th>
@@ -358,7 +365,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Gets an approximate lower bound rank of the given normalized rank.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRanks(float%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(float[]&nbsp;quantiles,
         <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -367,7 +374,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  search criterion.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankUpperBound(double)">getRankUpperBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -375,7 +382,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankUpperBound(double,int)">getRankUpperBound</a></span>&#8203;(double&nbsp;rank,
                  int&nbsp;numStdDev)</code></th>
@@ -383,7 +390,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Gets an approximate upper bound rank of the given rank.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRSE(int,double,boolean,long)">getRSE</a></span>&#8203;(int&nbsp;k,
       double&nbsp;rank,
@@ -393,105 +400,105 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializedSizeBytes()">getSerializedSizeBytes</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the current number of bytes this Sketch would require if serialized.</div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code><a href="../quantilescommon/FloatsSortedView.html" title="interface in org.apache.datasketches.quantilescommon">FloatsSortedView</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSortedView()">getSortedView</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the sorted view of this sketch</div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#hasMemory()">hasMemory</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code>static <a href="ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapify(org.apache.datasketches.memory.Memory)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
 <td class="colLast">
 <div class="block">Returns an ReqSketch on the heap from a Memory image of the sketch.</div>
 </td>
 </tr>
-<tr id="i26" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isDirect()">isDirect</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch's data structure is off-heap (a.k.a., Direct or Native memory).</div>
 </td>
 </tr>
-<tr id="i27" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is empty.</div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEstimationMode()">isEstimationMode</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is in estimation mode.</div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isReadOnly()">isReadOnly</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is read only.</div>
 </td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i31" class="rowColor">
 <td class="colFirst"><code><a href="../quantilescommon/QuantilesFloatsSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesFloatsSketchIterator</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the iterator for this sketch, which is not sorted.</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i32" class="altColor">
 <td class="colFirst"><code><a href="ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#merge(org.apache.datasketches.req.ReqSketch)">merge</a></span>&#8203;(<a href="ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a>&nbsp;other)</code></th>
 <td class="colLast">
 <div class="block">Merge other sketch into this one.</div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i33" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#reset()">reset</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Resets this sketch to the empty state.</div>
 </td>
 </tr>
-<tr id="i33" class="rowColor">
+<tr id="i34" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toByteArray()">toByteArray</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this sketch.</div>
 </td>
 </tr>
-<tr id="i34" class="altColor">
+<tr id="i35" class="rowColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns a summary of the key parameters of the sketch.</div>
 </td>
 </tr>
-<tr id="i35" class="rowColor">
+<tr id="i36" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(float)">update</a></span>&#8203;(float&nbsp;item)</code></th>
 <td class="colLast">
 <div class="block">Updates this sketch with the given item.</div>
 </td>
 </tr>
-<tr id="i36" class="altColor">
+<tr id="i37" class="rowColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#viewCompactorDetail(java.lang.String,boolean)">viewCompactorDetail</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;fmt,
                    boolean&nbsp;allData)</code></th>
@@ -690,6 +697,27 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dd><code><a href="../quantilescommon/QuantilesAPI.html#getN()">getN</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the length of the input stream offered to the sketch.</dd>
+</dl>
+</li>
+</ul>
+<a id="getNormalizedRankError(boolean)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNormalizedRankError</h4>
+<pre class="methodSignature">public&nbsp;double&nbsp;getNormalizedRankError&#8203;(boolean&nbsp;pmf)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html#getNormalizedRankError(boolean)">QuantilesAPI</a></code></span></div>
+<div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+ The epsilon returned is a best fit to 99 percent confidence empirically measured max error
+ in thousands of trials.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>pmf</code> - if true, returns the "double-sided" normalized rank error for the getPMF() function.
+ Otherwise, it is the "single-sided" normalized rank error for all the other queries.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>if pmf is true, returns the "double-sided" normalized rank error for the getPMF() function.
+ Otherwise, it is the "single-sided" normalized rank error for all the other queries.</dd>
 </dl>
 </li>
 </ul>

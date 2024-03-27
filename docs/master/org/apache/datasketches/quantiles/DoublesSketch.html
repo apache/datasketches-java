@@ -1024,15 +1024,18 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
 <li class="blockList">
 <h4>getNormalizedRankError</h4>
 <pre class="methodSignature">public&nbsp;double&nbsp;getNormalizedRankError&#8203;(boolean&nbsp;pmf)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html#getNormalizedRankError(boolean)">QuantilesAPI</a></code></span></div>
 <div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
  The epsilon returned is a best fit to 99 percent confidence empirically measured max error
  in thousands of trials.</div>
 <dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../quantilescommon/QuantilesAPI.html#getNormalizedRankError(boolean)">getNormalizedRankError</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>pmf</code> - if true, returns the "double-sided" normalized rank error for the getPMF() function.
  Otherwise, it is the "single-sided" normalized rank error for all the other queries.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>if pmf is true, returns the normalized rank error for the getPMF() function.
+<dd>if pmf is true, returns the "double-sided" normalized rank error for the getPMF() function.
  Otherwise, it is the "single-sided" normalized rank error for all the other queries.</dd>
 </dl>
 </li>

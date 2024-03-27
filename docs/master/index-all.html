@@ -774,6 +774,18 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Computes number of bytes needed for packed bit encoding of the array of booleans.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html#computeKSDelta(org.apache.datasketches.quantilescommon.QuantilesDoublesAPI,org.apache.datasketches.quantilescommon.QuantilesDoublesAPI)">computeKSDelta(QuantilesDoublesAPI, QuantilesDoublesAPI)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html" title="class in org.apache.datasketches.quantilescommon">KolmogorovSmirnov</a></dt>
+<dd>
+<div class="block">Computes the raw delta between two QuantilesDoublesAPI sketches for the <i>kolmogorovSmirnovTest(...)</i> method.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html#computeKSDelta(org.apache.datasketches.quantilescommon.QuantilesFloatsAPI,org.apache.datasketches.quantilescommon.QuantilesFloatsAPI)">computeKSDelta(QuantilesFloatsAPI, QuantilesFloatsAPI)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html" title="class in org.apache.datasketches.quantilescommon">KolmogorovSmirnov</a></dt>
+<dd>
+<div class="block">Computes the raw delta between two QuantilesFloatsAPI sketches for the <i>kolmogorovSmirnovTest(...)</i> method.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html#computeKSThreshold(org.apache.datasketches.quantilescommon.QuantilesAPI,org.apache.datasketches.quantilescommon.QuantilesAPI,double)">computeKSThreshold(QuantilesAPI, QuantilesAPI, double)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html" title="class in org.apache.datasketches.quantilescommon">KolmogorovSmirnov</a></dt>
+<dd>
+<div class="block">Computes the adjusted delta height threshold for the <i>kolmogorovSmirnovTest(...)</i> method.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/thetacommon/ThetaUtil.html#computeSeedHash(long)">computeSeedHash(long)</a></span> - Static method in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/ThetaUtil.html" title="class in org.apache.datasketches.thetacommon">ThetaUtil</a></dt>
 <dd>
 <div class="block">Computes and checks the 16-bit seed hash from the given long seed.</div>
@@ -2546,17 +2558,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  based on the chosen search criterion.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#getNormalizedRankError(boolean)">getNormalizedRankError(boolean)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
-<dd>
-<div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.</div>
-</dd>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getNormalizedRankError(boolean)">getNormalizedRankError(boolean)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
-<dd>
-<div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.</div>
-</dd>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getNormalizedRankError(boolean)">getNormalizedRankError(boolean)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#getNormalizedRankError(boolean)">getNormalizedRankError(boolean)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></dt>
 <dd>
 <div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getNormalizedRankError(boolean)">getNormalizedRankError(boolean)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#getNormalizedRankError(int,boolean)">getNormalizedRankError(int, boolean)</a></span> - Static method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
 <dd>
 <div class="block">Gets the normalized rank error given k and pmf.</div>
@@ -4755,6 +4767,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">The base implementation for the KLL sketch iterator hierarchy used for viewing the
  non-ordered quantiles retained by a sketch.</div>
 </dd>
+<dt><a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">KolmogorovSmirnov</span></a> - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
+<dd>
+<div class="block">Kolmogorov-Smirnov Test
+ See <a href="https://en.wikipedia.org/wiki/Kolmogorov-Smirnov_test">Kolmogorov–Smirnov Test</a></div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html#%3Cinit%3E()">KolmogorovSmirnov()</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html" title="class in org.apache.datasketches.quantilescommon">KolmogorovSmirnov</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html#kolmogorovSmirnovTest(org.apache.datasketches.quantilescommon.QuantilesAPI,org.apache.datasketches.quantilescommon.QuantilesAPI,double)">kolmogorovSmirnovTest(QuantilesAPI, QuantilesAPI, double)</a></span> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/KolmogorovSmirnov.html" title="class in org.apache.datasketches.quantilescommon">KolmogorovSmirnov</a></dt>
+<dd>
+<div class="block">Performs the Kolmogorov-Smirnov Test between two QuantilesAPI sketches.</div>
+</dd>
 </dl>
 <a id="I:L">
 <!--   -->
@@ -6521,9 +6544,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns a string with a human-readable summary of the UniqueCountMap and all the internal maps</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#toString()">toString()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
-<dd>
-<div class="block">Returns human readable summary information about this sketch.</div>
-</dd>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#toString()">toString()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>
 <div class="block">Returns human readable summary information about this sketch.</div>
