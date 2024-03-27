@@ -648,8 +648,6 @@ public class KllDirectDoublesSketchTest {
   public void checkVectorUpdate() {
     WritableMemory dstMem = WritableMemory.allocate(6000);
     KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
-    //for (int i = 1; i <= 21; i++) { sk.update(i); }
-    //println(sk.toString(true, true));
     final double[] v = new double[21];
     for (int i = 0; i < 21; i++) { v[i] = i + 1; }
     sk.update(v, 0, 21);
