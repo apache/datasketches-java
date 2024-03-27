@@ -345,11 +345,13 @@ public class KolmogorovSmirnovTest {
     println("PRINTING: "+this.getClass().getName());
   }
 
+  private final static boolean enablePrinting = false;
+
   /**
-   * @param s value to print
+   * @param o the Object to println
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }
