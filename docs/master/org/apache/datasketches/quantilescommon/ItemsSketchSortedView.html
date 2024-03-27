@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -236,6 +236,13 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 </td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNumRetained()">getNumRetained</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the number of quantiles retained by the sketch.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
                       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -246,7 +253,7 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
  refers to an approximately equal number of items per partition.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]&nbsp;splitPoints,
       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -256,7 +263,7 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -264,20 +271,20 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles()">getQuantiles</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the full array of quantiles.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&nbsp;quantile,
        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -285,14 +292,14 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sorted view is empty.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
@@ -485,6 +492,23 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <dd><code><a href="SortedView.html#getN()">getN</a></code>&nbsp;in interface&nbsp;<code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the total number of items presented to the sourcing sketch.</dd>
+</dl>
+</li>
+</ul>
+<a id="getNumRetained()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNumRetained</h4>
+<pre class="methodSignature">public&nbsp;int&nbsp;getNumRetained()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedView.html#getNumRetained()">SortedView</a></code></span></div>
+<div class="block">Gets the number of quantiles retained by the sketch.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SortedView.html#getNumRetained()">getNumRetained</a></code>&nbsp;in interface&nbsp;<code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the number of quantiles retained by the sketch</dd>
 </dl>
 </li>
 </ul>
