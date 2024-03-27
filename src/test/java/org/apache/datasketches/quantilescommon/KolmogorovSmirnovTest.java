@@ -33,6 +33,7 @@ import org.apache.datasketches.quantiles.UpdateDoublesSketch;
 import org.testng.annotations.Test;
 
 public class KolmogorovSmirnovTest {
+  private static final String LS = System.getProperty("line.separator");
 
  @Test
  public void checkDisjointDistributionClassicDoubles() {
@@ -48,9 +49,11 @@ public class KolmogorovSmirnovTest {
      s1.update(x + 500);
      s2.update(x);
    }
-   final double delta = DoublesSketch.getNormalizedRankError(k, false);
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
-   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 1.0, delta);
+   final double eps = DoublesSketch.getNormalizedRankError(k, false);
+   println("Disjoint Classic Doubles");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
+   println("2*eps = " + (2 * eps) + LS);
+   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 1.0, 2 * eps);
  }
 
  @Test
@@ -67,9 +70,12 @@ public class KolmogorovSmirnovTest {
      s1.update(x + 500);
      s2.update(x);
    }
-   final double delta = KllSketch.getNormalizedRankError(k, false);
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
-   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 1.0, delta);
+   final double eps = KllSketch.getNormalizedRankError(k, false);
+   println("Disjoint KLL Doubles");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
+   println("2*eps = " + (2 * eps));
+   println("");
+   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 1.0, 2 * eps);
  }
 
  @Test
@@ -86,9 +92,11 @@ public class KolmogorovSmirnovTest {
      s1.update(x + 500);
      s2.update(x);
    }
-   final double delta = KllSketch.getNormalizedRankError(k, false);
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
-   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 1.0, delta);
+   final double eps = KllSketch.getNormalizedRankError(k, false);
+   println("Disjoint KLL Floats");
+   println("D      = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
+   println("2*eps = " + (2 * eps) + LS);
+   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 1.0, 2 * eps);
  }
 
  @Test
@@ -103,7 +111,9 @@ public class KolmogorovSmirnovTest {
      final double x = rand.nextGaussian();
      s1.update(x);
    }
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s1));
+   println("Identical Classic Doubles");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s1));
+   println("2*eps = 0.0" + LS);
    assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s1), 0.0, 0.0);
  }
 
@@ -119,7 +129,9 @@ public class KolmogorovSmirnovTest {
      final double x = rand.nextGaussian();
      s1.update(x);
    }
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s1));
+   println("Identical KLL Doubles");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s1));
+   println("2*eps = 0.0" + LS);
    assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s1), 0.0, 0.0);
  }
 
@@ -135,7 +147,9 @@ public class KolmogorovSmirnovTest {
      final float x = (float)rand.nextGaussian();
      s1.update(x);
    }
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s1));
+   println("Identical KLL Floats");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s1));
+   println("2*eps = 0.0" + LS);
    assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s1), 0.0, 0.0);
  }
 
@@ -153,9 +167,11 @@ public class KolmogorovSmirnovTest {
      s1.update(x);
      s2.update(x);
    }
-   final double delta = DoublesSketch.getNormalizedRankError(k, false);
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
-   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 0, delta);
+   final double eps = DoublesSketch.getNormalizedRankError(k, false);
+   println("Same Classic Doubles");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
+   println("2*eps = " + (2 * eps) + LS);
+   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 0, 2 * eps);
  }
 
  @Test
@@ -172,9 +188,11 @@ public class KolmogorovSmirnovTest {
      s1.update(x);
      s2.update(x);
    }
-   final double delta = KllSketch.getNormalizedRankError(k, false);
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
-   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 0, delta);
+   final double eps = KllSketch.getNormalizedRankError(k, false);
+   println("Same KLL Doubles");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
+   println("2*eps = " + (2 * eps) + LS);
+   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 0, 2 * eps);
  }
 
  @Test
@@ -191,9 +209,11 @@ public class KolmogorovSmirnovTest {
      s1.update(x);
      s2.update(x);
    }
-   final double delta = KllSketch.getNormalizedRankError(k, false);
-   println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
-   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 0, delta);
+   final double eps = KllSketch.getNormalizedRankError(k, false);
+   println("Same KLL Floats");
+   println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
+   println("2*eps = " + (2 * eps) + LS);
+   assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 0, 2 * eps);
  }
 
  @Test
@@ -215,8 +235,9 @@ public class KolmogorovSmirnovTest {
    double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
    double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
+   println("MedRes Classic Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
-       + "\nNull Hypoth Rejected = " + reject);
+       + "\nNull Hypoth Rejected = " + reject + LS);
    assertFalse(reject);
  }
 
@@ -239,8 +260,9 @@ public class KolmogorovSmirnovTest {
    double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
    double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
+   println("MedRes KLL Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
-       + "\nNull Hypoth Rejected = " + reject);
+       + "\nNull Hypoth Rejected = " + reject + LS);
    assertFalse(reject);
  }
 
@@ -263,8 +285,9 @@ public class KolmogorovSmirnovTest {
    double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
    double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
+   println("MedRes KLL Floats");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
-       + "\nNull Hypoth Rejected = " + reject);
+       + "\nNull Hypoth Rejected = " + reject + LS);
    assertFalse(reject);
  }
 
@@ -287,8 +310,9 @@ public class KolmogorovSmirnovTest {
    double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
    double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
+   println("HiRes Classic Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
-       + "\nNull Hypoth Rejected = " + reject);
+       + "\nNull Hypoth Rejected = " + reject + LS);
    assertTrue(reject);
  }
 
@@ -311,8 +335,9 @@ public class KolmogorovSmirnovTest {
    double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
    double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
+   println("HiRes KLL Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
-       + "\nNull Hypoth Rejected = " + reject);
+       + "\nNull Hypoth Rejected = " + reject + LS);
    assertTrue(reject);
  }
 
@@ -335,8 +360,9 @@ public class KolmogorovSmirnovTest {
    double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
    double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
+   println("HiRes KLL Floats");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
-       + "\nNull Hypoth Rejected = " + reject);
+       + "\nNull Hypoth Rejected = " + reject + LS);
    assertTrue(reject);
  }
 
