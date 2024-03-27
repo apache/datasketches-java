@@ -657,7 +657,12 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void checkWeightedUpdate() {
-
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(8, dstMem, memReqSvr);
+    for (int i = 0; i < 16; i++) {
+      sk.update(i + 1, 16);
+    }
+    println(sk.toString(true, true));
   }
 
   private static KllDoublesSketch getUpdatableDirectDoublesSketch(final int k, final int n) {
