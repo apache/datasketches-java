@@ -66,11 +66,12 @@ public final class BloomFilter {
   private long seed_;            // hash seed
   private short numHashes_;      // number of hash values
   private BitArray bitArray_;    // the actual data bits
+  private WritableMemory wmem_;  // used only for direct mode BitArray
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
    * and a user-specified  seed.
-   * 
+   *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
    * @param seed The base hash seed
@@ -78,7 +79,8 @@ public final class BloomFilter {
   BloomFilter(final long numBits, final int numHashes, final long seed) {
     seed_ = seed;
     numHashes_ = (short) numHashes;
-    bitArray_ = new BitArray(numBits);
+    bitArray_ = new HeapBitArray(numBits);
+    wmem_ = null;
   }
 
   // Constructor used with heapify()
@@ -86,6 +88,7 @@ public final class BloomFilter {
     seed_ = seed;
     numHashes_ = numHashes;
     bitArray_ = bitArray;
+    wmem_ = null;
   }
 
   /**
@@ -104,7 +107,7 @@ public final class BloomFilter {
       "Possible corruption: Incorrect number of preamble bytes specified in header");
     checkArgument(serVer != SER_VER, "Possible corruption: Unrecognized serialization version: " + serVer);
     checkArgument(familyID != Family.BLOOMFILTER.getID(), "Possible corruption: Incorrect FamilyID for bloom filter. Found: " + familyID);
-    
+
     final short numHashes = buf.getShort();
     buf.getShort(); // unused
     checkArgument(numHashes < 1, "Possible corruption: Need strictly positive number of hash functions. Found: " + numHashes);
@@ -130,7 +133,7 @@ public final class BloomFilter {
    * @return True if the BloomFilter is empty, otherwise False
    */
   public boolean isEmpty() { return bitArray_.isEmpty(); }
-  
+
   /**
    * Returns the number of bits in the BloomFilter that are set to 1.
    * @return The number of bits in use in this filter
@@ -180,7 +183,7 @@ public final class BloomFilter {
    * @param item an item with which to update the filter
    */
   public void update(final double item) {
-    // canonicalize all NaN & +/- infinity forms    
+    // canonicalize all NaN & +/- infinity forms
     final long[] data = { Double.doubleToLongBits(item) };
     final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
@@ -281,10 +284,10 @@ public final class BloomFilter {
     }
   }
 
-  // QUERY-AND-UPDATE METHODS 
+  // QUERY-AND-UPDATE METHODS
 
   /**
-   * Updates the filter with the provided long and 
+   * Updates the filter with the provided long and
    * returns the result from quering that value prior to the update.
    * @param item an item with which to update the filter
    * @return The query result prior to applying the update
@@ -294,16 +297,16 @@ public final class BloomFilter {
     final long h1 = XxHash.hashLong(item, h0);
     return queryAndUpdateInternal(h0, h1);
   }
-  
+
   /**
-   * Updates the filter with the provided double and 
+   * Updates the filter with the provided double and
    * returns the result from quering that value prior to the update.
    * The double is canonicalized (NaN and +/- infinity) in the call.
    * @param item an item with which to update the filter
    * @return The query result prior to applying the update
    */
   public boolean queryAndUpdate(final double item) {
-    // canonicalize all NaN & +/- infinity forms    
+    // canonicalize all NaN & +/- infinity forms
     final long[] data = { Double.doubleToLongBits(item) };
     final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
@@ -311,7 +314,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided String and 
+   * Updates the filter with the provided String and
    * returns the result from quering that value prior to the update.
    * The string is converted to a byte array using UTF8 encoding.
    *
@@ -331,7 +334,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided byte[] and 
+   * Updates the filter with the provided byte[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -341,9 +344,9 @@ public final class BloomFilter {
     final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
     return queryAndUpdateInternal(h0, h1);
   }
-  
+
   /**
-   * Updates the filter with the provided char[] and 
+   * Updates the filter with the provided char[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -356,7 +359,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided short[] and 
+   * Updates the filter with the provided short[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -369,7 +372,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided int[] and 
+   * Updates the filter with the provided int[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -382,7 +385,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided long[] and 
+   * Updates the filter with the provided long[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -395,7 +398,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided Memory and 
+   * Updates the filter with the provided Memory and
    * returns the result from quering that Memory prior to the update.
    * @param mem an array with which to update the filter
    * @return The query result prior to applying the update, or false if mem is null
@@ -444,7 +447,7 @@ public final class BloomFilter {
    * @return The result of querying the filter with the given item
    */
   public boolean query(final double item) {
-    // canonicalize all NaN & +/- infinity forms    
+    // canonicalize all NaN & +/- infinity forms
     final long[] data = { Double.doubleToLongBits(item) };
     final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
@@ -466,7 +469,7 @@ public final class BloomFilter {
    * @return The result of querying the filter with the given item, or false if item is null
    */
   public boolean query(final String item) {
-    if (item == null || item.isEmpty()) { return false; }    
+    if (item == null || item.isEmpty()) { return false; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
     final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
     final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
@@ -655,7 +658,7 @@ public final class BloomFilter {
  *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
  *  2   ||---------------------------------NumBitsSet------------------------------------|
  *  </pre>
- * 
+ *
  * The raw BitArray bits, if non-empty start at byte 24.
  */
 
