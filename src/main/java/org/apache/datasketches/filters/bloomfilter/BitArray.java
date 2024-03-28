@@ -19,7 +19,10 @@
 
  package org.apache.datasketches.filters.bloomfilter;
 
- /**
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+
+/**
   * This class holds an array of bits suitable for use in a Bloom Filter
   *
   * <p>Rounds the number of bits up to the smallest multiple of 64 (one long)
@@ -30,6 +33,18 @@ abstract class BitArray {
   protected static final long MAX_BITS = Integer.MAX_VALUE * (long) Long.SIZE;
 
   protected BitArray() {}
+
+  static BitArray heapify(final Memory mem, final boolean isEmpty) {
+    return HeapBitArray.heapify(mem);
+  }
+
+  static BitArray wrap(final Memory mem) {
+    return DirectBitArrayR.wrap(mem);
+  }
+
+  static BitArray writableWrap(final WritableMemory wmem) {
+    return DirectBitArray.writableWrap(wmem);
+  }
 
   boolean isEmpty() {
     return !isDirty() && getNumBitsSet() == 0;
@@ -78,8 +93,8 @@ abstract class BitArray {
   long getSerializedSizeBytes() {
     // We only really need an int for array length but this will keep everything
     // aligned to 8 bytes.
-    // Always write array length and numBitsSet, even if empty
-    return Long.BYTES * (isEmpty() ? 2L : (2L + getArrayLength()));
+    // Always write array length, but write numBitsSet only if empty
+    return Long.BYTES * (isEmpty() ? 1L : (2L + getArrayLength()));
   }
 
   abstract protected boolean isDirty();

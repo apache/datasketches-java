@@ -50,9 +50,9 @@ public class DirectBitArrayR extends BitArray {
 
   // assumes we have a region with only the portion of Memory
   // the BitArray cares about
-  static DirectBitArrayR wrap(final Memory mem) {
+  static DirectBitArrayR wrap(final Memory mem, final boolean isEmpty) {
     final int arrayLength = mem.getInt(0);
-    final long storedNumBitsSet = mem.getLong(NUM_BITS_OFFSET);
+    final long storedNumBitsSet = isEmpty ? 0L : mem.getLong(NUM_BITS_OFFSET);
 
     if (arrayLength * (long) Long.SIZE > MAX_BITS) {
       throw new SketchesArgumentException("Possible corruption: Serialized image indicates array beyond maximum filter capacity");

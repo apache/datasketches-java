@@ -31,16 +31,16 @@ final class DirectBitArray extends DirectBitArrayR {
     numBitsSet_ = storedNumBitsSet;
   }
 
-  static DirectBitArray wrap(final WritableMemory mem) {
+  static DirectBitArray writableWrap(final WritableMemory mem, final boolean isEmpty) {
     final int arrayLength = mem.getInt(0);
-    final long storedNumBitsSet = mem.getLong(NUM_BITS_OFFSET);
+    final long storedNumBitsSet = isEmpty ? 0L : mem.getLong(NUM_BITS_OFFSET);
 
     if (arrayLength * (long) Long.SIZE > MAX_BITS) {
       throw new SketchesArgumentException("Possible corruption: Serialized image indicates array beyond maximum filter capacity");
     }
 
     // if empty cannot wrap as writable
-    if (storedNumBitsSet == 0) {
+    if (isEmpty) {
       throw new SketchesArgumentException("Cannot wrap an empty filter for writing as there is no backing data array");
     }
 
