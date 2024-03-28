@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.log;
+import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.UNSUPPORTED_MSG;
 
 import org.apache.datasketches.req.ReqSketch;
@@ -54,7 +58,7 @@ public final class KolmogorovSmirnov {
     int j = 0;
 
     while ((i < pSamplesArrLen - 1) && (j < qSamplesArrLen - 1)) {
-      deltaHeight = Math.max(deltaHeight, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
+      deltaHeight = max(deltaHeight, abs((pCumWtsArr[i]) / n1 - (qCumWtsArr[j]) / n2));
       if (pSamplesArr[i] < qSamplesArr[j]) {
         i++;
       } else if (qSamplesArr[j] < pSamplesArr[i]) {
@@ -65,7 +69,7 @@ public final class KolmogorovSmirnov {
       }
     }
 
-    deltaHeight = Math.max(deltaHeight, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
+    deltaHeight = max(deltaHeight, abs((pCumWtsArr[i]) / n1 - (qCumWtsArr[j]) / n2));
     return deltaHeight;
   }
 
@@ -95,7 +99,7 @@ public final class KolmogorovSmirnov {
     int j = 0;
 
     while ((i < pSamplesArrLen - 1) && (j < qSamplesArrLen - 1)) {
-      deltaHeight = Math.max(deltaHeight, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
+      deltaHeight = max(deltaHeight, abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
       if (pSamplesArr[i] < qSamplesArr[j]) {
         i++;
       } else if (qSamplesArr[j] < pSamplesArr[i]) {
@@ -106,7 +110,7 @@ public final class KolmogorovSmirnov {
       }
     }
 
-    deltaHeight = Math.max(deltaHeight, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
+    deltaHeight = max(deltaHeight, abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
     return deltaHeight;
   }
 
@@ -126,8 +130,8 @@ public final class KolmogorovSmirnov {
     final double r1 = sketch1.getNumRetained();
     final double r2 = sketch2.getNumRetained();
     final double alpha = tgtPvalue;
-    final double alphaFactor = Math.sqrt(-0.5 * Math.log(0.5 * alpha));
-    final double deltaAreaThreshold = alphaFactor * Math.sqrt((r1 + r2) / (r1 * r2));
+    final double alphaFactor = sqrt(-0.5 * log(0.5 * alpha));
+    final double deltaAreaThreshold = alphaFactor * sqrt((r1 + r2) / (r1 * r2));
     final double eps1 = sketch1.getNormalizedRankError(false);
     final double eps2 = sketch2.getNormalizedRankError(false);
     return deltaAreaThreshold + eps1 + eps2;
