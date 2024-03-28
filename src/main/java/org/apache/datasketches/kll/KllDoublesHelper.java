@@ -361,7 +361,7 @@ final class KllDoublesHelper {
       dblSk.addN(numItemsToCopy);
       dblSk.setLevelZeroSorted(false);
       dblSk.setLevelsArrayAt(0, dstOffset);
-      System.out.println(dblSk.toString(true, true));
+      //System.out.println(dblSk.toString(true, true));
     }
   }
 
