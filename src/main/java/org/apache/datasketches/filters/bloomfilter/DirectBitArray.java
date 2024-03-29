@@ -24,11 +24,34 @@ import org.apache.datasketches.memory.WritableMemory;
 
 final class DirectBitArray extends DirectBitArrayR {
 
-  DirectBitArray(final int dataLength, final long storedNumBitsSet, final WritableMemory mem) {
-    super(dataLength, 0, mem); // we'll set numBitsSet_ ourselves so pass 0
+  DirectBitArray(final int dataLength, final long storedNumBitsSet, final WritableMemory wmem) {
+    super(dataLength, 0, wmem); // we'll set numBitsSet_ ourselves so pass 0
 
     // can recompute later if needed
     numBitsSet_ = storedNumBitsSet;
+  }
+
+  DirectBitArray(final int dataLength, final WritableMemory wmem) {
+    super(dataLength, 0, wmem);
+
+    wmem_.putInt(0, dataLength_);
+    setNumBitsSet(0);
+    wmem_.clear(DATA_OFFSET, dataLength_ * Long.BYTES);
+  }
+
+  static DirectBitArray initialize(final long numBits, final WritableMemory wmem) {
+    if (numBits <= 0) {
+      throw new SketchesArgumentException("Number of bits must be strictly positive. Found: " + numBits);
+    }
+
+    final int arrayLength = (int) numBits >>> 3; // we know it'll fit in an int based on above checks
+    final long requiredBytes = (2L + arrayLength) * Long.BYTES;
+    if (wmem.getCapacity() < requiredBytes) {
+      throw new SketchesArgumentException("Provided WritableMemory too small for requested array length. "
+        + "Requited: " + requiredBytes + ", provided capcity: " + wmem.getCapacity());
+    }
+
+    return new DirectBitArray(arrayLength, wmem);
   }
 
   static DirectBitArray writableWrap(final WritableMemory mem, final boolean isEmpty) {
@@ -46,7 +69,7 @@ final class DirectBitArray extends DirectBitArrayR {
 
     // required capacity is arrayLength plus room for
     // arrayLength (in longs) and numBitsSet
-    if (storedNumBitsSet > 0 && mem.getCapacity() < arrayLength + 2) {
+    if (storedNumBitsSet != 0 && mem.getCapacity() < arrayLength + 2) {
       throw new SketchesArgumentException("Memory capacity insufficient for Bloom Filter. Needed: "
         + (arrayLength + 2) + " , found: " + mem.getCapacity());
     }
@@ -165,7 +188,7 @@ final class DirectBitArray extends DirectBitArrayR {
 
   @Override
   protected void setLong(final int arrayIndex, final long value) {
-    wmem_.putLong(DATA_OFFSET + arrayIndex, value);
+    wmem_.putLong(DATA_OFFSET + (arrayIndex << 3), value);
   }
 
   private final void setNumBitsSet(final long numBitsSet) {

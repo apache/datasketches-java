@@ -19,6 +19,7 @@
 
  package org.apache.datasketches.filters.bloomfilter;
 
+import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -34,16 +35,16 @@ abstract class BitArray {
 
   protected BitArray() {}
 
-  static BitArray heapify(final Memory mem, final boolean isEmpty) {
-    return HeapBitArray.heapify(mem);
+  static BitArray heapify(final Buffer mem, final boolean isEmpty) {
+    return HeapBitArray.heapify(mem, isEmpty);
   }
 
-  static BitArray wrap(final Memory mem) {
-    return DirectBitArrayR.wrap(mem);
+  static BitArray wrap(final Memory mem, final boolean isEmpty) {
+    return DirectBitArrayR.wrap(mem, isEmpty);
   }
 
-  static BitArray writableWrap(final WritableMemory wmem) {
-    return DirectBitArray.writableWrap(wmem);
+  static BitArray writableWrap(final WritableMemory wmem, final boolean isEmpty) {
+    return DirectBitArray.writableWrap(wmem, isEmpty);
   }
 
   boolean isEmpty() {

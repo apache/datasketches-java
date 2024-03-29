@@ -84,7 +84,7 @@ public final class BloomFilterBuilder {
    * @param targetFalsePositiveProb A desired false positive probability per item
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static HeapBloomFilter createByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb) {
+  public static BloomFilter createByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb) {
     return createByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong());
   }
 
@@ -96,7 +96,7 @@ public final class BloomFilterBuilder {
    * @param seed A base hash seed
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static HeapBloomFilter createByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
+  public static BloomFilter createByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed) {
     if (maxDistinctItems <= 0) {
       throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
     }
@@ -105,7 +105,7 @@ public final class BloomFilterBuilder {
     }
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
     final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
-    return new HeapBloomFilter(numBits, numHashes, seed);
+    return new BloomFilter(numBits, numHashes, seed);
   }
 
   /**
@@ -116,7 +116,7 @@ public final class BloomFilterBuilder {
    * @param numHashes The number of hash functions to apply to items
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static HeapBloomFilter createBySize(final long numBits, final int numHashes) {
+  public static BloomFilter createBySize(final long numBits, final int numHashes) {
     return createBySize(numBits, numHashes, ThreadLocalRandom.current().nextLong());
   }
 
@@ -129,10 +129,10 @@ public final class BloomFilterBuilder {
    * @param seed A base hash seed
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static HeapBloomFilter createBySize(final long numBits, final int numHashes, final long seed) {
-    if (numBits > HeapBloomFilter.MAX_SIZE) {
+  public static BloomFilter createBySize(final long numBits, final int numHashes, final long seed) {
+    if (numBits > BloomFilter.MAX_SIZE) {
       throw new SketchesArgumentException("Size of BloomFilter must be <= "
-      + HeapBloomFilter.MAX_SIZE + ". Requested: " + numBits);
+      + BloomFilter.MAX_SIZE + ". Requested: " + numBits);
     }
     if (numHashes < 1) {
       throw new SketchesArgumentException("Must specify a strictly positive number of hash functions. "
@@ -143,6 +143,6 @@ public final class BloomFilterBuilder {
       + ". Requested: " + numHashes);
     }
 
-    return new HeapBloomFilter(numBits, numHashes, seed);
+    return new BloomFilter(numBits, numHashes, seed);
   }
 }

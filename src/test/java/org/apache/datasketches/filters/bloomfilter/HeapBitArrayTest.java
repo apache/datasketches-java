@@ -28,7 +28,7 @@ import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-public class BitArrayTest {
+public class HeapBitArrayTest {
 
   @Test
   public void createBitArrayTest() {

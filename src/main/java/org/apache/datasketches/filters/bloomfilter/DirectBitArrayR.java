@@ -41,7 +41,7 @@ public class DirectBitArrayR extends BitArray {
     if (storedNumBitsSet == -1) {
       numBitsSet_ = 0;
       for (int i = 0; i < dataLength_; ++i) {
-        numBitsSet_ += getLong(i);
+        numBitsSet_ += Long.bitCount(wmem_.getLong(DATA_OFFSET + (i << 3)));
       }
     } else {
       numBitsSet_ = storedNumBitsSet;
@@ -54,13 +54,13 @@ public class DirectBitArrayR extends BitArray {
     final int arrayLength = mem.getInt(0);
     final long storedNumBitsSet = isEmpty ? 0L : mem.getLong(NUM_BITS_OFFSET);
 
-    if (arrayLength * (long) Long.SIZE > MAX_BITS) {
-      throw new SketchesArgumentException("Possible corruption: Serialized image indicates array beyond maximum filter capacity");
+    if (arrayLength < 0) {
+      throw new SketchesArgumentException("Possible corruption: Serialized image indicates non-positive array length");
     }
 
     // required capacity is arrayLength plus room for
     // arrayLength (in longs) and numBitsSet
-    if (storedNumBitsSet > 0 && mem.getCapacity() < arrayLength + 2) {
+    if (storedNumBitsSet != 0 && mem.getCapacity() < arrayLength + 2) {
       throw new SketchesArgumentException("Memory capacity insufficient for Bloom Filter. Needed: "
         + (arrayLength + 2) + " , found: " + mem.getCapacity());
     }
@@ -91,13 +91,14 @@ public class DirectBitArrayR extends BitArray {
   @Override
   boolean getBit(final long index) {
     if (isEmpty()) { return false; }
-    return (wmem_.getByte(DATA_OFFSET + ((int) index >>> 6)) & (1L << index)) != 0 ? true : false;
+    // offset is bytes, not longs, so (index >>> 6) << 3 = index >>> 3
+    return (wmem_.getLong(DATA_OFFSET + ((int) index >>> 3)) & (1L << index)) != 0;
   }
 
   @Override
   protected long getLong(final int arrayIndex) {
     if (isEmpty()) { return 0L; }
-    return wmem_.getLong(DATA_OFFSET + arrayIndex);
+    return wmem_.getLong(DATA_OFFSET + (arrayIndex << 3));
   }
 
   @Override

@@ -675,18 +675,22 @@ public final class BloomFilter {
     }
 
     final byte[] bytes = new byte[(int) sizeBytes];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
 
-    wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
-    wbuf.putByte((byte) SER_VER); // to do: add constant
-    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
-    wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wbuf.putShort(numHashes_);
-    wbuf.putShort((short) 0); // unused
-    wbuf.putLong(seed_);
+    if (wmem_ == null) {
+      final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
 
-    bitArray_.writeToBuffer(wbuf);
+      wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
+      wbuf.putByte((byte) SER_VER); // to do: add constant
+      wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+      wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+      wbuf.putShort(numHashes_);
+      wbuf.putShort((short) 0); // unused
+      wbuf.putLong(seed_);
 
+      ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
+    } else {
+      wmem_.getByteArray(0, bytes, 0, (int) sizeBytes);
+    }
     return bytes;
   }
 
@@ -700,18 +704,21 @@ public final class BloomFilter {
     final long sizeBytes = getSerializedSizeBytes();
 
     final long[] longs = new long[(int) (sizeBytes >> 3)];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(longs).asWritableBuffer();
+    if (wmem_ == null) {
+      final WritableBuffer wbuf = WritableMemory.writableWrap(longs).asWritableBuffer();
 
-    wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
-    wbuf.putByte((byte) SER_VER); // to do: add constant
-    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
-    wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wbuf.putShort(numHashes_);
-    wbuf.putShort((short) 0); // unused
-    wbuf.putLong(seed_);
+      wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
+      wbuf.putByte((byte) SER_VER); // to do: add constant
+      wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+      wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+      wbuf.putShort(numHashes_);
+      wbuf.putShort((short) 0); // unused
+      wbuf.putLong(seed_);
 
-    bitArray_.writeToBuffer(wbuf);
-
+      ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
+    } else {
+      wmem_.getLongArray(0, longs, 0, (int) (sizeBytes >>> 3));
+    }
     return longs;
   }
 
