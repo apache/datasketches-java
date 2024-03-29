@@ -323,7 +323,7 @@ final class KllFloatsHelper {
       freeSpace = fltSk.levelsArr[0];
       assert (freeSpace > 0);
     }
-    fltSk.incN();
+    fltSk.incN(1);
     fltSk.setLevelZeroSorted(false);
     final int nextPos = freeSpace - 1;
     fltSk.setLevelsArrayAt(0, nextPos);

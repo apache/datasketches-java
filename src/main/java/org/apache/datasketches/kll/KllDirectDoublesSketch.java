@@ -284,9 +284,9 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void incN() {
+  void incN(final int increment) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryN(wmem, getMemoryN(wmem) + 1);
+    setMemoryN(wmem, getMemoryN(wmem) + increment);
   }
 
   @Override
@@ -314,6 +314,13 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     final int offset =
         DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
     wmem.putDouble(offset, item);
+  }
+
+  @Override
+  void setDoubleItemsArrayAt(final int index, final double[] items, final int srcOffset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
+    wmem.putDoubleArray(offset, items, srcOffset, length);
   }
 
   @Override
@@ -367,11 +374,6 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
         final KllMemoryValidate memVal) {
       super(sketchStructure, (WritableMemory) srcMem, null, memVal);
     }
-  }
-
-  @Override  //VECTOR UPDATE NOT SUPPORTED
-  void addN(final int numItems) {
-    throw new UnsupportedOperationException(UNSUPPORTED_MSG);
   }
 
 }

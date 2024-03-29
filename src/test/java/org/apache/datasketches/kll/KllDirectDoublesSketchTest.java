@@ -616,13 +616,13 @@ public class KllDirectDoublesSketchTest {
     boolean bool = true;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    try { sk2.incN();                            fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incN(1);                           fail(); } catch (SketchesArgumentException e) { }
     try { sk2.incNumLevels();                    fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setDoubleItemsArray(dblArr);      fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setDoubleItemsArrayAt(idx, dblV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArray(dblArr);       fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArrayAt(idx, dblV);  fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxItem(dblV);           fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinItem(dblV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxItem(dblV);                  fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinItem(dblV);                  fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(idx);                      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                         fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);                 fail(); } catch (SketchesArgumentException e) { }
@@ -672,7 +672,7 @@ public class KllDirectDoublesSketchTest {
     return ddsk;
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param o the Object to println

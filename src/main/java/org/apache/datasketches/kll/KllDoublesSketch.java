@@ -351,10 +351,9 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param length the number of items
    */
   public void update(final double[] items, final int offset, final int length) {
-    if (this instanceof KllDirectDoublesSketch) {
-      throw new UnsupportedOperationException(UNSUPPORTED_MSG);
-    }
+    //TODO will this work for direct?
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (length == 0) { return; }
     boolean hasNaN = false;
     boolean allNaNs = true;
     for (int i = 0; i < length; i++) {
@@ -365,8 +364,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (allNaNs) { return; }
     else if (!hasNaN) { // fast path
       KllDoublesHelper.updateDouble(this, items, offset, length);
-    }
-    else {
+    } else {
       for (int i = 0; i < length; i++) {
         final double v = items[offset + i];
         if (!Double.isNaN(v)) {
@@ -378,15 +376,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   //restricted
-
-  abstract void addN(int numItems);
-
-  void updateMinMax(final double[] items, final int offset, final int length) {
-    final int end = offset + length;
-    for (int i = offset; i < end; i++) {
-      updateMinMax(items[i]);
-    }
-  }
 
   // END VECTOR UPDATE
 
@@ -445,6 +434,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setDoubleItemsArrayAt(int index, double item);
 
+  abstract void setDoubleItemsArrayAt(int index, double[] items, int offset, int length);
+
   abstract void setMaxItem(double item);
 
   abstract void setMinItem(double item);
@@ -456,6 +447,23 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     } else {
       setMinItem(min(getMinItem(), item));
       setMaxItem(max(getMaxItem(), item));
+    }
+  }
+
+  void updateMinMax(final double[] items, final int offset, final int length) {
+    double min = items[offset];
+    double max = min;
+    for (int i = 1; i < length; i++) {
+      final double v = items[offset + i];
+      min = Math.min(min, v);
+      max = Math.max(max, v);
+    }
+    if (isEmpty()) {
+      setMinItem(min);
+      setMaxItem(max);
+    } else {
+      setMinItem(Math.min(getMinItem(), min));
+      setMaxItem(Math.max(getMaxItem(), max));
     }
   }
 
