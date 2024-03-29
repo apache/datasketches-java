@@ -22,6 +22,7 @@ package org.apache.datasketches.filters.bloomfilter;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * <p>This class provides methods to help estimate the correct paramters to use when
@@ -79,7 +80,30 @@ public final class BloomFilterBuilder {
   }
 
   /**
-   * Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs.
+   * Returns the minimum memory size, in bytes, needed for a serizlied BloomFilter with an optimal number of bits
+   * and hash functions for the given inputs. This is also the minimum size of a WritableMemory for
+   * in-place filter intialization.
+   * @param maxDistinctItems The maximum expected number of distinct items to add to the filter
+   * @param targetFalsePositiveProb A desired false positive probability per item
+   * @return The size, in bytes, required to hold the specified BloomFilter when serialized
+   */
+  public static long getSerializedFilterSizeByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb) {
+    return BloomFilter.getSerializedSize(suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb));
+  }
+
+  /**
+   * Returns the minimum memory size, in bytes, needed for a serizlied BloomFilter with the given number of bits.
+   * This is also the minimum size of a WritableMemory for in-place filter intialization.
+   * @param numBits The number of bits in the target BloomFilter's bit array.
+   * @return The size, in bytes, required to hold the specified BloomFilter when serialized
+   */
+  public static long getSerializedFilterSize(final long numBits) {
+    return BloomFilter.getSerializedSize(numBits);
+  }
+
+  /**
+   * Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+   * using a random base seed for the hash function.
    * @param maxDistinctItems The maximum expected number of distinct items to add to the filter
    * @param targetFalsePositiveProb A desired false positive probability per item
    * @return A new BloomFilter configured for the given input parameters
@@ -110,7 +134,7 @@ public final class BloomFilterBuilder {
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * and a random seed.
+   * using a rnadom base seed for the hash function.
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
@@ -122,7 +146,7 @@ public final class BloomFilterBuilder {
 
    /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * and a random seed.
+   * using the provided base seed for the hash function.
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
@@ -145,4 +169,48 @@ public final class BloomFilterBuilder {
 
     return new BloomFilter(numBits, numHashes, seed);
   }
+
+   /**
+   * Initializes a BloomFilter with given number of bits and number of hash functions,
+   * using a random base seed for the hash function and writing into the provided WritableMemory.
+   *
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   * @param dstMem A WritableMemory to hold the initialized filter
+   * @return A new BloomFilter configured for the given input parameters
+   */
+  public static BloomFilter initializeFilter(final long numBits, final int numHashes, final WritableMemory wmem) {
+    return initializeFilter(numBits, numHashes, ThreadLocalRandom.current().nextLong(), wmem);
+  }
+
+   /**
+   * Initializes a BloomFilter with given number of bits and number of hash functions,
+   * using the provided base seed for the hash function and writing into the provided WritableMemory.
+   *
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   * @param seed A base hash seed
+   * @param dstMem A WritableMemory to hold the initialized filter
+   * @return A new BloomFilter configured for the given input parameters
+   */
+  public static BloomFilter initializeFilter(final long numBits, final int numHashes, final long seed, final WritableMemory wmem) {
+    if (numBits > BloomFilter.MAX_SIZE) {
+      throw new SketchesArgumentException("Size of BloomFilter must be <= "
+      + BloomFilter.MAX_SIZE + ". Requested: " + numBits);
+    }
+    if (numHashes < 1) {
+      throw new SketchesArgumentException("Must specify a strictly positive number of hash functions. "
+      + "Requested: " + numHashes);
+    }
+    if (numHashes > Short.MAX_VALUE) {
+      throw new SketchesArgumentException("Number of hashes cannot exceed " + Short.MAX_VALUE
+      + ". Requested: " + numHashes);
+    }
+    if (wmem.getCapacity() < BloomFilter.getSerializedSize(numBits)) {
+      throw new SketchesArgumentException("Provided WritableMemory is insufficint to hold requested filter");
+    }
+
+    return new BloomFilter(numBits, numHashes, seed, wmem);
+  }
+
 }

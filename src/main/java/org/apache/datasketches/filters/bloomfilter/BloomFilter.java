@@ -84,6 +84,37 @@ public final class BloomFilter {
     wmem_ = null;
   }
 
+  /**
+   * Creates a BloomFilter with given number of bits and number of hash functions,
+   * and a user-specified seed in the provided WritableMemory
+   *
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   * @param seed The base hash seed
+   * @param wmem A WritableMemory that will be initialized to hold the filter
+   */
+  BloomFilter(final long numBits, final int numHashes, final long seed, final WritableMemory wmem) {
+    if (wmem.getCapacity() < Family.BLOOMFILTER.getMaxPreLongs()) {
+      throw new SketchesArgumentException("Provided WritableMemory capacity insufficient to initialize BloomFilter");
+    }
+
+    // we don't resize so initialize with non-empty preLongs value
+    // and no empty flag
+    final WritableBuffer wbuf = wmem.asWritableBuffer();
+    wbuf.putByte((byte) Family.BLOOMFILTER.getMaxPreLongs());
+    wbuf.putByte((byte) SER_VER);
+    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+    wbuf.putByte((byte) 0); // instead of (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0);
+    wbuf.putShort((short) numHashes);
+    wbuf.putShort((short) 0); // unused
+    wbuf.putLong(seed);
+
+    seed_ = seed;
+    numHashes_ = (short) numHashes;
+    bitArray_ = DirectBitArray.initialize(numBits, wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET));
+    wmem_ = wmem;
+  }
+
   // Constructor used with internalHeapifyOrWrap()
   BloomFilter(final short numHashes, final long seed, final BitArray bitArray, final WritableMemory wmem) {
     seed_ = seed;
@@ -181,6 +212,30 @@ public final class BloomFilter {
    * @return The hash seed for this filter
    */
   public long getSeed() { return seed_; }
+
+  /**
+   * Returns whether the filter has a backing Memory object
+   * @return true if backed by Memory, otherwise false
+   */
+  public boolean hasMemory() { return wmem_ != null; }
+
+  /**
+   * Returns whether the filter is in read-only mode. That is possible
+   * only if there is a backing Memory in read-only mode.
+   * @return true if read-only, otherwise false
+   */
+  public boolean isReadOnly() {
+    return wmem_ != null && wmem_.isReadOnly();
+  }
+
+  /**
+   * Returns whether the filter is a direct (off-heap) or on-heap object.
+   * That is possible only if there is a backing Memory.
+   * @return true if using direct memory access, otherwise false
+   */
+  public boolean isDirect() {
+    return wmem_ != null && wmem_.isDirect();
+  }
 
   /**
    * Returns the percentage of all bits in the BloomFilter set to 1.
@@ -664,6 +719,15 @@ public final class BloomFilter {
     return sizeBytes;
   }
 
+  /**
+   * Returns the serialized length of a non-empty BloomFilter of the given size, in bytes
+   * @param numBits The number of bits of to use for size computation
+   * @return The serialized length of a non-empty BloomFilter of the given size, in bytes
+   */
+  public static long getSerializedSize(final long numBits) {
+    return (2L * Long.BYTES) + BitArray.getSerializedSizeBytes(numBits);
+  }
+
 /*
  * A Bloom Filter's serialized image always uses 3 longs of preamble when empty,
  * otherwise 4 longs:
@@ -704,8 +768,9 @@ public final class BloomFilter {
     if (wmem_ == null) {
       final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
 
-      wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
-      wbuf.putByte((byte) SER_VER); // to do: add constant
+      final int numPreLongs = isEmpty() ? Family.BLOOMFILTER.getMinPreLongs() : Family.BLOOMFILTER.getMaxPreLongs();
+      wbuf.putByte((byte) numPreLongs);
+      wbuf.putByte((byte) SER_VER);
       wbuf.putByte((byte) Family.BLOOMFILTER.getID());
       wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
       wbuf.putShort(numHashes_);
@@ -732,7 +797,8 @@ public final class BloomFilter {
     if (wmem_ == null) {
       final WritableBuffer wbuf = WritableMemory.writableWrap(longs).asWritableBuffer();
 
-      wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
+      final int numPreLongs = isEmpty() ? Family.BLOOMFILTER.getMinPreLongs() : Family.BLOOMFILTER.getMaxPreLongs();
+      wbuf.putByte((byte) numPreLongs);
       wbuf.putByte((byte) SER_VER); // to do: add constant
       wbuf.putByte((byte) Family.BLOOMFILTER.getID());
       wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
