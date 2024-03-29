@@ -21,6 +21,7 @@ package org.apache.datasketches.filters.bloomfilter;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -69,6 +70,17 @@ public class HeapBitArrayTest {
     ba.reset();
     assertTrue(ba.isEmpty());
     assertEquals(ba.getNumBitsSet(), 0);
+  }
+
+  @Test
+  public void bitAddresOutOfBoundsTest() {
+    final HeapBitArray ba = new HeapBitArray(1024);
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getBit(-10));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getBit(2048));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.setBit(-20));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.setBit(4096));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getAndSetBit(-30));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getAndSetBit(8192));
   }
 
   @Test

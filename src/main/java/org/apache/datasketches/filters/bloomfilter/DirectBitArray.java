@@ -44,7 +44,7 @@ final class DirectBitArray extends DirectBitArrayR {
       throw new SketchesArgumentException("Number of bits must be strictly positive. Found: " + numBits);
     }
 
-    final int arrayLength = (int) numBits >>> 3; // we know it'll fit in an int based on above checks
+    final int arrayLength = (int) numBits >>> 6; // we know it'll fit in an int based on above checks
     final long requiredBytes = (2L + arrayLength) * Long.BYTES;
     if (wmem.getCapacity() < requiredBytes) {
       throw new SketchesArgumentException("Provided WritableMemory too small for requested array length. "
@@ -97,12 +97,12 @@ final class DirectBitArray extends DirectBitArrayR {
 
   @Override
   boolean getBit(final long index) {
-    return (wmem_.getByte(DATA_OFFSET + ((int) index >>> 6)) & (1L << index)) != 0 ? true : false;
+    return (wmem_.getByte(DATA_OFFSET + ((int) index >>> 3)) & (1 << (index & 0x7))) != 0;
   }
 
   @Override
   protected long getLong(final int arrayIndex) {
-    return wmem_.getLong(DATA_OFFSET + arrayIndex);
+    return wmem_.getLong(DATA_OFFSET + (arrayIndex << 3));
   }
 
   @Override
@@ -192,7 +192,7 @@ final class DirectBitArray extends DirectBitArrayR {
   }
 
   private final void setNumBitsSet(final long numBitsSet) {
-    numBitsSet_ = 0;
+    numBitsSet_ = numBitsSet;
     wmem_.putLong(NUM_BITS_OFFSET, numBitsSet);
   }
 }

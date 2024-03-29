@@ -64,24 +64,33 @@ public class DirectBitArrayRTest {
     DirectBitArrayR.wrap(wmem, true);
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void tooSmallCapacityTest() {
+    final byte[] bytes = new byte[32];
+    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
+    wmem.putInt(0, 1024); // array length in longs
+    wmem.putLong(8, 201); // number of bits set (non-empty)
+    DirectBitArrayR.wrap(wmem, false);
+  }
+
   // no text of max size because the BitArray allows up to Integer.MAX_VALUE
 
   @Test
   public void basicOperationTest() {
     final HeapBitArray hba = new HeapBitArray(128);
-    assertEquals(hba.getAndSetBit(1), false);
-    assertEquals(hba.getAndSetBit(2), false);
+    assertFalse(hba.getAndSetBit(1));
+    assertFalse(hba.getAndSetBit(2));
     for (int i = 4; i < 64; i <<= 1) {
       hba.getAndSetBit(64 + i);
     }
     assertEquals(hba.getNumBitsSet(), 6);
-    assertEquals(hba.getBit(68), true);
+    assertTrue(hba.getBit(68));
     assertFalse(hba.isEmpty());
 
     final Memory mem = bitArrayToMemory(hba);
     DirectBitArrayR dba = DirectBitArrayR.wrap(mem, hba.isEmpty());
     assertEquals(dba.getNumBitsSet(), 6);
-    assertEquals(dba.getBit(68), true);
+    assertTrue(dba.getBit(68));
     assertFalse(dba.isEmpty());
     assertFalse(dba.isDirty());
 
@@ -95,21 +104,46 @@ public class DirectBitArrayRTest {
     // like basicOperationTest but with setBit which does
     // not neecssarily track numBitsSet_
     final HeapBitArray hba = new HeapBitArray(128);
-    assertEquals(hba.getAndSetBit(1), false);
-    assertEquals(hba.getAndSetBit(2), false);
+    assertFalse(hba.getAndSetBit(1));
+    assertFalse(hba.getAndSetBit(2));
     for (int i = 4; i < 64; i <<= 1) {
       hba.setBit(64 + i);
     }
     assertEquals(hba.getNumBitsSet(), 6);
-    assertEquals(hba.getBit(68), true);
+    assertTrue(hba.getBit(68));
     assertFalse(hba.isEmpty());
 
     final Memory mem = bitArrayToMemory(hba);
     DirectBitArrayR dba = DirectBitArrayR.wrap(mem, hba.isEmpty());
     assertEquals(dba.getNumBitsSet(), 6);
-    assertEquals(dba.getBit(68), true);
+    assertTrue(dba.getBit(68));
     assertFalse(dba.isEmpty());
     assertFalse(dba.isDirty());
+  }
+
+  @Test
+  public void bitAddresOutOfBoundsEmptyTest() {
+    final int numBits = 256;
+    final HeapBitArray hba = new HeapBitArray(numBits);
+    final Memory mem = bitArrayToMemory(hba);
+    DirectBitArrayR dba = DirectBitArrayR.wrap(mem, hba.isEmpty());
+    assertFalse(dba.getBit(19));   // in range
+    assertFalse(dba.getBit(-10));        // out of bounds
+    assertFalse(dba.getBit(2048)); // out of bounds
+  }
+
+  @Test
+  public void bitAddresOutOfBoundsNonEmptyTest() {
+    final int numBits = 1024;
+    final HeapBitArray hba = new HeapBitArray(numBits);
+    for (int i = 0; i < numBits; i += numBits / 8) {
+      hba.getAndSetBit(i);
+    }
+
+    final Memory mem = bitArrayToMemory(hba);
+    DirectBitArrayR dba = DirectBitArrayR.wrap(mem, hba.isEmpty());
+    assertThrows(AssertionError.class, () -> dba.getBit(-10));
+    assertThrows(AssertionError.class, () -> dba.getBit(2048));
   }
 
   @Test

@@ -19,6 +19,7 @@
 
  package org.apache.datasketches.filters.bloomfilter;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -96,6 +97,16 @@ abstract class BitArray {
     // aligned to 8 bytes.
     // Always write array length, but write numBitsSet only if empty
     return Long.BYTES * (isEmpty() ? 1L : (2L + getArrayLength()));
+  }
+
+  // returns the number of bytes needed for a non-empty BitArray of the requested size
+  static long getSerializedSizeBytes(final long numBits) {
+    if (numBits > MAX_BITS) {
+      throw new SketchesArgumentException("Requested number of bits exceeds maximum allowed. "
+        + "Requested: " + numBits + ", maximum: " + MAX_BITS);
+    }
+    final int numLongs = (int) Math.ceil(numBits / 64.0);
+    return Long.BYTES * (numLongs + 2);
   }
 
   abstract protected boolean isDirty();

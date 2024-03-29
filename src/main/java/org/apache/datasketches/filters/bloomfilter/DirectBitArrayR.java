@@ -91,8 +91,7 @@ public class DirectBitArrayR extends BitArray {
   @Override
   boolean getBit(final long index) {
     if (isEmpty()) { return false; }
-    // offset is bytes, not longs, so (index >>> 6) << 3 = index >>> 3
-    return (wmem_.getLong(DATA_OFFSET + ((int) index >>> 3)) & (1L << index)) != 0;
+    return (wmem_.getByte(DATA_OFFSET + ((int) index >>> 3)) & (1 << (index & 0x7))) != 0;
   }
 
   @Override
