@@ -62,6 +62,7 @@ public final class BloomFilter {
   static final long MAX_SIZE = (Integer.MAX_VALUE - Family.BLOOMFILTER.getMaxPreLongs()) * (long) Long.SIZE;
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
+  private static final long BIT_ARRAY_OFFSET = 16;
 
   private long seed_;            // hash seed
   private short numHashes_;      // number of hash values
@@ -70,7 +71,7 @@ public final class BloomFilter {
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * and a user-specified  seed.
+   * and a user-specified seed.
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
@@ -83,12 +84,12 @@ public final class BloomFilter {
     wmem_ = null;
   }
 
-  // Constructor used with heapify()
-  BloomFilter(final short numHashes, final long seed, final BitArray bitArray) {
+  // Constructor used with internalHeapifyOrWrap()
+  BloomFilter(final short numHashes, final long seed, final BitArray bitArray, final WritableMemory wmem) {
     seed_ = seed;
     numHashes_ = numHashes;
     bitArray_ = bitArray;
-    wmem_ = null;
+    wmem_ = wmem;
   }
 
   /**
@@ -97,7 +98,21 @@ public final class BloomFilter {
    * @return a BloomFilter object
    */
   public static BloomFilter heapify(final Memory mem) {
-    final Buffer buf = mem.asBuffer();
+    // casting to writable, but heapify so only reading
+    return internalHeapifyOrWrap((WritableMemory) mem, false, false);
+  }
+
+  public static BloomFilter wrap(final Memory mem) {
+    // casting to writable, but tracking that the object is read-only
+    return internalHeapifyOrWrap((WritableMemory) mem, true, false);
+  }
+
+  public static BloomFilter writableWrap(final WritableMemory wmem) {
+    return internalHeapifyOrWrap(wmem, true, true);
+  }
+
+  private static BloomFilter internalHeapifyOrWrap(final WritableMemory wmem, final boolean isWrap, final boolean isWritable) {
+    final Buffer buf = wmem.asBuffer();
     final int preLongs = buf.getByte();
     final int serVer = buf.getByte();
     final int familyID = buf.getByte();
@@ -116,9 +131,18 @@ public final class BloomFilter {
 
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
 
-    final BitArray bitArray = BitArray.heapify(buf, isEmpty);
-
-    return new BloomFilter(numHashes, seed, bitArray);
+    final BitArray bitArray;
+    if (isWrap) {
+      if (isWritable) {
+        bitArray = DirectBitArray.writableWrap(wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+      } else {
+        bitArray = DirectBitArrayR.wrap(wmem.region(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+      }
+      return new BloomFilter(numHashes, seed, bitArray, wmem);
+    } else { // if heapify
+      bitArray = BitArray.heapify(buf, isEmpty);
+      return new BloomFilter(numHashes, seed, bitArray, null);
+    }
   }
 
   /**
@@ -641,7 +665,8 @@ public final class BloomFilter {
   }
 
 /*
- * A Bloom Filter's serialized image always uses 4 longs of preamble, whether empty or not:
+ * A Bloom Filter's serialized image always uses 3 longs of preamble when empty,
+ * otherwise 4 longs:
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -656,7 +681,7 @@ public final class BloomFilter {
  *  2   ||-------BitArray Length (in longs)----------|-----------Unused------------------|
  *
  *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
- *  2   ||---------------------------------NumBitsSet------------------------------------|
+ *  3   ||---------------------------------NumBitsSet------------------------------------|
  *  </pre>
  *
  * The raw BitArray bits, if non-empty start at byte 24.
