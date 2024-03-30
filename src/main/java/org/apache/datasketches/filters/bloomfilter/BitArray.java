@@ -107,7 +107,7 @@ abstract class BitArray {
         + "Requested: " + numBits + ", maximum: " + MAX_BITS);
     }
     final int numLongs = (int) Math.ceil(numBits / 64.0);
-    return Long.BYTES * (numLongs + 2);
+    return Long.BYTES * (numLongs + 2L);
   }
 
   abstract protected boolean isDirty();

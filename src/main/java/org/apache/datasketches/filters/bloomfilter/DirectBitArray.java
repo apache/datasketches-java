@@ -36,7 +36,7 @@ final class DirectBitArray extends DirectBitArrayR {
 
     wmem_.putInt(0, dataLength_);
     setNumBitsSet(0);
-    wmem_.clear(DATA_OFFSET, dataLength_ * Long.BYTES);
+    wmem_.clear(DATA_OFFSET, (long) dataLength_ * Long.BYTES);
   }
 
   static DirectBitArray initialize(final long numBits, final WritableMemory wmem) {
@@ -117,7 +117,7 @@ final class DirectBitArray extends DirectBitArrayR {
   @Override
   void reset() {
     setNumBitsSet(0);
-    wmem_.clear(DATA_OFFSET, dataLength_ * Long.BYTES);
+    wmem_.clear(DATA_OFFSET, (long) dataLength_ * Long.BYTES);
   }
 
   @Override

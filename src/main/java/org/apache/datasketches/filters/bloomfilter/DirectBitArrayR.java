@@ -26,7 +26,7 @@ import org.apache.datasketches.memory.WritableMemory;
 
 public class DirectBitArrayR extends BitArray {
   final static protected long NUM_BITS_OFFSET = Long.BYTES;
-  final static protected long DATA_OFFSET = 2 * Long.BYTES;
+  final static protected long DATA_OFFSET = 2L * Long.BYTES;
 
   final protected int dataLength_;
   final protected WritableMemory wmem_; // for inheritance; we won't write to it
@@ -69,7 +69,7 @@ public class DirectBitArrayR extends BitArray {
 
   @Override
   long getCapacity() {
-    return dataLength_ * Long.SIZE;
+    return (long) dataLength_ * Long.SIZE;
   }
 
   @Override

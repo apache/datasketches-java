@@ -302,7 +302,7 @@ public class BloomFilterTest {
 
     // compare memories
     assertEquals(memBytes.getCapacity(), memLongs.getCapacity());
-    for (int i = 0; i < memBytes.getCapacity(); ++i) {
+    for (long i = 0; i < memBytes.getCapacity(); ++i) {
       assertEquals(memBytes.getByte(i), memLongs.getByte(i));
     }
   }
