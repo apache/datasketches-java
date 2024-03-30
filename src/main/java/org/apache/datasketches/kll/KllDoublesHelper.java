@@ -354,14 +354,14 @@ final class KllDoublesHelper {
       final int spaceNeeded = length - count;
       final int freeSpace = dblSk.levelsArr[0];
       assert (freeSpace > 0);
-      final int numItemsToCopy = Math.min(spaceNeeded, freeSpace);
+      final int numItemsToCopy = min(spaceNeeded, freeSpace);
       final int dstOffset = freeSpace - numItemsToCopy;
       dblSk.setDoubleItemsArrayAt(dstOffset, items, offset + count, numItemsToCopy);
       count += numItemsToCopy;
       dblSk.incN(numItemsToCopy);
-      dblSk.setLevelZeroSorted(false);
       dblSk.setLevelsArrayAt(0, dstOffset);
     }
+    dblSk.setLevelZeroSorted(false);
   }
 
   /**

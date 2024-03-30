@@ -350,32 +350,69 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param offset the starting index of the items[] array
    * @param length the number of items
    */
+//  public void update(final double[] items, final int offset, final int length) {
+//    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+//    if (length == 0) { return; }
+//    boolean hasNaN = false;
+//    boolean allNaNs = true;
+//    for (int i = 0; i < length; i++) {
+//      final boolean isNaN = Double.isNaN(items[offset + i]);
+//      hasNaN |= isNaN;
+//      allNaNs &= isNaN;
+//    }
+//    if (allNaNs) { return; }
+//    else if (!hasNaN) { // fast path
+//      KllDoublesHelper.updateDouble(this, items, offset, length);
+//    } else {
+//      for (int i = 0; i < length; i++) {
+//        final double v = items[offset + i];
+//        if (!Double.isNaN(v)) {
+//          KllDoublesHelper.updateDouble(this, v);
+//        }
+//      }
+//    }
+//    doublesSV = null;
+//  }
+
   public void update(final double[] items, final int offset, final int length) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (length == 0) { return; }
-    boolean hasNaN = false;
-    boolean allNaNs = true;
-    for (int i = 0; i < length; i++) {
-      final boolean isNaN = Double.isNaN(items[offset + i]);
-      hasNaN |= isNaN;
-      allNaNs &= isNaN;
+    if (!hasNaN(items, offset, length)) {
+      KllDoublesHelper.updateDouble(this, items, offset, length); //fast path
     }
-    if (allNaNs) { return; }
-    else if (!hasNaN) { // fast path
-      KllDoublesHelper.updateDouble(this, items, offset, length);
-    } else {
-      for (int i = 0; i < length; i++) {
-        final double v = items[offset + i];
+    else { //has at least one NaN
+      if (allNaNs(items, offset, length)) { return; }
+      final int end = offset + length;
+      for (int i = offset; i < end; i++) {
+        final double v = items[i];
         if (!Double.isNaN(v)) {
-          KllDoublesHelper.updateDouble(this, v);
+          KllDoublesHelper.updateDouble(this, v); //normal path
         }
       }
+      doublesSV = null;
     }
-    doublesSV = null;
   }
 
   //restricted
 
+  // this returns on the first detected NaN.
+  private final static boolean hasNaN(final double[] items, final int offset, final int length) {
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      if (Double.isNaN(items[i])) { return true; } else { continue; }
+    }
+    return false;
+  }
+
+  //this only runs if there was a single detected NaN.
+  private final static boolean allNaNs(final double[] items, final int offset, final int length) {
+    boolean allNaNs = true;
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      allNaNs &= Double.isNaN(items[i]);
+    }
+    return allNaNs;
+  }
   // END VECTOR UPDATE
 
   /**
@@ -439,7 +476,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setMinItem(double item);
 
-  void updateMinMax(final double item) {
+  final void updateMinMax(final double item) {
     if (isEmpty()) {
       setMinItem(item);
       setMaxItem(item);
@@ -449,20 +486,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     }
   }
 
-  void updateMinMax(final double[] items, final int offset, final int length) {
-    double min = items[offset];
-    double max = min;
-    for (int i = 1; i < length; i++) {
-      final double v = items[offset + i];
-      min = Math.min(min, v);
-      max = Math.max(max, v);
-    }
-    if (isEmpty()) {
-      setMinItem(min);
-      setMaxItem(max);
-    } else {
-      setMinItem(Math.min(getMinItem(), min));
-      setMaxItem(Math.max(getMaxItem(), max));
+  final void updateMinMax(final double[] items, final int offset, final int length) {
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      updateMinMax(items[i]);
     }
   }
 
