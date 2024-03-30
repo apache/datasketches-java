@@ -99,6 +99,9 @@ abstract class BitArray {
 
   // returns the number of bytes needed for a non-empty BitArray of the requested size
   static long getSerializedSizeBytes(final long numBits) {
+    if (numBits <= 0) {
+      throw new SketchesArgumentException("Requested number of bits must be strictly positive");
+    }
     if (numBits > MAX_BITS) {
       throw new SketchesArgumentException("Requested number of bits exceeds maximum allowed. "
         + "Requested: " + numBits + ", maximum: " + MAX_BITS);

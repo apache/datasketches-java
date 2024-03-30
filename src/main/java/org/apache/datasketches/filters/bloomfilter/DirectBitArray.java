@@ -43,8 +43,12 @@ final class DirectBitArray extends DirectBitArrayR {
     if (numBits <= 0) {
       throw new SketchesArgumentException("Number of bits must be strictly positive. Found: " + numBits);
     }
+    if (numBits > MAX_BITS) {
+      throw new SketchesArgumentException("Maximum size of a single filter is " + MAX_BITS + " + bits. "
+              + "Requested: " + numBits);
+    }
 
-    final int arrayLength = (int) numBits >>> 6; // we know it'll fit in an int based on above checks
+    final int arrayLength = (int) Math.ceil(numBits / 64.0); // we know it'll fit in an int based on above checks
     final long requiredBytes = (2L + arrayLength) * Long.BYTES;
     if (wmem.getCapacity() < requiredBytes) {
       throw new SketchesArgumentException("Provided WritableMemory too small for requested array length. "
