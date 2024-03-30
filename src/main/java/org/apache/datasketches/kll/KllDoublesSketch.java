@@ -351,7 +351,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param length the number of items
    */
   public void update(final double[] items, final int offset, final int length) {
-    //TODO will this work for direct?
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (length == 0) { return; }
     boolean hasNaN = false;
@@ -467,6 +466,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     }
   }
 
+  //************SORTED VIEW****************************
+
   private final DoublesSketchSortedView refreshSortedView() {
     if (doublesSV == null) {
       final CreateSortedView csv = new CreateSortedView();
@@ -489,6 +490,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       if (!isLevelZeroSorted()) {
         Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1]);
         if (!hasMemory()) { setLevelZeroSorted(true); }
+        //we don't sort level0 in Memory, only our copy.
       }
       final int numQuantiles = getNumRetained();
       quantiles = new double[numQuantiles];

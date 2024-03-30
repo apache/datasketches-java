@@ -644,7 +644,7 @@ public class KllDirectDoublesSketchTest {
     try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
   }
 
-  @Test(expectedExceptions = UnsupportedOperationException.class)
+  @Test
   public void checkVectorUpdate() {
     WritableMemory dstMem = WritableMemory.allocate(6000);
     KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
