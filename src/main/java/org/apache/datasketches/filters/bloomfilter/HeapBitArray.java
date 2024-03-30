@@ -99,6 +99,9 @@ final class HeapBitArray extends BitArray {
     return false;
   }
 
+  @Override
+  boolean isReadOnly() { return false; }
+
   // queries a single bit in the array
   @Override
   boolean getBit(final long index) {

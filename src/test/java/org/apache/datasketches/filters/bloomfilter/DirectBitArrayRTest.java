@@ -102,7 +102,7 @@ public class DirectBitArrayRTest {
   @Test
   public void countBitsWhenDirty() {
     // like basicOperationTest but with setBit which does
-    // not neecssarily track numBitsSet_
+    // not necessarily track numBitsSet_
     final HeapBitArray hba = new HeapBitArray(128);
     assertFalse(hba.getAndSetBit(1));
     assertFalse(hba.getAndSetBit(2));
@@ -122,7 +122,7 @@ public class DirectBitArrayRTest {
   }
 
   @Test
-  public void bitAddresOutOfBoundsEmptyTest() {
+  public void bitAddressOutOfBoundsEmptyTest() {
     final int numBits = 256;
     final HeapBitArray hba = new HeapBitArray(numBits);
     final Memory mem = bitArrayToMemory(hba);
@@ -133,7 +133,7 @@ public class DirectBitArrayRTest {
   }
 
   @Test
-  public void bitAddresOutOfBoundsNonEmptyTest() {
+  public void bitAddressOutOfBoundsNonEmptyTest() {
     final int numBits = 1024;
     final HeapBitArray hba = new HeapBitArray(numBits);
     for (int i = 0; i < numBits; i += numBits / 8) {

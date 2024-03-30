@@ -56,9 +56,7 @@ abstract class BitArray {
 
   abstract boolean isDirect();
 
-  boolean isReadOnly() {
-    return false;
-  }
+  abstract boolean isReadOnly();
 
   abstract boolean getBit(final long index);
 

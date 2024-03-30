@@ -63,6 +63,7 @@ public final class BloomFilter {
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
   private static final long BIT_ARRAY_OFFSET = 16;
+  private static final int FLAGS_BYTE = 3;
 
   private long seed_;            // hash seed
   private short numHashes_;      // number of hash values
@@ -98,7 +99,7 @@ public final class BloomFilter {
       throw new SketchesArgumentException("Provided WritableMemory capacity insufficient to initialize BloomFilter");
     }
 
-    // we don't resize so initialize with non-empty preLongs value
+    // we don't resize so initialize wizth non-empty preLongs value
     // and no empty flag
     final WritableBuffer wbuf = wmem.asWritableBuffer();
     wbuf.putByte((byte) Family.BLOOMFILTER.getMaxPreLongs());
@@ -165,9 +166,9 @@ public final class BloomFilter {
     final BitArray bitArray;
     if (isWrap) {
       if (isWritable) {
-        bitArray = DirectBitArray.writableWrap(wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+        bitArray = BitArray.writableWrap(wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
       } else {
-        bitArray = DirectBitArrayR.wrap(wmem.region(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+        bitArray = BitArray.wrap(wmem.region(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
       }
       return new BloomFilter(numHashes, seed, bitArray, wmem);
     } else { // if heapify
@@ -225,7 +226,7 @@ public final class BloomFilter {
    * @return true if read-only, otherwise false
    */
   public boolean isReadOnly() {
-    return wmem_ != null && wmem_.isReadOnly();
+    return wmem_ != null && bitArray_.isReadOnly();
   }
 
   /**
@@ -780,6 +781,9 @@ public final class BloomFilter {
       ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
     } else {
       wmem_.getByteArray(0, bytes, 0, (int) sizeBytes);
+      if (isEmpty()) {
+        bytes[FLAGS_BYTE] |= EMPTY_FLAG_MASK;
+      }
     }
     return bytes;
   }
@@ -809,6 +813,10 @@ public final class BloomFilter {
       ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
     } else {
       wmem_.getLongArray(0, longs, 0, (int) (sizeBytes >>> 3));
+      if (isEmpty()) {
+        final long longMask = EMPTY_FLAG_MASK << (FLAGS_BYTE << 3);
+        longs[0] |= longMask;
+      }
     }
     return longs;
   }

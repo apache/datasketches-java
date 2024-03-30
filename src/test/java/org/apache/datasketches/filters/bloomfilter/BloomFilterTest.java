@@ -24,11 +24,112 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class BloomFilterTest {
+
+  @Test
+  public void createNewFilterTest() {
+    // construct the same filter multiple ways
+    final long numItems = 4000;
+    final double targetFpp = 0.01;
+
+    final long numBits = BloomFilterBuilder.suggestNumFilterBits(numItems, targetFpp);
+    final short numHashes = BloomFilterBuilder.suggestNumHashes(numItems, numBits);
+    final int sizeBytes = (int) BloomFilterBuilder.getSerializedFilterSize(numBits);
+    final long seed = 89023L;
+
+    final BloomFilter bf1 = new BloomFilter(numBits, numHashes, seed);
+    assertTrue(bf1.isEmpty());
+    assertFalse(bf1.hasMemory());
+    assertFalse(bf1.isDirect());
+    assertFalse(bf1.isReadOnly());
+
+    final WritableMemory wmem = WritableMemory.allocateDirect(sizeBytes).getWritable();
+    final BloomFilter bf2 = new BloomFilter(numBits, numHashes, seed, wmem);
+    assertTrue(bf2.isEmpty());
+    assertTrue(bf2.hasMemory());
+    assertTrue(bf2.isDirect());
+    assertFalse(bf2.isReadOnly());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void tooSmallMemoryTest() {
+    new BloomFilter(65536, 4, 1L, WritableMemory.allocate(32));
+  }
+
+  @Test
+  public void wrapEmptyFilterTest() {
+    final long numBits = 8192;
+    final int numHashes = 4;
+    final BloomFilter bf = BloomFilterBuilder.createBySize(numBits, numHashes);
+    assertTrue(bf.isEmpty());
+    assertEquals(bf.getBitsUsed(), 0);
+    assertEquals(bf.getCapacity(), numBits);
+    assertEquals(bf.getNumHashes(), numHashes);
+
+    final Memory mem = Memory.wrap(bf.toByteArray());
+    assertEquals(bf.getSerializedSizeBytes(), mem.getCapacity());
+
+    final WritableMemory wmem = WritableMemory.writableWrap(bf.toByteArray());
+    assertEquals(bf.getSerializedSizeBytes(), wmem.getCapacity());
+
+    // read-only
+    final BloomFilter bfReadOnly = BloomFilter.wrap(mem);
+    assertTrue(bfReadOnly.isEmpty());
+    assertEquals(bfReadOnly.getBitsUsed(), 0);
+    assertEquals(bfReadOnly.getCapacity(), numBits);
+    assertEquals(bfReadOnly.getNumHashes(), numHashes);
+    assertTrue(bfReadOnly.isReadOnly());
+
+    // writable should fail
+    assertThrows(SketchesArgumentException.class, () -> BloomFilter.writableWrap(wmem));
+  }
+
+  @Test
+  public void wrapNonEmptyFilterTest() {
+    final long numBits = 8192;
+    final int numHashes = 4;
+    final long seed = 52483905L;
+    final BloomFilter bf = BloomFilterBuilder.createBySize(numBits, numHashes, seed);
+
+    final long valStart = 1024;
+    final long valEnd = 2048;
+    for (long i = valStart; i < valEnd; ++i) {
+      bf.update(i);
+    }
+
+    final WritableMemory wmem = WritableMemory.writableWrap(bf.toByteArray());
+    assertEquals(bf.getSerializedSizeBytes(), wmem.getCapacity());
+
+    // writable
+    final BloomFilter bfWritable = BloomFilter.writableWrap(wmem);
+    assertFalse(bfWritable.isEmpty());
+    assertEquals(bfWritable.getBitsUsed(), bf.getBitsUsed());
+    assertEquals(bfWritable.getCapacity(), bf.getCapacity());
+    assertEquals(bfWritable.getNumHashes(), bf.getNumHashes());
+    assertFalse(bfWritable.isReadOnly());
+
+    // read-only, wrapping the same writable memory
+    final BloomFilter bfReadOnly = BloomFilter.wrap(wmem);
+    assertFalse(bfReadOnly.isEmpty());
+    assertEquals(bfReadOnly.getBitsUsed(), bf.getBitsUsed());
+    assertEquals(bfReadOnly.getCapacity(), bf.getCapacity());
+    assertEquals(bfReadOnly.getNumHashes(), bf.getNumHashes());
+    assertTrue(bfReadOnly.isReadOnly());
+
+    // update writable, should be reflected in read-only because
+    // they use the same underling Memory
+    assertFalse(bfWritable.queryAndUpdate(32768));
+    assertTrue(bfReadOnly.query(32768));
+
+    assertThrows(SketchesReadOnlyException.class, () -> bfReadOnly.update(99999));
+  }
 
   @Test
   public void basicFilterOperationsTest() {
@@ -58,6 +159,14 @@ public class BloomFilterTest {
     }
     assertTrue(numFound >= n);
     assertTrue(numFound < 1.1 * n);
+
+    assert(String.valueOf(bf).length() > 0);
+
+    bf.reset();
+    assertTrue(bf.isEmpty());
+    assertEquals(bf.getCapacity(), numBits); // n is multiple of 64 so should be exact
+    assertEquals(bf.getNumHashes(), numHashes);
+    assertEquals(bf.getBitsUsed(), 0);
   }
 
   @Test
@@ -89,7 +198,6 @@ public class BloomFilterTest {
       count += bf.query(Integer.toString(i)) ? 1 : 0;
     }
     assertTrue(count > n);
-
   }
 
   @Test
@@ -179,18 +287,24 @@ public class BloomFilterTest {
     final BloomFilter bf = BloomFilterBuilder.createBySize(numBits, numHashes);
 
     final byte[] bytes = bf.toByteArray();
-    Memory mem = Memory.wrap(bytes);
-    final BloomFilter fromBytes = BloomFilter.heapify(mem);
+    final Memory memBytes = Memory.wrap(bytes);
+    final BloomFilter fromBytes = BloomFilter.heapify(memBytes);
     assertTrue(fromBytes.isEmpty());
     assertEquals(fromBytes.getCapacity(), numBits);
     assertEquals(fromBytes.getNumHashes(), numHashes);
 
     final long[] longs = bf.toLongArray();
-    mem = Memory.wrap(longs);
-    final BloomFilter fromLongs = BloomFilter.heapify(mem);
+    final Memory memLongs = Memory.wrap(longs);
+    final BloomFilter fromLongs = BloomFilter.heapify(memLongs);
     assertTrue(fromLongs.isEmpty());
     assertEquals(fromLongs.getCapacity(), numBits);
     assertEquals(fromLongs.getNumHashes(), numHashes);
+
+    // compare memories
+    assertEquals(memBytes.getCapacity(), memLongs.getCapacity());
+    for (int i = 0; i < memBytes.getCapacity(); ++i) {
+      assertEquals(memBytes.getByte(i), memLongs.getByte(i));
+    }
   }
 
   @Test
@@ -212,8 +326,8 @@ public class BloomFilterTest {
     }
 
     final byte[] bytes = bf.toByteArray();
-    Memory mem = Memory.wrap(bytes);
-    final BloomFilter fromBytes = BloomFilter.heapify(mem);
+    final Memory memBytes = Memory.wrap(bytes);
+    final BloomFilter fromBytes = BloomFilter.heapify(memBytes);
     assertFalse(fromBytes.isEmpty());
     assertEquals(fromBytes.getCapacity(), numBits);
     assertEquals(fromBytes.getBitsUsed(), numBitsSet);
@@ -227,8 +341,8 @@ public class BloomFilterTest {
     assertEquals(fromBytesCount, n + count); // same numbers of items should match
 
     final long[] longs = bf.toLongArray();
-    mem = Memory.wrap(longs);
-    final BloomFilter fromLongs = BloomFilter.heapify(mem);
+    final Memory memLongs = Memory.wrap(longs);
+    final BloomFilter fromLongs = BloomFilter.heapify(memLongs);
     assertFalse(fromLongs.isEmpty());
     assertEquals(fromLongs.getCapacity(), numBits);
     assertEquals(fromLongs.getBitsUsed(), numBitsSet);
@@ -240,6 +354,61 @@ public class BloomFilterTest {
       if (i < n) assertTrue(val);
     }
     assertEquals(fromLongsCount, n + count); // same numbers of items should match
+
+    assertEquals(memBytes.getCapacity(), memLongs.getCapacity());
+    for (long i = 0; i < memBytes.getCapacity(); ++i) {
+      assertEquals(memBytes.getByte(i), memLongs.getByte(i));
+    }
+  }
+
+  @Test
+  public void heapifyFromDirectTest() {
+    final long numDistinct = 10000;
+    final double targetFpp = 0.001;
+    final int numBytes = (int) BloomFilterBuilder.getSerializedFilterSizeByAccuracy(numDistinct, targetFpp);
+    final WritableMemory wmem = WritableMemory.allocate(numBytes);
+    final BloomFilter bf = BloomFilterBuilder.initializeByAccuracy(numDistinct, targetFpp, 89540235L, wmem);
+
+    byte[] bytes = bf.toByteArray();
+    assertEquals(bytes.length, Family.BLOOMFILTER.getMinPreLongs() * Long.BYTES);
+    BloomFilter bfBytes = BloomFilter.heapify(Memory.wrap(bytes));
+    assertTrue(bfBytes.isEmpty());
+    assertEquals(bfBytes.getNumHashes(), bf.getNumHashes());
+    assertEquals(bfBytes.getBitsUsed(), 0);
+    assertEquals(bfBytes.getCapacity(), bf.getCapacity()); // even though empty
+
+    long[] longs = bf.toLongArray();
+    assertEquals(longs.length, Family.BLOOMFILTER.getMinPreLongs());
+    BloomFilter bfLongs = BloomFilter.heapify(Memory.wrap(longs));
+    assertTrue(bfLongs.isEmpty());
+    assertEquals(bfLongs.getNumHashes(), bf.getNumHashes());
+    assertEquals(bfLongs.getBitsUsed(), 0);
+    assertEquals(bfLongs.getCapacity(), bf.getCapacity());
+
+    // add some items now
+    for (int i = 0; i < 10000; ++i) {
+      bf.queryAndUpdate(Integer.toString(i));
+    }
+
+    bytes = bf.toByteArray();
+    assertEquals(bytes.length, bf.getSerializedSizeBytes());
+    bfBytes = BloomFilter.heapify(Memory.wrap(bytes));
+    assertFalse(bfBytes.isEmpty());
+    assertEquals(bfBytes.getNumHashes(), bf.getNumHashes());
+    assertEquals(bfBytes.getBitsUsed(), bf.getBitsUsed());
+    assertEquals(bfBytes.getCapacity(), bf.getCapacity());
+    assertTrue(bfBytes.query(Integer.toString(5000)));
+    assertFalse(bfBytes.query(Integer.toString(50000)));
+
+    longs = bf.toLongArray();
+    assertEquals(longs.length, bf.getSerializedSizeBytes() / Long.BYTES);
+    bfLongs = BloomFilter.heapify(Memory.wrap(longs));
+    assertFalse(bfLongs.isEmpty());
+    assertEquals(bfLongs.getNumHashes(), bf.getNumHashes());
+    assertEquals(bfLongs.getBitsUsed(), bf.getBitsUsed());
+    assertEquals(bfLongs.getCapacity(), bf.getCapacity());
+    assertTrue(bfBytes.query(Integer.toString(7500)));
+    assertFalse(bfBytes.query(Integer.toString(75000)));
   }
 
   @Test

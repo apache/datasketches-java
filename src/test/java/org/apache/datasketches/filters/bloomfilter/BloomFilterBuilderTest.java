@@ -19,11 +19,10 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertThrows;
-
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 public class BloomFilterBuilderTest {
 

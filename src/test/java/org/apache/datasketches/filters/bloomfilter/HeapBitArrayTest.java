@@ -38,6 +38,10 @@ public class HeapBitArrayTest {
     assertEquals(ba.getArrayLength(), 2);
     assertEquals(ba.getNumBitsSet(), 0);
     assertTrue(ba.isEmpty());
+
+    assertFalse(ba.hasMemory());
+    assertFalse(ba.isDirect());
+    assertFalse(ba.isReadOnly());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -70,6 +74,8 @@ public class HeapBitArrayTest {
     ba.reset();
     assertTrue(ba.isEmpty());
     assertEquals(ba.getNumBitsSet(), 0);
+
+    assertTrue(String.valueOf(ba).length() > 0);
   }
 
   @Test
@@ -96,6 +102,12 @@ public class HeapBitArrayTest {
     ba.invert();
 
     assertEquals(ba.getNumBitsSet(), numBits - numSet);
+    assertFalse(ba.getBit(0));
+
+    // update to make dirty and invert again
+    ba.setBit(0);
+    ba.invert();
+    assertEquals(ba.getNumBitsSet(), numSet - 1);
     assertFalse(ba.getBit(0));
   }
 

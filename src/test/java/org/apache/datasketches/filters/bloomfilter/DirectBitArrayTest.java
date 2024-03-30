@@ -70,6 +70,14 @@ public class DirectBitArrayTest {
   // no text of max size because the BitArray allows up to Integer.MAX_VALUE
 
   @Test
+  public void initializeTooSmallTest() {
+    final byte[] bytes = new byte[128];
+    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
+    assertThrows(SketchesArgumentException.class, () -> DirectBitArray.initialize(128 * 65, wmem));
+    assertThrows(SketchesArgumentException.class, () -> DirectBitArray.initialize(-5, wmem));
+  }
+
+  @Test
   public void basicInitializeOperationsTest() {
     final byte[] bytes = new byte[56];
     final WritableMemory wmem = WritableMemory.writableWrap(bytes);
@@ -188,6 +196,12 @@ public class DirectBitArrayTest {
     dba.invert();
 
     assertEquals(dba.getNumBitsSet(), numBits - numSet);
+    assertFalse(dba.getBit(0));
+
+    // update to make dirty and invert again
+    dba.setBit(0);
+    dba.invert();
+    assertEquals(dba.getNumBitsSet(), numSet - 1);
     assertFalse(dba.getBit(0));
   }
 
