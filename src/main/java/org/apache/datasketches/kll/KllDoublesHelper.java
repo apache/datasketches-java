@@ -335,9 +335,7 @@ final class KllDoublesHelper {
     if (weight < dblSk.levelsArr[0]) {
       for (int i = 0; i < (int)weight; i++) { updateDouble(dblSk, item); }
     } else {
-      dblSk.updateMinMax(item);
       final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
-
       dblSk.merge(tmpSk);
     }
   }
@@ -345,7 +343,7 @@ final class KllDoublesHelper {
   //called only from KllDoublesSketch for VECTOR UPDATE
   static void updateDouble(final KllDoublesSketch dblSk, final double[] items,
                            final int offset, final int length) {
-    dblSk.updateMinMax(items, offset, length);
+
     int count = 0;
     while (count < length) {
       if (dblSk.levelsArr[0] == 0) {
@@ -356,7 +354,9 @@ final class KllDoublesHelper {
       assert (freeSpace > 0);
       final int numItemsToCopy = min(spaceNeeded, freeSpace);
       final int dstOffset = freeSpace - numItemsToCopy;
-      dblSk.setDoubleItemsArrayAt(dstOffset, items, offset + count, numItemsToCopy);
+      final int localOffset = offset + count;
+      dblSk.setDoubleItemsArrayAt(dstOffset, items, localOffset, numItemsToCopy);
+      dblSk.updateMinMax(items, offset, length);
       count += numItemsToCopy;
       dblSk.incN(numItemsToCopy);
       dblSk.setLevelsArrayAt(0, dstOffset);

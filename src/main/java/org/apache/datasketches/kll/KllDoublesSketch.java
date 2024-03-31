@@ -350,30 +350,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param offset the starting index of the items[] array
    * @param length the number of items
    */
-//  public void update(final double[] items, final int offset, final int length) {
-//    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-//    if (length == 0) { return; }
-//    boolean hasNaN = false;
-//    boolean allNaNs = true;
-//    for (int i = 0; i < length; i++) {
-//      final boolean isNaN = Double.isNaN(items[offset + i]);
-//      hasNaN |= isNaN;
-//      allNaNs &= isNaN;
-//    }
-//    if (allNaNs) { return; }
-//    else if (!hasNaN) { // fast path
-//      KllDoublesHelper.updateDouble(this, items, offset, length);
-//    } else {
-//      for (int i = 0; i < length; i++) {
-//        final double v = items[offset + i];
-//        if (!Double.isNaN(v)) {
-//          KllDoublesHelper.updateDouble(this, v);
-//        }
-//      }
-//    }
-//    doublesSV = null;
-//  }
-
   public void update(final double[] items, final int offset, final int length) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (length == 0) { return; }
@@ -469,6 +445,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract void setMinItem(double item);
 
   final void updateMinMax(final double item) {
+    println("minMax i: " + item);
     if (isEmpty()) {
       setMinItem(item);
       setMaxItem(item);
@@ -478,13 +455,29 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     }
   }
 
-  final void updateMinMax(final double[] items, final int offset, final int length) {
+  private final void vectorUpdateMinMax(final double item) {
+    setMinItem(min(getMinItem(), item));
+    setMaxItem(max(getMaxItem(), item));
+  }
+
+  final void updateMinMax(final double[] items, final int offset, final int length) {//TODO
     final int end = offset + length;
-    for (int i = offset; i < end; i++) {
-      updateMinMax(items[i]);
+    if (isEmpty()) {
+      setMinItem(items[offset]);
+      setMaxItem(items[offset]);
+    }
+    for (int i = offset + 1; i < end; i++) {
+      setMinItem(min(getMinItem(), items[i]));
+      setMaxItem(max(getMaxItem(), items[i]));
+      //vectorUpdateMinMax(items[i]);
     }
   }
 
+  private final static boolean enablePrinting = true;
+
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
+  }
   //************SORTED VIEW****************************
 
   private final DoublesSketchSortedView refreshSortedView() {

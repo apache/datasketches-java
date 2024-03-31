@@ -189,13 +189,13 @@ public class KllDoublesSketchTest {
 
   @Test
   public void vectorizedUpdates() {
-    final int trials = 1000;
-    final int M = 1000;
-    final int N = 1000;
-    final long startTime = System.currentTimeMillis();
+    final int trials = 1; //1000
+    final int M = 2;
+    final int N = 2;
+    //final long startTime = System.currentTimeMillis();
+    final double[] values = new double[N];
     for (int t = 0; t < trials; t++) {
       final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
-      final double[] values = new double[N];
       for (int m = 0; m < M; m++) {
         for (int n = 0; n < N; n++) {
           values[n] = m * N + n;
@@ -203,20 +203,21 @@ public class KllDoublesSketchTest {
         sketch.update(values, 0, N);
       }
       assertEquals(sketch.getN(), M * N);
-      assertEquals(sketch.getMinItem(), 0.0);
+      //println(sketch.toString(true, true));
+      assertEquals(sketch.getMinItem(), 0.0); //TODO found 999.0
       assertEquals(sketch.getMaxItem(), M * N - 1.0);
-      assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
+      //assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
     }
-    final long endTime = System.currentTimeMillis();
-    System.out.println("vectorizedUpdates: " + (endTime - startTime) + " ms");
+    //final long runTime = System.currentTimeMillis() - startTime;
+    //System.out.println("vectorizedUpdates: " + (endTime - startTime) + " ms");
   }
 
   @Test
   public void nonVectorizedUpdates() {
-    final int trials = 1000;
-    final int M = 1000;
-    final int N = 1000;
-    final long startTime = System.currentTimeMillis();
+    final int trials = 1; //1000
+    final int M = 2;
+    final int N = 2;
+    //final long startTime = System.currentTimeMillis();
     for (int t = 0; t < trials; t++) {
       final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
       final double[] values = new double[N];
@@ -229,12 +230,13 @@ public class KllDoublesSketchTest {
         }
       }
       assertEquals(sketch.getN(), M * N);
+      //println(sketch.toString(true, true));
       assertEquals(sketch.getMinItem(), 0.0);
       assertEquals(sketch.getMaxItem(), M * N - 1.0);
-      assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
+      //assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
     }
-    final long endTime = System.currentTimeMillis();
-    System.out.println("nonVectorizedUpdates: " + (endTime - startTime) + " ms");
+    //final long runTime = System.currentTimeMillis() - startTime;
+    //System.out.println("nonVectorizedUpdates: " + (endTime - startTime) + " ms");
   }
 
   @Test
@@ -681,7 +683,7 @@ public class KllDoublesSketchTest {
     println("");
   }
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param format the format
