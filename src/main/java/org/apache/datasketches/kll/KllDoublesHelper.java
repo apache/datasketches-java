@@ -127,9 +127,8 @@ final class KllDoublesHelper {
     if (otherDblSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
-    final boolean myEmpty = mySketch.isEmpty();
-    final double myMin = myEmpty ? Double.NaN : mySketch.getMinItem();
-    final double myMax = myEmpty ? Double.NaN : mySketch.getMaxItem();
+    final double myMin = mySketch.getMinItemInternal();
+    final double myMax = mySketch.getMaxItemInternal();
     final int myMinK = mySketch.getMinK();
     final long finalN = Math.addExact(mySketch.getN(), otherDblSk.getN());
 
@@ -228,9 +227,9 @@ final class KllDoublesHelper {
     mySketch.setDoubleItemsArray(myNewDoubleItemsArr);
 
     //Update min, max items
-    final double otherMin = otherDblSk.getMinItem();
-    final double otherMax = otherDblSk.getMaxItem();
-    if (myEmpty) {
+    final double otherMin = otherDblSk.getMinItemInternal();
+    final double otherMax = otherDblSk.getMaxItemInternal();
+    if (mySketch.isEmpty()) {
       mySketch.setMinItem(otherMin);
       mySketch.setMaxItem(otherMax);
     } else {
@@ -341,8 +340,13 @@ final class KllDoublesHelper {
   }
 
   //called only from KllDoublesSketch for VECTOR UPDATE
-  static void updateDouble(final KllDoublesSketch dblSk, final double[] items,
-                           final int offset, final int length) {
+  // No NaNs are allowed at this point
+  static void updateDouble(final KllDoublesSketch dblSk, final double[] srcItems,
+                           final int srcOffset, final int length) {
+    if (Double.isNaN(dblSk.getMinItemInternal())) {
+      dblSk.setMinItem(srcItems[srcOffset]);
+      dblSk.setMaxItem(srcItems[srcOffset]);
+    }
 
     int count = 0;
     while (count < length) {
@@ -354,13 +358,14 @@ final class KllDoublesHelper {
       assert (freeSpace > 0);
       final int numItemsToCopy = min(spaceNeeded, freeSpace);
       final int dstOffset = freeSpace - numItemsToCopy;
-      final int localOffset = offset + count;
-      dblSk.setDoubleItemsArrayAt(dstOffset, items, localOffset, numItemsToCopy);
-      dblSk.updateMinMax(items, offset, length);
+      final int localSrcOffset = srcOffset + count;
+      dblSk.setDoubleItemsArrayAt(dstOffset, srcItems, localSrcOffset, numItemsToCopy);
+      dblSk.updateMinMax(srcItems, localSrcOffset, numItemsToCopy);
       count += numItemsToCopy;
-      dblSk.incN(numItemsToCopy);
+      //dblSk.incN(numItemsToCopy);
       dblSk.setLevelsArrayAt(0, dstOffset);
     }
+    dblSk.incN(length);
     dblSk.setLevelZeroSorted(false);
   }
 

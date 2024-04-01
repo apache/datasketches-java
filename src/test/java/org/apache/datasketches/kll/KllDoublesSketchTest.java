@@ -39,9 +39,9 @@ import org.testng.annotations.Test;
 
 public class KllDoublesSketchTest {
   private static final String LS = System.getProperty("line.separator");
-  private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
-  private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
-  private static final double PMF_EPS_FOR_K_256 = 0.013; // PMF rank error (epsilon) for k=256
+  private static final double PMF_EPS_FOR_K_8 = KllSketch.getNormalizedRankError(8, true);
+  private static final double PMF_EPS_FOR_K_128 = KllSketch.getNormalizedRankError(128, true);
+  private static final double PMF_EPS_FOR_K_256 = KllSketch.getNormalizedRankError(256, true);
   private static final double NUMERIC_NOISE_TOLERANCE = 1E-6;
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
@@ -185,58 +185,6 @@ public class KllDoublesSketchTest {
       assertTrue(previousQuantile <= quantile);
       previousQuantile = quantile;
     }
-  }
-
-  @Test
-  public void vectorizedUpdates() {
-    final int trials = 1; //1000
-    final int M = 2;
-    final int N = 2;
-    //final long startTime = System.currentTimeMillis();
-    final double[] values = new double[N];
-    for (int t = 0; t < trials; t++) {
-      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
-      for (int m = 0; m < M; m++) {
-        for (int n = 0; n < N; n++) {
-          values[n] = m * N + n;
-        }
-        sketch.update(values, 0, N);
-      }
-      assertEquals(sketch.getN(), M * N);
-      //println(sketch.toString(true, true));
-      assertEquals(sketch.getMinItem(), 0.0); //TODO found 999.0
-      assertEquals(sketch.getMaxItem(), M * N - 1.0);
-      //assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
-    }
-    //final long runTime = System.currentTimeMillis() - startTime;
-    //System.out.println("vectorizedUpdates: " + (endTime - startTime) + " ms");
-  }
-
-  @Test
-  public void nonVectorizedUpdates() {
-    final int trials = 1; //1000
-    final int M = 2;
-    final int N = 2;
-    //final long startTime = System.currentTimeMillis();
-    for (int t = 0; t < trials; t++) {
-      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
-      final double[] values = new double[N];
-      for (int m = 0; m < M; m++) {
-        for (int n = 0; n < N; n++) {
-          values[n] = m * N + n;
-        }
-        for (int i = 0; i < N; i++) {
-          sketch.update(values[i]);
-        }
-      }
-      assertEquals(sketch.getN(), M * N);
-      //println(sketch.toString(true, true));
-      assertEquals(sketch.getMinItem(), 0.0);
-      assertEquals(sketch.getMaxItem(), M * N - 1.0);
-      //assertEquals(sketch.getQuantile(0.5), M * N / 2.0, M * N * PMF_EPS_FOR_K_256);
-    }
-    //final long runTime = System.currentTimeMillis() - startTime;
-    //System.out.println("nonVectorizedUpdates: " + (endTime - startTime) + " ms");
   }
 
   @Test
@@ -667,8 +615,8 @@ public class KllDoublesSketchTest {
     boolean withLevels = false;
     boolean withLevelsAndItems = true;
     int k = 20;
-    int n = 21;//108;
-    int maxVsz = 10;  //max vector size
+    int n = 108;//108;
+    int maxVsz = 40;  //max vector size
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     int j = 1;
     int rem;
@@ -683,7 +631,77 @@ public class KllDoublesSketchTest {
     println("");
   }
 
-  private final static boolean enablePrinting = true;
+  @Test
+  public void vectorizedUpdates() {
+    final int trials = 8; //1000
+    final int M = 1000;
+    final int N = 1000;
+    final int K = 256;
+
+    final long startTime = System.nanoTime();
+    final double[] values = new double[N];
+    long totN = 0;
+    for (int t = 0; t < trials; t++) {
+      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(K);
+      for (int m = 0; m < M; m++) {
+        for (int n = 0; n < N; n++) {
+          values[n] = m * N + n;
+        }
+        sketch.update(values, 0, N);
+      }
+      totN = sketch.getN();
+      assertEquals(totN, M * N);
+      //assertEquals(sketch.getMinItem(), 0.0);
+      //assertEquals(sketch.getMaxItem(), totN - 1.0);
+      //assertEquals(sketch.getQuantile(0.5), totN / 2.0,totN * PMF_EPS_FOR_K_256);
+    }
+    final long runTime = System.nanoTime() - startTime;
+    println("Vectorized Updates");
+    printf("  Total N     : %,12d\n", totN);
+    printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
+    final double trialTime = runTime / (1e6 * trials);
+    printf("  mS / Trial  : %,12.3f\n", trialTime);
+    final double updateTime = runTime / (1.0 * totN * trials);
+    printf("  nS / Update : %,12.3f\n", updateTime);
+  }
+
+  @Test
+  public void nonVectorizedUpdates() {
+    final int trials = 8; //1000
+    final int M = 1000;
+    final int N = 1000;
+    final int K = 256;
+
+    final long startTime = System.nanoTime();
+    final double[] values = new double[N];
+    long totN = 0;
+    for (int t = 0; t < trials; t++) {
+      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(K);
+      for (int m = 0; m < M; m++) {
+        for (int n = 0; n < N; n++) {
+          values[n] = m * N + n;
+        }
+        for (int i = 0; i < N; i++) {
+          sketch.update(values[i]);
+        }
+      }
+      totN = sketch.getN();
+      assertEquals(totN, M * N);
+      assertEquals(sketch.getMinItem(), 0.0);
+      assertEquals(sketch.getMaxItem(), totN - 1.0);
+      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256);
+    }
+    final long runTime = System.nanoTime() - startTime;
+    println("Vectorized Updates");
+    printf("  Total N     : %,12d\n", totN);
+    printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
+    final double trialTime = runTime / (1e6 * trials);
+    printf("  mS / Trial  : %,12.3f\n", trialTime);
+    final double updateTime = runTime / (1.0 * totN * trials);
+    printf("  nS / Update : %,12.3f\n", updateTime);
+  }
+
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format

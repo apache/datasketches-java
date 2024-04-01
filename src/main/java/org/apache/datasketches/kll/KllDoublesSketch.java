@@ -370,8 +370,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     }
   }
 
-  //restricted
-
   // this returns on the first detected NaN.
   private final static boolean hasNaN(final double[] items, final int offset, final int length) {
     final int end = offset + length;
@@ -395,6 +393,44 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract double getDoubleSingleItem();
 
+  //MinMax Methods
+
+  abstract double getMaxItemInternal();
+
+  abstract void setMaxItem(double item);
+
+  abstract double getMinItemInternal();
+
+  abstract void setMinItem(double item);
+
+  /**
+   * Single update of min and max
+   * @param item the source item, it must not be a NaN.
+   */
+  final void updateMinMax(final double item) {
+    if (Double.isNaN(getMinItemInternal())) { //indicates an empty sketch
+      setMinItem(item);
+      setMaxItem(item);
+    } else {
+      setMinItem(min(getMinItemInternal(), item));
+      setMaxItem(max(getMaxItemInternal(), item));
+    }
+  }
+
+  /**
+   * Vector update of min and max.
+   * @param srcItems the input source array of values, no NaNs allowed.
+   * @param offset the starting offset in srcItems
+   * @param length the number of items to update min and max
+   */
+  final void updateMinMax(final double[] srcItems, final int srcOffset, final int length) {
+    final int end = srcOffset + length;
+    for (int i = srcOffset; i < end; i++) {
+      setMinItem(min(getMinItemInternal(), srcItems[i]));
+      setMaxItem(max(getMaxItemInternal(), srcItems[i]));
+    }
+  }
+
   @Override
   abstract byte[] getMinMaxByteArr();
 
@@ -402,6 +438,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   int getMinMaxSizeBytes() {
     return Double.BYTES * 2;
   }
+
+  //END MinMax Methods
 
   @Override
   abstract byte[] getRetainedItemsByteArr();
@@ -438,46 +476,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setDoubleItemsArrayAt(int index, double item);
 
-  abstract void setDoubleItemsArrayAt(int index, double[] items, int offset, int length);
+  abstract void setDoubleItemsArrayAt(int dstIndex, double[] srcItems, int srcOffset, int length);
 
-  abstract void setMaxItem(double item);
-
-  abstract void setMinItem(double item);
-
-  final void updateMinMax(final double item) {
-    println("minMax i: " + item);
-    if (isEmpty()) {
-      setMinItem(item);
-      setMaxItem(item);
-    } else {
-      setMinItem(min(getMinItem(), item));
-      setMaxItem(max(getMaxItem(), item));
-    }
-  }
-
-  private final void vectorUpdateMinMax(final double item) {
-    setMinItem(min(getMinItem(), item));
-    setMaxItem(max(getMaxItem(), item));
-  }
-
-  final void updateMinMax(final double[] items, final int offset, final int length) {//TODO
-    final int end = offset + length;
-    if (isEmpty()) {
-      setMinItem(items[offset]);
-      setMaxItem(items[offset]);
-    }
-    for (int i = offset + 1; i < end; i++) {
-      setMinItem(min(getMinItem(), items[i]));
-      setMaxItem(max(getMaxItem(), items[i]));
-      //vectorUpdateMinMax(items[i]);
-    }
-  }
-
-  private final static boolean enablePrinting = true;
-
-  private static final void println(final Object o) {
-    if (enablePrinting) { System.out.println(o.toString()); }
-  }
   //************SORTED VIEW****************************
 
   private final DoublesSketchSortedView refreshSortedView() {
@@ -509,7 +509,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       cumWeights = new long[numQuantiles];
       populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
       return new DoublesSketchSortedView(
-          quantiles, cumWeights, getN(), getMaxItem(), getMinItem());
+          quantiles, cumWeights, getN(), getMaxItemInternal(), getMinItemInternal());
     }
 
     private void populateFromSketch(final double[] srcQuantiles, final int[] srcLevels,

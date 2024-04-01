@@ -79,6 +79,8 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     return getMemoryK(mem);
   }
 
+  //MinMax Methods
+
   @Override
   public T getMaxItem() {
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
