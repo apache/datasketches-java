@@ -122,21 +122,21 @@ final class DirectBitArray extends DirectBitArrayR {
 
   @Override
   void setBit(final long index) {
-    final int idx = (int) index >>> 6;
-    final long val = getLong(idx);
-    setLong(idx, val | 1L << index);
+    final long memoryOffset = DATA_OFFSET + ((int) index >>> 3);
+    final byte val = wmem_.getByte(memoryOffset);
+    wmem_.setBits(memoryOffset, (byte) (val | (1 << (index & 0x07))));
     setNumBitsSet(-1); // mark dirty
   }
 
   @Override
   boolean getAndSetBit(final long index) {
-    final int offset = (int) index >>> 6;
-    final long mask = 1L << index;
-    final long val = getLong(offset);
+    final long memoryOffset = DATA_OFFSET + ((int) index >>> 3);
+    final byte mask = (byte) (1 << (index & 0x07));
+    final byte val = wmem_.getByte(memoryOffset);
     if ((val & mask) != 0) {
       return true; // already seen
     } else {
-      setLong(offset, val | mask);
+      wmem_.setBits(memoryOffset, (byte) (val | mask));
       if (!isDirty()) { setNumBitsSet(numBitsSet_ + 1); }
       return false; // new set
     }
