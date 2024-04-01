@@ -64,10 +64,10 @@ public final class BloomFilter {
   private static final long BIT_ARRAY_OFFSET = 16;
   private static final int FLAGS_BYTE = 3;
 
-  private long seed_;            // hash seed
-  private short numHashes_;      // number of hash values
-  private BitArray bitArray_;    // the actual data bits
-  private WritableMemory wmem_;  // used only for direct mode BitArray
+  private final long seed_;            // hash seed
+  private final short numHashes_;      // number of hash values
+  private final BitArray bitArray_;    // the actual data bits
+  private final WritableMemory wmem_;  // used only for direct mode BitArray
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
@@ -234,7 +234,7 @@ public final class BloomFilter {
    * @return true if using direct memory access, otherwise false
    */
   public boolean isDirect() {
-    return wmem_ != null && wmem_.isDirect();
+    return wmem_ != null && bitArray_.isDirect();
   }
 
   /**
