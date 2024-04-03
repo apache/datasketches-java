@@ -79,6 +79,8 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     return getMemoryK(mem);
   }
 
+  //MinMax Methods
+
   @Override
   public T getMaxItem() {
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
@@ -235,7 +237,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  void incN() {
+  void incN(final int increment) {
     throw new SketchesArgumentException(UNSUPPORTED_MSG);
   }
 

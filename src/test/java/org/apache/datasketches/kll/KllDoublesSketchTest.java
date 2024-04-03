@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -37,9 +38,10 @@ import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.annotations.Test;
 
 public class KllDoublesSketchTest {
-  private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
-  private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
-  private static final double PMF_EPS_FOR_K_256 = 0.013; // PMF rank error (epsilon) for k=256
+  private static final String LS = System.getProperty("line.separator");
+  private static final double PMF_EPS_FOR_K_8 = KllSketch.getNormalizedRankError(8, true);
+  private static final double PMF_EPS_FOR_K_128 = KllSketch.getNormalizedRankError(128, true);
+  private static final double PMF_EPS_FOR_K_256 = KllSketch.getNormalizedRankError(256, true);
   private static final double NUMERIC_NOISE_TOLERANCE = 1E-6;
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
@@ -606,6 +608,101 @@ public class KllDoublesSketchTest {
     assertEquals(dsv, 1.0);
     sk.reset();
     try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkVectorUpdate() {
+    boolean withLevels = false;
+    boolean withLevelsAndItems = true;
+    int k = 20;
+    int n = 108;//108;
+    int maxVsz = 40;  //max vector size
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    int j = 1;
+    int rem;
+    while ((rem = n - j + 1) > 0) {
+      int vecSz = min(rem, maxVsz);
+      double[] v = new double[vecSz];
+      for (int i = 0; i < vecSz; i++) { v[i] = j++; }
+      sk.update(v, 0, vecSz);
+    }
+    println(LS + "#<<< END STATE # >>>");
+    println(sk.toString(withLevels, withLevelsAndItems));
+    println("");
+  }
+
+  @Test
+  public void vectorizedUpdates() {
+    final int trials = 1;
+    final int M = 1; //number of vectors
+    final int N = 1000; //vector size
+    final int K = 256;
+    final double[] values = new double[N];
+    double vIn = 1.0;
+    long totN = 0;
+    final long startTime = System.nanoTime();
+    for (int t = 0; t < trials; t++) {
+      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(K);
+      for (int m = 0; m < M; m++) {
+        for (int n = 0; n < N; n++) {
+          values[n] = vIn++;  //fill vector
+        }
+        sketch.update(values, 0, N); //vector input
+      }
+      totN = sketch.getN();
+      assertEquals(totN, M * N);
+      assertEquals(sketch.getMinItem(), 1.0);
+      assertEquals(sketch.getMaxItem(), totN);
+      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
+    }
+    final long runTime = System.nanoTime() - startTime;
+    println("Vectorized Updates");
+    printf("  Vector size : %,12d\n", N);
+    printf("  Num Vectors : %,12d\n", M);
+    printf("  Total Input : %,12d\n", totN);
+    printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
+    final double trialTime = runTime / (1e6 * trials);
+    printf("  mS / Trial  : %,12.3f\n", trialTime);
+    final double updateTime = runTime / (1.0 * totN * trials);
+    printf("  nS / Update : %,12.3f\n", updateTime);
+  }
+
+  @Test
+  public void nonVectorizedUpdates() {
+    final int trials = 1;
+    final int M = 1; //number of vectors
+    final int N = 1000; //vector size
+    final int K = 256;
+    final double[] values = new double[N];
+    double vIn = 1.0;
+    long totN = 0;
+    final long startTime = System.nanoTime();
+    for (int t = 0; t < trials; t++) {
+      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(K);
+      for (int m = 0; m < M; m++) {
+        for (int n = 0; n < N; n++) {
+          values[n] = vIn++; //fill vector
+        }
+        for (int i = 0; i < N; i++) {
+          sketch.update(values[i]); //single item input
+        }
+      }
+      totN = sketch.getN();
+      assertEquals(totN, M * N);
+      assertEquals(sketch.getMinItem(), 1.0);
+      assertEquals(sketch.getMaxItem(), totN);
+      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
+    }
+    final long runTime = System.nanoTime() - startTime;
+    println("Vectorized Updates");
+    printf("  Vector size : %,12d\n", N);
+    printf("  Num Vectors : %,12d\n", M);
+    printf("  Total Input : %,12d\n", totN);
+    printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
+    final double trialTime = runTime / (1e6 * trials);
+    printf("  mS / Trial  : %,12.3f\n", trialTime);
+    final double updateTime = runTime / (1.0 * totN * trials);
+    printf("  nS / Update : %,12.3f\n", updateTime);
   }
 
   private final static boolean enablePrinting = false;

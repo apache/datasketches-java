@@ -261,14 +261,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
-  public DoublesSketchSortedView getSortedView() {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    refreshSortedView();
-    return doublesSV;
-  }
-
-  @Override
   public QuantilesDoublesSketchIterator iterator() {
     return new KllDoublesSketchIterator(
         getDoubleItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
@@ -319,13 +311,48 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
   }
 
+  //SINGLE UPDATE
+
   @Override
   public void update(final double item) {
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    KllDoublesHelper.updateDouble(this, item);
+    updateDouble(this, item);
     doublesSV = null;
   }
+
+  //Also Called from KllDoublesHelper::merge
+  static void updateDouble(final KllDoublesSketch dblSk, final double item) {
+    dblSk.updateMinMax(item);
+    int freeSpace = dblSk.levelsArr[0];
+    assert (freeSpace >= 0);
+    if (freeSpace == 0) {
+      KllDoublesHelper.compressWhileUpdatingSketch(dblSk);
+      freeSpace = dblSk.levelsArr[0];
+      assert (freeSpace > 0);
+    }
+    dblSk.incN(1);
+    dblSk.setLevelZeroSorted(false);
+    final int nextPos = freeSpace - 1;
+    dblSk.setLevelsArrayAt(0, nextPos);
+    dblSk.setDoubleItemsArrayAt(nextPos, item);
+  }
+
+  /**
+   * Single update of min and max
+   * @param item the source item, it must not be a NaN.
+   */
+  final void updateMinMax(final double item) {
+    if (isEmpty() || Double.isNaN(getMinItemInternal())) {
+      setMinItem(item);
+      setMaxItem(item);
+    } else {
+      setMinItem(min(getMinItemInternal(), item));
+      setMaxItem(max(getMaxItemInternal(), item));
+    }
+  }
+
+  //WEIGHTED UPDATE
 
   /**
    * Weighted update. Updates this sketch with the given item the number of times specified by the given integer weight.
@@ -336,12 +363,97 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1L) { KllDoublesHelper.updateDouble(this, item); }
-    else { KllDoublesHelper.updateDouble(this, item, weight); }
+    if (weight == 1L) { updateDouble(this, item); }
+    else {
+      if (weight < levelsArr[0]) {
+        for (int i = 0; i < (int)weight; i++) { updateDouble(this, item); }
+      } else {
+        final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(getK(), DEFAULT_M, item, weight);
+        merge(tmpSk);
+      }
+    }
     doublesSV = null;
   }
 
-  //restricted
+  // VECTOR UPDATE
+
+  /**
+   * Vector update. Updates this sketch with the given array (vector) of items, starting at the items
+   * offset for a length number of items. This is not supported for direct sketches.
+   * @param items the vector of items
+   * @param offset the starting index of the items[] array
+   * @param length the number of items
+   */
+  public void update(final double[] items, final int offset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (length == 0) { return; }
+    if (!hasNaN(items, offset, length)) {
+      updateDouble(items, offset, length); //fast path
+      doublesSV = null;
+      return;
+    }
+    //has at least one NaN
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      final double v = items[i];
+      if (!Double.isNaN(v)) {
+        updateDouble(this, v); //normal path
+        doublesSV = null;
+      }
+    }
+  }
+
+  // No NaNs are allowed at this point
+  private void updateDouble(final double[] srcItems, final int srcOffset, final int length) {
+    if (isEmpty() || Double.isNaN(getMinItemInternal())) {
+      setMinItem(srcItems[srcOffset]); //initialize with a real value
+      setMaxItem(srcItems[srcOffset]);
+    }
+
+    int count = 0;
+    while (count < length) {
+      if (levelsArr[0] == 0) {
+        KllDoublesHelper.compressWhileUpdatingSketch(this);
+      }
+      final int spaceNeeded = length - count;
+      final int freeSpace = levelsArr[0];
+      assert (freeSpace > 0);
+      final int numItemsToCopy = min(spaceNeeded, freeSpace);
+      final int dstOffset = freeSpace - numItemsToCopy;
+      final int localSrcOffset = srcOffset + count;
+      setDoubleItemsArrayAt(dstOffset, srcItems, localSrcOffset, numItemsToCopy);
+      updateMinMax(srcItems, localSrcOffset, numItemsToCopy);
+      count += numItemsToCopy;
+      incN(numItemsToCopy);
+      setLevelsArrayAt(0, dstOffset);
+    }
+    setLevelZeroSorted(false);
+  }
+
+  /**
+   * Vector update of min and max.
+   * @param srcItems the input source array of values, no NaNs allowed.
+   * @param srcOffset the starting offset in srcItems
+   * @param length the number of items to update min and max
+   */
+  private void updateMinMax(final double[] srcItems, final int srcOffset, final int length) {
+    final int end = srcOffset + length;
+    for (int i = srcOffset; i < end; i++) {
+      setMinItem(min(getMinItemInternal(), srcItems[i]));
+      setMaxItem(max(getMaxItemInternal(), srcItems[i]));
+    }
+  }
+
+  // this returns on the first detected NaN.
+  private static boolean hasNaN(final double[] items, final int offset, final int length) {
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      if (Double.isNaN(items[i])) { return true; }
+    }
+    return false;
+  }
+
+  // END ALL UPDATE METHODS
 
   /**
    * @return full size of internal items array including empty space at bottom.
@@ -355,6 +467,16 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract double getDoubleSingleItem();
 
+  // Min & Max Methods
+
+  abstract double getMaxItemInternal();
+
+  abstract void setMaxItem(double item);
+
+  abstract double getMinItemInternal();
+
+  abstract void setMinItem(double item);
+
   @Override
   abstract byte[] getMinMaxByteArr();
 
@@ -362,6 +484,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   int getMinMaxSizeBytes() {
     return Double.BYTES * 2;
   }
+
+  //END Min & Max Methods
 
   @Override
   abstract byte[] getRetainedItemsByteArr();
@@ -398,18 +522,15 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setDoubleItemsArrayAt(int index, double item);
 
-  abstract void setMaxItem(double item);
+  abstract void setDoubleItemsArrayAt(int dstIndex, double[] srcItems, int srcOffset, int length);
 
-  abstract void setMinItem(double item);
+  // SORTED VIEW
 
-  void updateMinMax(final double item) {
-    if (isEmpty()) {
-      setMinItem(item);
-      setMaxItem(item);
-    } else {
-      setMinItem(min(getMinItem(), item));
-      setMaxItem(max(getMaxItem(), item));
-    }
+  @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
+  public DoublesSketchSortedView getSortedView() {
+    refreshSortedView();
+    return doublesSV;
   }
 
   private final DoublesSketchSortedView refreshSortedView() {
@@ -426,7 +547,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
     DoublesSketchSortedView getSV() {
       if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-      if (getN() == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
       final double[] srcQuantiles = getDoubleItemsArray();
       final int[] srcLevels = levelsArr;
       final int srcNumLevels = getNumLevels();
@@ -434,13 +554,14 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       if (!isLevelZeroSorted()) {
         Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1]);
         if (!hasMemory()) { setLevelZeroSorted(true); }
+        //we don't sort level0 in Memory, only our copy.
       }
       final int numQuantiles = getNumRetained();
       quantiles = new double[numQuantiles];
       cumWeights = new long[numQuantiles];
       populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
       return new DoublesSketchSortedView(
-          quantiles, cumWeights, getN(), getMaxItem(), getMinItem());
+          quantiles, cumWeights, getN(), getMaxItemInternal(), getMinItemInternal());
     }
 
     private void populateFromSketch(final double[] srcQuantiles, final int[] srcLevels,
@@ -542,5 +663,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
   }
+
+  // END SORTED VIEW
 
 }

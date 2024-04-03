@@ -715,19 +715,19 @@ public class KllItemsSketchTest {
   @Test
   public void checkExceptions() {
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
-    try { sk.getTotalItemsByteArr(); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getTotalItemsNumBytes(); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setWritableMemory(null); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getTotalItemsByteArr();     fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getTotalItemsNumBytes();    fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setWritableMemory(null);    fail(); } catch (SketchesArgumentException e) { }
     byte[] byteArr = sk.toByteArray();
     final KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
-    try { sk2.incN(); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setItemsArray(null); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setItemsArrayAt(0, null); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incN(1);                   fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setItemsArray(null);       fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setItemsArrayAt(0, null);  fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(false); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxItem(null); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinItem(null); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinK(0); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setN(0); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxItem(null);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinItem(null);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinK(0);                fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setN(0);                   fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test

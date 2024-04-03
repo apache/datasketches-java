@@ -169,34 +169,56 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   @Override
   public int getK() { return k; }
 
+  //MinMax Methods
+
+  @Override
+ double getMaxItemInternal() { return maxDoubleItem; }
+
   @Override
   public double getMaxItem() {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if (isEmpty() || Double.isNaN(maxDoubleItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
     return maxDoubleItem;
   }
 
   @Override
   String getMaxItemAsString() {
-    if (isEmpty()) { return "NaN"; }
     return Double.toString(maxDoubleItem);
   }
 
   @Override
+  double getMinItemInternal() { return minDoubleItem; }
+
+  @Override
   public double getMinItem() {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if (isEmpty() || Double.isNaN(minDoubleItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
     return minDoubleItem;
   }
 
   @Override
   String getMinItemAsString() {
-    if (isEmpty()) { return "NaN"; }
     return Double.toString(minDoubleItem);
   }
 
   @Override
+  byte[] getMinMaxByteArr() {
+    final byte[] bytesOut = new byte[2 * Double.BYTES];
+    putDoubleLE(bytesOut, 0, minDoubleItem);
+    putDoubleLE(bytesOut, Double.BYTES, maxDoubleItem);
+    return bytesOut;
+  }
+
+  @Override
+  void setMaxItem(final double item) { this.maxDoubleItem = item; }
+
+  @Override
+  void setMinItem(final double item) { this.minDoubleItem = item; }
+
+  //END MinMax Methods
+
+  @Override
   public long getN() { return n; }
 
-  //restricted
+  //other restricted
 
   @Override
   double[] getDoubleItemsArray() { return doubleItems; }
@@ -215,14 +237,6 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   int getMinK() { return minK; }
-
-  @Override
-  byte[] getMinMaxByteArr() {
-    final byte[] bytesOut = new byte[2 * Double.BYTES];
-    putDoubleLE(bytesOut, 0, minDoubleItem);
-    putDoubleLE(bytesOut, Double.BYTES, maxDoubleItem);
-    return bytesOut;
-  }
 
   @Override
   byte[] getRetainedItemsByteArr() {
@@ -255,7 +269,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void incN() { n++; }
+  void incN(final int increment) { n += increment; }
 
   @Override
   void incNumLevels() {
@@ -272,13 +286,12 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   void setDoubleItemsArrayAt(final int index, final double item) { this.doubleItems[index] = item; }
 
   @Override
+  void setDoubleItemsArrayAt(final int dstIndex, final double[] srcItems, final int srcOffset, final int length) { //TODO
+    System.arraycopy(srcItems, srcOffset, doubleItems, dstIndex, length);
+  }
+
+  @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted = sorted; }
-
-  @Override
-  void setMaxItem(final double item) { this.maxDoubleItem = item; }
-
-  @Override
-  void setMinItem(final double item) { this.minDoubleItem = item; }
 
   @Override
   void setMinK(final int minK) { this.minK = minK; }

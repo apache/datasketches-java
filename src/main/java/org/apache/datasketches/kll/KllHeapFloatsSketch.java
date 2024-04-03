@@ -255,7 +255,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void incN() { n++; }
+  void incN(final int increment) { n += increment; }
 
   @Override
   void incNumLevels() {
