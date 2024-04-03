@@ -434,7 +434,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   /**
    * Vector update of min and max.
    * @param srcItems the input source array of values, no NaNs allowed.
-   * @param offset the starting offset in srcItems
+   * @param srcOffset the starting offset in srcItems
    * @param length the number of items to update min and max
    */
   private void updateMinMax(final double[] srcItems, final int srcOffset, final int length) {
