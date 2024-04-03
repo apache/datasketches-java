@@ -389,19 +389,18 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (length == 0) { return; }
     if (!hasNaN(items, offset, length)) {
       updateDouble(items, offset, length); //fast path
+      doublesSV = null;
       return;
     }
     //has at least one NaN
-    boolean oneUpdate = false;
     final int end = offset + length;
     for (int i = offset; i < end; i++) {
       final double v = items[i];
       if (!Double.isNaN(v)) {
         updateDouble(this, v); //normal path
-        oneUpdate = true;
+        doublesSV = null;
       }
     }
-    if (oneUpdate) { doublesSV = null; }
   }
 
   // No NaNs are allowed at this point
@@ -449,7 +448,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   private static boolean hasNaN(final double[] items, final int offset, final int length) {
     final int end = offset + length;
     for (int i = offset; i < end; i++) {
-      if (Double.isNaN(items[i])) { return true; } else { continue; }
+      if (Double.isNaN(items[i])) { return true; }
     }
     return false;
   }
