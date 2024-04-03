@@ -176,13 +176,12 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   public double getMaxItem() {
-    if (Double.isNaN(maxDoubleItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if (isEmpty() || Double.isNaN(maxDoubleItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
     return maxDoubleItem;
   }
 
   @Override
   String getMaxItemAsString() {
-    if (Double.isNaN(maxDoubleItem)) { return "NaN"; }
     return Double.toString(maxDoubleItem);
   }
 
@@ -191,13 +190,12 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   public double getMinItem() {
-    if (Double.isNaN(minDoubleItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if (isEmpty() || Double.isNaN(minDoubleItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
     return minDoubleItem;
   }
 
   @Override
   String getMinItemAsString() {
-    if (Double.isNaN(minDoubleItem)) { return "NaN"; }
     return Double.toString(minDoubleItem);
   }
 

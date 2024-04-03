@@ -268,12 +268,13 @@ public class KllDirectDoublesSketchTest {
   public void mergeMinAndMaxFromOther() {
     final KllDoublesSketch sketch1 = getUpdatableDirectDoublesSketch(200, 0);
     final KllDoublesSketch sketch2 = getUpdatableDirectDoublesSketch(200, 0);
-    for (int i = 1; i <= 1_000_000; i++) {
+    final int n = 1_000_000;
+    for (int i = 1; i <= n; i++) {
       sketch1.update(i);
     }
     sketch2.merge(sketch1);
     assertEquals(sketch2.getMinItem(), 1);
-    assertEquals(sketch2.getMaxItem(), 1_000_000);
+    assertEquals(sketch2.getMaxItem(), n);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

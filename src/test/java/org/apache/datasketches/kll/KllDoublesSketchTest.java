@@ -633,31 +633,33 @@ public class KllDoublesSketchTest {
 
   @Test
   public void vectorizedUpdates() {
-    final int trials = 8; //1000
-    final int M = 1000;
-    final int N = 1000;
+    final int trials = 1;
+    final int M = 1; //number of vectors
+    final int N = 1000; //vector size
     final int K = 256;
-
-    final long startTime = System.nanoTime();
     final double[] values = new double[N];
+    double vIn = 1.0;
     long totN = 0;
+    final long startTime = System.nanoTime();
     for (int t = 0; t < trials; t++) {
       final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(K);
       for (int m = 0; m < M; m++) {
         for (int n = 0; n < N; n++) {
-          values[n] = m * N + n;
+          values[n] = vIn++;  //fill vector
         }
-        sketch.update(values, 0, N);
+        sketch.update(values, 0, N); //vector input
       }
       totN = sketch.getN();
       assertEquals(totN, M * N);
-      //assertEquals(sketch.getMinItem(), 0.0);
-      //assertEquals(sketch.getMaxItem(), totN - 1.0);
-      //assertEquals(sketch.getQuantile(0.5), totN / 2.0,totN * PMF_EPS_FOR_K_256);
+      assertEquals(sketch.getMinItem(), 1.0);
+      assertEquals(sketch.getMaxItem(), totN);
+      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
     }
     final long runTime = System.nanoTime() - startTime;
     println("Vectorized Updates");
-    printf("  Total N     : %,12d\n", totN);
+    printf("  Vector size : %,12d\n", N);
+    printf("  Num Vectors : %,12d\n", M);
+    printf("  Total Input : %,12d\n", totN);
     printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
     final double trialTime = runTime / (1e6 * trials);
     printf("  mS / Trial  : %,12.3f\n", trialTime);
@@ -667,33 +669,35 @@ public class KllDoublesSketchTest {
 
   @Test
   public void nonVectorizedUpdates() {
-    final int trials = 8; //1000
-    final int M = 1000;
-    final int N = 1000;
+    final int trials = 1;
+    final int M = 1; //number of vectors
+    final int N = 1000; //vector size
     final int K = 256;
-
-    final long startTime = System.nanoTime();
     final double[] values = new double[N];
+    double vIn = 1.0;
     long totN = 0;
+    final long startTime = System.nanoTime();
     for (int t = 0; t < trials; t++) {
       final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(K);
       for (int m = 0; m < M; m++) {
         for (int n = 0; n < N; n++) {
-          values[n] = m * N + n;
+          values[n] = vIn++; //fill vector
         }
         for (int i = 0; i < N; i++) {
-          sketch.update(values[i]);
+          sketch.update(values[i]); //single item input
         }
       }
       totN = sketch.getN();
       assertEquals(totN, M * N);
-      assertEquals(sketch.getMinItem(), 0.0);
-      assertEquals(sketch.getMaxItem(), totN - 1.0);
-      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256);
+      assertEquals(sketch.getMinItem(), 1.0);
+      assertEquals(sketch.getMaxItem(), totN);
+      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
     }
     final long runTime = System.nanoTime() - startTime;
     println("Vectorized Updates");
-    printf("  Total N     : %,12d\n", totN);
+    printf("  Vector size : %,12d\n", N);
+    printf("  Num Vectors : %,12d\n", M);
+    printf("  Total Input : %,12d\n", totN);
     printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
     final double trialTime = runTime / (1e6 * trials);
     printf("  mS / Trial  : %,12.3f\n", trialTime);

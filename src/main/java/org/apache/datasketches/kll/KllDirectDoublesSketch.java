@@ -133,58 +133,50 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
 
   @Override
   public double getMaxItem() {
-    final double maxItem = getMaxItemInternal();
-    if (sketchStructure == COMPACT_EMPTY || Double.isNaN(maxItem)) {
-      throw new SketchesArgumentException(EMPTY_MSG);
-    }
-    return maxItem;
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
+    return wmem.getDouble(offset);
+  }
+
+  @Override
+  double getMaxItemInternal() {
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Double.NaN; }
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
+    return wmem.getDouble(offset);
   }
 
   @Override
   String getMaxItemAsString() {
     final double maxItem = getMaxItemInternal();
-    return Double.isNaN(maxItem) ? "NaN" : Double.toString(maxItem);
-  }
-
-  @Override
-  double getMaxItemInternal() {
-    int levelsArrBytes = 0;
-    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
-    else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
-    } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
-    }
-    final int offset =  DATA_START_ADR + levelsArrBytes + ITEM_BYTES;
-    return wmem.getDouble(offset);
+    return Double.toString(maxItem);
   }
 
   @Override
   public double getMinItem() {
-    final double minItem = getMinItemInternal();
-    if (sketchStructure == COMPACT_EMPTY || Double.isNaN(minItem)) {
-      throw new SketchesArgumentException(EMPTY_MSG);
-    }
-    return minItem;
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
+    return wmem.getDouble(offset);
+  }
+
+  @Override
+  double getMinItemInternal() {
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Double.NaN; }
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
+    return wmem.getDouble(offset);
   }
 
   @Override
   String getMinItemAsString() {
     final double minItem = getMinItemInternal();
-    return Double.isNaN(minItem) ? "NaN" : Double.toString(minItem);
-  }
-
-  @Override
-  double getMinItemInternal() {
-    int levelsArrBytes = 0;
-    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
-    else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
-    } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
-    }
-    final int offset =  DATA_START_ADR + levelsArrBytes;
-    return wmem.getDouble(offset);
+    return Double.toString(minItem);
   }
 
   @Override
