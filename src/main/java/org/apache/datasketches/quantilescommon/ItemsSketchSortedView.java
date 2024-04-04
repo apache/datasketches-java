@@ -40,7 +40,7 @@ import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequalit
 public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   private static final double PARTITIONING_ERROR_FACTOR = 2.0;
   private final T[] quantiles;
-  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
+  private final long[] cumWeights; //cumulative natural weights
   private final long totalN;
   private final Comparator<? super T> comparator;
   private final T maxItem;

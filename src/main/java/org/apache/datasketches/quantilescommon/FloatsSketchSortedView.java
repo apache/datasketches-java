@@ -30,12 +30,12 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public final class DoublesSketchSortedView implements DoublesSortedView {
-  private final double[] quantiles;
+public class FloatsSketchSortedView implements FloatsSortedView {
+  private final float[] quantiles;
   private final long[] cumWeights; //cumulative natural weights
   private final long totalN;
-  private final double maxItem;
-  private final double minItem;
+  private final float maxItem;
+  private final float minItem;
 
   /**
    * Construct from elements, also used in testing.
@@ -45,8 +45,8 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    * @param maxItem of type double
    * @param minItem of type double
    */
-  public DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN,
-      final double maxItem, final double minItem) {
+  public FloatsSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN,
+      final float maxItem, final float minItem) {
     this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
@@ -60,12 +60,12 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public double getMaxItem() {
+  public float getMaxItem() {
     return maxItem;
   }
 
   @Override
-  public double getMinItem() {
+  public float getMinItem() {
     return minItem;
   }
 
@@ -80,7 +80,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+  public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
@@ -94,12 +94,12 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public double[] getQuantiles() {
+  public float[] getQuantiles() {
     return quantiles.clone();
   }
 
   @Override
-  public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
+  public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
@@ -116,8 +116,8 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public DoublesSortedViewIterator iterator() {
-    return new DoublesSortedViewIterator(quantiles, cumWeights);
+  public FloatsSortedViewIterator iterator() {
+    return new FloatsSortedViewIterator(quantiles, cumWeights);
   }
 
 }

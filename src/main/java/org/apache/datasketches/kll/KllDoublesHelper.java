@@ -30,8 +30,6 @@ import java.util.Random;
 
 import org.apache.datasketches.memory.WritableMemory;
 
-//
-//
 /**
  * Static methods to support KllDoublesSketch
  * @author Kevin Lang
@@ -453,14 +451,14 @@ final class KllDoublesHelper {
       workLevels[lvl + 1] = workLevels[lvl] + selfPop + otherPop;
       assert selfPop >= 0 && otherPop >= 0;
       if (selfPop == 0 && otherPop == 0) { continue; }
-      else if (selfPop > 0 && otherPop == 0) {
+      if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);
       }
       else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherDoubleItemsArr, otherLevelsArr[lvl], workBuf, workLevels[lvl], otherPop);
       }
       else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedDoubleArrays( //only workbuf is modified
+        mergeSortedDoubleArrays( //only workBuf is modified
             myCurDoubleItemsArr, myCurLevelsArr[lvl], selfPop,
             otherDoubleItemsArr, otherLevelsArr[lvl], otherPop,
             workBuf, workLevels[lvl]);

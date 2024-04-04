@@ -44,7 +44,7 @@ public final class ReflectUtilityTest {
 
   static {
     REQ_SV = getClass("org.apache.datasketches.req.ReqSketchSortedView");
-    KLL_FLOATS_SV = getClass("org.apache.datasketches.kll.KllFloatsSketchSortedView");
+    KLL_FLOATS_SV = getClass("org.apache.datasketches.quantilescommon.FloatsSketchSortedView");
     DOUBLES_SV = getClass("org.apache.datasketches.quantilescommon.DoublesSketchSortedView");
 
     REQ_SV_CTOR =

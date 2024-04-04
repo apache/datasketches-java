@@ -638,14 +638,6 @@ public class KllDirectDoublesSketchTest {
   }
 
   @Test
-  public void checkMergeExceptionsWrongType() {
-    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
-    KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
-    try { sk1.merge(sk2); fail(); } catch (ClassCastException e) { }
-    try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
-  }
-
-  @Test
   public void checkVectorUpdate() {
     WritableMemory dstMem = WritableMemory.allocate(6000);
     KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
@@ -673,6 +665,14 @@ public class KllDirectDoublesSketchTest {
     return ddsk;
   }
 
+  @Test
+  public void checkMergeExceptionsWrongType() {
+    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
+    KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
+    try { sk1.merge(sk2); fail(); } catch (ClassCastException e) { }
+    try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
+  }
+  
   private final static boolean enablePrinting = false;
 
   /**

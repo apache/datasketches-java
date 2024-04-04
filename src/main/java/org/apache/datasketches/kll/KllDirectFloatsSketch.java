@@ -116,7 +116,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     return new KllDirectFloatsSketch(UPDATABLE, wMem, memReqSvr, memVal);
   }
 
-  //END of Constructors
+  //End of Constructors
 
   @Override
   String getItemAsString(final int index) {
@@ -129,46 +129,72 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     return getMemoryK(wmem);
   }
 
+  //MinMax Methods
+  
   @Override
   public float getMaxItem() {
-    int levelsArrBytes = 0;
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    else if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
-    else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
-    } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
-    }
-    final int offset =  DATA_START_ADR + levelsArrBytes + ITEM_BYTES;
+    if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
     return wmem.getFloat(offset);
   }
 
   @Override
+  float getMaxItemInternal() {
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Float.NaN; }
+    if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
+    return wmem.getFloat(offset);
+  }
+  
+  @Override
   String getMaxItemAsString() {
-    if (isEmpty()) { return "NaN"; }
-    return Float.toString(getMaxItem());
+    final float maxItem = getMaxItemInternal();
+    return Float.toString(maxItem);
   }
 
   @Override
   public float getMinItem() {
-    int levelsArrBytes = 0;
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    else if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
-    else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
-    } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
-    }
-    final int offset =  DATA_START_ADR + levelsArrBytes;
+    if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
+    return wmem.getFloat(offset);
+  }
+
+  @Override
+  float getMinItemInternal() {
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Float.NaN; }
+    if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
     return wmem.getFloat(offset);
   }
 
   @Override
   String getMinItemAsString() {
-    if (isEmpty()) { return "NaN"; }
-    return Float.toString(getMinItem());
+    final float minItem = getMinItemInternal();
+    return Float.toString(minItem);
   }
 
+  @Override
+  void setMaxItem(final float item) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
+    wmem.putFloat(offset, item);
+  }
+
+  @Override
+  void setMinItem(final float item) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
+    wmem.putFloat(offset, item);
+  }
+  
+  //END MinMax Methods
+  
   @Override
   public long getN() {
     if (sketchStructure == COMPACT_EMPTY) { return 0; }
@@ -176,7 +202,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     else { return getMemoryN(wmem); }
   }
 
-  //restricted
+  //other restricted
 
   @Override //returns updatable, expanded array including free space at bottom
   float[] getFloatItemsArray() {
@@ -317,23 +343,16 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
+  void setFloatItemsArrayAt(final int index, final float[] items, final int srcOffset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
+    wmem.putFloatArray(offset, items, srcOffset, length);
+  }
+  
+  @Override
   void setLevelZeroSorted(final boolean sorted) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     setMemoryLevelZeroSortedFlag(wmem, sorted);
-  }
-
-  @Override
-  void setMaxItem(final float item) {
-    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    wmem.putFloat(offset, item);
-  }
-
-  @Override
-  void setMinItem(final float item) {
-    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    wmem.putFloat(offset, item);
   }
 
   @Override
