@@ -63,7 +63,6 @@ public class ReqSketchTest {
           + " up=" + up + " hra=" + hra + " criterion=" + crit + LS);
     }
     final ReqSketch sk = loadSketch(k, min, max, up, hra, skDebug);
-    final FloatsSketchSortedView sv = sk.getSortedView();
     checkToString(sk, iDebug);
     checkSortedView(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);

@@ -98,7 +98,6 @@ public final class TestUtil  {
     if (!file.setWritable(false, false)) {
       throw new IllegalStateException("Failed to set everyone 'Not Writable' on file");
     }
-    System.out.println("HERE1");
     return file;
   }
 
@@ -123,7 +122,6 @@ public final class TestUtil  {
         out = Files.readAllBytes(Paths.get(getResourcePath(url)));
       } catch (final IOException e) { throw new RuntimeException(e); }
     }
-    System.out.println("HERE2");
     return out;
   }
 
