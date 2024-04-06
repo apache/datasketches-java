@@ -77,7 +77,7 @@ public final class TestUtil  {
   public static File getResourceFile(final String shortFileName) {
     Objects.requireNonNull(shortFileName, "input parameter 'String shortFileName' cannot be null.");
     final String slashName = (shortFileName.charAt(0) == '/') ? shortFileName : '/' + shortFileName;
-    final URL url = Util.class.getResource(slashName);
+    final URL url = TestUtil.class.getResource(slashName);
     Objects.requireNonNull(url, "resource " + slashName + " returns null URL.");
     File file;
     file = createTempFile(slashName);
@@ -110,7 +110,7 @@ public final class TestUtil  {
   public static byte[] getResourceBytes(final String shortFileName) {
     Objects.requireNonNull(shortFileName, "input parameter 'String shortFileName' cannot be null.");
     final String slashName = (shortFileName.charAt(0) == '/') ? shortFileName : '/' + shortFileName;
-    final URL url = Util.class.getResource(slashName);
+    final URL url = TestUtil.class.getResource(slashName);
     Objects.requireNonNull(url, "resource " + slashName + " returns null URL.");
     final byte[] out;
     if (url.getProtocol().equals("jar")) { //definitely a jar

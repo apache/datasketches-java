@@ -32,8 +32,10 @@ public class KllFloatsSketchSerDeTest {
 
   @Test
   public void serializeDeserializeEmpty() {
-    final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance();
-    //from heap -> byte[] -> heap
+    final int N = 20;
+    
+    final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(N);
+    //Empty: from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();
     final KllFloatsSketch sk2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sk1.getSerializedSizeBytes());
@@ -44,7 +46,8 @@ public class KllFloatsSketchSerDeTest {
     try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
-    //from heap -> byte[] -> off heap
+    
+    //Empty: from heap -> byte[] -> off heap
     final KllFloatsSketch sk3 = KllFloatsSketch.wrap(Memory.wrap(bytes));
     assertTrue(sk3.isEmpty());
     assertEquals(sk3.getNumRetained(), sk1.getNumRetained());
@@ -62,6 +65,7 @@ public class KllFloatsSketchSerDeTest {
   public void serializeDeserializeOneValue() {
     final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance();
     sk1.update(1);
+
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();
     final KllFloatsSketch sk2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
@@ -73,6 +77,7 @@ public class KllFloatsSketchSerDeTest {
     assertEquals(sk2.getMinItem(), 1.0F);
     assertEquals(sk2.getMaxItem(), 1.0F);
     assertEquals(sk2.getSerializedSizeBytes(), Long.BYTES + Float.BYTES);
+    
     //from heap -> byte[] -> off heap
     final KllFloatsSketch sk3 = KllFloatsSketch.wrap(Memory.wrap(bytes));
     assertFalse(sk3.isEmpty());
@@ -96,6 +101,7 @@ public class KllFloatsSketchSerDeTest {
     }
     assertEquals(sk1.getMinItem(), 0.0f);
     assertEquals(sk1.getMaxItem(), 999.0f);
+    
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();
     final KllFloatsSketch sk2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
@@ -107,6 +113,7 @@ public class KllFloatsSketchSerDeTest {
     assertEquals(sk2.getMinItem(), sk1.getMinItem());
     assertEquals(sk2.getMaxItem(), sk1.getMaxItem());
     assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    
     //from heap -> byte[] -> off heap
     final KllFloatsSketch sk3 = KllFloatsSketch.wrap(Memory.wrap(bytes));
     assertFalse(sk3.isEmpty());

@@ -40,7 +40,6 @@ import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.kll.KllFloatsSketchSortedView;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.quantiles.DoublesSketch;
@@ -142,7 +141,7 @@ public class CrossCheckQuantilesTest {
   ItemsSketch<String> itemsSk = null;
 
   ReqSketchSortedView reqFloatsSV = null;
-  KllFloatsSketchSortedView kllFloatsSV = null;
+  FloatsSketchSortedView kllFloatsSV = null;
   DoublesSketchSortedView kllDoublesSV = null;
   DoublesSketchSortedView classicDoublesSV = null;
   ItemsSketchSortedView<String> kllItemsSV = null;
@@ -356,10 +355,10 @@ public class CrossCheckQuantilesTest {
     return (ReqSketchSortedView) REQ_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
   }
 
-  private final static KllFloatsSketchSortedView getRawKllFloatsSV(
+  private final static FloatsSketchSortedView getRawKllFloatsSV(
       final float[] values, final long[] cumWeights, final long totalN, final float maxItem, final float minItem)
           throws Exception {
-    return (KllFloatsSketchSortedView) KLL_FLOATS_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
+    return (FloatsSketchSortedView) KLL_FLOATS_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
   }
 
   private final static DoublesSketchSortedView getRawDoublesSV(
