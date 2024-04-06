@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertThrows;
-
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 public class BloomFilterBuilderTest {
 
@@ -61,15 +61,81 @@ public class BloomFilterBuilderTest {
     // invalid number of hashes
     assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(1000, -1, 123));
     assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(1000, 65536, 123));
-  
+
     // invalid number of bits
     assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(0, 3, 456));
-    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(BloomFilter.MAX_SIZE + 1, 3, 456));
-  
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createBySize(BloomFilter.MAX_SIZE_BITS + 1, 3, 456));
+
     final BloomFilter bf = BloomFilterBuilder.createBySize(1L << 21, 3);
     assertEquals(bf.getCapacity(), 1 << 21L);
     assertEquals(bf.getNumHashes(), 3);
     assertEquals(bf.getBitsUsed(), 0);
+  }
+
+  @Test
+  public void testCreateFromAccuracy() {
+    // invalid number of distinct items
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createByAccuracy(-1, 0.01));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createByAccuracy(1L << 40, 0.01));
+
+    // invalid probabilities
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createByAccuracy(20000, -0.5));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.createByAccuracy(20000, 2.0));
+
+    final long numDistinct = 30000;
+    final double fpp = 0.001;
+    final BloomFilter bf = BloomFilterBuilder.createByAccuracy(numDistinct, fpp);
+    // filter rounds size up to nearest multiple of 64
+    assertEquals(bf.getCapacity(), (long) Math.ceil(BloomFilterBuilder.suggestNumFilterBits(numDistinct, fpp) / 64.0) * 64);
+    assertEquals(bf.getNumHashes(), BloomFilterBuilder.suggestNumHashes(fpp));
+  }
+
+  @Test
+  public void testInitializeFromSize() {
+    final long numBits = 50000;
+    final short numHashes = 7;
+    final long numBytes = BloomFilterBuilder.getSerializedFilterSize(numBits);
+    final WritableMemory wmem = WritableMemory.allocate((int) numBytes);
+
+    // invalid number of bits
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeBySize(-1, numHashes, wmem));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeBySize(1L << 40, numHashes, wmem));
+
+    // invalid number of hashes
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeBySize(numBits, -3, wmem));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeBySize(numBits, 100_000, wmem));
+
+    // memory too small
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeBySize(numBits, numHashes, WritableMemory.allocate(32)));
+
+    final BloomFilter bf = BloomFilterBuilder.initializeBySize(numBits, numHashes, wmem);
+    // filter rounds size up to nearest multiple of 64
+    assertEquals(bf.getCapacity(), (long) Math.ceil(numBits / 64.0) * 64);
+    assertEquals(bf.getNumHashes(), numHashes);
+  }
+
+  @Test
+  public void testInitializeFromAccuracy() {
+    final long numDistinct = 30000;
+    final double fpp = 0.001;
+    final long numBytes = BloomFilterBuilder.getSerializedFilterSizeByAccuracy(numDistinct, fpp);
+    final WritableMemory wmem = WritableMemory.allocate((int) numBytes);
+
+    // invalid number of distinct items
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeByAccuracy(-1, fpp, wmem));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeByAccuracy(1L << 40, fpp, wmem));
+
+    // invalid probabilities
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeByAccuracy(numDistinct, -0.5, wmem));
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeByAccuracy(numDistinct, 2.0, wmem));
+
+    // memory too small
+    assertThrows(SketchesArgumentException.class, () -> BloomFilterBuilder.initializeByAccuracy(numDistinct, fpp, WritableMemory.allocate(32)));
+
+    final BloomFilter bf = BloomFilterBuilder.initializeByAccuracy(numDistinct, fpp, wmem);
+    // filter rounds size up to nearest multiple of 64
+    assertEquals(bf.getCapacity(), (long) Math.ceil(BloomFilterBuilder.suggestNumFilterBits(numDistinct, fpp) / 64.0) * 64);
+    assertEquals(bf.getNumHashes(), BloomFilterBuilder.suggestNumHashes(fpp));
   }
 
   @Test

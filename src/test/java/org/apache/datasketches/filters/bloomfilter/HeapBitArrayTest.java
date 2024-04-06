@@ -21,6 +21,7 @@ package org.apache.datasketches.filters.bloomfilter;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -28,30 +29,34 @@ import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-public class BitArrayTest {
+public class HeapBitArrayTest {
 
   @Test
   public void createBitArrayTest() {
-    final BitArray ba = new BitArray(119);
+    final HeapBitArray ba = new HeapBitArray(119);
     assertEquals(ba.getCapacity(), 128); // nearest multiple of 64
     assertEquals(ba.getArrayLength(), 2);
     assertEquals(ba.getNumBitsSet(), 0);
     assertTrue(ba.isEmpty());
+
+    assertFalse(ba.hasMemory());
+    assertFalse(ba.isDirect());
+    assertFalse(ba.isReadOnly());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void createNegativeSizeBitArrayTest() {
-    new BitArray(-64);
+    new HeapBitArray(-64);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void createTooLargeBitArrayTest() {
-    new BitArray(1L + (long) Integer.MAX_VALUE * Long.SIZE);
+    new HeapBitArray(1L + (long) Integer.MAX_VALUE * Long.SIZE);
   }
 
   @Test
   public void basicOperationTest() {
-    final BitArray ba = new BitArray(128);
+    final HeapBitArray ba = new HeapBitArray(128);
     assertEquals(ba.getAndSetBit(1), false);
     assertEquals(ba.getAndSetBit(2), false);
     for (int i = 4; i < 64; i <<= 1) {
@@ -60,7 +65,7 @@ public class BitArrayTest {
     assertEquals(ba.getNumBitsSet(), 6);
     assertEquals(ba.getBit(68), true);
     assertFalse(ba.isEmpty());
-    
+
     assertFalse(ba.getBit(5));
     ba.setBit(5);
     assertTrue(ba.getAndSetBit(5));
@@ -69,12 +74,25 @@ public class BitArrayTest {
     ba.reset();
     assertTrue(ba.isEmpty());
     assertEquals(ba.getNumBitsSet(), 0);
+
+    assertTrue(String.valueOf(ba).length() > 0);
+  }
+
+  @Test
+  public void bitAddresOutOfBoundsTest() {
+    final HeapBitArray ba = new HeapBitArray(1024);
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getBit(-10));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getBit(2048));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.setBit(-20));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.setBit(4096));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getAndSetBit(-30));
+    assertThrows(ArrayIndexOutOfBoundsException.class, () -> ba.getAndSetBit(8192));
   }
 
   @Test
   public void inversionTest() {
     final int numBits = 1024;
-    final BitArray ba = new BitArray(numBits);
+    final HeapBitArray ba = new HeapBitArray(numBits);
     for (int i = 0; i < numBits; i += numBits / 8) {
       ba.getAndSetBit(i);
     }
@@ -84,27 +102,33 @@ public class BitArrayTest {
     ba.invert();
 
     assertEquals(ba.getNumBitsSet(), numBits - numSet);
-    assertFalse(ba.getBit(0));    
+    assertFalse(ba.getBit(0));
+
+    // update to make dirty and invert again
+    ba.setBit(0);
+    ba.invert();
+    assertEquals(ba.getNumBitsSet(), numSet - 1);
+    assertFalse(ba.getBit(0));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidUnionTest() {
-    final BitArray ba = new BitArray(128);
-    ba.union(new BitArray(64));
+    final HeapBitArray ba = new HeapBitArray(128);
+    ba.union(new HeapBitArray(64));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidIntersectionTest() {
-    final BitArray ba = new BitArray(128);
-    ba.intersect(new BitArray(64));
+    final HeapBitArray ba = new HeapBitArray(128);
+    ba.intersect(new HeapBitArray(64));
   }
 
   @Test
   public void validUnionAndIntersectionTest() {
-    final BitArray ba1 = new BitArray(64);
-    final BitArray ba2 = new BitArray(64);
-    final BitArray ba3 = new BitArray(64);
-    
+    final HeapBitArray ba1 = new HeapBitArray(64);
+    final HeapBitArray ba2 = new HeapBitArray(64);
+    final HeapBitArray ba3 = new HeapBitArray(64);
+
     final int n = 10;
     for (int i = 0; i < n; ++i) {
       ba1.getAndSetBit(i);
@@ -124,11 +148,11 @@ public class BitArrayTest {
 
   @Test
   public void serializeEmptyTest() {
-    final BitArray ba = new BitArray(64);
+    final HeapBitArray ba = new HeapBitArray(64);
     final WritableBuffer wbuf = WritableMemory.allocate((int) ba.getSerializedSizeBytes()).asWritableBuffer();
     ba.writeToBuffer(wbuf);
     wbuf.resetPosition();
-    final BitArray newBA = BitArray.heapify(wbuf, true);
+    final HeapBitArray newBA = HeapBitArray.heapify(wbuf, true);
     assertEquals(newBA.getArrayLength(), ba.getArrayLength());
     assertEquals(newBA.getCapacity(), ba.getCapacity());
     assertEquals(newBA.getNumBitsSet(), ba.getNumBitsSet());
@@ -138,13 +162,13 @@ public class BitArrayTest {
   @Test
   public void serializeNonEmptyTest() {
     final long n = 8192;
-    final BitArray ba = new BitArray(n);
+    final HeapBitArray ba = new HeapBitArray(n);
     for (int i = 0; i < n; i += 3)
       ba.getAndSetBit(i);
     final WritableBuffer wbuf = WritableMemory.allocate((int) ba.getSerializedSizeBytes()).asWritableBuffer();
     ba.writeToBuffer(wbuf);
     wbuf.resetPosition();
-    final BitArray newBA = BitArray.heapify(wbuf, false);
+    final HeapBitArray newBA = HeapBitArray.heapify(wbuf, false);
     assertEquals(newBA.getArrayLength(), ba.getArrayLength());
     assertEquals(newBA.getCapacity(), ba.getCapacity());
     assertEquals(newBA.getNumBitsSet(), ba.getNumBitsSet());

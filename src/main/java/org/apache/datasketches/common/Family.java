@@ -157,11 +157,11 @@ public enum Family {
    * t-Digest for estimating quantiles and ranks
    */
   TDIGEST(20, "TDigest", 1, 2),
-  
+
   /**
    * Bloom Filter
    */
-  BLOOMFILTER(21, "BLOOMFILTER", 4, 4);
+  BLOOMFILTER(21, "BLOOMFILTER", 3, 4);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
