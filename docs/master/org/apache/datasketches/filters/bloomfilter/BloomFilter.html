@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":9,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":10,"i25":10,"i26":10,"i27":10,"i28":10,"i29":10,"i30":10,"i31":10,"i32":10,"i33":10,"i34":10,"i35":10,"i36":10,"i37":10,"i38":10,"i39":10,"i40":10,"i41":10,"i42":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":9,"i6":10,"i7":10,"i8":9,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":10,"i25":10,"i26":10,"i27":10,"i28":10,"i29":10,"i30":10,"i31":10,"i32":10,"i33":10,"i34":10,"i35":10,"i36":10,"i37":10,"i38":10,"i39":10,"i40":10,"i41":10,"i42":10,"i43":10,"i44":10,"i45":10,"i46":10,"i47":9,"i48":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -90,13 +90,13 @@ loadScripts(document, 'script');</script>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -163,6 +163,29 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colSecond" scope="col">Field</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#MAX_SIZE_BITS">MAX_SIZE_BITS</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
+</section>
 <!-- ========== METHOD SUMMARY =========== -->
 <section>
 <ul class="blockList">
@@ -213,48 +236,76 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>static long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializedSize(long)">getSerializedSize</a></span>&#8203;(long&nbsp;numBits)</code></th>
+<td class="colLast">
+<div class="block">Returns the serialized length of a non-empty BloomFilter of the given size, in bytes</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializedSizeBytes()">getSerializedSizeBytes</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the length of this BloomFilter when serialized, in bytes</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#hasMemory()">hasMemory</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Returns whether the filter has a backing Memory object</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapify(org.apache.datasketches.memory.Memory)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
 <td class="colLast">
 <div class="block">Reads a serialized image of a BloomFilter from the provided Memory</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#intersect(org.apache.datasketches.filters.bloomfilter.BloomFilter)">intersect</a></span>&#8203;(<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;other)</code></th>
 <td class="colLast">
 <div class="block">Intersects two BloomFilters by applying a logical AND.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#invert()">invert</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Inverts all the bits of the BloomFilter.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isCompatible(org.apache.datasketches.filters.bloomfilter.BloomFilter)">isCompatible</a></span>&#8203;(<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;other)</code></th>
 <td class="colLast">
 <div class="block">Helps identify if two BloomFilters may be unioned or intersected.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isDirect()">isDirect</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Returns whether the filter is a direct (off-heap) or on-heap object.</div>
+</td>
+</tr>
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Checks if the BloomFilter has processed any items</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isReadOnly()">isReadOnly</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Returns whether the filter is in read-only mode.</div>
+</td>
+</tr>
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(byte%5B%5D)">query</a></span>&#8203;(byte[]&nbsp;data)</code></th>
 <td class="colLast">
@@ -262,7 +313,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  array <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(char%5B%5D)">query</a></span>&#8203;(char[]&nbsp;data)</code></th>
 <td class="colLast">
@@ -270,7 +321,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  array <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(double)">query</a></span>&#8203;(double&nbsp;item)</code></th>
 <td class="colLast">
@@ -278,7 +329,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  value <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(int%5B%5D)">query</a></span>&#8203;(int[]&nbsp;data)</code></th>
 <td class="colLast">
@@ -286,7 +337,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  array <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(long)">query</a></span>&#8203;(long&nbsp;item)</code></th>
 <td class="colLast">
@@ -294,7 +345,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  value <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(long%5B%5D)">query</a></span>&#8203;(long[]&nbsp;data)</code></th>
 <td class="colLast">
@@ -302,7 +353,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  array <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(short%5B%5D)">query</a></span>&#8203;(short[]&nbsp;data)</code></th>
 <td class="colLast">
@@ -310,7 +361,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  array <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(java.lang.String)">query</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;item)</code></th>
 <td class="colLast">
@@ -318,7 +369,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  value <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#query(org.apache.datasketches.memory.Memory)">query</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
 <td class="colLast">
@@ -326,173 +377,183 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  data <em>might</em> have been seen previously.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(byte%5B%5D)">queryAndUpdate</a></span>&#8203;(byte[]&nbsp;data)</code></th>
 <td class="colLast">
-<div class="block">Updates the filter with the provided byte[] and 
+<div class="block">Updates the filter with the provided byte[] and
  returns the result from quering that array prior to the update.</div>
-</td>
-</tr>
-<tr id="i21" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(char%5B%5D)">queryAndUpdate</a></span>&#8203;(char[]&nbsp;data)</code></th>
-<td class="colLast">
-<div class="block">Updates the filter with the provided char[] and 
- returns the result from quering that array prior to the update.</div>
-</td>
-</tr>
-<tr id="i22" class="altColor">
-<td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(double)">queryAndUpdate</a></span>&#8203;(double&nbsp;item)</code></th>
-<td class="colLast">
-<div class="block">Updates the filter with the provided double and 
- returns the result from quering that value prior to the update.</div>
-</td>
-</tr>
-<tr id="i23" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(int%5B%5D)">queryAndUpdate</a></span>&#8203;(int[]&nbsp;data)</code></th>
-<td class="colLast">
-<div class="block">Updates the filter with the provided int[] and 
- returns the result from quering that array prior to the update.</div>
-</td>
-</tr>
-<tr id="i24" class="altColor">
-<td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(long)">queryAndUpdate</a></span>&#8203;(long&nbsp;item)</code></th>
-<td class="colLast">
-<div class="block">Updates the filter with the provided long and 
- returns the result from quering that value prior to the update.</div>
 </td>
 </tr>
 <tr id="i25" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(long%5B%5D)">queryAndUpdate</a></span>&#8203;(long[]&nbsp;data)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(char%5B%5D)">queryAndUpdate</a></span>&#8203;(char[]&nbsp;data)</code></th>
 <td class="colLast">
-<div class="block">Updates the filter with the provided long[] and 
+<div class="block">Updates the filter with the provided char[] and
  returns the result from quering that array prior to the update.</div>
 </td>
 </tr>
 <tr id="i26" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(short%5B%5D)">queryAndUpdate</a></span>&#8203;(short[]&nbsp;data)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(double)">queryAndUpdate</a></span>&#8203;(double&nbsp;item)</code></th>
 <td class="colLast">
-<div class="block">Updates the filter with the provided short[] and 
- returns the result from quering that array prior to the update.</div>
+<div class="block">Updates the filter with the provided double and
+ returns the result from quering that value prior to the update.</div>
 </td>
 </tr>
 <tr id="i27" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(java.lang.String)">queryAndUpdate</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;item)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(int%5B%5D)">queryAndUpdate</a></span>&#8203;(int[]&nbsp;data)</code></th>
 <td class="colLast">
-<div class="block">Updates the filter with the provided String and 
- returns the result from quering that value prior to the update.</div>
+<div class="block">Updates the filter with the provided int[] and
+ returns the result from quering that array prior to the update.</div>
 </td>
 </tr>
 <tr id="i28" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(org.apache.datasketches.memory.Memory)">queryAndUpdate</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(long)">queryAndUpdate</a></span>&#8203;(long&nbsp;item)</code></th>
 <td class="colLast">
-<div class="block">Updates the filter with the provided Memory and 
- returns the result from quering that Memory prior to the update.</div>
+<div class="block">Updates the filter with the provided long and
+ returns the result from quering that value prior to the update.</div>
 </td>
 </tr>
 <tr id="i29" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(long%5B%5D)">queryAndUpdate</a></span>&#8203;(long[]&nbsp;data)</code></th>
+<td class="colLast">
+<div class="block">Updates the filter with the provided long[] and
+ returns the result from quering that array prior to the update.</div>
+</td>
+</tr>
+<tr id="i30" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(short%5B%5D)">queryAndUpdate</a></span>&#8203;(short[]&nbsp;data)</code></th>
+<td class="colLast">
+<div class="block">Updates the filter with the provided short[] and
+ returns the result from quering that array prior to the update.</div>
+</td>
+</tr>
+<tr id="i31" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(java.lang.String)">queryAndUpdate</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;item)</code></th>
+<td class="colLast">
+<div class="block">Updates the filter with the provided String and
+ returns the result from quering that value prior to the update.</div>
+</td>
+</tr>
+<tr id="i32" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#queryAndUpdate(org.apache.datasketches.memory.Memory)">queryAndUpdate</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
+<td class="colLast">
+<div class="block">Updates the filter with the provided Memory and
+ returns the result from quering that Memory prior to the update.</div>
+</td>
+</tr>
+<tr id="i33" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#reset()">reset</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Resets the BloomFilter to an empty state</div>
 </td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i34" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toByteArray()">toByteArray</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Serializes the current BloomFilter to an array of bytes.</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i35" class="rowColor">
 <td class="colFirst"><code>long[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toLongArray()">toLongArray</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Serializes the current BloomFilter to an array of longs.</div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i36" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i33" class="rowColor">
+<tr id="i37" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#union(org.apache.datasketches.filters.bloomfilter.BloomFilter)">union</a></span>&#8203;(<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;other)</code></th>
 <td class="colLast">
 <div class="block">Unions two BloomFilters by applying a logical OR.</div>
 </td>
 </tr>
-<tr id="i34" class="altColor">
+<tr id="i38" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(byte%5B%5D)">update</a></span>&#8203;(byte[]&nbsp;data)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided byte[].</div>
 </td>
 </tr>
-<tr id="i35" class="rowColor">
+<tr id="i39" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(char%5B%5D)">update</a></span>&#8203;(char[]&nbsp;data)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided char[].</div>
 </td>
 </tr>
-<tr id="i36" class="altColor">
+<tr id="i40" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(double)">update</a></span>&#8203;(double&nbsp;item)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided double value.</div>
 </td>
 </tr>
-<tr id="i37" class="rowColor">
+<tr id="i41" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(int%5B%5D)">update</a></span>&#8203;(int[]&nbsp;data)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided int[].</div>
 </td>
 </tr>
-<tr id="i38" class="altColor">
+<tr id="i42" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(long)">update</a></span>&#8203;(long&nbsp;item)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided long value.</div>
 </td>
 </tr>
-<tr id="i39" class="rowColor">
+<tr id="i43" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(long%5B%5D)">update</a></span>&#8203;(long[]&nbsp;data)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided long[].</div>
 </td>
 </tr>
-<tr id="i40" class="altColor">
+<tr id="i44" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(short%5B%5D)">update</a></span>&#8203;(short[]&nbsp;data)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided short[].</div>
 </td>
 </tr>
-<tr id="i41" class="rowColor">
+<tr id="i45" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(java.lang.String)">update</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;item)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the provided String.</div>
 </td>
 </tr>
-<tr id="i42" class="altColor">
+<tr id="i46" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(org.apache.datasketches.memory.Memory)">update</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
 <td class="colLast">
 <div class="block">Updates the filter with the data in the provided Memory.</div>
 </td>
+</tr>
+<tr id="i47" class="rowColor">
+<td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.Memory)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i48" class="altColor">
+<td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#writableWrap(org.apache.datasketches.memory.WritableMemory)">writableWrap</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;wmem)</code></th>
+<td class="colLast">&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -511,6 +572,25 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a id="MAX_SIZE_BITS">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>MAX_SIZE_BITS</h4>
+<pre>public static final&nbsp;long MAX_SIZE_BITS</pre>
+</li>
+</ul>
+</li>
+</ul>
+</section>
 <!-- ============ METHOD DETAIL ========== -->
 <section>
 <ul class="blockList">
@@ -532,6 +612,24 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a BloomFilter object</dd>
 </dl>
+</li>
+</ul>
+<a id="wrap(org.apache.datasketches.memory.Memory)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>wrap</h4>
+<pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;wrap&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</pre>
+</li>
+</ul>
+<a id="writableWrap(org.apache.datasketches.memory.WritableMemory)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>writableWrap</h4>
+<pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;writableWrap&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;wmem)</pre>
 </li>
 </ul>
 <a id="reset()">
@@ -611,6 +709,50 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The hash seed for this filter</dd>
+</dl>
+</li>
+</ul>
+<a id="hasMemory()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>hasMemory</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;hasMemory()</pre>
+<div class="block">Returns whether the filter has a backing Memory object</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>true if backed by Memory, otherwise false</dd>
+</dl>
+</li>
+</ul>
+<a id="isReadOnly()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isReadOnly</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;isReadOnly()</pre>
+<div class="block">Returns whether the filter is in read-only mode. That is possible
+ only if there is a backing Memory in read-only mode.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>true if read-only, otherwise false</dd>
+</dl>
+</li>
+</ul>
+<a id="isDirect()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isDirect</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;isDirect()</pre>
+<div class="block">Returns whether the filter is a direct (off-heap) or on-heap object.
+ That is possible only if there is a backing Memory.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>true if using direct memory access, otherwise false</dd>
 </dl>
 </li>
 </ul>
@@ -767,7 +909,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(long&nbsp;item)</pre>
-<div class="block">Updates the filter with the provided long and 
+<div class="block">Updates the filter with the provided long and
  returns the result from quering that value prior to the update.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -784,7 +926,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(double&nbsp;item)</pre>
-<div class="block">Updates the filter with the provided double and 
+<div class="block">Updates the filter with the provided double and
  returns the result from quering that value prior to the update.
  The double is canonicalized (NaN and +/- infinity) in the call.</div>
 <dl>
@@ -802,7 +944,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;item)</pre>
-<div class="block">Updates the filter with the provided String and 
+<div class="block">Updates the filter with the provided String and
  returns the result from quering that value prior to the update.
  The string is converted to a byte array using UTF8 encoding.
 
@@ -824,7 +966,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(byte[]&nbsp;data)</pre>
-<div class="block">Updates the filter with the provided byte[] and 
+<div class="block">Updates the filter with the provided byte[] and
  returns the result from quering that array prior to the update.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -841,7 +983,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(char[]&nbsp;data)</pre>
-<div class="block">Updates the filter with the provided char[] and 
+<div class="block">Updates the filter with the provided char[] and
  returns the result from quering that array prior to the update.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -858,7 +1000,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(short[]&nbsp;data)</pre>
-<div class="block">Updates the filter with the provided short[] and 
+<div class="block">Updates the filter with the provided short[] and
  returns the result from quering that array prior to the update.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -875,7 +1017,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(int[]&nbsp;data)</pre>
-<div class="block">Updates the filter with the provided int[] and 
+<div class="block">Updates the filter with the provided int[] and
  returns the result from quering that array prior to the update.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -892,7 +1034,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(long[]&nbsp;data)</pre>
-<div class="block">Updates the filter with the provided long[] and 
+<div class="block">Updates the filter with the provided long[] and
  returns the result from quering that array prior to the update.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -909,7 +1051,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>queryAndUpdate</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;queryAndUpdate&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</pre>
-<div class="block">Updates the filter with the provided Memory and 
+<div class="block">Updates the filter with the provided Memory and
  returns the result from quering that Memory prior to the update.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -1166,6 +1308,22 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
+<a id="getSerializedSize(long)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getSerializedSize</h4>
+<pre class="methodSignature">public static&nbsp;long&nbsp;getSerializedSize&#8203;(long&nbsp;numBits)</pre>
+<div class="block">Returns the serialized length of a non-empty BloomFilter of the given size, in bytes</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>numBits</code> - The number of bits of to use for size computation</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The serialized length of a non-empty BloomFilter of the given size, in bytes</dd>
+</dl>
+</li>
+</ul>
 <a id="toByteArray()">
 <!--   -->
 </a>
@@ -1263,13 +1421,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

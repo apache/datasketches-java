@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9};
+var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -134,7 +134,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <hr>
 <pre>public final class <span class="typeNameLabel">BloomFilterBuilder</span>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
-<div class="block"><p>This class provides methods to help estimate the correct paramters to use when
+<div class="block"><p>This class provides methods to help estimate the correct parameters when
  creating a Bloom filter, and methods to create the filter using those values.</p>
 
  <p>The underlying math is described in the
@@ -186,7 +186,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#createByAccuracy(long,double)">createByAccuracy</a></span>&#8203;(long&nbsp;maxDistinctItems,
                 double&nbsp;targetFalsePositiveProb)</code></th>
 <td class="colLast">
-<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs.</div>
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using a random base seed for the hash function.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -205,7 +206,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
             int&nbsp;numHashes)</code></th>
 <td class="colLast">
 <div class="block">Creates a BloomFilter with given number of bits and number of hash functions,
- and a random seed.</div>
+ using a rnadom base seed for the hash function.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
@@ -215,10 +216,68 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
             long&nbsp;seed)</code></th>
 <td class="colLast">
 <div class="block">Creates a BloomFilter with given number of bits and number of hash functions,
- and a random seed.</div>
+ using the provided base seed for the hash function.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>static long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializedFilterSize(long)">getSerializedFilterSize</a></span>&#8203;(long&nbsp;numBits)</code></th>
+<td class="colLast">
+<div class="block">Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with the given number of bits.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>static long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializedFilterSizeByAccuracy(long,double)">getSerializedFilterSizeByAccuracy</a></span>&#8203;(long&nbsp;maxDistinctItems,
+                                 double&nbsp;targetFalsePositiveProb)</code></th>
+<td class="colLast">
+<div class="block">Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with an optimal number of bits
+ and hash functions for the given inputs.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#initializeByAccuracy(long,double,long,org.apache.datasketches.memory.WritableMemory)">initializeByAccuracy</a></span>&#8203;(long&nbsp;maxDistinctItems,
+                    double&nbsp;targetFalsePositiveProb,
+                    long&nbsp;seed,
+                    org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</code></th>
+<td class="colLast">
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using the provided base seed for the hash function and writing into the provided WritableMemory.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#initializeByAccuracy(long,double,org.apache.datasketches.memory.WritableMemory)">initializeByAccuracy</a></span>&#8203;(long&nbsp;maxDistinctItems,
+                    double&nbsp;targetFalsePositiveProb,
+                    org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</code></th>
+<td class="colLast">
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using a random base seed for the hash function and writing into the provided WritableMemory.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#initializeBySize(long,int,long,org.apache.datasketches.memory.WritableMemory)">initializeBySize</a></span>&#8203;(long&nbsp;numBits,
+                int&nbsp;numHashes,
+                long&nbsp;seed,
+                org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</code></th>
+<td class="colLast">
+<div class="block">Initializes a BloomFilter with given number of bits and number of hash functions,
+ using the provided base seed for the hash function and writing into the provided WritableMemory.</div>
+</td>
+</tr>
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#initializeBySize(long,int,org.apache.datasketches.memory.WritableMemory)">initializeBySize</a></span>&#8203;(long&nbsp;numBits,
+                int&nbsp;numHashes,
+                org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</code></th>
+<td class="colLast">
+<div class="block">Initializes a BloomFilter with given number of bits and number of hash functions,
+ using a random base seed for the hash function and writing into the provided WritableMemory.</div>
+</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#suggestNumFilterBits(long,double)">suggestNumFilterBits</a></span>&#8203;(long&nbsp;maxDistinctItems,
                     double&nbsp;targetFalsePositiveProb)</code></th>
@@ -227,20 +286,20 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  items and a target false positive probability.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static short</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#suggestNumHashes(double)">suggestNumHashes</a></span>&#8203;(double&nbsp;targetFalsePositiveProb)</code></th>
 <td class="colLast">
 <div class="block">Returns the optimal number of hash functions to achieve a target false positive probability.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static short</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#suggestNumHashes(long,long)">suggestNumHashes</a></span>&#8203;(long&nbsp;maxDistinctItems,
                 long&nbsp;numFilterBits)</code></th>
 <td class="colLast">
 <div class="block">Returns the optimal number of hash functions to given target numbers of distinct items
- and the BloomFliter size in bits.</div>
+ and the BloomFilter size in bits.</div>
 </td>
 </tr>
 </table>
@@ -295,7 +354,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre class="methodSignature">public static&nbsp;short&nbsp;suggestNumHashes&#8203;(long&nbsp;maxDistinctItems,
                                      long&nbsp;numFilterBits)</pre>
 <div class="block">Returns the optimal number of hash functions to given target numbers of distinct items
- and the BloomFliter size in bits.</div>
+ and the BloomFilter size in bits. This function will provide a result even if the input
+ values exceed the capacity of a single BloomFilter.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>maxDistinctItems</code> - The maximum expected number of distinct items to add to the filter</dd>
@@ -340,6 +400,43 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
+<a id="getSerializedFilterSizeByAccuracy(long,double)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getSerializedFilterSizeByAccuracy</h4>
+<pre class="methodSignature">public static&nbsp;long&nbsp;getSerializedFilterSizeByAccuracy&#8203;(long&nbsp;maxDistinctItems,
+                                                     double&nbsp;targetFalsePositiveProb)</pre>
+<div class="block">Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with an optimal number of bits
+ and hash functions for the given inputs. This is also the minimum size of a WritableMemory for
+ in-place filter initialization.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>maxDistinctItems</code> - The maximum expected number of distinct items to add to the filter</dd>
+<dd><code>targetFalsePositiveProb</code> - A desired false positive probability per item</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The size, in bytes, required to hold the specified BloomFilter when serialized</dd>
+</dl>
+</li>
+</ul>
+<a id="getSerializedFilterSize(long)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getSerializedFilterSize</h4>
+<pre class="methodSignature">public static&nbsp;long&nbsp;getSerializedFilterSize&#8203;(long&nbsp;numBits)</pre>
+<div class="block">Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with the given number of bits.
+ This is also the minimum size of a WritableMemory for in-place filter initialization.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>numBits</code> - The number of bits in the target BloomFilter's bit array.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The size, in bytes, required to hold the specified BloomFilter when serialized</dd>
+</dl>
+</li>
+</ul>
 <a id="createByAccuracy(long,double)">
 <!--   -->
 </a>
@@ -348,7 +445,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>createByAccuracy</h4>
 <pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;createByAccuracy&#8203;(long&nbsp;maxDistinctItems,
                                            double&nbsp;targetFalsePositiveProb)</pre>
-<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs.</div>
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using a random base seed for the hash function.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>maxDistinctItems</code> - The maximum expected number of distinct items to add to the filter</dd>
@@ -388,7 +486,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;createBySize&#8203;(long&nbsp;numBits,
                                        int&nbsp;numHashes)</pre>
 <div class="block">Creates a BloomFilter with given number of bits and number of hash functions,
- and a random seed.</div>
+ using a rnadom base seed for the hash function.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>numBits</code> - The size of the BloomFilter, in bits</dd>
@@ -401,19 +499,107 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <a id="createBySize(long,int,long)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>createBySize</h4>
 <pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;createBySize&#8203;(long&nbsp;numBits,
                                        int&nbsp;numHashes,
                                        long&nbsp;seed)</pre>
 <div class="block">Creates a BloomFilter with given number of bits and number of hash functions,
- and a random seed.</div>
+ using the provided base seed for the hash function.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>numBits</code> - The size of the BloomFilter, in bits</dd>
 <dd><code>numHashes</code> - The number of hash functions to apply to items</dd>
 <dd><code>seed</code> - A base hash seed</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>A new BloomFilter configured for the given input parameters</dd>
+</dl>
+</li>
+</ul>
+<a id="initializeByAccuracy(long,double,org.apache.datasketches.memory.WritableMemory)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>initializeByAccuracy</h4>
+<pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;initializeByAccuracy&#8203;(long&nbsp;maxDistinctItems,
+                                               double&nbsp;targetFalsePositiveProb,
+                                               org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</pre>
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using a random base seed for the hash function and writing into the provided WritableMemory.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>maxDistinctItems</code> - The maximum expected number of distinct items to add to the filter</dd>
+<dd><code>targetFalsePositiveProb</code> - A desired false positive probability per item</dd>
+<dd><code>dstMem</code> - A WritableMemory to hold the initialized filter</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>A new BloomFilter configured for the given input parameters</dd>
+</dl>
+</li>
+</ul>
+<a id="initializeByAccuracy(long,double,long,org.apache.datasketches.memory.WritableMemory)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>initializeByAccuracy</h4>
+<pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;initializeByAccuracy&#8203;(long&nbsp;maxDistinctItems,
+                                               double&nbsp;targetFalsePositiveProb,
+                                               long&nbsp;seed,
+                                               org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</pre>
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using the provided base seed for the hash function and writing into the provided WritableMemory.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>maxDistinctItems</code> - The maximum expected number of distinct items to add to the filter</dd>
+<dd><code>targetFalsePositiveProb</code> - A desired false positive probability per item</dd>
+<dd><code>seed</code> - A base hash seed</dd>
+<dd><code>dstMem</code> - A WritableMemory to hold the initialized filter</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>A new BloomFilter configured for the given input parameters</dd>
+</dl>
+</li>
+</ul>
+<a id="initializeBySize(long,int,org.apache.datasketches.memory.WritableMemory)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>initializeBySize</h4>
+<pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;initializeBySize&#8203;(long&nbsp;numBits,
+                                           int&nbsp;numHashes,
+                                           org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</pre>
+<div class="block">Initializes a BloomFilter with given number of bits and number of hash functions,
+ using a random base seed for the hash function and writing into the provided WritableMemory.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>numBits</code> - The size of the BloomFilter, in bits</dd>
+<dd><code>numHashes</code> - The number of hash functions to apply to items</dd>
+<dd><code>dstMem</code> - A WritableMemory to hold the initialized filter</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>A new BloomFilter configured for the given input parameters</dd>
+</dl>
+</li>
+</ul>
+<a id="initializeBySize(long,int,long,org.apache.datasketches.memory.WritableMemory)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>initializeBySize</h4>
+<pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;initializeBySize&#8203;(long&nbsp;numBits,
+                                           int&nbsp;numHashes,
+                                           long&nbsp;seed,
+                                           org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</pre>
+<div class="block">Initializes a BloomFilter with given number of bits and number of hash functions,
+ using the provided base seed for the hash function and writing into the provided WritableMemory.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>numBits</code> - The size of the BloomFilter, in bits</dd>
+<dd><code>numHashes</code> - The number of hash functions to apply to items</dd>
+<dd><code>seed</code> - A base hash seed</dd>
+<dd><code>dstMem</code> - A WritableMemory to hold the initialized filter</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>A new BloomFilter configured for the given input parameters</dd>
 </dl>

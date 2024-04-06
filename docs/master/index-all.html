@@ -384,7 +384,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter"><span class="typeNameLink">BloomFilterBuilder</span></a> - Class in <a href="org/apache/datasketches/filters/bloomfilter/package-summary.html">org.apache.datasketches.filters.bloomfilter</a></dt>
 <dd>
-<div class="block">This class provides methods to help estimate the correct paramters to use when
+<div class="block">This class provides methods to help estimate the correct parameters when
  creating a Bloom filter, and methods to create the filter using those values.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#%3Cinit%3E()">BloomFilterBuilder()</a></span> - Constructor for class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
@@ -911,7 +911,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#createByAccuracy(long,double)">createByAccuracy(long, double)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
 <dd>
-<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs.</div>
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using a random base seed for the hash function.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#createByAccuracy(long,double,long)">createByAccuracy(long, double, long)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
 <dd>
@@ -921,12 +922,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#createBySize(long,int)">createBySize(long, int)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
 <dd>
 <div class="block">Creates a BloomFilter with given number of bits and number of hash functions,
- and a random seed.</div>
+ using a rnadom base seed for the hash function.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#createBySize(long,int,long)">createBySize(long, int, long)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
 <dd>
 <div class="block">Creates a BloomFilter with given number of bits and number of hash functions,
- and a random seed.</div>
+ using the provided base seed for the hash function.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.html#createCornerCaseId(long,int,boolean,long,int,boolean)">createCornerCaseId(long, int, boolean, long, int, boolean)</a></span> - Static method in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.html" title="class in org.apache.datasketches.thetacommon">SetOperationCornerCases</a></dt>
 <dd>&nbsp;</dd>
@@ -942,6 +943,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </a>
 <h2 class="title">D</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#DATA_OFFSET">DATA_OFFSET</a></span> - Static variable in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#dataLength_">dataLength_</a></span> - Variable in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/HllSketch.html#DEFAULT_HLL_TYPE">DEFAULT_HLL_TYPE</a></span> - Static variable in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
 <dd>
 <div class="block">The default HLL-TYPE is HLL_4</div>
@@ -1069,6 +1074,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Creates an instance.</div>
 </dd>
+<dt><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter"><span class="typeNameLink">DirectBitArrayR</span></a> - Class in <a href="org/apache/datasketches/filters/bloomfilter/package-summary.html">org.apache.datasketches.filters.bloomfilter</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#%3Cinit%3E(int,long,org.apache.datasketches.memory.Memory)">DirectBitArrayR(int, long, Memory)</a></span> - Constructor for class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/JaccardSimilarity.html#dissimilarityTest(org.apache.datasketches.theta.Sketch,org.apache.datasketches.theta.Sketch,double)">dissimilarityTest(Sketch, Sketch, double)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/JaccardSimilarity.html" title="class in org.apache.datasketches.theta">JaccardSimilarity</a></dt>
 <dd>
 <div class="block">Tests dissimilarity of a measured Sketch against an expected Sketch.</div>
@@ -2172,6 +2181,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns Log-base 2 Nominal Entries for the concurrent local sketch</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#getLong(int)">getLong(int)</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/ByteArrayUtil.html#getLongBE(byte%5B%5D,int)">getLongBE(byte[], int)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/ByteArrayUtil.html" title="class in org.apache.datasketches.common">ByteArrayUtil</a></dt>
 <dd>
 <div class="block">Get a <i>long</i> from the source byte array starting at the given offset
@@ -3412,6 +3423,19 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Ref: <a href="org/apache/datasketches/theta/Sketch.html#getSerializationVersion(org.apache.datasketches.memory.Memory)"><code>Sketch.getSerializationVersion(Memory)</code></a></div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#getSerializedFilterSize(long)">getSerializedFilterSize(long)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
+<dd>
+<div class="block">Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with the given number of bits.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#getSerializedFilterSizeByAccuracy(long,double)">getSerializedFilterSizeByAccuracy(long, double)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
+<dd>
+<div class="block">Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with an optimal number of bits
+ and hash functions for the given inputs.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#getSerializedSize(long)">getSerializedSize(long)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
+<dd>
+<div class="block">Returns the serialized length of a non-empty BloomFilter of the given size, in bytes</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#getSerializedSizeBytes()">getSerializedSizeBytes()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
 <div class="block">Returns the length of this BloomFilter when serialized, in bytes</div>
@@ -3853,6 +3877,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Hash a String and long seed.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#hasMemory()">hasMemory()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
+<dd>
+<div class="block">Returns whether the filter has a backing Memory object</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#hasMemory()">hasMemory()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#hasMemory()">hasMemory()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#hasMemory()">hasMemory()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
@@ -4204,6 +4234,26 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Specifies the parameters to be listed as columns</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#initializeByAccuracy(long,double,long,org.apache.datasketches.memory.WritableMemory)">initializeByAccuracy(long, double, long, WritableMemory)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
+<dd>
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using the provided base seed for the hash function and writing into the provided WritableMemory.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#initializeByAccuracy(long,double,org.apache.datasketches.memory.WritableMemory)">initializeByAccuracy(long, double, WritableMemory)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
+<dd>
+<div class="block">Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
+ using a random base seed for the hash function and writing into the provided WritableMemory.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#initializeBySize(long,int,long,org.apache.datasketches.memory.WritableMemory)">initializeBySize(long, int, long, WritableMemory)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
+<dd>
+<div class="block">Initializes a BloomFilter with given number of bits and number of hash functions,
+ using the provided base seed for the hash function and writing into the provided WritableMemory.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#initializeBySize(long,int,org.apache.datasketches.memory.WritableMemory)">initializeBySize(long, int, WritableMemory)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
+<dd>
+<div class="block">Initializes a BloomFilter with given number of bits and number of hash functions,
+ using a random base seed for the hash function and writing into the provided WritableMemory.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/UpdateReturnState.html#InsertedCountIncremented">InsertedCountIncremented</a></span> - org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/UpdateReturnState.html" title="enum in org.apache.datasketches.theta">UpdateReturnState</a></dt>
 <dd>
 <div class="block">The hash was accepted into the sketch and the retained count was incremented.</div>
@@ -4381,6 +4431,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Helps identify if two BloomFilters may be unioned or intersected.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#isDirect()">isDirect()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
+<dd>
+<div class="block">Returns whether the filter is a direct (off-heap) or on-heap object.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#isDirect()">isDirect()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#isDirect()">isDirect()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#isDirect()">isDirect()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
@@ -4404,6 +4460,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns true if the this sketch's internal data structure is backed by direct (off-heap)
  Memory.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#isDirty()">isDirty()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/cpc/CpcSketch.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/CpcSketch.html" title="class in org.apache.datasketches.cpc">CpcSketch</a></dt>
 <dd>
 <div class="block">Return true if this sketch is empty</div>
@@ -4538,6 +4596,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns true if given long argument is exactly a positive power of 2.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#isReadOnly()">isReadOnly()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
+<dd>
+<div class="block">Returns whether the filter is in read-only mode.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#isReadOnly()">isReadOnly()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllSketch.html#isReadOnly()">isReadOnly()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/CompactDoublesSketch.html#isReadOnly()">isReadOnly()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/CompactDoublesSketch.html" title="class in org.apache.datasketches.quantiles">CompactDoublesSketch</a></dt>
@@ -4909,6 +4973,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">The largest Log2 nom entries allowed: 26.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#MAX_SIZE_BITS">MAX_SIZE_BITS</a></span> - Static variable in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#maxT(java.lang.Object,java.lang.Object,java.util.Comparator)">maxT(Object, Object, Comparator&lt;? super T&gt;)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Finds the maximum of two generic items</div>
@@ -5162,6 +5228,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
  second (or <i>n+1</i>th) argument <i>B</i> of <i>A-AND-NOT-B</i>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#NUM_BITS_OFFSET">NUM_BITS_OFFSET</a></span> - Static variable in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#numberOfLeadingOnes(long)">numberOfLeadingOnes(long)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Returns the number of one bits preceding the highest-order ("leftmost") zero-bit in the
@@ -5174,6 +5242,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  two's complement binary representation of the specified long value, or 64 if the value is equal
  to minus one.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#numBitsSet_">numBitsSet_</a></span> - Variable in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Util.html#numDigits(long)">numDigits(long)</a></span> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Computes the number of decimal digits of the number n</div>
@@ -5528,47 +5598,47 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(byte%5B%5D)">queryAndUpdate(byte[])</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided byte[] and 
+<div class="block">Updates the filter with the provided byte[] and
  returns the result from quering that array prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(char%5B%5D)">queryAndUpdate(char[])</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided char[] and 
+<div class="block">Updates the filter with the provided char[] and
  returns the result from quering that array prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(double)">queryAndUpdate(double)</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided double and 
+<div class="block">Updates the filter with the provided double and
  returns the result from quering that value prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(int%5B%5D)">queryAndUpdate(int[])</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided int[] and 
+<div class="block">Updates the filter with the provided int[] and
  returns the result from quering that array prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(long)">queryAndUpdate(long)</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided long and 
+<div class="block">Updates the filter with the provided long and
  returns the result from quering that value prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(long%5B%5D)">queryAndUpdate(long[])</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided long[] and 
+<div class="block">Updates the filter with the provided long[] and
  returns the result from quering that array prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(short%5B%5D)">queryAndUpdate(short[])</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided short[] and 
+<div class="block">Updates the filter with the provided short[] and
  returns the result from quering that array prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(java.lang.String)">queryAndUpdate(String)</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided String and 
+<div class="block">Updates the filter with the provided String and
  returns the result from quering that value prior to the update.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#queryAndUpdate(org.apache.datasketches.memory.Memory)">queryAndUpdate(Memory)</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
-<div class="block">Updates the filter with the provided Memory and 
+<div class="block">Updates the filter with the provided Memory and
  returns the result from quering that Memory prior to the update.</div>
 </dd>
 <dt><a href="org/apache/datasketches/cpc/QuickMergingValidation.html" title="class in org.apache.datasketches.cpc"><span class="typeNameLink">QuickMergingValidation</span></a> - Class in <a href="org/apache/datasketches/cpc/package-summary.html">org.apache.datasketches.cpc</a></dt>
@@ -5949,6 +6019,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Alternative method of setting the Nominal Entries for this sketch from the log_base2 value.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#setLong(int,long)">setLong(int, long)</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/UpdateSketchBuilder.html#setMaxConcurrencyError(double)">setMaxConcurrencyError(double)</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/UpdateSketchBuilder.html" title="class in org.apache.datasketches.theta">UpdateSketchBuilder</a></dt>
 <dd>
 <div class="block">Sets the Maximum Concurrency Error.</div>
@@ -6292,7 +6364,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html#suggestNumHashes(long,long)">suggestNumHashes(long, long)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilterBuilder</a></dt>
 <dd>
 <div class="block">Returns the optimal number of hash functions to given target numbers of distinct items
- and the BloomFliter size in bits.</div>
+ and the BloomFilter size in bits.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/tuple/adouble/DoubleSummary.Mode.html#Sum">Sum</a></span> - org.apache.datasketches.tuple.adouble.<a href="org/apache/datasketches/tuple/adouble/DoubleSummary.Mode.html" title="enum in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a></dt>
 <dd>
@@ -7587,6 +7659,10 @@ the order they are declared.</div>
 <dd>
 <div class="block">Returns a single weight from the samples contained in the sketch.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#wmem_">wmem_</a></span> - Variable in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#wrap(org.apache.datasketches.memory.Memory)">wrap(Memory)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/HllSketch.html#wrap(org.apache.datasketches.memory.Memory)">wrap(Memory)</a></span> - Static method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
 <dd>
 <div class="block">Wraps the given read-only Memory that must be a image of a valid sketch,
@@ -7785,6 +7861,8 @@ the order they are declared.</div>
 <dd>
 <div class="block">Ref: <a href="org/apache/datasketches/theta/Sketch.html#wrap(org.apache.datasketches.memory.Memory,long)"><code>UpdateSketch.wrap(Memory, long)</code></a></div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#writableWrap(org.apache.datasketches.memory.WritableMemory)">writableWrap(WritableMemory)</a></span> - Static method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/HllSketch.html#writableWrap(org.apache.datasketches.memory.WritableMemory)">writableWrap(WritableMemory)</a></span> - Static method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
 <dd>
 <div class="block">Wraps the given WritableMemory, which must be a image of a valid updatable sketch,
