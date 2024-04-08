@@ -26,7 +26,7 @@ import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRa
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
- * The SortedView of the Quantiles Classic DoublesSketch and the KllDoublesSketch.
+ * The SortedView for the KllFloatsSketch and the ReqSketch.
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */

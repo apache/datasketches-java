@@ -39,9 +39,9 @@ import org.testng.annotations.Test;
 
 public class KllFloatsSketchTest {
   private static final String LS = System.getProperty("line.separator");
-  private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
-  private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
-  private static final double PMF_EPS_FOR_K_256 = 0.013; // PMF rank error (epsilon) for k=256
+  private static final double PMF_EPS_FOR_K_8 = KllSketch.getNormalizedRankError(8, true);
+  private static final double PMF_EPS_FOR_K_128 = KllSketch.getNormalizedRankError(128, true);
+  private static final double PMF_EPS_FOR_K_256 = KllSketch.getNormalizedRankError(256, true);
   private static final double NUMERIC_NOISE_TOLERANCE = 1E-6;
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
@@ -477,18 +477,18 @@ public class KllFloatsSketchTest {
     println("INCLUSIVE:");
     double[] cdf = sketch.getCDF(sp, INCLUSIVE);
     double[] pmf = sketch.getPMF(sp, INCLUSIVE);
-    printf("%10s%10s\n", "CDF", "PMF");
+    printf("%10s%10s" + LS, "CDF", "PMF");
     for (int i = 0; i < cdf.length; i++) {
-      printf("%10.2f%10.2f\n", cdf[i], pmf[i]);
+      printf("%10.2f%10.2f" + LS, cdf[i], pmf[i]);
       assertEquals(cdf[i], cdfI[i], toll);
       assertEquals(pmf[i], pmfI[i], toll);
     }
     println("EXCLUSIVE");
     cdf = sketch.getCDF(sp, EXCLUSIVE);
     pmf = sketch.getPMF(sp, EXCLUSIVE);
-    printf("%10s%10s\n", "CDF", "PMF");
+    printf("%10s%10s" + LS, "CDF", "PMF");
     for (int i = 0; i < cdf.length; i++) {
-      printf("%10.2f%10.2f\n", cdf[i], pmf[i]);
+      printf("%10.2f%10.2f" + LS, cdf[i], pmf[i]);
       assertEquals(cdf[i], cdfE[i], toll);
       assertEquals(pmf[i], pmfE[i], toll);
     }
@@ -615,7 +615,7 @@ public class KllFloatsSketchTest {
     boolean withLevels = false;
     boolean withLevelsAndItems = true;
     int k = 20;
-    int n = 108;//108;
+    int n = 108;
     int maxVsz = 40;  //max vector size
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     int j = 1;
@@ -629,6 +629,9 @@ public class KllFloatsSketchTest {
     println(LS + "#<<< END STATE # >>>");
     println(sk.toString(withLevels, withLevelsAndItems));
     println("");
+    assertEquals(sk.getN(), 108);
+    assertEquals(sk.getMaxItem(), 108F);
+    assertEquals(sk.getMinItem(), 1F);
   }
 
   @Test
@@ -657,14 +660,14 @@ public class KllFloatsSketchTest {
     }
     final long runTime = System.nanoTime() - startTime;
     println("Vectorized Updates");
-    printf("  Vector size : %,12d\n", N);
-    printf("  Num Vectors : %,12d\n", M);
-    printf("  Total Input : %,12d\n", totN);
-    printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
+    printf("  Vector size : %,12d" + LS, N);
+    printf("  Num Vectors : %,12d" + LS, M);
+    printf("  Total Input : %,12d" + LS, totN);
+    printf("  Run Time mS : %,12.3f" + LS, runTime / 1e6);
     final double trialTime = runTime / (1e6 * trials);
-    printf("  mS / Trial  : %,12.3f\n", trialTime);
+    printf("  mS / Trial  : %,12.3f" + LS, trialTime);
     final double updateTime = runTime / (1.0 * totN * trials);
-    printf("  nS / Update : %,12.3f\n", updateTime);
+    printf("  nS / Update : %,12.3f" + LS, updateTime);
   }
 
   @Test
@@ -695,16 +698,16 @@ public class KllFloatsSketchTest {
     }
     final long runTime = System.nanoTime() - startTime;
     println("Vectorized Updates");
-    printf("  Vector size : %,12d\n", N);
-    printf("  Num Vectors : %,12d\n", M);
-    printf("  Total Input : %,12d\n", totN);
-    printf("  Run Time mS : %,12.3f\n", runTime / 1e6);
+    printf("  Vector size : %,12d" + LS, N);
+    printf("  Num Vectors : %,12d" + LS, M);
+    printf("  Total Input : %,12d" + LS, totN);
+    printf("  Run Time mS : %,12.3f" + LS, runTime / 1e6);
     final double trialTime = runTime / (1e6 * trials);
-    printf("  mS / Trial  : %,12.3f\n", trialTime);
+    printf("  mS / Trial  : %,12.3f" + LS, trialTime);
     final double updateTime = runTime / (1.0 * totN * trials);
-    printf("  nS / Update : %,12.3f\n", updateTime);
+    printf("  nS / Update : %,12.3f" + LS, updateTime);
   }
-  
+
   private final static boolean enablePrinting = false;
 
   /**
