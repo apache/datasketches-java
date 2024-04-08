@@ -1499,7 +1499,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/FloatsSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon"><span class="typeNameLink">FloatsSketchSortedView</span></a> - Class in <a href="org/apache/datasketches/quantilescommon/package-summary.html">org.apache.datasketches.quantilescommon</a></dt>
 <dd>
-<div class="block">The SortedView of the Quantiles Classic DoublesSketch and the KllDoublesSketch.</div>
+<div class="block">The SortedView for the KllFloatsSketch and the ReqSketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/FloatsSketchSortedView.html#%3Cinit%3E(float%5B%5D,long%5B%5D,long,float,float)">FloatsSketchSortedView(float[], long[], long, float, float)</a></span> - Constructor for class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/FloatsSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">FloatsSketchSortedView</a></dt>
 <dd>
@@ -1785,8 +1785,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns the array of cumulative weights from the sketch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getCumulativeWeights()">getCumulativeWeights()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketch.html#getCurrentBytes()">getCurrentBytes()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block">Returns the number of storage bytes required for this sketch in its current state.</div>
@@ -2361,8 +2359,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getMaxItem()">getMaxItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesUnion.html#getMaxK()">getMaxK()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesUnion.html" title="class in org.apache.datasketches.quantiles">DoublesUnion</a></dt>
 <dd>
 <div class="block">Returns the configured <i>maxK</i> of this Union.</div>
@@ -2487,8 +2483,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getMinItem()">getMinItem()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Family.html#getMinPreLongs()">getMinPreLongs()</a></span> - Method in enum org.apache.datasketches.common.<a href="org/apache/datasketches/common/Family.html" title="enum in org.apache.datasketches.common">Family</a></dt>
 <dd>
 <div class="block">Returns the minimum preamble size for this family in longs</div>
@@ -2524,8 +2518,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Gets the total count of all items presented to the sketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/EbppsItemsSketch.html#getN()">getN()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/EbppsItemsSketch.html" title="class in org.apache.datasketches.sampling">EbppsItemsSketch</a></dt>
 <dd>
@@ -2656,8 +2648,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Gets the number of quantiles retained by the sketch.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getNumRetained()">getNumRetained()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getNumRetained()">getNumRetained()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/ReservoirItemsSketch.html#getNumSamples()">getNumSamples()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/ReservoirItemsSketch.html" title="class in org.apache.datasketches.sampling">ReservoirItemsSketch</a></dt>
 <dd>
@@ -2886,8 +2876,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(double, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html#getQuantile(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile(QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a></dt>
 <dd>
 <div class="block">Gets the quantile at the current index (or previous index)
@@ -2951,8 +2939,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns the full array of quantiles.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/ItemsSketchSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantilescommon">ItemsSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getQuantiles()">getQuantiles()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getQuantiles(double%5B%5D)">getQuantiles(double[])</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
@@ -3077,8 +3063,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#getRank(float,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(float, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#getRank(float,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank(float, QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getRank(T)">getRank(T)</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
 <dd>
@@ -4512,8 +4496,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/EbppsItemsSketch.html#isEmpty()">isEmpty()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/EbppsItemsSketch.html" title="class in org.apache.datasketches.sampling">EbppsItemsSketch</a></dt>
 <dd>
 <div class="block">Returns true if the sketch is empty.</div>
@@ -4728,8 +4710,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="block">Returns an iterator for this Sorted View.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketch.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/sampling/VarOptItemsSamples.html#iterator()">iterator()</a></span> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/VarOptItemsSamples.html" title="class in org.apache.datasketches.sampling">VarOptItemsSamples</a></dt>
 <dd>&nbsp;</dd>
@@ -5719,14 +5699,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><a href="org/apache/datasketches/req/ReqSketchIterator.html" title="class in org.apache.datasketches.req"><span class="typeNameLink">ReqSketchIterator</span></a> - Class in <a href="org/apache/datasketches/req/package-summary.html">org.apache.datasketches.req</a></dt>
 <dd>
 <div class="block">Iterator over all retained items of the ReqSketch.</div>
-</dd>
-<dt><a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req"><span class="typeNameLink">ReqSketchSortedView</span></a> - Class in <a href="org/apache/datasketches/req/package-summary.html">org.apache.datasketches.req</a></dt>
-<dd>
-<div class="block">The SortedView of the ReqSketch.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/req/ReqSketchSortedView.html#%3Cinit%3E(org.apache.datasketches.req.ReqSketch)">ReqSketchSortedView(ReqSketch)</a></span> - Constructor for class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchSortedView.html" title="class in org.apache.datasketches.req">ReqSketchSortedView</a></dt>
-<dd>
-<div class="block">Constructs this Sorted View given the sketch</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/Family.html#RESERVOIR">RESERVOIR</a></span> - org.apache.datasketches.common.<a href="org/apache/datasketches/common/Family.html" title="enum in org.apache.datasketches.common">Family</a></dt>
 <dd>
