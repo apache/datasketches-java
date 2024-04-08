@@ -82,7 +82,7 @@ public final class TestUtil  {
     File file;
     file = createTempFile(slashName);
     if (url.getProtocol().equals("jar")) { //definitely a jar
-      try (final InputStream input = Util.class.getResourceAsStream(slashName);
+      try (final InputStream input = TestUtil.class.getResourceAsStream(slashName);
         final OutputStream out = new FileOutputStream(file)) {
         Objects.requireNonNull(input, "InputStream  is null.");
         int numRead = 0;
@@ -114,7 +114,7 @@ public final class TestUtil  {
     Objects.requireNonNull(url, "resource " + slashName + " returns null URL.");
     final byte[] out;
     if (url.getProtocol().equals("jar")) { //definitely a jar
-      try (final InputStream input = Util.class.getResourceAsStream(slashName)) {
+      try (final InputStream input = TestUtil.class.getResourceAsStream(slashName)) {
         out = readAllBytesFromInputStream(input);
       } catch (final IOException e) { throw new RuntimeException(e); }
     } else { //protocol says resource is not a jar, must be a file

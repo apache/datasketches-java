@@ -28,6 +28,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -644,6 +645,11 @@ public class KllDirectDoublesSketchTest {
     double[] v = new double[21];
     for (int i = 0; i < 21; i++) { v[i] = i + 1; }
     sk.update(v, 0, 21);
+    println(sk.toString(true, true));
+    int[] levelsArr = sk.getLevelsArray(SketchStructure.UPDATABLE);
+    assertEquals(levelsArr[0], 22);
+    double[] doublesArr = sk.getDoubleItemsArray();
+    assertEquals(doublesArr[22], 21);
   }
 
   @Test
@@ -654,6 +660,9 @@ public class KllDirectDoublesSketchTest {
       sk.update(i + 1, 16);
     }
     println(sk.toString(true, true));
+    assertEquals(sk.getN(), 256);
+    assertEquals(sk.getMaxItem(), 16.0);
+    assertEquals(sk.getMinItem(), 1.0);
   }
 
   private static KllDoublesSketch getUpdatableDirectDoublesSketch(int k, int n) {
@@ -672,7 +681,7 @@ public class KllDirectDoublesSketchTest {
     try { sk1.merge(sk2); fail(); } catch (ClassCastException e) { }
     try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
   }
-  
+
   private final static boolean enablePrinting = false;
 
   /**
