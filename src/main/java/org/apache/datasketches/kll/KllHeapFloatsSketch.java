@@ -170,10 +170,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   public int getK() { return k; }
 
   //MinMax Methods
-
+  
   @Override
  float getMaxItemInternal() { return maxFloatItem; }
-
+  
   @Override
   public float getMaxItem() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
@@ -187,7 +187,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   float getMinItemInternal() { return minFloatItem; }
-
+  
   @Override
   public float getMinItem() {
     if (isEmpty() || Float.isNaN(minFloatItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
@@ -214,7 +214,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setMinItem(final float item) { this.minFloatItem = item; }
 
   //END MinMax Methods
-
+  
   @Override
   public long getN() { return n; }
 
@@ -286,10 +286,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setFloatItemsArrayAt(final int index, final float item) { this.floatItems[index] = item; }
 
   @Override
-  void setFloatItemsArrayAt(final int dstIndex, final float[] srcItems, final int srcOffset, final int length) {
+  void setFloatItemsArrayAt(final int dstIndex, final float[] srcItems, final int srcOffset, final int length) { //TODO
     System.arraycopy(srcItems, srcOffset, floatItems, dstIndex, length);
   }
-
+  
   @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted = sorted; }
 
