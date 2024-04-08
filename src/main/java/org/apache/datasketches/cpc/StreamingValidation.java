@@ -20,6 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
@@ -156,13 +157,13 @@ public class StreamingValidation {
     hStrArr = new String[cols];
     final StringBuilder headerFmt = new StringBuilder();
     final StringBuilder dataFmt = new StringBuilder();
-    headerFmt.append("\nStreaming Validation\n");
+    headerFmt.append(LS + "Streaming Validation" + LS);
     for (int i = 0; i < cols; i++) {
       hStrArr[i] = assy[i][0];
       headerFmt.append(assy[i][1]);
-      headerFmt.append((i < (cols - 1)) ? "\t" : "\n");
+      headerFmt.append((i < (cols - 1)) ? "\t" : LS);
       dataFmt.append(assy[i][2]);
-      dataFmt.append((i < (cols - 1)) ? "\t" : "\n");
+      dataFmt.append((i < (cols - 1)) ? "\t" : LS);
     }
     hfmt = headerFmt.toString();
     dfmt = dataFmt.toString();

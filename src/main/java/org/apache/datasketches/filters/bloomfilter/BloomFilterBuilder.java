@@ -160,8 +160,10 @@ public final class BloomFilterBuilder {
    * @param dstMem A WritableMemory to hold the initialized filter
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter initializeByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb, final WritableMemory dstMem) {
-    return initializeByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong(), dstMem);
+  public static BloomFilter initializeByAccuracy(
+      final long maxDistinctItems, final double targetFalsePositiveProb, final WritableMemory dstMem) {
+    return initializeByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong(),
+        dstMem);
   }
 
   /**
@@ -173,7 +175,8 @@ public final class BloomFilterBuilder {
    * @param dstMem A WritableMemory to hold the initialized filter
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter initializeByAccuracy(final long maxDistinctItems, final double targetFalsePositiveProb, final long seed, final WritableMemory dstMem) {
+  public static BloomFilter initializeByAccuracy(
+      final long maxDistinctItems, final double targetFalsePositiveProb, final long seed, final WritableMemory dstMem) {
     validateAccuracyInputs(maxDistinctItems, targetFalsePositiveProb);
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
     final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
@@ -218,7 +221,7 @@ public final class BloomFilterBuilder {
     return new BloomFilter(numBits, numHashes, seed, dstMem);
   }
 
-  private static void validateAccuracyInputs(long maxDistinctItems, double targetFalsePositiveProb) {
+  private static void validateAccuracyInputs(final long maxDistinctItems, final double targetFalsePositiveProb) {
     if (maxDistinctItems <= 0) {
       throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
     }
