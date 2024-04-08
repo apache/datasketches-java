@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 public class DirectBitArrayTest {
 
-  static private WritableMemory bitArrayToWritableMemory(HeapBitArray ba) {
+  private static WritableMemory bitArrayToWritableMemory(HeapBitArray ba) {
     // assumes we're using small enough an array to test that
     // size can be measured with an int
     final int numBytes = (int) ba.getSerializedSizeBytes();
