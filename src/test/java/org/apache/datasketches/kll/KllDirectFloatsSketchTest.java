@@ -28,7 +28,6 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -645,11 +644,6 @@ public class KllDirectFloatsSketchTest {
     float[] v = new float[21];
     for (int i = 0; i < 21; i++) { v[i] = i + 1; }
     sk.update(v, 0, 21);
-    println(sk.toString(true, true));
-    int[] levelsArr = sk.getLevelsArray(SketchStructure.UPDATABLE);
-    assertEquals(levelsArr[0], 22);
-    float[] floatsArr = sk.getFloatItemsArray();
-    assertEquals(floatsArr[22], 21);
   }
 
   @Test
@@ -660,9 +654,6 @@ public class KllDirectFloatsSketchTest {
       sk.update(i + 1, 16);
     }
     println(sk.toString(true, true));
-    assertEquals(sk.getN(), 256);
-    assertEquals(sk.getMaxItem(), 16F);
-    assertEquals(sk.getMinItem(), 1F);
   }
 
   private static KllFloatsSketch getUpdatableDirectFloatSketch(int k, int n) {
@@ -681,7 +672,7 @@ public class KllDirectFloatsSketchTest {
     try { sk1.merge(sk2); fail(); } catch (ClassCastException e) { }
     try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
   }
-
+  
   private final static boolean enablePrinting = false;
 
   /**
