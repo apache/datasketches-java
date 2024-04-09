@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.ClassicUtil.LS;
-import static org.apache.datasketches.quantiles.ClassicUtil.TAB;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.TAB;
 
 import org.apache.datasketches.memory.WritableMemory;
 

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;

@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.hllmap;
 
+import static org.apache.datasketches.common.Util.LS;
+
 import java.math.BigInteger;
 
 import org.apache.datasketches.hash.MurmurHash3;
@@ -31,8 +33,6 @@ import org.apache.datasketches.hash.MurmurHash3;
  * @author Kevin Lang
  */
 abstract class Map {
-
-  private static final String LS = System.getProperty("line.separator");
 
   static final long SEED = 1234567890L;
   static final int SIX_BIT_MASK = 0X3F; // 6 bits

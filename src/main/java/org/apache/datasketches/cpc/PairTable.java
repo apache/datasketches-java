@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
@@ -34,7 +35,6 @@ import org.apache.datasketches.common.SketchesStateException;
  * @author Kevin Lang
  */
 final class PairTable {
-  private static final String LS = System.getProperty("line.separator");
   private static final int upsizeNumer = 3;
   private static final int upsizeDenom = 4;
   private static final int downsizeNumer = 1;

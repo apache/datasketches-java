@@ -52,7 +52,6 @@ public final class ClassicUtil {
 
   private ClassicUtil() {}
 
-  static final String LS = System.getProperty("line.separator");
   static final char TAB = '\t';
 
   /**

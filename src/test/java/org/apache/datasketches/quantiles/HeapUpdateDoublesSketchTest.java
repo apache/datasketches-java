@@ -20,8 +20,8 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.floor;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.log2;
-import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
