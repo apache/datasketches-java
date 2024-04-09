@@ -17,7 +17,9 @@
  * under the License.
  */
 
- package org.apache.datasketches.filters.bloomfilter;
+package org.apache.datasketches.filters.bloomfilter;
+
+import static org.apache.datasketches.common.Util.LS;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Buffer;
@@ -85,7 +87,7 @@ abstract class BitArray {
     for (int i = 0; i < getArrayLength(); ++i) {
       sb.append(i + ": ")
         .append(printLong(getLong(i)))
-        .append("\n");
+        .append(LS);
     }
     return sb.toString();
   }

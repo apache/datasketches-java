@@ -20,6 +20,7 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.common.Family.idToFamily;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
@@ -131,8 +132,6 @@ import org.apache.datasketches.memory.WritableMemory;
 final class KllPreambleUtil<T> {
 
   private KllPreambleUtil() {}
-
-  static final String LS = System.getProperty("line.separator");
 
   // Preamble byte addresses
   static final int PREAMBLE_INTS_BYTE_ADR     = 0;

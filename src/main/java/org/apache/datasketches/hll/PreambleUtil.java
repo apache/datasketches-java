@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.common.Util.zeroPad;
@@ -89,8 +90,6 @@ import org.apache.datasketches.memory.WritableMemory;
 final class PreambleUtil {
 
   private PreambleUtil() {}
-
-  private static final String LS = System.getProperty("line.separator");
 
   // ###### DO NOT MESS WITH THIS ...
   // Preamble byte start addresses

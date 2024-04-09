@@ -22,6 +22,7 @@ package org.apache.datasketches.cpc;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.CpcUtil.bitMatrixOfSketch;
@@ -63,7 +64,6 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Kevin Lang
  */
 public final class CpcSketch {
-  private static final String LS = System.getProperty("line.separator");
   private static final double[] kxpByteLookup = new double[256];
 
   /**

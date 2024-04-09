@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.ArrayList;
@@ -87,7 +88,6 @@ public final class ReqSketch extends BaseReqSketch {
   }
 
   //static finals
-  private static final String LS = System.getProperty("line.separator");
   static final byte MIN_K = 4;
   static final byte NOM_CAP_MULT = 2;
 

@@ -28,6 +28,7 @@ import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static org.apache.datasketches.common.Family.KLL;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.bitAt;
 import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
@@ -59,7 +60,6 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 final class KllHelper {
-  public static final String LS = System.getProperty("line.separator");
   static final double EPS_DELTA_THRESHOLD = 1E-6;
   static final double MIN_EPS = 4.7634E-5;
   static final double PMF_COEF = 2.446;
@@ -198,7 +198,7 @@ final class KllHelper {
       println("Given K        : " + k);
       println("Given M        : " + m);
       println("Given NumLevels: " + numLevels);
-      printf("%6s %8s %12s %18s %18s\n", "Level", "Items", "CumItems", "N at Level", "CumN");
+      printf("%6s %8s %12s %18s %18s" + LS, "Level", "Items", "CumItems", "N at Level", "CumN");
     }
     for (int level = 0; level < numLevels; level++) {
       final int items = KllHelper.levelCapacity(k, numLevels, level, m);
@@ -207,7 +207,7 @@ final class KllHelper {
       cumItems += lvlStats.numItems;
       cumN += lvlStats.n;
       if (printSketchStructure) {
-        printf("%6d %,8d %,12d %,18d %,18d\n", level, lvlStats.numItems, cumItems, lvlStats.n, cumN);
+        printf("%6d %,8d %,12d %,18d %,18d" + LS, level, lvlStats.numItems, cumItems, lvlStats.n, cumN);
       }
     }
     return new LevelStats(cumN, numLevels, cumItems);
@@ -244,7 +244,7 @@ final class KllHelper {
       println("Given K         : " + gStats.k);
       println("Given M         : " + gStats.m);
       println("Given N         : " + gStats.givenN);
-      printf("%10s %10s %20s %13s %15s\n", "NumLevels", "MaxItems", "MaxN", "CompactBytes", "UpdatableBytes");
+      printf("%10s %10s %20s %13s %15s" + LS, "NumLevels", "MaxItems", "MaxN", "CompactBytes", "UpdatableBytes");
     }
     final int typeBytes = sketchType.getBytes();
     do {
@@ -256,7 +256,7 @@ final class KllHelper {
           gStats.maxItems * typeBytes + gStats.numLevels * Integer.BYTES + 2 * typeBytes + DATA_START_ADR;
       gStats.updatableBytes = gStats.compactBytes + Integer.BYTES;
       if (printGrowthScheme) {
-        printf("%10d %,10d %,20d %,13d %,15d\n",
+        printf("%10d %,10d %,20d %,13d %,15d" + LS,
             gStats.numLevels, gStats.maxItems, gStats.maxN, gStats.compactBytes, gStats.updatableBytes);
       }
     } while (lvlStats.n < n);

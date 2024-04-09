@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.cpc.PreambleUtil.checkCapacity;
 import static org.apache.datasketches.cpc.PreambleUtil.checkLoPreamble;
 import static org.apache.datasketches.cpc.PreambleUtil.getDefinedPreInts;
@@ -55,7 +56,6 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Kevin Lang
  */
 final class CompressedState {
-  private static final String LS = System.getProperty("line.separator");
   private boolean csvIsValid = false;
   private boolean windowIsValid = false;
   final int lgK;

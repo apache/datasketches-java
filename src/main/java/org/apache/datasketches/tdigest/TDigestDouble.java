@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tdigest;
 
+import static org.apache.datasketches.common.Util.LS;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -42,8 +44,6 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
 public final class TDigestDouble {
 
   public static final short DEFAULT_K = 200;
-
-  public static final String LS = System.getProperty("line.separator");
 
   private boolean reverseMerge_;
   private final short k_;
@@ -230,8 +230,8 @@ public final class TDigestDouble {
   public double getQuantile(final double rank) {
     if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
     if (Double.isNaN(rank)) { throw new SketchesArgumentException("Operation is undefined for Nan"); }
-    if (rank < 0 || rank > 1) { throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); } 
-    
+    if (rank < 0 || rank > 1) { throw new SketchesArgumentException("Normalized rank must be within [0, 1]"); }
+
     compress(); // side effect
 
     if (numCentroids_ == 1) { return centroidMeans_[0]; }
