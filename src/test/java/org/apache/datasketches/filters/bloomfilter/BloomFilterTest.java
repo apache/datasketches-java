@@ -28,13 +28,14 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class BloomFilterTest {
 
   @Test
-  public void createNewFilterTest() {
+  public void createNewFilterTest() throws Exception {
     // construct the same filter multiple ways
     final long numItems = 4000;
     final double targetFpp = 0.01;
@@ -50,12 +51,14 @@ public class BloomFilterTest {
     assertFalse(bf1.isDirect());
     assertFalse(bf1.isReadOnly());
 
-    final WritableMemory wmem = WritableMemory.allocateDirect(sizeBytes).getWritable();
-    final BloomFilter bf2 = new BloomFilter(numBits, numHashes, seed, wmem);
-    assertTrue(bf2.isEmpty());
-    assertTrue(bf2.hasMemory());
-    assertTrue(bf2.isDirect());
-    assertFalse(bf2.isReadOnly());
+    try (WritableHandle wh = WritableMemory.allocateDirect(sizeBytes)) {
+      final WritableMemory wmem = wh.getWritable();
+      final BloomFilter bf2 = new BloomFilter(numBits, numHashes, seed, wmem);
+      assertTrue(bf2.isEmpty());
+      assertTrue(bf2.hasMemory());
+      assertTrue(bf2.isDirect());
+      assertFalse(bf2.isReadOnly());
+    }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
