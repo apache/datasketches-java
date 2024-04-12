@@ -37,6 +37,8 @@ public interface PartitioningFeature<T> {
    * getPartitionBoundariesFromNumParts(numEquallySizedParts, INCLUSIVE)}.
    * </p>
    *
+   * <p>The sketch must not be empty.</p>
+   *
    * @param numEquallySizedParts an integer that specifies the number of equally sized partitions between
    * {@link GenericPartitionBoundaries#getMinItem() getMinItem()} and
    * {@link GenericPartitionBoundaries#getMaxItem() getMaxItem()}.
@@ -49,9 +51,6 @@ public interface PartitioningFeature<T> {
    * </ul>
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws SketchesArgumentException if sketch is empty.
-   * @throws SketchesArgumentException if <i>numEquallySized</i> is greater than
-   * {@link SketchPartitionLimits#getMaxPartitions() getMaxPartitions()}
    */
   default GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(int numEquallySizedParts) {
     return getPartitionBoundariesFromNumParts(numEquallySizedParts, INCLUSIVE);
@@ -62,6 +61,8 @@ public interface PartitioningFeature<T> {
    * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
    * sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
    * refers to an approximately equal number of items per partition.
+   *
+   * <p>The sketch must not be empty.</p>
    *
    * @param numEquallySizedParts an integer that specifies the number of equally sized partitions between
    * {@link GenericPartitionBoundaries#getMinItem() getMinItem()} and
@@ -81,9 +82,6 @@ public interface PartitioningFeature<T> {
    * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws SketchesArgumentException if sketch is empty.
-   * @throws SketchesArgumentException if <i>numEquallySized</i> is greater than
-   * {@link SketchPartitionLimits#getMaxPartitions() getMaxPartitions()}
    */
   GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
       int numEquallySizedParts, QuantileSearchCriteria searchCrit);
@@ -99,14 +97,13 @@ public interface PartitioningFeature<T> {
    * getPartitionBoundariesFromPartSize(nominalPartSizeItems, INCLUSIVE)}.
    * </p>
    *
+   * <p>The sketch must not be empty.</p>
+   *
    * @param nominalPartSizeItems an integer that specifies the nominal size, in items, of each target partition.
    * This must be a positive integer greater than
    * {@link SketchPartitionLimits#getMinPartitionSizeItems() getMinPartitionSizeItems()}
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws SketchesArgumentException if sketch is empty.
-   * @throws SketchesArgumentException if <i>nominalPartSizeItems</i> is less than
-   * {@link SketchPartitionLimits#getMinPartitionSizeItems() getMinPartitionSizeItems()}
    */
   default GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(long nominalPartSizeItems) {
     return getPartitionBoundariesFromPartSize(nominalPartSizeItems, INCLUSIVE);
@@ -117,6 +114,8 @@ public interface PartitioningFeature<T> {
    * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
    * sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
    * refers to an approximately equal number of items per partition.
+   *
+   * <p>The sketch must not be empty.</p>
    *
    * @param nominalPartSizeItems an integer that specifies the nominal size, in items, of each target partition.
    * This must be a positive integer greater than
@@ -129,9 +128,6 @@ public interface PartitioningFeature<T> {
    * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws SketchesArgumentException if sketch is empty.
-   * @throws SketchesArgumentException if <i>nominalPartSizeItems</i> is less than
-   * {@link SketchPartitionLimits#getMinPartitionSizeItems() getMinPartitionSizeItems()}
    */
   GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
       long nominalPartSizeItems, QuantileSearchCriteria searchCrit);
