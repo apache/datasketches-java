@@ -71,7 +71,7 @@ public class PartitionBoundariesTest {
       printf(rowdfmt2, j++, itr.getNormalizedRank(searchCrit), itr.getNaturalRank(searchCrit), itr.getQuantile());
     }
 
-    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundaries(numParts, searchCrit);
+    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(numParts, searchCrit);
     int arrLen = gpb.getBoundaries().length;
     double[] normRanks = gpb.getNormalizedRanks();
     long[] natRanks = gpb.getNaturalRanks();
@@ -111,7 +111,7 @@ public class PartitionBoundariesTest {
       printf(rowdfmt2, j++, itr.getNormalizedRank(searchCrit), itr.getNaturalRank(searchCrit), itr.getQuantile());
     }
 
-    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundaries(numParts, searchCrit);
+    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(numParts, searchCrit);
     int arrLen = gpb.getBoundaries().length;
     double[] normRanks = gpb.getNormalizedRanks();
     long[] natRanks = gpb.getNaturalRanks();
@@ -136,10 +136,10 @@ public class PartitionBoundariesTest {
     sketch.update("C");
     sketch.update("D");
     String[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    String[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).getBoundaries();
+    String[] quantiles2 = sketch.getPartitionBoundariesFromNumParts(2, EXCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
     quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).getBoundaries();
+    quantiles2 = sketch.getPartitionBoundariesFromNumParts(2, INCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
   }
 
@@ -151,10 +151,10 @@ public class PartitionBoundariesTest {
     sketch.update(3);
     sketch.update(4);
     Integer[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
-    Integer[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).getBoundaries();
+    Integer[] quantiles2 = sketch.getPartitionBoundariesFromNumParts(2, EXCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
     quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
-    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).getBoundaries();
+    quantiles2 = sketch.getPartitionBoundariesFromNumParts(2, INCLUSIVE).getBoundaries();
     assertEquals(quantiles1, quantiles2);
   }
 
@@ -164,22 +164,20 @@ public class PartitionBoundariesTest {
    */
   @Test
   public void checkSimpleEndsAdjustment() {
-    final int k = 128;
     final String[] quantiles = {"2","4","6","7"};
     final long[] cumWeights = {2, 4, 6, 8};
     final long totalN = 8;
     final Comparator<String> comparator = Comparator.naturalOrder();
     final String maxItem = "8";
     final String minItem = "1";
-    final double normRankErr = ItemsSketch.getNormalizedRankError(k, true);
     ItemsSketchSortedView<String> sv = new ItemsSketchSortedView<>(
-        quantiles, cumWeights, totalN, comparator, maxItem, minItem, normRankErr);
+        quantiles, cumWeights, totalN, comparator, maxItem, minItem);
 
     GenericSortedViewIterator<String> itr = sv.iterator();
     while (itr.next()) {
       println(itr.getNaturalRank(INCLUSIVE) + ", " + itr.getQuantile(INCLUSIVE));
     }
-    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundaries(2);
+    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(2);
     String[] boundaries = gpb.getBoundaries();
     long[] natRanks = gpb.getNaturalRanks();
     double[] normRanks = gpb.getNormalizedRanks();

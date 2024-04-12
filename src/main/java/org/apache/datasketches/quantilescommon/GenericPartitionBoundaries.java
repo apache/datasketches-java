@@ -25,9 +25,10 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import org.apache.datasketches.common.SketchesStateException;
 
 /**
- * Implements PartitionBoundaries
+ * This defines the returned results of the getParitionBoundaries() function and
+ * includes the basic methods needed to construct actual partitions.
  */
-final public class GenericPartitionBoundaries<T> implements PartitionBoundaries {
+public final class GenericPartitionBoundaries<T> {
   private long totalN; //totalN of source sketch
   private T[] boundaries;       //quantiles at the boundaries
   private long[] natRanks;      //natural ranks at the boundaries
@@ -36,7 +37,7 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
   private T minItem;            //of the source sketch
   private QuantileSearchCriteria searchCrit; //of the source sketch query to getPartitionBoundaries.
   //computed
-  private long[] numDeltaItems; //num of items in each part
+  private long[] numDeltaItems; //num of items in each partition
   private int numPartitions;    //num of partitions
 
   public GenericPartitionBoundaries(
@@ -48,7 +49,7 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
       final T minItem,
       final QuantileSearchCriteria searchCrit) {
     this.totalN = totalN;
-    this.boundaries = boundaries; //SpotBugs EI_EXPOSE_REP2 copying from sketch class to this "friend" class.
+    this.boundaries = boundaries; //SpotBugs EI_EXPOSE_REP2 OK: copying from sketch class to this "friend" class.
     this.natRanks = natRanks;     // "
     this.normRanks = normRanks;   // "
     this.maxItem = maxItem;
@@ -56,7 +57,7 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
     this.searchCrit = searchCrit;
     //check and compute
     final int len = boundaries.length;
-    if (len < 2) { throw new SketchesStateException("Source sketch is empty"); }
+    if (len < 2) { throw new SketchesStateException("Source sketch is empty"); } //class is final, this is ok
     numDeltaItems = new long[len];
     numDeltaItems[0] = 0; // index 0 is always 0
     for (int i = 1; i < len; i++) {
@@ -67,7 +68,10 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
     this.numPartitions = len - 1;
   }
 
-  @Override
+  /**
+   * Gets the length of the input stream offered to the underlying sketch.
+   * @return the length of the input stream offered to the underlying sketch.
+   */
   public long getN() { return totalN; }
 
   /**
@@ -100,16 +104,32 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
    */
   public T[] getBoundaries() { return boundaries.clone(); }
 
-  @Override
+  /**
+   * Gets an ordered array of natural ranks of the associated array of partition boundaries utilizing
+   * a specified search criterion. Natural ranks are integral values on the interval [1, N]
+   * @return an array of natural ranks.
+   */
   public long[] getNaturalRanks() { return natRanks.clone(); }
 
-  @Override
+  /**
+   * Gets an ordered array of normalized ranks of the associated array of partition boundaries utilizing
+   * a specified search criterion. Normalized ranks are double values on the interval [0.0, 1.0].
+   * @return an array of normalized ranks.
+   */
   public double[] getNormalizedRanks() { return normRanks.clone(); }
 
-  @Override
+  /**
+   * Gets the number of items to be included for each partition as an array.
+   * The count at index 0 is 0.  The number of items included in the first partition, defined by the boundaries at
+   * index 0 and index 1, is at index 1 in this array, etc.
+   * @return the number of items to be included for each partition as an array.
+   */
   public long[] getNumDeltaItems() { return numDeltaItems.clone(); }
 
-  @Override
+  /**
+   * Gets the number of partitions
+   * @return the number of partitions
+   */
   public int getNumPartitions() { return numPartitions; }
 
   /**
@@ -130,7 +150,10 @@ final public class GenericPartitionBoundaries<T> implements PartitionBoundaries 
    */
   public T getMinItem() { return minItem; }
 
-  @Override
+  /**
+   * Gets the search criteria specified for the source sketch
+   * @return The search criteria specified for the source sketch
+   */
   public QuantileSearchCriteria getSearchCriteria() { return searchCrit; }
 
 }

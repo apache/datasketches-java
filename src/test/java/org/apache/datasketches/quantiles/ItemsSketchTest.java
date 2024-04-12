@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.PreambleUtil.DEFAULT_K;
 import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -623,8 +622,7 @@ public class ItemsSketchTest {
     Double[] qArr = {8.0, 10.0, 10.0, 20.0};
     long[] cwArr =  {1,  3,  4,  5};
     Comparator<Double> comp = Comparator.naturalOrder();
-    final double normRankErr = ItemsSketch.getNormalizedRankError(DEFAULT_K, true);
-    ItemsSketchSortedView<Double> sv = new ItemsSketchSortedView<>(qArr, cwArr, 5L, comp, 20.0, 8.0, normRankErr);
+    ItemsSketchSortedView<Double> sv = new ItemsSketchSortedView<>(qArr, cwArr, 5L, comp, 20.0, 8.0);
     double[] ranks = {0, .1, .2, .3, .6, .7, .8, .9, 1.0};
     Double[] qOut = new Double[9];
     for (int i = 0; i < ranks.length; i++) {

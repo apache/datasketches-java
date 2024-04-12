@@ -277,11 +277,21 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   @Override
-  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
+      final int numEquallySizedParts,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
-    return classicQisSV.getPartitionBoundaries(numEquallySized, searchCrit);
+    return classicQisSV.getPartitionBoundariesFromNumParts(numEquallySizedParts, searchCrit);
+  }
+
+  @Override
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
+      final long nominalPartSizeItems,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    refreshSortedView();
+    return classicQisSV.getPartitionBoundariesFromPartSize(nominalPartSizeItems, searchCrit);
   }
 
   @Override
@@ -656,9 +666,8 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
       throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
     }
 
-    final double normRankErr = getNormalizedRankError(sk.getK(), true);
     return new ItemsSketchSortedView<>(
-        svQuantiles, svCumWeights, sk.getN(), comparator, sk.getMaxItem(), sk.getMinItem(), normRankErr);
+        svQuantiles, svCumWeights, sk.getN(), comparator, sk.getMaxItem(), sk.getMinItem());
 
   }
 

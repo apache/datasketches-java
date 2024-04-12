@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.quantilescommon.GenericInequalitySearch.find;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
@@ -38,7 +39,6 @@ import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequalit
  * @author Lee Rhodes
  */
 public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
-  private static final double PARTITIONING_ERROR_FACTOR = 2.0;
   private final T[] quantiles;
   private final long[] cumWeights; //cumulative natural weights
   private final long totalN;
@@ -46,7 +46,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final T maxItem;
   private final T minItem;
   private final Class<T> clazz;
-  private final double normRankErr;//assumes PMF type error
 
   /**
    * Construct from elements, also used in testing.
@@ -56,7 +55,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param comparator the Comparator for type T
    * @param maxItem of type T
    * @param minItem of type T
-   * @param normRankErr the normalized rank error of the originating sketch.
    */
   @SuppressWarnings("unchecked")
   public ItemsSketchSortedView(
@@ -65,8 +63,7 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
       final long totalN,
       final Comparator<? super T> comparator,
       final T maxItem,
-      final T minItem,
-      final double normRankErr) {
+      final T minItem) {
     this.quantiles = quantiles;
     this.cumWeights = cumWeights;
     this.totalN = totalN;
@@ -74,7 +71,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     this.maxItem = maxItem;
     this.minItem = minItem;
     this.clazz = (Class<T>)quantiles[0].getClass();
-    this.normRankErr = normRankErr;
   }
 
   //end of constructors
@@ -118,29 +114,35 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
+      final long nominalPartitionSize,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final long partSizeItems = getMinPartitionSizeItems();
+    if (nominalPartitionSize < partSizeItems) {
+      throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
+          + " The requested nominal partition size is too small for this sketch.");
+    }
     final long totalN = this.totalN;
-    final int maxParts = (int) (totalN / Math.ceil(normRankErr * PARTITIONING_ERROR_FACTOR) );
+    final int numEquallySizedParts = (int) min(totalN / partSizeItems, getMaxPartitions());
+    return getPartitionBoundariesFromNumParts(numEquallySizedParts);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
+      final int numEquallySizedParts,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new SketchesArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final int maxParts = getMaxPartitions();
+    if (numEquallySizedParts > maxParts) {
+      throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
+          + " The requested number of partitions is too large for this sketch.");
+    }
+    final long totalN = this.totalN;
     final int svLen = cumWeights.length;
 
-    if (numEquallySized > maxParts) {
-      throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
-          + "The requested number of partitions is too large for the 'k' of this sketch "
-          + "if it exceeds the maximum number of partitions allowed by the error threshold for the 'k' of this sketch."
-          + "Requested Partitions: " + numEquallySized + " > " + maxParts);
-    }
-    if (numEquallySized > svLen / 2.0) {
-      throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
-          + "The requested number of partitions is too large for the number of retained items "
-          + "if it exceeds maximum number of retained items divided by 2."
-          + "Requested Partitions: " + numEquallySized + " > "
-          + "Retained Items / 2: " + (svLen / 2));
-    }
-
-    final double[] searchNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySized + 1);
+    final double[] searchNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySizedParts + 1);
     final int partArrLen = searchNormRanks.length;
     final T[] partQuantiles = (T[]) Array.newInstance(clazz, partArrLen);
     final long[] partNatRanks = new long[partArrLen];
