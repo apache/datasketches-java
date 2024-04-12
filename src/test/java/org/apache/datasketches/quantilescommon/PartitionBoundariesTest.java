@@ -28,6 +28,7 @@ import static org.testng.Assert.assertEquals;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.quantiles.ItemsSketch;
 import org.testng.annotations.Test;
@@ -49,6 +50,7 @@ public class PartitionBoundariesTest {
   private static String rowhdrfmt2= "%5s %12s %12s %12s\n";
   private static String rowdfmt2  = "%5d %12.8f %12d %12s\n";
 
+  //@Test //visual check only. set enablePrinting = true to view.
   public void checkSkewWithClassic() {
     int n = 2050;
     int k = 1 << 15;
@@ -88,7 +90,7 @@ public class PartitionBoundariesTest {
     }
   }
 
-  @Test
+  //@Test //visual check only. set enablePrinting = true to view.
   public void checkSkewWithKll() {
     int n = 2050;
     int k = 1 << 15;
@@ -159,8 +161,8 @@ public class PartitionBoundariesTest {
   }
 
   /**
-   * Because both Kll and Classic items sketches use the same Sorted View class
-   * this test applies to both. The only difference is a different normalized error given the same k.
+   * Because both Kll and Classic items sketches use the same Sorted View class.
+   * This test applies to both.
    */
   @Test
   public void checkSimpleEndsAdjustment() {
@@ -192,6 +194,40 @@ public class PartitionBoundariesTest {
     assertEquals(numParts, 2);
     assertEquals(maxItm, "8");
     assertEquals(minItm, "1");
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkSketchPartitionLimits() {
+    final long totalN = 1_000_000;
+    final Comparator<String> comparator = Comparator.naturalOrder();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(comparator, serDe);
+    final int d = digits(totalN);
+    for (int i = 1; i <= totalN; i++) {
+      sk.update(getString(i, d));
+    }
+    final int numLimit = sk.getMaxPartitions();
+    final int ret = sk.getNumRetained();
+    println("ret: " + ret + ", numLimit " + numLimit);
+    @SuppressWarnings("unused")
+    GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromNumParts(numLimit + 1);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkSketchPartitionLimits2() {
+    final long totalN = 1_000_000;
+    final Comparator<String> comparator = Comparator.naturalOrder();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(comparator, serDe);
+    final int d = digits(totalN);
+    for (int i = 1; i <= totalN; i++) {
+      sk.update(getString(i, d));
+    }
+    final long sizeLimit= sk.getMinPartitionSizeItems();
+
+    println("Min Size Limit: " + sizeLimit);
+    @SuppressWarnings("unused")
+    GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromPartSize(sizeLimit - 1);
   }
 
   @Test
