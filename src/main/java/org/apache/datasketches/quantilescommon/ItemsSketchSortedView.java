@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.quantilescommon.GenericInequalitySearch.find;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
@@ -38,7 +39,6 @@ import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequalit
  * @author Lee Rhodes
  */
 public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
-  private static final double PARTITIONING_ERROR_FACTOR = 2.0;
   private final T[] quantiles;
   private final long[] cumWeights; //cumulative natural weights
   private final long totalN;
@@ -46,35 +46,50 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final T maxItem;
   private final T minItem;
   private final Class<T> clazz;
-  private final double normRankErr;//assumes PMF type error
+  private final double normRankError;
+  private final int numRetItems;
 
   /**
    * Construct from elements, also used in testing.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of items presented to the sketch.
-   * @param comparator the Comparator for type T
-   * @param maxItem of type T
-   * @param minItem of type T
-   * @param normRankErr the normalized rank error of the originating sketch.
+   * @param sk the underlying quantile sketch.
    */
-  @SuppressWarnings("unchecked")
   public ItemsSketchSortedView(
       final T[] quantiles,
       final long[] cumWeights, //or Natural Ranks
+      final QuantilesGenericAPI<T> sk) {
+    this.quantiles = quantiles;
+    this.cumWeights = cumWeights;
+    this.totalN = sk.getN();
+    this.comparator = sk.getComparator();
+    this.maxItem = sk.getMaxItem();
+    this.minItem = sk.getMinItem();
+    this.clazz = sk.getClassOfT();
+    this.normRankError = sk.getNormalizedRankError(true);
+    this.numRetItems = sk.getNumRetained();
+  }
+
+  //Used for testing
+  ItemsSketchSortedView(
+      final T[] quantiles,
+      final long[] cumWeights,
       final long totalN,
       final Comparator<? super T> comparator,
       final T maxItem,
       final T minItem,
-      final double normRankErr) {
+      final Class<T> clazz,
+      final double normRankError,
+      final int numRetItems) {
     this.quantiles = quantiles;
     this.cumWeights = cumWeights;
     this.totalN = totalN;
     this.comparator = comparator;
     this.maxItem = maxItem;
     this.minItem = minItem;
-    this.clazz = (Class<T>)quantiles[0].getClass();
-    this.normRankErr = normRankErr;
+    this.clazz = clazz;
+    this.normRankError = normRankError;
+    this.numRetItems = numRetItems;
   }
 
   //end of constructors
@@ -118,29 +133,38 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
-  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
+  public int getMaxPartitions() {
+    return (int) min(1.0 / normRankError, numRetItems / 2.0);
+  }
+
+  @Override
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
+      final long nominalPartitionSize,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final long minPartSizeItems = getMinPartitionSizeItems();
+    if (nominalPartitionSize < minPartSizeItems) {
+      throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
+          + " The requested nominal partition size is too small for this sketch.");
+    }
     final long totalN = this.totalN;
-    final int maxParts = (int) (totalN / Math.ceil(normRankErr * PARTITIONING_ERROR_FACTOR) );
-    final int svLen = cumWeights.length;
+    final int numEquallySizedParts = (int) min(totalN / minPartSizeItems, getMaxPartitions());
+    return getPartitionBoundariesFromNumParts(numEquallySizedParts);
+  }
 
-    if (numEquallySized > maxParts) {
+  @Override
+  @SuppressWarnings("unchecked")
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
+      final int numEquallySizedParts,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new SketchesArgumentException(QuantilesAPI.EMPTY_MSG); }
+    final int maxParts = getMaxPartitions();
+    if (numEquallySizedParts > maxParts) {
       throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
-          + "The requested number of partitions is too large for the 'k' of this sketch "
-          + "if it exceeds the maximum number of partitions allowed by the error threshold for the 'k' of this sketch."
-          + "Requested Partitions: " + numEquallySized + " > " + maxParts);
-    }
-    if (numEquallySized > svLen / 2.0) {
-      throw new SketchesArgumentException(QuantilesAPI.UNSUPPORTED_MSG
-          + "The requested number of partitions is too large for the number of retained items "
-          + "if it exceeds maximum number of retained items divided by 2."
-          + "Requested Partitions: " + numEquallySized + " > "
-          + "Retained Items / 2: " + (svLen / 2));
+          + " The requested number of partitions is too large for this sketch.");
     }
 
-    final double[] searchNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySized + 1);
+    final double[] searchNormRanks = evenlySpacedDoubles(0, 1.0, numEquallySizedParts + 1);
     final int partArrLen = searchNormRanks.length;
     final T[] partQuantiles = (T[]) Array.newInstance(clazz, partArrLen);
     final long[] partNatRanks = new long[partArrLen];
@@ -150,6 +174,7 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     // which are absolutely required when partitioning, especially inner partitions.
 
     //Are the minItem and maxItem already in place?
+    final int svLen = cumWeights.length;
     int adjLen = svLen; //this will be the length of the local copies of quantiles and cumWeights
     final boolean adjLow = quantiles[0] != minItem; //if true, adjust the low end
     final boolean adjHigh = quantiles[svLen - 1] != maxItem; //if true, adjust the high end

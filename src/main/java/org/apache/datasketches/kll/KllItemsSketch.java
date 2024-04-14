@@ -146,9 +146,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //END of Constructors
 
   @Override
-  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
-
-  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
@@ -156,11 +153,29 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
+  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
+
+  @Override
+  public Comparator<? super T> getComparator() {
+    return comparator;
+  }
+
+  @Override
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
+      final int numEquallySizedParts,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return itemsSV.getPartitionBoundaries(numEquallySized, searchCrit);
+    return itemsSV.getPartitionBoundariesFromNumParts(numEquallySizedParts, searchCrit);
+  }
+
+  @Override
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
+      final long nominalPartSizeItems,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
+    refreshSortedView();
+    return itemsSV.getPartitionBoundariesFromPartSize(nominalPartSizeItems, searchCrit);
   }
 
   @Override
@@ -424,9 +439,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       quantiles = (T[]) Array.newInstance(serDe.getClassOfT(), numQuantiles);
       cumWeights = new long[numQuantiles];
       populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
-      final double normRankErr = getNormalizedRankError(getK(), true);
-      return new ItemsSketchSortedView(
-          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), normRankErr);
+      final QuantilesGenericAPI<T> sk = KllItemsSketch.this;
+      return new ItemsSketchSortedView(quantiles, cumWeights, sk);
     }
 
     private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevels,

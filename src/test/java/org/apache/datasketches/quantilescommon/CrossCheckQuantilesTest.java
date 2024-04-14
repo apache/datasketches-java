@@ -39,7 +39,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.kll.KllItemsSketch;
-import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.quantiles.DoublesSketch;
 import org.apache.datasketches.quantiles.ItemsSketch;
 import org.apache.datasketches.quantiles.UpdateDoublesSketch;
@@ -296,8 +295,8 @@ public class CrossCheckQuantilesTest {
     kllFloatsSk = KllFloatsSketch.newHeapInstance(k);
     kllDoublesSk = KllDoublesSketch.newHeapInstance(k);
     classicDoublesSk = DoublesSketch.builder().setK(k).build();
-    kllItemsSk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
-    itemsSk = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
+    kllItemsSk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
+    itemsSk = ItemsSketch.getInstance(String.class, k, comparator);
 
     int count = skFStreamValues[set].length;
     for (int i = 0; i < count; i++) {
@@ -321,11 +320,10 @@ public class CrossCheckQuantilesTest {
     String svImin = svIValues[set][0];
 
     kllItemsSV = new ItemsSketchSortedView<>(svIValues[set], svCumWeights[set], totalN[set],
-        comparator, svImax, svImin, KllSketch.getNormalizedRankError(k, true));
+        comparator, svImax, svImin, String.class, .01, svCumWeights[set].length);
 
     classicItemsSV = new ItemsSketchSortedView<>(svIValues[set], svCumWeights[set], totalN[set],
-        comparator, svImax, svImin, ItemsSketch.getNormalizedRankError(k, true));
-
+        comparator, svImax, svImin, String.class, .01, svCumWeights[set].length);
   }
 
   /********BUILD DATA SETS**********/
