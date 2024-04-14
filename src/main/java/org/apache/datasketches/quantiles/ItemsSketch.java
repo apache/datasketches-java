@@ -255,13 +255,18 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   //END of Constructors
 
   @Override
-  public Class<T> getClassOfT() { return clazz; }
-
-  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return classicQisSV.getCDF(splitPoints, searchCrit);
+  }
+
+  @Override
+  public Class<T> getClassOfT() { return clazz; }
+
+  @Override
+  public Comparator<? super T> getComparator() {
+    return comparator_;
   }
 
   @Override
@@ -587,10 +592,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return combinedBuffer_;
   }
 
-  Comparator<? super T> getComparator() {
-    return comparator_;
-  }
-
   /**
    * Loads the Combined Buffer, min and max from the given items array.
    * The Combined Buffer is always in non-compact form and must be pre-allocated.
@@ -666,8 +667,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
       throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
     }
 
-    return new ItemsSketchSortedView<>(
-        svQuantiles, svCumWeights, sk.getN(), comparator, sk.getMaxItem(), sk.getMinItem());
+    return new ItemsSketchSortedView<>(svQuantiles, svCumWeights, sk);
 
   }
 

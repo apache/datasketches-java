@@ -33,9 +33,7 @@ public interface SketchPartitionLimits {
    * and the number of retained values of this sketch.
    * @return the maximum number of partitions this sketch will support.
    */
-  default int getMaxPartitions() {
-    return getNumRetained() / 2;
-  }
+  int getMaxPartitions();
 
   /**
    * Gets the minimum partition size in items this sketch will support based on the configured size <i>K</i> of this
@@ -53,11 +51,5 @@ public interface SketchPartitionLimits {
    * @return the length of the input stream offered to the sketch.
    */
   long getN();
-
-  /**
-   * Gets the number of quantiles retained by the sketch.
-   * @return the number of quantiles retained by the sketch
-   */
-  int getNumRetained();
 
 }

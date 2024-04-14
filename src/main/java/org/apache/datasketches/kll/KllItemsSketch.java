@@ -146,13 +146,18 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //END of Constructors
 
   @Override
-  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
-
-  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return itemsSV.getCDF(splitPoints, searchCrit);
+  }
+
+  @Override
+  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
+
+  @Override
+  public Comparator<? super T> getComparator() {
+    return comparator;
   }
 
   @Override
@@ -434,8 +439,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       quantiles = (T[]) Array.newInstance(serDe.getClassOfT(), numQuantiles);
       cumWeights = new long[numQuantiles];
       populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
-      return new ItemsSketchSortedView(
-          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem());
+      final QuantilesGenericAPI<T> sk = KllItemsSketch.this;
+      return new ItemsSketchSortedView(quantiles, cumWeights, sk);
     }
 
     private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevels,

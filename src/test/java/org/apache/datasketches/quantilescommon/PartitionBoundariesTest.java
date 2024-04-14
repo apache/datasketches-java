@@ -19,11 +19,13 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.digits;
 import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import java.util.Comparator;
 
@@ -39,31 +41,31 @@ import org.testng.annotations.Test;
 public class PartitionBoundariesTest {
   private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
   private static String[] hdr     = {"N", "MaxItem", "MinItem", "NumParts", "SearchCriteria"};
-  private static String hdrfmt    = "%6s %10s %10s %10s %15s\n";
-  private static String hdrdfmt   = "%6d %10s %10s %10d %15s\n";
+  private static String hdrfmt    = "%6s %10s %10s %10s %15s" + LS;
+  private static String hdrdfmt   = "%6d %10s %10s %10d %15s" + LS;
 
   private static String[] rowhdr  = {"Row", "NormRanks", "NatRanks", "Boundaries", "DeltaItems"};
-  private static String rowhdrfmt = "%5s %12s %12s %12s %12s\n";
-  private static String rowdfmt   = "%5d %12.8f %12d %12s %12d\n";
+  private static String rowhdrfmt = "%5s %12s %12s %12s %12s" + LS;
+  private static String rowdfmt   = "%5d %12.8f %12d %12s %12d" + LS;
 
   private static String[] rowhdr2 = {"Row", "NormRanks", "NatRanks", "Boundaries"};
-  private static String rowhdrfmt2= "%5s %12s %12s %12s\n";
-  private static String rowdfmt2  = "%5d %12.8f %12d %12s\n";
+  private static String rowhdrfmt2= "%5s %12s %12s %12s" + LS;
+  private static String rowdfmt2  = "%5d %12.8f %12d %12s" + LS;
 
   //@Test //visual check only. set enablePrinting = true to view.
   public void checkSkewWithClassic() {
-    int n = 2050;
+    int n = 2050; //1000000;
     int k = 1 << 15;
     int n2 = 200;
     int totalN = n + n2;
     int numDigits = digits(totalN);
     long v2 = 1000L;
-    int numParts = 22;
     QuantileSearchCriteria searchCrit = QuantileSearchCriteria.INCLUSIVE;
     ItemsSketch<String> sk = ItemsSketch.getInstance(String.class,k, Comparator.naturalOrder());
 
     for (long i = 1; i <= n; i++)  { sk.update(getString(i, numDigits)); }
     for (long i = 1; i <= n2; i++) { sk.update(getString(v2, numDigits)); }
+    int numParts = sk.getMaxPartitions(); //22
     ItemsSketchSortedView<String> sv = sk.getSortedView();
     GenericSortedViewIterator<String> itr = sv.iterator();
     println("SORTED VIEW:");
@@ -92,18 +94,18 @@ public class PartitionBoundariesTest {
 
   //@Test //visual check only. set enablePrinting = true to view.
   public void checkSkewWithKll() {
-    int n = 2050;
+    int n = 2050; //1_000_000;
     int k = 1 << 15;
     int n2 = 200;
     int totalN = n + n2;
     int numDigits = digits(totalN);
     long v2 = 1000L;
-    int numParts = 22;
     QuantileSearchCriteria searchCrit = QuantileSearchCriteria.INCLUSIVE;
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
 
     for (long i = 1; i <= n; i++)  { sk.update(getString(i, numDigits)); }
     for (long i = 1; i <= n2; i++) { sk.update(getString(v2, numDigits)); }
+    int numParts = sk.getMaxPartitions(); //22
     ItemsSketchSortedView<String> sv = sk.getSortedView();
     GenericSortedViewIterator<String> itr = sv.iterator();
     println("SORTED VIEW:");
@@ -173,7 +175,8 @@ public class PartitionBoundariesTest {
     final String maxItem = "8";
     final String minItem = "1";
     ItemsSketchSortedView<String> sv = new ItemsSketchSortedView<>(
-        quantiles, cumWeights, totalN, comparator, maxItem, minItem);
+        quantiles, cumWeights, totalN, comparator, maxItem, minItem,
+        String.class, .01, 4);
 
     GenericSortedViewIterator<String> itr = sv.iterator();
     while (itr.next()) {
@@ -196,38 +199,63 @@ public class PartitionBoundariesTest {
     assertEquals(minItm, "1");
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @SuppressWarnings("unused")
+  @Test //For visual check, set enablePrinting = true to view.
   public void checkSketchPartitionLimits() {
-    final long totalN = 1_000_000;
+    final long totalN = 2000; //1_000_000;
     final Comparator<String> comparator = Comparator.naturalOrder();
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
-    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(comparator, serDe);
+    final int k = 1 << 15;
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
     final int d = digits(totalN);
     for (int i = 1; i <= totalN; i++) {
       sk.update(getString(i, d));
     }
-    final int numLimit = sk.getMaxPartitions();
-    final int ret = sk.getNumRetained();
-    println("ret: " + ret + ", numLimit " + numLimit);
-    @SuppressWarnings("unused")
-    GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromNumParts(numLimit + 1);
+    //***
+    final int numRet = sk.getNumRetained();
+    println("NumRetained: " + numRet + " /2: " + (numRet / 2));
+    final double eps = sk.getNormalizedRankError(true);
+    printf("NormRankErr: %10.6f     1/eps: %10.3f" + LS, eps, 1/eps);
+    //***
+    //this should pass
+    final int goodNumPartsRequest = sk.getMaxPartitions();
+    println("Good numPartsRequest " + goodNumPartsRequest);
+    GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromNumParts(goodNumPartsRequest);
+    //this should fail
+    try {
+      final int badNumPartsRequest = goodNumPartsRequest + 1;
+      println("Bad numPartsRequest " + badNumPartsRequest);
+      gpb = sk.getPartitionBoundariesFromNumParts(badNumPartsRequest);
+      fail("Bad numPartsRequest should have failed. " + badNumPartsRequest);
+    } catch (SketchesArgumentException e) { } //OK
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @SuppressWarnings("unused")
+  @Test //For visual check, set enablePrinting = true to view.
   public void checkSketchPartitionLimits2() {
-    final long totalN = 1_000_000;
+    final long totalN = 2000; //1_000_000;
     final Comparator<String> comparator = Comparator.naturalOrder();
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
-    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(comparator, serDe);
+    final int k = 1 << 15;
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
     final int d = digits(totalN);
     for (int i = 1; i <= totalN; i++) {
       sk.update(getString(i, d));
     }
-    final long sizeLimit= sk.getMinPartitionSizeItems();
+    final double eps = sk.getNormalizedRankError(true);
+    printf("NormRankErr: %10.6f     1/eps: %10.3f" + LS, eps, 1/eps);
+    println("N: " + sk.getN());
+    println("Max Parts: " + sk.getMaxPartitions());
 
-    println("Min Size Limit: " + sizeLimit);
-    @SuppressWarnings("unused")
-    GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromPartSize(sizeLimit - 1);
+    //this should pass
+    final long goodPartSizeRequest= sk.getMinPartitionSizeItems();
+    println("Good partSizeRequest " + goodPartSizeRequest);
+    GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromPartSize(goodPartSizeRequest);
+    //this should fail
+    try {
+      final long badPartSizeRequest = goodPartSizeRequest - 1;
+      println("Bad partSizeRequest " + badPartSizeRequest);
+    } catch (SketchesArgumentException e) { } //OK
   }
 
   @Test

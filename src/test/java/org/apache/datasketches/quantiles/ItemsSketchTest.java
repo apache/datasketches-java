@@ -618,26 +618,6 @@ public class ItemsSketchTest {
   }
 
   @Test
-  public void sortedView2() {
-    Double[] qArr = {8.0, 10.0, 10.0, 20.0};
-    long[] cwArr =  {1,  3,  4,  5};
-    Comparator<Double> comp = Comparator.naturalOrder();
-    ItemsSketchSortedView<Double> sv = new ItemsSketchSortedView<>(qArr, cwArr, 5L, comp, 20.0, 8.0);
-    double[] ranks = {0, .1, .2, .3, .6, .7, .8, .9, 1.0};
-    Double[] qOut = new Double[9];
-    for (int i = 0; i < ranks.length; i++) {
-      qOut[i] = sv.getQuantile(ranks[i], EXCLUSIVE);
-      println("rank: " + ranks[i] + ", quantiles: " + qOut[i]);
-    }
-    long[] cumWts = sv.getCumulativeWeights();
-    Double[] quants = sv.getQuantiles();
-    for (int i = 0; i < qArr.length; i++) {
-      assertEquals(quants[i], qArr[i]);
-      assertEquals(cumWts[i], cwArr[i]);
-    }
-  }
-
-  @Test
   public void checkIssue484() {
     Boolean[] items = { true,false,true,false,true,false,true,false,true,false };
     ItemsSketch<Boolean> sketch = ItemsSketch.getInstance(Boolean.class, Boolean::compareTo);
