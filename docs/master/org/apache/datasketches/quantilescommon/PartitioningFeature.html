@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":18,"i1":6};
+var data = {"i0":18,"i1":6,"i2":18,"i3":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -156,7 +156,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>default <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundariesFromNumParts(int)">getPartitionBoundariesFromNumParts</a></span>&#8203;(int&nbsp;numEquallySizedParts)</code></th>
 <td class="colLast">
 <div class="block">This method returns an instance of
  <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
@@ -166,8 +166,29 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
-                      <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromNumParts</a></span>&#8203;(int&nbsp;numEquallySizedParts,
+                                  <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">
+<div class="block">This method returns an instance of
+ <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>default <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundariesFromPartSize(long)">getPartitionBoundariesFromPartSize</a></span>&#8203;(long&nbsp;nominalPartSizeItems)</code></th>
+<td class="colLast">
+<div class="block">This method returns an instance of
+ <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromPartSize</a></span>&#8203;(long&nbsp;nominalPartSizeItems,
+                                  <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
 <div class="block">This method returns an instance of
  <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
@@ -192,27 +213,30 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="getPartitionBoundaries(int)">
+<a id="getPartitionBoundariesFromNumParts(int)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getPartitionBoundaries</h4>
-<pre class="methodSignature">default&nbsp;<a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;&nbsp;getPartitionBoundaries&#8203;(int&nbsp;numEquallySized)</pre>
+<h4>getPartitionBoundariesFromNumParts</h4>
+<pre class="methodSignature">default&nbsp;<a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;&nbsp;getPartitionBoundariesFromNumParts&#8203;(int&nbsp;numEquallySizedParts)</pre>
 <div class="block">This method returns an instance of
  <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
  sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
  refers to an approximately equal number of items per partition.
 
  <p>This method is equivalent to
- <a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getPartitionBoundaries(numEquallySized, INCLUSIVE)</code></a>.
- </p></div>
+ <a href="#getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getPartitionBoundariesFromNumParts(numEquallySizedParts, INCLUSIVE)</code></a>.
+ </p>
+
+ <p>The sketch must not be empty.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>numEquallySized</code> - an integer that specifies the number of equally sized partitions between
+<dd><code>numEquallySizedParts</code> - an integer that specifies the number of equally sized partitions between
  <a href="GenericPartitionBoundaries.html#getMinItem()"><code>getMinItem()</code></a> and
  <a href="GenericPartitionBoundaries.html#getMaxItem()"><code>getMaxItem()</code></a>.
- This must be a positive integer greater than zero.
+ This must be a positive integer less than
+ <a href="SketchPartitionLimits.html#getMaxPartitions()"><code>getMaxPartitions()</code></a>
  <ul>
  <li>A 1 will return: minItem, maxItem.</li>
  <li>A 2 will return: minItem, median quantile, maxItem.</li>
@@ -220,30 +244,30 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  </ul></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an instance of <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a>.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if <i>numEquallySized</i> is less than 1.</dd>
 </dl>
 </li>
 </ul>
-<a id="getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<a id="getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
-<h4>getPartitionBoundaries</h4>
-<pre class="methodSignature"><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;&nbsp;getPartitionBoundaries&#8203;(int&nbsp;numEquallySized,
-                                                     <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<h4>getPartitionBoundariesFromNumParts</h4>
+<pre class="methodSignature"><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;&nbsp;getPartitionBoundariesFromNumParts&#8203;(int&nbsp;numEquallySizedParts,
+                                                                 <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
 <div class="block">This method returns an instance of
  <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
  sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
- refers to an approximately equal number of items per partition.</div>
+ refers to an approximately equal number of items per partition.
+
+ <p>The sketch must not be empty.</p></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>numEquallySized</code> - an integer that specifies the number of equally sized partitions between
+<dd><code>numEquallySizedParts</code> - an integer that specifies the number of equally sized partitions between
  <a href="GenericPartitionBoundaries.html#getMinItem()"><code>getMinItem()</code></a> and
  <a href="GenericPartitionBoundaries.html#getMaxItem()"><code>getMaxItem()</code></a>.
- This must be a positive integer greater than zero.
+ This must be a positive integer less than
+ <a href="SketchPartitionLimits.html#getMaxPartitions()"><code>getMaxPartitions()</code></a>
  <ul>
  <li>A 1 will return: minItem, maxItem.</li>
  <li>A 2 will return: minItem, median quantile, maxItem.</li>
@@ -255,9 +279,61 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an instance of <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a>.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if <i>numEquallySized</i> is less than 1.</dd>
+</dl>
+</li>
+</ul>
+<a id="getPartitionBoundariesFromPartSize(long)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPartitionBoundariesFromPartSize</h4>
+<pre class="methodSignature">default&nbsp;<a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;&nbsp;getPartitionBoundariesFromPartSize&#8203;(long&nbsp;nominalPartSizeItems)</pre>
+<div class="block">This method returns an instance of
+ <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.
+
+ <p>This method is equivalent to
+ <a href="#getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getPartitionBoundariesFromPartSize(nominalPartSizeItems, INCLUSIVE)</code></a>.
+ </p>
+
+ <p>The sketch must not be empty.</p></div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>nominalPartSizeItems</code> - an integer that specifies the nominal size, in items, of each target partition.
+ This must be a positive integer greater than
+ <a href="SketchPartitionLimits.html#getMinPartitionSizeItems()"><code>getMinPartitionSizeItems()</code></a></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>an instance of <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a>.</dd>
+</dl>
+</li>
+</ul>
+<a id="getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getPartitionBoundariesFromPartSize</h4>
+<pre class="methodSignature"><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="PartitioningFeature.html" title="type parameter in PartitioningFeature">T</a>&gt;&nbsp;getPartitionBoundariesFromPartSize&#8203;(long&nbsp;nominalPartSizeItems,
+                                                                 <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">This method returns an instance of
+ <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.
+
+ <p>The sketch must not be empty.</p></div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>nominalPartSizeItems</code> - an integer that specifies the nominal size, in items, of each target partition.
+ This must be a positive integer greater than
+ <a href="SketchPartitionLimits.html#getMinPartitionSizeItems()"><code>getMinPartitionSizeItems()</code></a>.</dd>
+<dd><code>searchCrit</code> - If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally sized partitions
+ with the exception of the lowest returned quantile, which is the lowest boundary of the lowest ranked partition.
+ If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally sized partitions
+ with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>an instance of <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a>.</dd>
 </dl>
 </li>
 </ul>

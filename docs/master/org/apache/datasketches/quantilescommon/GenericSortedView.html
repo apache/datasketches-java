@@ -129,7 +129,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
+<dd><code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></code>, <code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
@@ -137,7 +137,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <hr>
 <pre>public interface <span class="typeNameLabel">GenericSortedView&lt;T&gt;</span>
-extends <a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;, <a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></pre>
+extends <a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;, <a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a>, <a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></pre>
 <div class="block">The Sorted View for quantiles of generic type.</div>
 <dl>
 <dt><span class="simpleTagLabel">Author:</span></dt>
@@ -243,7 +243,14 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></h3>
-<code><a href="PartitioningFeature.html#getPartitionBoundaries(int)">getPartitionBoundaries</a>, <a href="PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></code></li>
+<code><a href="PartitioningFeature.html#getPartitionBoundariesFromNumParts(int)">getPartitionBoundariesFromNumParts</a>, <a href="PartitioningFeature.html#getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromNumParts</a>, <a href="PartitioningFeature.html#getPartitionBoundariesFromPartSize(long)">getPartitionBoundariesFromPartSize</a>, <a href="PartitioningFeature.html#getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromPartSize</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.SketchPartitionLimits">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></h3>
+<code><a href="SketchPartitionLimits.html#getMaxPartitions()">getMaxPartitions</a>, <a href="SketchPartitionLimits.html#getMinPartitionSizeItems()">getMinPartitionSizeItems</a>, <a href="SketchPartitionLimits.html#getN()">getN</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.SortedView">

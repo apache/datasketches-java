@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -137,7 +137,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedView</a>&lt;T&gt;</code>, <code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
+<dd><code><a href="GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedView</a>&lt;T&gt;</code>, <code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></code>, <code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
 </dl>
 <hr>
 <pre>public class <span class="typeNameLabel">ItemsSketchSortedView&lt;T&gt;</span>
@@ -168,13 +168,9 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(T%5B%5D,long%5B%5D,long,java.util.Comparator,T,T,double)">ItemsSketchSortedView</a></span>&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]&nbsp;quantiles,
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(T%5B%5D,long%5B%5D,org.apache.datasketches.quantilescommon.QuantilesGenericAPI)">ItemsSketchSortedView</a></span>&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]&nbsp;quantiles,
                      long[]&nbsp;cumWeights,
-                     long&nbsp;totalN,
-                     <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;comparator,
-                     <a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&nbsp;maxItem,
-                     <a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&nbsp;minItem,
-                     double&nbsp;normRankErr)</code></th>
+                     <a href="QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;sk)</code></th>
 <td class="colLast">
 <div class="block">Construct from elements, also used in testing.</div>
 </td>
@@ -222,30 +218,38 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxPartitions()">getMaxPartitions</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the maximum number of partitions this sketch will support based on the configured size <i>K</i>
+ and the number of retained values of this sketch.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinItem()">getMinItem</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the minimum item of the stream.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getN()">getN</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Returns the total number of items presented to the sourcing sketch.</div>
+<div class="block">Gets the length of the input stream offered to the sketch..</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNumRetained()">getNumRetained</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the number of quantiles retained by the sketch.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallySized,
-                      <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromNumParts</a></span>&#8203;(int&nbsp;numEquallySizedParts,
+                                  <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
 <div class="block">This method returns an instance of
  <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
@@ -253,7 +257,18 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
  refers to an approximately equal number of items per partition.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
+<td class="colFirst"><code><a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromPartSize</a></span>&#8203;(long&nbsp;nominalPartitionSize,
+                                  <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">
+<div class="block">This method returns an instance of
+ <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.</div>
+</td>
+</tr>
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]&nbsp;splitPoints,
       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -263,7 +278,7 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -271,20 +286,20 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles()">getQuantiles</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the full array of quantiles.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&nbsp;quantile,
        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -292,14 +307,14 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sorted view is empty.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
@@ -319,7 +334,14 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></h3>
-<code><a href="PartitioningFeature.html#getPartitionBoundaries(int)">getPartitionBoundaries</a></code></li>
+<code><a href="PartitioningFeature.html#getPartitionBoundariesFromNumParts(int)">getPartitionBoundariesFromNumParts</a>, <a href="PartitioningFeature.html#getPartitionBoundariesFromPartSize(long)">getPartitionBoundariesFromPartSize</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.SketchPartitionLimits">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></h3>
+<code><a href="SketchPartitionLimits.html#getMinPartitionSizeItems()">getMinPartitionSizeItems</a></code></li>
 </ul>
 </li>
 </ul>
@@ -337,9 +359,9 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(java.lang.Object[],long[],long,java.util.Comparator,java.lang.Object,java.lang.Object,double)">
+<a id="&lt;init&gt;(java.lang.Object[],long[],org.apache.datasketches.quantilescommon.QuantilesGenericAPI)">
 <!--   -->
-</a><a id="&lt;init&gt;(T[],long[],long,java.util.Comparator,T,T,double)">
+</a><a id="&lt;init&gt;(T[],long[],org.apache.datasketches.quantilescommon.QuantilesGenericAPI)">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -347,21 +369,13 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <h4>ItemsSketchSortedView</h4>
 <pre>public&nbsp;ItemsSketchSortedView&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]&nbsp;quantiles,
                              long[]&nbsp;cumWeights,
-                             long&nbsp;totalN,
-                             <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;comparator,
-                             <a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&nbsp;maxItem,
-                             <a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&nbsp;minItem,
-                             double&nbsp;normRankErr)</pre>
+                             <a href="QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;sk)</pre>
 <div class="block">Construct from elements, also used in testing.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>quantiles</code> - sorted array of quantiles</dd>
 <dd><code>cumWeights</code> - sorted, monotonically increasing cumulative weights.</dd>
-<dd><code>totalN</code> - the total number of items presented to the sketch.</dd>
-<dd><code>comparator</code> - the Comparator for type T</dd>
-<dd><code>maxItem</code> - of type T</dd>
-<dd><code>minItem</code> - of type T</dd>
-<dd><code>normRankErr</code> - the normalized rank error of the originating sketch.</dd>
+<dd><code>sk</code> - the underlying quantile sketch.</dd>
 </dl>
 </li>
 </ul>
@@ -485,13 +499,15 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <li class="blockList">
 <h4>getN</h4>
 <pre class="methodSignature">public&nbsp;long&nbsp;getN()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedView.html#getN()">SortedView</a></code></span></div>
-<div class="block">Returns the total number of items presented to the sourcing sketch.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SketchPartitionLimits.html#getN()">SketchPartitionLimits</a></code></span></div>
+<div class="block">Gets the length of the input stream offered to the sketch..</div>
 <dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SketchPartitionLimits.html#getN()">getN</a></code>&nbsp;in interface&nbsp;<code><a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></code></dd>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="SortedView.html#getN()">getN</a></code>&nbsp;in interface&nbsp;<code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the total number of items presented to the sourcing sketch.</dd>
+<dd>the length of the input stream offered to the sketch.</dd>
 </dl>
 </li>
 </ul>
@@ -512,27 +528,79 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 </dl>
 </li>
 </ul>
-<a id="getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<a id="getMaxPartitions()">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getPartitionBoundaries</h4>
-<pre class="methodSignature">public&nbsp;<a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;getPartitionBoundaries&#8203;(int&nbsp;numEquallySized,
-                                                            <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">PartitioningFeature</a></code></span></div>
+<h4>getMaxPartitions</h4>
+<pre class="methodSignature">public&nbsp;int&nbsp;getMaxPartitions()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SketchPartitionLimits.html#getMaxPartitions()">SketchPartitionLimits</a></code></span></div>
+<div class="block">Gets the maximum number of partitions this sketch will support based on the configured size <i>K</i>
+ and the number of retained values of this sketch.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SketchPartitionLimits.html#getMaxPartitions()">getMaxPartitions</a></code>&nbsp;in interface&nbsp;<code><a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the maximum number of partitions this sketch will support.</dd>
+</dl>
+</li>
+</ul>
+<a id="getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPartitionBoundariesFromPartSize</h4>
+<pre class="methodSignature">public&nbsp;<a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;getPartitionBoundariesFromPartSize&#8203;(long&nbsp;nominalPartitionSize,
+                                                                        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitioningFeature.html#getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">PartitioningFeature</a></code></span></div>
 <div class="block">This method returns an instance of
  <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
  sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
- refers to an approximately equal number of items per partition.</div>
+ refers to an approximately equal number of items per partition.
+
+ <p>The sketch must not be empty.</p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></code>&nbsp;in interface&nbsp;<code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></dd>
+<dd><code><a href="PartitioningFeature.html#getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromPartSize</a></code>&nbsp;in interface&nbsp;<code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>numEquallySized</code> - an integer that specifies the number of equally sized partitions between
+<dd><code>nominalPartitionSize</code> - an integer that specifies the nominal size, in items, of each target partition.
+ This must be a positive integer greater than
+ <a href="SketchPartitionLimits.html#getMinPartitionSizeItems()"><code>getMinPartitionSizeItems()</code></a>.</dd>
+<dd><code>searchCrit</code> - If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally sized partitions
+ with the exception of the lowest returned quantile, which is the lowest boundary of the lowest ranked partition.
+ If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally sized partitions
+ with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>an instance of <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a>.</dd>
+</dl>
+</li>
+</ul>
+<a id="getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPartitionBoundariesFromNumParts</h4>
+<pre class="methodSignature">public&nbsp;<a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;getPartitionBoundariesFromNumParts&#8203;(int&nbsp;numEquallySizedParts,
+                                                                        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitioningFeature.html#getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">PartitioningFeature</a></code></span></div>
+<div class="block">This method returns an instance of
+ <a href="GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon"><code>GenericPartitionBoundaries</code></a> which provides
+ sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+ refers to an approximately equal number of items per partition.
+
+ <p>The sketch must not be empty.</p></div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="PartitioningFeature.html#getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromNumParts</a></code>&nbsp;in interface&nbsp;<code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>numEquallySizedParts</code> - an integer that specifies the number of equally sized partitions between
  <a href="GenericPartitionBoundaries.html#getMinItem()"><code>getMinItem()</code></a> and
  <a href="GenericPartitionBoundaries.html#getMaxItem()"><code>getMaxItem()</code></a>.
- This must be a positive integer greater than zero.
+ This must be a positive integer less than
+ <a href="SketchPartitionLimits.html#getMaxPartitions()"><code>getMaxPartitions()</code></a>
  <ul>
  <li>A 1 will return: minItem, maxItem.</li>
  <li>A 2 will return: minItem, median quantile, maxItem.</li>

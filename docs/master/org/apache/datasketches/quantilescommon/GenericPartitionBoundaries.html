@@ -131,15 +131,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl>
-<dt>All Implemented Interfaces:</dt>
-<dd><code><a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></code></dd>
-</dl>
 <hr>
 <pre>public final class <span class="typeNameLabel">GenericPartitionBoundaries&lt;T&gt;</span>
-extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>
-implements <a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></pre>
-<div class="block">Implements PartitionBoundaries</div>
+extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
+<div class="block">This defines the returned results of the getParitionBoundaries() function and
+ includes the basic methods needed to construct actual partitions.</div>
 </li>
 </ul>
 </div>
@@ -310,11 +306,8 @@ implements <a href="PartitionBoundaries.html" title="interface in org.apache.dat
 <li class="blockList">
 <h4>getN</h4>
 <pre class="methodSignature">public&nbsp;long&nbsp;getN()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitionBoundaries.html#getN()">PartitionBoundaries</a></code></span></div>
 <div class="block">Gets the length of the input stream offered to the underlying sketch.</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="PartitionBoundaries.html#getN()">getN</a></code>&nbsp;in interface&nbsp;<code><a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the length of the input stream offered to the underlying sketch.</dd>
 </dl>
@@ -364,12 +357,9 @@ implements <a href="PartitionBoundaries.html" title="interface in org.apache.dat
 <li class="blockList">
 <h4>getNaturalRanks</h4>
 <pre class="methodSignature">public&nbsp;long[]&nbsp;getNaturalRanks()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitionBoundaries.html#getNaturalRanks()">PartitionBoundaries</a></code></span></div>
 <div class="block">Gets an ordered array of natural ranks of the associated array of partition boundaries utilizing
  a specified search criterion. Natural ranks are integral values on the interval [1, N]</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="PartitionBoundaries.html#getNaturalRanks()">getNaturalRanks</a></code>&nbsp;in interface&nbsp;<code><a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an array of natural ranks.</dd>
 </dl>
@@ -382,12 +372,9 @@ implements <a href="PartitionBoundaries.html" title="interface in org.apache.dat
 <li class="blockList">
 <h4>getNormalizedRanks</h4>
 <pre class="methodSignature">public&nbsp;double[]&nbsp;getNormalizedRanks()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitionBoundaries.html#getNormalizedRanks()">PartitionBoundaries</a></code></span></div>
 <div class="block">Gets an ordered array of normalized ranks of the associated array of partition boundaries utilizing
  a specified search criterion. Normalized ranks are double values on the interval [0.0, 1.0].</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="PartitionBoundaries.html#getNormalizedRanks()">getNormalizedRanks</a></code>&nbsp;in interface&nbsp;<code><a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an array of normalized ranks.</dd>
 </dl>
@@ -400,13 +387,10 @@ implements <a href="PartitionBoundaries.html" title="interface in org.apache.dat
 <li class="blockList">
 <h4>getNumDeltaItems</h4>
 <pre class="methodSignature">public&nbsp;long[]&nbsp;getNumDeltaItems()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitionBoundaries.html#getNumDeltaItems()">PartitionBoundaries</a></code></span></div>
 <div class="block">Gets the number of items to be included for each partition as an array.
  The count at index 0 is 0.  The number of items included in the first partition, defined by the boundaries at
  index 0 and index 1, is at index 1 in this array, etc.</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="PartitionBoundaries.html#getNumDeltaItems()">getNumDeltaItems</a></code>&nbsp;in interface&nbsp;<code><a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the number of items to be included for each partition as an array.</dd>
 </dl>
@@ -419,11 +403,8 @@ implements <a href="PartitionBoundaries.html" title="interface in org.apache.dat
 <li class="blockList">
 <h4>getNumPartitions</h4>
 <pre class="methodSignature">public&nbsp;int&nbsp;getNumPartitions()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitionBoundaries.html#getNumPartitions()">PartitionBoundaries</a></code></span></div>
 <div class="block">Gets the number of partitions</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="PartitionBoundaries.html#getNumPartitions()">getNumPartitions</a></code>&nbsp;in interface&nbsp;<code><a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the number of partitions</dd>
 </dl>
@@ -470,11 +451,8 @@ implements <a href="PartitionBoundaries.html" title="interface in org.apache.dat
 <li class="blockList">
 <h4>getSearchCriteria</h4>
 <pre class="methodSignature">public&nbsp;<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;getSearchCriteria()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="PartitionBoundaries.html#getSearchCriteria()">PartitionBoundaries</a></code></span></div>
 <div class="block">Gets the search criteria specified for the source sketch</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="PartitionBoundaries.html#getSearchCriteria()">getSearchCriteria</a></code>&nbsp;in interface&nbsp;<code><a href="PartitionBoundaries.html" title="interface in org.apache.datasketches.quantilescommon">PartitionBoundaries</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The search criteria specified for the source sketch</dd>
 </dl>

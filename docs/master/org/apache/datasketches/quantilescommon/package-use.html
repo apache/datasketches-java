@@ -165,7 +165,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.kll">GenericPartitionBoundaries</a></th>
 <td class="colLast">
-<div class="block">Implements PartitionBoundaries</div>
+<div class="block">This defines the returned results of the getParitionBoundaries() function and
+ includes the basic methods needed to construct actual partitions.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -237,6 +238,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  non-ordered quantiles retained by a sketch.</div>
 </td>
 </tr>
+<tr class="altColor">
+<th class="colFirst" scope="row"><a href="class-use/SketchPartitionLimits.html#org.apache.datasketches.kll">SketchPartitionLimits</a></th>
+<td class="colLast">
+<div class="block">This defines the methods required to compute the partition limits.</div>
+</td>
+</tr>
 </tbody>
 </table>
 </li>
@@ -253,7 +260,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.partitions">GenericPartitionBoundaries</a></th>
 <td class="colLast">
-<div class="block">Implements PartitionBoundaries</div>
+<div class="block">This defines the returned results of the getParitionBoundaries() function and
+ includes the basic methods needed to construct actual partitions.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -296,7 +304,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.quantiles">GenericPartitionBoundaries</a></th>
 <td class="colLast">
-<div class="block">Implements PartitionBoundaries</div>
+<div class="block">This defines the returned results of the getParitionBoundaries() function and
+ includes the basic methods needed to construct actual partitions.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -356,6 +365,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  non-ordered quantiles retained by a sketch.</div>
 </td>
 </tr>
+<tr class="rowColor">
+<th class="colFirst" scope="row"><a href="class-use/SketchPartitionLimits.html#org.apache.datasketches.quantiles">SketchPartitionLimits</a></th>
+<td class="colLast">
+<div class="block">This defines the methods required to compute the partition limits.</div>
+</td>
+</tr>
 </tbody>
 </table>
 </li>
@@ -402,7 +417,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/GenericPartitionBoundaries.html#org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></th>
 <td class="colLast">
-<div class="block">Implements PartitionBoundaries</div>
+<div class="block">This defines the returned results of the getParitionBoundaries() function and
+ includes the basic methods needed to construct actual partitions.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -425,19 +441,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="rowColor">
-<th class="colFirst" scope="row"><a href="class-use/PartitionBoundaries.html#org.apache.datasketches.quantilescommon">PartitionBoundaries</a></th>
-<td class="colLast">
-<div class="block">This defines a set of results computed from the getParitionBoundaries() function and
- encapsulates the basic methods needed to construct actual partitions based on generic items.</div>
-</td>
-</tr>
-<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/PartitioningFeature.html#org.apache.datasketches.quantilescommon">PartitioningFeature</a></th>
 <td class="colLast">
 <div class="block">This enables the special functions for performing efficient partitioning of massive data.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesAPI.html#org.apache.datasketches.quantilescommon">QuantilesAPI</a></th>
 <td class="colLast">
 <div class="block">This is a stochastic streaming sketch that enables near-real time analysis of the
@@ -445,34 +454,40 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  that the items are comparable.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesAPI.html#org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></th>
 <td class="colLast">
 <div class="block">The Quantiles API for item type <i>double</i>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesDoublesSketchIterator.html#org.apache.datasketches.quantilescommon">QuantilesDoublesSketchIterator</a></th>
 <td class="colLast">
 <div class="block">The quantiles sketch iterator for primitive type double.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantileSearchCriteria.html#org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a></th>
 <td class="colLast">
 <div class="block">These search criteria are used by the KLL, REQ and Classic Quantiles sketches in the DataSketches library.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesFloatsAPI.html#org.apache.datasketches.quantilescommon">QuantilesFloatsAPI</a></th>
 <td class="colLast">
 <div class="block">The Quantiles API for item type <i>float</i>.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/QuantilesFloatsSketchIterator.html#org.apache.datasketches.quantilescommon">QuantilesFloatsSketchIterator</a></th>
 <td class="colLast">
 <div class="block">The quantiles sketch iterator for primitive type float.</div>
+</td>
+</tr>
+<tr class="altColor">
+<th class="colFirst" scope="row"><a href="class-use/QuantilesGenericAPI.html#org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></th>
+<td class="colLast">
+<div class="block">The Quantiles API for item type <i>generic</i>.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -489,12 +504,18 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="rowColor">
+<th class="colFirst" scope="row"><a href="class-use/SketchPartitionLimits.html#org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></th>
+<td class="colLast">
+<div class="block">This defines the methods required to compute the partition limits.</div>
+</td>
+</tr>
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="class-use/SortedView.html#org.apache.datasketches.quantilescommon">SortedView</a></th>
 <td class="colLast">
 <div class="block">This is the base interface for the Sorted View interface hierarchy and defines the methods that are type independent.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="class-use/SortedViewIterator.html#org.apache.datasketches.quantilescommon">SortedViewIterator</a></th>
 <td class="colLast">
 <div class="block">This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained

@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":18,"i1":6,"i2":6,"i3":6,"i4":6,"i5":18,"i6":6,"i7":18,"i8":6,"i9":6,"i10":18,"i11":6,"i12":6,"i13":18,"i14":6,"i15":18,"i16":6,"i17":6,"i18":6,"i19":6};
+var data = {"i0":18,"i1":6,"i2":6,"i3":6,"i4":6,"i5":18,"i6":6,"i7":18,"i8":6,"i9":18,"i10":6,"i11":6,"i12":18,"i13":6,"i14":6,"i15":18,"i16":6,"i17":18,"i18":6,"i19":6,"i20":6,"i21":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -129,7 +129,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code></dd>
+<dd><code><a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</code>, <code><a href="QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code>, <code><a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></code></dd>
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
@@ -137,7 +137,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <hr>
 <pre>public interface <span class="typeNameLabel">QuantilesGenericAPI&lt;T&gt;</span>
-extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a>, <a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;</pre>
+extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a>, <a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;T&gt;, <a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></pre>
 <div class="block">The Quantiles API for item type <i>generic</i>.</div>
 <dl>
 <dt><span class="simpleTagLabel">Author:</span></dt>
@@ -205,27 +205,42 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getComparator()">getComparator</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Returns the Comparator of T</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxItem()">getMaxItem</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the maximum item of the stream.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>default int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxPartitions()">getMaxPartitions</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the maximum number of partitions this sketch will support based on the configured size <i>K</i>
+ and the number of retained values of this sketch.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinItem()">getMinItem</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the minimum item of the stream.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(T%5B%5D)">getPMF</a></span>&#8203;(<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]&nbsp;splitPoints)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getPMF(splitPoints, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]&nbsp;splitPoints,
       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -235,14 +250,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>default <a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double)">getQuantile</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getQuantile(rank, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -250,7 +265,7 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileLowerBound(double)">getQuantileLowerBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -258,14 +273,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>default <a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getQuantiles(ranks, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -273,7 +288,7 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <div class="block">Gets an array of quantiles from the given array of normalized ranks.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code><a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileUpperBound(double)">getQuantileUpperBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -281,14 +296,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>default double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(T)">getRank</a></span>&#8203;(<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&nbsp;quantile)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getRank(T quantile, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&nbsp;quantile,
        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -296,14 +311,14 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRanks(T%5B%5D)">getRanks</a></span>&#8203;(<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]&nbsp;quantiles)</code></th>
 <td class="colLast">
 <div class="block">This is equivalent to <a href="#getRanks(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getRanks(quantiles, INCLUSIVE)</code></a></div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRanks(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>[]&nbsp;quantiles,
         <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -312,21 +327,21 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
  search criterion.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code><a href="GenericSortedView.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedView</a>&lt;<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSortedView()">getSortedView</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the sorted view of this sketch</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code><a href="QuantilesGenericSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericSketchIterator</a>&lt;<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the iterator for this sketch, which is not sorted.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(T)">update</a></span>&#8203;(<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&nbsp;item)</code></th>
 <td class="colLast">
@@ -339,7 +354,7 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a></h3>
-<code><a href="PartitioningFeature.html#getPartitionBoundaries(int)">getPartitionBoundaries</a>, <a href="PartitioningFeature.html#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></code></li>
+<code><a href="PartitioningFeature.html#getPartitionBoundariesFromNumParts(int)">getPartitionBoundariesFromNumParts</a>, <a href="PartitioningFeature.html#getPartitionBoundariesFromNumParts(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromNumParts</a>, <a href="PartitioningFeature.html#getPartitionBoundariesFromPartSize(long)">getPartitionBoundariesFromPartSize</a>, <a href="PartitioningFeature.html#getPartitionBoundariesFromPartSize(long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundariesFromPartSize</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.QuantilesAPI">
@@ -347,6 +362,13 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></h3>
 <code><a href="QuantilesAPI.html#getK()">getK</a>, <a href="QuantilesAPI.html#getN()">getN</a>, <a href="QuantilesAPI.html#getNormalizedRankError(boolean)">getNormalizedRankError</a>, <a href="QuantilesAPI.html#getNumRetained()">getNumRetained</a>, <a href="QuantilesAPI.html#getRankLowerBound(double)">getRankLowerBound</a>, <a href="QuantilesAPI.html#getRankUpperBound(double)">getRankUpperBound</a>, <a href="QuantilesAPI.html#hasMemory()">hasMemory</a>, <a href="QuantilesAPI.html#isDirect()">isDirect</a>, <a href="QuantilesAPI.html#isEmpty()">isEmpty</a>, <a href="QuantilesAPI.html#isEstimationMode()">isEstimationMode</a>, <a href="QuantilesAPI.html#isReadOnly()">isReadOnly</a>, <a href="QuantilesAPI.html#reset()">reset</a>, <a href="QuantilesAPI.html#toString()">toString</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.SketchPartitionLimits">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></h3>
+<code><a href="SketchPartitionLimits.html#getMinPartitionSizeItems()">getMinPartitionSizeItems</a>, <a href="SketchPartitionLimits.html#getN()">getN</a></code></li>
 </ul>
 </li>
 </ul>
@@ -430,6 +452,33 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 </dl>
 </li>
 </ul>
+<a id="getClassOfT()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getClassOfT</h4>
+<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&gt;&nbsp;getClassOfT()</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the sketch item class</dd>
+</dl>
+</li>
+</ul>
+<a id="getComparator()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getComparator</h4>
+<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&gt;&nbsp;getComparator()</pre>
+<div class="block">Returns the Comparator of T</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Comparator of the sketch</dd>
+</dl>
+</li>
+</ul>
 <a id="getMaxItem()">
 <!--   -->
 </a>
@@ -444,6 +493,24 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <dd>the maximum item of the stream</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+</dl>
+</li>
+</ul>
+<a id="getMaxPartitions()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMaxPartitions</h4>
+<pre class="methodSignature">default&nbsp;int&nbsp;getMaxPartitions()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SketchPartitionLimits.html#getMaxPartitions()">SketchPartitionLimits</a></code></span></div>
+<div class="block">Gets the maximum number of partitions this sketch will support based on the configured size <i>K</i>
+ and the number of retained values of this sketch.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SketchPartitionLimits.html#getMaxPartitions()">getMaxPartitions</a></code>&nbsp;in interface&nbsp;<code><a href="SketchPartitionLimits.html" title="interface in org.apache.datasketches.quantilescommon">SketchPartitionLimits</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the maximum number of partitions this sketch will support.</dd>
 </dl>
 </li>
 </ul>
@@ -759,19 +826,6 @@ extends <a href="QuantilesAPI.html" title="interface in org.apache.datasketches.
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
-</dl>
-</li>
-</ul>
-<a id="getClassOfT()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getClassOfT</h4>
-<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;<a href="QuantilesGenericAPI.html" title="type parameter in QuantilesGenericAPI">T</a>&gt;&nbsp;getClassOfT()</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the sketch item class</dd>
 </dl>
 </li>
 </ul>
