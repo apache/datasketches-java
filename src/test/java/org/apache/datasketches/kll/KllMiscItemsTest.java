@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.bitAt;
-import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -34,22 +34,17 @@ import org.apache.datasketches.common.ArrayOfBooleansSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.kll.KllSketch.SketchType;
-import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
-import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
-import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
+//@SuppressWarnings("unused")
 public class KllMiscItemsTest {
-  static final String LS = System.getProperty("line.separator");
   public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
@@ -221,15 +216,16 @@ public class KllMiscItemsTest {
     ItemsSketchSortedView<String> sv = sk.getSortedView();
     GenericSortedViewIterator<String> itr = sv.iterator();
     println("### SORTED VIEW");
-    printf("%12s%12s\n", "Value", "CumWeight");
-    long[] correct = {2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    printf("%6s %12s %12s" + LS, "Idx", "Value", "CumWeight");
     int i = 0;
     while (itr.next()) {
       String v = itr.getQuantile();
       long wt = itr.getWeight();
-      printf("%12s%12d\n", v, wt);
-      assertEquals(wt, correct[i++]);
+      printf("%6d %12s %12d" + LS,i, v, wt);
+      i++;
     }
+    assertEquals(sv.getMinItem(), " 1");
+    assertEquals(sv.getMaxItem(), Integer.toString(n));
   }
 
   @Test //set static enablePrinting = true for visual checking
@@ -266,7 +262,7 @@ public class KllMiscItemsTest {
 
     GenericSortedViewIterator<String> itr = sk.getSortedView().iterator();
     println("### SORTED VIEW");
-    printf("%12s %12s %12s\n", "Value", "Weight", "NaturalRank");
+    printf("%12s %12s %12s" + LS, "Value", "Weight", "NaturalRank");
     long cumWt = 0;
     while (itr.next()) {
       String v = itr.getQuantile();
@@ -274,7 +270,7 @@ public class KllMiscItemsTest {
       long natRank = itr.getNaturalRank(INCLUSIVE);
       cumWt += wt;
       assertEquals(cumWt, natRank);
-      printf("%12s %12d %12d\n", v, wt, natRank);
+      printf("%12s %12d %12d" + LS, v, wt, natRank);
     }
     assertEquals(cumWt, sk.getN());
   }
@@ -496,8 +492,8 @@ public class KllMiscItemsTest {
 
   private static void outputItems(String[] itemsArr) {
     String[] hdr2 = {"Index", "Value"};
-    String hdr2fmt = "%6s %15s\n";
-    String d2fmt = "%6d %15s\n";
+    String hdr2fmt = "%6s %15s" + LS;
+    String d2fmt = "%6d %15s" + LS;
     println("ItemsArr");
     printf(hdr2fmt, (Object[]) hdr2);
     for (int i = 0; i < itemsArr.length; i++) {
@@ -520,9 +516,9 @@ public class KllMiscItemsTest {
 
   private static void outputLevels(int weight, int[] levelsArr) {
     String[] hdr = {"Lvl", "StartAdr", "BitPattern", "Weight"};
-    String hdrfmt = "%3s %9s %10s %s\n";
-    String dfmt   = "%3d %9d %10d %d\n";
-    String dfmt_2 = "%3d %9d %s\n";
+    String hdrfmt = "%3s %9s %10s %s" + LS;
+    String dfmt   = "%3d %9d %10d %d" + LS;
+    String dfmt_2 = "%3d %9d %s" + LS;
     println("Count = " + weight + " => " + (Integer.toBinaryString(weight)));
     println("LevelsArr");
     printf(hdrfmt, (Object[]) hdr);
@@ -557,8 +553,9 @@ public class KllMiscItemsTest {
 
   @Test
   public void checkIssue484() {
+    final int k = 20;
     Boolean[] items = { true,false,true,false,true,false,true,false,true,false };
-    KllItemsSketch<Boolean> sketch = KllItemsSketch.newHeapInstance(Boolean::compareTo, new ArrayOfBooleansSerDe());
+    KllItemsSketch<Boolean> sketch = KllItemsSketch.newHeapInstance(k, Boolean::compareTo, new ArrayOfBooleansSerDe());
     for (int i = 0; i < items.length; i++) { sketch.update(items[i]); }
     byte[] serialized = sketch.toByteArray();
     KllItemsSketch<Boolean> deserialized =
@@ -574,12 +571,14 @@ public class KllMiscItemsTest {
     Boolean[] expItemsArr = (Boolean[])expSV.getQuantiles();
     long[] actCumWts = actSV.getCumulativeWeights();
     Boolean[] actItemsArr = (Boolean[])actSV.getQuantiles();
-    printf("%3s %8s %8s\n", "i","Actual", "Expected");
+    printf("%3s %8s %8s" + LS, "i","Actual", "Expected");
     for (int i = 0; i < N; i++) {
-      printf("%3d %8s %8s\n", i, actItemsArr[i].toString(), expItemsArr[i].toString());
+      printf("%3d %8s %8s" + LS, i, actItemsArr[i].toString(), expItemsArr[i].toString());
     }
     assertEquals(actCumWts, expCumWts);
     assertEquals(actItemsArr, expItemsArr);
+    assertEquals(actual.getMinItem(), expected.getMinItem());
+    assertEquals(actual.getMaxItem(), expected.getMaxItem());
   }
 
   private final static boolean enablePrinting = false;

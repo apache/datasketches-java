@@ -174,7 +174,7 @@ final class KllMemoryValidate {
     final int levelsLen = updatable ? levelsArr.length : levelsArr.length - 1;
     final int numItems = updatable ? capacityItems : retainedItems;
 
-    int offsetBytes = DATA_START_ADR + levelsLen * Integer.BYTES;
+    int offsetBytes = DATA_START_ADR + levelsLen * Integer.BYTES; //levels array
     if (sketchType == ITEMS_SKETCH) {
       if (serDe instanceof ArrayOfBooleansSerDe) {
         offsetBytes += serDe.sizeOf(srcMem, offsetBytes, numItems) + 2; //2 for min & max

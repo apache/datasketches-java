@@ -31,10 +31,12 @@ import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("unused")
 public class KllDirectCompactItemsSketchIteratorTest {
   private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
@@ -84,13 +86,15 @@ public class KllDirectCompactItemsSketchIteratorTest {
 
   @Test
   public void twoItemSketchForSortedViewIterator() {
-    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     sk.update("1");
     sk.update("2");
+    println(sk.toString(true, true));
     byte[] byteArr = sk.toByteArray();
     KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
     assertTrue(sk2 instanceof KllDirectCompactItemsSketch);
-    GenericSortedViewIterator<String> itr = sk2.getSortedView().iterator();
+    ItemsSketchSortedView<String> sv = sk2.getSortedView();
+    GenericSortedViewIterator<String> itr = sv.iterator();
 
     assertTrue(itr.next());
 
@@ -133,4 +137,22 @@ public class KllDirectCompactItemsSketchIteratorTest {
       Assert.assertEquals(weight, n);
     }
   }
+
+  private final static boolean enablePrinting = false;
+
+  /**
+   * @param format the format
+   * @param args the args
+   */
+  private static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
+  }
+
+  /**
+   * @param o the Object to println
+   */
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
+  }
+
 }

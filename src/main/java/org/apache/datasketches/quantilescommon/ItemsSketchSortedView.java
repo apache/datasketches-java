@@ -21,6 +21,7 @@ package org.apache.datasketches.quantilescommon;
 
 import static java.lang.Math.min;
 import static org.apache.datasketches.quantilescommon.GenericInequalitySearch.find;
+import static org.apache.datasketches.quantilescommon.IncludeMinMax.ItemsPair;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedDoubles;
@@ -43,14 +44,12 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final long[] cumWeights; //cumulative natural weights
   private final long totalN;
   private final Comparator<? super T> comparator;
-  private final T maxItem;
-  private final T minItem;
   private final Class<T> clazz;
   private final double normRankError;
   private final int numRetItems;
 
   /**
-   * Construct from elements, also used in testing.
+   * Construct Sorted View.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param sk the underlying quantile sketch.
@@ -59,12 +58,12 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
       final T[] quantiles,
       final long[] cumWeights, //or Natural Ranks
       final QuantilesGenericAPI<T> sk) {
-    this.quantiles = quantiles;
-    this.cumWeights = cumWeights;
-    this.totalN = sk.getN();
     this.comparator = sk.getComparator();
-    this.maxItem = sk.getMaxItem();
-    this.minItem = sk.getMinItem();
+    final ItemsPair<T> iPair =
+        IncludeMinMax.includeItemsMinMax(quantiles, cumWeights, sk.getMaxItem(), sk.getMinItem(), comparator);
+    this.quantiles = iPair.quantiles;
+    this.cumWeights = iPair.cumWeights;
+    this.totalN = sk.getN();
     this.clazz = sk.getClassOfT();
     this.normRankError = sk.getNormalizedRankError(true);
     this.numRetItems = sk.getNumRetained();
@@ -81,12 +80,12 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
       final Class<T> clazz,
       final double normRankError,
       final int numRetItems) {
-    this.quantiles = quantiles;
-    this.cumWeights = cumWeights;
-    this.totalN = totalN;
     this.comparator = comparator;
-    this.maxItem = maxItem;
-    this.minItem = minItem;
+    final ItemsPair<T> iPair =
+        IncludeMinMax.includeItemsMinMax(quantiles, cumWeights, maxItem, minItem, comparator);
+    this.quantiles = iPair.quantiles;
+    this.cumWeights = iPair.cumWeights;
+    this.totalN = totalN;
     this.clazz = clazz;
     this.normRankError = normRankError;
     this.numRetItems = numRetItems;
@@ -95,17 +94,7 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   //end of constructors
 
   @Override
-  public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    GenericSortedView.validateItems(splitPoints, comparator);
-    final int len = splitPoints.length + 1;
-    final double[] buckets = new double[len];
-    for (int i = 0; i < len - 1; i++) {
-      buckets[i] = getRank(splitPoints[i], searchCrit);
-    }
-    buckets[len - 1] = 1.0;
-    return buckets;
-  }
+  public Comparator<? super T> getComparator() { return comparator; }
 
   @Override
   public long[] getCumulativeWeights() {
@@ -114,12 +103,13 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T getMaxItem() {
-    return maxItem;
+    final int top = quantiles.length - 1;
+    return quantiles[top];
   }
 
   @Override
   public T getMinItem() {
-    return minItem;
+    return quantiles[0];
   }
 
   @Override
@@ -170,59 +160,11 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     final long[] partNatRanks = new long[partArrLen];
     final double[] partNormRanks = new double[partArrLen];
 
-    //Adjust End Points: The ends of the Sorted View arrays may be missing the actual MinItem and MaxItem bounds,
-    // which are absolutely required when partitioning, especially inner partitions.
-
-    //Are the minItem and maxItem already in place?
-    final int svLen = cumWeights.length;
-    int adjLen = svLen; //this will be the length of the local copies of quantiles and cumWeights
-    final boolean adjLow = quantiles[0] != minItem; //if true, adjust the low end
-    final boolean adjHigh = quantiles[svLen - 1] != maxItem; //if true, adjust the high end
-    adjLen += adjLow ? 1 : 0;
-    adjLen += adjHigh ? 1 : 0;
-
-    //These are local copies of the quantiles and cumWeights arrays just for partitioning.
-    //The rest of the SV remains unchanged.
-    final T[] adjQuantiles;
-    final long[] adjCumWeights;
-    if (adjLen > svLen) { //is any adjustment required at all?
-      adjQuantiles = (T[]) new Object[adjLen];
-      adjCumWeights = new long[adjLen];
-      final int offset = adjLow ? 1 : 0;
-      System.arraycopy(quantiles, 0, adjQuantiles, offset, svLen);
-      System.arraycopy(cumWeights,0, adjCumWeights, offset, svLen);
-
-      //Adjust the low end if required.
-      if (adjLow) {
-        adjQuantiles[0] = minItem;
-        adjCumWeights[0] = 1;
-      }
-      /* When inserting a MaxItem, if required, we can't just add it at the top of the quantiles array,
-       * we have to adjust the cumulative weight of the item just before it as well so that the maximum cumulative
-       * weight at the top still equals totalN.
-       *
-       * Quiz #1: Adjusting the adjacent weight is not required at the bottom. Why?
-       *
-       * Quiz #2: If the maxItem is missing, the quantile that is currently in the top
-       * position must have a weight >= 2.  Why?
-       *
-       * Thus, it is safe to subtract 1.
-       */
-      if (adjHigh) {
-        adjQuantiles[adjLen - 1] = maxItem;
-        adjCumWeights[adjLen - 1] = cumWeights[svLen - 1];
-        adjCumWeights[adjLen - 2] = cumWeights[svLen - 1] - 1;
-      }
-    } else { //both min and max are already in place, no adjustments are required.
-      adjQuantiles = quantiles;
-      adjCumWeights = cumWeights;
-    } //END of Adjust End Points
-
     //compute the quantiles and natural and normalized ranks for the partition boundaries.
     for (int i = 0; i < partArrLen; i++) {
-      final int index = getQuantileIndex(searchNormRanks[i], adjCumWeights, searchCrit);
-      partQuantiles[i] = adjQuantiles[index];
-      final long cumWt = adjCumWeights[index];
+      final int index = getQuantileIndex(searchNormRanks[i], cumWeights, searchCrit);
+      partQuantiles[i] = quantiles[index];
+      final long cumWt = cumWeights[index];
       partNatRanks[i] = cumWt;
       partNormRanks[i] = (double)cumWt / totalN;
     }
@@ -237,18 +179,6 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
         searchCrit);
     return gpb;
   } //End of getPartitionBoundaries
-
-  @Override
-  public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    GenericSortedView.validateItems(splitPoints, comparator);
-    final double[] buckets = getCDF(splitPoints, searchCrit);
-    final int len = buckets.length;
-    for (int i = len; i-- > 1; ) {
-      buckets[i] -= buckets[i - 1];
-    }
-    return buckets;
-  }
 
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {

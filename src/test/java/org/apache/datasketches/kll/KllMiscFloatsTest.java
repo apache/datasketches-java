@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.bitAt;
-import static org.apache.datasketches.kll.KllHelper.getGrowthSchemeForGivenN;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -30,7 +30,6 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDirectFloatsSketch.KllDirectCompactFloatsSketch;
-import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -42,9 +41,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
 public class KllMiscFloatsTest {
-  static final String LS = System.getProperty("line.separator");
   private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
@@ -155,7 +152,7 @@ public class KllMiscFloatsTest {
     final KllFloatsSketch sk2 = KllFloatsSketch.newHeapInstance(20);
     n = 400;
     for (int i = 101; i <= n + 100; i++) { sk2.update(i); }
-    println("\n" + sk2.toString(true, true));
+    println(LS + sk2.toString(true, true));
     assertEquals(sk2.getNumLevels(), 5);
     assertEquals(sk2.getMinItem(), 101);
     assertEquals(sk2.getMaxItem(), 500);
@@ -228,15 +225,16 @@ public class KllMiscFloatsTest {
     FloatsSortedView sv = sk.getSortedView();
     FloatsSortedViewIterator itr = sv.iterator();
     println("### SORTED VIEW");
-    printf("%12s%12s\n", "Value", "Weight");
-    long[] correct = {2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    printf("%6s %12s %12s" + LS, "Idx", "Value", "Weight");
     int i = 0;
     while (itr.next()) {
       float v = itr.getQuantile();
       long wt = itr.getWeight();
-      printf("%12.1f%12d\n", v, wt);
-      assertEquals(wt, correct[i++]);
+      printf("%6d %12.1f %12d" + LS, i, v, wt);
+      i++;
     }
+    assertEquals(sv.getMinItem(), 1.0F);
+    assertEquals(sv.getMaxItem(), n * 1.0F);
   }
 
   @Test //set static enablePrinting = true for visual checking
@@ -272,7 +270,7 @@ public class KllMiscFloatsTest {
 
     FloatsSortedViewIterator itr = sk.getSortedView().iterator();
     println("### SORTED VIEW");
-    printf("%12s %12s %12s\n", "Value", "Weight", "NaturalRank");
+    printf("%12s %12s %12s" + LS, "Value", "Weight", "NaturalRank");
     long cumWt = 0;
     while (itr.next()) {
       double v = itr.getQuantile();
@@ -280,7 +278,7 @@ public class KllMiscFloatsTest {
       long natRank = itr.getNaturalRank(INCLUSIVE);
       cumWt += wt;
       assertEquals(cumWt, natRank);
-      printf("%12.1f %12d %12d\n", v, wt, natRank);
+      printf("%12.1f %12d %12d" + LS, v, wt, natRank);
     }
     assertEquals(cumWt, sk.getN());
   }
@@ -297,8 +295,8 @@ public class KllMiscFloatsTest {
 
   private static void outputItems(float[] itemsArr) {
     String[] hdr2 = {"Index", "Value"};
-    String hdr2fmt = "%6s %15s\n";
-    String d2fmt = "%6d %15f\n";
+    String hdr2fmt = "%6s %15s" + LS;
+    String d2fmt = "%6d %15f" + LS;
     println("ItemsArr");
     printf(hdr2fmt, (Object[]) hdr2);
     for (int i = 0; i < itemsArr.length; i++) {
@@ -321,9 +319,9 @@ public class KllMiscFloatsTest {
 
   private static void outputLevels(int weight, int[] levelsArr) {
     String[] hdr = {"Lvl", "StartAdr", "BitPattern", "Weight"};
-    String hdrfmt = "%3s %9s %10s %s\n";
-    String dfmt   = "%3d %9d %10d %d\n";
-    String dfmt_2 = "%3d %9d %s\n";
+    String hdrfmt = "%3s %9s %10s %s" + LS;
+    String dfmt   = "%3d %9d %10d %d" + LS;
+    String dfmt_2 = "%3d %9d %s" + LS;
     println("Count = " + weight + " => " + (Integer.toBinaryString(weight)));
     println("LevelsArr");
     printf(hdrfmt, (Object[]) hdr);
@@ -355,8 +353,8 @@ public class KllMiscFloatsTest {
   @Test //set static enablePrinting = true for visual checking
     public void checkIntCapAux() {
       String[] hdr = {"level", "depth", "wt", "cap", "(end)", "MaxN"};
-      String hdrFmt =  "%6s %6s %28s %10s %10s %34s\n";
-      String dataFmt = "%6d %6d %,28d %,10d %,10d %,34.0f\n";
+      String hdrFmt =  "%6s %6s %28s %10s %10s %34s" + LS;
+      String dataFmt = "%6d %6d %,28d %,10d %,10d %,34.0f" + LS;
       int k = 1000;
       int m = 8;
       int numLevels = 20;
@@ -378,8 +376,8 @@ public class KllMiscFloatsTest {
   @Test //set static enablePrinting = true for visual checking
   public void checkIntCapAuxAux() {
     String[] hdr = {"d","twoK","2k*2^d","3^d","tmp=2k*2^d/3^d","(tmp + 1)/2", "(end)"};
-    String hdrFmt =  "%6s %10s %20s %20s %15s %12s %10s\n";
-    String dataFmt = "%6d %10d %,20d %,20d %15d %12d %10d\n";
+    String hdrFmt =  "%6s %10s %20s %20s %15s %12s %10s" + LS;
+    String dataFmt = "%6d %10d %,20d %,20d %15d %12d %10d" + LS;
     long k = (1L << 16) - 1L;
     long m = 8;
     println("k = " + k + ", m = " + m);
@@ -770,7 +768,7 @@ public class KllMiscFloatsTest {
   public void printlnTest() {
     String s = "PRINTING:  printf in " + this.getClass().getName();
     println(s);
-    printf("%s\n", s);
+    printf("%s" + LS, s);
   }
 
   private final static boolean enablePrinting = false;

@@ -80,7 +80,6 @@ final class ItemsUtil {
     assert (n / (2L * sketch.getK())) == sketch.getBitPattern();  // internal consistency check
   }
 
-  //TODO change booleans to "withLevels", "withLevelsAndItems"
   static <T> String toString(final boolean withLevels, final boolean withLevelsAndItems,
       final ItemsSketch<T> sk) {
     final StringBuilder sb = new StringBuilder();

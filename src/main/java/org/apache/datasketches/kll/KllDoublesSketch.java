@@ -561,7 +561,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       cumWeights = new long[numQuantiles];
       populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
       return new DoublesSketchSortedView(
-          quantiles, cumWeights, getN(), getMaxItemInternal(), getMinItemInternal());
+          quantiles, cumWeights, KllDoublesSketch.this);
     }
 
     private void populateFromSketch(final double[] srcQuantiles, final int[] srcLevels,
