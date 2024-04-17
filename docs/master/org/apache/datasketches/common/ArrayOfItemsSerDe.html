@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":38,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":10,"i8":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
+var data = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":10,"i8":6};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -182,21 +182,19 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>abstract <a href="ArrayOfItemsSerDe.html" title="type parameter in ArrayOfItemsSerDe">T</a>[]</code></td>
+<td class="colFirst"><code><a href="ArrayOfItemsSerDe.html" title="type parameter in ArrayOfItemsSerDe">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">deserializeFromMemory</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
                      int&nbsp;numItems)</code></th>
 <td class="colLast">
-<div class="block"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">use
- <a href="#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)"><code>deserializeFromMemory(mem, offset, numItems)</code></a></div>
-</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at a Memory offset of zero and extending numItems.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -205,7 +203,8 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                      long&nbsp;offsetBytes,
                      int&nbsp;numItems)</code></th>
 <td class="colLast">
-<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at the given Memory <i>offsetBytes</i> and extending numItems.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -344,20 +343,18 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockList">
 <li class="blockList">
 <h4>deserializeFromMemory</h4>
-<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
-public abstract&nbsp;<a href="ArrayOfItemsSerDe.html" title="type parameter in ArrayOfItemsSerDe">T</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
-                                          int&nbsp;numItems)</pre>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">use
- <a href="#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)"><code>deserializeFromMemory(mem, offset, numItems)</code></a></div>
-</div>
-<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<pre class="methodSignature">public&nbsp;<a href="ArrayOfItemsSerDe.html" title="type parameter in ArrayOfItemsSerDe">T</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+                                 int&nbsp;numItems)</pre>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at a Memory offset of zero and extending numItems.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>mem</code> - Memory containing a contiguous sequence of serialized items</dd>
 <dd><code>numItems</code> - number of items in the contiguous serialized sequence.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>array of deserialized items</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)"><code>deserializeFromMemory(Memory, long, int)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -370,7 +367,8 @@ public abstract&nbsp;<a href="ArrayOfItemsSerDe.html" title="type parameter in A
 <pre class="methodSignature">public abstract&nbsp;<a href="ArrayOfItemsSerDe.html" title="type parameter in ArrayOfItemsSerDe">T</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
                                           long&nbsp;offsetBytes,
                                           int&nbsp;numItems)</pre>
-<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at the given Memory <i>offsetBytes</i> and extending numItems.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>mem</code> - Memory containing a contiguous sequence of serialized items</dd>

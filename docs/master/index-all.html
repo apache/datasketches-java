@@ -1035,10 +1035,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">deserializeFromMemory(Memory, int)</a></span> - Method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a></dt>
 <dd>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">use
- <a href="org/apache/datasketches/common/ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)"><code>deserializeFromMemory(mem, offset, numItems)</code></a></div>
-</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at a Memory offset of zero and extending numItems.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/ArrayOfLongsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">deserializeFromMemory(Memory, int)</a></span> - Method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/ArrayOfLongsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfLongsSerDe</a></dt>
 <dd>
@@ -1062,7 +1060,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">deserializeFromMemory(Memory, long, int)</a></span> - Method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a></dt>
 <dd>
-<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at the given Memory <i>offsetBytes</i> and extending numItems.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/common/ArrayOfLongsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">deserializeFromMemory(Memory, long, int)</a></span> - Method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/ArrayOfLongsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfLongsSerDe</a></dt>
 <dd>&nbsp;</dd>

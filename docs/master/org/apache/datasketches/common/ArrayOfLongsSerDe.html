@@ -199,7 +199,8 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
                      long&nbsp;offsetBytes,
                      int&nbsp;numItems)</code></th>
 <td class="colLast">
-<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at the given Memory <i>offsetBytes</i> and extending numItems.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -345,15 +346,18 @@ public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.ht
                                     int&nbsp;numItems)</pre>
 <div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">ArrayOfItemsSerDe</a></code></span></div>
-<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at a Memory offset of zero and extending numItems.</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">deserializeFromMemory</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang" class="externalLink">Long</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>mem</code> - Memory containing a contiguous sequence of serialized items</dd>
 <dd><code>numItems</code> - number of items in the contiguous serialized sequence.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>array of deserialized items</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)"><code>ArrayOfItemsSerDe.deserializeFromMemory(Memory, long, int)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -367,7 +371,8 @@ public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.ht
                                     long&nbsp;offsetBytes,
                                     int&nbsp;numItems)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">ArrayOfItemsSerDe</a></code></span></div>
-<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at the given Memory <i>offsetBytes</i> and extending numItems.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">deserializeFromMemory</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Long.html?is-external=true" title="class or interface in java.lang" class="externalLink">Long</a>&gt;</code></dd>
