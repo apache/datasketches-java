@@ -28,7 +28,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.FloatsSketchSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
@@ -63,7 +63,6 @@ public class ReqSketchTest {
           + " up=" + up + " hra=" + hra + " criterion=" + crit + LS);
     }
     final ReqSketch sk = loadSketch(k, min, max, up, hra, skDebug);
-    final FloatsSortedView sv = sk.getSortedView();
     checkToString(sk, iDebug);
     checkSortedView(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);
@@ -152,7 +151,7 @@ public class ReqSketchTest {
   }
 
   private static void checkSortedView(final ReqSketch sk, final int iDebug) {
-    final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
+    final FloatsSketchSortedView sv = sk.getSortedView();
     final FloatsSortedViewIterator itr = sv.iterator();
     final int retainedCount = sk.getNumRetained();
     final long totalN = sk.getN();

@@ -24,15 +24,12 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
-import static org.apache.datasketches.kll.KllSketch.DEFAULT_M;
 
 import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.datasketches.memory.WritableMemory;
 
-//
-//
 /**
  * Static methods to support KllDoublesSketch
  * @author Kevin Lang
@@ -59,7 +56,7 @@ final class KllDoublesHelper {
    * It cannot be used while merging, while reducing k, or anything else.
    * @param dblSk the current KllDoublesSketch
    */
-  private static void compressWhileUpdatingSketch(final KllDoublesSketch dblSk) {
+  static void compressWhileUpdatingSketch(final KllDoublesSketch dblSk) {
     final int level =
         findLevelToCompact(dblSk.getK(), dblSk.getM(), dblSk.getNumLevels(), dblSk.levelsArr);
     if (level == dblSk.getNumLevels() - 1) {
@@ -128,8 +125,8 @@ final class KllDoublesHelper {
 
     //capture my key mutable fields before doing any merging
     final boolean myEmpty = mySketch.isEmpty();
-    final double myMin = myEmpty ? Double.NaN : mySketch.getMinItem();
-    final double myMax = myEmpty ? Double.NaN : mySketch.getMaxItem();
+    final double myMin = mySketch.getMinItemInternal();
+    final double myMax = mySketch.getMaxItemInternal();
     final int myMinK = mySketch.getMinK();
     final long finalN = Math.addExact(mySketch.getN(), otherDblSk.getN());
 
@@ -140,12 +137,12 @@ final class KllDoublesHelper {
 
     //MERGE: update this sketch with level0 items from the other sketch
     if (otherDblSk.isCompactSingleItem()) {
-      updateDouble(mySketch, otherDblSk.getDoubleSingleItem());
+      KllDoublesSketch.updateDouble(mySketch, otherDblSk.getDoubleSingleItem());
       otherDoubleItemsArr = new double[0];
     } else {
       otherDoubleItemsArr = otherDblSk.getDoubleItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-       updateDouble(mySketch, otherDoubleItemsArr[i]);
+        KllDoublesSketch.updateDouble(mySketch, otherDoubleItemsArr[i]);
       }
     }
 
@@ -228,9 +225,9 @@ final class KllDoublesHelper {
     mySketch.setDoubleItemsArray(myNewDoubleItemsArr);
 
     //Update min, max items
-    final double otherMin = otherDblSk.getMinItem();
-    final double otherMax = otherDblSk.getMaxItem();
-    if (myEmpty) {
+    final double otherMin = otherDblSk.getMinItemInternal();
+    final double otherMax = otherDblSk.getMaxItemInternal();
+    if (Double.isNaN(myMin) || myEmpty) {
       mySketch.setMinItem(otherMin);
       mySketch.setMaxItem(otherMax);
     } else {
@@ -310,58 +307,6 @@ final class KllDoublesHelper {
     for (int i = (start + length) - 1; i >= (start + half_length); i--) {
       buf[i] = buf[j];
       j -= 2;
-    }
-  }
-
-  //Called from KllDoublesSketch::update and merge
-  static void updateDouble(final KllDoublesSketch dblSk, final double item) {
-    dblSk.updateMinMax(item);
-    int freeSpace = dblSk.levelsArr[0];
-    assert (freeSpace >= 0);
-    if (freeSpace == 0) {
-      compressWhileUpdatingSketch(dblSk);
-      freeSpace = dblSk.levelsArr[0];
-      assert (freeSpace > 0);
-    }
-    dblSk.incN();
-    dblSk.setLevelZeroSorted(false);
-    final int nextPos = freeSpace - 1;
-    dblSk.setLevelsArrayAt(0, nextPos);
-    dblSk.setDoubleItemsArrayAt(nextPos, item);
-  }
-
-  //Called from KllDoublesSketch::update with weight
-  static void updateDouble(final KllDoublesSketch dblSk, final double item, final long weight) {
-    if (weight < dblSk.levelsArr[0]) {
-      for (int i = 0; i < (int)weight; i++) { updateDouble(dblSk, item); }
-    } else {
-      dblSk.updateMinMax(item);
-      final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(dblSk.getK(), DEFAULT_M, item, weight);
-
-      dblSk.merge(tmpSk);
-    }
-  }
-
-  //called only from KllDoublesSketch for VECTOR UPDATE
-  static void updateDouble(final KllDoublesSketch dblSk,
-      final double[] items, final int offset, final int length) {
-    dblSk.updateMinMax(items, offset, length);
-    int count = 0;
-    while (count < length) {
-      if (dblSk.levelsArr[0] == 0) {
-        compressWhileUpdatingSketch(dblSk);
-      }
-      final int spaceNeeded = length - count;
-      final int freeSpace = dblSk.levelsArr[0];
-      assert (freeSpace > 0);
-      final int numItemsToCopy = Math.min(spaceNeeded, freeSpace);
-      final int dstOffset = freeSpace - numItemsToCopy;
-      System.arraycopy(items, offset + count, dblSk.getDoubleItemsArray(), dstOffset, numItemsToCopy);
-      count += numItemsToCopy;
-      dblSk.addN(numItemsToCopy);
-      dblSk.setLevelZeroSorted(false);
-      dblSk.setLevelsArrayAt(0, dstOffset);
-      System.out.println(dblSk.toString(true, true));
     }
   }
 
@@ -506,14 +451,14 @@ final class KllDoublesHelper {
       workLevels[lvl + 1] = workLevels[lvl] + selfPop + otherPop;
       assert selfPop >= 0 && otherPop >= 0;
       if (selfPop == 0 && otherPop == 0) { continue; }
-      else if (selfPop > 0 && otherPop == 0) {
+      if (selfPop > 0 && otherPop == 0) {
         System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);
       }
       else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherDoubleItemsArr, otherLevelsArr[lvl], workBuf, workLevels[lvl], otherPop);
       }
       else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedDoubleArrays( //only workbuf is modified
+        mergeSortedDoubleArrays( //only workBuf is modified
             myCurDoubleItemsArr, myCurLevelsArr[lvl], selfPop,
             otherDoubleItemsArr, otherLevelsArr[lvl], otherPop,
             workBuf, workLevels[lvl]);

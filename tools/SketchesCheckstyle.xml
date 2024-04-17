@@ -172,6 +172,11 @@ under the License.
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     
+    <module name="IllegalTokenText">
+      <property name="tokens" value="STRING_LITERAL"/>
+      <property name="format" value="\\n"/>
+    </module>
+    
     <!-- Class Design -->
     <module name="OneTopLevelClass"/>
     

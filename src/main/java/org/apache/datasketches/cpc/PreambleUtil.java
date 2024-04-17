@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
@@ -143,7 +144,6 @@ final class PreambleUtil {
     }
   }
 
-  private static final String LS = System.getProperty("line.separator");
   private static final String fmt = "%10d%10x";
 
   /**

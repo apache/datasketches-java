@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+
+import java.util.Comparator;
 
 /**
  * The Quantiles API for item type <i>generic</i>.
@@ -27,7 +30,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
  * @param <T> The given item type
  * @author Lee Rhodes
  */
-public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeature<T> {
+public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeature<T>, SketchPartitionLimits {
 
   /**
    * This is equivalent to {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
@@ -75,6 +78,17 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
   double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
+   * @return the sketch item class
+   */
+  Class<T> getClassOfT();
+
+  /**
+   * Returns the Comparator of T
+   * @return Comparator of the sketch
+   */
+  Comparator<? super T> getComparator();
+
+  /**
    * Returns the maximum item of the stream. This may be distinct from the largest item retained by the
    * sketch algorithm.
    *
@@ -82,6 +96,11 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @throws IllegalArgumentException if sketch is empty.
    */
   T getMaxItem();
+
+  @Override
+  default int getMaxPartitions() {
+    return (int) min(1.0 / getNormalizedRankError(true), getNumRetained() / 2.0);
+  }
 
   /**
    * Returns the minimum item of the stream. This may be distinct from the smallest item retained by the
@@ -266,11 +285,6 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double[] getRanks(T[] quantiles, QuantileSearchCriteria searchCrit);
-
-  /**
-   * @return the sketch item class
-   */
-  Class<T> getClassOfT();
 
   /**
    * Gets the sorted view of this sketch

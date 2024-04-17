@@ -58,19 +58,21 @@ import org.apache.datasketches.memory.XxHash;
  * pp. 187-218.</p>
  */
 public final class BloomFilter {
-  // maximum number of longs in the array with space for a header at serialization
-  static final long MAX_SIZE = (Integer.MAX_VALUE - Family.BLOOMFILTER.getMaxPreLongs()) * (long) Long.SIZE;
+  public static final long MAX_SIZE_BITS = (Integer.MAX_VALUE - Family.BLOOMFILTER.getMaxPreLongs()) * (long) Long.SIZE;
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
+  private static final long BIT_ARRAY_OFFSET = 16;
+  private static final int FLAGS_BYTE = 3;
 
-  private long seed_;            // hash seed
-  private short numHashes_;      // number of hash values
-  private BitArray bitArray_;    // the actual data bits
+  private final long seed_;            // hash seed
+  private final short numHashes_;      // number of hash values
+  private final BitArray bitArray_;    // the actual data bits
+  private final WritableMemory wmem_;  // used only for direct mode BitArray
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * and a user-specified  seed.
-   * 
+   * and a user-specified seed.
+   *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
    * @param seed The base hash seed
@@ -78,14 +80,47 @@ public final class BloomFilter {
   BloomFilter(final long numBits, final int numHashes, final long seed) {
     seed_ = seed;
     numHashes_ = (short) numHashes;
-    bitArray_ = new BitArray(numBits);
+    bitArray_ = new HeapBitArray(numBits);
+    wmem_ = null;
   }
 
-  // Constructor used with heapify()
-  BloomFilter(final short numHashes, final long seed, final BitArray bitArray) {
+  /**
+   * Creates a BloomFilter with given number of bits and number of hash functions,
+   * and a user-specified seed in the provided WritableMemory
+   *
+   * @param numBits The size of the BloomFilter, in bits
+   * @param numHashes The number of hash functions to apply to items
+   * @param seed The base hash seed
+   * @param wmem A WritableMemory that will be initialized to hold the filter
+   */
+  BloomFilter(final long numBits, final int numHashes, final long seed, final WritableMemory wmem) {
+    if (wmem.getCapacity() < Family.BLOOMFILTER.getMaxPreLongs()) {
+      throw new SketchesArgumentException("Provided WritableMemory capacity insufficient to initialize BloomFilter");
+    }
+
+    // we don't resize so initialize wizth non-empty preLongs value
+    // and no empty flag
+    final WritableBuffer wbuf = wmem.asWritableBuffer();
+    wbuf.putByte((byte) Family.BLOOMFILTER.getMaxPreLongs());
+    wbuf.putByte((byte) SER_VER);
+    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+    wbuf.putByte((byte) 0); // instead of (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0);
+    wbuf.putShort((short) numHashes);
+    wbuf.putShort((short) 0); // unused
+    wbuf.putLong(seed);
+
+    seed_ = seed;
+    numHashes_ = (short) numHashes;
+    bitArray_ = DirectBitArray.initialize(numBits, wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET));
+    wmem_ = wmem;
+  }
+
+  // Constructor used with internalHeapifyOrWrap()
+  BloomFilter(final short numHashes, final long seed, final BitArray bitArray, final WritableMemory wmem) {
     seed_ = seed;
     numHashes_ = numHashes;
     bitArray_ = bitArray;
+    wmem_ = wmem;
   }
 
   /**
@@ -94,7 +129,21 @@ public final class BloomFilter {
    * @return a BloomFilter object
    */
   public static BloomFilter heapify(final Memory mem) {
-    final Buffer buf = mem.asBuffer();
+    // casting to writable, but heapify so only reading
+    return internalHeapifyOrWrap((WritableMemory) mem, false, false);
+  }
+
+  public static BloomFilter wrap(final Memory mem) {
+    // casting to writable, but tracking that the object is read-only
+    return internalHeapifyOrWrap((WritableMemory) mem, true, false);
+  }
+
+  public static BloomFilter writableWrap(final WritableMemory wmem) {
+    return internalHeapifyOrWrap(wmem, true, true);
+  }
+
+  private static BloomFilter internalHeapifyOrWrap(final WritableMemory wmem, final boolean isWrap, final boolean isWritable) {
+    final Buffer buf = wmem.asBuffer();
     final int preLongs = buf.getByte();
     final int serVer = buf.getByte();
     final int familyID = buf.getByte();
@@ -104,7 +153,7 @@ public final class BloomFilter {
       "Possible corruption: Incorrect number of preamble bytes specified in header");
     checkArgument(serVer != SER_VER, "Possible corruption: Unrecognized serialization version: " + serVer);
     checkArgument(familyID != Family.BLOOMFILTER.getID(), "Possible corruption: Incorrect FamilyID for bloom filter. Found: " + familyID);
-    
+
     final short numHashes = buf.getShort();
     buf.getShort(); // unused
     checkArgument(numHashes < 1, "Possible corruption: Need strictly positive number of hash functions. Found: " + numHashes);
@@ -113,9 +162,18 @@ public final class BloomFilter {
 
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
 
-    final BitArray bitArray = BitArray.heapify(buf, isEmpty);
-
-    return new BloomFilter(numHashes, seed, bitArray);
+    final BitArray bitArray;
+    if (isWrap) {
+      if (isWritable) {
+        bitArray = BitArray.writableWrap(wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+      } else {
+        bitArray = BitArray.wrap(wmem.region(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+      }
+      return new BloomFilter(numHashes, seed, bitArray, wmem);
+    } else { // if heapify
+      bitArray = BitArray.heapify(buf, isEmpty);
+      return new BloomFilter(numHashes, seed, bitArray, null);
+    }
   }
 
   /**
@@ -130,7 +188,7 @@ public final class BloomFilter {
    * @return True if the BloomFilter is empty, otherwise False
    */
   public boolean isEmpty() { return bitArray_.isEmpty(); }
-  
+
   /**
    * Returns the number of bits in the BloomFilter that are set to 1.
    * @return The number of bits in use in this filter
@@ -154,6 +212,30 @@ public final class BloomFilter {
    * @return The hash seed for this filter
    */
   public long getSeed() { return seed_; }
+
+  /**
+   * Returns whether the filter has a backing Memory object
+   * @return true if backed by Memory, otherwise false
+   */
+  public boolean hasMemory() { return wmem_ != null; }
+
+  /**
+   * Returns whether the filter is in read-only mode. That is possible
+   * only if there is a backing Memory in read-only mode.
+   * @return true if read-only, otherwise false
+   */
+  public boolean isReadOnly() {
+    return wmem_ != null && bitArray_.isReadOnly();
+  }
+
+  /**
+   * Returns whether the filter is a direct (off-heap) or on-heap object.
+   * That is possible only if there is a backing Memory.
+   * @return true if using direct memory access, otherwise false
+   */
+  public boolean isDirect() {
+    return wmem_ != null && bitArray_.isDirect();
+  }
 
   /**
    * Returns the percentage of all bits in the BloomFilter set to 1.
@@ -180,7 +262,7 @@ public final class BloomFilter {
    * @param item an item with which to update the filter
    */
   public void update(final double item) {
-    // canonicalize all NaN & +/- infinity forms    
+    // canonicalize all NaN & +/- infinity forms
     final long[] data = { Double.doubleToLongBits(item) };
     final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
@@ -281,10 +363,10 @@ public final class BloomFilter {
     }
   }
 
-  // QUERY-AND-UPDATE METHODS 
+  // QUERY-AND-UPDATE METHODS
 
   /**
-   * Updates the filter with the provided long and 
+   * Updates the filter with the provided long and
    * returns the result from quering that value prior to the update.
    * @param item an item with which to update the filter
    * @return The query result prior to applying the update
@@ -294,16 +376,16 @@ public final class BloomFilter {
     final long h1 = XxHash.hashLong(item, h0);
     return queryAndUpdateInternal(h0, h1);
   }
-  
+
   /**
-   * Updates the filter with the provided double and 
+   * Updates the filter with the provided double and
    * returns the result from quering that value prior to the update.
    * The double is canonicalized (NaN and +/- infinity) in the call.
    * @param item an item with which to update the filter
    * @return The query result prior to applying the update
    */
   public boolean queryAndUpdate(final double item) {
-    // canonicalize all NaN & +/- infinity forms    
+    // canonicalize all NaN & +/- infinity forms
     final long[] data = { Double.doubleToLongBits(item) };
     final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
@@ -311,7 +393,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided String and 
+   * Updates the filter with the provided String and
    * returns the result from quering that value prior to the update.
    * The string is converted to a byte array using UTF8 encoding.
    *
@@ -331,7 +413,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided byte[] and 
+   * Updates the filter with the provided byte[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -341,9 +423,9 @@ public final class BloomFilter {
     final long h1 = XxHash.hashByteArr(data, 0, data.length, h0);
     return queryAndUpdateInternal(h0, h1);
   }
-  
+
   /**
-   * Updates the filter with the provided char[] and 
+   * Updates the filter with the provided char[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -356,7 +438,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided short[] and 
+   * Updates the filter with the provided short[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -369,7 +451,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided int[] and 
+   * Updates the filter with the provided int[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -382,7 +464,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided long[] and 
+   * Updates the filter with the provided long[] and
    * returns the result from quering that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
@@ -395,7 +477,7 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided Memory and 
+   * Updates the filter with the provided Memory and
    * returns the result from quering that Memory prior to the update.
    * @param mem an array with which to update the filter
    * @return The query result prior to applying the update, or false if mem is null
@@ -444,7 +526,7 @@ public final class BloomFilter {
    * @return The result of querying the filter with the given item
    */
   public boolean query(final double item) {
-    // canonicalize all NaN & +/- infinity forms    
+    // canonicalize all NaN & +/- infinity forms
     final long[] data = { Double.doubleToLongBits(item) };
     final long h0 = XxHash.hashLongArr(data, 0, 1, seed_);
     final long h1 = XxHash.hashLongArr(data, 0, 1, h0);
@@ -466,7 +548,7 @@ public final class BloomFilter {
    * @return The result of querying the filter with the given item, or false if item is null
    */
   public boolean query(final String item) {
-    if (item == null || item.isEmpty()) { return false; }    
+    if (item == null || item.isEmpty()) { return false; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
     final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
     final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
@@ -637,8 +719,18 @@ public final class BloomFilter {
     return sizeBytes;
   }
 
+  /**
+   * Returns the serialized length of a non-empty BloomFilter of the given size, in bytes
+   * @param numBits The number of bits of to use for size computation
+   * @return The serialized length of a non-empty BloomFilter of the given size, in bytes
+   */
+  public static long getSerializedSize(final long numBits) {
+    return (2L * Long.BYTES) + BitArray.getSerializedSizeBytes(numBits);
+  }
+
 /*
- * A Bloom Filter's serialized image always uses 4 longs of preamble, whether empty or not:
+ * A Bloom Filter's serialized image always uses 3 longs of preamble when empty,
+ * otherwise 4 longs:
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -653,9 +745,9 @@ public final class BloomFilter {
  *  2   ||-------BitArray Length (in longs)----------|-----------Unused------------------|
  *
  *      ||      24        |   25   |   26   |   27   |   28   |   29   |   30   |   31   |
- *  2   ||---------------------------------NumBitsSet------------------------------------|
+ *  3   ||---------------------------------NumBitsSet------------------------------------|
  *  </pre>
- * 
+ *
  * The raw BitArray bits, if non-empty start at byte 24.
  */
 
@@ -672,18 +764,26 @@ public final class BloomFilter {
     }
 
     final byte[] bytes = new byte[(int) sizeBytes];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
 
-    wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
-    wbuf.putByte((byte) SER_VER); // to do: add constant
-    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
-    wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wbuf.putShort(numHashes_);
-    wbuf.putShort((short) 0); // unused
-    wbuf.putLong(seed_);
+    if (wmem_ == null) {
+      final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
 
-    bitArray_.writeToBuffer(wbuf);
+      final int numPreLongs = isEmpty() ? Family.BLOOMFILTER.getMinPreLongs() : Family.BLOOMFILTER.getMaxPreLongs();
+      wbuf.putByte((byte) numPreLongs);
+      wbuf.putByte((byte) SER_VER);
+      wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+      wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+      wbuf.putShort(numHashes_);
+      wbuf.putShort((short) 0); // unused
+      wbuf.putLong(seed_);
 
+      ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
+    } else {
+      wmem_.getByteArray(0, bytes, 0, (int) sizeBytes);
+      if (isEmpty()) {
+        bytes[FLAGS_BYTE] |= EMPTY_FLAG_MASK;
+      }
+    }
     return bytes;
   }
 
@@ -697,18 +797,26 @@ public final class BloomFilter {
     final long sizeBytes = getSerializedSizeBytes();
 
     final long[] longs = new long[(int) (sizeBytes >> 3)];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(longs).asWritableBuffer();
+    if (wmem_ == null) {
+      final WritableBuffer wbuf = WritableMemory.writableWrap(longs).asWritableBuffer();
 
-    wbuf.putByte((byte) Family.BLOOMFILTER.getMinPreLongs());
-    wbuf.putByte((byte) SER_VER); // to do: add constant
-    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
-    wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-    wbuf.putShort(numHashes_);
-    wbuf.putShort((short) 0); // unused
-    wbuf.putLong(seed_);
+      final int numPreLongs = isEmpty() ? Family.BLOOMFILTER.getMinPreLongs() : Family.BLOOMFILTER.getMaxPreLongs();
+      wbuf.putByte((byte) numPreLongs);
+      wbuf.putByte((byte) SER_VER); // to do: add constant
+      wbuf.putByte((byte) Family.BLOOMFILTER.getID());
+      wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+      wbuf.putShort(numHashes_);
+      wbuf.putShort((short) 0); // unused
+      wbuf.putLong(seed_);
 
-    bitArray_.writeToBuffer(wbuf);
-
+      ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
+    } else {
+      wmem_.getLongArray(0, longs, 0, (int) (sizeBytes >>> 3));
+      if (isEmpty()) {
+        final long longMask = EMPTY_FLAG_MASK << (FLAGS_BYTE << 3);
+        longs[0] |= longMask;
+      }
+    }
     return longs;
   }
 

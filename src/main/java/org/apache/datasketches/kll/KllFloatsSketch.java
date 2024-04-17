@@ -25,6 +25,7 @@ import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
@@ -35,7 +36,7 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.FloatsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsAPI;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
@@ -46,7 +47,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  * @see org.apache.datasketches.kll.KllSketch
  */
 public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloatsAPI {
-  private KllFloatsSketchSortedView kllFloatsSV = null;
+  private FloatsSketchSortedView floatsSV = null;
   final static int ITEM_BYTES = Float.BYTES;
 
   KllFloatsSketch(
@@ -171,21 +172,21 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllFloatsSV.getCDF(splitPoints, searchCrit);
+    return floatsSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllFloatsSV.getPMF(splitPoints, searchCrit);
+    return floatsSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllFloatsSV.getQuantile(rank, searchCrit);
+    return floatsSV.getQuantile(rank, searchCrit);
   }
 
   @Override
@@ -195,7 +196,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     final int len = ranks.length;
     final float[] quantiles = new float[len];
     for (int i = 0; i < len; i++) {
-      quantiles[i] = kllFloatsSV.getQuantile(ranks[i], searchCrit);
+      quantiles[i] = floatsSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
   }
@@ -224,7 +225,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return kllFloatsSV.getRank(quantile, searchCrit);
+    return floatsSV.getRank(quantile, searchCrit);
   }
 
   /**
@@ -254,17 +255,9 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     final int len = quantiles.length;
     final double[] ranks = new double[len];
     for (int i = 0; i < len; i++) {
-      ranks[i] = kllFloatsSV.getRank(quantiles[i], searchCrit);
+      ranks[i] = floatsSV.getRank(quantiles[i], searchCrit);
     }
     return ranks;
-  }
-
-  @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
-  public FloatsSortedView getSortedView() {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    refreshSortedView();
-    return kllFloatsSV;
   }
 
   @Override
@@ -280,7 +273,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
     if (othFltSk.isEmpty()) { return; }
     KllFloatsHelper.mergeFloatImpl(this, othFltSk);
-    kllFloatsSV = null;
+    floatsSV = null;
   }
 
   /**
@@ -299,7 +292,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     setMinItem(Float.NaN);
     setMaxItem(Float.NaN);
     setFloatItemsArray(new float[k]);
-    kllFloatsSV = null;
+    floatsSV = null;
   }
 
   @Override
@@ -318,13 +311,48 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
   }
 
+  //SINGLE UPDATE
+
   @Override
   public void update(final float item) {
     if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    KllFloatsHelper.updateFloat(this, item);
-    kllFloatsSV = null;
+    updateFloat(this, item);
+    floatsSV = null;
   }
+
+  //Also Called from KllFloatsHelper::merge
+  static void updateFloat(final KllFloatsSketch fltSk, final float item) {
+    fltSk.updateMinMax(item);
+    int freeSpace = fltSk.levelsArr[0];
+    assert (freeSpace >= 0);
+    if (freeSpace == 0) {
+      KllFloatsHelper.compressWhileUpdatingSketch(fltSk);
+      freeSpace = fltSk.levelsArr[0];
+      assert (freeSpace > 0);
+    }
+    fltSk.incN(1);
+    fltSk.setLevelZeroSorted(false);
+    final int nextPos = freeSpace - 1;
+    fltSk.setLevelsArrayAt(0, nextPos);
+    fltSk.setFloatItemsArrayAt(nextPos, item);
+  }
+
+  /**
+   * Single update of min and max
+   * @param item the source item, it must not be a NaN.
+   */
+  final void updateMinMax(final float item) {
+    if (isEmpty() || Float.isNaN(getMinItemInternal())) {
+      setMinItem(item);
+      setMaxItem(item);
+    } else {
+      setMinItem(min(getMinItemInternal(), item));
+      setMaxItem(max(getMaxItemInternal(), item));
+    }
+  }
+
+  //WEIGHTED UPDATE
 
   /**
    * Weighted update. Updates this sketch with the given item the number of times specified by the given integer weight.
@@ -335,12 +363,97 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1L) { KllFloatsHelper.updateFloat(this, item); }
-    else { KllFloatsHelper.updateFloat(this, item, weight); }
-    kllFloatsSV = null;
+    if (weight == 1L) { updateFloat(this, item); }
+    else {
+      if (weight < levelsArr[0]) {
+        for (int i = 0; i < (int)weight; i++) { updateFloat(this, item); }
+      } else {
+        final KllHeapFloatsSketch tmpSk = new KllHeapFloatsSketch(getK(), DEFAULT_M, item, weight);
+        merge(tmpSk);
+      }
+    }
+    floatsSV = null;
   }
 
-  //restricted
+  // VECTOR UPDATE
+
+  /**
+   * Vector update. Updates this sketch with the given array (vector) of items, starting at the items
+   * offset for a length number of items. This is not supported for direct sketches.
+   * @param items the vector of items
+   * @param offset the starting index of the items[] array
+   * @param length the number of items
+   */
+  public void update(final float[] items, final int offset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (length == 0) { return; }
+    if (!hasNaN(items, offset, length)) {
+      updateFloat(items, offset, length); //fast path
+      floatsSV = null;
+      return;
+    }
+    //has at least one NaN
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      final float v = items[i];
+      if (!Float.isNaN(v)) {
+        updateFloat(this, v); //normal path
+        floatsSV = null;
+      }
+    }
+  }
+
+  // No NaNs are allowed at this point
+  private void updateFloat(final float[] srcItems, final int srcOffset, final int length) {
+    if (isEmpty() || Float.isNaN(getMinItemInternal())) {
+      setMinItem(srcItems[srcOffset]); //initialize with a real value
+      setMaxItem(srcItems[srcOffset]);
+    }
+
+    int count = 0;
+    while (count < length) {
+      if (levelsArr[0] == 0) {
+        KllFloatsHelper.compressWhileUpdatingSketch(this);
+      }
+      final int spaceNeeded = length - count;
+      final int freeSpace = levelsArr[0];
+      assert (freeSpace > 0);
+      final int numItemsToCopy = min(spaceNeeded, freeSpace);
+      final int dstOffset = freeSpace - numItemsToCopy;
+      final int localSrcOffset = srcOffset + count;
+      setFloatItemsArrayAt(dstOffset, srcItems, localSrcOffset, numItemsToCopy);
+      updateMinMax(srcItems, localSrcOffset, numItemsToCopy);
+      count += numItemsToCopy;
+      incN(numItemsToCopy);
+      setLevelsArrayAt(0, dstOffset);
+    }
+    setLevelZeroSorted(false);
+  }
+
+  /**
+   * Vector update of min and max.
+   * @param srcItems the input source array of values, no NaNs allowed.
+   * @param srcOffset the starting offset in srcItems
+   * @param length the number of items to update min and max
+   */
+  private void updateMinMax(final float[] srcItems, final int srcOffset, final int length) {
+    final int end = srcOffset + length;
+    for (int i = srcOffset; i < end; i++) {
+      setMinItem(min(getMinItemInternal(), srcItems[i]));
+      setMaxItem(max(getMaxItemInternal(), srcItems[i]));
+    }
+  }
+
+  // this returns on the first detected NaN.
+  private static boolean hasNaN(final float[] items, final int offset, final int length) {
+    final int end = offset + length;
+    for (int i = offset; i < end; i++) {
+      if (Float.isNaN(items[i])) { return true; }
+    }
+    return false;
+  }
+
+  // END ALL UPDATE METHODS
 
   /**
    * @return full size of internal items array including empty space at bottom.
@@ -354,6 +467,16 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   abstract float getFloatSingleItem();
 
+  // Min & Max Methods
+
+  abstract float getMaxItemInternal();
+
+  abstract void setMaxItem(float item);
+
+  abstract float getMinItemInternal();
+
+  abstract void setMinItem(float item);
+
   @Override
   abstract byte[] getMinMaxByteArr();
 
@@ -361,6 +484,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   int getMinMaxSizeBytes() {
     return Float.BYTES * 2;
   }
+
+  //END Min & Max Methods
 
   @Override
   abstract byte[] getRetainedItemsByteArr();
@@ -393,27 +518,151 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     return levelsArr[getNumLevels()] * Float.BYTES;
   }
 
-  private final void refreshSortedView() {
-    kllFloatsSV = (kllFloatsSV == null)
-        ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
-  }
-
   abstract void setFloatItemsArray(float[] floatItems);
 
   abstract void setFloatItemsArrayAt(int index, float item);
 
-  abstract void setMaxItem(float item);
+  abstract void setFloatItemsArrayAt(int dstIndex, float[] srcItems, int srcOffset, int length);
 
-  abstract void setMinItem(float item);
+  // SORTED VIEW
 
-  void updateMinMax(final float item) {
-    if (isEmpty()) {
-      setMinItem(item);
-      setMaxItem(item);
-    } else {
-      setMinItem(min(getMinItem(), item));
-      setMaxItem(max(getMaxItem(), item));
+  @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
+  public FloatsSketchSortedView getSortedView() {
+    refreshSortedView();
+    return floatsSV;
+  }
+
+  private final FloatsSketchSortedView refreshSortedView() {
+    if (floatsSV == null) {
+      final CreateSortedView csv = new CreateSortedView();
+      floatsSV = csv.getSV();
+    }
+    return floatsSV;
+  }
+
+  private final class CreateSortedView {
+    float[] quantiles;
+    long[] cumWeights;
+
+    FloatsSketchSortedView getSV() {
+      if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+      final float[] srcQuantiles = getFloatItemsArray();
+      final int[] srcLevels = levelsArr;
+      final int srcNumLevels = getNumLevels();
+
+      if (!isLevelZeroSorted()) {
+        Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1]);
+        if (!hasMemory()) { setLevelZeroSorted(true); }
+        //we don't sort level0 in Memory, only our copy.
+      }
+      final int numQuantiles = getNumRetained();
+      quantiles = new float[numQuantiles];
+      cumWeights = new long[numQuantiles];
+      populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
+      return new FloatsSketchSortedView(quantiles, cumWeights, KllFloatsSketch.this);
+    }
+
+    private void populateFromSketch(final float[] srcQuantiles, final int[] srcLevels,
+        final int srcNumLevels, final int numItems) {
+        final int[] myLevels = new int[srcNumLevels + 1];
+        final int offset = srcLevels[0];
+        System.arraycopy(srcQuantiles, offset, quantiles, 0, numItems);
+        int srcLevel = 0;
+        int dstLevel = 0;
+        long weight = 1;
+        while (srcLevel < srcNumLevels) {
+          final int fromIndex = srcLevels[srcLevel] - offset;
+          final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
+          if (fromIndex < toIndex) { // if equal, skip empty level
+            Arrays.fill(cumWeights, fromIndex, toIndex, weight);
+            myLevels[dstLevel] = fromIndex;
+            myLevels[dstLevel + 1] = toIndex;
+            dstLevel++;
+          }
+          srcLevel++;
+          weight *= 2;
+        }
+        final int numLevels = dstLevel;
+        blockyTandemMergeSort(quantiles, cumWeights, myLevels, numLevels); //create unit weights
+        KllHelper.convertToCumulative(cumWeights);
+      }
+    } //End of class CreateSortedView
+
+  private static void blockyTandemMergeSort(final float[] quantiles, final long[] weights,
+      final int[] levels, final int numLevels) {
+    if (numLevels == 1) { return; }
+
+    // duplicate the input in preparation for the "ping-pong" copy reduction strategy.
+    final float[] quantilesTmp = Arrays.copyOf(quantiles, quantiles.length);
+    final long[] weightsTmp = Arrays.copyOf(weights, quantiles.length); // don't need the extra one
+
+    blockyTandemMergeSortRecursion(quantilesTmp, weightsTmp, quantiles, weights, levels, 0, numLevels);
+  }
+
+  private static void blockyTandemMergeSortRecursion(
+      final float[] quantilesSrc, final long[] weightsSrc,
+      final float[] quantilesDst, final long[] weightsDst,
+      final int[] levels, final int startingLevel, final int numLevels) {
+    if (numLevels == 1) { return; }
+    final int numLevels1 = numLevels / 2;
+    final int numLevels2 = numLevels - numLevels1;
+    assert numLevels1 >= 1;
+    assert numLevels2 >= numLevels1;
+    final int startingLevel1 = startingLevel;
+    final int startingLevel2 = startingLevel + numLevels1;
+    // swap roles of src and dst
+    blockyTandemMergeSortRecursion(
+        quantilesDst, weightsDst,
+        quantilesSrc, weightsSrc,
+        levels, startingLevel1, numLevels1);
+    blockyTandemMergeSortRecursion(
+        quantilesDst, weightsDst,
+        quantilesSrc, weightsSrc,
+        levels, startingLevel2, numLevels2);
+    tandemMerge(
+        quantilesSrc, weightsSrc,
+        quantilesDst, weightsDst,
+        levels,
+        startingLevel1, numLevels1,
+        startingLevel2, numLevels2);
+  }
+
+  private static void tandemMerge(
+      final float[] quantilesSrc, final long[] weightsSrc,
+      final float[] quantilesDst, final long[] weightsDst,
+      final int[] levelStarts,
+      final int startingLevel1, final int numLevels1,
+      final int startingLevel2, final int numLevels2) {
+    final int fromIndex1 = levelStarts[startingLevel1];
+    final int toIndex1 = levelStarts[startingLevel1 + numLevels1]; // exclusive
+    final int fromIndex2 = levelStarts[startingLevel2];
+    final int toIndex2 = levelStarts[startingLevel2 + numLevels2]; // exclusive
+    int iSrc1 = fromIndex1;
+    int iSrc2 = fromIndex2;
+    int iDst = fromIndex1;
+
+    while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
+      if (quantilesSrc[iSrc1] < quantilesSrc[iSrc2]) {
+        quantilesDst[iDst] = quantilesSrc[iSrc1];
+        weightsDst[iDst] = weightsSrc[iSrc1];
+        iSrc1++;
+      } else {
+        quantilesDst[iDst] = quantilesSrc[iSrc2];
+        weightsDst[iDst] = weightsSrc[iSrc2];
+        iSrc2++;
+      }
+      iDst++;
+    }
+    if (iSrc1 < toIndex1) {
+      System.arraycopy(quantilesSrc, iSrc1, quantilesDst, iDst, toIndex1 - iSrc1);
+      System.arraycopy(weightsSrc, iSrc1, weightsDst, iDst, toIndex1 - iSrc1);
+    } else if (iSrc2 < toIndex2) {
+      System.arraycopy(quantilesSrc, iSrc2, quantilesDst, iDst, toIndex2 - iSrc2);
+      System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
   }
+
+  // END SORTED VIEW
 
 }

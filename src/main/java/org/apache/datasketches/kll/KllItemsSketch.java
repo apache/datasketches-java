@@ -146,9 +146,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //END of Constructors
 
   @Override
-  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
-
-  @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
@@ -156,11 +153,29 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallySized,
+  public Class<T> getClassOfT() { return serDe.getClassOfT(); }
+
+  @Override
+  public Comparator<? super T> getComparator() {
+    return comparator;
+  }
+
+  @Override
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
+      final int numEquallySizedParts,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
     refreshSortedView();
-    return itemsSV.getPartitionBoundaries(numEquallySized, searchCrit);
+    return itemsSV.getPartitionBoundariesFromNumParts(numEquallySizedParts, searchCrit);
+  }
+
+  @Override
+  public GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
+      final long nominalPartSizeItems,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(EMPTY_MSG); }
+    refreshSortedView();
+    return itemsSV.getPartitionBoundariesFromPartSize(nominalPartSizeItems, searchCrit);
   }
 
   @Override
@@ -282,7 +297,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   public String toString(final boolean withLevels, final boolean withLevelsAndItems) {
     KllSketch sketch = this;
-    if (withLevelsAndItems && sketchStructure != UPDATABLE) {
+    if (hasMemory()) {
       final Memory mem = getWritableMemory();
       assert mem != null;
       sketch = KllItemsSketch.heapify((Memory)getWritableMemory(), comparator, serDe);
@@ -407,50 +422,50 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @SuppressWarnings({"rawtypes"})
   private final class CreateSortedView {
     T[] quantiles;
-    long[] cumWeights;
+    long[] cumWeights; //The new cumWeights array
 
     ItemsSketchSortedView<T> getSV() {
-      if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-      if (getN() == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
+      if (isEmpty() || getN() == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
       final T[] srcQuantiles = getTotalItemsArray();
-      final int[] srcLevels = levelsArr;
+      final int[] srcLevelsArr = levelsArr;
       final int srcNumLevels = getNumLevels();
 
       if (!isLevelZeroSorted()) {
-        Arrays.sort(srcQuantiles, srcLevels[0], srcLevels[1], comparator);
+        Arrays.sort(srcQuantiles, srcLevelsArr[0], srcLevelsArr[1], comparator);
         if (!hasMemory()) { setLevelZeroSorted(true); }
       }
       final int numQuantiles = getNumRetained();
       quantiles = (T[]) Array.newInstance(serDe.getClassOfT(), numQuantiles);
       cumWeights = new long[numQuantiles];
-      populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
-      final double normRankErr = getNormalizedRankError(getK(), true);
-      return new ItemsSketchSortedView(
-          quantiles, cumWeights, getN(), comparator, getMaxItem(), getMinItem(), normRankErr);
+      populateFromSketch(srcQuantiles, srcLevelsArr, srcNumLevels, numQuantiles);
+      final QuantilesGenericAPI<T> sk = KllItemsSketch.this;
+      return new ItemsSketchSortedView(quantiles, cumWeights, sk);
     }
 
-    private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevels,
+    private void populateFromSketch(final Object[] srcQuantiles, final int[] srcLevelsArr,
         final int srcNumLevels, final int numItems) {
-        final int[] myLevels = new int[srcNumLevels + 1];
-        final int offset = srcLevels[0];
-        System.arraycopy(srcQuantiles, offset, quantiles, 0, numItems);
+        //Remove free space from both itemsArray and levels array
+        final int[] myLevelsArr = new int[srcLevelsArr.length];
+        final int offset = srcLevelsArr[0];
+        System.arraycopy(srcQuantiles, offset, quantiles, 0, numItems); //remove free space from quantiles arr
+        //fill the new cumWeights array with the correct weights and adjust the levels array to match.
         int srcLevel = 0;
         int dstLevel = 0;
         long weight = 1;
         while (srcLevel < srcNumLevels) {
-          final int fromIndex = srcLevels[srcLevel] - offset;
-          final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
+          final int fromIndex = srcLevelsArr[srcLevel] - offset;
+          final int toIndex = srcLevelsArr[srcLevel + 1] - offset; // exclusive
           if (fromIndex < toIndex) { // if equal, skip empty level
             Arrays.fill(cumWeights, fromIndex, toIndex, weight);
-            myLevels[dstLevel] = fromIndex;
-            myLevels[dstLevel + 1] = toIndex;
+            myLevelsArr[dstLevel] = fromIndex;
+            myLevelsArr[dstLevel + 1] = toIndex;
             dstLevel++;
           }
           srcLevel++;
           weight *= 2;
         }
         final int numLevels = dstLevel;
-        blockyTandemMergeSort(quantiles, cumWeights, myLevels, numLevels, comparator); //create unit weights
+        blockyTandemMergeSort(quantiles, cumWeights, myLevelsArr, numLevels, comparator); //create unit weights
         KllHelper.convertToCumulative(cumWeights);
       }
   } //End of class CreateSortedView

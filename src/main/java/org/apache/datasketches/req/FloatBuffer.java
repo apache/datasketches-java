@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.Arrays;
@@ -35,7 +36,6 @@ import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
  * @author Lee Rhodes
  */
 class FloatBuffer {
-  private static final String LS = System.getProperty("line.separator");
   private float[] arr_;
   private int count_;
   private int capacity_;

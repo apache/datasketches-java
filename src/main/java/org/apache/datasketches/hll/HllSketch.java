@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
@@ -117,7 +118,6 @@ public class HllSketch extends BaseHllSketch {
    */
   public static final TgtHllType DEFAULT_HLL_TYPE = TgtHllType.HLL_4;
 
-  private static final String LS = System.getProperty("line.separator");
   HllSketchImpl hllSketchImpl = null;
 
   /**

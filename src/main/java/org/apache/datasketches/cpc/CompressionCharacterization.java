@@ -20,6 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.log2;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
@@ -322,13 +323,13 @@ public class CompressionCharacterization {
     hStrArr = new String[cols];
     final StringBuilder headerFmt = new StringBuilder();
     final StringBuilder dataFmt = new StringBuilder();
-    headerFmt.append("\nCompression Characterization\n");
+    headerFmt.append(LS + "Compression Characterization" + LS);
     for (int i = 0; i < cols; i++) {
       hStrArr[i] = assy[i][0];
       headerFmt.append(assy[i][1]);
-      headerFmt.append((i < (cols - 1)) ? "\t" : "\n");
+      headerFmt.append((i < (cols - 1)) ? "\t" : LS);
       dataFmt.append(assy[i][2]);
-      dataFmt.append((i < (cols - 1)) ? "\t" : "\n");
+      dataFmt.append((i < (cols - 1)) ? "\t" : LS);
     }
     hfmt = headerFmt.toString();
     dfmt = dataFmt.toString();

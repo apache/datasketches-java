@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.hllmap;
 
+import static org.apache.datasketches.common.Util.LS;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
@@ -82,7 +84,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * @author Kevin Lang
  */
 public final class UniqueCountMap {
-  private static final String LS = System.getProperty("line.separator");
   private static final int NUM_LEVELS = 10; // total of single coupon + traverse + coupon maps + hll
   private static final int NUM_TRAVERSE_MAPS = 3;
   private static final int HLL_K = 1024;

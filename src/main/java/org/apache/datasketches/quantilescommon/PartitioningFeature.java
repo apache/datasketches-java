@@ -33,13 +33,17 @@ public interface PartitioningFeature<T> {
    * refers to an approximately equal number of items per partition.
    *
    * <p>This method is equivalent to
-   * {@link #getPartitionBoundaries(int, QuantileSearchCriteria) getPartitionBoundaries(numEquallySized, INCLUSIVE)}.
+   * {@link #getPartitionBoundariesFromNumParts(int, QuantileSearchCriteria)
+   * getPartitionBoundariesFromNumParts(numEquallySizedParts, INCLUSIVE)}.
    * </p>
    *
-   * @param numEquallySized an integer that specifies the number of equally sized partitions between
+   * <p>The sketch must not be empty.</p>
+   *
+   * @param numEquallySizedParts an integer that specifies the number of equally sized partitions between
    * {@link GenericPartitionBoundaries#getMinItem() getMinItem()} and
    * {@link GenericPartitionBoundaries#getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than zero.
+   * This must be a positive integer less than
+   * {@link SketchPartitionLimits#getMaxPartitions() getMaxPartitions()}
    * <ul>
    * <li>A 1 will return: minItem, maxItem.</li>
    * <li>A 2 will return: minItem, median quantile, maxItem.</li>
@@ -47,11 +51,9 @@ public interface PartitioningFeature<T> {
    * </ul>
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @throws IllegalArgumentException if <i>numEquallySized</i> is less than 1.
    */
-  default GenericPartitionBoundaries<T> getPartitionBoundaries(int numEquallySized) {
-    return getPartitionBoundaries(numEquallySized, INCLUSIVE);
+  default GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(int numEquallySizedParts) {
+    return getPartitionBoundariesFromNumParts(numEquallySizedParts, INCLUSIVE);
   }
 
   /**
@@ -60,10 +62,13 @@ public interface PartitioningFeature<T> {
    * sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
    * refers to an approximately equal number of items per partition.
    *
-   * @param numEquallySized an integer that specifies the number of equally sized partitions between
+   * <p>The sketch must not be empty.</p>
+   *
+   * @param numEquallySizedParts an integer that specifies the number of equally sized partitions between
    * {@link GenericPartitionBoundaries#getMinItem() getMinItem()} and
    * {@link GenericPartitionBoundaries#getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than zero.
+   * This must be a positive integer less than
+   * {@link SketchPartitionLimits#getMaxPartitions() getMaxPartitions()}
    * <ul>
    * <li>A 1 will return: minItem, maxItem.</li>
    * <li>A 2 will return: minItem, median quantile, maxItem.</li>
@@ -77,9 +82,54 @@ public interface PartitioningFeature<T> {
    * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @throws IllegalArgumentException if <i>numEquallySized</i> is less than 1.
    */
-  GenericPartitionBoundaries<T> getPartitionBoundaries(int numEquallySized, QuantileSearchCriteria searchCrit);
+  GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
+      int numEquallySizedParts, QuantileSearchCriteria searchCrit);
+
+  /**
+   * This method returns an instance of
+   * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
+   * sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+   * refers to an approximately equal number of items per partition.
+   *
+   * <p>This method is equivalent to
+   * {@link #getPartitionBoundariesFromPartSize(long, QuantileSearchCriteria)
+   * getPartitionBoundariesFromPartSize(nominalPartSizeItems, INCLUSIVE)}.
+   * </p>
+   *
+   * <p>The sketch must not be empty.</p>
+   *
+   * @param nominalPartSizeItems an integer that specifies the nominal size, in items, of each target partition.
+   * This must be a positive integer greater than
+   * {@link SketchPartitionLimits#getMinPartitionSizeItems() getMinPartitionSizeItems()}
+   *
+   * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
+   */
+  default GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(long nominalPartSizeItems) {
+    return getPartitionBoundariesFromPartSize(nominalPartSizeItems, INCLUSIVE);
+  }
+
+  /**
+   * This method returns an instance of
+   * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
+   * sufficient information for the user to create the given number of equally sized partitions, where "equally sized"
+   * refers to an approximately equal number of items per partition.
+   *
+   * <p>The sketch must not be empty.</p>
+   *
+   * @param nominalPartSizeItems an integer that specifies the nominal size, in items, of each target partition.
+   * This must be a positive integer greater than
+   * {@link SketchPartitionLimits#getMinPartitionSizeItems() getMinPartitionSizeItems()}.
+   *
+   * @param searchCrit
+   * If INCLUSIVE, all the returned quantiles are the upper boundaries of the equally sized partitions
+   * with the exception of the lowest returned quantile, which is the lowest boundary of the lowest ranked partition.
+   * If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally sized partitions
+   * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
+   *
+   * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
+   */
+  GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
+      long nominalPartSizeItems, QuantileSearchCriteria searchCrit);
 
 }

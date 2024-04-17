@@ -117,7 +117,7 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
     this.numLevels = (int)max(1, ceil(log(guessNumParts) / log(maxPartsPerSk)));
     final int partsPerSk = (int)round(pow(guessNumParts, 1.0 / numLevels));
     this.partitionsPerSk = min(partsPerSk, maxPartsPerSk);
-    final GenericPartitionBoundaries<T> gpb = sk.getPartitionBoundaries(partitionsPerSk, criteria);
+    final GenericPartitionBoundaries<T> gpb = sk.getPartitionBoundariesFromNumParts(partitionsPerSk, criteria);
     final StackElement<T> se = new StackElement<>(gpb, 0, "1");
     stack.push(se);
     partitionSearch(stack);
@@ -144,7 +144,7 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
       if (++se.part <= numParts) {
         final PartitionBoundsRow<T> row = new PartitionBoundsRow<>(se);
         final S sk = fillReq.getRange(row.lowerBound, row.upperBound, row.rule);
-        final GenericPartitionBoundaries<T> gpb2 = sk.getPartitionBoundaries(this.partitionsPerSk, criteria);
+        final GenericPartitionBoundaries<T> gpb2 = sk.getPartitionBoundariesFromNumParts(this.partitionsPerSk, criteria);
         final int level = stack.size() + 1;
         final String partId = se.levelPartId + "." + se.part + "," + level;
         final StackElement<T> se2 = new StackElement<>(gpb2, 0, partId);

@@ -434,7 +434,7 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   abstract WritableMemory getWritableMemory();
 
-  abstract void incN();
+  abstract void incN(int increment);
 
   abstract void incNumLevels();
 

@@ -19,13 +19,12 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
-import static org.apache.datasketches.quantiles.ClassicUtil.LS;
-
-import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 public class DoublesUtilTest {
 

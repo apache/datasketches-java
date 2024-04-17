@@ -28,6 +28,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -268,7 +269,8 @@ public class KllDirectFloatsSketchTest {
   public void mergeMinAndMaxFromOther() {
     final KllFloatsSketch sketch1 = getUpdatableDirectFloatSketch(200, 0);
     final KllFloatsSketch sketch2 = getUpdatableDirectFloatSketch(200, 0);
-    for (int i = 1; i <= 1_000_000; i++) {
+    int n = 1_000_000;
+    for (int i = 1; i <= n; i++) {
       sketch1.update(i);
     }
     sketch2.merge(sketch1);
@@ -325,7 +327,7 @@ public class KllDirectFloatsSketchTest {
   @Test
   public void serializeDeserializeEmptyViaUpdatableWritableWrap() {
     final KllFloatsSketch sketch1 = getUpdatableDirectFloatSketch(200, 0);
-    final byte[] bytes = KllHelper.toByteArray(sketch1, true); //updatable
+    final byte[] bytes = KllHelper.toByteArray(sketch1, true);
     final KllFloatsSketch sketch2 =
         KllFloatsSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(true));
@@ -343,7 +345,7 @@ public class KllDirectFloatsSketchTest {
   public void serializeDeserializeOneValueViaCompactHeapify() {
     final KllFloatsSketch sketch1 = getUpdatableDirectFloatSketch(200, 0);
     sketch1.update(1);
-    final byte[] bytes = sketch1.toByteArray(); //compact
+    final byte[] bytes = sketch1.toByteArray();
     final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
     assertFalse(sketch2.isEmpty());
@@ -359,7 +361,7 @@ public class KllDirectFloatsSketchTest {
   public void serializeDeserializeOneValueViaUpdatableWritableWrap() {
     final KllFloatsSketch sketch1 = getUpdatableDirectFloatSketch(200, 0);
     sketch1.update(1);
-    final byte[] bytes = KllHelper.toByteArray(sketch1, true); //updatable
+    final byte[] bytes = KllHelper.toByteArray(sketch1, true);
     final KllFloatsSketch sketch2 =
         KllFloatsSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(true));
@@ -616,7 +618,7 @@ public class KllDirectFloatsSketchTest {
     boolean bool = true;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    try { sk2.incN();                          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incN(1);                         fail(); } catch (SketchesArgumentException e) { }
     try { sk2.incNumLevels();                  fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setFloatItemsArray(fltArr);      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setFloatItemsArrayAt(idx, fltV); fail(); } catch (SketchesArgumentException e) { }
@@ -637,20 +639,47 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void checkMergeExceptionsWrongType() {
-    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
-    KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
-    try { sk1.merge(sk2); fail(); } catch (ClassCastException e) { }
-    try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
+  public void checkVectorUpdate() {
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(20, dstMem, memReqSvr);
+    float[] v = new float[21];
+    for (int i = 0; i < 21; i++) { v[i] = i + 1; }
+    sk.update(v, 0, 21);
+    println(sk.toString(true, true));
+    int[] levelsArr = sk.getLevelsArray(SketchStructure.UPDATABLE);
+    assertEquals(levelsArr[0], 22);
+    float[] floatsArr = sk.getFloatItemsArray();
+    assertEquals(floatsArr[22], 21);
   }
 
-  private static KllFloatsSketch getUpdatableDirectFloatSketch(final int k, final int n) {
+  @Test
+  public void checkWeightedUpdate() {
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(8, dstMem, memReqSvr);
+    for (int i = 0; i < 16; i++) {
+      sk.update(i + 1, 16);
+    }
+    println(sk.toString(true, true));
+    assertEquals(sk.getN(), 256);
+    assertEquals(sk.getMaxItem(), 16F);
+    assertEquals(sk.getMinItem(), 1F);
+  }
+
+  private static KllFloatsSketch getUpdatableDirectFloatSketch(int k, int n) {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = KllHelper.toByteArray(sk, true);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
+  }
+
+  @Test
+  public void checkMergeExceptionsWrongType() {
+    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
+    KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
+    try { sk1.merge(sk2); fail(); } catch (ClassCastException e) { }
+    try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
   }
 
   private final static boolean enablePrinting = false;

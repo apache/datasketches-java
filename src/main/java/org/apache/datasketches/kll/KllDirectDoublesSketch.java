@@ -129,45 +129,71 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     return getMemoryK(wmem);
   }
 
+  //MinMax Methods
+
   @Override
   public double getMaxItem() {
-    int levelsArrBytes = 0;
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    else if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
-    else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
-    } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
-    }
-    final int offset =  DATA_START_ADR + levelsArrBytes + ITEM_BYTES;
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
+    return wmem.getDouble(offset);
+  }
+
+  @Override
+  double getMaxItemInternal() {
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Double.NaN; }
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
     return wmem.getDouble(offset);
   }
 
   @Override
   String getMaxItemAsString() {
-    if (isEmpty()) { return "NaN"; }
-    return Double.toString(getMaxItem());
+    final double maxItem = getMaxItemInternal();
+    return Double.toString(maxItem);
   }
 
   @Override
   public double getMinItem() {
-    int levelsArrBytes = 0;
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    else if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
-    else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
-    } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
-    }
-    final int offset =  DATA_START_ADR + levelsArrBytes;
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
+    return wmem.getDouble(offset);
+  }
+
+  @Override
+  double getMinItemInternal() {
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Double.NaN; }
+    if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
+    //either compact-full or updatable
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
     return wmem.getDouble(offset);
   }
 
   @Override
   String getMinItemAsString() {
-    if (isEmpty()) { return "NaN"; }
-    return Double.toString(getMinItem());
+    final double minItem = getMinItemInternal();
+    return Double.toString(minItem);
   }
+
+  @Override
+  void setMaxItem(final double item) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
+    wmem.putDouble(offset, item);
+  }
+
+  @Override
+  void setMinItem(final double item) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
+    wmem.putDouble(offset, item);
+  }
+
+  //END MinMax Methods
 
   @Override
   public long getN() {
@@ -176,7 +202,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     else { return getMemoryN(wmem); }
   }
 
-  //restricted
+  //other restricted
 
   @Override //returns updatable, expanded array including free space at bottom
   double[] getDoubleItemsArray() {
@@ -284,9 +310,9 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void incN() {
+  void incN(final int increment) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryN(wmem, getMemoryN(wmem) + 1);
+    setMemoryN(wmem, getMemoryN(wmem) + increment);
   }
 
   @Override
@@ -317,23 +343,16 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
+  void setDoubleItemsArrayAt(final int index, final double[] items, final int srcOffset, final int length) {
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
+    wmem.putDoubleArray(offset, items, srcOffset, length);
+  }
+
+  @Override
   void setLevelZeroSorted(final boolean sorted) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     setMemoryLevelZeroSortedFlag(wmem, sorted);
-  }
-
-  @Override
-  void setMaxItem(final double item) {
-    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    wmem.putDouble(offset, item);
-  }
-
-  @Override
-  void setMinItem(final double item) {
-    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    wmem.putDouble(offset, item);
   }
 
   @Override
@@ -367,11 +386,6 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
         final KllMemoryValidate memVal) {
       super(sketchStructure, (WritableMemory) srcMem, null, memVal);
     }
-  }
-
-  @Override  //VECTOR UPDATE NOT SUPPORTED
-  void addN(final int numItems) {
-    throw new UnsupportedOperationException(UNSUPPORTED_MSG);
   }
 
 }

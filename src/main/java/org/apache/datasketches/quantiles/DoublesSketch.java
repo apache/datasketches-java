@@ -597,7 +597,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     if (convertToCumulative(svCumWeights) != totalN) {
       throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
     }
-    return new DoublesSketchSortedView(svQuantiles, svCumWeights, totalN, getMaxItem(), getMinItem());
+    return new DoublesSketchSortedView(svQuantiles, svCumWeights, this);
   }
 
   private final static void populateFromDoublesSketch(

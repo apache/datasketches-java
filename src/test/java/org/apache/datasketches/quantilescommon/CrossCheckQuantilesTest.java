@@ -29,9 +29,7 @@ import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.ge
 import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.getTrueItemRank;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.ReflectUtilityTest.DOUBLES_SV_CTOR;
-import static org.apache.datasketches.quantilescommon.ReflectUtilityTest.KLL_FLOATS_SV_CTOR;
-import static org.apache.datasketches.quantilescommon.ReflectUtilityTest.REQ_SV_CTOR;
+
 import static org.testng.Assert.assertEquals;
 
 import java.util.Comparator;
@@ -40,14 +38,11 @@ import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.kll.KllFloatsSketchSortedView;
 import org.apache.datasketches.kll.KllItemsSketch;
-import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.quantiles.DoublesSketch;
 import org.apache.datasketches.quantiles.ItemsSketch;
 import org.apache.datasketches.quantiles.UpdateDoublesSketch;
 import org.apache.datasketches.req.ReqSketch;
-import org.apache.datasketches.req.ReqSketchSortedView;
 import org.testng.annotations.Test;
 
 /**
@@ -141,12 +136,10 @@ public class CrossCheckQuantilesTest {
   KllItemsSketch<String> kllItemsSk = null;
   ItemsSketch<String> itemsSk = null;
 
-  ReqSketchSortedView reqFloatsSV = null;
-  KllFloatsSketchSortedView kllFloatsSV = null;
-  DoublesSketchSortedView kllDoublesSV = null;
-  DoublesSketchSortedView classicDoublesSV = null;
-  ItemsSketchSortedView<String> kllItemsSV = null;
+  FloatsSketchSortedView floatsSV = null;
+  DoublesSketchSortedView doublesSV = null;
   ItemsSketchSortedView<String> classicItemsSV = null;
+  ItemsSketchSortedView<String> kllItemsSV = null;
 
   public CrossCheckQuantilesTest() {}
 
@@ -175,11 +168,10 @@ public class CrossCheckQuantilesTest {
     float maxFloatvalue = getMaxFloatValue(set);
     for (float v = 5f; v <= maxFloatvalue + 5f; v += 5f) {
       trueRank = getTrueFloatRank(svCumWeights[set], svFValues[set],v, crit);
-      testRank = reqFloatsSV.getRank(v, crit);
+
+      testRank = floatsSV.getRank(v, crit);
       assertEquals(testRank, trueRank);
       testRank = reqFloatsSk.getRank(v, crit);
-      assertEquals(testRank, trueRank);
-      testRank = kllFloatsSV.getRank(v, crit);
       assertEquals(testRank, trueRank);
       testRank = kllFloatsSk.getRank(v, crit);
       assertEquals(testRank, trueRank);
@@ -192,12 +184,9 @@ public class CrossCheckQuantilesTest {
     for (double v = 5; v <= maxDoubleValue + 5; v += 5) {
       trueRank = getTrueDoubleRank(svCumWeights[set], svDValues[set],v, crit);
 
-      testRank = kllDoublesSV.getRank(v, crit);
+      testRank = doublesSV.getRank(v, crit);
       assertEquals(testRank, trueRank);
       testRank = kllDoublesSk.getRank(v, crit);
-      assertEquals(testRank, trueRank);
-
-      testRank = classicDoublesSV.getRank(v, crit);
       assertEquals(testRank, trueRank);
       testRank = classicDoublesSk.getRank(v, crit);
       assertEquals(testRank, trueRank);
@@ -217,7 +206,6 @@ public class CrossCheckQuantilesTest {
       assertEquals(testRank, trueRank);
       testRank = kllItemsSk.getRank(s, crit);
       assertEquals(testRank, trueRank);
-
       testRank = classicItemsSV.getRank(s, crit);
       assertEquals(testRank, trueRank);
       testRank = itemsSk.getRank(s, crit);
@@ -238,12 +226,9 @@ public class CrossCheckQuantilesTest {
       double normRank = i / dTwoN;
       trueFQ = getTrueFloatQuantile(svCumWeights[set], svFValues[set], normRank, crit);
 
-      testFQ = reqFloatsSV.getQuantile(normRank, crit);
+      testFQ = floatsSV.getQuantile(normRank, crit);
       assertEquals(testFQ, trueFQ);
       testFQ = reqFloatsSk.getQuantile(normRank, crit);
-      assertEquals(testFQ, trueFQ);
-
-      testFQ = kllFloatsSV.getQuantile(normRank, crit);
       assertEquals(testFQ, trueFQ);
       testFQ = kllFloatsSk.getQuantile(normRank, crit);
       assertEquals(testFQ, trueFQ);
@@ -258,12 +243,9 @@ public class CrossCheckQuantilesTest {
       double normRank = i / dTwoN;
       trueDQ = getTrueDoubleQuantile(svCumWeights[set], svDValues[set], normRank, crit);
 
-      testDQ = kllDoublesSV.getQuantile(normRank, crit);
+      testDQ = doublesSV.getQuantile(normRank, crit);
       assertEquals(testDQ, trueDQ);
       testDQ = kllDoublesSk.getQuantile(normRank, crit);
-      assertEquals(testDQ, trueDQ);
-
-      testDQ = classicDoublesSV.getQuantile(normRank, crit);
       assertEquals(testDQ, trueDQ);
       testDQ = classicDoublesSk.getQuantile(normRank, crit);
       assertEquals(testDQ, trueDQ);
@@ -282,7 +264,6 @@ public class CrossCheckQuantilesTest {
       assertEquals(testIQ, trueIQ);
       testIQ = kllItemsSk.getQuantile(normRank, crit);
       assertEquals(testIQ, trueIQ);
-
       testIQ = classicItemsSV.getQuantile(normRank, crit);
       assertEquals(testIQ, trueIQ);
       testIQ = itemsSk.getQuantile(normRank, crit);
@@ -290,7 +271,6 @@ public class CrossCheckQuantilesTest {
 
       println("Items set: " + set + ", rank: " + normRank + ", Q: " + trueIQ + ", crit: " + crit.toString());
     }
-
   }
 
   private double getMaxDoubleValue(int set) {
@@ -315,8 +295,8 @@ public class CrossCheckQuantilesTest {
     kllFloatsSk = KllFloatsSketch.newHeapInstance(k);
     kllDoublesSk = KllDoublesSketch.newHeapInstance(k);
     classicDoublesSk = DoublesSketch.builder().setK(k).build();
-    kllItemsSk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
-    itemsSk = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
+    kllItemsSk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
+    itemsSk = ItemsSketch.getInstance(String.class, k, comparator);
 
     int count = skFStreamValues[set].length;
     for (int i = 0; i < count; i++) {
@@ -332,40 +312,18 @@ public class CrossCheckQuantilesTest {
   /*******BUILD & LOAD SVs***********/
 
   private void buildSVs(int set) throws Exception {
-    reqFloatsSV = getRawReqSV(svFValues[set], svCumWeights[set], totalN[set],
+    floatsSV = new FloatsSketchSortedView(svFValues[set], svCumWeights[set], totalN[set],
         svMaxFValues[set], svMinFValues[set]);
-    kllFloatsSV = getRawKllFloatsSV(svFValues[set], svCumWeights[set], totalN[set],
-        svMaxFValues[set], svMinFValues[set]);
-    kllDoublesSV = getRawDoublesSV(svDValues[set], svCumWeights[set], totalN[set],
-        svMaxDValues[set], svMinDValues[set]);
-    classicDoublesSV = getRawDoublesSV(svDValues[set], svCumWeights[set], totalN[set],
+    doublesSV = new DoublesSketchSortedView(svDValues[set], svCumWeights[set], totalN[set],
         svMaxDValues[set], svMinDValues[set]);
     String svImax = svIValues[set][svIValues[set].length - 1];
     String svImin = svIValues[set][0];
-    double normRankErr = KllSketch.getNormalizedRankError(k, true);
+
     kllItemsSV = new ItemsSketchSortedView<>(svIValues[set], svCumWeights[set], totalN[set],
-        comparator, svImax, svImin, normRankErr);
-    normRankErr = ItemsSketch.getNormalizedRankError(k, true);
+        comparator, svImax, svImin, String.class, .01, svCumWeights[set].length);
+
     classicItemsSV = new ItemsSketchSortedView<>(svIValues[set], svCumWeights[set], totalN[set],
-        comparator, svImax, svImin, normRankErr);
-  }
-
-  private final static ReqSketchSortedView getRawReqSV(
-      final float[] values, final long[] cumWeights, final long totalN, final float maxItem, final float minItem)
-          throws Exception {
-    return (ReqSketchSortedView) REQ_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
-  }
-
-  private final static KllFloatsSketchSortedView getRawKllFloatsSV(
-      final float[] values, final long[] cumWeights, final long totalN, final float maxItem, final float minItem)
-          throws Exception {
-    return (KllFloatsSketchSortedView) KLL_FLOATS_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
-  }
-
-  private final static DoublesSketchSortedView getRawDoublesSV(
-      final double[] values, final long[] cumWeights, final long totalN, final double maxItem, final double minItem)
-          throws Exception {
-    return (DoublesSketchSortedView) DOUBLES_SV_CTOR.newInstance(values, cumWeights, totalN, maxItem, minItem);
+        comparator, svImax, svImin, String.class, .01, svCumWeights[set].length);
   }
 
   /********BUILD DATA SETS**********/

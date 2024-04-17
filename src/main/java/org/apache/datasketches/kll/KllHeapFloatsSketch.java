@@ -163,11 +163,16 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   @Override
   String getItemAsString(final int index) {
     if (isEmpty()) { return "NaN"; }
-    return Double.toString(floatItems[index]);
+    return Float.toString(floatItems[index]);
   }
 
   @Override
   public int getK() { return k; }
+
+  //MinMax Methods
+
+  @Override
+ float getMaxItemInternal() { return maxFloatItem; }
 
   @Override
   public float getMaxItem() {
@@ -177,26 +182,43 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   String getMaxItemAsString() {
-    if (isEmpty()) { return "NaN"; }
     return Float.toString(maxFloatItem);
   }
 
   @Override
+  float getMinItemInternal() { return minFloatItem; }
+
+  @Override
   public float getMinItem() {
-    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if (isEmpty() || Float.isNaN(minFloatItem)) { throw new SketchesArgumentException(EMPTY_MSG); }
     return minFloatItem;
   }
 
   @Override
   String getMinItemAsString() {
-    if (isEmpty()) { return "NaN"; }
     return Float.toString(minFloatItem);
   }
 
   @Override
+  byte[] getMinMaxByteArr() {
+    final byte[] bytesOut = new byte[2 * Float.BYTES];
+    putFloatLE(bytesOut, 0, minFloatItem);
+    putFloatLE(bytesOut, Float.BYTES, maxFloatItem);
+    return bytesOut;
+  }
+
+  @Override
+  void setMaxItem(final float item) { this.maxFloatItem = item; }
+
+  @Override
+  void setMinItem(final float item) { this.minFloatItem = item; }
+
+  //END MinMax Methods
+
+  @Override
   public long getN() { return n; }
 
-  //restricted
+  //other restricted
 
   @Override
   float[] getFloatItemsArray() { return floatItems; }
@@ -215,14 +237,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   int getMinK() { return minK; }
-
-  @Override
-  byte[] getMinMaxByteArr() {
-    final byte[] bytesOut = new byte[2 * Float.BYTES];
-    putFloatLE(bytesOut, 0, minFloatItem);
-    putFloatLE(bytesOut, Float.BYTES, maxFloatItem);
-    return bytesOut;
-  }
 
   @Override
   byte[] getRetainedItemsByteArr() {
@@ -255,7 +269,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void incN() { n++; }
+  void incN(final int increment) { n += increment; }
 
   @Override
   void incNumLevels() {
@@ -272,13 +286,12 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setFloatItemsArrayAt(final int index, final float item) { this.floatItems[index] = item; }
 
   @Override
+  void setFloatItemsArrayAt(final int dstIndex, final float[] srcItems, final int srcOffset, final int length) {
+    System.arraycopy(srcItems, srcOffset, floatItems, dstIndex, length);
+  }
+
+  @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted = sorted; }
-
-  @Override
-  void setMaxItem(final float item) { this.maxFloatItem = item; }
-
-  @Override
-  void setMinItem(final float item) { this.minFloatItem = item; }
 
   @Override
   void setMinK(final int minK) { this.minK = minK; }

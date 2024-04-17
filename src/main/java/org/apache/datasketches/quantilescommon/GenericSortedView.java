@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
+
 import java.util.Comparator;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -30,7 +32,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public interface GenericSortedView<T> extends PartitioningFeature<T>, SortedView {
+public interface GenericSortedView<T>  extends PartitioningFeature<T>, SketchPartitionLimits, SortedView  {
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream
@@ -67,7 +69,23 @@ public interface GenericSortedView<T> extends PartitioningFeature<T>, SortedView
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
+  default double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    GenericSortedView.validateItems(splitPoints, getComparator());
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], searchCrit);
+    }
+    buckets[len - 1] = 1.0;
+    return buckets;
+  }
+
+  /**
+   * Gets the Comparator for this generic type.
+   * @return the Comparator for this generic type.
+   */
+  Comparator<? super T> getComparator();
 
   /**
    * Returns the maximum item of the stream. This may be distinct from the largest item retained by the
@@ -127,7 +145,15 @@ public interface GenericSortedView<T> extends PartitioningFeature<T>, SortedView
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  double[] getPMF(T[] splitPoints,  QuantileSearchCriteria searchCrit);
+  default double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    GenericSortedView.validateItems(splitPoints, getComparator());
+    final double[] buckets = getCDF(splitPoints, searchCrit);
+    for (int i = buckets.length; i-- > 1; ) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
 
   /**
    * Gets the approximate quantile of the given normalized rank and the given search criterion.
