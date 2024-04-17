@@ -560,8 +560,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       quantiles = new float[numQuantiles];
       cumWeights = new long[numQuantiles];
       populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
-      return new FloatsSketchSortedView(
-          quantiles, cumWeights, getN(), getMaxItemInternal(), getMinItemInternal());
+      return new FloatsSketchSortedView(quantiles, cumWeights, KllFloatsSketch.this);
     }
 
     private void populateFromSketch(final float[] srcQuantiles, final int[] srcLevels,

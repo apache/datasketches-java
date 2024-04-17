@@ -90,8 +90,10 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
       return serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0];
     }
     //sketchStructure == COMPACT_FULL
-    final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
-    return serDe.deserializeFromMemory(mem, offset, 2)[1];
+    final int baseOffset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
+    final int offset = baseOffset + serDe.sizeOf(mem, baseOffset, 1); //size of minItem
+
+    return serDe.deserializeFromMemory(mem, offset, 1)[0];
   }
 
   @Override

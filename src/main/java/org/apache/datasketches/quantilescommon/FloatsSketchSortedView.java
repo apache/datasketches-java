@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.quantilescommon.IncludeMinMax.FloatsPair;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
@@ -34,24 +35,36 @@ public class FloatsSketchSortedView implements FloatsSortedView {
   private final float[] quantiles;
   private final long[] cumWeights; //cumulative natural weights
   private final long totalN;
-  private final float maxItem;
-  private final float minItem;
 
   /**
-   * Construct from elements, also used in testing.
+   * Construct Sorted View.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of items presented to the sketch.
-   * @param maxItem of type double
-   * @param minItem of type double
+   * @param sk the underlying quantile sketch.
    */
-  public FloatsSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN,
-      final float maxItem, final float minItem) {
-    this.quantiles = quantiles;
-    this.cumWeights  = cumWeights;
+  public FloatsSketchSortedView(
+      final float[] quantiles,
+      final long[] cumWeights,
+      final QuantilesFloatsAPI sk) {
+    final FloatsPair fPair =
+        IncludeMinMax.includeFloatsMinMax(quantiles, cumWeights, sk.getMaxItem(), sk.getMinItem());
+    this.quantiles = fPair.quantiles;
+    this.cumWeights  = fPair.cumWeights;
+    this.totalN = sk.getN();
+  }
+
+  //Used for testing
+  FloatsSketchSortedView(
+      final float[] quantiles,
+      final long[] cumWeights,
+      final long totalN,
+      final float maxItem,
+      final float minItem) {
+    final FloatsPair fPair =
+        IncludeMinMax.includeFloatsMinMax(quantiles, cumWeights, maxItem, minItem);
+    this.quantiles = fPair.quantiles;
+    this.cumWeights  = fPair.cumWeights;
     this.totalN = totalN;
-    this.maxItem = maxItem;
-    this.minItem = minItem;
   }
 
   @Override
@@ -61,12 +74,13 @@ public class FloatsSketchSortedView implements FloatsSortedView {
 
   @Override
   public float getMaxItem() {
-    return maxItem;
+    final int top = quantiles.length - 1;
+    return quantiles[top];
   }
 
   @Override
   public float getMinItem() {
-    return minItem;
+    return quantiles[0];
   }
 
   @Override

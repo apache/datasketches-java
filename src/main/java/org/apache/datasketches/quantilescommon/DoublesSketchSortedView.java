@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import static org.apache.datasketches.quantilescommon.IncludeMinMax.DoublesPair;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
@@ -34,24 +35,36 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   private final double[] quantiles;
   private final long[] cumWeights; //cumulative natural weights
   private final long totalN;
-  private final double maxItem;
-  private final double minItem;
 
   /**
    * Construct from elements, also used in testing.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of items presented to the sketch.
-   * @param maxItem of type double
-   * @param minItem of type double
+   * @param sk the underlying quantile sketch.
    */
-  public DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN,
-      final double maxItem, final double minItem) {
-    this.quantiles = quantiles;
-    this.cumWeights  = cumWeights;
+  public DoublesSketchSortedView(
+      final double[] quantiles,
+      final long[] cumWeights,
+      final QuantilesDoublesAPI sk) {
+    final DoublesPair dPair =
+        IncludeMinMax.includeDoublesMinMax(quantiles, cumWeights, sk.getMaxItem(), sk.getMinItem());
+    this.quantiles = dPair.quantiles;
+    this.cumWeights  = dPair.cumWeights;
+    this.totalN = sk.getN();
+  }
+
+  //Used for testing
+  DoublesSketchSortedView(
+      final double[] quantiles,
+      final long[] cumWeights,
+      final long totalN,
+      final double maxItem,
+      final double minItem) {
+    final DoublesPair dPair =
+        IncludeMinMax.includeDoublesMinMax(quantiles, cumWeights, maxItem, minItem);
+    this.quantiles = dPair.quantiles;
+    this.cumWeights  = dPair.cumWeights;
     this.totalN = totalN;
-    this.maxItem = maxItem;
-    this.minItem = minItem;
   }
 
   @Override
@@ -61,12 +74,13 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public double getMaxItem() {
-    return maxItem;
+    final int top = quantiles.length - 1;
+    return quantiles[top];
   }
 
   @Override
   public double getMinItem() {
-    return minItem;
+    return quantiles[0];
   }
 
   @Override

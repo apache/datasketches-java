@@ -286,7 +286,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   void setDoubleItemsArrayAt(final int index, final double item) { this.doubleItems[index] = item; }
 
   @Override
-  void setDoubleItemsArrayAt(final int dstIndex, final double[] srcItems, final int srcOffset, final int length) { //TODO
+  void setDoubleItemsArrayAt(final int dstIndex, final double[] srcItems, final int srcOffset, final int length) {
     System.arraycopy(srcItems, srcOffset, doubleItems, dstIndex, length);
   }
 

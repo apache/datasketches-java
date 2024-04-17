@@ -594,8 +594,7 @@ public final class ReqSketch extends BaseReqSketch {
         count += bufInLen;
       }
       createCumulativeNativeRanks();
-      return new FloatsSketchSortedView(
-          quantiles, cumWeights, getN(), getMaxItem(), getMinItem());
+      return new FloatsSketchSortedView(quantiles, cumWeights, ReqSketch.this);
     }
 
     /**
