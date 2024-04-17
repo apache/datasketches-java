@@ -110,7 +110,6 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   }
 
   @Override
-  @Deprecated
   public Number[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
   }

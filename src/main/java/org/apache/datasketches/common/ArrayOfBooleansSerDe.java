@@ -74,7 +74,6 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   }
 
   @Override
-  @Deprecated
   public Boolean[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
   }

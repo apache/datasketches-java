@@ -76,7 +76,6 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  @Deprecated
   public String[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
   }
