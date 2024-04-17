@@ -164,13 +164,11 @@ implements <a href="FloatsSortedView.html" title="interface in org.apache.datask
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(float%5B%5D,long%5B%5D,long,float,float)">FloatsSketchSortedView</a></span>&#8203;(float[]&nbsp;quantiles,
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(float%5B%5D,long%5B%5D,org.apache.datasketches.quantilescommon.QuantilesFloatsAPI)">FloatsSketchSortedView</a></span>&#8203;(float[]&nbsp;quantiles,
                       long[]&nbsp;cumWeights,
-                      long&nbsp;totalN,
-                      float&nbsp;maxItem,
-                      float&nbsp;minItem)</code></th>
+                      <a href="QuantilesFloatsAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesFloatsAPI</a>&nbsp;sk)</code></th>
 <td class="colLast">
-<div class="block">Construct from elements, also used in testing.</div>
+<div class="block">Construct Sorted View.</div>
 </td>
 </tr>
 </table>
@@ -294,7 +292,7 @@ implements <a href="FloatsSortedView.html" title="interface in org.apache.datask
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(float[],long[],long,float,float)">
+<a id="&lt;init&gt;(float[],long[],org.apache.datasketches.quantilescommon.QuantilesFloatsAPI)">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -302,17 +300,13 @@ implements <a href="FloatsSortedView.html" title="interface in org.apache.datask
 <h4>FloatsSketchSortedView</h4>
 <pre>public&nbsp;FloatsSketchSortedView&#8203;(float[]&nbsp;quantiles,
                               long[]&nbsp;cumWeights,
-                              long&nbsp;totalN,
-                              float&nbsp;maxItem,
-                              float&nbsp;minItem)</pre>
-<div class="block">Construct from elements, also used in testing.</div>
+                              <a href="QuantilesFloatsAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesFloatsAPI</a>&nbsp;sk)</pre>
+<div class="block">Construct Sorted View.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>quantiles</code> - sorted array of quantiles</dd>
 <dd><code>cumWeights</code> - sorted, monotonically increasing cumulative weights.</dd>
-<dd><code>totalN</code> - the total number of items presented to the sketch.</dd>
-<dd><code>maxItem</code> - of type double</dd>
-<dd><code>minItem</code> - of type double</dd>
+<dd><code>sk</code> - the underlying quantile sketch.</dd>
 </dl>
 </li>
 </ul>

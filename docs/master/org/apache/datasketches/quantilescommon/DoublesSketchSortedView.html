@@ -164,11 +164,9 @@ implements <a href="DoublesSortedView.html" title="interface in org.apache.datas
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
-<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(double%5B%5D,long%5B%5D,long,double,double)">DoublesSketchSortedView</a></span>&#8203;(double[]&nbsp;quantiles,
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(double%5B%5D,long%5B%5D,org.apache.datasketches.quantilescommon.QuantilesDoublesAPI)">DoublesSketchSortedView</a></span>&#8203;(double[]&nbsp;quantiles,
                        long[]&nbsp;cumWeights,
-                       long&nbsp;totalN,
-                       double&nbsp;maxItem,
-                       double&nbsp;minItem)</code></th>
+                       <a href="QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a>&nbsp;sk)</code></th>
 <td class="colLast">
 <div class="block">Construct from elements, also used in testing.</div>
 </td>
@@ -294,7 +292,7 @@ implements <a href="DoublesSortedView.html" title="interface in org.apache.datas
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a id="&lt;init&gt;(double[],long[],long,double,double)">
+<a id="&lt;init&gt;(double[],long[],org.apache.datasketches.quantilescommon.QuantilesDoublesAPI)">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -302,17 +300,13 @@ implements <a href="DoublesSortedView.html" title="interface in org.apache.datas
 <h4>DoublesSketchSortedView</h4>
 <pre>public&nbsp;DoublesSketchSortedView&#8203;(double[]&nbsp;quantiles,
                                long[]&nbsp;cumWeights,
-                               long&nbsp;totalN,
-                               double&nbsp;maxItem,
-                               double&nbsp;minItem)</pre>
+                               <a href="QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a>&nbsp;sk)</pre>
 <div class="block">Construct from elements, also used in testing.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>quantiles</code> - sorted array of quantiles</dd>
 <dd><code>cumWeights</code> - sorted, monotonically increasing cumulative weights.</dd>
-<dd><code>totalN</code> - the total number of items presented to the sketch.</dd>
-<dd><code>maxItem</code> - of type double</dd>
-<dd><code>minItem</code> - of type double</dd>
+<dd><code>sk</code> - the underlying quantile sketch.</dd>
 </dl>
 </li>
 </ul>

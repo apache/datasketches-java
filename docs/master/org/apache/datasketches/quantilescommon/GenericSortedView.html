@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":1};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
+var data = {"i0":18,"i1":6,"i2":6,"i3":6,"i4":18,"i5":6,"i6":6,"i7":6,"i8":6,"i9":1};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -159,14 +159,14 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t5" class="tableTab"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>double[]</code></td>
+<td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCDF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCDF</a></span>&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]&nbsp;splitPoints,
       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
@@ -176,21 +176,28 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getComparator()">getComparator</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the Comparator for this generic type.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxItem()">getMaxItem</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the maximum item of the stream.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinItem()">getMinItem</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the minimum item of the stream.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>double[]</code></td>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>default double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(T%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]&nbsp;splitPoints,
       <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
 <td class="colLast">
@@ -199,7 +206,7 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code><a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -207,14 +214,14 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles()">getQuantiles</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the full array of quantiles.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&nbsp;quantile,
        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -222,14 +229,14 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a>&lt;<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns an iterator for this Sorted View.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#validateItems(T%5B%5D,java.util.Comparator)">validateItems</a></span>&#8203;(T[]&nbsp;items,
              <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;comparator)</code></th>
@@ -283,8 +290,8 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 <ul class="blockList">
 <li class="blockList">
 <h4>getCDF</h4>
-<pre class="methodSignature">double[]&nbsp;getCDF&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]&nbsp;splitPoints,
-                <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<pre class="methodSignature">default&nbsp;double[]&nbsp;getCDF&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]&nbsp;splitPoints,
+                        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
 <div class="block">Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream
  as a monotonically increasing array of double ranks (or cumulative probabilities) on the interval [0.0, 1.0],
  given a set of splitPoints.
@@ -320,6 +327,20 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 <dd>a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+</dl>
+</li>
+</ul>
+<a id="getComparator()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getComparator</h4>
+<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super <a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt;&nbsp;getComparator()</pre>
+<div class="block">Gets the Comparator for this generic type.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the Comparator for this generic type.</dd>
 </dl>
 </li>
 </ul>
@@ -365,8 +386,8 @@ extends <a href="PartitioningFeature.html" title="interface in org.apache.datask
 <ul class="blockList">
 <li class="blockList">
 <h4>getPMF</h4>
-<pre class="methodSignature">double[]&nbsp;getPMF&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]&nbsp;splitPoints,
-                <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<pre class="methodSignature">default&nbsp;double[]&nbsp;getPMF&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>[]&nbsp;splitPoints,
+                        <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
 <div class="block">Returns an approximation to the Probability Mass Function (PMF) of the input stream
  as an array of probability masses as doubles on the interval [0.0, 1.0],
  given a set of splitPoints.
