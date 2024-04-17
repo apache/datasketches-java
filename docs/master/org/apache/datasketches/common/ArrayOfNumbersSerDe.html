@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":42,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -187,7 +187,7 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -198,7 +198,8 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">deserializeFromMemory</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
                      int&nbsp;numItems)</code></th>
 <td class="colLast">
-<div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
+<div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
+ starting at a Memory offset of zero and extending numItems.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -349,10 +350,8 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
 <ul class="blockList">
 <li class="blockList">
 <h4>deserializeFromMemory</h4>
-<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
-public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
                                       int&nbsp;numItems)</pre>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">ArrayOfItemsSerDe</a></code></span></div>
 <div class="block">Deserialize a contiguous sequence of serialized items from the given Memory
  starting at a Memory offset of zero and extending numItems.</div>
