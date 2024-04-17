@@ -56,7 +56,6 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   }
 
   @Override
-  @Deprecated
   public Long[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
   }
