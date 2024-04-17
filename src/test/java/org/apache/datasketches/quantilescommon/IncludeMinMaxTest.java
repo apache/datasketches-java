@@ -55,6 +55,8 @@ public final class IncludeMinMaxTest {
     assertEquals(adjQuantiles[0], minItem);
     assertEquals(adjCumWeights[topAdj], cumWeights[topIn]);
     assertEquals(adjCumWeights[0], 1);
+    assertEquals(adjQuantiles.length - quantiles.length, 2);
+    assertEquals(adjCumWeights.length - cumWeights.length, 2);
   }
 
   @Test
@@ -78,6 +80,8 @@ public final class IncludeMinMaxTest {
     assertEquals(adjQuantiles[0], minItem);
     assertEquals(adjCumWeights[topAdj], cumWeights[topIn]);
     assertEquals(adjCumWeights[0], cumWeights[0]);
+    assertEquals(adjQuantiles.length - quantiles.length, 0);
+    assertEquals(adjCumWeights.length - cumWeights.length, 0);
   }
 
   @Test
@@ -101,6 +105,8 @@ public final class IncludeMinMaxTest {
     assertEquals(adjQuantiles[0], minItem);
     assertEquals(adjCumWeights[topAdj], cumWeights[topIn]);
     assertEquals(adjCumWeights[0], 1);
+    assertEquals(adjQuantiles.length - quantiles.length, 2);
+    assertEquals(adjCumWeights.length - cumWeights.length, 2);
   }
 
   @Test
@@ -124,6 +130,8 @@ public final class IncludeMinMaxTest {
     assertEquals(adjQuantiles[0], minItem);
     assertEquals(adjCumWeights[topAdj], cumWeights[topIn]);
     assertEquals(adjCumWeights[0], cumWeights[0]);
+    assertEquals(adjQuantiles.length - quantiles.length, 0);
+    assertEquals(adjCumWeights.length - cumWeights.length, 0);
   }
 
   @Test
@@ -148,6 +156,8 @@ public final class IncludeMinMaxTest {
     assertEquals(adjQuantiles[0], minItem);
     assertEquals(adjCumWeights[topAdj], cumWeights[topIn]);
     assertEquals(adjCumWeights[0], 1);
+    assertEquals(adjQuantiles.length - quantiles.length, 2);
+    assertEquals(adjCumWeights.length - cumWeights.length, 2);
   }
 
   @Test
@@ -172,6 +182,8 @@ public final class IncludeMinMaxTest {
     assertEquals(adjQuantiles[0], minItem);
     assertEquals(adjCumWeights[topAdj], cumWeights[topIn]);
     assertEquals(adjCumWeights[0], cumWeights[0]);
+    assertEquals(adjQuantiles.length - quantiles.length, 0);
+    assertEquals(adjCumWeights.length - cumWeights.length, 0);
   }
 
   @Test

@@ -145,13 +145,11 @@ public interface GenericSortedView<T>  extends PartitioningFeature<T>, SketchPar
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  //double[] getPMF(T[] splitPoints,  QuantileSearchCriteria searchCrit);
   default double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     GenericSortedView.validateItems(splitPoints, getComparator());
     final double[] buckets = getCDF(splitPoints, searchCrit);
-    final int len = buckets.length;
-    for (int i = len; i-- > 1; ) {
+    for (int i = buckets.length; i-- > 1; ) {
       buckets[i] -= buckets[i - 1];
     }
     return buckets;

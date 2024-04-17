@@ -43,7 +43,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-//@SuppressWarnings("unused")
 public class KllMiscItemsTest {
   public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 

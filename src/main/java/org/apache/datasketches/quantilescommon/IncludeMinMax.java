@@ -77,7 +77,7 @@ public class IncludeMinMax {
       System.arraycopy(quantilesIn, 0, adjQuantiles, offset, lenIn);
       System.arraycopy(cumWeightsIn,0, adjCumWeights, offset, lenIn);
 
-      //Adjust the low end if required.
+      //Adjust the low end if required. Don't need to adjust weight of next one because it is cumulative.
       if (adjLow) {
         adjQuantiles[0] = minItem;
         adjCumWeights[0] = 1;
