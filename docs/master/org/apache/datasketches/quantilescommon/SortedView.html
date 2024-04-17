@@ -184,7 +184,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNumRetained()">getNumRetained</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Gets the number of quantiles retained by the sketch.</div>
+<div class="block">Gets the number of quantiles retained by this sorted view.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
@@ -254,10 +254,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <li class="blockList">
 <h4>getNumRetained</h4>
 <pre class="methodSignature">int&nbsp;getNumRetained()</pre>
-<div class="block">Gets the number of quantiles retained by the sketch.</div>
+<div class="block">Gets the number of quantiles retained by this sorted view.
+ This may be slightly different from the function with the same name when called from the originating sketch.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the number of quantiles retained by the sketch</dd>
+<dd>the number of quantiles retained by this sorted view</dd>
 </dl>
 </li>
 </ul>
