@@ -49,8 +49,9 @@ public interface SortedView {
   long getN();
 
   /**
-   * Gets the number of quantiles retained by the sketch.
-   * @return the number of quantiles retained by the sketch
+   * Gets the number of quantiles retained by this sorted view.
+   * This may be slightly different from the function with the same name when called from the originating sketch.
+   * @return the number of quantiles retained by this sorted view
    */
   int getNumRetained();
 
