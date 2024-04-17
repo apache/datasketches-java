@@ -48,19 +48,21 @@ public abstract class ArrayOfItemsSerDe<T> {
   public abstract byte[] serializeToByteArray(T[] items);
 
   /**
-   * Deserialize a contiguous sequence of serialized items from a given Memory.
+   * Deserialize a contiguous sequence of serialized items from the given Memory
+   * starting at a Memory offset of zero and extending numItems.
    *
    * @param mem Memory containing a contiguous sequence of serialized items
    * @param numItems number of items in the contiguous serialized sequence.
    * @return array of deserialized items
-   * @deprecated use
-   * {@link #deserializeFromMemory(Memory, long, int) deserializeFromMemory(mem, offset, numItems)}
+   * @see #deserializeFromMemory(Memory, long, int)
    */
-  @Deprecated
-  public abstract T[] deserializeFromMemory(Memory mem, int numItems);
+  public T[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
 
   /**
-   * Deserialize a contiguous sequence of serialized items from a given Memory.
+   * Deserialize a contiguous sequence of serialized items from the given Memory
+   * starting at the given Memory <i>offsetBytes</i> and extending numItems.
    *
    * @param mem Memory containing a contiguous sequence of serialized items
    * @param offsetBytes the starting offset in the given Memory.
