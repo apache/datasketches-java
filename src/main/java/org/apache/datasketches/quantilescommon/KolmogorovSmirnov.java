@@ -58,7 +58,7 @@ public final class KolmogorovSmirnov {
     int j = 0;
 
     while ((i < pSamplesArrLen - 1) && (j < qSamplesArrLen - 1)) {
-      deltaHeight = max(deltaHeight, abs((pCumWtsArr[i]) / n1 - (qCumWtsArr[j]) / n2));
+      deltaHeight = max(deltaHeight, abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
       if (pSamplesArr[i] < qSamplesArr[j]) {
         i++;
       } else if (qSamplesArr[j] < pSamplesArr[i]) {
@@ -69,7 +69,7 @@ public final class KolmogorovSmirnov {
       }
     }
 
-    deltaHeight = max(deltaHeight, abs((pCumWtsArr[i]) / n1 - (qCumWtsArr[j]) / n2));
+    deltaHeight = max(deltaHeight, abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
     return deltaHeight;
   }
 
