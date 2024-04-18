@@ -28,12 +28,12 @@ under the License.
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>29</version>
+    <version>32</version>
   </parent>
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>5.1.0-SNAPSHOT</version>
+  <version>6.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
@@ -89,12 +89,13 @@ under the License.
 
     <!-- Test -->
     <testng.version>7.5.1</testng.version>
+    <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
     <testng.generate-java-files>generate_java_files</testng.generate-java-files>
     <testng.check-cpp-files>check_cpp_files</testng.check-cpp-files>
     <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
 
     <!-- System-wide properties -->
-    <maven.version>3.5.0</maven.version>
+    <maven.version>3.6.3</maven.version> <!-- may override parent, used in enforcer plugin -->
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -105,28 +106,25 @@ under the License.
     <project.reporting.outputEncoding>${charset.encoding}</project.reporting.outputEncoding>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss'Z'</maven.build.timestamp.format>
 
-    <!-- org.codehaus plugins -->
-    <!-- used for strict profile testing-->
-    <plexus-compiler-javac-errorprone.version>2.8.5</plexus-compiler-javac-errorprone.version>
-    <versions-maven-plugin.version>2.8.1</versions-maven-plugin.version>
+    <!-- org.mojohaus plugins: used for checking & updating dependency versions -->
+    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
 
     <!--  Maven Plugins -->
-    <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version> <!-- overrides parent -->
-    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version> <!-- overrides parent -->
-    <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version> <!-- overrides parent -->
-    <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version> <!-- overrides parent -->
-    <maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
-    <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version> <!-- overrides parent -->
-    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version> <!-- overrides parent -->
-    <maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version> <!-- overrides parent -->
-    <maven-release-plugin.version>3.0.0-M4</maven-release-plugin.version> <!-- overrides parent -->
-    <maven-remote-resources-plugin.version>[1.7.0,)</maven-remote-resources-plugin.version> <!-- overrides parent -->
-    <maven-source-plugin.version>3.2.1</maven-source-plugin.version> <!-- overrides parent -->
-    <maven-surefire-plugin.version>3.1.2</maven-surefire-plugin.version> <!-- overrides parent -->
+    <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version> <!-- may override parent -->
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version> <!-- may override parent -->
+    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version> <!-- may override parent -->
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version> <!-- may override parent -->
+    <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version> <!-- may override parent -->
+    <maven-jar-plugin.version>3.4.0</maven-jar-plugin.version> <!-- may override parent -->
+    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version> <!-- may override parent -->
+    <maven-release-plugin.version>3.0.1</maven-release-plugin.version> <!-- may override parent -->
+    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version> <!-- may override parent -->
+    <maven-source-plugin.version>3.3.1</maven-source-plugin.version> <!-- may override parent -->
+    <maven-surefire-failsafe-plugins.version>3.2.5</maven-surefire-failsafe-plugins.version><!-- for surefire, failsafe and surefire-report, may override parent-->
     <!-- Apache Plugins -->
-    <apache-rat-plugin.version>0.13</apache-rat-plugin.version> <!-- overrides parent -->
+    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version> <!-- may override parent -->
     <!-- org.jacoco Maven Plugins -->
-    <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <!-- org.eluder Maven Plugins -->
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
@@ -195,7 +193,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[1.8,1.9),[8],[11,12)</version>
+                    <version>[1.8.0,9.0),[11.0,12.0)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},)</version>
@@ -288,7 +286,7 @@ under the License.
           <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven-surefire-plugin.version}</version>
+          <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
@@ -461,38 +459,6 @@ under the License.
             <artifactId>maven-remote-resources-plugin</artifactId>
           </plugin>
         </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>strict</id>
-      <!-- The error prone compiler is only currently supported for compilation in JDK 8 -->
-      <activation>
-        <jdk>[1.8, 1.9),8</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-compiler-plugin</artifactId>
-              <version>${maven-compiler-plugin.version}</version>
-              <dependencies>
-                <dependency>
-                  <groupId>org.codehaus.plexus</groupId>
-                  <artifactId>plexus-compiler-javac-errorprone</artifactId>
-                  <version>${plexus-compiler-javac-errorprone.version}</version>
-                </dependency>
-              </dependencies>
-              <configuration>
-                <source>${maven.compiler.source}</source>
-                <target>${maven.compiler.target}</target>
-                <compilerId>javac-with-errorprone</compilerId>
-                <forceJavacCompilerUse>true</forceJavacCompilerUse>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
       </build>
     </profile>
 
