@@ -813,8 +813,7 @@ public final class BloomFilter {
     } else {
       wmem_.getLongArray(0, longs, 0, (int) (sizeBytes >>> 3));
       if (isEmpty()) {
-        final long longMask = EMPTY_FLAG_MASK << (FLAGS_BYTE << 3);
-        longs[0] |= longMask;
+        longs[0] |= (EMPTY_FLAG_MASK << (FLAGS_BYTE << 3));
       }
     }
     return longs;
