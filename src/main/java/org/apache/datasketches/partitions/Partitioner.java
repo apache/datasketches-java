@@ -162,12 +162,22 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
 
   /**
    * Holds data for a Stack element
+   * @param <T> the item class type
    */
   public static class StackElement<T> {
+    /** A reference to the relevant GenericPartitionBoundaries class */
     public final GenericPartitionBoundaries<T> gpb;
+    /** The partition index */
     public int part;
+    /** A brief string description of the partition and its hierarchy */
     public String levelPartId;
 
+    /**
+     * Constructs this StackElement
+     * @param gpb the given GenericPartitionBoundarie reference
+     * @param part  The partition index
+     * @param levelPartId A brief string description of the partition and its hierarchy
+     */
     public StackElement(final GenericPartitionBoundaries<T> gpb, final int part, final String levelPartId) {
       this.gpb = gpb;
       this.part = part;
@@ -177,15 +187,26 @@ public class Partitioner<T, S extends QuantilesGenericAPI<T> & PartitioningFeatu
 
   /**
    * Defines a row for List of PartitionBounds.
+   * @param <T> the item class type
    */
   public static class PartitionBoundsRow<T> {
+    /** The partition index */
     public int part;
+    /** A brief string description of the partition and its hierarchy */
     public String levelPartId;
+    /** The approximate number of items represented by this partition description row. */
     public long approxNumDeltaItems;
+    /** The BoundsRule for this partition description row. */
     public BoundsRule rule;
+    /** The lower bound value */
     public T lowerBound;
+    /** The upper bound value */
     public T upperBound;
 
+    /**
+     * The constructor for the StackElement class.
+     * @param se the given stack element.
+     */
     public PartitionBoundsRow(final StackElement<T> se) {
       final GenericPartitionBoundaries<T> gpb = se.gpb;
       final QuantileSearchCriteria searchCrit = gpb.getSearchCriteria();

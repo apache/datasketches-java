@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.partitions;
 
+/**
+ * This instructs the user about which of the upper and lower bounds of a partition definition row
+ * should be included with the returned data.
+ */
 public enum BoundsRule {
 
   /**
@@ -30,10 +34,12 @@ public enum BoundsRule {
    * Include only the upper bound but not the lower bound
    */
   INCLUDE_UPPER,
+
   /**
    * Include only the lower bound but not the upper bound
    */
   INCLUDE_LOWER,
+
   /**
    * Include none
    */

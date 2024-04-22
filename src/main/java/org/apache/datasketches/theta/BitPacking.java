@@ -21,10 +21,20 @@ package org.apache.datasketches.theta;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 
+/**
+ * Used as part of Theta compression.
+ */
 public class BitPacking {
 
-  public static void packBits(final long value, int bits, final byte[] buffer, int bufOffset, 
-      final int bitOffset) {
+  /**
+   * The bit packing operation
+   * @param value the value to pack
+   * @param bits number of bits to pack
+   * @param buffer the output byte array buffer
+   * @param bufOffset the byte offset in the buffer
+   * @param bitOffset the bit offset
+   */
+  public static void packBits(final long value, int bits, final byte[] buffer, int bufOffset, final int bitOffset) {
     if (bitOffset > 0) {
       final int chunkBits = 8 - bitOffset;
       final int mask = (1 << chunkBits) - 1;
@@ -44,7 +54,16 @@ public class BitPacking {
     }
   }
 
-  public static void unpackBits(final long[] value, final int index, int bits, final byte[] buffer, 
+  /**
+   * The unpacking operation
+   * @param value the output array
+   * @param index index of the value array
+   * @param bits the number of bits to unpack
+   * @param buffer the input packed buffer
+   * @param bufOffset the buffer offset
+   * @param bitOffset the bit offset
+   */
+  public static void unpackBits(final long[] value, final int index, int bits, final byte[] buffer,
       int bufOffset,final int bitOffset) {
     final int availBits = 8 - bitOffset;
     final int chunkBits = availBits <= bits ? availBits : bits;

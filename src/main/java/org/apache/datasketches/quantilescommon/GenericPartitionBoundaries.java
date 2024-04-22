@@ -27,6 +27,7 @@ import org.apache.datasketches.common.SketchesStateException;
 /**
  * This defines the returned results of the getParitionBoundaries() function and
  * includes the basic methods needed to construct actual partitions.
+ * @param <T> the item class type
  */
 public final class GenericPartitionBoundaries<T> {
   private long totalN; //totalN of source sketch
@@ -40,6 +41,16 @@ public final class GenericPartitionBoundaries<T> {
   private long[] numDeltaItems; //num of items in each partition
   private int numPartitions;    //num of partitions
 
+  /**
+   * Constructor.
+   * @param totalN the total number of items input to the sketch.
+   * @param boundaries The quantile boundaries between partitions
+   * @param natRanks The array of natural Ranks corresponding to the array of boundaries.
+   * @param normRanks The normalized Ranks corresponding to the array of boundaries.
+   * @param maxItem the maximum item of the stream.
+   * @param minItem the minimum item of the stream.
+   * @param searchCrit the user defined search criteria
+   */
   public GenericPartitionBoundaries(
       final long totalN,
       final T[] boundaries,

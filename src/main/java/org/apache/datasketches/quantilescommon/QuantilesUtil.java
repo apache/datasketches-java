@@ -209,8 +209,16 @@ public final class QuantilesUtil {
     return arr;
   }
 
+  /** used in search to improve rounding over a wide dynamic range */
   public static final double tailRoundingFactor = 1e7;
 
+  /**
+   * Computes the closest Natural Rank from a given Normalized Rank
+   * @param normalizedRank the given normalized rank
+   * @param totalN the total N
+   * @param searchCrit the search criterion.
+   * @return the closest Natural Rank from a given Normalized Rank
+   */
   public static double getNaturalRank(
       final double normalizedRank,
       final long totalN,
