@@ -249,6 +249,10 @@ public abstract class CompactSketch extends Sketch {
     return true;
   }
 
+  /**
+   * gets the sketch as a compressed byte array
+   * @return the sketch as a compressed byte array
+   */
   public byte[] toByteArrayCompressed() {
     if (!isOrdered() || getRetainedEntries() == 0 || (getRetainedEntries() == 1 && !isEstimationMode())) {
       return toByteArray();

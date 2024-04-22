@@ -23,6 +23,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 /**
  * Iterator over KllItemsSketch. The order is not defined.
+ * @param <T> the item class type
  */
 public final class KllItemsSketchIterator<T> extends KllSketchIterator implements QuantilesGenericSketchIterator<T> {
   private final Object[] quantiles;

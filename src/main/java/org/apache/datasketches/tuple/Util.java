@@ -153,6 +153,13 @@ public final class Util {
     return tmpSummaryArr;
   }
 
+  /**
+   * Creates a new Summary Array with the specified length
+   * @param summaryArr example array, only used to obtain the component type. It has no data.
+   * @param length the desired length of the returned array.
+   * @param <S> the summary class type
+   * @return a new Summary Array with the specified length
+   */
   @SuppressWarnings("unchecked")
   public static <S extends Summary> S[] newSummaryArray(final S[] summaryArr, final int length) {
     final Class<S> summaryType = (Class<S>) summaryArr.getClass().getComponentType();

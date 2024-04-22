@@ -24,6 +24,9 @@ import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
+/**
+ * This class can maintain the BitArray object off-heap.
+ */
 public class DirectBitArrayR extends BitArray {
   final static protected long NUM_BITS_OFFSET = Long.BYTES;
   final static protected long DATA_OFFSET = 2L * Long.BYTES;

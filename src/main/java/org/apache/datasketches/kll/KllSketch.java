@@ -218,6 +218,10 @@ public abstract class KllSketch implements QuantilesAPI {
     return (wmem != null);
   }
 
+  /**
+   * Returns true if this sketch is in a Compact Memory Format.
+   * @return true if this sketch is in a Compact Memory Format.
+   */
   public boolean isCompactMemoryFormat() {
     return hasMemory() && sketchStructure != UPDATABLE;
   }
@@ -488,9 +492,18 @@ public abstract class KllSketch implements QuantilesAPI {
    * Used to define the variable type of the current instance of this class.
    */
   public enum SketchType {
-    DOUBLES_SKETCH(Double.BYTES, "DoublesSketch"),
-    FLOATS_SKETCH(Float.BYTES, "FloatsSketch"),
-    ITEMS_SKETCH(0, "ItemsSketch");
+    /**
+     * KllDoublesSketch
+     */
+    DOUBLES_SKETCH(Double.BYTES, "KllDoublesSketch"),
+    /**
+     * KllFloatsSketch
+     */
+    FLOATS_SKETCH(Float.BYTES, "KllFloatsSketch"),
+    /**
+     * KllItemsSketch
+     */
+    ITEMS_SKETCH(0, "KllItemsSketch");
 
     private int typeBytes;
     private String name;
@@ -500,8 +513,16 @@ public abstract class KllSketch implements QuantilesAPI {
       this.name = name;
     }
 
+    /**
+     * Gets the item size in bytes. If the item is generic, this returns zero.
+     * @return the item size in bytes
+     */
     public int getBytes() { return typeBytes; }
 
+    /**
+     * Get the name of the associated sketch
+     * @return the name of the associated sketch
+     */
     public String getName() { return name; }
   }
 
@@ -509,9 +530,13 @@ public abstract class KllSketch implements QuantilesAPI {
    * Used primarily to define the structure of the serialized sketch. Also used by the Heap Sketch.
    */
   public enum SketchStructure {
+    /** Compact Empty Structure */
     COMPACT_EMPTY(PREAMBLE_INTS_EMPTY_SINGLE, SERIAL_VERSION_EMPTY_FULL),
+    /** Compact Single Item Structure */
     COMPACT_SINGLE(PREAMBLE_INTS_EMPTY_SINGLE, SERIAL_VERSION_SINGLE),
+    /** Compact Full Preamble Structure */
     COMPACT_FULL(PREAMBLE_INTS_FULL, SERIAL_VERSION_EMPTY_FULL),
+    /** Updatable Preamble Structure */
     UPDATABLE(PREAMBLE_INTS_FULL, SERIAL_VERSION_UPDATABLE); //also used by the heap sketch.
 
     private int preInts;
@@ -522,10 +547,24 @@ public abstract class KllSketch implements QuantilesAPI {
       this.serVer = serVer;
     }
 
+    /**
+     * gets the Preamble Integers for this Structure.
+     * @return the Preamble Integers for this Structure
+     */
     public int getPreInts() { return preInts; }
 
+    /**
+     * gets the Serialization Version for this Structure.
+     * @return the Serialization Version for this Structure.
+     */
     public int getSerVer() { return serVer; }
 
+    /**
+     * gets the SketchStructure given preInts and serVer.
+     * @param preInts the given preamble size in integers
+     * @param serVer the given Serialization Version
+     * @return the SketchStructure given preInts and serVer.
+     */
     public static SketchStructure getSketchStructure(final int preInts, final int serVer) {
       final SketchStructure[] ssArr = SketchStructure.values();
       for (int i = 0; i < ssArr.length; i++) {

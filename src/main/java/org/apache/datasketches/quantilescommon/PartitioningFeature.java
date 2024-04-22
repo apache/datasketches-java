@@ -23,6 +23,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 
 /**
  * This enables the special functions for performing efficient partitioning of massive data.
+ * @param <T> the item class type
  */
 public interface PartitioningFeature<T> {
 
