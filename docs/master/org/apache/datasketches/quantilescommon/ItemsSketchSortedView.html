@@ -172,7 +172,7 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
                      long[]&nbsp;cumWeights,
                      <a href="QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;sk)</code></th>
 <td class="colLast">
-<div class="block">Construct Sorted View.</div>
+<div class="block">Constructor.</div>
 </td>
 </tr>
 </table>
@@ -284,7 +284,9 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <td class="colFirst"><code><a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Gets an array of quantiles corresponding to the given array of ranks.</div>
+</td>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>double</code></td>
@@ -364,11 +366,12 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <pre>public&nbsp;ItemsSketchSortedView&#8203;(<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]&nbsp;quantiles,
                              long[]&nbsp;cumWeights,
                              <a href="QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>&gt;&nbsp;sk)</pre>
-<div class="block">Construct Sorted View.</div>
+<div class="block">Constructor.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>quantiles</code> - sorted array of quantiles</dd>
-<dd><code>cumWeights</code> - sorted, monotonically increasing cumulative weights.</dd>
+<dd><code>quantiles</code> - the given array of quantiles, which must be ordered.</dd>
+<dd><code>cumWeights</code> - the given array of cumulative weights, which must be ordered, start with the value one, and
+ the last value must be equal to N, the total number of items updated to the sketch.</dd>
 <dd><code>sk</code> - the underlying quantile sketch.</dd>
 </dl>
 </li>
@@ -612,6 +615,14 @@ implements <a href="GenericSortedView.html" title="interface in org.apache.datas
 <h4>getQuantiles</h4>
 <pre class="methodSignature">public&nbsp;<a href="ItemsSketchSortedView.html" title="type parameter in ItemsSketchSortedView">T</a>[]&nbsp;getQuantiles&#8203;(double[]&nbsp;ranks,
                         <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Gets an array of quantiles corresponding to the given array of ranks.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>ranks</code> - the given array of normalized ranks</dd>
+<dd><code>searchCrit</code> - The search criterion: either INCLUSIVE or EXCLUSIVE.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>an array of quantiles corresponding to the given array of ranks.</dd>
+</dl>
 </li>
 </ul>
 <a id="getQuantiles()">

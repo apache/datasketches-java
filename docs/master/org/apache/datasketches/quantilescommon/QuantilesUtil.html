@@ -162,7 +162,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <tr class="altColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#tailRoundingFactor">tailRoundingFactor</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">used in search to improve rounding over a wide dynamic range</div>
+</td>
 </tr>
 </table>
 </li>
@@ -254,7 +256,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNaturalRank(double,long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a></span>&#8203;(double&nbsp;normalizedRank,
               long&nbsp;totalN,
               <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Computes the closest Natural Rank from a given Normalized Rank</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -287,6 +291,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>tailRoundingFactor</h4>
 <pre>public static final&nbsp;double tailRoundingFactor</pre>
+<div class="block">used in search to improve rounding over a wide dynamic range</div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../constant-values.html#org.apache.datasketches.quantilescommon.QuantilesUtil.tailRoundingFactor">Constant Field Values</a></dd>
@@ -471,6 +476,15 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre class="methodSignature">public static&nbsp;double&nbsp;getNaturalRank&#8203;(double&nbsp;normalizedRank,
                                     long&nbsp;totalN,
                                     <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Computes the closest Natural Rank from a given Normalized Rank</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>normalizedRank</code> - the given normalized rank</dd>
+<dd><code>totalN</code> - the total N</dd>
+<dd><code>searchCrit</code> - the search criterion.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the closest Natural Rank from a given Normalized Rank</dd>
+</dl>
 </li>
 </ul>
 </li>

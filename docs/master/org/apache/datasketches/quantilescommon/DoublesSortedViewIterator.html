@@ -179,7 +179,9 @@ extends <a href="SortedViewIterator.html" title="class in org.apache.datasketche
 <tr class="altColor">
 <th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(double%5B%5D,long%5B%5D)">DoublesSortedViewIterator</a></span>&#8203;(double[]&nbsp;quantiles,
                          long[]&nbsp;cumWeights)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Constructor.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -245,6 +247,13 @@ extends <a href="SortedViewIterator.html" title="class in org.apache.datasketche
 <h4>DoublesSortedViewIterator</h4>
 <pre>public&nbsp;DoublesSortedViewIterator&#8203;(double[]&nbsp;quantiles,
                                  long[]&nbsp;cumWeights)</pre>
+<div class="block">Constructor.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>quantiles</code> - the given array of quantiles, which must be ordered.</dd>
+<dd><code>cumWeights</code> - the given array of cumulative weights, which must be ordered, start with the value one, and
+ the last value must be equal to N, the total number of items updated to the sketch.</dd>
+</dl>
 </li>
 </ul>
 </li>

@@ -155,8 +155,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  false positive probability.</p>
 
  <p>This implementation uses xxHash64 and follows the approach in Kirsch and Mitzenmacher,
- "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008,
- pp. 187-218.</p></div>
+ "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008, pp. 187-218.</p></div>
 </li>
 </ul>
 </div>
@@ -180,7 +179,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <tr class="altColor">
 <td class="colFirst"><code>static long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#MAX_SIZE_BITS">MAX_SIZE_BITS</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The maximum size of a bloom filter in bits.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -548,12 +549,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <tr id="i47" class="rowColor">
 <td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.Memory)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Wraps the given Memory into this filter class.</div>
+</td>
 </tr>
 <tr id="i48" class="altColor">
 <td class="colFirst"><code>static <a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#writableWrap(org.apache.datasketches.memory.WritableMemory)">writableWrap</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;wmem)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Wraps the given WritableMemory into this filter class.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -586,6 +591,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>MAX_SIZE_BITS</h4>
 <pre>public static final&nbsp;long MAX_SIZE_BITS</pre>
+<div class="block">The maximum size of a bloom filter in bits.</div>
 </li>
 </ul>
 </li>
@@ -621,6 +627,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>wrap</h4>
 <pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;wrap&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</pre>
+<div class="block">Wraps the given Memory into this filter class.  The class itself only contains a few metadata items and holds
+ a reference to the Memory object, which contains all the data.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>mem</code> - the given Memory object</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the wrapping BloomFilter class.</dd>
+</dl>
 </li>
 </ul>
 <a id="writableWrap(org.apache.datasketches.memory.WritableMemory)">
@@ -630,6 +644,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>writableWrap</h4>
 <pre class="methodSignature">public static&nbsp;<a href="BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a>&nbsp;writableWrap&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;wmem)</pre>
+<div class="block">Wraps the given WritableMemory into this filter class.  The class itself only contains a few metadata items and holds
+ a reference to the Memory object, which contains all the data.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>wmem</code> - the given WritableMemory object</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the wrapping BloomFilter class.</dd>
+</dl>
 </li>
 </ul>
 <a id="reset()">

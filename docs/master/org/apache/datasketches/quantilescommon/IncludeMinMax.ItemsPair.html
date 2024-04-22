@@ -126,12 +126,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the item class type</dd>
+</dl>
+<dl>
 <dt>Enclosing class:</dt>
 <dd><a href="IncludeMinMax.html" title="class in org.apache.datasketches.quantilescommon">IncludeMinMax</a></dd>
 </dl>
 <hr>
 <pre>public static class <span class="typeNameLabel">IncludeMinMax.ItemsPair&lt;T&gt;</span>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
+<div class="block">A simple structure to hold a pair of arrays</div>
 </li>
 </ul>
 </div>
@@ -155,12 +160,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <tr class="altColor">
 <td class="colFirst"><code>long[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#cumWeights">cumWeights</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The array of associated cumulative weights</div>
+</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code><a href="IncludeMinMax.ItemsPair.html" title="type parameter in IncludeMinMax.ItemsPair">T</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#quantiles">quantiles</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The array of quantiles</div>
+</td>
 </tr>
 </table>
 </li>
@@ -182,7 +191,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <tr class="altColor">
 <th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(T%5B%5D,long%5B%5D)">ItemsPair</a></span>&#8203;(<a href="IncludeMinMax.ItemsPair.html" title="type parameter in IncludeMinMax.ItemsPair">T</a>[]&nbsp;quantiles,
          long[]&nbsp;cumWeights)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Constructor.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -225,6 +236,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>quantiles</h4>
 <pre>public&nbsp;<a href="IncludeMinMax.ItemsPair.html" title="type parameter in IncludeMinMax.ItemsPair">T</a>[] quantiles</pre>
+<div class="block">The array of quantiles</div>
 </li>
 </ul>
 <a id="cumWeights">
@@ -234,6 +246,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>cumWeights</h4>
 <pre>public&nbsp;long[] cumWeights</pre>
+<div class="block">The array of associated cumulative weights</div>
 </li>
 </ul>
 </li>
@@ -256,6 +269,12 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <h4>ItemsPair</h4>
 <pre>public&nbsp;ItemsPair&#8203;(<a href="IncludeMinMax.ItemsPair.html" title="type parameter in IncludeMinMax.ItemsPair">T</a>[]&nbsp;quantiles,
                  long[]&nbsp;cumWeights)</pre>
+<div class="block">Constructor.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>quantiles</code> - the array of quantiles</dd>
+<dd><code>cumWeights</code> - the array of associated cumulative weights</dd>
+</dl>
 </li>
 </ul>
 </li>

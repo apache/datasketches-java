@@ -131,6 +131,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the item class type</dd>
+</dl>
 <hr>
 <pre>public final class <span class="typeNameLabel">GenericPartitionBoundaries&lt;T&gt;</span>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
@@ -163,7 +167,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                           <a href="GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>&nbsp;maxItem,
                           <a href="GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>&nbsp;minItem,
                           <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Constructor.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -287,6 +293,17 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                   <a href="GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>&nbsp;maxItem,
                                   <a href="GenericPartitionBoundaries.html" title="type parameter in GenericPartitionBoundaries">T</a>&nbsp;minItem,
                                   <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Constructor.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>totalN</code> - the total number of items input to the sketch.</dd>
+<dd><code>boundaries</code> - The quantile boundaries between partitions</dd>
+<dd><code>natRanks</code> - The array of natural Ranks corresponding to the array of boundaries.</dd>
+<dd><code>normRanks</code> - The normalized Ranks corresponding to the array of boundaries.</dd>
+<dd><code>maxItem</code> - the maximum item of the stream.</dd>
+<dd><code>minItem</code> - the minimum item of the stream.</dd>
+<dd><code>searchCrit</code> - the user defined search criteria</dd>
+</dl>
 </li>
 </ul>
 </li>

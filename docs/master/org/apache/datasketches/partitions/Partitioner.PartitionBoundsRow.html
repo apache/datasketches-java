@@ -126,6 +126,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the item class type</dd>
+</dl>
+<dl>
 <dt>Enclosing class:</dt>
 <dd><a href="Partitioner.html" title="class in org.apache.datasketches.partitions">Partitioner</a>&lt;<a href="Partitioner.html" title="type parameter in Partitioner">T</a>,&#8203;<a href="Partitioner.html" title="type parameter in Partitioner">S</a> extends <a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="Partitioner.html" title="type parameter in Partitioner">T</a>&gt; &amp; <a href="../quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="Partitioner.html" title="type parameter in Partitioner">T</a>&gt;&gt;</dd>
 </dl>
@@ -156,32 +160,44 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <tr class="altColor">
 <td class="colFirst"><code>long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#approxNumDeltaItems">approxNumDeltaItems</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The approximate number of items represented by this partition description row.</div>
+</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#levelPartId">levelPartId</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">A brief string description of the partition and its hierarchy</div>
+</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code><a href="Partitioner.PartitionBoundsRow.html" title="type parameter in Partitioner.PartitionBoundsRow">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#lowerBound">lowerBound</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The lower bound value</div>
+</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#part">part</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The partition index</div>
+</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code><a href="BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#rule">rule</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The BoundsRule for this partition description row.</div>
+</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code><a href="Partitioner.PartitionBoundsRow.html" title="type parameter in Partitioner.PartitionBoundsRow">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#upperBound">upperBound</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The upper bound value</div>
+</td>
 </tr>
 </table>
 </li>
@@ -202,7 +218,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr class="altColor">
 <th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.apache.datasketches.partitions.Partitioner.StackElement)">PartitionBoundsRow</a></span>&#8203;(<a href="Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions">Partitioner.StackElement</a>&lt;<a href="Partitioner.PartitionBoundsRow.html" title="type parameter in Partitioner.PartitionBoundsRow">T</a>&gt;&nbsp;se)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The constructor for the StackElement class.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -245,6 +263,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>part</h4>
 <pre>public&nbsp;int part</pre>
+<div class="block">The partition index</div>
 </li>
 </ul>
 <a id="levelPartId">
@@ -254,6 +273,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>levelPartId</h4>
 <pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a> levelPartId</pre>
+<div class="block">A brief string description of the partition and its hierarchy</div>
 </li>
 </ul>
 <a id="approxNumDeltaItems">
@@ -263,6 +283,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>approxNumDeltaItems</h4>
 <pre>public&nbsp;long approxNumDeltaItems</pre>
+<div class="block">The approximate number of items represented by this partition description row.</div>
 </li>
 </ul>
 <a id="rule">
@@ -272,6 +293,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>rule</h4>
 <pre>public&nbsp;<a href="BoundsRule.html" title="enum in org.apache.datasketches.partitions">BoundsRule</a> rule</pre>
+<div class="block">The BoundsRule for this partition description row.</div>
 </li>
 </ul>
 <a id="lowerBound">
@@ -281,6 +303,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>lowerBound</h4>
 <pre>public&nbsp;<a href="Partitioner.PartitionBoundsRow.html" title="type parameter in Partitioner.PartitionBoundsRow">T</a> lowerBound</pre>
+<div class="block">The lower bound value</div>
 </li>
 </ul>
 <a id="upperBound">
@@ -290,6 +313,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>upperBound</h4>
 <pre>public&nbsp;<a href="Partitioner.PartitionBoundsRow.html" title="type parameter in Partitioner.PartitionBoundsRow">T</a> upperBound</pre>
+<div class="block">The upper bound value</div>
 </li>
 </ul>
 </li>
@@ -309,6 +333,11 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>PartitionBoundsRow</h4>
 <pre>public&nbsp;PartitionBoundsRow&#8203;(<a href="Partitioner.StackElement.html" title="class in org.apache.datasketches.partitions">Partitioner.StackElement</a>&lt;<a href="Partitioner.PartitionBoundsRow.html" title="type parameter in Partitioner.PartitionBoundsRow">T</a>&gt;&nbsp;se)</pre>
+<div class="block">The constructor for the StackElement class.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>se</code> - the given stack element.</dd>
+</dl>
 </li>
 </ul>
 </li>

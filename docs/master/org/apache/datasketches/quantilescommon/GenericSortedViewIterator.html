@@ -138,7 +138,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <li class="blockList">
 <dl>
 <dt><span class="paramLabel">Type Parameters:</span></dt>
-<dd><code>T</code> - The generic quantile type</dd>
+<dd><code>T</code> - The generic item class type</dd>
 </dl>
 <hr>
 <pre>public class <span class="typeNameLabel">GenericSortedViewIterator&lt;T&gt;</span>
@@ -183,7 +183,9 @@ extends <a href="SortedViewIterator.html" title="class in org.apache.datasketche
 <tr class="altColor">
 <th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(T%5B%5D,long%5B%5D)">GenericSortedViewIterator</a></span>&#8203;(<a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>[]&nbsp;quantiles,
                          long[]&nbsp;cumWeights)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Constructor</div>
+</td>
 </tr>
 </table>
 </li>
@@ -260,6 +262,13 @@ extends <a href="SortedViewIterator.html" title="class in org.apache.datasketche
 <h4>GenericSortedViewIterator</h4>
 <pre>public&nbsp;GenericSortedViewIterator&#8203;(<a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>[]&nbsp;quantiles,
                                  long[]&nbsp;cumWeights)</pre>
+<div class="block">Constructor</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>quantiles</code> - the given array of quantiles</dd>
+<dd><code>cumWeights</code> - the array of cumulative weights, corresponding to the array of quantiles,
+ starting with the value one and the end value must equal N, the total number of items input to the sketch.</dd>
+</dl>
 </li>
 </ul>
 </li>

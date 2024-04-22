@@ -126,6 +126,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the item class type</dd>
+</dl>
+<dl>
 <dt>Enclosing class:</dt>
 <dd><a href="Partitioner.html" title="class in org.apache.datasketches.partitions">Partitioner</a>&lt;<a href="Partitioner.html" title="type parameter in Partitioner">T</a>,&#8203;<a href="Partitioner.html" title="type parameter in Partitioner">S</a> extends <a href="../quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a>&lt;<a href="Partitioner.html" title="type parameter in Partitioner">T</a>&gt; &amp; <a href="../quantilescommon/PartitioningFeature.html" title="interface in org.apache.datasketches.quantilescommon">PartitioningFeature</a>&lt;<a href="Partitioner.html" title="type parameter in Partitioner">T</a>&gt;&gt;</dd>
 </dl>
@@ -156,17 +160,23 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <tr class="altColor">
 <td class="colFirst"><code><a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="Partitioner.StackElement.html" title="type parameter in Partitioner.StackElement">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#gpb">gpb</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">A reference to the relevant GenericPartitionBoundaries class</div>
+</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#levelPartId">levelPartId</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">A brief string description of the partition and its hierarchy</div>
+</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#part">part</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">The partition index</div>
+</td>
 </tr>
 </table>
 </li>
@@ -189,7 +199,9 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(org.apache.datasketches.quantilescommon.GenericPartitionBoundaries,int,java.lang.String)">StackElement</a></span>&#8203;(<a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="Partitioner.StackElement.html" title="type parameter in Partitioner.StackElement">T</a>&gt;&nbsp;gpb,
             int&nbsp;part,
             <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;levelPartId)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Constructs this StackElement</div>
+</td>
 </tr>
 </table>
 </li>
@@ -232,6 +244,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>gpb</h4>
 <pre>public final&nbsp;<a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="Partitioner.StackElement.html" title="type parameter in Partitioner.StackElement">T</a>&gt; gpb</pre>
+<div class="block">A reference to the relevant GenericPartitionBoundaries class</div>
 </li>
 </ul>
 <a id="part">
@@ -241,6 +254,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>part</h4>
 <pre>public&nbsp;int part</pre>
+<div class="block">The partition index</div>
 </li>
 </ul>
 <a id="levelPartId">
@@ -250,6 +264,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <li class="blockList">
 <h4>levelPartId</h4>
 <pre>public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a> levelPartId</pre>
+<div class="block">A brief string description of the partition and its hierarchy</div>
 </li>
 </ul>
 </li>
@@ -271,6 +286,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre>public&nbsp;StackElement&#8203;(<a href="../quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a>&lt;<a href="Partitioner.StackElement.html" title="type parameter in Partitioner.StackElement">T</a>&gt;&nbsp;gpb,
                     int&nbsp;part,
                     <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;levelPartId)</pre>
+<div class="block">Constructs this StackElement</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>gpb</code> - the given GenericPartitionBoundarie reference</dd>
+<dd><code>part</code> - The partition index</dd>
+<dd><code>levelPartId</code> - A brief string description of the partition and its hierarchy</dd>
+</dl>
 </li>
 </ul>
 </li>

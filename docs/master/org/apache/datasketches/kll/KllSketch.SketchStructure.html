@@ -169,19 +169,27 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?i
 </tr>
 <tr class="altColor">
 <th class="colFirst" scope="row"><code><span class="memberNameLink"><a href="#COMPACT_EMPTY">COMPACT_EMPTY</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Compact Empty Structure</div>
+</td>
 </tr>
 <tr class="rowColor">
 <th class="colFirst" scope="row"><code><span class="memberNameLink"><a href="#COMPACT_FULL">COMPACT_FULL</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Compact Full Preamble Structure</div>
+</td>
 </tr>
 <tr class="altColor">
 <th class="colFirst" scope="row"><code><span class="memberNameLink"><a href="#COMPACT_SINGLE">COMPACT_SINGLE</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Compact Single Item Structure</div>
+</td>
 </tr>
 <tr class="rowColor">
 <th class="colFirst" scope="row"><code><span class="memberNameLink"><a href="#UPDATABLE">UPDATABLE</a></span></code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">Updatable Preamble Structure</div>
+</td>
 </tr>
 </table>
 </li>
@@ -204,18 +212,24 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Enum.html?i
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPreInts()">getPreInts</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">gets the Preamble Integers for this Structure.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerVer()">getSerVer</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">gets the Serialization Version for this Structure.</div>
+</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSketchStructure(int,int)">getSketchStructure</a></span>&#8203;(int&nbsp;preInts,
                   int&nbsp;serVer)</code></th>
-<td class="colLast">&nbsp;</td>
+<td class="colLast">
+<div class="block">gets the SketchStructure given preInts and serVer.</div>
+</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a></code></td>
@@ -270,6 +284,7 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>COMPACT_EMPTY</h4>
 <pre>public static final&nbsp;<a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a> COMPACT_EMPTY</pre>
+<div class="block">Compact Empty Structure</div>
 </li>
 </ul>
 <a id="COMPACT_SINGLE">
@@ -279,6 +294,7 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>COMPACT_SINGLE</h4>
 <pre>public static final&nbsp;<a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a> COMPACT_SINGLE</pre>
+<div class="block">Compact Single Item Structure</div>
 </li>
 </ul>
 <a id="COMPACT_FULL">
@@ -288,6 +304,7 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>COMPACT_FULL</h4>
 <pre>public static final&nbsp;<a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a> COMPACT_FULL</pre>
+<div class="block">Compact Full Preamble Structure</div>
 </li>
 </ul>
 <a id="UPDATABLE">
@@ -297,6 +314,7 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>UPDATABLE</h4>
 <pre>public static final&nbsp;<a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a> UPDATABLE</pre>
+<div class="block">Updatable Preamble Structure</div>
 </li>
 </ul>
 </li>
@@ -358,6 +376,11 @@ not permitted.)</div>
 <li class="blockList">
 <h4>getPreInts</h4>
 <pre class="methodSignature">public&nbsp;int&nbsp;getPreInts()</pre>
+<div class="block">gets the Preamble Integers for this Structure.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the Preamble Integers for this Structure</dd>
+</dl>
 </li>
 </ul>
 <a id="getSerVer()">
@@ -367,6 +390,11 @@ not permitted.)</div>
 <li class="blockList">
 <h4>getSerVer</h4>
 <pre class="methodSignature">public&nbsp;int&nbsp;getSerVer()</pre>
+<div class="block">gets the Serialization Version for this Structure.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the Serialization Version for this Structure.</dd>
+</dl>
 </li>
 </ul>
 <a id="getSketchStructure(int,int)">
@@ -377,6 +405,14 @@ not permitted.)</div>
 <h4>getSketchStructure</h4>
 <pre class="methodSignature">public static&nbsp;<a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a>&nbsp;getSketchStructure&#8203;(int&nbsp;preInts,
                                                            int&nbsp;serVer)</pre>
+<div class="block">gets the SketchStructure given preInts and serVer.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>preInts</code> - the given preamble size in integers</dd>
+<dd><code>serVer</code> - the given Serialization Version</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the SketchStructure given preInts and serVer.</dd>
+</dl>
 </li>
 </ul>
 </li>
