@@ -23,11 +23,17 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 
 /**
  * Iterator over quantile sketches of generic type.
- * @param <T> The generic quantile type
+ * @param <T> The generic item class type
  */
 public class GenericSortedViewIterator<T> extends SortedViewIterator {
   private final T[] quantiles;
 
+  /**
+   * Constructor
+   * @param quantiles the given array of quantiles
+   * @param cumWeights the array of cumulative weights, corresponding to the array of quantiles,
+   * starting with the value one and the end value must equal N, the total number of items input to the sketch.
+   */
   public GenericSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
     super(cumWeights);
     this.quantiles = quantiles; //SpotBugs EI_EXPOSE_REP2 suppressed by FindBugsExcludeFilter

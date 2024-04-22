@@ -290,6 +290,10 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     itemsSV = null;
   }
 
+  /**
+   * Export the current sketch as a compact byte array.
+   * @return the current sketch as a compact byte array.
+   */
   public byte[] toByteArray() {
     return KllHelper.toByteArray(this, false);
   }

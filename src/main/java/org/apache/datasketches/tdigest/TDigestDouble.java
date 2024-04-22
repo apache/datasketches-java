@@ -43,6 +43,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  */
 public final class TDigestDouble {
 
+  /** the default value of K if one is not specified */
   public static final short DEFAULT_K = 200;
 
   private boolean reverseMerge_;

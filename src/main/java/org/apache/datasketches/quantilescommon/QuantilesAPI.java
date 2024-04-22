@@ -202,6 +202,7 @@ package org.apache.datasketches.quantilescommon;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
+@SuppressWarnings("javadoc")
 public interface QuantilesAPI {
 
   static String EMPTY_MSG = "The sketch must not be empty for this operation. ";

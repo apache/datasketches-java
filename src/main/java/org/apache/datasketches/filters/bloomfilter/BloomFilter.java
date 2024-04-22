@@ -54,10 +54,12 @@ import org.apache.datasketches.memory.XxHash;
  * false positive probability.</p>
  *
  * <p>This implementation uses xxHash64 and follows the approach in Kirsch and Mitzenmacher,
- * "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008,
- * pp. 187-218.</p>
+ * "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008, pp. 187-218.</p>
  */
 public final class BloomFilter {
+  /**
+   * The maximum size of a bloom filter in bits.
+   */
   public static final long MAX_SIZE_BITS = (Integer.MAX_VALUE - Family.BLOOMFILTER.getMaxPreLongs()) * (long) Long.SIZE;
   private static final int SER_VER = 1;
   private static final int EMPTY_FLAG_MASK = 4;
@@ -133,11 +135,23 @@ public final class BloomFilter {
     return internalHeapifyOrWrap((WritableMemory) mem, false, false);
   }
 
+  /**
+   * Wraps the given Memory into this filter class.  The class itself only contains a few metadata items and holds
+   * a reference to the Memory object, which contains all the data.
+   * @param mem the given Memory object
+   * @return the wrapping BloomFilter class.
+   */
   public static BloomFilter wrap(final Memory mem) {
     // casting to writable, but tracking that the object is read-only
     return internalHeapifyOrWrap((WritableMemory) mem, true, false);
   }
 
+  /**
+   * Wraps the given WritableMemory into this filter class.  The class itself only contains a few metadata items and holds
+   * a reference to the Memory object, which contains all the data.
+   * @param wmem the given WritableMemory object
+   * @return the wrapping BloomFilter class.
+   */
   public static BloomFilter writableWrap(final WritableMemory wmem) {
     return internalHeapifyOrWrap(wmem, true, true);
   }

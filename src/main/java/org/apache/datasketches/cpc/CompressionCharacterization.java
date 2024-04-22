@@ -68,6 +68,18 @@ public class CompressionCharacterization {
   private CompressedState[] compressedStates2;
   private CpcSketch[] unCompressedSketches;
 
+  /**
+   * Only used in test.
+   * @param lgMinK min lgK
+   * @param lgMaxK max lgK
+   * @param lgMinT min lgTrials
+   * @param lgMaxT max lgTrials
+   * @param lgMulK lg multiple
+   * @param uPPO unique axis Points Per Octave
+   * @param incLgK increment lgK
+   * @param pS PrintStream
+   * @param pW PrintWriter
+   */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "This is OK here")
   public CompressionCharacterization(
       final int lgMinK,
@@ -91,6 +103,9 @@ public class CompressionCharacterization {
     assembleFormats();
   }
 
+  /**
+   * Only used in test
+   */
   public void start() {
     printf(hfmt, (Object[]) hStrArr); //print header
     doRangeOfLgK();

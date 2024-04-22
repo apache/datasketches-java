@@ -28,9 +28,11 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * Simplifies and speeds up set operations by resolving specific corner cases.
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class SetOperationCornerCases {
   private static final long MAX = Long.MAX_VALUE;
 
+  /** Intersection actions */
   public enum IntersectAction {
     DEGEN_MIN_0_F("D", "Degenerate{MinTheta, 0, F}"),
     EMPTY_1_0_T("E", "Empty{1.0, 0, T}"),
@@ -53,6 +55,7 @@ public class SetOperationCornerCases {
     }
   }
 
+  /** A not B actions */
   public enum AnotbAction {
     SKETCH_A("A", "Sketch A Exactly"),
     TRIM_A("TA", "Trim Sketch A by MinTheta"),

@@ -25,7 +25,8 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 /**
  * This is a callback request to the data source to fill a quantiles sketch,
  * which is returned to the caller.
- *
+ * @param <T> the item class type
+ * @param <S> the sketch type
  * @author Lee Rhodes
  */
 public interface SketchFillRequest<T, S extends QuantilesGenericAPI<T> & PartitioningFeature<T>> {

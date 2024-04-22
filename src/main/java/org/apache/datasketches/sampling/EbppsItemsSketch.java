@@ -46,7 +46,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * <p>The sample may be smaller than k and the resulting size of the sample potentially includes
  * a probabilistic component, meaning the resulting sample size is not always constant.
- *
+ * @param <T> the item class type
  * @author Jon Malkin
  */
 public final class EbppsItemsSketch<T> {

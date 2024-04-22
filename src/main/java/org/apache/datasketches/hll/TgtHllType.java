@@ -50,10 +50,27 @@ package org.apache.datasketches.hll;
  * </ul>
  * @author Lee Rhodes
  */
-public enum TgtHllType { HLL_4, HLL_6, HLL_8;
+public enum TgtHllType {
+  /**
+   * An HLL sketch with a bin size of 4 bits
+   */
+  HLL_4,
+  /**
+   * An HLL sketch with a bin size of 6 bits
+   */
+  HLL_6,
+  /**
+   * An Hll Sketch with a bin size of 8 bits
+   */
+  HLL_8;
 
   private static final TgtHllType values[] = values();
 
+  /**
+   * Convert the typeId to the enum type
+   * @param typeId the given typeId
+   * @return the enum type
+   */
   public static final TgtHllType fromOrdinal(final int typeId) {
     return values[typeId];
   }

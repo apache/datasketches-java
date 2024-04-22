@@ -49,9 +49,10 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final int numRetItems;
 
   /**
-   * Construct Sorted View.
-   * @param quantiles sorted array of quantiles
-   * @param cumWeights sorted, monotonically increasing cumulative weights.
+   * Constructor.
+   * @param quantiles the given array of quantiles, which must be ordered.
+   * @param cumWeights the given array of cumulative weights, which must be ordered, start with the value one, and
+   * the last value must be equal to N, the total number of items updated to the sketch.
    * @param sk the underlying quantile sketch.
    */
   public ItemsSketchSortedView(
@@ -198,6 +199,12 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     return index;
   }
 
+  /**
+   * Gets an array of quantiles corresponding to the given array of ranks.
+   * @param ranks the given array of normalized ranks
+   * @param searchCrit The search criterion: either INCLUSIVE or EXCLUSIVE.
+   * @return an array of quantiles corresponding to the given array of ranks.
+   */
   @SuppressWarnings("unchecked")
   public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
