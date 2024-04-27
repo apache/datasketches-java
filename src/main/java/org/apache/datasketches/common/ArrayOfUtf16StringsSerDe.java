@@ -124,4 +124,10 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public Class<String> getClassOfT() { return String.class; }
+
+  @Override
+  public boolean isFixedWidth()
+  {
+    return false;
+  }
 }

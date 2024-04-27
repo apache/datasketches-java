@@ -114,4 +114,9 @@ public abstract class ArrayOfItemsSerDe<T> {
    * @return the concrete class of type T
    */
   public abstract Class<T> getClassOfT();
+
+  /**
+   * @return if this class serializes all types to a fixed width.
+   */
+  public abstract boolean isFixedWidth();
 }

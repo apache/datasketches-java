@@ -240,4 +240,10 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public Class<Number> getClassOfT() { return Number.class; }
+
+  @Override
+  public boolean isFixedWidth()
+  {
+    return false;
+  }
 }

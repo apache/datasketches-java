@@ -53,6 +53,10 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   private T minItem;
   private T maxItem;
   private Object[] itemsArr;
+  /**
+   * Roughly tracks the total stored size of items in-memory within the sketch.
+   */
+  private int totalItemsSize = 0;
 
   /**
    * New instance heap constructor.
@@ -131,6 +135,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
       this.minItem = item;
       this.maxItem = item;
       itemsArr[k - 1] = item;
+      totalItemsSize = serDe.sizeOf(item);
     } else if (memStruct == COMPACT_FULL) {
       int offset = DATA_START_ADR + memVal.numLevels * Integer.BYTES;
       this.minItem = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
@@ -140,6 +145,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
       final int numRetained = levelsArr[memVal.numLevels] - levelsArr[0];
       final Object[] retItems = serDe.deserializeFromMemory(srcMem, offset, numRetained);
       System.arraycopy(retItems, 0, itemsArr, levelsArr[0], numRetained);
+      totalItemsSize = serDe.sizeOf((T[]) retItems);
     } else { //memStruct == UPDATABLE
       throw new SketchesArgumentException(UNSUPPORTED_MSG + "UPDATABLE");
     }
@@ -261,6 +267,12 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  int getTotalItemsNumBytesInternal()
+  {
+    return totalItemsSize;
+  }
+
+  @Override
   WritableMemory getWritableMemory() {
     return null;
   }
@@ -290,12 +302,26 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   void setItemsArray(final Object[] itemsArr) {
+    int sumItemSize = 0;
+    for (Object o : itemsArr) {
+      if (o == null) {
+        continue;
+      }
+      sumItemSize += serDe.sizeOf((T) o);
+    }
+    this.totalItemsSize = sumItemSize;
     this.itemsArr = itemsArr;
   }
 
   @Override
   void setItemsArrayAt(final int index, final Object item) {
+    if (itemsArr[index] != null) {
+      this.totalItemsSize -= serDe.sizeOf((T) itemsArr[index]);
+    }
     this.itemsArr[index] = item;
+    if (item != null) {
+      this.totalItemsSize += serDe.sizeOf((T) itemsArr[index]);
+    }
   }
 
   @Override

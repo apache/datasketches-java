@@ -353,8 +353,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   abstract int getRetainedItemsSizeBytes();
 
-  //abstract Object[] getRetainedItemsArray();
-
   @Override
   ArrayOfItemsSerDe<T> getSerDe() { return serDe; }
 
@@ -378,9 +376,16 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  int getTotalItemsNumBytes() {
-    throw new SketchesArgumentException(UNSUPPORTED_MSG);
+  public int getTotalItemsNumBytes() {
+    // if empty, exception is thrown.
+    if (serDe.isFixedWidth() && !isEmpty()) {
+      return levelsArr[getNumLevels()] * serDe.sizeOf(getMinItem());
+    } else {
+      return getTotalItemsNumBytesInternal();
+    }
   }
+
+  abstract int getTotalItemsNumBytesInternal();
 
   @Override
   void incNumLevels() {

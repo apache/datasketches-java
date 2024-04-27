@@ -426,10 +426,11 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Gets the size in bytes of the entire internal items hypothetical structure.
    * It does not include the preamble, the levels array, or minimum or maximum items.
-   * It may include empty or free space.
+   * It may include empty or free space. This can value is useful to estimate
+   * the in-memory usage of the sketch.
    * @return the size of the retained data in bytes.
    */
-  abstract int getTotalItemsNumBytes();
+  public abstract int getTotalItemsNumBytes();
 
   /**
    * This returns the WritableMemory for Direct type sketches,

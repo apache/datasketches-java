@@ -101,4 +101,10 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
   @Override
   public Class<Double> getClassOfT() { return Double.class; }
+
+  @Override
+  public boolean isFixedWidth()
+  {
+    return true;
+  }
 }

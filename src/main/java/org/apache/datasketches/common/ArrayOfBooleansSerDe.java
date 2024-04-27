@@ -122,4 +122,10 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
 
   @Override
   public Class<Boolean> getClassOfT() { return Boolean.class; }
+
+  @Override
+  public boolean isFixedWidth()
+  {
+    return true;
+  }
 }

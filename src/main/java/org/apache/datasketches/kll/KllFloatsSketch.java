@@ -514,7 +514,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   abstract byte[] getTotalItemsByteArr();
 
   @Override
-  int getTotalItemsNumBytes() {
+  public int getTotalItemsNumBytes() {
     return levelsArr[getNumLevels()] * Float.BYTES;
   }
 

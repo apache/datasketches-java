@@ -234,6 +234,12 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  int getTotalItemsNumBytesInternal()
+  {
+    return getRetainedItemsSizeBytes();
+  }
+
+  @Override
   WritableMemory getWritableMemory() {
     return (WritableMemory)mem;
   }

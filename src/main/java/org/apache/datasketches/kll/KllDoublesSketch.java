@@ -514,7 +514,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract byte[] getTotalItemsByteArr();
 
   @Override
-  int getTotalItemsNumBytes() {
+  public int getTotalItemsNumBytes() {
     return levelsArr[getNumLevels()] * Double.BYTES;
   }
 

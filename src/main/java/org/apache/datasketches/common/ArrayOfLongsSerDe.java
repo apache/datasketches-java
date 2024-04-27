@@ -100,4 +100,10 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
 
   @Override
   public Class<Long> getClassOfT() { return Long.class; }
+
+  @Override
+  public boolean isFixedWidth()
+  {
+    return true;
+  }
 }

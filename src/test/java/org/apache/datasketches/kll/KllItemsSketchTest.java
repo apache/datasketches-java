@@ -716,7 +716,6 @@ public class KllItemsSketchTest {
   public void checkExceptions() {
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     try { sk.getTotalItemsByteArr();     fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getTotalItemsNumBytes();    fail(); } catch (SketchesArgumentException e) { }
     try { sk.setWritableMemory(null);    fail(); } catch (SketchesArgumentException e) { }
     byte[] byteArr = sk.toByteArray();
     final KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
