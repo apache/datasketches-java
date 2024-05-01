@@ -31,9 +31,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.*;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -450,6 +448,8 @@ public abstract class KllSketch implements QuantilesAPI {
 
   boolean isFloatsSketch() { return sketchType == FLOATS_SKETCH; }
 
+  boolean isLongsSketch() { return sketchType == LONGS_SKETCH; }
+
   boolean isItemsSketch() { return sketchType == ITEMS_SKETCH; }
 
   abstract boolean isLevelZeroSorted();
@@ -503,7 +503,11 @@ public abstract class KllSketch implements QuantilesAPI {
     /**
      * KllItemsSketch
      */
-    ITEMS_SKETCH(0, "KllItemsSketch");
+    ITEMS_SKETCH(0, "KllItemsSketch"),
+    /**
+     * KllDoublesSketch
+     */
+    LONGS_SKETCH(Long.BYTES, "KllLongsSketch");
 
     private int typeBytes;
     private String name;

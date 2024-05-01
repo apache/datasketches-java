@@ -68,6 +68,16 @@ public class KllCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateKllLongsSketchBinaries() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
+    for (int n: nArr) {
+      final KllLongsSketch sk = KllLongsSketch.newHeapInstance();
+      for (int i = 1; i <= n; i++) { sk.update(i); }
+      Files.newOutputStream(javaPath.resolve("kll_long_n" + n + "_java.sk")).write(sk.toByteArray());
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateKllItemsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {

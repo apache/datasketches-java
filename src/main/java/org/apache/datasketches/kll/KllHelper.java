@@ -39,9 +39,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.*;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.UNSUPPORTED_MSG;
 
 import java.nio.ByteOrder;
@@ -591,6 +589,11 @@ final class KllHelper {
     float minFloat = Float.NaN;
     float maxFloat = Float.NaN;
 
+    long[] myCurLongItemsArr = null;
+    long[] myNewLongItemsArr = null;
+    long minLong = Long.MAX_VALUE;
+    long maxLong = Long.MIN_VALUE;
+
     Object[] myCurItemsArr = null;
     Object[] myNewItemsArr = null;
     Object minItem = null;
@@ -611,6 +614,13 @@ final class KllHelper {
       maxFloat = fltSk.getMaxItem();
       //assert we are following a certain growth scheme
       assert myCurFloatItemsArr.length == myCurTotalItemsCapacity;
+    } else if (sketchType == LONGS_SKETCH) {
+      final KllLongsSketch lngSk = (KllLongsSketch) sketch;
+      myCurLongItemsArr = lngSk.getLongItemsArray();
+      minLong = lngSk.getMinItem();
+      maxLong = lngSk.getMaxItem();
+      //assert we are following a certain growth scheme
+      assert myCurLongItemsArr.length == myCurTotalItemsCapacity;
     }
     else { //sketchType == ITEMS_SKETCH
       final KllItemsSketch<?> itmSk = (KllItemsSketch<?>) sketch;
@@ -654,6 +664,10 @@ final class KllHelper {
       myNewFloatItemsArr = new float[myNewTotalItemsCapacity];
       // copy and shift the current items data into the new array
       System.arraycopy(myCurFloatItemsArr, 0, myNewFloatItemsArr, deltaItemsCap, myCurTotalItemsCapacity);
+    } else if (sketchType == LONGS_SKETCH) {
+      myNewLongItemsArr = new long[myNewTotalItemsCapacity];
+      // copy and shift the current items data into the new array
+      System.arraycopy(myCurLongItemsArr, 0, myNewLongItemsArr, deltaItemsCap, myCurTotalItemsCapacity);
     }
     else { //sketchType == ITEMS_SKETCH
       myNewItemsArr = new Object[myNewTotalItemsCapacity];
@@ -681,6 +695,11 @@ final class KllHelper {
       fltSk.setMinItem(minFloat);
       fltSk.setMaxItem(maxFloat);
       fltSk.setFloatItemsArray(myNewFloatItemsArr);
+    } else if (sketchType == LONGS_SKETCH) {
+      final KllLongsSketch lngSk = (KllLongsSketch) sketch;
+      lngSk.setMinItem(minLong);
+      lngSk.setMaxItem(maxLong);
+      lngSk.setLongItemsArray(myNewLongItemsArr);
     }
     else { //sketchType == ITEMS_SKETCH
       final KllItemsSketch<?> itmSk = (KllItemsSketch<?>) sketch;
