@@ -23,12 +23,12 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
- * <p>This class provides methods to help estimate the correct parameters when
- * creating a Quotient filter, and methods to create the filter using those values.</p>
+ * This class provides methods to help estimate the correct parameters when
+ * creating a Quotient filter, and methods to create the filter using those values.
  *
- * <p>The underlying math is described in the
+ * The underlying math is described in the
  *
- * Wikipedia article on Quotient filters</a>.</p>
+ * Wikipedia article on Quotient filters.
  */
 public final class QuotientFilterBuilder {
 
@@ -57,6 +57,8 @@ public final class QuotientFilterBuilder {
      * 2^j slots as j grows, and the canonical number of slots is 2^j. Therefore, we will only check against
      * 0.9*2^j slots.
      * The load factor is 0.9 to get some space-utility advantages over the bloom filter.
+     * @param maxDistinctItems The maximum number of distinct items that can be inserted into the filter.
+     * @return The log-base-2 of the number of slots in the filter.
      */
     public static byte suggestLgNumSlots(long maxDistinctItems) {
         if (maxDistinctItems <= 0) {
