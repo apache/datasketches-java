@@ -36,7 +36,7 @@ It is provided "as is" without expressed or implied warranty.
  * Provided with invalid parameters these method may return (or set) invalid values without throwing any exception.
  * <b>You should only use this class when performance is critical and you are absolutely sure that indexes are within bounds.</b>
  * <p>
- * A bitvector is modelled as a long array, i.e. <tt>long[] bits</tt> holds bits of a bitvector.
+ * A bitvector is modelled as a long array, i.e. long[] bits holds bits of a bitvector.
  * Each long value holds 64 bits.
  * The i-th bit is stored in bits[i/64] at
  * bit position i % 64 (where bit position 0 refers to the least
@@ -44,8 +44,8 @@ It is provided "as is" without expressed or implied warranty.
  *
  * @author wolfgang.hoschek@cern.ch
  * @version 1.0, 09/24/99
- * @see     //BitVector
- * @see     //BitMatrix
+ * @see     BitVector
+ * @see     BitMatrix
  * @see     java.util.BitSet
  */
 //package bitmap_implementations;
@@ -64,12 +64,12 @@ public class QuickBitVector extends Object {
     /**
      * Returns a bit mask with bits in the specified range set to 1, all the rest set to 0.
      * In other words, returns a bit mask having 0,1,2,3,...,64 bits set.
-     * If <tt>to-from+1==0</tt> then returns zero (<tt>0L</tt>).
-     * Precondition (not checked): <tt>to-from+1 >= 0 && to-from+1 <= 64</tt>.
+     * If to-from+1==0 then returns zero (0L).
+     * Precondition (not checked): to-from+1 >= 0 && to-from+1 <= 64.
      *
      * @param from index of start bit (inclusive)
      * @param to index of end bit (inclusive).
-     * @return the bit mask having all bits between <tt>from</tt> and <tt>to</tt> set to 1.
+     * @return the bit mask having all bits between from and to set to 1.
      */
     public static final long bitMaskWithBitsSetFromTo(long from, long to) {
         return pows[(int)(to-from+1)] << from;
@@ -80,7 +80,7 @@ public class QuickBitVector extends Object {
         // return (width=to-from+1) == 0 ? 0L : (0xffffffffffffffffL >>> (BITS_PER_UNIT-width)) << from;
     }
     /**
-     * Changes the bit with index <tt>bitIndex</tt> in the bitvector <tt>bits</tt> to the "clear" (<tt>false</tt>) state.
+     * Changes the bit with index bitIndex in the bitvector bits to the "clear" (false) state.
      *
      * @param     bits   the bitvector.
      * @param     bitIndex   the index of the bit to be cleared.
@@ -90,8 +90,8 @@ public class QuickBitVector extends Object {
     }
     /**
      * Returns from the bitvector the value of the bit with the specified index.
-     * The value is <tt>true</tt> if the bit with the index <tt>bitIndex</tt>
-     * is currently set; otherwise, returns <tt>false</tt>.
+     * The value is true if the bit with the index bitIndex
+     * is currently set; otherwise, returns false.
      *
      * @param     bits   the bitvector.
      * @param     bitIndex   the bit index.
@@ -101,11 +101,11 @@ public class QuickBitVector extends Object {
         return ((bits[(int)(bitIndex >> ADDRESS_BITS_PER_UNIT)] & (1L << (bitIndex & BIT_INDEX_MASK))) != 0);
     }
     /**
-     * Returns a long value representing bits of a bitvector from index <tt>from</tt> to index <tt>to</tt>.
+     * Returns a long value representing bits of a bitvector from index from to index to.
      * Bits are returned as a long value with the return value having bit 0 set to bit <code>from</code>, ..., bit <code>to-from</code> set to bit <code>to</code>.
      * All other bits of return value are set to 0.
-     * If <tt>from > to</tt> then returns zero (<tt>0L</tt>).
-     * Precondition (not checked): <tt>to-from+1 <= 64</tt>.
+     * If from > to then returns zero (0L).
+     * Precondition (not checked): to-from+1 <= 64.
      * @param bits the bitvector.
      * @param from index of start bit (inclusive).
      * @param to index of end bit (inclusive).
@@ -161,7 +161,7 @@ public class QuickBitVector extends Object {
         return i;
     }
     /**
-     * Constructs a low level bitvector that holds <tt>size</tt> elements, with each element taking <tt>bitsPerElement</tt> bits.
+     * Constructs a low level bitvector that holds size elements, with each element taking bitsPerElement bits.
      * CD. THIS METHOD ESSENTIALLY ROUNDS TO THE NEXT MULTIPLE OF 64 BITS.
      * @param     size   the number of elements to be stored in the bitvector (must be >= 0).
      * @param     bitsPerElement   the number of bits one single element takes.
@@ -184,28 +184,36 @@ public class QuickBitVector extends Object {
         //System.out.println("Num slots available: " + (bitVector.length * 64) / bitsPerElement);
         return bitVector;
     }
+
     /**
-     Returns the index of the most significant bit in state "true".
-     Returns -1 if no bit is in state "true".
-     Examples:
-     <pre>
-     0x80000000 --> 31
-     0x7fffffff --> 30
-     0x00000001 --> 0
-     0x00000000 --> -1
-     </pre>
+     * Returns the index of the most significant bit in state "true".
+     * Returns -1 if no bit is in state "true".
+     *
+     * Examples:
+     * <pre>
+     * 0x80000000 --> 31
+     * 0x7fffffff --> 30
+     * 0x00000001 --> 0
+     * 0x00000000 --> -1
+     * </pre>
+     *
+     * @param value The integer value for which the most significant bit index is to be found.
+     * @return The index of the most significant bit in state "true". Returns -1 if no bit is in state "true".
      */
     static public int mostSignificantBit(int value) {
         int i=32;
         while (--i >=0 && (((1<<i) & value)) == 0);
         return i;
     }
+
     /**
      * Returns the index within the unit that contains the given bitIndex.
+     *
+     * @param bitIndex The index of the bit to be checked.
+     * @return The index within the unit that contains the given bitIndex.
      */
     protected static long offset(long bitIndex) {
-        return bitIndex & BIT_INDEX_MASK;
-        //equivalent to bitIndex%64
+        return bitIndex & BIT_INDEX_MASK; // equivalent to bitIndex%64
     }
     /**
      * Initializes a table with numbers having 1,2,3,...,64 bits set.
@@ -245,7 +253,7 @@ public class QuickBitVector extends Object {
 	*/
     }
     /**
-     * Sets the bit with index <tt>bitIndex</tt> in the bitvector <tt>bits</tt> to the state specified by <tt>value</tt>.
+     * Sets the bit with index bitIndex in the bitvector bits to the state specified by value.
      *
      * @param     bits   the bitvector.
      * @param     bitIndex   the index of the bit to be changed.
@@ -261,8 +269,8 @@ public class QuickBitVector extends Object {
      * Sets bits of a bitvector from index <code>from</code> to index <code>to</code> to the bits of <code>value</code>.
      * Bit <code>from</code> is set to bit 0 of <code>value</code>, ..., bit <code>to</code> is set to bit <code>to-from</code> of <code>value</code>.
      * All other bits stay unaffected.
-     * If <tt>from > to</tt> then does nothing.
-     * Precondition (not checked): <tt>to-from+1 <= 64</tt>.
+     * If from > to then does nothing.
+     * Precondition (not checked): to-from+1 <= 64.
      *
      * @param bits the bitvector.
      * @param value the value to be copied into the bitvector.
@@ -311,7 +319,7 @@ public class QuickBitVector extends Object {
         bits[toIndex] = (bits[toIndex] & (~mask)) | shiftedValue;
     }
     /**
-     * Changes the bit with index <tt>bitIndex</tt> in the bitvector <tt>bits</tt> to the "set" (<tt>true</tt>) state.
+     * Changes the bit with index bitIndex in the bitvector bits to the "set" (true) state.
      *
      * @param     bits   the bitvector.
      * @param     bitIndex   the index of the bit to be set.
@@ -321,9 +329,11 @@ public class QuickBitVector extends Object {
     }
     /**
      * Returns the index of the unit that contains the given bitIndex.
+     *
+     * @param bitIndex The index of the bit to be checked.
+     * @return The index of the unit that contains the given bitIndex.
      */
     protected static long unit(long bitIndex) {
-        return bitIndex >> ADDRESS_BITS_PER_UNIT;
-        //equivalent to bitIndex/64
+        return bitIndex >> ADDRESS_BITS_PER_UNIT; // equivalent to bitIndex/64
     }
 }
