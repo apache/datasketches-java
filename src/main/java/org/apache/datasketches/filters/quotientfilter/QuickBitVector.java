@@ -44,8 +44,6 @@ It is provided "as is" without expressed or implied warranty.
  *
  * @author wolfgang.hoschek@cern.ch
  * @version 1.0, 09/24/99
- * @see     BitVector
- * @see     BitMatrix
  * @see     java.util.BitSet
  */
 //package bitmap_implementations;
@@ -65,7 +63,7 @@ public class QuickBitVector extends Object {
      * Returns a bit mask with bits in the specified range set to 1, all the rest set to 0.
      * In other words, returns a bit mask having 0,1,2,3,...,64 bits set.
      * If to-from+1==0 then returns zero (0L).
-     * Precondition (not checked): to-from+1 >= 0 && to-from+1 <= 64.
+     * Precondition (not checked): to-from+1 &ge 0 AND to-from+1 &le 64.
      *
      * @param from index of start bit (inclusive)
      * @param to index of end bit (inclusive).
@@ -104,8 +102,8 @@ public class QuickBitVector extends Object {
      * Returns a long value representing bits of a bitvector from index from to index to.
      * Bits are returned as a long value with the return value having bit 0 set to bit <code>from</code>, ..., bit <code>to-from</code> set to bit <code>to</code>.
      * All other bits of return value are set to 0.
-     * If from > to then returns zero (0L).
-     * Precondition (not checked): to-from+1 <= 64.
+     * If from &gt to then returns zero (0L).
+     * Precondition (not checked): to-from+1 &le 64.
      * @param bits the bitvector.
      * @param from index of start bit (inclusive).
      * @param to index of end bit (inclusive).
@@ -163,7 +161,7 @@ public class QuickBitVector extends Object {
     /**
      * Constructs a low level bitvector that holds size elements, with each element taking bitsPerElement bits.
      * CD. THIS METHOD ESSENTIALLY ROUNDS TO THE NEXT MULTIPLE OF 64 BITS.
-     * @param     size   the number of elements to be stored in the bitvector (must be >= 0).
+     * @param     size   the number of elements to be stored in the bitvector (must be &ge 0).
      * @param     bitsPerElement   the number of bits one single element takes.
      * @return    a low level bitvector.
      */
@@ -191,10 +189,10 @@ public class QuickBitVector extends Object {
      *
      * Examples:
      * <pre>
-     * 0x80000000 --> 31
-     * 0x7fffffff --> 30
-     * 0x00000001 --> 0
-     * 0x00000000 --> -1
+     * 0x80000000 : 31
+     * 0x7fffffff : 30
+     * 0x00000001 : 0
+     * 0x00000000 : -1
      * </pre>
      *
      * @param value The integer value for which the most significant bit index is to be found.
