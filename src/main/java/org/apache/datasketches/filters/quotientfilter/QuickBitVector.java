@@ -63,7 +63,7 @@ public class QuickBitVector extends Object {
      * Returns a bit mask with bits in the specified range set to 1, all the rest set to 0.
      * In other words, returns a bit mask having 0,1,2,3,...,64 bits set.
      * If to-from+1==0 then returns zero (0L).
-     * Precondition (not checked): to-from+1 &ge 0 AND to-from+1 &le 64.
+     * Precondition (not checked): to-from+1 &ge; 0 AND to-from+1 &le; 64.
      *
      * @param from index of start bit (inclusive)
      * @param to index of end bit (inclusive).
@@ -102,8 +102,8 @@ public class QuickBitVector extends Object {
      * Returns a long value representing bits of a bitvector from index from to index to.
      * Bits are returned as a long value with the return value having bit 0 set to bit <code>from</code>, ..., bit <code>to-from</code> set to bit <code>to</code>.
      * All other bits of return value are set to 0.
-     * If from &gt to then returns zero (0L).
-     * Precondition (not checked): to-from+1 &le 64.
+     * If from &gt; to then returns zero (0L).
+     * Precondition (not checked): to-from+1 &le; 64.
      * @param bits the bitvector.
      * @param from index of start bit (inclusive).
      * @param to index of end bit (inclusive).
@@ -147,10 +147,10 @@ public class QuickBitVector extends Object {
      Returns 32 if no bit is in state "true".
      Examples:
      <pre>
-     0x80000000 --> 31
-     0x7fffffff --> 0
-     0x00000001 --> 0
-     0x00000000 --> 32
+     0x80000000 : 31
+     0x7fffffff : 0
+     0x00000001 : 0
+     0x00000000 : 32
      </pre>
      */
     static public int leastSignificantBit(int value) {
@@ -161,7 +161,7 @@ public class QuickBitVector extends Object {
     /**
      * Constructs a low level bitvector that holds size elements, with each element taking bitsPerElement bits.
      * CD. THIS METHOD ESSENTIALLY ROUNDS TO THE NEXT MULTIPLE OF 64 BITS.
-     * @param     size   the number of elements to be stored in the bitvector (must be &ge 0).
+     * @param     size   the number of elements to be stored in the bitvector (must be &ge; 0).
      * @param     bitsPerElement   the number of bits one single element takes.
      * @return    a low level bitvector.
      */
@@ -216,7 +216,7 @@ public class QuickBitVector extends Object {
     /**
      * Initializes a table with numbers having 1,2,3,...,64 bits set.
      * pows[i] has bits [0..i-1] set.
-     * pows[64] == -1L == ~0L == has all 64 bits set --> correct.
+     * pows[64] == -1L == ~0L == has all 64 bits set : correct.
      * to speedup calculations in subsequent methods.
      */
     private static long[] precomputePows() {
@@ -227,28 +227,7 @@ public class QuickBitVector extends Object {
             //System.out.println((i)+":"+pows[i]);
         }
         pows[0]=0L;
-        //System.out.println((0)+":"+pows[0]);
         return pows;
-
-        //OLD STUFF
-	/*
-	for (int i=BITS_PER_UNIT+1; --i >= 0; ) {
-		pows[i]=value;
-		value = value >>> 1;
-		System.out.println((i)+":"+pows[i]);
-	}
-	*/
-
-	/*
-	long[] pows=new long[BITS_PER_UNIT];
-	for (int i=0; i<BITS_PER_UNIT-1; i++) {
-		pows[i]=Math.round(Math.pow(2.0,i+1))-1;
-		System.out.println((i)+":"+pows[i]);
-	}
-	pows[BITS_PER_UNIT-1] = ~0L;
-	System.out.println((BITS_PER_UNIT-1)+":"+pows[BITS_PER_UNIT-1]);
-	return pows;
-	*/
     }
     /**
      * Sets the bit with index bitIndex in the bitvector bits to the state specified by value.
