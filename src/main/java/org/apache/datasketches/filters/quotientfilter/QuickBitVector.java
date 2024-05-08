@@ -142,16 +142,21 @@ public class QuickBitVector extends Object {
         //combine
         return x1|x2;
     }
+
     /**
-     Returns the index of the least significant bit in state "true".
-     Returns 32 if no bit is in state "true".
-     Examples:
-     <pre>
-     0x80000000 : 31
-     0x7fffffff : 0
-     0x00000001 : 0
-     0x00000000 : 32
-     </pre>
+     * Returns the index of the least significant bit in state "true".
+     * Returns 32 if no bit is in state "true".
+     *
+     * Examples:
+     * <pre>
+     * 0x80000000 : 31
+     * 0x7fffffff : 0
+     * 0x00000001 : 0
+     * 0x00000000 : 32
+     * </pre>
+     *
+     * @param value The integer value for which the least significant bit index is to be found.
+     * @return The index of the least significant bit in state "true". Returns 32 if no bit is in state "true".
      */
     static public int leastSignificantBit(int value) {
         int i=-1;
@@ -246,8 +251,8 @@ public class QuickBitVector extends Object {
      * Sets bits of a bitvector from index <code>from</code> to index <code>to</code> to the bits of <code>value</code>.
      * Bit <code>from</code> is set to bit 0 of <code>value</code>, ..., bit <code>to</code> is set to bit <code>to-from</code> of <code>value</code>.
      * All other bits stay unaffected.
-     * If from > to then does nothing.
-     * Precondition (not checked): to-from+1 <= 64.
+     * If from &gt; to then does nothing.
+     * Precondition (not checked): to-from+1 &le; 64.
      *
      * @param bits the bitvector.
      * @param value the value to be copied into the bitvector.
