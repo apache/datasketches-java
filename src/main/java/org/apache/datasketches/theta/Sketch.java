@@ -305,6 +305,18 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns the maximum number of storage bytes required for a CompactSketch given the configured
+   * number of nominal entries (power of 2).
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
+   * @return the maximum number of storage bytes required for a CompactSketch with the given
+   * nomEntries.
+   */
+  public static int getCompactSketchMaxBytes(final int nomEntries) {
+    final int nomEnt = ceilingPowerOf2(nomEntries);
+    return ((nomEnt << 4) * 15) / 16 + (Family.QUICKSELECT.getMaxPreLongs() << 3);
+  }
+
+  /**
    * Returns the maximum number of storage bytes required for an UpdateSketch with the given
    * number of nominal entries (power of 2).
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
