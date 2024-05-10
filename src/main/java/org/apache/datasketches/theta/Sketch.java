@@ -297,7 +297,9 @@ public abstract class Sketch {
    * @param numberOfEntries the actual number of entries stored with the CompactSketch.
    * @return the maximum number of storage bytes required for a CompactSketch with the given number
    * of entries.
+   * @deprecated as a public method. Use {@link #getCompactSketchMaxBytes(int) instead}
    */
+  @Deprecated
   public static int getMaxCompactSketchBytes(final int numberOfEntries) {
     if (numberOfEntries == 0) { return 8; }
     if (numberOfEntries == 1) { return 16; }

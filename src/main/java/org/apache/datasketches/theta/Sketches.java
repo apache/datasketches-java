@@ -79,13 +79,30 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
-   * @param numberOfEntries  Ref: {@link Sketch#getMaxCompactSketchBytes(int)},
-   * {@code numberOfEntries}
-   * @return Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
+   * Returns the maximum number of storage bytes required for a CompactSketch with the given
+   * number of actual entries. Note that this assumes the worse case of the sketch in
+   * estimation mode, which requires storing theta and count.
+   * @param numberOfEntries the actual number of entries stored with the CompactSketch.
+   * @return the maximum number of storage bytes required for a CompactSketch with the given number
+   * of entries.
+   * @see Sketch#getMaxCompactSketchBytes(int)
+   * @deprecated as a public method. Use {@link #getCompactSketchMaxBytes(int) instead}
    */
+  @Deprecated
   public static int getMaxCompactSketchBytes(final int numberOfEntries) {
     return Sketch.getMaxCompactSketchBytes(numberOfEntries);
+  }
+
+  /**
+   * Returns the maximum number of storage bytes required for a CompactSketch given the configured
+   * number of nominal entries (power of 2).
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
+   * @return the maximum number of storage bytes required for a CompactSketch with the given
+   * nomEntries.
+   * @see Sketch#getCompactSketchMaxBytes(int)
+   */
+  public static int getCompactSketchMaxBytes(final int nomEntries) {
+    return Sketch.getCompactSketchMaxBytes(nomEntries);
   }
 
   /**
