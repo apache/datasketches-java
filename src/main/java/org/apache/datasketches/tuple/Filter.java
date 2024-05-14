@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.tuple;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.function.Predicate;
-
-import org.apache.datasketches.common.ResizeFactor;
 
 /**
  * Class for filtering entries from a {@link Sketch} given a {@link Summary}
@@ -52,23 +52,25 @@ public class Filter<T extends Summary> {
         if (sketchIn == null) {
             return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
         }
-
-        final QuickSelectSketch<T> sketch =
-            new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
+        final long[] hashes = new long[sketchIn.getRetainedEntries()];
+        T[] summaries = null; // lazy init to get class from the first entry
+        int i = 0;
         final TupleSketchIterator<T> it = sketchIn.iterator();
         while (it.next()) {
             final T summary = it.getSummary();
             if (predicate.test(summary)) {
-                sketch.insert(it.getHash(), (T)summary.copy());
+              hashes[i] = it.getHash();
+              if (summaries == null) {
+                summaries = (T[]) Array.newInstance(summary.getClass(), sketchIn.getRetainedEntries());
+              }
+              summaries[i++] = (T) summary.copy();
             }
         }
-
-        sketch.setThetaLong(sketchIn.getThetaLong());
-        if (!sketchIn.isEmpty()) {
-            sketch.setEmpty(false);
+        final boolean isEmpty = i == 0 && !sketchIn.isEstimationMode(); 
+        if (i == 0) {
+          return new CompactSketch<>(null, null, sketchIn.getThetaLong(), isEmpty);
         }
-
-        return sketch.compact();
+        return new CompactSketch<>(Arrays.copyOf(hashes, i), Arrays.copyOf(summaries, i), sketchIn.getThetaLong(), isEmpty);
     }
 }
 
