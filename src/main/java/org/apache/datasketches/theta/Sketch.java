@@ -297,11 +297,25 @@ public abstract class Sketch {
    * @param numberOfEntries the actual number of entries stored with the CompactSketch.
    * @return the maximum number of storage bytes required for a CompactSketch with the given number
    * of entries.
+   * @deprecated as a public method. Use {@link #getCompactSketchMaxBytes(int) instead}
    */
+  @Deprecated
   public static int getMaxCompactSketchBytes(final int numberOfEntries) {
     if (numberOfEntries == 0) { return 8; }
     if (numberOfEntries == 1) { return 16; }
     return (numberOfEntries << 3) + 24;
+  }
+
+  /**
+   * Returns the maximum number of storage bytes required for a CompactSketch given the configured
+   * log_base2 of the number of nominal entries, which is a power of 2.
+   * @param lgNomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
+   * @return the maximum number of storage bytes required for a CompactSketch with the given
+   * nomEntries.
+   */
+  public static int getCompactSketchMaxBytes(final int lgNomEntries) {
+    return (int)((2 << lgNomEntries) * ThetaUtil.REBUILD_THRESHOLD)
+        + Family.QUICKSELECT.getMaxPreLongs() * Long.BYTES;
   }
 
   /**

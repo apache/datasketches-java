@@ -20,6 +20,7 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
+import static org.apache.datasketches.theta.Sketches.getCompactSketchMaxBytes;
 import static org.apache.datasketches.theta.Sketches.getMaxCompactSketchBytes;
 import static org.apache.datasketches.theta.Sketches.getMaxIntersectionBytes;
 import static org.apache.datasketches.theta.Sketches.getMaxUnionBytes;
@@ -35,6 +36,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -130,7 +132,8 @@ public class SketchesTest {
 
   @Test
   public void checkUtilMethods() {
-    final int k = 1024;
+    final int lgK = 10;
+    final int k = 1 << lgK;
 
     final int maxUnionBytes = getMaxUnionBytes(k);
     assertEquals(2*k*8+32, maxUnionBytes);
@@ -140,6 +143,10 @@ public class SketchesTest {
 
     final int maxCompSkBytes = getMaxCompactSketchBytes(k+1);
     assertEquals(24+(k+1)*8, maxCompSkBytes);
+
+    final int compSkMaxBytes = getCompactSketchMaxBytes(lgK); {
+      assertEquals(compSkMaxBytes, ((2 << lgK) * 15) / 16 + (Family.QUICKSELECT.getMaxPreLongs() << 3));
+    }
 
     final int maxSkBytes = getMaxUpdateSketchBytes(k);
     assertEquals(24+2*k*8, maxSkBytes);
