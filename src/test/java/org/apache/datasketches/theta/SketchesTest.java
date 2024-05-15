@@ -132,7 +132,8 @@ public class SketchesTest {
 
   @Test
   public void checkUtilMethods() {
-    final int k = 1024;
+    final int lgK = 10;
+    final int k = 1 << lgK;
 
     final int maxUnionBytes = getMaxUnionBytes(k);
     assertEquals(2*k*8+32, maxUnionBytes);
@@ -143,8 +144,8 @@ public class SketchesTest {
     final int maxCompSkBytes = getMaxCompactSketchBytes(k+1);
     assertEquals(24+(k+1)*8, maxCompSkBytes);
 
-    final int compSkMaxBytes = getCompactSketchMaxBytes(k); {
-      assertEquals(compSkMaxBytes, ((k << 4) * 15) / 16 + (Family.QUICKSELECT.getMaxPreLongs() << 3));
+    final int compSkMaxBytes = getCompactSketchMaxBytes(lgK); {
+      assertEquals(compSkMaxBytes, ((2 << lgK) * 15) / 16 + (Family.QUICKSELECT.getMaxPreLongs() << 3));
     }
 
     final int maxSkBytes = getMaxUpdateSketchBytes(k);
