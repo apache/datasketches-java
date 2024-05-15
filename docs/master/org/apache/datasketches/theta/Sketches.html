@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9,"i24":9,"i25":9,"i26":9,"i27":9,"i28":9,"i29":9,"i30":9,"i31":9,"i32":9};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
+var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":41,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9,"i24":9,"i25":9,"i26":9,"i27":9,"i28":9,"i29":9,"i30":9,"i31":9,"i32":9,"i33":9};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -154,20 +154,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCompactSketchMaxBytes(int)">getCompactSketchMaxBytes</a></span>&#8203;(int&nbsp;nomEntries)</code></th>
+<td class="colLast">
+<div class="block">Returns the maximum number of storage bytes required for a CompactSketch given the configured
+ number of nominal entries (power of 2).</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getEstimate(org.apache.datasketches.memory.Memory)">getEstimate</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Gets the unique count estimate from a valid memory image of a Sketch</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getLowerBound(int,org.apache.datasketches.memory.Memory)">getLowerBound</a></span>&#8203;(int&nbsp;numStdDev,
              org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
@@ -176,49 +184,51 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  given the specified number of Standard Deviations.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxAnotBResultBytes(int)">getMaxAnotBResultBytes</a></span>&#8203;(int&nbsp;maxNomEntries)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="SetOperation.html#getMaxAnotBResultBytes(int)"><code>SetOperation.getMaxAnotBResultBytes(int)</code></a>.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxCompactSketchBytes(int)">getMaxCompactSketchBytes</a></span>&#8203;(int&nbsp;numberOfEntries)</code></th>
 <td class="colLast">
-<div class="block">Ref: <a href="Sketch.html#getMaxCompactSketchBytes(int)"><code>Sketch.getMaxCompactSketchBytes(int)</code></a></div>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span>
+<div class="deprecationComment">as a public method.</div>
+</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxIntersectionBytes(int)">getMaxIntersectionBytes</a></span>&#8203;(int&nbsp;nomEntries)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="SetOperation.html#getMaxIntersectionBytes(int)"><code>SetOperation.getMaxIntersectionBytes(int)</code></a></div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxUnionBytes(int)">getMaxUnionBytes</a></span>&#8203;(int&nbsp;nomEntries)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="SetOperation.html#getMaxUnionBytes(int)"><code>SetOperation.getMaxUnionBytes(int)</code></a></div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxUpdateSketchBytes(int)">getMaxUpdateSketchBytes</a></span>&#8203;(int&nbsp;nomEntries)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="Sketch.html#getMaxUpdateSketchBytes(int)"><code>Sketch.getMaxUpdateSketchBytes(int)</code></a></div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializationVersion(org.apache.datasketches.memory.Memory)">getSerializationVersion</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="Sketch.html#getSerializationVersion(org.apache.datasketches.memory.Memory)"><code>Sketch.getSerializationVersion(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUpperBound(int,org.apache.datasketches.memory.Memory)">getUpperBound</a></span>&#8203;(int&nbsp;numStdDev,
              org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
@@ -227,14 +237,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  given the specified number of Standard Deviations.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifyCompactSketch(org.apache.datasketches.memory.Memory)">heapifyCompactSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="CompactSketch.html#heapify(org.apache.datasketches.memory.Memory)"><code>CompactSketch.heapify(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifyCompactSketch(org.apache.datasketches.memory.Memory,long)">heapifyCompactSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
                     long&nbsp;expectedSeed)</code></th>
@@ -242,14 +252,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="CompactSketch.html#heapify(org.apache.datasketches.memory.Memory,long)"><code>CompactSketch.heapify(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static <a href="SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifySetOperation(org.apache.datasketches.memory.Memory)">heapifySetOperation</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="SetOperation.html#heapify(org.apache.datasketches.memory.Memory)"><code>SetOperation.heapify(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static <a href="SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifySetOperation(org.apache.datasketches.memory.Memory,long)">heapifySetOperation</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
                    long&nbsp;expectedSeed)</code></th>
@@ -257,14 +267,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="SetOperation.html#heapify(org.apache.datasketches.memory.Memory,long)"><code>SetOperation.heapify(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifySketch(org.apache.datasketches.memory.Memory)">heapifySketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="Sketch.html#heapify(org.apache.datasketches.memory.Memory)"><code>Sketch.heapify(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifySketch(org.apache.datasketches.memory.Memory,long)">heapifySketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
              long&nbsp;expectedSeed)</code></th>
@@ -272,14 +282,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="Sketch.html#heapify(org.apache.datasketches.memory.Memory,long)"><code>Sketch.heapify(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static <a href="UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifyUpdateSketch(org.apache.datasketches.memory.Memory)">heapifyUpdateSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="UpdateSketch.html#heapify(org.apache.datasketches.memory.Memory)"><code>UpdateSketch.heapify(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>static <a href="UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapifyUpdateSketch(org.apache.datasketches.memory.Memory,long)">heapifyUpdateSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
                    long&nbsp;expectedSeed)</code></th>
@@ -287,28 +297,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="UpdateSketch.html#heapify(org.apache.datasketches.memory.Memory,long)"><code>UpdateSketch.heapify(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static <a href="SetOperationBuilder.html" title="class in org.apache.datasketches.theta">SetOperationBuilder</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#setOperationBuilder()">setOperationBuilder</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="SetOperationBuilder.html" title="class in org.apache.datasketches.theta"><code>SetOperationBuilder</code></a></div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static <a href="UpdateSketchBuilder.html" title="class in org.apache.datasketches.theta">UpdateSketchBuilder</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#updateSketchBuilder()">updateSketchBuilder</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="UpdateSketchBuilder.html" title="class in org.apache.datasketches.theta"><code>UpdateSketchBuilder</code></a></div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapCompactSketch(org.apache.datasketches.memory.Memory)">wrapCompactSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="CompactSketch.html#wrap(org.apache.datasketches.memory.Memory)"><code>CompactSketch.wrap(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapCompactSketch(org.apache.datasketches.memory.Memory,long)">wrapCompactSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
                  long&nbsp;expectedSeed)</code></th>
@@ -316,28 +326,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="CompactSketch.html#wrap(org.apache.datasketches.memory.Memory,long)"><code>CompactSketch.wrap(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>static <a href="Intersection.html" title="class in org.apache.datasketches.theta">Intersection</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapIntersection(org.apache.datasketches.memory.Memory)">wrapIntersection</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Convenience method, calls <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Intersection</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>static <a href="Intersection.html" title="class in org.apache.datasketches.theta">Intersection</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapIntersection(org.apache.datasketches.memory.WritableMemory)">wrapIntersection</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Convenience method, calls <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Intersection</div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>static <a href="SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapSetOperation(org.apache.datasketches.memory.Memory)">wrapSetOperation</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code>static <a href="SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapSetOperation(org.apache.datasketches.memory.Memory,long)">wrapSetOperation</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
                 long&nbsp;expectedSeed)</code></th>
@@ -345,14 +355,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory,long)"><code>SetOperation.wrap(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code>static <a href="SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapSetOperation(org.apache.datasketches.memory.WritableMemory)">wrapSetOperation</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i26" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>static <a href="SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapSetOperation(org.apache.datasketches.memory.WritableMemory,long)">wrapSetOperation</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem,
                 long&nbsp;expectedSeed)</code></th>
@@ -360,14 +370,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory,long)"><code>SetOperation.wrap(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i27" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapSketch(org.apache.datasketches.memory.Memory)">wrapSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="Sketch.html#wrap(org.apache.datasketches.memory.Memory)"><code>Sketch.wrap(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapSketch(org.apache.datasketches.memory.Memory,long)">wrapSketch</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
           long&nbsp;expectedSeed)</code></th>
@@ -375,28 +385,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Ref: <a href="Sketch.html#wrap(org.apache.datasketches.memory.Memory,long)"><code>Sketch.wrap(Memory, long)</code></a></div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>static <a href="Union.html" title="class in org.apache.datasketches.theta">Union</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapUnion(org.apache.datasketches.memory.Memory)">wrapUnion</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Convenience method, calls <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Union</div>
 </td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i31" class="rowColor">
 <td class="colFirst"><code>static <a href="Union.html" title="class in org.apache.datasketches.theta">Union</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapUnion(org.apache.datasketches.memory.WritableMemory)">wrapUnion</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Convenience method, calls <a href="SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Union</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i32" class="altColor">
 <td class="colFirst"><code>static <a href="UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapUpdateSketch(org.apache.datasketches.memory.WritableMemory)">wrapUpdateSketch</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Ref: <a href="Sketch.html#wrap(org.apache.datasketches.memory.Memory)"><code>UpdateSketch.wrap(Memory)</code></a></div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i33" class="rowColor">
 <td class="colFirst"><code>static <a href="UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrapUpdateSketch(org.apache.datasketches.memory.WritableMemory,long)">wrapUpdateSketch</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem,
                 long&nbsp;expectedSeed)</code></th>
@@ -488,14 +498,42 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockList">
 <li class="blockList">
 <h4>getMaxCompactSketchBytes</h4>
-<pre class="methodSignature">public static&nbsp;int&nbsp;getMaxCompactSketchBytes&#8203;(int&nbsp;numberOfEntries)</pre>
-<div class="block">Ref: <a href="Sketch.html#getMaxCompactSketchBytes(int)"><code>Sketch.getMaxCompactSketchBytes(int)</code></a></div>
+<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
+public static&nbsp;int&nbsp;getMaxCompactSketchBytes&#8203;(int&nbsp;numberOfEntries)</pre>
+<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
+<div class="deprecationComment">as a public method. Use <a href="#getCompactSketchMaxBytes(int)"><code>instead</code></a></div>
+</div>
+<div class="block">Returns the maximum number of storage bytes required for a CompactSketch with the given
+ number of actual entries. Note that this assumes the worse case of the sketch in
+ estimation mode, which requires storing theta and count.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>numberOfEntries</code> - Ref: <a href="Sketch.html#getMaxCompactSketchBytes(int)"><code>Sketch.getMaxCompactSketchBytes(int)</code></a>,
- <code>numberOfEntries</code></dd>
+<dd><code>numberOfEntries</code> - the actual number of entries stored with the CompactSketch.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>Ref: <a href="Sketch.html#getMaxCompactSketchBytes(int)"><code>Sketch.getMaxCompactSketchBytes(int)</code></a></dd>
+<dd>the maximum number of storage bytes required for a CompactSketch with the given number
+ of entries.</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="Sketch.html#getMaxCompactSketchBytes(int)"><code>Sketch.getMaxCompactSketchBytes(int)</code></a></dd>
+</dl>
+</li>
+</ul>
+<a id="getCompactSketchMaxBytes(int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getCompactSketchMaxBytes</h4>
+<pre class="methodSignature">public static&nbsp;int&nbsp;getCompactSketchMaxBytes&#8203;(int&nbsp;nomEntries)</pre>
+<div class="block">Returns the maximum number of storage bytes required for a CompactSketch given the configured
+ number of nominal entries (power of 2).</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>nomEntries</code> - <a href="../../../../resources/dictionary.html#nomEntries">Nominal Entries</a></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the maximum number of storage bytes required for a CompactSketch with the given
+ nomEntries.</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="Sketch.html#getCompactSketchMaxBytes(int)"><code>Sketch.getCompactSketchMaxBytes(int)</code></a></dd>
 </dl>
 </li>
 </ul>

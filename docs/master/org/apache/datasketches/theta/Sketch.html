@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":6,"i3":10,"i4":6,"i5":6,"i6":6,"i7":10,"i8":9,"i9":9,"i10":10,"i11":6,"i12":9,"i13":10,"i14":6,"i15":10,"i16":6,"i17":9,"i18":9,"i19":6,"i20":6,"i21":6,"i22":10,"i23":6,"i24":10,"i25":6,"i26":6,"i27":10,"i28":10,"i29":9,"i30":9,"i31":9,"i32":9};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
+var data = {"i0":10,"i1":6,"i2":6,"i3":9,"i4":10,"i5":6,"i6":6,"i7":6,"i8":10,"i9":41,"i10":9,"i11":10,"i12":6,"i13":9,"i14":10,"i15":6,"i16":10,"i17":6,"i18":9,"i19":9,"i20":6,"i21":6,"i22":6,"i23":10,"i24":6,"i25":10,"i26":6,"i27":6,"i28":10,"i29":10,"i30":9,"i31":9,"i32":9,"i33":9};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -158,7 +158,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -188,49 +188,58 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCompactSketchMaxBytes(int)">getCompactSketchMaxBytes</a></span>&#8203;(int&nbsp;lgNomEntries)</code></th>
+<td class="colLast">
+<div class="block">Returns the maximum number of storage bytes required for a CompactSketch given the configured
+ log_base2 of the number of nominal entries, which is a power of 2.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCountLessThanThetaLong(long)">getCountLessThanThetaLong</a></span>&#8203;(long&nbsp;thetaLong)</code></th>
 <td class="colLast">
 <div class="block">Gets the number of hash values less than the given theta expressed as a long.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>abstract int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCurrentBytes()">getCurrentBytes</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the number of storage bytes required for this sketch in its current state.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>abstract double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getEstimate()">getEstimate</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the unique count estimate.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>abstract <a href="../common/Family.html" title="enum in org.apache.datasketches.common">Family</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getFamily()">getFamily</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the Family that this sketch belongs to</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getLowerBound(int)">getLowerBound</a></span>&#8203;(int&nbsp;numStdDev)</code></th>
 <td class="colLast">
 <div class="block">Gets the approximate lower error bound given the specified number of Standard Deviations.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxCompactSketchBytes(int)">getMaxCompactSketchBytes</a></span>&#8203;(int&nbsp;numberOfEntries)</code></th>
 <td class="colLast">
-<div class="block">Returns the maximum number of storage bytes required for a CompactSketch with the given
- number of actual entries.</div>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span>
+<div class="deprecationComment">as a public method.</div>
+</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxUpdateSketchBytes(int)">getMaxUpdateSketchBytes</a></span>&#8203;(int&nbsp;nomEntries)</code></th>
 <td class="colLast">
@@ -238,63 +247,63 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  number of nominal entries (power of 2).</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRetainedEntries()">getRetainedEntries</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns the number of valid entries that have been retained by the sketch.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>abstract int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRetainedEntries(boolean)">getRetainedEntries</a></span>&#8203;(boolean&nbsp;valid)</code></th>
 <td class="colLast">
 <div class="block">Returns the number of entries that have been retained by the sketch.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializationVersion(org.apache.datasketches.memory.Memory)">getSerializationVersion</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
 <td class="colLast">
 <div class="block">Returns the serialization version from the given Memory</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getTheta()">getTheta</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the value of theta as a double with a value between zero and one</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>abstract long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getThetaLong()">getThetaLong</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the value of theta as a long</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getUpperBound(int)">getUpperBound</a></span>&#8203;(int&nbsp;numStdDev)</code></th>
 <td class="colLast">
 <div class="block">Gets the approximate upper error bound given the specified number of Standard Deviations.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#hasMemory()">hasMemory</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapify(org.apache.datasketches.memory.Memory)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Heapify takes the sketch image in Memory and instantiates an on-heap Sketch.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapify(org.apache.datasketches.memory.Memory,long)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
        long&nbsp;expectedSeed)</code></th>
@@ -302,14 +311,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Heapify takes the sketch image in Memory and instantiates an on-heap Sketch.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isCompact()">isCompact</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is in compact form.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isDirect()">isDirect</a></span>()</code></th>
 <td class="colLast">
@@ -317,28 +326,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  Memory.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block"><a href="../../../../resources/dictionary.html#empty">See Empty</a></div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEstimationMode()">isEstimationMode</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).</div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isOrdered()">isOrdered</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if internal cache is ordered</div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;that)</code></th>
 <td class="colLast">
@@ -346,7 +355,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  of <i>that</i>.</div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code>abstract <a href="HashIterator.html" title="interface in org.apache.datasketches.theta">HashIterator</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
@@ -354,21 +363,21 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  Theta sketch.</div>
 </td>
 </tr>
-<tr id="i26" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>abstract byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toByteArray()">toByteArray</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Serialize this sketch to a byte array form.</div>
 </td>
 </tr>
-<tr id="i27" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns a human readable summary of the sketch.</div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean,int,boolean)">toString</a></span>&#8203;(boolean&nbsp;sketchSummary,
         boolean&nbsp;dataDetail,
@@ -378,28 +387,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Gets a human readable listing of contents and summary of the given sketch.</div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(byte%5B%5D)">toString</a></span>&#8203;(byte[]&nbsp;byteArr)</code></th>
 <td class="colLast">
 <div class="block">Returns a human readable string of the preamble of a byte array image of a Theta Sketch.</div>
 </td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i31" class="rowColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(org.apache.datasketches.memory.Memory)">toString</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
 <td class="colLast">
 <div class="block">Returns a human readable string of the preamble of a Memory image of a Theta Sketch.</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i32" class="altColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.Memory)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Wrap takes the sketch image in the given Memory and refers to it directly.</div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i33" class="rowColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.Memory,long)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
     long&nbsp;expectedSeed)</code></th>
@@ -710,7 +719,11 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockList">
 <li class="blockList">
 <h4>getMaxCompactSketchBytes</h4>
-<pre class="methodSignature">public static&nbsp;int&nbsp;getMaxCompactSketchBytes&#8203;(int&nbsp;numberOfEntries)</pre>
+<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
+public static&nbsp;int&nbsp;getMaxCompactSketchBytes&#8203;(int&nbsp;numberOfEntries)</pre>
+<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
+<div class="deprecationComment">as a public method. Use <a href="#getCompactSketchMaxBytes(int)"><code>instead</code></a></div>
+</div>
 <div class="block">Returns the maximum number of storage bytes required for a CompactSketch with the given
  number of actual entries. Note that this assumes the worse case of the sketch in
  estimation mode, which requires storing theta and count.</div>
@@ -720,6 +733,24 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the maximum number of storage bytes required for a CompactSketch with the given number
  of entries.</dd>
+</dl>
+</li>
+</ul>
+<a id="getCompactSketchMaxBytes(int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getCompactSketchMaxBytes</h4>
+<pre class="methodSignature">public static&nbsp;int&nbsp;getCompactSketchMaxBytes&#8203;(int&nbsp;lgNomEntries)</pre>
+<div class="block">Returns the maximum number of storage bytes required for a CompactSketch given the configured
+ log_base2 of the number of nominal entries, which is a power of 2.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>lgNomEntries</code> - <a href="../../../../resources/dictionary.html#nomEntries">Nominal Entries</a></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the maximum number of storage bytes required for a CompactSketch with the given
+ nomEntries.</dd>
 </dl>
 </li>
 </ul>
