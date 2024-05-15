@@ -280,7 +280,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     //SpotBugs may complain (DB_DUPLICATE_BRANCHES) if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD,
     //but this allows us to tune these constants for different sketches.
     final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
-    return (int) Math.floor(fraction * (1 << lgArrLongs));
+    return (int) (fraction * (1 << lgArrLongs));
   }
 
 }

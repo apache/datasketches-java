@@ -320,7 +320,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
    */
   private static final int getHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
     final double fraction = (lgArrLongs <= lgNomLongs) ? ThetaUtil.RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
-    return (int) Math.floor(fraction * (1 << lgArrLongs));
+    return (int) (fraction * (1 << lgArrLongs));
   }
 
 }
