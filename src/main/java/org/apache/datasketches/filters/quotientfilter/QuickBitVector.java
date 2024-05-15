@@ -166,6 +166,7 @@ public class QuickBitVector extends Object {
     /**
      * Constructs a low level bitvector that holds size elements, with each element taking bitsPerElement bits.
      * CD. THIS METHOD ESSENTIALLY ROUNDS TO THE NEXT MULTIPLE OF 64 BITS.
+     * This function gets the smallest number of longs that stores the requisite bits.
      * @param     size   the number of elements to be stored in the bitvector (must be &ge; 0).
      * @param     bitsPerElement   the number of bits one single element takes.
      * @return    a low level bitvector.
@@ -180,7 +181,6 @@ public class QuickBitVector extends Object {
         //System.out.println("Safe Right shift " + safe_right_shift);
         int unitIndex = (int)((nBits-1) >> ADDRESS_BITS_PER_UNIT); // How many multiples of 64 bits do we need to store nBits bits?
         //System.out.println(ADDRESS_BITS_PER_UNIT);
-        //System.out.println("unitIndex " + unitIndex);
         long[] bitVector = new long[unitIndex + 1];
         //System.out.println("length " + bitVector.length);
         //System.out.println("Total bits: " + (bitVector.length * 64));
@@ -223,17 +223,22 @@ public class QuickBitVector extends Object {
      * pows[i] has bits [0..i-1] set.
      * pows[64] == -1L == ~0L == has all 64 bits set : correct.
      * to speedup calculations in subsequent methods.
+     * Output: -1, 2^63-1, 2^62-1, ..., 2^1-1.
      */
+
     private static long[] precomputePows() {
         long[] pows=new long[BITS_PER_UNIT+1];
         long value = ~0L;
+
+        // decrement i before executing the loop and only enter loop if the decremented value is at least 1.
+        // this means that the loop starts at i = 64 and iterates down to i = 1.
         for (int i=BITS_PER_UNIT+1; --i >= 1; ) {
             pows[i]=value >>> (BITS_PER_UNIT-i);
-            //System.out.println((i)+":"+pows[i]);
         }
         pows[0]=0L;
         return pows;
     }
+
     /**
      * Sets the bit with index bitIndex in the bitvector bits to the state specified by value.
      *
@@ -247,12 +252,19 @@ public class QuickBitVector extends Object {
         else
             clear(bits, bitIndex);
     }
+
     /**
      * Sets bits of a bitvector from index <code>from</code> to index <code>to</code> to the bits of <code>value</code>.
      * Bit <code>from</code> is set to bit 0 of <code>value</code>, ..., bit <code>to</code> is set to bit <code>to-from</code> of <code>value</code>.
      * All other bits stay unaffected.
      * If from &gt; to then does nothing.
      * Precondition (not checked): to-from+1 &le; 64.
+     *
+     * this function is equivalent to the slower code below:
+     * 	int fromIndex=from/BITS_PER_UNIT;
+     * 	int toIndex=to/BITS_PER_UNIT;
+     * 	int fromOffset=from%BITS_PER_UNIT;
+     * 	int toOffset=to%BITS_PER_UNIT;
      *
      * @param bits the bitvector.
      * @param value the value to be copied into the bitvector.
@@ -264,15 +276,8 @@ public class QuickBitVector extends Object {
 
         final int fromIndex=(int)(from >> ADDRESS_BITS_PER_UNIT); //equivalent to from/64
         final int toIndex=(int)(to >> ADDRESS_BITS_PER_UNIT);
-        final int fromOffset=(int)(from & BIT_INDEX_MASK); //equivalent to from%64
+        final int fromOffset=(int)(from & BIT_INDEX_MASK); //equivalent to from % 64
         final int toOffset=(int)(to & BIT_INDEX_MASK);
-	/*
-	this is equivalent to the above, but slower:
-	int fromIndex=from/BITS_PER_UNIT;
-	int toIndex=to/BITS_PER_UNIT;
-	int fromOffset=from%BITS_PER_UNIT;
-	int toOffset=to%BITS_PER_UNIT;
-	*/
 
         //make sure all unused bits to the left are cleared.
         long mask;
@@ -300,6 +305,7 @@ public class QuickBitVector extends Object {
         mask=bitMaskWithBitsSetFromTo(0, toOffset);
         bits[toIndex] = (bits[toIndex] & (~mask)) | shiftedValue;
     }
+
     /**
      * Changes the bit with index bitIndex in the bitvector bits to the "set" (true) state.
      *
@@ -309,6 +315,7 @@ public class QuickBitVector extends Object {
     public static void set(long[] bits, long bitIndex) {
         bits[(int)(bitIndex >> ADDRESS_BITS_PER_UNIT)] |= 1L << (bitIndex & BIT_INDEX_MASK);
     }
+
     /**
      * Returns the index of the unit that contains the given bitIndex.
      *
