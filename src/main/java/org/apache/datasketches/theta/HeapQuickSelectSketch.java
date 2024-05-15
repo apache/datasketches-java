@@ -92,7 +92,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     }
 
     lgArrLongs_ = ThetaUtil.startingSubMultiple(lgNomLongs + 1, rf.lg(), ThetaUtil.MIN_LG_ARR_LONGS);
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs_);
+    hashTableThreshold_ = getHashTableThreshold(lgNomLongs, lgArrLongs_);
     curCount_ = 0;
     thetaLong_ = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
     empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false;
@@ -128,7 +128,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, memRF,
         preambleLongs, family);
     hqss.lgArrLongs_ = lgArrLongs;
-    hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    hqss.hashTableThreshold_ = getHashTableThreshold(lgNomLongs, lgArrLongs);
     hqss.curCount_ = extractCurCount(srcMem);
     hqss.thetaLong_ = extractThetaLong(srcMem);
     hqss.empty_ = PreambleUtil.isEmptyFlag(srcMem);
@@ -197,7 +197,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
       cache_ = new long[1 << lgArrLongsSM];
       lgArrLongs_ = lgArrLongsSM;
     }
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+    hashTableThreshold_ = getHashTableThreshold(lgNomLongs_, lgArrLongs_);
     empty_ = true;
     curCount_ = 0;
     thetaLong_ =  (long)(getP() * LONG_MAX_VALUE_AS_DOUBLE);
@@ -293,7 +293,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     curCount_ = newCount;
 
     cache_ = tgtArr;
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
+    hashTableThreshold_ = getHashTableThreshold(lgNomLongs_, lgArrLongs_);
   }
 
   //array stays the same size. Changes theta and thus count
@@ -318,7 +318,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * @return the hash table threshold
    */
-  static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
+  private static final int getHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
     final double fraction = (lgArrLongs <= lgNomLongs) ? ThetaUtil.RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }

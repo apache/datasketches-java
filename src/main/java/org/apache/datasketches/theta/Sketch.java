@@ -308,14 +308,14 @@ public abstract class Sketch {
 
   /**
    * Returns the maximum number of storage bytes required for a CompactSketch given the configured
-   * number of nominal entries (power of 2).
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
+   * log_base2 of the number of nominal entries, which is a power of 2.
+   * @param lgNomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * @return the maximum number of storage bytes required for a CompactSketch with the given
    * nomEntries.
    */
-  public static int getCompactSketchMaxBytes(final int nomEntries) {
-    final int nomEnt = ceilingPowerOf2(nomEntries);
-    return ((nomEnt << 4) * 15) / 16 + (Family.QUICKSELECT.getMaxPreLongs() << 3);
+  public static int getCompactSketchMaxBytes(final int lgNomEntries) {
+    return (int)((2 << lgNomEntries) * ThetaUtil.REBUILD_THRESHOLD)
+        + Family.QUICKSELECT.getMaxPreLongs() * Long.BYTES;
   }
 
   /**

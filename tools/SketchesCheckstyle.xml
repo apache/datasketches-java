@@ -36,18 +36,17 @@ under the License.
   <property name="charset" value="UTF-8"/>
   <property name="severity" value="warning"/>
   <property name="fileExtensions" value="java"/>
+  <property name="basedir" value="${basedir}"/>
 
+  <!-- Exclude all module-info.java files 
+       https://checkstyle.org/filefilters/beforeexecutionexclusionfilefilter.html#BeforeExecutionExclusionFileFilter -->
   <module name="BeforeExecutionExclusionFileFilter">
-    <property name="fileNamePattern" value="src[\\/]test[\\/]java[\\/].+$|module\-info\.java.+$"/>
+    <property name="fileNamePattern" value="module\-info\.java$"/>
   </module>
-  
-  <!-- Be able to ignore violations with @SuppressWarnings -->
-  <!-- See https://checkstyle.org/config_filters.html#SuppressWarningsFilter -->
-  <module name="SuppressWarningsFilter"/>
-  
-  <module name="SuppressionFilter">
-    <property name="file" value="${config_loc}/suppressions.xml"/>
-    <property name="optional" value="false"/>
+
+  <!-- Exclude all src/test/... files -->
+  <module name="BeforeExecutionExclusionFileFilter">
+    <property name="fileNamePattern" value=".*[\\/]src[\\/]test[\\/].*$"/>
   </module>
 
   <module name="FileTabCharacter">
@@ -77,7 +76,18 @@ under the License.
   <!-- ******************************************************** -->
   
   <module name="TreeWalker">
-    
+
+    <!-- Be able to ignore violations with @SuppressWarnings -->
+    <!-- See https://checkstyle.org/filters/suppresswarningsfilter.html -->
+    <module name="SuppressWarningsHolder"/>
+  
+    <!--
+      <module name="SuppressionFilter">
+      <property name="file" value="basedir/tools/suppressions.xml"/>
+      <property name="optional" value="false"/>
+      </module>
+    -->
+
     <!-- Annotations -->
     <module name="AnnotationLocation">
       <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF"/>
