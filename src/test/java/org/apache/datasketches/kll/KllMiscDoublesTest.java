@@ -100,8 +100,8 @@ public class KllMiscDoublesTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyExceptions3() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
-    sk.update(1.0f);
-    sk.update(2.0f);
+    sk.update(1.0);
+    sk.update(2.0);
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     wmem.putByte(0, (byte) 1); //corrupt preamble ints, should be 5
     KllDoublesSketch.heapify(wmem);

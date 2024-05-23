@@ -165,8 +165,8 @@ public class KllDoublesSketchTest {
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
 
-    assertEquals(sketch.getMinItem(), 0f); // min value is exact
-    assertEquals(sketch.getMaxItem(), n - 1f); // max value is exact
+    assertEquals(sketch.getMinItem(), 0.0); // min value is exact
+    assertEquals(sketch.getMaxItem(), n - 1.0); // max value is exact
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
@@ -261,11 +261,11 @@ public class KllDoublesSketchTest {
       sketch2.update(2 * n - i - 1);
     }
 
-    assertEquals(sketch1.getMinItem(), 0.0f);
-    assertEquals(sketch1.getMaxItem(), n - 1f);
+    assertEquals(sketch1.getMinItem(), 0.0);
+    assertEquals(sketch1.getMaxItem(), n - 1);
 
     assertEquals(sketch2.getMinItem(), n);
-    assertEquals(sketch2.getMaxItem(), 2f * n - 1.0);
+    assertEquals(sketch2.getMaxItem(), 2.0 * n - 1.0);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
     assertTrue(sketch1.getNormalizedRankError(true) < sketch2.getNormalizedRankError(true));
@@ -306,7 +306,7 @@ public class KllDoublesSketchTest {
     sketch2.merge(sketch1);
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinItem(), 0f);
+    assertEquals(sketch1.getMinItem(), 0.0);
     assertEquals(sketch1.getMaxItem(), n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n / 2.0, n * PMF_EPS_FOR_K_256);
   }

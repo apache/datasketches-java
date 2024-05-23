@@ -116,7 +116,7 @@ public class KllDirectCompactLongsSketchTest {
     sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));
     itemsArr = sk2.getLongItemsArray();
     for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0); }
-    assertEquals(itemsArr[19], 1F);
+    assertEquals(itemsArr[19], 1L);
 
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));

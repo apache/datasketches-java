@@ -44,7 +44,7 @@ public class KllLongsSketchIteratorTest {
     sketch.update(1);
     QuantilesLongsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getQuantile(), 1.0f);
+    Assert.assertEquals(it.getQuantile(), 1L);
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }
@@ -57,12 +57,12 @@ public class KllLongsSketchIteratorTest {
     QuantilesLongsSketchIterator itr = sketch.iterator();
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 2.0f);
+    assertEquals(itr.getQuantile(), 2L);
     assertEquals(itr.getWeight(), 1);
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 1.0f);
+    assertEquals(itr.getQuantile(), 1L);
     assertEquals(itr.getWeight(), 1);
   }
 
@@ -75,7 +75,7 @@ public class KllLongsSketchIteratorTest {
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 1.0f);
+    assertEquals(itr.getQuantile(), 1L);
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getNaturalRank(EXCLUSIVE), 0);
     assertEquals(itr.getNaturalRank(INCLUSIVE), 1);
@@ -84,7 +84,7 @@ public class KllLongsSketchIteratorTest {
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 2.0f);
+    assertEquals(itr.getQuantile(), 2L);
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getNaturalRank(EXCLUSIVE), 1);
     assertEquals(itr.getNaturalRank(INCLUSIVE), 2);

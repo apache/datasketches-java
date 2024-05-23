@@ -110,13 +110,13 @@ public class KllDirectCompactDoublesSketchTest {
 
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     double[] itemsArr = sk2.getDoubleItemsArray();
-    for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0F); }
+    for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0.0); }
 
     sk.update(1);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     itemsArr = sk2.getDoubleItemsArray();
-    for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0F); }
-    assertEquals(itemsArr[19], 1F);
+    for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0.0); }
+    assertEquals(itemsArr[19], 1.0);
 
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
@@ -169,12 +169,12 @@ public class KllDirectCompactDoublesSketchTest {
     try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     sk.update(1);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxItem(),1.0F);
-    assertEquals(sk2.getMinItem(),1.0F);
+    assertEquals(sk2.getMaxItem(),1.0);
+    assertEquals(sk2.getMinItem(),1.0);
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxItem(),21.0F);
-    assertEquals(sk2.getMinItem(),1.0F);
+    assertEquals(sk2.getMaxItem(),21.0);
+    assertEquals(sk2.getMinItem(),1.0);
   }
 
   @Test

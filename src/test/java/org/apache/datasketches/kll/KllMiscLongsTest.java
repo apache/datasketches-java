@@ -750,7 +750,7 @@ public class KllMiscLongsTest {
     KllLongsSketch skHeap = KllLongsSketch.newHeapInstance(k);
     skHeap.update(1);
     assertTrue(skHeap instanceof KllHeapLongsSketch);
-    assertEquals(skHeap.getLongSingleItem(), 1.0F);
+    assertEquals(skHeap.getLongSingleItem(), 1L);
 
     WritableMemory srcMem = WritableMemory.writableWrap(KllHelper.toByteArray(skHeap, true));
     KllLongsSketch skDirect = KllLongsSketch.writableWrap(srcMem, memReqSvr);

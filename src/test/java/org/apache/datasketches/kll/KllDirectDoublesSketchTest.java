@@ -189,11 +189,11 @@ public class KllDirectDoublesSketchTest {
       sketch2.update(2 * n - i - 1);
     }
 
-    assertEquals(sketch1.getMinItem(), 0.0f);
-    assertEquals(sketch1.getMaxItem(), n - 1f);
+    assertEquals(sketch1.getMinItem(), 0.0);
+    assertEquals(sketch1.getMaxItem(), n - 1.0);
 
     assertEquals(sketch2.getMinItem(), n);
-    assertEquals(sketch2.getMaxItem(), 2f * n - 1f);
+    assertEquals(sketch2.getMaxItem(), 2.0 * n - 1.0);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
     assertTrue(sketch1.getNormalizedRankError(true) < sketch2.getNormalizedRankError(true));
@@ -613,7 +613,7 @@ public class KllDirectDoublesSketchTest {
   public void checkReadOnlyExceptions() {
     int k = 20;
     double[] dblArr = new double[0];
-    double dblV = 1.0f;
+    double dblV = 1.0;
     int idx = 1;
     boolean bool = true;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);

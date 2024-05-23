@@ -384,8 +384,8 @@ public class KllMiscDirectLongsTest {
     println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
-    assertEquals(sk1.getMaxItem(), 121.0F);
-    assertEquals(sk1.getMinItem(), 1.0F);
+    assertEquals(sk1.getMaxItem(), 121L);
+    assertEquals(sk1.getMinItem(), 1L);
   }
 
   @Test
