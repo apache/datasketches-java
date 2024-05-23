@@ -54,7 +54,7 @@ public class QuotientFilterTest {
         qf.insert(C, 1, false);
         qf.insert(D, 2, false);
         qf.insert(A, 1, false);
-        assertEquals(qf.num_existing_entries, 6);
+        assertEquals(qf.get_num_entries(), 6);
 
         assertEquals(getState(qf, 0), 0);
         assertEquals(qf.get_fingerprint(0), 0);
