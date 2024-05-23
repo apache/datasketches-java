@@ -74,8 +74,8 @@ public class KllDoublesSketchSerDeTest {
     assertEquals(sk2.getNumRetained(), 1);
     assertEquals(sk2.getN(), 1);
     assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
-    assertEquals(sk2.getMinItem(), 1.0);
-    assertEquals(sk2.getMaxItem(), 1.0);
+    assertEquals(sk2.getMinItem(), 1L);
+    assertEquals(sk2.getMaxItem(), 1L);
     assertEquals(sk2.getSerializedSizeBytes(), Long.BYTES + Double.BYTES);
 
     //from heap -> byte[] -> off heap
@@ -84,8 +84,8 @@ public class KllDoublesSketchSerDeTest {
     assertEquals(sk3.getNumRetained(), 1);
     assertEquals(sk3.getN(), 1);
     assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
-    assertEquals(sk3.getMinItem(), 1.0);
-    assertEquals(sk3.getMaxItem(), 1.0);
+    assertEquals(sk3.getMinItem(), 1L);
+    assertEquals(sk3.getMaxItem(), 1L);
     assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
     //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
     final byte[] bytes2 = sk3.toByteArray();
@@ -99,8 +99,8 @@ public class KllDoublesSketchSerDeTest {
     for (int i = 0; i < n; i++) {
       sk1.update(i);
     }
-    assertEquals(sk1.getMinItem(), 0.0);
-    assertEquals(sk1.getMaxItem(), 999.0);
+    assertEquals(sk1.getMinItem(), 0);
+    assertEquals(sk1.getMaxItem(), 999L);
 
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();

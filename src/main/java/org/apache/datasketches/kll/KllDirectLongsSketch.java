@@ -19,17 +19,36 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryM;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
+import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
-
-import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
-import static org.apache.datasketches.kll.KllPreambleUtil.*;
-import static org.apache.datasketches.kll.KllSketch.SketchStructure.*;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 
 /**
  * This class implements an off-heap, updatable KllLongsSketch using WritableMemory.
@@ -101,7 +120,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
 
   @Override
   String getItemAsString(final int index) {
-    if (isEmpty()) { return "NaN"; }
+    if (isEmpty()) { return "Null"; }
     return Long.toString(getLongItemsArray()[index]);
   }
 
@@ -111,7 +130,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
   }
 
   //MinMax Methods
-  
+
   @Override
   public long getMaxItem() {
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
@@ -129,7 +148,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
     return wmem.getLong(offset);
   }
-  
+
   @Override
   String getMaxItemAsString() {
     final long maxItem = getMaxItemInternal();
@@ -173,9 +192,9 @@ class KllDirectLongsSketch extends KllLongsSketch {
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
     wmem.putLong(offset, item);
   }
-  
+
   //END MinMax Methods
-  
+
   @Override
   public long getN() {
     if (sketchStructure == COMPACT_EMPTY) { return 0; }
@@ -329,7 +348,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
     wmem.putLongArray(offset, items, srcOffset, length);
   }
-  
+
   @Override
   void setLevelZeroSorted(final boolean sorted) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }

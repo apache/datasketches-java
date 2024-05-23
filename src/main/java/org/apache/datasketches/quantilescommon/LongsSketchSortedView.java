@@ -19,16 +19,16 @@
 
 package org.apache.datasketches.quantilescommon;
 
-import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.quantilescommon.IncludeMinMax.LongsPair;
-
-import static org.apache.datasketches.quantilescommon.IncludeMinMax.DoublesPair;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.quantilescommon.IncludeMinMax.LongsPair;
+
 /**
  * The SortedView of the KllLongsSketch.
+ * @author Lee Rhodes
  * @author Zac Blanco
  */
 public final class LongsSketchSortedView implements LongsSortedView {

@@ -31,7 +31,10 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.*;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 
 import java.util.Arrays;
 import java.util.Random;

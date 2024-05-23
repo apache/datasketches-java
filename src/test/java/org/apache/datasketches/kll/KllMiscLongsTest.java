@@ -230,11 +230,11 @@ public class KllMiscLongsTest {
     while (itr.next()) {
       long v = itr.getQuantile();
       long wt = itr.getWeight();
-      printf("%6d %12.1f %12d" + LS, i, v, wt);
+      printf("%6d %12d %12d" + LS, i, v, wt);
       i++;
     }
-    assertEquals(sv.getMinItem(), 1.0F);
-    assertEquals(sv.getMaxItem(), n * 1.0F);
+    assertEquals(sv.getMinItem(), 1L);
+    assertEquals(sv.getMaxItem(), n);
   }
 
   @Test //set static enablePrinting = true for visual checking
@@ -273,12 +273,12 @@ public class KllMiscLongsTest {
     printf("%12s %12s %12s" + LS, "Value", "Weight", "NaturalRank");
     long cumWt = 0;
     while (itr.next()) {
-      double v = itr.getQuantile();
+      long v = itr.getQuantile();
       long wt = itr.getWeight();
       long natRank = itr.getNaturalRank(INCLUSIVE);
       cumWt += wt;
       assertEquals(cumWt, natRank);
-      printf("%12.1f %12d %12d" + LS, v, wt, natRank);
+      printf("%12d %12d %12d" + LS, v, wt, natRank);
     }
     assertEquals(cumWt, sk.getN());
   }
@@ -296,7 +296,7 @@ public class KllMiscLongsTest {
   private static void outputItems(long[] itemsArr) {
     String[] hdr2 = {"Index", "Value"};
     String hdr2fmt = "%6s %15s" + LS;
-    String d2fmt = "%6d %15f" + LS;
+    String d2fmt = "%6d %15d" + LS;
     println("ItemsArr");
     printf(hdr2fmt, (Object[]) hdr2);
     for (int i = 0; i < itemsArr.length; i++) {
@@ -354,20 +354,20 @@ public class KllMiscLongsTest {
     public void checkIntCapAux() {
       String[] hdr = {"level", "depth", "wt", "cap", "(end)", "MaxN"};
       String hdrFmt =  "%6s %6s %28s %10s %10s %34s" + LS;
-      String dataFmt = "%6d %6d %,28d %,10d %,10d %,34.0f" + LS;
+      String dataFmt = "%6d %6d %,28d %,10d %,10d %,34d" + LS;
       int k = 1000;
       int m = 8;
       int numLevels = 20;
       println("k=" + k + ", m=" + m + ", numLevels=" + numLevels);
       printf(hdrFmt, (Object[]) hdr);
-      double maxN = 0;
-      double[] correct = {0,1,1,2,2,3,5,8,12,17,26,39,59,88,132,198,296,444,667,1000};
+      long maxN = 0;
+      long[] correct = {0,1,1,2,2,3,5,8,12,17,26,39,59,88,132,198,296,444,667,1000};
       for (int i = 0; i < numLevels; i++) {
         int depth = numLevels - i - 1;
         long cap = KllHelper.intCapAux(k, depth);
         long end = Math.max(m, cap);
         long wt = 1L << i;
-        maxN += (double)wt * (double)end;
+        maxN += wt * end;
         printf(dataFmt, i, depth, wt, cap, end, maxN);
         assertEquals(cap, correct[i]);
       }
@@ -411,7 +411,7 @@ public class KllMiscLongsTest {
     int k = 20; //don't change this
     KllLongsSketch sk;
 
-    println("#### CASE: FLOAT FULL HEAP");
+    println("#### CASE: LONG FULL HEAP");
     sk = KllLongsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     println(sk.toString(true, true));
@@ -423,12 +423,12 @@ public class KllMiscLongsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getLongItemsArray().length, 33);
     assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 3);
-    assertEquals(sk.getMaxItem(), 21.0F);
-    assertEquals(sk.getMinItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 21L);
+    assertEquals(sk.getMinItem(), 1L);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: FLOAT HEAP EMPTY");
+    println("#### CASE: LONG HEAP EMPTY");
     sk = KllLongsSketch.newHeapInstance(k);
     println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
@@ -444,7 +444,7 @@ public class KllMiscLongsTest {
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: FLOAT HEAP SINGLE");
+    println("#### CASE: LONG HEAP SINGLE");
     sk = KllLongsSketch.newHeapInstance(k);
     sk.update(1);
     println(sk.toString(true, true));
@@ -456,8 +456,8 @@ public class KllMiscLongsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getLongItemsArray().length, 20);
     assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
-    assertEquals(sk.getMaxItem(), 1.0F);
-    assertEquals(sk.getMinItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 1L);
+    assertEquals(sk.getMinItem(), 1L);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -527,8 +527,8 @@ public class KllMiscLongsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getLongItemsArray().length, 20);
     assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
-    assertEquals(sk.getMaxItem(), 1.0F);
-    assertEquals(sk.getMinItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 1L);
+    assertEquals(sk.getMinItem(), 1L);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -597,8 +597,8 @@ public class KllMiscLongsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getLongItemsArray().length, 20);
     assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
-    assertEquals(sk.getMaxItem(), 1.0F);
-    assertEquals(sk.getMinItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 1L);
+    assertEquals(sk.getMinItem(), 1L);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -740,8 +740,8 @@ public class KllMiscLongsTest {
       sk2.update(i + 100);
     }
     sk1.merge(sk2);
-    assertEquals(sk1.getMinItem(), 1.0);
-    assertEquals(sk1.getMaxItem(), 143.0);
+    assertEquals(sk1.getMinItem(), 1L);
+    assertEquals(sk1.getMaxItem(), 143L);
   }
 
   @Test
@@ -755,12 +755,12 @@ public class KllMiscLongsTest {
     WritableMemory srcMem = WritableMemory.writableWrap(KllHelper.toByteArray(skHeap, true));
     KllLongsSketch skDirect = KllLongsSketch.writableWrap(srcMem, memReqSvr);
     assertTrue(skDirect instanceof KllDirectLongsSketch);
-    assertEquals(skDirect.getLongSingleItem(), 1.0F);
+    assertEquals(skDirect.getLongSingleItem(), 1L);
 
     Memory srcMem2 = Memory.wrap(skHeap.toByteArray());
     KllLongsSketch skCompact = KllLongsSketch.wrap(srcMem2);
     assertTrue(skCompact instanceof KllDirectCompactLongsSketch);
-    assertEquals(skCompact.getLongSingleItem(), 1.0F);
+    assertEquals(skCompact.getLongSingleItem(), 1L);
   }
 
   @Test

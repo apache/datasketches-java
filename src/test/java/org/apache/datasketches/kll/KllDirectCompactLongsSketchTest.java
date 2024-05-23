@@ -19,17 +19,17 @@
 
 package org.apache.datasketches.kll;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDirectLongsSketch.KllDirectCompactLongsSketch;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 public class KllDirectCompactLongsSketchTest {
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
@@ -46,8 +46,8 @@ public class KllDirectCompactLongsSketchTest {
 
     assertTrue(sk2.isMemoryUpdatableFormat());
     assertTrue(sk2.isReadOnly());
-    assertEquals(sk2.getMinItem(), 1.0F);
-    assertEquals(sk2.getMaxItem(), 21.0F);
+    assertEquals(sk2.getMinItem(), 1L);
+    assertEquals(sk2.getMaxItem(), 21L);
 
     WritableMemory srcWmem = WritableMemory.writableWrap(byteArr);
     KllLongsSketch sk3 = KllLongsSketch.writableWrap(srcWmem, memReqSvr);
@@ -55,8 +55,8 @@ public class KllDirectCompactLongsSketchTest {
     println(sk3.toString(true, false));
     assertFalse(sk3.isReadOnly());
     sk3.update(22);
-    assertEquals(sk2.getMinItem(), 1.0F);
-    assertEquals(sk2.getMaxItem(), 22.0F);
+    assertEquals(sk2.getMinItem(), 1L);
+    assertEquals(sk2.getMaxItem(), 22L);
   }
 
   @Test
@@ -70,16 +70,16 @@ public class KllDirectCompactLongsSketchTest {
     //println(sk2.toString(true, false));
     assertFalse(sk2.isMemoryUpdatableFormat());
     assertTrue(sk2.isReadOnly());
-    assertEquals(sk2.getMinItem(), 1.0F);
-    assertEquals(sk2.getMaxItem(), 21.0F);
+    assertEquals(sk2.getMinItem(), 1L);
+    assertEquals(sk2.getMaxItem(), 21L);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
     KllLongsSketch sk3 = KllLongsSketch.writableWrap((WritableMemory)srcMem2, memReqSvr);
     assertTrue(sk3 instanceof KllDirectCompactLongsSketch);
     assertFalse(sk2.isMemoryUpdatableFormat());
     //println(sk3.toString(true, false));
     assertTrue(sk3.isReadOnly());
-    assertEquals(sk3.getMinItem(), 1.0F);
-    assertEquals(sk3.getMaxItem(), 21.0F);
+    assertEquals(sk3.getMinItem(), 1L);
+    assertEquals(sk3.getMaxItem(), 21L);
   }
 
   @Test
@@ -92,7 +92,7 @@ public class KllDirectCompactLongsSketchTest {
     assertTrue(sk2 instanceof KllDirectCompactLongsSketch);
     //println(sk2.toString(true, false));
     assertTrue(sk2.isReadOnly());
-    assertEquals(sk2.getLongSingleItem(), 1.0F);
+    assertEquals(sk2.getLongSingleItem(), 1L);
 
     sk.update(2);
     sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));
@@ -110,12 +110,12 @@ public class KllDirectCompactLongsSketchTest {
 
     KllLongsSketch sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));
     long[] itemsArr = sk2.getLongItemsArray();
-    for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0F); }
+    for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0); }
 
     sk.update(1);
     sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));
     itemsArr = sk2.getLongItemsArray();
-    for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0F); }
+    for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0); }
     assertEquals(itemsArr[19], 1F);
 
     for (int i = 2; i <= 21; i++) { sk.update(i); }
@@ -142,13 +142,13 @@ public class KllDirectCompactLongsSketchTest {
     retArr = sk.getLongRetainedItemsArray();
     assertEquals(retArr.length, sk.getNumRetained());
     assertEquals(retArr.length, 1);
-    assertEquals(retArr[0], 1f);
+    assertEquals(retArr[0], 1L);
 
     sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));
     retArr = sk2.getLongRetainedItemsArray();
     assertEquals(retArr.length, sk.getNumRetained());
     assertEquals(retArr.length, 1);
-    assertEquals(retArr[0], 1f);
+    assertEquals(retArr[0], 1L);
 
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     retArr = sk.getLongRetainedItemsArray();
@@ -169,12 +169,12 @@ public class KllDirectCompactLongsSketchTest {
     try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     sk.update(1);
     sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxItem(),1.0F);
-    assertEquals(sk2.getMinItem(),1.0F);
+    assertEquals(sk2.getMaxItem(),1L);
+    assertEquals(sk2.getMinItem(),1L);
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllLongsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxItem(),21.0F);
-    assertEquals(sk2.getMinItem(),1.0F);
+    assertEquals(sk2.getMaxItem(),21L);
+    assertEquals(sk2.getMinItem(),1L);
   }
 
   @Test
@@ -182,8 +182,8 @@ public class KllDirectCompactLongsSketchTest {
     KllLongsSketch sk1 = KllLongsSketch.newHeapInstance();
     for (int i = 1; i <= 1000; i++) { sk1.update(i); }
     KllLongsSketch sk2 = KllLongsSketch.wrap(Memory.wrap(sk1.toByteArray()));
-    double med2 = sk2.getQuantile(0.5);
-    double med1 = sk1.getQuantile(0.5);
+    long med2 = sk2.getQuantile(0.5);
+    long med1 = sk1.getQuantile(0.5);
     assertEquals(med1, med2);
     println("Med1: " + med1);
     println("Med2: " + med2);

@@ -19,16 +19,8 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.quantilescommon.LongsSortedView;
-import org.apache.datasketches.quantilescommon.LongsSortedViewIterator;
-import org.testng.annotations.Test;
-
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -36,6 +28,14 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.LongsSortedView;
+import org.apache.datasketches.quantilescommon.LongsSortedViewIterator;
+import org.testng.annotations.Test;
 
 public class KllLongsSketchTest {
   private static final String LS = System.getProperty("line.separator");
@@ -89,8 +89,8 @@ public class KllLongsSketchTest {
     assertEquals(sketch.getRank(0L, INCLUSIVE), 0.0);
     assertEquals(sketch.getRank(1L, INCLUSIVE), 1.0);
     assertEquals(sketch.getRank(2L, INCLUSIVE), 1.0);
-    assertEquals(sketch.getMinItem(), 1.0);
-    assertEquals(sketch.getMaxItem(), 1.0);
+    assertEquals(sketch.getMinItem(), 1L);
+    assertEquals(sketch.getMaxItem(), 1L);
     assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 1L);
     assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 1L);
   }
@@ -164,8 +164,8 @@ public class KllLongsSketchTest {
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
 
-    assertEquals(sketch.getMinItem(), 0f); // min value is exact
-    assertEquals(sketch.getMaxItem(), n - 1f); // max value is exact
+    assertEquals(sketch.getMinItem(), 0); // min value is exact
+    assertEquals(sketch.getMaxItem(), n - 1); // max value is exact
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
@@ -235,19 +235,19 @@ public class KllLongsSketchTest {
       sketch2.update(2 * n - i - 1);
     }
 
-    assertEquals(sketch1.getMinItem(), 0.0);
-    assertEquals(sketch1.getMaxItem(), (n - 1) * 1.0);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), (n - 1));
 
-    assertEquals(sketch2.getMinItem(), n * 1.0);
-    assertEquals(sketch2.getMaxItem(), (2 * n - 1) * 1.0);
+    assertEquals(sketch2.getMinItem(), n);
+    assertEquals(sketch2.getMaxItem(), (2 * n - 1));
 
     sketch1.merge(sketch2);
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2L * n);
-    assertEquals(sketch1.getMinItem(), 0.0);
-    assertEquals(sketch1.getMaxItem(), (2 * n - 1) * 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n * 1.0, 2 * n * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), (2 * n - 1));
+    assertEquals(sketch1.getQuantile(0.5), n, 2 * n * PMF_EPS_FOR_K_256);
   }
 
   @Test
@@ -260,11 +260,11 @@ public class KllLongsSketchTest {
       sketch2.update(2 * n - i - 1);
     }
 
-    assertEquals(sketch1.getMinItem(), 0.0f);
-    assertEquals(sketch1.getMaxItem(), n - 1f);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), n - 1L);
 
     assertEquals(sketch2.getMinItem(), n);
-    assertEquals(sketch2.getMaxItem(), 2f * n - 1.0);
+    assertEquals(sketch2.getMaxItem(), 2L * n - 1L);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
     assertTrue(sketch1.getNormalizedRankError(true) < sketch2.getNormalizedRankError(true));
@@ -276,9 +276,9 @@ public class KllLongsSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2 * n);
-    assertEquals(sketch1.getMinItem(), 0.0);
-    assertEquals(sketch1.getMaxItem(), 2.0 * n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n, 2 * n * PMF_EPS_FOR_K_128);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), 2L * n - 1L);
+    assertEquals(sketch1.getQuantile(0.5), n, 2L * n * PMF_EPS_FOR_K_128);
   }
 
   @Test
@@ -297,17 +297,17 @@ public class KllLongsSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinItem(), 0.0);
-    assertEquals(sketch1.getMaxItem(), n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), n - 1);
+    assertEquals(sketch1.getQuantile(0.5), n / 2, n * PMF_EPS_FOR_K_256);
 
     //merge the other way
     sketch2.merge(sketch1);
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinItem(), 0f);
-    assertEquals(sketch1.getMaxItem(), n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), n - 1);
+    assertEquals(sketch1.getQuantile(0.5), n / 2, n * PMF_EPS_FOR_K_256);
   }
 
   @Test
@@ -333,7 +333,7 @@ public class KllLongsSketchTest {
     sketch1.update(1);
     sketch2.update(2);
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinItem(), 1.0);
+    assertEquals(sketch2.getMinItem(), 1);
   }
 
   @Test
@@ -344,8 +344,8 @@ public class KllLongsSketchTest {
     }
     final KllLongsSketch sketch2 = KllLongsSketch.newHeapInstance(10);
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinItem(), 1.0);
-    assertEquals(sketch2.getMaxItem(), 1_000_000.0);
+    assertEquals(sketch2.getMinItem(), 1);
+    assertEquals(sketch2.getMaxItem(), 1_000_000);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -365,7 +365,7 @@ public class KllLongsSketchTest {
       sketch.update(i);
     }
     assertEquals(sketch.getK(), KllSketch.DEFAULT_M);
-    assertEquals(sketch.getQuantile(0.5), 500.0, 1000 * PMF_EPS_FOR_K_8);
+    assertEquals(sketch.getQuantile(0.5), 500, 1000 * PMF_EPS_FOR_K_8);
   }
 
   @Test
@@ -418,8 +418,8 @@ public class KllLongsSketchTest {
     catch (NullPointerException e) { }
     try { KllFloatsSketch.newDirectInstance(wmem, null); fail(); }
     catch (NullPointerException e) { }
-    int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, DOUBLES_SKETCH, true);
-    int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, DOUBLES_SKETCH, false);
+    int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, LONGS_SKETCH, true);
+    int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, LONGS_SKETCH, false);
     assertTrue(compactSize < updateSize);
   }
 
@@ -463,7 +463,7 @@ public class KllLongsSketchTest {
     long[] sp = new long[] { 10, 20, 30, 40 };
     println("SplitPoints:");
     for (int i = 0; i < sp.length; i++) {
-      printf("%10.2f", sp[i]);
+      printf("%10d", sp[i]);
     }
     println("");
     println("INCLUSIVE:");
@@ -622,8 +622,8 @@ public class KllLongsSketchTest {
     println(sk.toString(withLevels, withLevelsAndItems));
     println("");
     assertEquals(sk.getN(), 108);
-    assertEquals(sk.getMaxItem(), 108.0);
-    assertEquals(sk.getMinItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 108L);
+    assertEquals(sk.getMinItem(), 1L);
   }
 
   @Test
@@ -648,7 +648,7 @@ public class KllLongsSketchTest {
       assertEquals(totN, M * N);
       assertEquals(sketch.getMinItem(), 1L);
       assertEquals(sketch.getMaxItem(), totN);
-      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
+      assertEquals(sketch.getQuantile(0.5), totN / 2, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
     }
     final long runTime = System.nanoTime() - startTime;
     println("Vectorized Updates");
@@ -686,7 +686,7 @@ public class KllLongsSketchTest {
       assertEquals(totN, M * N);
       assertEquals(sketch.getMinItem(), 1L);
       assertEquals(sketch.getMaxItem(), totN);
-      assertEquals(sketch.getQuantile(0.5), totN / 2.0, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
+      assertEquals(sketch.getQuantile(0.5), totN / 2, totN * PMF_EPS_FOR_K_256 * 2.0); //wider tolerance
     }
     final long runTime = System.nanoTime() - startTime;
     println("Vectorized Updates");

@@ -19,19 +19,22 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
+import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
+import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.SketchStructure.*;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.MemoryRequestServer;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class implements an on-heap longs KllSketch.
@@ -159,7 +162,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
 
   @Override
   String getItemAsString(final int index) {
-    if (isEmpty()) { return "NaN"; }
+    if (isEmpty()) { return "Null"; }
     return Long.toString(longItems[index]);
   }
 
@@ -208,9 +211,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
   void setMaxItem(final long item) { this.maxLongItem = item; }
 
   @Override
-  void setMinItem(final long item) {
-      this.minLongItem = item;
-  }
+  void setMinItem(final long item) { this.minLongItem = item; }
 
   //END MinMax Methods
 

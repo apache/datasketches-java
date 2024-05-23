@@ -22,13 +22,14 @@ package org.apache.datasketches.quantilescommon;
 /**
  * The Sorted View for quantile sketches of primitive type long.
  * @see SortedView
+ * @author Lee Rhodes
  * @author Zac Blanco
  */
 public interface LongsSortedView extends SortedView {
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream
-   * as a monotonically increasing array of long ranks (or cumulative probabilities) on the interval [0.0, 1.0],
+   * as a monotonically increasing array of double ranks (or cumulative probabilities) on the interval [0.0, 1.0],
    * given a set of splitPoints.
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
@@ -56,7 +57,7 @@ public interface LongsSortedView extends SortedView {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a discrete CDF array of m+1 long ranks (or cumulative probabilities) on the interval [0.0, 1.0].
+   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
   default double[] getCDF(long[] splitPoints, QuantileSearchCriteria searchCrit) {
@@ -90,7 +91,7 @@ public interface LongsSortedView extends SortedView {
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * as an array of probability masses as longs on the interval [0.0, 1.0],
+   * as an array of probability masses as doubles on the interval [0.0, 1.0],
    * given a set of splitPoints.
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
@@ -125,7 +126,7 @@ public interface LongsSortedView extends SortedView {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a PMF array of m+1 probability masses as longs on the interval [0.0, 1.0].
+   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
   default double[] getPMF(long[] splitPoints,  QuantileSearchCriteria searchCrit) {
@@ -140,7 +141,7 @@ public interface LongsSortedView extends SortedView {
   /**
    * Gets the approximate quantile of the given normalized rank and the given search criterion.
    *
-   * @param rank the given normalized rank, a long in the range [0.0, 1.0].
+   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
    * the quantile directly corresponding to the given rank.
    * If EXCLUSIVE, he given rank includes all quantiles &lt;
@@ -172,4 +173,3 @@ public interface LongsSortedView extends SortedView {
   LongsSortedViewIterator iterator();
 
 }
-

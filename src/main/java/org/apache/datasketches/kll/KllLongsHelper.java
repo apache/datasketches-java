@@ -19,19 +19,20 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.memory.WritableMemory;
-
-import java.util.Arrays;
-import java.util.Random;
-
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
 
+import java.util.Arrays;
+import java.util.Random;
+
+import org.apache.datasketches.memory.WritableMemory;
+
 /**
  * Static methods to support KllLongsSketch
+ * @author Lee Rhodes
  * @author Zac Blanco
  */
 final class KllLongsHelper {
@@ -237,9 +238,9 @@ final class KllLongsHelper {
   }
 
   private static void mergeSortedLongArrays( //only bufC is modified
-                                             final long[] bufA, final int startA, final int lenA,
-                                             final long[] bufB, final int startB, final int lenB,
-                                             final long[] bufC, final int startC) {
+      final long[] bufA, final int startA, final int lenA,
+      final long[] bufB, final int startB, final int lenB,
+      final long[] bufC, final int startC) {
     final int lenC = lenA + lenB;
     final int limA = startA + lenA;
     final int limB = startB + lenB;
@@ -276,7 +277,7 @@ final class KllLongsHelper {
    */
   //NOTE For validation Method: Need to modify to run.
   private static void randomlyHalveDownLongs(final long[] buf, final int start, final int length,
-                                             final Random random) {
+      final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -297,7 +298,7 @@ final class KllLongsHelper {
    */
   //NOTE For validation Method: Need to modify to run.
   private static void randomlyHalveUpLongs(final long[] buf, final int start, final int length,
-                                           final Random random) {
+      final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -464,4 +465,19 @@ final class KllLongsHelper {
       }
     }
   }
+
+  /*
+   * Validation Method.
+   * The following must be enabled for use with the KllDoublesValidationTest,
+   * which is only enabled for manual testing. In addition, two Validation Methods
+   * above need to be modified.
+   */ //NOTE Validation Method: Need to uncomment to use
+  //    static int nextOffset = 0;
+  //
+  //    private static int deterministicOffset() {
+  //      final int result = nextOffset;
+  //      nextOffset = 1 - nextOffset;
+  //      return result;
+  //    }
+
 }
