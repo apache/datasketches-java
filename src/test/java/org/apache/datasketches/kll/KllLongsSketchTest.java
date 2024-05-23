@@ -416,7 +416,7 @@ public class KllLongsSketchTest {
     KllLongsSketch.newDirectInstance(wmem, memReqSvr);
     try { KllLongsSketch.newDirectInstance(null, memReqSvr); fail(); }
     catch (NullPointerException e) { }
-    try { KllFloatsSketch.newDirectInstance(wmem, null); fail(); }
+    try { KllLongsSketch.newDirectInstance(wmem, null); fail(); }
     catch (NullPointerException e) { }
     int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, LONGS_SKETCH, true);
     int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, LONGS_SKETCH, false);

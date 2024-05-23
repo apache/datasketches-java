@@ -424,7 +424,7 @@ public class KllDoublesSketchTest {
     KllDoublesSketch.newDirectInstance(wmem, memReqSvr);
     try { KllDoublesSketch.newDirectInstance(null, memReqSvr); fail(); }
     catch (NullPointerException e) { }
-    try { KllFloatsSketch.newDirectInstance(wmem, null); fail(); }
+    try { KllDoublesSketch.newDirectInstance(wmem, null); fail(); }
     catch (NullPointerException e) { }
     int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, DOUBLES_SKETCH, true);
     int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, DOUBLES_SKETCH, false);

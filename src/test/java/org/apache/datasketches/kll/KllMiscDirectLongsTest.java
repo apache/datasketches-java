@@ -335,7 +335,7 @@ public class KllMiscDirectLongsTest {
     println(s);
     assertEquals(upBytes, upBytes2);
 
-    println("#### CASE: FLOAT EMPTY UPDATABLE");
+    println("#### CASE: LONG EMPTY UPDATABLE");
     sk = getDirectLongsSketch(k, 0);
     upBytes = KllHelper.toByteArray(sk, true);
     wmem = WritableMemory.writableWrap(upBytes);
@@ -350,7 +350,7 @@ public class KllMiscDirectLongsTest {
     println(s);
     assertEquals(upBytes, upBytes2);
 
-    println("#### CASE: FLOAT SINGLE UPDATABL");
+    println("#### CASE: LONG SINGLE UPDATABL");
     sk = getDirectLongsSketch(k, 0);
     sk.update(1);
     upBytes = KllHelper.toByteArray(sk, true);
