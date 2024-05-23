@@ -26,6 +26,7 @@ import static java.lang.Math.round;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableBuffer;
@@ -126,7 +127,7 @@ class ReqSerDe {
   enum SerDeFormat { EMPTY, RAWITEMS, EXACT, ESTIMATION }
 
   private static final byte SER_VER = 1;
-  private static final byte FAMILY_ID = 17;
+  private static final byte FAMILY_ID = (byte) Family.REQ.getID();
 
   static ReqSketch heapify(final Memory mem) {
     final Buffer buff = mem.asBuffer();
