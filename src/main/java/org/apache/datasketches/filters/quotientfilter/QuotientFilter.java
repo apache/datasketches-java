@@ -171,18 +171,14 @@ public class QuotientFilter extends Filter {
     public String get_pretty_str(boolean vertical) {
         StringBuffer sbr = new StringBuffer();
 
-        long num_slots = get_num_slots();
+        long numBits = get_num_slots() * bitPerEntry;
 
-        for (long i = 0; i < filter.size(); i++) {
+        for (long i = 0; i < numBits; i++) {
             long remainder = i % bitPerEntry;
             if (remainder == 0) {
                 long slot_num = i/bitPerEntry;
                 sbr.append(" ");
                 if (vertical) {
-                    if (slot_num == num_slots) {
-                        sbr.append("\n ---------");
-                    }
-                    //sbr.append("\n" + slot_num + " ");
                     sbr.append("\n" + String.format("%-10d", slot_num) + "\t");
                 }
             }
@@ -343,9 +339,9 @@ public class QuotientFilter extends Filter {
 
     // given the start of a run, find the last slot index that still belongs to this run
     long find_run_end(long index) {
-        do {
+        while (is_continuation((index + 1) & getMask())) {
             index = (index + 1) & getMask();
-        } while(is_continuation(index));
+        }
         return index;
     }
 
@@ -451,17 +447,16 @@ public class QuotientFilter extends Filter {
         //System.out.println("Num items: " + num_entries);
         //System.out.println("Max items: " + max_entries_before_expansion);
 
-        if (index >= get_num_slots()) {
+        if (index >= get_num_slots() || num_entries == get_num_slots()) {
             return false;
         }
         boolean does_run_exist = is_occupied(index);
         if (!does_run_exist) {
-            boolean val = insert_new_run(index, long_fp);
-            return val;
+            return insert_new_run(index, long_fp);
         }
 
         long run_start_index = find_run_start(index);
-        if (does_run_exist && insert_only_if_no_match) {
+        if (insert_only_if_no_match) {
             long found_index = find_first_fingerprint_in_run(run_start_index, long_fp);
             if (found_index > -1) {
                 return false;
@@ -500,15 +495,15 @@ public class QuotientFilter extends Filter {
     }
 
     boolean delete(long fingerprint, long canonical_slot, long run_start_index, long matching_fingerprint_index) {
-        final long run_end = find_run_end(matching_fingerprint_index);
+        long run_end = find_run_end(matching_fingerprint_index);
 
         // the run has only one entry, we need to disable its is_occupied flag
         // we just remember we need to do this here, and we do it later to not interfere with counts
         boolean turn_off_occupied = run_start_index == run_end;
 
         // First thing to do is move everything else in the run back by one slot
-        for (long i = matching_fingerprint_index; i < run_end; i++) {
-            long f = get_fingerprint(i + 1);
+        for (long i = matching_fingerprint_index; i != run_end; i = (i + 1) & getMask()) {
+            long f = get_fingerprint((i + 1) & getMask());
             set_fingerprint(i, f);
         }
 
@@ -519,7 +514,7 @@ public class QuotientFilter extends Filter {
         long cluster_start = find_cluster_start(canonical_slot);
         long num_shifted_count = 0;
         long num_non_occupied = 0;
-        for (long i = cluster_start; i <= run_end; i++) {
+        for (long i = cluster_start; i != ((run_end + 1) & getMask()); i = (i + 1) & getMask()) {
             if (is_continuation(i)) {
                 num_shifted_count++;
             }
@@ -540,8 +535,7 @@ public class QuotientFilter extends Filter {
             //boolean does_next_run_exist = !is_slot_empty(run_end + 1);
             //boolean is_next_run_shifted = is_shifted(run_end + 1);
             //if (!does_next_run_exist || !is_next_run_shifted) {
-            final long next_run_start = (run_end + 1) & getMask();
-            if (is_slot_empty(next_run_start) || !is_shifted(next_run_start)) {
+            if (is_slot_empty((run_end + 1) & getMask()) || !is_shifted((run_end + 1) & getMask())) {
                 if (turn_off_occupied) {
                     // if we eliminated a run and now need to turn the is_occupied flag off, we do it at the end to not interfere in our counts
                     set_occupied(canonical_slot, false);
@@ -549,18 +543,20 @@ public class QuotientFilter extends Filter {
                 return true;
             }
 
-            final long next_run_end = find_run_end(next_run_start);
+            // we now find the start and end of the next run
+            final long next_run_start = (run_end + 1) & getMask();
+            run_end = find_run_end(next_run_start);
 
             // before we start processing the next run, we check whether the previous run we shifted is now back to its canonical slot
             // The condition num_shifted_count - num_non_occupied == 1 ensures that the run was shifted by only 1 slot, meaning it is now back in its proper place
-            if (is_occupied(run_end) && num_shifted_count - num_non_occupied == 1) {
-                set_shifted(run_end, false);
+            if (is_occupied((next_run_start - 1) & getMask()) && num_shifted_count - num_non_occupied == 1) {
+                set_shifted((next_run_start - 1) & getMask(), false);
             }
             else  {
-                set_shifted(run_end, true);
+                set_shifted((next_run_start - 1) & getMask(), true);
             }
 
-            for (long i = next_run_start; i != ((next_run_end + 1) & getMask()); i++) {
+            for (long i = next_run_start; i != ((run_end + 1) & getMask()); i = (i + 1) & getMask()) {
                 long f = get_fingerprint(i);
                 set_fingerprint((i - 1) & getMask(), f);
                 if (is_continuation(i)) {
@@ -569,7 +565,9 @@ public class QuotientFilter extends Filter {
                 if (!is_occupied(i)) {
                     num_non_occupied++;
                 }
-                num_shifted_count++;
+                if (i != next_run_start) {
+                  num_shifted_count++;
+                }
             }
             set_fingerprint(run_end, 0);
             set_shifted(run_end, false);

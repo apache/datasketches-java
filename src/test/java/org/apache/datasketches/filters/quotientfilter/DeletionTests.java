@@ -91,10 +91,9 @@ public class DeletionTests {
         qf.insert(0, 3, false);
         qf.insert(0, 3, false);
         qf.insert(0, 6, false);
-        qf.insert(0, 6, false);
+        qf.insert(0, 6, false); // these are ignored
         qf.insert(0, 6, false);
         qf.insert(0, 7, false);
-
 
         qf.delete(0, 2);
         qf.delete(0, 3);
@@ -106,9 +105,9 @@ public class DeletionTests {
         result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 4, false, false, true, 0);
         result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 5, false, true, true, 0);
         result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 6, true, false, false, 0);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 7, true, true, true, 0);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 8, false, true, true, 0);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 9, false, false, true, 0);
+        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 7, false, false, false, 0);
+//        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 8, false, true, true, 0);
+//        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 9, false, false, true, 0);
 
         assertTrue(QuotientFilterTest.check_equality(qf, result, true));
     }
