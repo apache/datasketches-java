@@ -139,8 +139,14 @@ public class QuotientFilterTest {
 
         long fp2 = 1 << fingerprint_size - 1;
         qf.insert(fp2, num_entries - 1, false);
+        assertEquals(qf.get_fingerprint(7), fp2);
+        assertEquals(getState(qf, 7), 0b100);
         qf.insert(fp2, num_entries - 1, false);
+        assertEquals(qf.get_fingerprint(0), fp2);
+        assertEquals(getState(qf, 0), 0b011);
         qf.delete(fp2, num_entries - 1);
+        assertEquals(qf.get_fingerprint(0), 0);
+        assertEquals(getState(qf, 0), 0b000);
         boolean found = qf.search(fp2, num_entries - 1);
         assertTrue(found);
     }
@@ -166,6 +172,7 @@ public class QuotientFilterTest {
         qf.insert(0, 4, false);
         qf.insert(0, 15, false); // last slot in the filter
         qf.insert(0, 16, false); // outside the bounds
+        qf.pretty_print() ;
 
         Iterator it = new Iterator(qf);
         int[] arr = new int[] {2, 3, 3, 4, 15};
