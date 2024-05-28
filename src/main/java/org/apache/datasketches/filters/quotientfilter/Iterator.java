@@ -49,7 +49,7 @@ public class Iterator  {
 
     boolean next() {
 
-        if (index == qf.get_logical_num_slots_plus_extensions()) {
+        if (index == qf.get_num_slots()) {
             return false;
         }
 
@@ -59,9 +59,9 @@ public class Iterator  {
         boolean shifted = (slot & 4) != 0;
 
 
-        while (!occupied && !continuation && !shifted && index < qf.get_logical_num_slots_plus_extensions()) {
+        while (!occupied && !continuation && !shifted && index < qf.get_num_slots()) {
             index++;
-            if (index == qf.get_logical_num_slots_plus_extensions()) {
+            if (index == qf.get_num_slots()) {
                 return false;
             }
             slot = qf.get_slot(index);
@@ -98,6 +98,5 @@ public class Iterator  {
     void print() {
         System.out.println("original slot: " + index + "  " + bucket_index);
     }
-
 
 }

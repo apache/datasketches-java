@@ -37,48 +37,47 @@ public class QuotientFilterTest {
      */
     @Test
     static public void WikiInsertionTest() {
-        int bits_per_entry = 8; // 8 bits per entry => 5 bits fingerprints, resolved internally in the filter.
+        int bits_per_entry = 6; // 6 bits per entry => 3 bits fingerprint, resolved internally in the filter.
         int num_entries_power = 3;
-        int num_entries = (int)Math.pow(2, num_entries_power);
         QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
 
-        // this test does not need different fingerprints as it is testing the slot locations and metadata bits.
-        long fingerprint0 = 0;
-        long fingerprint1 = (1 << bits_per_entry) - 1;
+        final int A = 1;
+        final int B = 2;
+        final int C = 3;
+        final int D = 4;
+        final int E = 5;
+        final int F = 6;
 
-        /*
-        The expected sketch is
-        0         	000 00000
-        1         	100 00000
-        2         	111 00000
-        3         	011 00000
-        4         	101 00000
-        5         	001 11111
-        6         	000 00000
-        7         	100 00000
-         */
-        qf.insert(fingerprint0, 1, false);
-        qf.insert(fingerprint1, 4, false); // 11111 is inserted at slot 45 but pushed to slot 5
-        qf.insert(fingerprint0, 7, false);
-        qf.insert(fingerprint0, 1, false);
-        qf.insert(fingerprint0, 2, false);
-        qf.insert(fingerprint0, 1, false);
-        assertEquals(qf.num_existing_entries, 6);
+        qf.insert(B, 1, false);
+        qf.insert(E, 4, false);
+        qf.insert(F, 7, false);
+        qf.insert(C, 1, false);
+        qf.insert(D, 2, false);
+        qf.insert(A, 1, false);
+        assertEquals(qf.get_num_entries(), 6);
 
+        assertEquals(getState(qf, 0), 0);
+        assertEquals(qf.get_fingerprint(0), 0);
+        assertEquals(getState(qf, 1), 0b100);
+        assertEquals(qf.get_fingerprint(1), B); // this run is not ordered, which is different from Wikipedia example
+        assertEquals(getState(qf, 2), 0b111);
+        assertEquals(qf.get_fingerprint(2), C);
+        assertEquals(getState(qf, 3), 0b011);
+        assertEquals(qf.get_fingerprint(3), A);
+        assertEquals(getState(qf, 4), 0b101);
+        assertEquals(qf.get_fingerprint(4), D);
+        assertEquals(getState(qf, 5), 0b001);
+        assertEquals(qf.get_fingerprint(5), E);
+        assertEquals(getState(qf, 6), 0);
+        assertEquals(qf.get_fingerprint(6), 0);
+        assertEquals(getState(qf, 7), 0b100);
+        assertEquals(qf.get_fingerprint(7), F);
+    }
 
-
-        // these are the expected resulting is_occupied, is_continuation, and is_shifted bits
-        // for all slots contiguously. We do not store the fingerprints here
-        BitSet result = new BitSet(num_entries * bits_per_entry);
-        result = set_slot_in_test(result, bits_per_entry, 0, false, false, false, fingerprint0);
-        result = set_slot_in_test(result, bits_per_entry, 1, true, false, false, fingerprint0);
-        result = set_slot_in_test(result, bits_per_entry, 2, true, true, true, fingerprint0);
-        result = set_slot_in_test(result, bits_per_entry, 3, false, true, true, fingerprint0);
-        result = set_slot_in_test(result, bits_per_entry, 4, true, false, true, fingerprint0);
-        result = set_slot_in_test(result, bits_per_entry, 5, false, false, true, fingerprint1);
-        result = set_slot_in_test(result, bits_per_entry, 6, false, false, false, fingerprint0);
-        result = set_slot_in_test(result, bits_per_entry, 7, true, false, false, fingerprint0);
-        assertTrue(check_equality(qf, result, true));
+    static public int getState(QuotientFilter filter, int slot) {
+      return (filter.is_occupied(slot) ? 1 : 0) << 2
+          | (filter.is_continuation(slot) ? 1 : 0) << 1
+          | (filter.is_shifted(slot) ? 1 : 0);
     }
 
     /*
@@ -140,8 +139,14 @@ public class QuotientFilterTest {
 
         long fp2 = 1 << fingerprint_size - 1;
         qf.insert(fp2, num_entries - 1, false);
+        assertEquals(qf.get_fingerprint(7), fp2);
+        assertEquals(getState(qf, 7), 0b100);
         qf.insert(fp2, num_entries - 1, false);
+        assertEquals(qf.get_fingerprint(0), fp2);
+        assertEquals(getState(qf, 0), 0b011);
         qf.delete(fp2, num_entries - 1);
+        assertEquals(qf.get_fingerprint(0), 0);
+        assertEquals(getState(qf, 0), 0b000);
         boolean found = qf.search(fp2, num_entries - 1);
         assertTrue(found);
     }
@@ -165,13 +170,14 @@ public class QuotientFilterTest {
         qf.insert(0, 3, false);
         qf.insert(0, 3, false);
         qf.insert(0, 4, false);
-        qf.insert(0, 23, false); // last key in the filter
-        qf.insert(0, 24, false); // outside the bounds, logical slot 14 does not exist logically, even if it might exist physically
+        qf.insert(0, 15, false); // last slot in the filter
+        qf.insert(0, 16, false); // outside the bounds
+        qf.pretty_print() ;
 
         Iterator it = new Iterator(qf);
-        int[] arr = new int[] {2, 3, 3, 4, 23};
+        int[] arr = new int[] {2, 3, 3, 4, 15};
         int arr_index = 0;
-        while (it.next()) {assertEquals(arr[arr_index++], it.bucket_index);}
+        while (it.next()) {assertEquals(it.bucket_index, arr[arr_index++]);}
     }
 
     @Test
@@ -247,7 +253,7 @@ public class QuotientFilterTest {
     }
 
     /*
-    Helper functino to test that no false negatives are returned.
+    Helper function to test that no false negatives are returned.
      */
     static public boolean test_no_false_negatives(QuotientFilter filter, int num_entries) {
         HashSet<Integer> added = new HashSet<Integer>();
@@ -273,5 +279,4 @@ public class QuotientFilterTest {
         }
         return true;
     }
-
 }
