@@ -379,14 +379,6 @@ public class QuotientFilter extends Filter {
         return existing;
     }
 
-    // finds the first empty slot after the given slot index
-    long find_first_empty_slot(long index) {
-        while (!is_slot_empty(index)) {
-            index = (index + 1) & getMask();
-        }
-        return index;
-    }
-
     // return the first slot to the right where the current run starting at the index parameter ends
     long find_new_run_location(long index) {
         if (!is_slot_empty(index)) {
@@ -399,14 +391,13 @@ public class QuotientFilter extends Filter {
     }
 
     boolean insert_new_run(long canonical_slot, long long_fp) {
-        long first_empty_slot = find_first_empty_slot(canonical_slot); // finds the first empty slot to the right of the canonical slot that is empty
         long preexisting_run_start_index = find_run_start(canonical_slot); // scans the cluster leftwards and then to the right until reaching our run's would be location
         long start_of_this_new_run = find_new_run_location(preexisting_run_start_index); // If there is already a run at the would-be location, find its end and insert the new run after it
         boolean slot_initially_empty = is_slot_empty(start_of_this_new_run);
 
         // modify some metadata flags to mark the new run
         set_occupied(canonical_slot, true);
-        if (first_empty_slot != canonical_slot) {
+        if (start_of_this_new_run != canonical_slot) {
             set_shifted(start_of_this_new_run, true);
         }
         set_continuation(start_of_this_new_run, false);
