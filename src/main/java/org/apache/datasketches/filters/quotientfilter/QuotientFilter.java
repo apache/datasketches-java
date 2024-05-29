@@ -408,26 +408,7 @@ public class QuotientFilter extends Filter {
             num_entries++;
             return true;
         }
-
-        // push all entries one slot to the right
-        // if we inserted this run in the middle of a cluster
-        long current_index = start_of_this_new_run;
-        boolean is_this_slot_empty;
-        boolean temp_continuation = false;
-        do {
-            is_this_slot_empty = is_slot_empty(current_index);
-            long_fp = swap_fingerprints(current_index, long_fp);
-
-            if (current_index != start_of_this_new_run) {
-                set_shifted(current_index, true);
-                boolean current_continuation = is_continuation(current_index);
-                set_continuation(current_index, temp_continuation);
-                temp_continuation = current_continuation;
-            }
-            current_index = (current_index + 1) & getMask();
-        } while (!is_this_slot_empty);
-        num_entries++;
-        return true;
+        return insert_fingerprint_and_push_all_else(long_fp, start_of_this_new_run, false);
     }
 
     boolean insert(long long_fp, long index, boolean insert_only_if_no_match) {
@@ -453,14 +434,13 @@ public class QuotientFilter extends Filter {
                 return false;
             }
         }
-        return insert_fingerprint_and_push_all_else(long_fp, run_start_index);
+        return insert_fingerprint_and_push_all_else(long_fp, run_start_index, true);
     }
 
-    // insert a fingerprint as the first fingerprint of the new run and push all other entries in the cluster to the right.
-    boolean insert_fingerprint_and_push_all_else(long long_fp, long run_start_index) {
+    // insert a fingerprint as the last fingerprint of the run and push all other entries in the cluster to the right.
+    boolean insert_fingerprint_and_push_all_else(long long_fp, long run_start_index, boolean is_same_run) {
         long current_index = run_start_index;
         boolean is_this_slot_empty;
-        boolean finished_first_run = false;
         boolean temp_continuation = false;
 
         do {
@@ -468,12 +448,12 @@ public class QuotientFilter extends Filter {
             if (current_index != run_start_index) {
                 set_shifted(current_index, true);
             }
-            if (current_index != run_start_index && !finished_first_run && !is_continuation(current_index)) {
-                finished_first_run = true;
+            if (current_index != run_start_index && is_same_run && !is_continuation(current_index)) {
+              is_same_run = false;
                 set_continuation(current_index, true);
                 long_fp = swap_fingerprints(current_index, long_fp);
             }
-            else if (finished_first_run) {
+            else if (!is_same_run) {
                 boolean current_continuation = is_continuation(current_index);
                 set_continuation(current_index, temp_continuation);
                 temp_continuation = current_continuation;
