@@ -100,7 +100,7 @@ public final class BloomFilter {
       throw new SketchesArgumentException("Provided WritableMemory capacity insufficient to initialize BloomFilter");
     }
 
-    // we don't resize so initialize wizth non-empty preLongs value
+    // we don't resize so initialize with non-empty preLongs value
     // and no empty flag
     final WritableBuffer wbuf = wmem.asWritableBuffer();
     wbuf.putByte((byte) Family.BLOOMFILTER.getMaxPreLongs());
