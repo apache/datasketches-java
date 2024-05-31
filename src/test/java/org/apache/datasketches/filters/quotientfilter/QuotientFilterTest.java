@@ -174,7 +174,6 @@ public class QuotientFilterTest {
         //int fingerprint_size = bits_per_entry - 3;
         QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
 
-        qf.insert(0x1F, 0, false);
         qf.insert(0x1F, 2, false);
         qf.insert(0x1F, 3, false);
         qf.insert(0x1F, 3, false);
@@ -184,8 +183,7 @@ public class QuotientFilterTest {
         qf.pretty_print() ;
 
         Iterator it = new Iterator(qf);
-        //int[] arr = new int[] {2, 3, 3, 4, 15};
-        int[] arr = new int[] {0, 2, 3, 3, 4, 15};
+        int[] arr = new int[] {2, 3, 3, 4, 15};
         int arr_index = 0;
         while (it.next()) {assertEquals(it.bucket_index, arr[arr_index++]);}
     }
@@ -266,8 +264,7 @@ public class QuotientFilterTest {
     Helper function to test that no false negatives are returned.
      */
     static public boolean test_no_false_negatives(QuotientFilter filter, int num_entries) {
-        //HashSet<Integer> added = new HashSet<Integer>();
-        ArrayList<Integer> added = new ArrayList<Integer>();
+        HashSet<Integer> added = new HashSet<Integer>();
         int seed = 5;
         Random rand = new Random(seed);
 

@@ -27,7 +27,10 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
-  * This class holds an array of bits suitable for use in a Bloom Filter
+  * This class holds an array of bits and should be suitable for use in
+  * the various membership filters. The representation is not compressed and
+  * is designed to fit in a single array, meaning that the maximum number
+  * of bits is limited by the maximize size of an array of longs in Java.
   *
   * <p>Rounds the number of bits up to the smallest multiple of 64 (one long)
   * that is not smaller than the specified number.
