@@ -22,12 +22,20 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
 
 
 public class QuotientFilterTest {
+    // this method had been in Bitmap, but was used only to test the QuotientFilter
+    public static boolean get_fingerprint_bit(long index, long fingerprint) {
+        long mask = 1 << index;
+        long and = fingerprint & mask;
+        return and != 0;
+    }
+
     /*
      * This test is based on the example from https://en.wikipedia.org/wiki/Quotient_filter
      *  in "Algorithm Description" section.
@@ -36,7 +44,7 @@ public class QuotientFilterTest {
      * (b,1), (e,4), (f, 7), (c,1), (d,2), (a,1)
      */
     @Test
-    static public void WikiInsertionTest() {
+    public void WikiInsertionTest() {
         int bits_per_entry = 6; // 6 bits per entry => 3 bits fingerprint, resolved internally in the filter.
         int num_entries_power = 3;
         QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
@@ -74,7 +82,7 @@ public class QuotientFilterTest {
         assertEquals(qf.get_fingerprint(7), F);
     }
 
-    static public int getState(QuotientFilter filter, int slot) {
+    public int getState(QuotientFilter filter, int slot) {
       return (filter.is_occupied(slot) ? 1 : 0) << 2
           | (filter.is_continuation(slot) ? 1 : 0) << 1
           | (filter.is_shifted(slot) ? 1 : 0);
@@ -85,7 +93,7 @@ public class QuotientFilterTest {
      * It performs the same insertions as in Figure 2 and checks for the same result.
      */
     @Test
-    static public void PaperInsertionTest() {
+    public void PaperInsertionTest() {
         int bits_per_entry = 8;
         int num_entries_power = 4;
         int num_entries = (int)Math.pow(2, num_entries_power);
@@ -116,7 +124,7 @@ public class QuotientFilterTest {
 
     // test we don't get any false negatives for quotient filter
     @Test
-    static public void FalseNegativeTest() {
+    public void FalseNegativeTest() {
         int bits_per_entry = 10;
         int num_entries_power = 10;
         QuotientFilter filter = new QuotientFilter(num_entries_power, bits_per_entry);
@@ -130,7 +138,7 @@ public class QuotientFilterTest {
      * Checks this can be handled by the internal data structure and then deletes one of the keys from the filter.
      */
     @Test
-    static public void OverflowTest() {
+    public void OverflowTest() {
         int bits_per_entry = 8;
         int num_entries_power = 3;
         int num_entries = (int)Math.pow(2, num_entries_power);
@@ -158,7 +166,7 @@ public class QuotientFilterTest {
      * and the program exits, indicating a test failure.
      */
     @Test
-    static public void testQuotientFilterInsertionAndIteration() {
+    public void testQuotientFilterInsertionAndIteration() {
 
         int bits_per_entry = 8;
         int num_entries_power = 4;
@@ -166,22 +174,24 @@ public class QuotientFilterTest {
         //int fingerprint_size = bits_per_entry - 3;
         QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
 
-        qf.insert(0, 2, false);
-        qf.insert(0, 3, false);
-        qf.insert(0, 3, false);
-        qf.insert(0, 4, false);
-        qf.insert(0, 15, false); // last slot in the filter
-        qf.insert(0, 16, false); // outside the bounds
+        qf.insert(0x1F, 0, false);
+        qf.insert(0x1F, 2, false);
+        qf.insert(0x1F, 3, false);
+        qf.insert(0x1F, 3, false);
+        qf.insert(0x1F, 4, false);
+        qf.insert(0x1F, 15, false); // last slot in the filter
+        qf.insert(0x1F, 16, false); // outside the bounds
         qf.pretty_print() ;
 
         Iterator it = new Iterator(qf);
-        int[] arr = new int[] {2, 3, 3, 4, 15};
+        //int[] arr = new int[] {2, 3, 3, 4, 15};
+        int[] arr = new int[] {0, 2, 3, 3, 4, 15};
         int arr_index = 0;
         while (it.next()) {assertEquals(it.bucket_index, arr[arr_index++]);}
     }
 
     @Test
-    static public void testQuotientFilterIterator() {
+    public void testQuotientFilterIterator() {
 
         int bits_per_entry = 8;
         int num_entries_power = 4;
@@ -225,7 +235,7 @@ public class QuotientFilterTest {
         result.set(index++, is_continuation);
         result.set(index++, is_shifted);
         for (int i = 0; i < bits_per_entry - 3; i++) {
-            result.set(index++, Bitmap.get_fingerprint_bit(i, fingerprint) );
+            result.set(index++, get_fingerprint_bit(i, fingerprint) );
         }
         return result;
     }
@@ -256,7 +266,8 @@ public class QuotientFilterTest {
     Helper function to test that no false negatives are returned.
      */
     static public boolean test_no_false_negatives(QuotientFilter filter, int num_entries) {
-        HashSet<Integer> added = new HashSet<Integer>();
+        //HashSet<Integer> added = new HashSet<Integer>();
+        ArrayList<Integer> added = new ArrayList<Integer>();
         int seed = 5;
         Random rand = new Random(seed);
 
@@ -274,7 +285,7 @@ public class QuotientFilterTest {
         for (Integer i : added) {
             boolean found = filter.search((long)i);
             if (!found) {
-                return false ;
+                return false;
             }
         }
         return true;

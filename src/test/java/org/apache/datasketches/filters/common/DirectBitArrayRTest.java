@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.filters.bloomfilter;
+package org.apache.datasketches.filters.common;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -100,6 +100,27 @@ public class DirectBitArrayRTest {
   }
 
   @Test
+  public void getBitsFromToTest() {
+    final HeapBitArray hba = new HeapBitArray(128);
+    hba.setBit(1); // will override, but this forces non-empty
+    hba.setLong(0, 0x5555555555555555L);
+    hba.setLong(1, 0xFFFFFFFFFC003FFFL);
+    final Memory mem = bitArrayToMemory(hba);
+    DirectBitArrayR dba = DirectBitArrayR.wrap(mem, hba.isEmpty());
+
+    // single, full long test
+    assertEquals(dba.getBits(0, 64), 0x5555555555555555L);
+
+    // subset of single long, mostly ones with a stretch of zeros
+    assertEquals(dba.getBits(64, 64), 0xFFFFFFFFFC003FFFL);
+    assertEquals(dba.getBits(78, 12), 0);
+    assertEquals(dba.getBits(77, 14), 8193);
+
+    // spanning longs
+    assertEquals(dba.getBits(60, 20), 0x3FFF5);
+  }
+
+  @Test
   public void countBitsWhenDirty() {
     // like basicOperationTest but with setBit which does
     // not necessarily track numBitsSet_
@@ -159,6 +180,9 @@ public class DirectBitArrayRTest {
 
     // all of these try to modify a read-only memory
     assertThrows(SketchesReadOnlyException.class, () -> dba.setBit(14));
+    assertThrows(SketchesReadOnlyException.class, () -> dba.clearBit(7));
+    assertThrows(SketchesReadOnlyException.class, () -> dba.assignBit(924, false));
+    assertThrows(SketchesReadOnlyException.class, () -> dba.setBits(100, 30, 0xFF));
     assertThrows(SketchesReadOnlyException.class, () -> dba.getAndSetBit(100));
     assertThrows(SketchesReadOnlyException.class, () -> dba.reset());
     assertThrows(SketchesReadOnlyException.class, () -> dba.invert());

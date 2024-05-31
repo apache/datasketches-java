@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.filters.bloomfilter;
+package org.apache.datasketches.filters.common;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -68,6 +68,8 @@ public class DirectBitArrayTest {
   }
 
   // no text of max size because the BitArray allows up to Integer.MAX_VALUE
+  // bits, which is the maximum size of an array in Java -- can't use it all,
+  // (need 2 longs for preamble) but also can't allocate that large to test on most machines
 
   @Test
   public void initializeTooSmallTest() {
@@ -134,6 +136,70 @@ public class DirectBitArrayTest {
     dba.setBit(100);
     assertTrue(dba.getAndSetBit(100));
     assertEquals(dba.getNumBitsSet(), 8);
+
+    dba.reset();
+    assertTrue(dba.isEmpty());
+    assertEquals(dba.getNumBitsSet(), 0);
+
+    dba.setBit(0);
+    dba.setLong(0, -1);
+    assertTrue(dba.getBit(60));
+    dba.clearBit(60);
+    assertFalse(dba.getBit(60));
+
+    assertTrue(dba.getBit(35));
+    dba.assignBit(35, false);
+    assertFalse(dba.getBit(35));
+    dba.assignBit(35, true);
+    assertTrue(dba.getBit(35));
+  }
+
+  @Test
+  public void getBitsFromToTest() {
+    final int numBits = 128;
+    final WritableMemory wmem = WritableMemory.writableWrap(new byte[32]);
+    final DirectBitArray dba = DirectBitArray.initialize(numBits, wmem);
+
+    // single, full long test
+    dba.setBit(0); // useless but forces non-empty when using setLong()
+    dba.setLong(0, 0x5555555555555555L);
+    assertEquals(dba.getBits(0, 64), 0x5555555555555555L);
+    assertEquals(dba.getBits(64, 64), 0);
+
+    // subset of single long, mostly ones with a stretch of zeros
+    dba.setLong(1, 0xFFFFFFFFFC003FFFL);
+    assertEquals(dba.getBits(64, 64), 0xFFFFFFFFFC003FFFL);
+    assertEquals(dba.getBits(78, 12), 0);
+    assertEquals(dba.getBits(77, 14), 8193);
+
+    // spanning longs
+    assertEquals(dba.getBits(60, 20), 0x3FFF5);
+  }
+
+  @Test
+  public void setBitsFromToTest() {
+    final int numBits = 128;
+    WritableMemory wmem = WritableMemory.writableWrap(new byte[32]);
+    DirectBitArray ba = DirectBitArray.initialize(numBits, wmem);
+
+    // within a single long
+    ba.setBits(0, 64, 0x80000000DAB8C730L);
+    assertEquals(ba.getLong(0), 0x80000000DAB8C730L);
+    assertEquals(ba.getLong(1), 0);
+
+    ba.setBits(40, 8, 0xA6);
+    assertEquals(ba.getLong(0), 0x8000A600DAB8C730L);
+
+    // spanning longs
+    ba.setBits(60, 20, 0x3FFF5);
+    assertEquals(ba.getLong(0), 0x5000A600DAB8C730L);
+    assertEquals(ba.getLong(1), 0x3FFFL);
+
+    // found specific failure with this test
+    wmem = WritableMemory.writableWrap(new byte[1272]);
+    ba = DirectBitArray.initialize(10000, wmem);
+    ba.setBits(601 * 10 + 3, 7, 125);
+    assertEquals(ba.getBits(601 * 10 + 3, 7), 125);
   }
 
   @Test

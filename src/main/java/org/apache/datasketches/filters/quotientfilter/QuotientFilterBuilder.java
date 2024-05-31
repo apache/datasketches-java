@@ -18,7 +18,7 @@
  */
 
 package org.apache.datasketches.filters.quotientfilter;
-import java.util.concurrent.ThreadLocalRandom;
+//import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 
