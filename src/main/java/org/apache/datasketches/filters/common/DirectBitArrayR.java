@@ -128,7 +128,7 @@ public class DirectBitArrayR extends BitArray {
 
     // spans longs, need to combine bits from two longs
     final long splitBit = Long.SIZE - (fromOffset);
-    final long fromMask = -1L - ((1L << fromOffset) - 1);
+    final long fromMask = ~((1L << fromOffset) - 1);
     final long toMask = (1L << (toOffset + 1)) - 1;
 
     long result = (wmem_.getLong(DATA_OFFSET + (fromIndex << 3)) & fromMask) >>> fromOffset;

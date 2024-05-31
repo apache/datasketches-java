@@ -180,13 +180,13 @@ public final class DirectBitArray extends DirectBitArrayR {
 
     // spans longs, need to set bits in two longs
     final long splitBit = Long.SIZE - (fromOffset);
-    final long fromMask = -1L - ((1L << fromOffset) - 1);
+    final long fromMask = (1L << fromOffset) - 1; // inverse mask in this case
     final long toMask = (1L << (toOffset + 1)) - 1;
 
-    final long maskedFromVal = wmem_.getLong(DATA_OFFSET + (fromIndex << 3)) & ~fromMask;
+    final long maskedFromVal = wmem_.getLong(DATA_OFFSET + (fromIndex << 3)) & fromMask;
     final long maskedToVal   = wmem_.getLong(DATA_OFFSET + (toIndex << 3))   & ~toMask;
 
-    wmem_.putLong(DATA_OFFSET + (fromIndex << 3), maskedFromVal | ((bits << fromOffset) & fromMask));
+    wmem_.putLong(DATA_OFFSET + (fromIndex << 3), maskedFromVal | ((bits << fromOffset) & ~fromMask));
     wmem_.putLong(DATA_OFFSET + (toIndex << 3),   maskedToVal   | ((bits >>> splitBit) & toMask));
   }
 

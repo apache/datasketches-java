@@ -133,7 +133,7 @@ public final class HeapBitArray extends BitArray {
 
     // spans longs, need to combine bits from two longs
     final long splitBit = Long.SIZE - (fromOffset);
-    final long fromMask = -1L - ((1L << fromOffset) - 1);
+    final long fromMask = ~((1L << fromOffset) - 1);
     final long toMask = (1L << (toOffset + 1)) - 1;
 
     long result = (data_[fromIndex] & fromMask) >>> fromOffset;
@@ -193,11 +193,11 @@ public final class HeapBitArray extends BitArray {
 
     // spans longs, need to set bits in two longs
     final long splitBit = Long.SIZE - (fromOffset);
-    final long fromMask = -1L - ((1L << fromOffset) - 1);
+    final long fromMask = (1L << fromOffset) - 1; // inverse mask in this case
     final long toMask = (1L << (toOffset + 1)) - 1;
 
-    data_[fromIndex] = (data_[fromIndex] & ~fromMask) | ((bits << fromOffset) & fromMask);
-    data_[toIndex]   = (data_[toIndex] & ~toMask)     | ((bits >>> splitBit) & toMask);
+    data_[fromIndex] = (data_[fromIndex] & fromMask) | ((bits << fromOffset) & ~fromMask);
+    data_[toIndex]   = (data_[toIndex] & ~toMask)    | ((bits >>> splitBit) & toMask);
   }
 
   // returns existing value of bit
