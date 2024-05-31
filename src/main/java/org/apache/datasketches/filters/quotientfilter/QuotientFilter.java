@@ -376,17 +376,6 @@ public class QuotientFilter extends Filter {
         return existing;
     }
 
-    // return the first slot to the right where the current run starting at the index parameter ends
-    long find_new_run_location(long index) {
-        if (!is_slot_empty(index)) {
-            index = (index + 1) & getMask();
-        }
-        while (is_continuation(index)) {
-            index = (index + 1) & getMask();
-        }
-        return index;
-    }
-
     boolean insert_new_run(long canonical_slot, long long_fp) {
         long start_of_this_new_run = find_run_start(canonical_slot);
         boolean slot_initially_empty = is_slot_empty(start_of_this_new_run);
