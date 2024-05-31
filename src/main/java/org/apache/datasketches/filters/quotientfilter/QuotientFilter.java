@@ -291,23 +291,20 @@ public class QuotientFilter extends Filter {
     // given a canonical slot A, finds the actual index B of where the run belonging to slot A now resides
     // since the run might have been shifted to the right due to collisions
     long find_run_start(long index) {
-        long current_index = index;
-        int runs_to_skip_counter = 1;
-        while (is_shifted(current_index)) {
-            if (is_occupied(current_index)) {
-                runs_to_skip_counter++;
-            }
-            current_index = (current_index - 1) & getMask();
+      int num_runs_to_skip = 0;
+      while (is_shifted(index)) {
+        index = (index - 1) & getMask();
+        if (is_occupied(index)) {
+          num_runs_to_skip++;
         }
-        while (true) {
-            if (!is_continuation(current_index)) {
-                runs_to_skip_counter--;
-                if (runs_to_skip_counter == 0) {
-                    return current_index;
-                }
-            }
-            current_index = (current_index + 1) & getMask();
+      }
+      while (num_runs_to_skip > 0) {
+        index = (index + 1) & getMask();
+        if (!is_continuation(index)) {
+          num_runs_to_skip--;
         }
+      }
+      return index;
     }
 
     // given the start of a run, scan the run and return the index of the first matching fingerprint
@@ -391,10 +388,9 @@ public class QuotientFilter extends Filter {
     }
 
     boolean insert_new_run(long canonical_slot, long long_fp) {
-        long preexisting_run_start_index = find_run_start(canonical_slot); // scans the cluster leftwards and then to the right until reaching our run's would be location
-        long start_of_this_new_run = find_new_run_location(preexisting_run_start_index); // If there is already a run at the would-be location, find its end and insert the new run after it
+        long start_of_this_new_run = find_run_start(canonical_slot);
         boolean slot_initially_empty = is_slot_empty(start_of_this_new_run);
-
+        
         // modify some metadata flags to mark the new run
         set_occupied(canonical_slot, true);
         if (start_of_this_new_run != canonical_slot) {
