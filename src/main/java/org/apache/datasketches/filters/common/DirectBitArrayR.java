@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.filters.bloomfilter;
+package org.apache.datasketches.filters.common;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
@@ -35,7 +35,7 @@ public class DirectBitArrayR extends BitArray {
   final protected WritableMemory wmem_; // for inheritance; we won't write to it
   protected long numBitsSet_; // could be final here but writable direct will update it
 
-  protected DirectBitArrayR(final int dataLength, final long storedNumBitsSet, final Memory mem) {
+  public DirectBitArrayR(final int dataLength, final long storedNumBitsSet, final Memory mem) {
     super();
 
     dataLength_ = dataLength;
@@ -53,7 +53,7 @@ public class DirectBitArrayR extends BitArray {
 
   // assumes we have a region with only the portion of Memory
   // the BitArray cares about
-  static DirectBitArrayR wrap(final Memory mem, final boolean isEmpty) {
+  public static DirectBitArrayR wrap(final Memory mem, final boolean isEmpty) {
     final int arrayLength = mem.getInt(0);
     final long storedNumBitsSet = isEmpty ? 0L : mem.getLong(NUM_BITS_OFFSET);
 
@@ -71,34 +71,73 @@ public class DirectBitArrayR extends BitArray {
   }
 
   @Override
-  long getCapacity() {
+  public long getCapacity() {
     return (long) dataLength_ * Long.SIZE;
   }
 
   @Override
-  long getNumBitsSet() {
+  public long getNumBitsSet() {
     return numBitsSet_;
   }
 
   @Override
-  protected boolean isDirty() {
+  public boolean isDirty() {
     // read-only so necessarily false
     return false;
   }
 
   @Override
-  int getArrayLength() {
+  public int getArrayLength() {
     return dataLength_;
   }
 
   @Override
-  boolean getBit(final long index) {
+  public boolean getBit(final long index) {
     if (isEmpty()) { return false; }
     return (wmem_.getByte(DATA_OFFSET + ((int) index >>> 3)) & (1 << (index & 0x7))) != 0;
   }
 
   @Override
-  protected long getLong(final int arrayIndex) {
+  public long getBits(final long index, final int numBits) {
+    if (numBits < 0 || numBits > 64) {
+      throw new SketchesArgumentException("numBits must be between 0 and 64 (inclusive)");
+    } else if (index + numBits > getCapacity()) {
+      throw new SketchesArgumentException("End of range exceeds capacity");
+    }
+    if (isEmpty()) { return 0L; }
+
+    // TODO: since Memory provides byte offsets even when reading a long, we can be sure
+    // that the result always fits in a single long. We can potentially optimize this, but
+    // need to handle cases where a long would read beyond the end of the Memory.
+
+    final long endBit = index + numBits - 1;
+
+    // these are indices into a long[] array, need to adjust to byte offsets
+    // when calling wmem_.getLong()
+    final int fromIndex = (int) index >>> 6;
+    final int toIndex = (int) endBit >>> 6;
+    final long fromOffset = index & 0x3F;
+    final long toOffset = endBit & 0x3F;
+
+    // within a single long
+    if (fromIndex == toIndex) {
+      final long toMask = (toOffset == 63) ? -1L : (1L << (toOffset + 1)) - 1L;
+      final long fromMask = (1L << fromOffset) - 1L;
+      return (wmem_.getLong(DATA_OFFSET + (fromIndex << 3)) & (toMask - fromMask)) >>> fromOffset;
+    }
+
+    // spans longs, need to combine bits from two longs
+    final long splitBit = Long.SIZE - (fromOffset);
+    final long fromMask = ~((1L << fromOffset) - 1);
+    final long toMask = (1L << (toOffset + 1)) - 1;
+
+    long result = (wmem_.getLong(DATA_OFFSET + (fromIndex << 3)) & fromMask) >>> fromOffset;
+    result |=     (wmem_.getLong(DATA_OFFSET + (toIndex << 3))   & toMask) << splitBit;
+    return result;
+  }
+
+  @Override
+  long getLong(final int arrayIndex) {
     if (isEmpty()) { return 0L; }
     return wmem_.getLong(DATA_OFFSET + (arrayIndex << 3));
   }
@@ -119,37 +158,52 @@ public class DirectBitArrayR extends BitArray {
   }
 
   @Override
-  void reset() {
+  public void reset() {
     throw new SketchesReadOnlyException("Attempt to call reset() on read-only memory");
   }
 
   @Override
-  void setBit(final long index) {
+  public void setBit(final long index) {
     throw new SketchesReadOnlyException("Attempt to call setBit() on read-only memory");
   }
 
   @Override
-  boolean getAndSetBit(final long index) {
+  public void clearBit(final long index) {
+    throw new SketchesReadOnlyException("Attempt to call clearBit() on read-only memory");
+  }
+
+  @Override
+  public void setBits(final long index, final int numBits, final long bits) {
+    throw new SketchesReadOnlyException("Attempt to call setBits() on read-only memory");
+  }
+
+  @Override
+  public void assignBit(final long index, final boolean value) {
+    throw new SketchesReadOnlyException("Attempt to call setBit() on read-only memory");
+  }
+
+  @Override
+  public boolean getAndSetBit(final long index) {
     throw new SketchesReadOnlyException("Attempt to call getAndSetBit() on read-only memory");
   }
 
   @Override
-  void intersect(final BitArray other) {
+  public void intersect(final BitArray other) {
     throw new SketchesReadOnlyException("Attempt to call intersect() on read-only memory");
   }
 
   @Override
-  void union(final BitArray other) {
+  public void union(final BitArray other) {
     throw new SketchesReadOnlyException("Attempt to call union() on read-only memory");
   }
 
   @Override
-  void invert() {
+  public void invert() {
     throw new SketchesReadOnlyException("Attempt to call invert() on read-only memory");
   }
 
   @Override
-  protected void setLong(final int arrayIndex, final long value) {
+  void setLong(final int arrayIndex, final long value) {
     throw new SketchesReadOnlyException("Attempt to call setLong() on read-only memory");
   }
 }

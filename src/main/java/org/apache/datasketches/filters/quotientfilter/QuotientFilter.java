@@ -23,13 +23,16 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.datasketches.filters.common.BitArray;
+import org.apache.datasketches.filters.common.HeapBitArray;
+
 public class QuotientFilter extends Filter {
 
     int bitPerEntry;
     int fingerprintLength;
     int power_of_two_size;
     int num_entries;
-    Bitmap filter;
+    BitArray filter;
 
     double expansion_threshold;
     long max_entries_before_expansion;
@@ -83,18 +86,19 @@ public class QuotientFilter extends Filter {
         expand_autonomously = val;
     }
 
-    Bitmap make_filter(long init_size, int bits_per_entry) {
+    BitArray make_filter(long init_size, int bits_per_entry) {
 //		System.out.println(init_size ) ;
 //		System.out.println(num_extension_slots);
 //		System.out.println("Making BitVector with: " + (init_size + num_extension_slots) + "SLOTS");
-        return new QuickBitVectorWrapper(bits_per_entry,  init_size);
+        //return new QuickBitVectorWrapper(bits_per_entry,  init_size);
+        return new HeapBitArray(init_size * bits_per_entry);
     }
 
     public int get_fingerprint_length() {
         return fingerprintLength;
     }
 
-    QuotientFilter(int power_of_two, int bits_per_entry, Bitmap bitmap) {
+    QuotientFilter(int power_of_two, int bits_per_entry, BitArray bitmap) {
         power_of_two_size = power_of_two;
         bitPerEntry = bits_per_entry;
         fingerprintLength = bits_per_entry - 3;
@@ -152,7 +156,7 @@ public class QuotientFilter extends Filter {
     long getMask() {
       return get_num_slots() - 1;
     }
-    
+
     // sets the metadata flag bits for a given slot index
     void modify_slot(boolean is_occupied, boolean is_continuation, boolean is_shifted,
                      long index) {
@@ -163,7 +167,7 @@ public class QuotientFilter extends Filter {
 
     // sets the fingerprint for a given slot index
     void set_fingerprint(long index, long fingerprint) {
-        filter.setFromTo(index * bitPerEntry + 3, (long)index * bitPerEntry + 3 + fingerprintLength, fingerprint);
+        filter.setBits(index * bitPerEntry + 3, fingerprintLength, fingerprint);
     }
 
     // print a nice representation of the filter that can be understood.
@@ -185,7 +189,7 @@ public class QuotientFilter extends Filter {
             if (remainder == 3) {
                 sbr.append(" ");
             }
-            sbr.append(filter.get(i) ? "1" : "0");
+            sbr.append(filter.getBit(i) ? "1" : "0");
         }
         sbr.append("\n");
         return sbr.toString();
@@ -198,12 +202,12 @@ public class QuotientFilter extends Filter {
 
     // return a fingerprint in a given slot index
     long get_fingerprint(long index) {
-        return filter.getFromTo(index * bitPerEntry + 3, index * bitPerEntry + 3 + fingerprintLength);
+        return filter.getBits(index * bitPerEntry + 3, fingerprintLength);
     }
 
     // return an entire slot representation, including metadata flags and fingerprint
     long get_slot(long index) {
-        return filter.getFromTo(index * bitPerEntry, (index + 1) * bitPerEntry);
+        return filter.getBits(index * bitPerEntry, bitPerEntry);
     }
 
     // compare a fingerprint input to the fingerprint in some slot index
@@ -251,27 +255,27 @@ public class QuotientFilter extends Filter {
     }
 
     boolean is_occupied(long index) {
-        return filter.get(index * bitPerEntry);
+        return filter.getBit(index * bitPerEntry);
     }
 
     boolean is_continuation(long index) {
-        return filter.get(index * bitPerEntry + 1);
+        return filter.getBit(index * bitPerEntry + 1);
     }
 
     boolean is_shifted(long index) {
-        return filter.get(index * bitPerEntry + 2);
+        return filter.getBit(index * bitPerEntry + 2);
     }
 
     void set_occupied(long index, boolean val) {
-        filter.set(index * bitPerEntry, val);
+        filter.assignBit(index * bitPerEntry, val);
     }
 
     void set_continuation(long index, boolean val) {
-        filter.set(index * bitPerEntry + 1, val);
+        filter.assignBit(index * bitPerEntry + 1, val);
     }
 
     void set_shifted(long index, boolean val) {
-        filter.set(index * bitPerEntry + 2, val);
+        filter.assignBit(index * bitPerEntry + 2, val);
     }
 
     boolean is_slot_empty(long index) {
@@ -645,7 +649,7 @@ public class QuotientFilter extends Filter {
     }
 
     public boolean get_bit_at_offset(int offset) {
-        return filter.get(offset);
+        return filter.getBit(offset);
     }
 
     public void compute_statistics() {

@@ -169,7 +169,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     //clear hash table area
     dstMem.clear(preambleLongs << 3, 8 << lgArrLongs);
 
-    hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     memReqSvr_ = memReqSvr;
   }
 
@@ -210,7 +210,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     final DirectQuickSelectSketch dqss =
         new DirectQuickSelectSketch(seed, srcMem);
-    dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
 
@@ -228,7 +228,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     final DirectQuickSelectSketch dqss =
         new DirectQuickSelectSketch(seed, srcMem);
-    dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
 
@@ -310,7 +310,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
         if (actLgRF > 0) { //Expand in current Memory
           //lgArrLongs will change; thetaLong, curCount will not
           resize(wmem_, preambleLongs, lgArrLongs, tgtLgArrLongs);
-          hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
+          hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, tgtLgArrLongs);
           return InsertedCountIncrementedResized;
         } //end of Expand in current memory, exit.
 
@@ -330,7 +330,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           memReqSvr_.requestClose(wmem_, newDstMem);
 
           wmem_ = newDstMem;
-          hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
+          hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, tgtLgArrLongs);
           return InsertedCountIncrementedResized;
         } //end of Request more memory to resize
       } //end of resize

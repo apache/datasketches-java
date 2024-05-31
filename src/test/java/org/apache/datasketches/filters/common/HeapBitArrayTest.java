@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.filters.bloomfilter;
+package org.apache.datasketches.filters.common;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -75,7 +75,60 @@ public class HeapBitArrayTest {
     assertTrue(ba.isEmpty());
     assertEquals(ba.getNumBitsSet(), 0);
 
+    ba.setLong(0, -1);
+    assertTrue(ba.getBit(60));
+    ba.clearBit(60);
+    assertFalse(ba.getBit(60));
+
+    assertTrue(ba.getBit(35));
+    ba.assignBit(35, false);
+    assertFalse(ba.getBit(35));
+    ba.assignBit(35, true);
+    assertTrue(ba.getBit(35));
+
     assertTrue(String.valueOf(ba).length() > 0);
+  }
+
+  @Test
+  public void getBitsFromToTest() {
+    final HeapBitArray ba = new HeapBitArray(128);
+
+    // single, full long test
+    ba.setLong(0, 0x5555555555555555L);
+    assertEquals(ba.getBits(0, 64), 0x5555555555555555L);
+    assertEquals(ba.getBits(64, 64), 0);
+
+    // subset of single long, mostly ones with a stretch of zeros
+    ba.setLong(1, 0xFFFFFFFFFC003FFFL);
+    assertEquals(ba.getBits(64, 64), 0xFFFFFFFFFC003FFFL);
+    assertEquals(ba.getBits(78, 12), 0);
+    assertEquals(ba.getBits(77, 14), 8193);
+
+    // spanning longs
+    assertEquals(ba.getBits(60, 20), 0x3FFF5);
+  }
+
+  @Test
+  public void setBitsFromToTest() {
+    HeapBitArray ba = new HeapBitArray(128);
+
+    // within a single long
+    ba.setBits(0, 64, 0x80000000DAB8C730L);
+    assertEquals(ba.getLong(0), 0x80000000DAB8C730L);
+    assertEquals(ba.getLong(1), 0);
+
+    ba.setBits(40, 8, 0xA6);
+    assertEquals(ba.getLong(0), 0x8000A600DAB8C730L);
+
+    // spanning longs
+    ba.setBits(60, 20, 0x3FFF5);
+    assertEquals(ba.getLong(0), 0x5000A600DAB8C730L);
+    assertEquals(ba.getLong(1), 0x3FFFL);
+
+    // found specific failure with this test
+    ba = new HeapBitArray(10000);
+    ba.setBits(601 * 10 + 3, 7, 125);
+    assertEquals(ba.getBits(601 * 10 + 3, 7), 125);
   }
 
   @Test

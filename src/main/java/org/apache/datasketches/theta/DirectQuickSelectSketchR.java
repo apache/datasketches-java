@@ -86,7 +86,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
     final DirectQuickSelectSketchR dqssr =
         new DirectQuickSelectSketchR(seed, (WritableMemory) srcMem);
-    dqssr.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    dqssr.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqssr;
   }
 
@@ -104,7 +104,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
     final DirectQuickSelectSketchR dqss =
         new DirectQuickSelectSketchR(seed, (WritableMemory) srcMem);
-    dqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
+    dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
 
@@ -276,11 +276,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
    * @return the hash table threshold
    */
   @SuppressFBWarnings(value = "DB_DUPLICATE_BRANCHES", justification = "False Positive, see the code comments")
-  static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
+  protected static final int getOffHeapHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
     //SpotBugs may complain (DB_DUPLICATE_BRANCHES) if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD,
     //but this allows us to tune these constants for different sketches.
     final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
-    return (int) Math.floor(fraction * (1 << lgArrLongs));
+    return (int) (fraction * (1 << lgArrLongs));
   }
 
 }
