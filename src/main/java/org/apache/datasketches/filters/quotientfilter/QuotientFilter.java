@@ -390,7 +390,7 @@ public class QuotientFilter extends Filter {
     boolean insert_new_run(long canonical_slot, long long_fp) {
         long start_of_this_new_run = find_run_start(canonical_slot);
         boolean slot_initially_empty = is_slot_empty(start_of_this_new_run);
-        
+
         // modify some metadata flags to mark the new run
         set_occupied(canonical_slot, true);
         if (start_of_this_new_run != canonical_slot) {
