@@ -30,8 +30,10 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
+//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+
+import jdk.incubator.foreign.ResourceScope;
 
 /**
  * The concept for these tests is that the "MemoryManager" classes below are proxies for the
@@ -47,10 +49,11 @@ public class DirectQuantilesMemoryRequestTest {
     final int initBytes = ((2 * k) + 4) << 3; //just the BB
 
     //########## Owning Implementation
-    // This part would actually be part of the Memory owning implemention so it is faked here
-    try (WritableHandle wdh = WritableMemory.allocateDirect(initBytes,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
-      final WritableMemory wmem = wdh.getWritable();
+    // This part would actually be part of the Memory owning implementation so it is faked here
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(initBytes, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
       println("Initial mem size: " + wmem.getCapacity());
 
       //########## Receiving Application
@@ -84,13 +87,12 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = 32; // don't need the BB to fill here
     final int initBytes = (4 + (u / 2)) << 3; // not enough to hold everything
 
-    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
-      //final MemoryManager memMgr = new MemoryManager();
-      //final WritableMemory mem1 = memMgr.request(initBytes);
-      final WritableMemory mem1 = memHandler.getWritable();
-      println("Initial mem size: " + mem1.getCapacity());
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(initBytes, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
+      println("Initial mem size: " + wmem.getCapacity());
+      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
       for (int i = 1; i <= u; i++) {
         usk1.update(i);
       }
@@ -108,13 +110,12 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = (2 * k) - 1; //just to fill the BB
     final int initBytes = ((2 * k) + 4) << 3; //just room for BB
 
-    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
-      //final MemoryManager memMgr = new MemoryManager();
-      //final WritableMemory mem1 = memMgr.request(initBytes);
-      final WritableMemory mem1 = memHandler.getWritable();
-      println("Initial mem size: " + mem1.getCapacity());
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(initBytes, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
+      println("Initial mem size: " + wmem.getCapacity());
+      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
       for (int i = 1; i <= u; i++) {
         usk1.update(i);
       }
@@ -138,21 +139,22 @@ public class DirectQuantilesMemoryRequestTest {
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
-    try (WritableHandle memHandle = WritableMemory.allocateDirect(initBytes,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
-      WritableMemory mem = memHandle.getWritable();
-      origSketchMem.copyTo(0, mem, 0, initBytes);
-      UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
-      assertTrue(mem.isSameResource(usk2.getMemory()));
-      assertEquals(mem.getCapacity(), initBytes);
-      assertTrue(mem.isDirect());
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(initBytes, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
+      origSketchMem.copyTo(0, wmem, 0, initBytes);
+      UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(wmem);
+      assertTrue(wmem.isSameResource(usk2.getMemory()));
+      assertEquals(wmem.getCapacity(), initBytes);
+      assertTrue(wmem.isDirect());
       assertTrue(usk2.isEmpty());
 
       //update the sketch forcing it to grow on-heap
       for (int i = 1; i <= 5; i++) { usk2.update(i); }
       assertEquals(usk2.getN(), 5);
       WritableMemory mem2 = usk2.getMemory();
-      assertFalse(mem.isSameResource(mem2));
+      assertFalse(wmem.isSameResource(mem2));
       assertFalse(mem2.isDirect()); //should now be on-heap
 
       final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);

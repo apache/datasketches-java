@@ -31,12 +31,11 @@ import java.util.HashMap;
 
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
-import org.apache.datasketches.memory.WritableMemory;
-
+import jdk.incubator.foreign.ResourceScope;
 
 /**
  * @author Lee Rhodes
@@ -48,11 +47,12 @@ public class DirectAuxHashMapTest {
     int lgConfigK = 4;
     TgtHllType tgtHllType = TgtHllType.HLL_4;
     int n = 8; //put lgConfigK == 4 into HLL mode
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    long bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
-    try (WritableHandle handle = WritableMemory.allocateDirect(bytes,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
-      WritableMemory wmem = handle.getWritable();
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
       for (int i = 0; i < n; i++) {
         hllSketch.update(i);

@@ -142,8 +142,8 @@ public class DirectBitArrayRTest {
 
     final Memory mem = bitArrayToMemory(hba);
     DirectBitArrayR dba = DirectBitArrayR.wrap(mem, hba.isEmpty());
-    assertThrows(AssertionError.class, () -> dba.getBit(-10));
-    assertThrows(AssertionError.class, () -> dba.getBit(2048));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.getBit(-10));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.getBit(2048));
   }
 
   @Test

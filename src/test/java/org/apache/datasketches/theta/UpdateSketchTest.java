@@ -222,8 +222,8 @@ public class UpdateSketchTest {
     csk1 = sk.compact(true, cskwmem1);
     csk2 = CompactOperations.memoryToCompact(skwmem, true, cskwmem2);
     csk3 = CompactOperations.memoryToCompact(cskwmem1, true, cskwmem3);
-    assertTrue(cskwmem1.equals(cskwmem2));
-    assertTrue(cskwmem1.equals(cskwmem3));
+    assertTrue(cskwmem1.equalTo(cskwmem2));
+    assertTrue(cskwmem1.equalTo(cskwmem3));
   }
 
   @Test

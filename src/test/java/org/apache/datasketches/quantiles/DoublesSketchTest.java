@@ -28,12 +28,14 @@ import static org.testng.Assert.fail;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.WritableHandle;
+//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import jdk.incubator.foreign.ResourceScope;
 
 public class DoublesSketchTest {
 
@@ -140,15 +142,17 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-    try (WritableHandle wdh = WritableMemory.allocateDirect(1000,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
-      WritableMemory mem = wdh.getWritable();
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
-      Assert.assertTrue(sketch.isSameResource(mem));
+
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(1000, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
+      UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
+      Assert.assertTrue(sketch.isSameResource(wmem));
       for (int i = 0; i < 1000; i++) {
         sketch.update(i);
       }
-      Assert.assertFalse(sketch.isSameResource(mem));
+      Assert.assertFalse(sketch.isSameResource(wmem));
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
@@ -157,13 +161,14 @@ public class DoublesSketchTest {
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
     int i = 0;
-    try (WritableHandle wdh =
-        WritableMemory.allocateDirect(50, ByteOrder.LITTLE_ENDIAN, new DefaultMemoryRequestServer())) {
-      WritableMemory mem = wdh.getWritable();
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
-      Assert.assertTrue(sketch.isSameResource(mem));
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(50, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
+      UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
+      Assert.assertTrue(sketch.isSameResource(wmem));
       for (; i < 1000; i++) {
-        if (sketch.isSameResource(mem)) {
+        if (sketch.isSameResource(wmem)) {
           sketch.update(i);
         } else {
           //println("MOVED OUT at i = " + i);
@@ -177,9 +182,11 @@ public class DoublesSketchTest {
 
   @Test
   public void checkEmptyDirect() {
-    try (WritableHandle wdh = WritableMemory.allocateDirect(1000)) {
-      WritableMemory mem = wdh.getWritable();
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(1000, 1,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+
+      UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
       sketch.toByteArray(); //exercises a specific path
     } catch (final Exception e) {
       throw new RuntimeException(e);

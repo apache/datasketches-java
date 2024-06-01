@@ -23,10 +23,15 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteOrder;
 import java.util.HashSet;
 
 import org.testng.annotations.Test;
-import org.apache.datasketches.memory.WritableHandle;
+
+import jdk.incubator.foreign.ResourceScope;
+
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 
@@ -61,8 +66,9 @@ public class DebugUnionTest {
     DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion dUnion;
     DoublesSketch dSketch;
-    try ( WritableHandle wdh = WritableMemory.allocateDirect(10_000_000) ) {
-      WritableMemory wmem = wdh.getWritable();
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(10_000_000,
+            new DefaultMemoryRequestServer())).scope()) {
       dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
       for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap

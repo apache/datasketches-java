@@ -27,8 +27,11 @@ import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import jdk.incubator.foreign.ResourceScope;
+
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
+//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -69,9 +72,9 @@ public class DirectCouponListTest {
 
     //println("DIRECT");
     byte[] barr1;
-    WritableMemory wmem = null;
-    try (WritableHandle hand = WritableMemory.allocateDirect(bytes)) {
-      wmem = hand.getWritable();
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes,
+            new DefaultMemoryRequestServer())).scope()) {
       //byte[] byteArr = new byte[bytes];
       //WritableMemory wmem = WritableMemory.wrap(byteArr);
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);

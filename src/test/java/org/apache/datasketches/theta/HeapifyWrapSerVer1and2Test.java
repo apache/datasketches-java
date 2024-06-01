@@ -23,12 +23,14 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
 import org.testng.annotations.Test;
+
+import jdk.incubator.foreign.ResourceScope;
 
 @SuppressWarnings("resource")
 public class HeapifyWrapSerVer1and2Test {
@@ -282,32 +284,32 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
     CompactSketch sv3csk = sv3usk.compact();
+    WritableMemory wmem;
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable());
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
   }
 
   @Test
@@ -318,32 +320,32 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
+    WritableMemory wmem;
     CompactSketch sv3csk = sv3usk.compact();
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable());
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), defaultSeedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
   }
 
   @Test
@@ -354,32 +356,32 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
+    WritableMemory wmem;
     CompactSketch sv3csk = sv3usk.compact();
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {/* ignore */}
+    try { wmem.close(); } catch (Exception e) {/* ignore */}
   }
 
   @Test
@@ -390,32 +392,32 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
+    WritableMemory wmem;
     CompactSketch sv3csk = sv3usk.compact();
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = Sketches.wrapCompactSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = Sketches.wrapCompactSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
   }
 
   @Test
@@ -426,32 +428,32 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
+    WritableMemory wmem;
     CompactSketch sv3csk = sv3usk.compact();
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable());
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
   }
 
   @Test
@@ -462,32 +464,32 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
+    WritableMemory wmem;
     CompactSketch sv3csk = sv3usk.compact();
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable());
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable());
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), defaultSeedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
   }
 
   @Test
@@ -498,32 +500,32 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
+    WritableMemory wmem;
     CompactSketch sv3csk = sv3usk.compact();
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
   }
 
   @Test
@@ -534,40 +536,39 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i=0; i<k; i++) { sv3usk.update(i); }
     CompactSketch sv3cskResult;
-    WritableHandle wh;
+    WritableMemory wmem;
     CompactSketch sv3csk = sv3usk.compact();
 
     //SV3 test
-    wh = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(Memory.wrap(sv3csk.toByteArray()));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV2 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
 
     //SV1 test
-    wh = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
-    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wh.getWritable(), seed);
+    wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
+    sv3cskResult = (CompactSketch) Sketches.wrapSketch(wmem, seed);
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wmem.close(); } catch (Exception e) {}
   }
 
-  private static WritableHandle putOffHeap(Memory heapMem) {
+  private static WritableMemory putOffHeap(Memory heapMem) {
     final long cap = heapMem.getCapacity();
-    WritableHandle wh = WritableMemory.allocateDirect(cap);
-    WritableMemory wmem = wh.getWritable();
+    WritableMemory wmem = WritableMemory.allocateDirect(cap, new DefaultMemoryRequestServer());
     heapMem.copyTo(0, wmem, 0, cap);
-    return wh;
+    return wmem;
   }
 
   @Test

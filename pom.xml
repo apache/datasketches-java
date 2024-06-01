@@ -88,7 +88,7 @@ under the License.
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
 
     <!-- Test -->
-    <testng.version>7.5.1</testng.version>
+    <testng.version>7.10.0</testng.version>
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
     <testng.generate-java-files>generate_java_files</testng.generate-java-files>
     <testng.check-cpp-files>check_cpp_files</testng.check-cpp-files>
@@ -96,7 +96,7 @@ under the License.
 
     <!-- System-wide properties -->
     <maven.version>3.6.3</maven.version> <!-- may override parent, used in enforcer plugin -->
-    <java.version>1.8</java.version>
+    <java.version>17</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
@@ -134,12 +134,12 @@ under the License.
   </properties>
 
   <dependencies>
-    <!-- UNIQUE FOR THIS JAVA COMPONENT -->
+    <!-- UNIQUE FOR THIS JAVA COMPONENT 
     <dependency>
       <groupId>org.apache.datasketches</groupId>
       <artifactId>datasketches-memory</artifactId>
       <version>${datasketches-memory.version}</version>
-    </dependency>
+    </dependency> -->
     <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
     <!-- Test Scope -->
     <dependency>
@@ -193,7 +193,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[1.8.0,9.0),[11.0,12.0)</version>
+                    <version>[1.8.0,9.0),[11.0,12.0), [17,18)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},)</version>

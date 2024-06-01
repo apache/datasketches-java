@@ -25,12 +25,17 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteOrder;
+
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
+//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
+
+import jdk.incubator.foreign.ResourceScope;
 
 public class UnionImplTest {
 
@@ -192,13 +197,13 @@ public class UnionImplTest {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    try (WritableHandle wh = WritableMemory.allocateDirect(bytes/2);
-        WritableHandle wh2 = WritableMemory.allocateDirect(bytes/2) ) {
-      final WritableMemory wmem = wh.getWritable();
+    try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+
+      final WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
       final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
       assertTrue(sketch.isSameResource(wmem));
 
-      final WritableMemory wmem2 = wh2.getWritable();
+      final WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
       final Union union = SetOperation.builder().buildUnion(wmem2);
       assertTrue(union.isSameResource(wmem2));
 
@@ -224,14 +229,17 @@ public class UnionImplTest {
 
   @Test
   public void checkUnionCompactOrderedSource() {
-    final int k = 1 << 12;
+    final int lgK = 12;
+    final int k = 1 << lgK;
     final UpdateSketch sk = Sketches.updateSketchBuilder().build();
     for (int i = 0; i < k; i++) { sk.update(i); }
     final double est1 = sk.getEstimate();
 
-    final int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
-    try (WritableHandle h = WritableMemory.allocateDirect(bytes)) {
-      final WritableMemory wmem = h.getWritable();
+    final int bytes = Sketches.getCompactSketchMaxBytes(lgK);
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes,
+            new DefaultMemoryRequestServer())).scope()) {
+
       final CompactSketch csk = sk.compact(true, wmem); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();
       union.union(csk);

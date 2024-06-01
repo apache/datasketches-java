@@ -26,12 +26,17 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteOrder;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
+//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
+
+import jdk.incubator.foreign.ResourceScope;
 
 /**
  * @author Lee Rhodes
@@ -78,8 +83,9 @@ public class CompactSketchTest {
     //Prepare Memory for direct
     int bytes = usk.getCompactBytes(); //for Compact
 
-    try (WritableHandle wdh = WritableMemory.allocateDirect(bytes)) {
-      WritableMemory directMem = wdh.getWritable();
+    WritableMemory directMem;
+    try (ResourceScope scope = (directMem = WritableMemory.allocateDirect(bytes,
+        new DefaultMemoryRequestServer())).scope()) {
 
       /**Via CompactSketch.compact**/
       refSk = usk.compact(ordered, directMem);

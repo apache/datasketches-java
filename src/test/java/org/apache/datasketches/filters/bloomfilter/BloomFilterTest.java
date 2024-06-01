@@ -24,13 +24,18 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteOrder;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
+//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
+
+import jdk.incubator.foreign.ResourceScope;
 
 public class BloomFilterTest {
 
@@ -51,8 +56,10 @@ public class BloomFilterTest {
     assertFalse(bf1.isDirect());
     assertFalse(bf1.isReadOnly());
 
-    try (WritableHandle wh = WritableMemory.allocateDirect(sizeBytes)) {
-      final WritableMemory wmem = wh.getWritable();
+    WritableMemory wmem;
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(sizeBytes,
+            new DefaultMemoryRequestServer())).scope()) {
+
       final BloomFilter bf2 = new BloomFilter(numBits, numHashes, seed, wmem);
       assertTrue(bf2.isEmpty());
       assertTrue(bf2.hasMemory());
