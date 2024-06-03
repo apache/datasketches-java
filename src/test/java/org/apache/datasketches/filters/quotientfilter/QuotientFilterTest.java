@@ -56,12 +56,12 @@ public class QuotientFilterTest {
         final int E = 5;
         final int F = 6;
 
-        qf.insert(B, 1, false);
-        qf.insert(E, 4, false);
-        qf.insert(F, 7, false);
-        qf.insert(C, 1, false);
-        qf.insert(D, 2, false);
-        qf.insert(A, 1, false);
+        qf.insert(B, 1);
+        qf.insert(E, 4);
+        qf.insert(F, 7);
+        qf.insert(C, 1);
+        qf.insert(D, 2);
+        qf.insert(A, 1);
         assertEquals(qf.get_num_entries(), 6);
 
         assertEquals(getState(qf, 0), 0);
@@ -99,26 +99,35 @@ public class QuotientFilterTest {
         int num_entries = (int)Math.pow(2, num_entries_power);
         QuotientFilter qf = new QuotientFilter(4, 8);
 
-        // (key, slot): {(a, 1), (b,1), (c ,3), (d, 3), (e, 3), (f, 4), (g, 6), (h, 6)}
-        qf.insert(0, 1, false);
-        qf.insert(0, 1, false);
-        qf.insert(0, 3, false);
-        qf.insert(0, 3, false);
-        qf.insert(0, 3, false);
-        qf.insert(0, 4, false);
-        qf.insert(0, 6, false);
-        qf.insert(0, 6, false);
+        final int A = 1;
+        final int B = 2;
+        final int C = 3;
+        final int D = 4;
+        final int E = 5;
+        final int F = 6;
+        final int G = 7;
+        final int H = 8;
+
+        // (key, slot): {(a, 1), (b, 1), (c, 3), (d, 3), (e, 3), (f, 4), (g, 6), (h, 6)}
+        qf.insert(A, 1);
+        qf.insert(B, 1);
+        qf.insert(C, 3);
+        qf.insert(D, 3);
+        qf.insert(E, 3);
+        qf.insert(F, 4);
+        qf.insert(G, 6);
+        qf.insert(H, 6);
 
         BitSet result = new BitSet(num_entries * bits_per_entry);
         result = set_slot_in_test(result, bits_per_entry, 0, false, false, false, 0);
-        result = set_slot_in_test(result, bits_per_entry, 1, true, false, false, 0);
-        result = set_slot_in_test(result, bits_per_entry, 2, false, true, true, 0);
-        result = set_slot_in_test(result, bits_per_entry, 3, true, false, false, 0);
-        result = set_slot_in_test(result, bits_per_entry, 4, true, true, true, 0);
-        result = set_slot_in_test(result, bits_per_entry, 5, false, true, true, 0);
-        result = set_slot_in_test(result, bits_per_entry, 6, true, false, true, 0);
-        result = set_slot_in_test(result, bits_per_entry, 7, false, false, true, 0);
-        result = set_slot_in_test(result, bits_per_entry, 8, false, true, true, 0);
+        result = set_slot_in_test(result, bits_per_entry, 1, true, false, false, A);
+        result = set_slot_in_test(result, bits_per_entry, 2, false, true, true, B);
+        result = set_slot_in_test(result, bits_per_entry, 3, true, false, false, C);
+        result = set_slot_in_test(result, bits_per_entry, 4, true, true, true, D);
+        result = set_slot_in_test(result, bits_per_entry, 5, false, true, true, E);
+        result = set_slot_in_test(result, bits_per_entry, 6, true, false, true, F);
+        result = set_slot_in_test(result, bits_per_entry, 7, false, false, true, G);
+        result = set_slot_in_test(result, bits_per_entry, 8, false, true, true, H);
         assertTrue(check_equality(qf, result, false));
     }
 
@@ -139,23 +148,24 @@ public class QuotientFilterTest {
      */
     @Test
     public void OverflowTest() {
-        int bits_per_entry = 8;
-        int num_entries_power = 3;
-        int num_entries = (int)Math.pow(2, num_entries_power);
-        int fingerprint_size = bits_per_entry - 3;
-        QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
+        final int bits_per_entry = 8;
+        final int num_entries_power = 3;
+        final int num_entries = (int)Math.pow(2, num_entries_power);
+        final int fingerprint_size = bits_per_entry - 3;
+        final QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
 
-        long fp2 = 1 << fingerprint_size - 1;
-        qf.insert(fp2, num_entries - 1, false);
-        assertEquals(qf.get_fingerprint(7), fp2);
-        assertEquals(getState(qf, 7), 0b100);
-        qf.insert(fp2, num_entries - 1, false);
+        final long fp1 = 1;
+        final long fp2 = 1 << fingerprint_size - 1;
+        qf.insert(fp1, num_entries - 1);
+        assertEquals(qf.get_fingerprint(num_entries - 1), fp1);
+        assertEquals(getState(qf, num_entries - 1), 0b100);
+        qf.insert(fp2, num_entries - 1);
         assertEquals(qf.get_fingerprint(0), fp2);
         assertEquals(getState(qf, 0), 0b011);
         qf.delete(fp2, num_entries - 1);
         assertEquals(qf.get_fingerprint(0), 0);
         assertEquals(getState(qf, 0), 0b000);
-        boolean found = qf.search(fp2, num_entries - 1);
+        final boolean found = qf.search(fp1, num_entries - 1);
         assertTrue(found);
     }
 
@@ -174,16 +184,16 @@ public class QuotientFilterTest {
         //int fingerprint_size = bits_per_entry - 3;
         QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
 
-        qf.insert(0x1F, 2, false);
-        qf.insert(0x1F, 3, false);
-        qf.insert(0x1F, 3, false);
-        qf.insert(0x1F, 4, false);
-        qf.insert(0x1F, 15, false); // last slot in the filter
-        qf.insert(0x1F, 16, false); // outside the bounds
+        qf.insert(0x1F, 2);
+        qf.insert(0x1F, 3);
+        qf.insert(0x1F, 3);
+        qf.insert(0x1F, 4);
+        qf.insert(0x1F, 15); // last slot in the filter
+        qf.insert(0x1F, 16); // outside the bounds
         qf.pretty_print() ;
 
         Iterator it = new Iterator(qf);
-        int[] arr = new int[] {2, 3, 3, 4, 15};
+        int[] arr = new int[] {2, 3, 4, 15};
         int arr_index = 0;
         while (it.next()) {assertEquals(it.bucket_index, arr[arr_index++]);}
     }
@@ -195,16 +205,16 @@ public class QuotientFilterTest {
         int num_entries_power = 4;
         QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
 
-        qf.insert(0, 1, false);
-        qf.insert(0, 4, false);
-        qf.insert(0, 7, false);
-        qf.insert(0, 1, false);
-        qf.insert(0, 2, false);
-        qf.insert(0, 1, false);
-        qf.insert(0, 15, false);
+        qf.insert(0, 1);
+        qf.insert(0, 4);
+        qf.insert(0, 7);
+        qf.insert(0, 1);
+        qf.insert(0, 2);
+        qf.insert(0, 1);
+        qf.insert(0, 15);
 
         Iterator it = new Iterator(qf);
-        int[] arr = new int[] {1, 1, 1, 2, 4, 7, 15};
+        int[] arr = new int[] {1, 2, 4, 7, 15};
         int arr_index = 0;
         while (it.next()) {assertEquals(arr[arr_index++], it.bucket_index);}
     }
@@ -270,7 +280,7 @@ public class QuotientFilterTest {
 
         for (int i = 0; i < num_entries; i++) {
             int rand_num = rand.nextInt();
-            boolean success = filter.insert(rand_num, false);
+            boolean success = filter.insert(rand_num);
             if (success) {
                 added.add(rand_num);
             }
@@ -279,7 +289,7 @@ public class QuotientFilterTest {
             }
         }
 
-        for (Integer i : added) {
+        for (Integer i: added) {
             boolean found = filter.search((long)i);
             if (!found) {
                 return false;

@@ -400,30 +400,19 @@ public class QuotientFilter extends Filter {
         return insert_fingerprint_and_push_all_else(long_fp, start_of_this_new_run, false);
     }
 
-    boolean insert(long long_fp, long index, boolean insert_only_if_no_match) {
-        //System.out.println("Inserting Fingerprint " + long_fp);
-        //System.out.println("Inserting @ index     " + index);
-        //System.out.println("BoolMatch? " + insert_only_if_no_match);
-        //System.out.println("**********");
-        //System.out.println("Num items: " + num_entries);
-        //System.out.println("Max items: " + max_entries_before_expansion);
-
-        if (index >= get_num_slots() || num_entries == get_num_slots()) {
-            return false;
-        }
-        boolean does_run_exist = is_occupied(index);
-        if (!does_run_exist) {
-            return insert_new_run(index, long_fp);
-        }
-
-        long run_start_index = find_run_start(index);
-        if (insert_only_if_no_match) {
-            long found_index = find_first_fingerprint_in_run(run_start_index, long_fp);
-            if (found_index > -1) {
-                return false;
-            }
-        }
-        return insert_fingerprint_and_push_all_else(long_fp, run_start_index, true);
+    boolean insert(long long_fp, long index) {
+      if (index >= get_num_slots() || num_entries == get_num_slots()) {
+        return false;
+      }
+      if (!is_occupied(index)) {
+        return insert_new_run(index, long_fp);
+      }
+      long run_start_index = find_run_start(index);
+      final long found_index = find_first_fingerprint_in_run(run_start_index, long_fp);
+      if (found_index > -1) {
+        return false;
+      }
+      return insert_fingerprint_and_push_all_else(long_fp, run_start_index, true);
     }
 
     // insert a fingerprint as the last fingerprint of the run and push all other entries in the cluster to the right.
@@ -601,7 +590,7 @@ public class QuotientFilter extends Filter {
     Hence, the `large_hash` argument is already a hash key that has been generated
     by the hashing library (eg xxhash).
      */
-    protected boolean _insert(long large_hash, boolean insert_only_if_no_match) {
+    protected boolean _insert(long large_hash) {
         //System.out.println("Inserting long hash " + large_hash);
         if (is_full) {
             return false;
@@ -615,7 +604,7 @@ public class QuotientFilter extends Filter {
 		System.out.println(slot_index + "  " + fingerprint );
 		System.out.println(); */
 
-        boolean success = insert(fingerprint, slot_index, false);
+        boolean success = insert(fingerprint, slot_index);
 		/*if (!success) {
 			System.out.println("insertion failure");
 			System.out.println(input + "\t" + slot_index + "\t" + get_fingerprint_str(fingerprint, fingerprintLength));
