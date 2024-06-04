@@ -67,7 +67,7 @@ public class QuotientFilterTest {
         assertEquals(getState(qf, 0), 0);
         assertEquals(qf.get_fingerprint(0), 0);
         assertEquals(getState(qf, 1), 0b100);
-        assertEquals(qf.get_fingerprint(1), A); // this run is not ordered, which is different from Wikipedia example
+        assertEquals(qf.get_fingerprint(1), A);
         assertEquals(getState(qf, 2), 0b111);
         assertEquals(qf.get_fingerprint(2), B);
         assertEquals(getState(qf, 3), 0b011);
