@@ -20,12 +20,12 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * The Sorted View for quantile sketches of primitive type double.
+ * The Sorted View for quantile sketches of primitive type long.
  * @see SortedView
- * @author Alexander Saydakov
  * @author Lee Rhodes
+ * @author Zac Blanco
  */
-public interface DoublesSortedView extends SortedView {
+public interface LongsSortedView extends SortedView {
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream
@@ -60,14 +60,14 @@ public interface DoublesSortedView extends SortedView {
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getCDF(double[] splitPoints, QuantileSearchCriteria searchCrit) {
-    QuantilesUtil.checkDoublesSplitPointsOrder(splitPoints);
+  default double[] getCDF(long[] splitPoints, QuantileSearchCriteria searchCrit) {
+    QuantilesUtil.checkLongsSplitPointsOrder(splitPoints);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
     for (int i = 0; i < len - 1; i++) {
       buckets[i] = getRank(splitPoints[i], searchCrit);
     }
-    buckets[len - 1] = 1.0;
+    buckets[len - 1] = 1;
     return buckets;
   }
 
@@ -78,7 +78,7 @@ public interface DoublesSortedView extends SortedView {
    * @return the maximum item of the stream
    * @throws IllegalArgumentException if sketch is empty.
    */
-  double getMaxItem();
+  long getMaxItem();
 
   /**
    * Returns the minimum item of the stream. This may be distinct from the smallest item retained by the
@@ -87,7 +87,7 @@ public interface DoublesSortedView extends SortedView {
    * @return the minimum item of the stream
    * @throws IllegalArgumentException if sketch is empty.
    */
-  double getMinItem();
+  long getMinItem();
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
@@ -129,7 +129,7 @@ public interface DoublesSortedView extends SortedView {
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getPMF(double[] splitPoints,  QuantileSearchCriteria searchCrit) {
+  default double[] getPMF(long[] splitPoints,  QuantileSearchCriteria searchCrit) {
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
     for (int i = len; i-- > 1; ) {
@@ -150,13 +150,13 @@ public interface DoublesSortedView extends SortedView {
    * @throws IllegalArgumentException if sketch is empty.
    * @see QuantileSearchCriteria
    */
-  double getQuantile(double rank, QuantileSearchCriteria searchCrit);
+  long getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
   /**
    * Returns an array of all retained quantiles by the sketch.
    * @return an array of all retained quantiles by the sketch.
    */
-  double[] getQuantiles();
+  long[] getQuantiles();
 
   /**
    * Gets the normalized rank corresponding to the given a quantile.
@@ -167,9 +167,9 @@ public interface DoublesSortedView extends SortedView {
    * @throws IllegalArgumentException if sketch is empty.
    * @see QuantileSearchCriteria
    */
-  double getRank(double quantile, QuantileSearchCriteria searchCrit);
+  double getRank(long quantile, QuantileSearchCriteria searchCrit);
 
   @Override
-  DoublesSortedViewIterator iterator();
+  LongsSortedViewIterator iterator();
 
 }

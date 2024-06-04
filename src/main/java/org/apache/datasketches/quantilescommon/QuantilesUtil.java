@@ -68,6 +68,21 @@ public final class QuantilesUtil {
   }
 
   /**
+   * Checks the sequential validity of the given array of double values.
+   * They must be unique and monotonically increasing.
+   * @param values the given array of double values
+   */
+  public static void checkLongsSplitPointsOrder(final long[] values) {
+    Objects.requireNonNull(values);
+    final int len = values.length;
+    for (int j = 0; j < len - 1; j++) {
+      if (values[j] < values[j + 1]) { continue; }
+      throw new SketchesArgumentException(
+              "Values must be unique and monotonically increasing.");
+    }
+  }
+
+  /**
    * Checks the sequential validity of the given array of float values.
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of double values
