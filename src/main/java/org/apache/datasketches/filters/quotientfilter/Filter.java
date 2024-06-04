@@ -34,7 +34,7 @@ public abstract class Filter {
     //abstract boolean rejuvenate(long key);
     //abstract boolean expand();
     //protected abstract boolean _delete(long large_hash);
-    abstract protected boolean _insert(long large_hash, boolean insert_only_if_no_match);
+    abstract protected boolean _insert(long large_hash);
     abstract protected boolean _search(long large_hash);
 
 
@@ -53,11 +53,11 @@ public abstract class Filter {
 //        return _delete(HashFunctions.xxhash(input_buffer));
 //    }
 //
-    public boolean insert(long input, boolean insert_only_if_no_match) {
+    public boolean insert(long input) {
         //System.out.println("The ABC input is " + input);
         long hash = get_hash(input);
         //System.out.println("The ABC hash  is " + hash);
-        return _insert(hash, insert_only_if_no_match);
+        return _insert(hash);
     }
 //
 //    public boolean insert(String input, boolean insert_only_if_no_match) {
