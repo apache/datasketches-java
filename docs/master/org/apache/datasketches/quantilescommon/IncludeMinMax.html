@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":9};
+var data = {"i0":9,"i1":9,"i2":9,"i3":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -176,6 +176,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">A simple structure to hold a pair of arrays</div>
 </td>
 </tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="IncludeMinMax.LongsPair.html" title="class in org.apache.datasketches.quantilescommon">IncludeMinMax.LongsPair</a></span></code></th>
+<td class="colLast">
+<div class="block">A simple structure to hold a pair of arrays</div>
+</td>
+</tr>
 </table>
 </li>
 </ul>
@@ -246,6 +253,16 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">The logic to include the min and max of type T.</div>
 </td>
 </tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>static <a href="IncludeMinMax.LongsPair.html" title="class in org.apache.datasketches.quantilescommon">IncludeMinMax.LongsPair</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#includeLongsMinMax(long%5B%5D,long%5B%5D,long,long)">includeLongsMinMax</a></span>&#8203;(long[]&nbsp;quantilesIn,
+                  long[]&nbsp;cumWeightsIn,
+                  long&nbsp;maxItem,
+                  long&nbsp;minItem)</code></th>
+<td class="colLast">
+<div class="block">The logic to include the min and max of type double.</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -299,6 +316,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
                                                              long[]&nbsp;cumWeightsIn,
                                                              double&nbsp;maxItem,
                                                              double&nbsp;minItem)</pre>
+<div class="block">The logic to include the min and max of type double.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>quantilesIn</code> - The array of quantiles</dd>
+<dd><code>cumWeightsIn</code> - The array of associated cumulative weights</dd>
+<dd><code>maxItem</code> - the maximum item of the stream</dd>
+<dd><code>minItem</code> - the minimum item of the stream</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a DoublesPair</dd>
+</dl>
+</li>
+</ul>
+<a id="includeLongsMinMax(long[],long[],long,long)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>includeLongsMinMax</h4>
+<pre class="methodSignature">public static&nbsp;<a href="IncludeMinMax.LongsPair.html" title="class in org.apache.datasketches.quantilescommon">IncludeMinMax.LongsPair</a>&nbsp;includeLongsMinMax&#8203;(long[]&nbsp;quantilesIn,
+                                                         long[]&nbsp;cumWeightsIn,
+                                                         long&nbsp;maxItem,
+                                                         long&nbsp;minItem)</pre>
 <div class="block">The logic to include the min and max of type double.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

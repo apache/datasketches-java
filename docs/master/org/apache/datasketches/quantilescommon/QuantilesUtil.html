@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9};
+var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -200,12 +200,19 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#checkLongsSplitPointsOrder(long%5B%5D)">checkLongsSplitPointsOrder</a></span>&#8203;(long[]&nbsp;values)</code></th>
+<td class="colLast">
+<div class="block">Checks the sequential validity of the given array of double values.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>static void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#checkNormalizedRankBounds(double)">checkNormalizedRankBounds</a></span>&#8203;(double&nbsp;nRank)</code></th>
 <td class="colLast">
 <div class="block">Checks that the given normalized rank: <i>0 &le; nRank &le; 1.0</i>.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#equallySpacedDoubles(int)">equallySpacedDoubles</a></span>&#8203;(int&nbsp;num)</code></th>
 <td class="colLast">
@@ -213,7 +220,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  inclusive.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static long[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#equallySpacedLongs(long,long,int)">equallySpacedLongs</a></span>&#8203;(long&nbsp;min,
                   long&nbsp;max,
@@ -223,7 +230,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  <i>max</i>, inclusive, and <i>min</i>, inclusive.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#evenlyLogSpaced(double,double,int)">evenlyLogSpaced</a></span>&#8203;(double&nbsp;value1,
                double&nbsp;value2,
@@ -233,7 +240,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  returned values are evenly spaced.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#evenlySpacedDoubles(double,double,int)">evenlySpacedDoubles</a></span>&#8203;(double&nbsp;value1,
                    double&nbsp;value2,
@@ -242,7 +249,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns a double array of evenly spaced values between value1, inclusive, and value2 inclusive.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static float[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#evenlySpacedFloats(float,float,int)">evenlySpacedFloats</a></span>&#8203;(float&nbsp;value1,
                   float&nbsp;value2,
@@ -251,7 +258,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns a float array of evenly spaced values between value1, inclusive, and value2 inclusive.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNaturalRank(double,long,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNaturalRank</a></span>&#8203;(double&nbsp;normalizedRank,
               long&nbsp;totalN,
@@ -331,6 +338,21 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <pre class="methodSignature">public static final&nbsp;void&nbsp;checkDoublesSplitPointsOrder&#8203;(double[]&nbsp;values)</pre>
 <div class="block">Checks the sequential validity of the given array of double values.
  They must be unique, monotonically increasing and not NaN.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>values</code> - the given array of double values</dd>
+</dl>
+</li>
+</ul>
+<a id="checkLongsSplitPointsOrder(long[])">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>checkLongsSplitPointsOrder</h4>
+<pre class="methodSignature">public static&nbsp;void&nbsp;checkLongsSplitPointsOrder&#8203;(long[]&nbsp;values)</pre>
+<div class="block">Checks the sequential validity of the given array of double values.
+ They must be unique and monotonically increasing.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>values</code> - the given array of double values</dd>
