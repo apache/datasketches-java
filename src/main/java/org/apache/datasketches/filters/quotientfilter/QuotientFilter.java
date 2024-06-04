@@ -312,16 +312,19 @@ public class QuotientFilter extends Filter {
     }
 
     // given the start of a run, scan the run and return the index of the first matching fingerprint
+    // if not found returns the insertion position as bitwise complement to make it negative
     long find_first_fingerprint_in_run(long index, long fingerprint) {
-        assert(!is_continuation(index));
-        do {
-            if (compare(index, fingerprint)) {
-                //System.out.println("found matching FP at index " + index);
-                return index;
-            }
-            index = (index + 1) & getMask();
-        } while (is_continuation(index));
-        return -1;
+      assert(!is_continuation(index));
+      do {
+        final long fingerprintAtIndex = get_fingerprint(index);
+        if (fingerprintAtIndex == fingerprint) {
+          return index;
+        } else if (fingerprintAtIndex > fingerprint) {
+          return ~index; 
+        }
+        index = (index + 1) & getMask();
+      } while (is_continuation(index));
+      return ~index;
     }
 
     // delete the last matching fingerprint in the run
@@ -354,7 +357,7 @@ public class QuotientFilter extends Filter {
         }
         long run_start_index = find_run_start(index);
         long found_index = find_first_fingerprint_in_run(run_start_index, fingerprint);
-        return found_index > -1;
+        return found_index >= 0;
     }
 
     // Given a canonical slot index, find the corresponding run and return all fingerprints in the run.
@@ -373,74 +376,49 @@ public class QuotientFilter extends Filter {
         return set;
     }
 
-    // Swaps the fingerprint in a given slot with a new one. Return the pre-existing fingerprint
-    long swap_fingerprints(long index, long new_fingerprint) {
-        long existing = get_fingerprint(index);
-        set_fingerprint(index, new_fingerprint);
-        return existing;
-    }
-
-    boolean insert_new_run(long canonical_slot, long long_fp) {
-        long start_of_this_new_run = find_run_start(canonical_slot);
-        boolean slot_initially_empty = is_slot_empty(start_of_this_new_run);
-
-        // modify some metadata flags to mark the new run
-        set_occupied(canonical_slot, true);
-        if (start_of_this_new_run != canonical_slot) {
-            set_shifted(start_of_this_new_run, true);
-        }
-        set_continuation(start_of_this_new_run, false);
-
-        // if the slot was initially empty, we can just terminate, as there is nothing to push to the right
-        if (slot_initially_empty) {
-            set_fingerprint(start_of_this_new_run, long_fp);
-            num_entries++;
-            return true;
-        }
-        return insert_fingerprint_and_push_all_else(long_fp, start_of_this_new_run, false);
-    }
-
-    boolean insert(long long_fp, long index) {
+    boolean insert(long fingerprint, long index) {
       if (index >= get_num_slots() || num_entries == get_num_slots()) {
         return false;
       }
+      final long run_start = find_run_start(index);
       if (!is_occupied(index)) {
-        return insert_new_run(index, long_fp);
+        return insert_fingerprint_and_push_all_else(fingerprint, run_start, index, true, true);
       }
-      long run_start_index = find_run_start(index);
-      final long found_index = find_first_fingerprint_in_run(run_start_index, long_fp);
-      if (found_index > -1) {
+      final long found_index = find_first_fingerprint_in_run(run_start, fingerprint);
+      if (found_index >= 0) {
         return false;
       }
-      return insert_fingerprint_and_push_all_else(long_fp, run_start_index, true);
+      return insert_fingerprint_and_push_all_else(fingerprint, ~found_index, index, false, ~found_index == run_start);
     }
 
-    // insert a fingerprint as the last fingerprint of the run and push all other entries in the cluster to the right.
-    boolean insert_fingerprint_and_push_all_else(long long_fp, long run_start_index, boolean is_same_run) {
-        long current_index = run_start_index;
-        boolean is_this_slot_empty;
-        boolean temp_continuation = false;
-
-        do {
-            is_this_slot_empty = is_slot_empty(current_index);
-            if (current_index != run_start_index) {
-                set_shifted(current_index, true);
-            }
-            if (current_index != run_start_index && is_same_run && !is_continuation(current_index)) {
-              is_same_run = false;
-                set_continuation(current_index, true);
-                long_fp = swap_fingerprints(current_index, long_fp);
-            }
-            else if (!is_same_run) {
-                boolean current_continuation = is_continuation(current_index);
-                set_continuation(current_index, temp_continuation);
-                temp_continuation = current_continuation;
-                long_fp = swap_fingerprints(current_index, long_fp);
-            }
-            current_index = (current_index + 1) & getMask();
-        } while (!is_this_slot_empty);
-        num_entries++;
-        return true;
+    boolean insert_fingerprint_and_push_all_else(long fingerprint, long index, long canonical, boolean is_new_run, boolean is_run_start) {
+      boolean existing_is_continuation = is_continuation(index);
+      boolean is_continuation = !is_run_start;
+      boolean is_shifted = index != canonical;
+      boolean force_continuation = !is_new_run && is_run_start;
+      boolean existing_is_empty = is_slot_empty(index);
+      long existing_fingerprint = get_fingerprint(index);
+      while (!existing_is_empty) {
+        set_fingerprint(index, fingerprint);
+        set_continuation(index, is_continuation);
+        set_shifted(index, is_shifted);
+        fingerprint = existing_fingerprint;
+        is_continuation = existing_is_continuation | force_continuation;
+        is_shifted = true;
+        index = (index + 1) & getMask();
+        existing_fingerprint = get_fingerprint(index);
+        existing_is_continuation = is_continuation(index);
+        existing_is_empty = is_slot_empty(index);
+        force_continuation = false;
+      }
+      set_fingerprint(index, fingerprint);
+      set_continuation(index, is_continuation);
+      set_shifted(index, is_shifted);
+      if (is_new_run) {
+        set_occupied(canonical, true);
+      }
+      num_entries++;
+      return true;
     }
 
     boolean delete(long fingerprint, long canonical_slot, long run_start_index, long matching_fingerprint_index) {
