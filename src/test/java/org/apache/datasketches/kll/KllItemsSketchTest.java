@@ -570,7 +570,7 @@ public class KllItemsSketchTest {
   }
 
   @Test
-  public void checkWrapCase1Floats() {
+  public void checkWrapCase1Item() {
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     final int n = 21;
     final int digits = Util.numDigits(n);

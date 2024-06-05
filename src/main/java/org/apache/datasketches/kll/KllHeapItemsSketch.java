@@ -36,7 +36,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This class implements an on-heap doubles KllSketch.
+ * This class implements an on-heap items KllSketch.
  *
  * <p>Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}</p>
