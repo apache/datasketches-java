@@ -400,9 +400,9 @@ public class QuotientFilter extends Filter {
       boolean is_continuation = !is_run_start;
       boolean is_shifted = index != canonical;
 
-      // store the existing entry in the current slot to be shifted to the next slot
+      // remember the existing entry from the current slot to be shifted to the next slot
       // is_occupied flag belongs to the slot, therefore it is never shifted
-      // is_shifted flag is always true for all shifted entries, no need to store it
+      // is_shifted flag is always true for all shifted entries, no need to remember it
       long existing_fingerprint = get_fingerprint(index);
       boolean existing_is_continuation = is_continuation(index);
       boolean existing_is_empty = is_slot_empty(index);
