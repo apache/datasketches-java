@@ -392,28 +392,47 @@ public class QuotientFilter extends Filter {
     }
 
     boolean insert_fingerprint_and_push_all_else(long fingerprint, long index, long canonical, boolean is_new_run, boolean is_run_start) {
-      boolean existing_is_continuation = is_continuation(index);
+      // in the first shifted entry set is_continuation flag if inserting at the start of the existing run
+      // otherwise just shift the existing flag as it is
+      boolean force_continuation = !is_new_run && is_run_start;
+
+      // prepare flags for the current slot
       boolean is_continuation = !is_run_start;
       boolean is_shifted = index != canonical;
-      boolean force_continuation = !is_new_run && is_run_start;
-      boolean existing_is_empty = is_slot_empty(index);
+
+      // store the existing entry in the current slot to be shifted to the next slot
+      // is_occupied flag belongs to the slot, therefore it is never shifted
+      // is_shifted flag is always true for all shifted entries, no need to store it
       long existing_fingerprint = get_fingerprint(index);
+      boolean existing_is_continuation = is_continuation(index);
+      boolean existing_is_empty = is_slot_empty(index);
+
       while (!existing_is_empty) {
+        // set the current slot
         set_fingerprint(index, fingerprint);
         set_continuation(index, is_continuation);
         set_shifted(index, is_shifted);
+
+        // prepare values for the next slot
         fingerprint = existing_fingerprint;
         is_continuation = existing_is_continuation | force_continuation;
         is_shifted = true;
+
         index = (index + 1) & getMask();
+
+        // save the existing entry to be shifted
         existing_fingerprint = get_fingerprint(index);
         existing_is_continuation = is_continuation(index);
         existing_is_empty = is_slot_empty(index);
-        force_continuation = false;
+
+        force_continuation = false; // this is needed for the first shift only
       }
+      // at this point the current slot is empty, so just populate with prepared values
+      // either the incoming fingerprint or the last shifted one
       set_fingerprint(index, fingerprint);
       set_continuation(index, is_continuation);
       set_shifted(index, is_shifted);
+
       if (is_new_run) {
         set_occupied(canonical, true);
       }
