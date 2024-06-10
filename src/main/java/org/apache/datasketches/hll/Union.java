@@ -505,9 +505,9 @@ public class Union extends BaseHllSketch {
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
           final byte[] tgtArr = ((Hll8Array) tgt.hllSketchImpl).hllByteArr;
           for (int i = 0; i < srcK; i++) {
-            final byte srcV = srcArr[i];
-            final byte tgtV = tgtArr[i];
-            tgtArr[i] = (byte) Math.max(srcV, tgtV);
+            if (srcArr[i] > tgtArr[i]) {
+              tgtArr[i] = srcArr[i];
+            }
           }
           break;
         }

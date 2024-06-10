@@ -89,6 +89,7 @@ under the License.
 
     <!-- Test -->
     <testng.version>7.5.1</testng.version>
+    <jmh.version>1.37</jmh.version>
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
     <testng.generate-java-files>generate_java_files</testng.generate-java-files>
     <testng.check-cpp-files>check_cpp_files</testng.check-cpp-files>
@@ -148,6 +149,12 @@ under the License.
       <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-core</artifactId>
+      <version>${jmh.version}</version>
+      <scope>test</scope>
+    </dependency>
     <!--
     <dependency>
       <groupId>org.apache.datasketches</groupId>
@@ -170,6 +177,15 @@ under the License.
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.openjdk.jmh</groupId>
+                <artifactId>jmh-generator-annprocess</artifactId>
+                <version>${jmh.version}</version>
+              </path>
+            </annotationProcessorPaths>
+          </configuration>
         </plugin>
 
         <plugin>
