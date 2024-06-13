@@ -28,756 +28,613 @@ import org.apache.datasketches.filters.common.HeapBitArray;
 
 public class QuotientFilter extends Filter {
 
-    int bitPerEntry;
-    int fingerprintLength;
-    int power_of_two_size;
-    int num_entries;
-    BitArray filter;
+  int bitPerEntry_;
+  int fingerprintLength_;
+  int powerOfTwoSize_;
+  int numEntries_;
+  BitArray bitArray_;
 
-    double expansion_threshold;
-    long max_entries_before_expansion;
-    boolean expand_autonomously;
-    boolean is_full;
+  double expansionThreshold_;
+  long maxEntriesBeforeExpansion_;
+  boolean expandAutonomously_;
+  boolean isFull_;
 
-    // statistics, computed in the compute_statistics method. method should be called before these are used
-    long num_runs;
-    long num_clusters;
-    public double avg_run_length;
-    public double avg_cluster_length;
+  // statistics, computed in the compute_statistics method. method should be called before these are used
+  long numRuns_;
+  long numClusters_;
+  public double avgRunLength_;
+  public double avgClusterLength_;
 
-    int original_fingerprint_size;
-    int num_expansions;
+  int originalFingerprintSize_;
+  int numExpansions_;
 
+  public QuotientFilter(final int powerOfTwo, final int bitsPerEntry) {
+    powerOfTwoSize_ = powerOfTwo;
+    bitPerEntry_ = bitsPerEntry;
+    fingerprintLength_ = bitsPerEntry - 3;
+    final long init_size = 1L << powerOfTwo;
+    bitArray_ = makeFilter(init_size, bitsPerEntry);
 
-    public QuotientFilter(int power_of_two, int bits_per_entry) {
-        power_of_two_size = power_of_two;
-        bitPerEntry = bits_per_entry;
-        fingerprintLength = bits_per_entry - 3;
-        final long init_size = 1L << power_of_two;
-        filter = make_filter(init_size, bits_per_entry);
+    expansionThreshold_ = 0.8;
+    maxEntriesBeforeExpansion_ = (int) (init_size * expansionThreshold_);
+    expandAutonomously_ = false;
+    isFull_ = false;
 
-        expansion_threshold = 0.8;
-        max_entries_before_expansion = (int) (init_size * expansion_threshold);
-        expand_autonomously = false;
-        is_full = false;
+    originalFingerprintSize_ = fingerprintLength_;
+    numExpansions_ = 0;
+    //hash_type = XxHash.hashLong ; //HashType.xxh;
+  }
 
-        original_fingerprint_size = fingerprintLength;
-        num_expansions = 0;
-        //hash_type = XxHash.hashLong ; //HashType.xxh;
+  public boolean rejuvenate(final long key) {
+    return false;
+  }
+
+  public long getNumEntries() {
+    return numEntries_;
+  }
+
+  public long getMaxEntriesBeforeExpansion() {
+    return maxEntriesBeforeExpansion_;
+  }
+
+  public boolean expandAutonomously() {
+    return expandAutonomously_;
+  }
+
+  public void setExpandAutonomously(final boolean val) {
+    expandAutonomously_ = val;
+  }
+
+  BitArray makeFilter(final long initSize, final int bitsPerEntry) {
+    return new HeapBitArray(initSize * bitsPerEntry);
+  }
+
+  public int getFingerprintLength() {
+    return fingerprintLength_;
+  }
+
+  QuotientFilter(final int powerOfTwo, final int bitsPerEntry, final BitArray bitArray) {
+    powerOfTwoSize_ = powerOfTwo;
+    bitPerEntry_ = bitsPerEntry;
+    fingerprintLength_ = bitsPerEntry - 3;
+    bitArray_ = bitArray;
+  }
+
+  boolean expand() {
+    isFull_ = true;
+    return false;
+  }
+
+  // measures the number of bits per entry for the filter
+  public double measureNumBitsPerEntry() {
+    return measureNumBitsPerEntry(this, new ArrayList<QuotientFilter>());
+  }
+
+  // measures the number of bits per entry for the filter
+  // it takes an array of filters as a parameter since some filter implementations here consist of multiple filter objects
+  protected static double measureNumBitsPerEntry(final QuotientFilter current, final ArrayList<QuotientFilter> otherFilters) {
+    //System.out.println("--------------------------");
+    //current.print_filter_summary();
+    //System.out.println();
+    double numEntries = current.getNumEntries();
+    for (QuotientFilter q : otherFilters) {
+      //q.print_filter_summary();
+      //System.out.println();
+      numEntries += q.getNumEntries();
     }
-
-    public boolean rejuvenate(long key) {
-        return false;
+    long init_size = 1L << current.powerOfTwoSize_;
+    long numBits = current.bitPerEntry_ * init_size;
+    for (QuotientFilter q : otherFilters) {
+      init_size = 1L << q.powerOfTwoSize_;
+      numBits += q.bitPerEntry_ * init_size;
     }
+    //System.out.println("total entries: \t\t" + num_entries);
+    //System.out.println("total bits: \t\t" + num_bits);
+    final double bits_per_entry = numBits / numEntries;
+    //System.out.println("total bits/entry: \t" + bits_per_entry);
+    //System.out.println();
+    return bits_per_entry;
+  }
 
-    public long get_num_entries() {
-        return num_entries;
-    }
+  // returns the fraction of occupied slots in the filter
+  public double getUtilization() {
+    return numEntries_ / (double) getNumSlots();
+  }
 
-    public long get_max_entries_before_expansion() {
-        return max_entries_before_expansion;
-    }
+  // returns the number of slots in the filter without the extension/buffer slots
+  public long getNumSlots() {
+    return 1L << powerOfTwoSize_;
+  }
 
-    public boolean expand_autonomously() {
-        return expand_autonomously;
-    }
+  long getMask() {
+    return getNumSlots() - 1;
+  }
 
-    public void set_expand_autonomously(boolean val) {
-        expand_autonomously = val;
-    }
+  // sets the metadata flag bits for a given slot index
+  void modifySlot(final boolean isOccupied, final boolean isContinuation, final boolean isShifted, final long index) {
+    setOccupied(index, isOccupied);
+    setContinuation(index, isContinuation);
+    setShifted(index, isShifted);
+  }
 
-    BitArray make_filter(long init_size, int bits_per_entry) {
-//		System.out.println(init_size ) ;
-//		System.out.println(num_extension_slots);
-//		System.out.println("Making BitVector with: " + (init_size + num_extension_slots) + "SLOTS");
-        //return new QuickBitVectorWrapper(bits_per_entry,  init_size);
-        return new HeapBitArray(init_size * bits_per_entry);
-    }
+  // sets the fingerprint for a given slot index
+  void setFingerprint(final long index, final long fingerprint) {
+    bitArray_.setBits(index * bitPerEntry_ + 3, fingerprintLength_, fingerprint);
+  }
 
-    public int get_fingerprint_length() {
-        return fingerprintLength;
-    }
-
-    QuotientFilter(int power_of_two, int bits_per_entry, BitArray bitmap) {
-        power_of_two_size = power_of_two;
-        bitPerEntry = bits_per_entry;
-        fingerprintLength = bits_per_entry - 3;
-        filter = bitmap;
-    }
-
-    boolean expand() {
-        is_full = true;
-        return false;
-    }
-
-    // measures the number of bits per entry for the filter
-    public double measure_num_bits_per_entry() {
-        return measure_num_bits_per_entry(this, new ArrayList<QuotientFilter>());
-    }
-
-    // measures the number of bits per entry for the filter
-    // it takes an array of filters as a parameter since some filter implementations here consist of multiple filter objects
-    protected static double measure_num_bits_per_entry(QuotientFilter current, ArrayList<QuotientFilter> other_filters) {
-        //System.out.println("--------------------------");
-        //current.print_filter_summary();
-        //System.out.println();
-        double num_entries = current.get_num_entries();
-        for (QuotientFilter q : other_filters) {
-            //q.print_filter_summary();
-            //System.out.println();
-            num_entries += q.get_num_entries();
-        }
-        long init_size = 1L << current.power_of_two_size;
-        long num_bits = current.bitPerEntry * init_size;
-        for (QuotientFilter q : other_filters) {
-            init_size = 1L << q.power_of_two_size;
-            num_bits += q.bitPerEntry * init_size;
-        }
-        //System.out.println("total entries: \t\t" + num_entries);
-        //System.out.println("total bits: \t\t" + num_bits);
-        final double bits_per_entry = num_bits / num_entries;
-        //System.out.println("total bits/entry: \t" + bits_per_entry);
-        //System.out.println();
-        return bits_per_entry;
-    }
-
-    // returns the fraction of occupied slots in the filter
-    public double get_utilization() {
-        long num_logical_slots = 1L << power_of_two_size;
-        double util = num_entries / (double) num_logical_slots;
-        return util;
-    }
-
-    // returns the number of slots in the filter without the extension/buffer slots
-    public long get_num_slots() {
-        return 1L << power_of_two_size;
-    }
-
-    long getMask() {
-      return get_num_slots() - 1;
-    }
-
-    // sets the metadata flag bits for a given slot index
-    void modify_slot(boolean is_occupied, boolean is_continuation, boolean is_shifted,
-                     long index) {
-        set_occupied(index, is_occupied);
-        set_continuation(index, is_continuation);
-        set_shifted(index, is_shifted);
-    }
-
-    // sets the fingerprint for a given slot index
-    void set_fingerprint(long index, long fingerprint) {
-        filter.setBits(index * bitPerEntry + 3, fingerprintLength, fingerprint);
-    }
-
-    // print a nice representation of the filter that can be understood.
-    // if vertical is on, each line will represent a slot
-    public String get_pretty_str(boolean vertical) {
-        StringBuffer sbr = new StringBuffer();
-
-        long numBits = get_num_slots() * bitPerEntry;
-
-        for (long i = 0; i < numBits; i++) {
-            long remainder = i % bitPerEntry;
-            if (remainder == 0) {
-                long slot_num = i/bitPerEntry;
-                sbr.append(" ");
-                if (vertical) {
-                    sbr.append("\n" + String.format("%-10d", slot_num) + "\t");
-                }
-            }
-            if (remainder == 3) {
-                sbr.append(" ");
-            }
-            sbr.append(filter.getBit(i) ? "1" : "0");
-        }
-        sbr.append("\n");
-        return sbr.toString();
-    }
-
-    // print a nice representation of the filter that can be humanly read.
-    public void pretty_print() {
-        System.out.print(get_pretty_str(true));
-    }
-
-    // return a fingerprint in a given slot index
-    long get_fingerprint(long index) {
-        return filter.getBits(index * bitPerEntry + 3, fingerprintLength);
-    }
-
-    // return an entire slot representation, including metadata flags and fingerprint
-    long get_slot(long index) {
-        return filter.getBits(index * bitPerEntry, bitPerEntry);
-    }
-
-    // compare a fingerprint input to the fingerprint in some slot index
-    protected boolean compare(long index, long fingerprint) {
-        return get_fingerprint(index) == fingerprint;
-    }
-
-    // modify the flags and fingerprint of a given slot
-    void modify_slot(boolean is_occupied, boolean is_continuation, boolean is_shifted,
-                     long index, long fingerprint) {
-        modify_slot(is_occupied, is_continuation, is_shifted, index);
-        set_fingerprint(index, fingerprint);
-    }
-
-    // summarize some statistical measures about the filter
-    public void print_filter_summary() {
-        long slots = get_num_slots();
-        long num_bits = slots * bitPerEntry;
-        System.out.println("slots:\t" + slots);
-        System.out.println("entries:\t" + num_entries);
-        System.out.println("bits\t:" + num_bits);
-        System.out.println("bits/entry\t:" + num_bits / (double)num_entries);
-        System.out.println("FP length:\t" + fingerprintLength);
-        System.out.println("Is full?\t" + is_full);
-        double capacity = num_entries / (double)(slots) ;
-        System.out.println("Capacity\t" + capacity);
-        compute_statistics();
-        //System.out.println("num runs: \t\t" + num_runs);
-        //System.out.println("avg run length: \t" + avg_run_length);
-        //System.out.println("num clusters: \t\t" + num_clusters);
-        //System.out.println("avg cluster length: \t" + avg_cluster_length);
-    }
-
-    /*
-    Returns the number of bits used for the filter
-     */
-    @Override
-    public long get_space_use() {
-        long num_bits = get_num_slots() * bitPerEntry;
-        return num_bits;
-    }
-
-    public int get_bits_per_entry() {
-        return bitPerEntry;
-    }
-
-    boolean is_occupied(long index) {
-        return filter.getBit(index * bitPerEntry);
-    }
-
-    boolean is_continuation(long index) {
-        return filter.getBit(index * bitPerEntry + 1);
-    }
-
-    boolean is_shifted(long index) {
-        return filter.getBit(index * bitPerEntry + 2);
-    }
-
-    void set_occupied(long index, boolean val) {
-        filter.assignBit(index * bitPerEntry, val);
-    }
-
-    void set_continuation(long index, boolean val) {
-        filter.assignBit(index * bitPerEntry + 1, val);
-    }
-
-    void set_shifted(long index, boolean val) {
-        filter.assignBit(index * bitPerEntry + 2, val);
-    }
-
-    boolean is_slot_empty(long index) {
-        return !is_occupied(index) && !is_continuation(index) && !is_shifted(index);
-    }
-
-    // scan the cluster leftwards until finding the start of the cluster and returning its slot index
-    // used by deletes
-    long find_cluster_start(long index) {
-        long current_index = index;
-        while (is_shifted(current_index)) {
-            current_index = (current_index - 1) & getMask();
-        }
-        return current_index;
-    }
-
-    // given a canonical slot A, finds the actual index B of where the run belonging to slot A now resides
-    // since the run might have been shifted to the right due to collisions
-    long find_run_start(long index) {
-      int num_runs_to_skip = 0;
-      while (is_shifted(index)) {
-        index = (index - 1) & getMask();
-        if (is_occupied(index)) {
-          num_runs_to_skip++;
+  // print a nice representation of the filter that can be understood.
+  // if vertical is on, each line will represent a slot
+  public String get_pretty_str(final boolean vertical) {
+    final StringBuffer sbr = new StringBuffer();
+    final long numBits = getNumSlots() * bitPerEntry_;
+    for (long i = 0; i < numBits; i++) {
+      final long remainder = i % bitPerEntry_;
+      if (remainder == 0) {
+        final long slot = i / bitPerEntry_;
+        sbr.append(" ");
+        if (vertical) {
+          sbr.append("\n" + String.format("%-10d", slot) + "\t");
         }
       }
-      while (num_runs_to_skip > 0) {
-        index = (index + 1) & getMask();
-        if (!is_continuation(index)) {
-          num_runs_to_skip--;
-        }
+      if (remainder == 3) {
+        sbr.append(" ");
       }
-      return index;
+      sbr.append(bitArray_.getBit(i) ? "1" : "0");
     }
+    sbr.append("\n");
+    return sbr.toString();
+  }
 
-    // given the start of a run, scan the run and return the index of the first matching fingerprint
-    // if not found returns the insertion position as bitwise complement to make it negative
-    long find_first_fingerprint_in_run(long index, long fingerprint) {
-      assert(!is_continuation(index));
-      do {
-        final long fingerprintAtIndex = get_fingerprint(index);
-        if (fingerprintAtIndex == fingerprint) {
-          return index;
-        } else if (fingerprintAtIndex > fingerprint) {
-          return ~index; 
-        }
-        index = (index + 1) & getMask();
-      } while (is_continuation(index));
-      return ~index;
+  // print a representation of the filter that can be humanly read.
+  public void prettyPrint() {
+    System.out.print(get_pretty_str(true));
+  }
+
+  // return a fingerprint in a given slot index
+  long getFingerprint(final long index) {
+    return bitArray_.getBits(index * bitPerEntry_ + 3, fingerprintLength_);
+  }
+
+  // return an entire slot representation, including metadata flags and fingerprint
+  long getSlot(final long index) {
+    return bitArray_.getBits(index * bitPerEntry_, bitPerEntry_);
+  }
+
+  // compare a fingerprint input to the fingerprint in some slot index
+  protected boolean compare(final long index, final long fingerprint) {
+    return getFingerprint(index) == fingerprint;
+  }
+
+  // modify the flags and fingerprint of a given slot
+  void modifySlot(final boolean isOccupied, final boolean isContinuation, final boolean isShifted,
+    final long index, final long fingerprint) {
+    modifySlot(isOccupied, isContinuation, isShifted, index);
+    setFingerprint(index, fingerprint);
+  }
+
+  // summarize some statistical measures about the filter
+  public void printFilterSummary() {
+    final long slots = getNumSlots();
+    final long num_bits = slots * bitPerEntry_;
+    System.out.println("slots:\t" + slots);
+    System.out.println("entries:\t" + numEntries_);
+    System.out.println("bits\t:" + num_bits);
+    System.out.println("bits/entry\t:" + num_bits / (double)numEntries_);
+    System.out.println("FP length:\t" + fingerprintLength_);
+    System.out.println("Is full?\t" + isFull_);
+    final double capacity = numEntries_ / (double)(slots) ;
+    System.out.println("Capacity\t" + capacity);
+    computeStatistics();
+    //System.out.println("num runs: \t\t" + num_runs);
+    //System.out.println("avg run length: \t" + avg_run_length);
+    //System.out.println("num clusters: \t\t" + num_clusters);
+    //System.out.println("avg cluster length: \t" + avg_cluster_length);
+  }
+
+  /*
+   * Returns the number of bits used for the filter
+   */
+  @Override
+  public long getSpaceUse() {
+    return getNumSlots() * bitPerEntry_;
+  }
+
+  public int getBitsPerEntry() {
+    return bitPerEntry_;
+  }
+
+  boolean isOccupied(final long index) {
+    return bitArray_.getBit(index * bitPerEntry_);
+  }
+
+  boolean isContinuation(final long index) {
+    return bitArray_.getBit(index * bitPerEntry_ + 1);
+  }
+
+  boolean isShifted(final long index) {
+    return bitArray_.getBit(index * bitPerEntry_ + 2);
+  }
+
+  void setOccupied(final long index, final boolean val) {
+    bitArray_.assignBit(index * bitPerEntry_, val);
+  }
+
+  void setContinuation(final long index, final boolean val) {
+    bitArray_.assignBit(index * bitPerEntry_ + 1, val);
+  }
+
+  void setShifted(final long index, final boolean val) {
+    bitArray_.assignBit(index * bitPerEntry_ + 2, val);
+  }
+
+  boolean isSlotEmpty(final long index) {
+    return !isOccupied(index) && !isContinuation(index) && !isShifted(index);
+  }
+
+  // scan the cluster leftwards until finding the start of the cluster and returning its slot index
+  // used by deletes
+  long findClusterStart(long index) {
+    while (isShifted(index)) {
+      index = (index - 1) & getMask();
     }
+    return index;
+  }
 
-    // delete the last matching fingerprint in the run
-    long decide_which_fingerprint_to_delete(long index, long fingerprint) {
-        assert(!is_continuation(index));
-        long matching_fingerprint_index = -1;
-        do {
-            if (compare(index, fingerprint)) {
-                //System.out.println("found matching FP at index " + index);
-                matching_fingerprint_index = index;
-            }
-            index = (index + 1) & getMask();
-        } while (is_continuation(index));
-        return matching_fingerprint_index;
+  // given a canonical slot A, finds the actual index B of where the run belonging to slot A now resides
+  // since the run might have been shifted to the right due to collisions
+  long findRunStart(long index) {
+    int numRunsToSkip = 0;
+    while (isShifted(index)) {
+      index = (index - 1) & getMask();
+      if (isOccupied(index)) {
+        numRunsToSkip++;
+      }
     }
+    while (numRunsToSkip > 0) {
+      index = (index + 1) & getMask();
+      if (!isContinuation(index)) {
+        numRunsToSkip--;
+      }
+    }
+    return index;
+  }
 
-    // given the start of a run, find the last slot index that still belongs to this run
-    long find_run_end(long index) {
-        while (is_continuation((index + 1) & getMask())) {
-            index = (index + 1) & getMask();
-        }
+  // given the start of a run, scan the run and return the index of the first matching fingerprint
+  // if not found returns the insertion position as bitwise complement to make it negative
+  long findFirstFingerprintInRun(long index, final long fingerprint) {
+    assert(!isContinuation(index));
+    do {
+      final long fingerprintAtIndex = getFingerprint(index);
+      if (fingerprintAtIndex == fingerprint) {
         return index;
-    }
-
-    // given a canonical index slot and a fingerprint, find the relevant run and check if there is a matching fingerprint within it
-    boolean search(long fingerprint, long index) {
-        boolean does_run_exist = is_occupied(index);
-        if (!does_run_exist) {
-            return false;
-        }
-        long run_start_index = find_run_start(index);
-        long found_index = find_first_fingerprint_in_run(run_start_index, fingerprint);
-        return found_index >= 0;
-    }
-
-    // Given a canonical slot index, find the corresponding run and return all fingerprints in the run.
-    // This method is only used for testing purposes.
-    Set<Long> get_all_fingerprints(long bucket_index) {
-        boolean does_run_exist = is_occupied(bucket_index);
-        HashSet<Long> set = new HashSet<Long>();
-        if (!does_run_exist) {
-            return set;
-        }
-        long run_index = find_run_start(bucket_index);
-        do {
-            set.add(get_fingerprint(run_index));
-            run_index = (run_index + 1) & getMask();
-        } while (is_continuation(run_index));
-        return set;
-    }
-
-    boolean insert(long fingerprint, long index) {
-      if (index >= get_num_slots() || num_entries == get_num_slots()) {
-        return false;
+      } else if (fingerprintAtIndex > fingerprint) {
+        return ~index; 
       }
-      final long run_start = find_run_start(index);
-      if (!is_occupied(index)) {
-        return insert_fingerprint_and_push_all_else(fingerprint, run_start, index, true, true);
+      index = (index + 1) & getMask();
+    } while (isContinuation(index));
+    return ~index;
+  }
+
+  // delete the last matching fingerprint in the run
+  long decideWhichFingerprintToDelete(long index, final long fingerprint) {
+    assert(!isContinuation(index));
+    long matchingFingerprintIndex = -1;
+    do {
+      if (compare(index, fingerprint)) {
+        //System.out.println("found matching FP at index " + index);
+        matchingFingerprintIndex = index;
       }
-      final long found_index = find_first_fingerprint_in_run(run_start, fingerprint);
-      if (found_index >= 0) {
-        return false;
+      index = (index + 1) & getMask();
+    } while (isContinuation(index));
+    return matchingFingerprintIndex;
+  }
+
+  // given the start of a run, find the last slot index that still belongs to this run
+  long findRunEnd(long index) {
+    while (isContinuation((index + 1) & getMask())) {
+      index = (index + 1) & getMask();
+    }
+    return index;
+  }
+
+  // given a canonical index slot and a fingerprint, find the relevant run and check if there is a matching fingerprint within it
+  boolean search(long fingerprint, long index) {
+    final boolean doesRunExist = isOccupied(index);
+    if (!doesRunExist) {
+      return false;
+    }
+    final long runStartIndex = findRunStart(index);
+    final long foundIndex = findFirstFingerprintInRun(runStartIndex, fingerprint);
+    return foundIndex >= 0;
+  }
+
+  // Given a canonical slot index, find the corresponding run and return all fingerprints in the run.
+  // This method is only used for testing purposes.
+  Set<Long> getAllFingerprints(final long bucketIndex) {
+    final boolean doesRunExist = isOccupied(bucketIndex);
+    final HashSet<Long> set = new HashSet<Long>();
+    if (!doesRunExist) {
+      return set;
+    }
+    long runIndex = findRunStart(bucketIndex);
+    do {
+      set.add(getFingerprint(runIndex));
+      runIndex = (runIndex + 1) & getMask();
+    } while (isContinuation(runIndex));
+    return set;
+  }
+
+  boolean insert(final long fingerprint, final long index) {
+    if (index >= getNumSlots() || numEntries_ == getNumSlots()) {
+      return false;
+    }
+    final long run_start = findRunStart(index);
+    if (!isOccupied(index)) {
+      return insertFingerprintAndPushAllElse(fingerprint, run_start, index, true, true);
+    }
+    final long found_index = findFirstFingerprintInRun(run_start, fingerprint);
+    if (found_index >= 0) {
+      return false;
+    }
+    return insertFingerprintAndPushAllElse(fingerprint, ~found_index, index, false, ~found_index == run_start);
+  }
+
+  boolean insertFingerprintAndPushAllElse(long fingerprint, long index, final long canonical,
+      final boolean isNewRun, final boolean isRunStart) {
+    // in the first shifted entry set isContinuation flag if inserting at the start of the existing run
+    // otherwise just shift the existing flag as it is
+    boolean forceContinuation = !isNewRun && isRunStart;
+
+    // prepare flags for the current slot
+    boolean isContinuation = !isRunStart;
+    boolean isShifted = index != canonical;
+
+    // remember the existing entry from the current slot to be shifted to the next slot
+    // isOccupied flag belongs to the slot, therefore it is never shifted
+    // isShifted flag is always true for all shifted entries, no need to remember it
+    long existingFingerprint = getFingerprint(index);
+    boolean existingIsContinuation = isContinuation(index);
+
+    while (!isSlotEmpty(index)) {
+      // set the current slot
+      setFingerprint(index, fingerprint);
+      setContinuation(index, isContinuation);
+      setShifted(index, isShifted);
+
+      // prepare values for the next slot
+      fingerprint = existingFingerprint;
+      isContinuation = existingIsContinuation | forceContinuation;
+      isShifted = true;
+
+      index = (index + 1) & getMask();
+
+      // remember the existing entry to be shifted
+      existingFingerprint = getFingerprint(index);
+      existingIsContinuation = isContinuation(index);
+
+      forceContinuation = false; // this is needed for the first shift only
+    }
+    // at this point the current slot is empty, so just populate with prepared values
+    // either the incoming fingerprint or the last shifted one
+    setFingerprint(index, fingerprint);
+    setContinuation(index, isContinuation);
+    setShifted(index, isShifted);
+
+    if (isNewRun) {
+      setOccupied(canonical, true);
+    }
+    numEntries_++;
+    return true;
+  }
+
+  boolean delete(final long fingerprint, final long canonicalSlot, long runStartIndex, long matchingFingerprintIndex) {
+    long runEnd = findRunEnd(matchingFingerprintIndex);
+
+    // the run has only one entry, we need to disable its is_occupied flag
+    // we just remember we need to do this here, and we do it later to not interfere with counts
+    boolean turnOffOccupied = runStartIndex == runEnd;
+
+    // First thing to do is move everything else in the run back by one slot
+    for (long i = matchingFingerprintIndex; i != runEnd; i = (i + 1) & getMask()) {
+      long f = getFingerprint((i + 1) & getMask());
+      setFingerprint(i, f);
+    }
+
+    // for each slot, we want to know by how much the entry there is shifted
+    // we can do this by counting the number of continuation flags set to true
+    // and the number of occupied flags set to false from the start of the cluster to the given cell
+    // and then subtracting: num_shifted_count - num_non_occupied = number of slots by which an entry is shifted
+    long clusterStart = findClusterStart(canonicalSlot);
+    long numShiftedCount = 0;
+    long numNonOccupied = 0;
+    for (long i = clusterStart; i != ((runEnd + 1) & getMask()); i = (i + 1) & getMask()) {
+      if (isContinuation(i)) {
+        numShiftedCount++;
       }
-      return insert_fingerprint_and_push_all_else(fingerprint, ~found_index, index, false, ~found_index == run_start);
-    }
-
-    boolean insert_fingerprint_and_push_all_else(long fingerprint, long index, long canonical, boolean is_new_run, boolean is_run_start) {
-      // in the first shifted entry set is_continuation flag if inserting at the start of the existing run
-      // otherwise just shift the existing flag as it is
-      boolean force_continuation = !is_new_run && is_run_start;
-
-      // prepare flags for the current slot
-      boolean is_continuation = !is_run_start;
-      boolean is_shifted = index != canonical;
-
-      // remember the existing entry from the current slot to be shifted to the next slot
-      // is_occupied flag belongs to the slot, therefore it is never shifted
-      // is_shifted flag is always true for all shifted entries, no need to remember it
-      long existing_fingerprint = get_fingerprint(index);
-      boolean existing_is_continuation = is_continuation(index);
-      boolean existing_is_empty = is_slot_empty(index);
-
-      while (!existing_is_empty) {
-        // set the current slot
-        set_fingerprint(index, fingerprint);
-        set_continuation(index, is_continuation);
-        set_shifted(index, is_shifted);
-
-        // prepare values for the next slot
-        fingerprint = existing_fingerprint;
-        is_continuation = existing_is_continuation | force_continuation;
-        is_shifted = true;
-
-        index = (index + 1) & getMask();
-
-        // save the existing entry to be shifted
-        existing_fingerprint = get_fingerprint(index);
-        existing_is_continuation = is_continuation(index);
-        existing_is_empty = is_slot_empty(index);
-
-        force_continuation = false; // this is needed for the first shift only
+      if (!isOccupied(i)) {
+        numNonOccupied++;
       }
-      // at this point the current slot is empty, so just populate with prepared values
-      // either the incoming fingerprint or the last shifted one
-      set_fingerprint(index, fingerprint);
-      set_continuation(index, is_continuation);
-      set_shifted(index, is_shifted);
+    }
 
-      if (is_new_run) {
-        set_occupied(canonical, true);
+    setFingerprint(runEnd, 0);
+    setShifted(runEnd, false);
+    setContinuation(runEnd, false);
+
+    // we now have a nested loop. The outer do-while iterates over the remaining runs in the cluster.
+    // the inner for loop iterates over cells of particular runs, pushing entries one slot back.
+    do {
+      // we first check if the next run actually exists and if it is shifted.
+      // only if both conditions hold, we need to shift it back one slot.
+      //boolean does_next_run_exist = !is_slot_empty(run_end + 1);
+      //boolean is_next_run_shifted = is_shifted(run_end + 1);
+      //if (!does_next_run_exist || !is_next_run_shifted) {
+      if (isSlotEmpty((runEnd + 1) & getMask()) || !isShifted((runEnd + 1) & getMask())) {
+        if (turnOffOccupied) {
+          // if we eliminated a run and now need to turn the isOccupied flag off, we do it at the end to not interfere in our counts
+          setOccupied(canonicalSlot, false);
+        }
+        return true;
       }
-      num_entries++;
-      return true;
-    }
 
-    boolean delete(long fingerprint, long canonical_slot, long run_start_index, long matching_fingerprint_index) {
-        long run_end = find_run_end(matching_fingerprint_index);
+      // we now find the start and end of the next run
+      final long nextRunStart = (runEnd + 1) & getMask();
+      runEnd = findRunEnd(nextRunStart);
 
-        // the run has only one entry, we need to disable its is_occupied flag
-        // we just remember we need to do this here, and we do it later to not interfere with counts
-        boolean turn_off_occupied = run_start_index == run_end;
+      // before we start processing the next run, we check whether the previous run we shifted is now back to its canonical slot
+      // The condition num_shifted_count - num_non_occupied == 1 ensures that the run was shifted by only 1 slot, meaning it is now back in its proper place
+      if (isOccupied((nextRunStart - 1) & getMask()) && numShiftedCount - numNonOccupied == 1) {
+        setShifted((nextRunStart - 1) & getMask(), false);
+      } else {
+        setShifted((nextRunStart - 1) & getMask(), true);
+      }
 
-        // First thing to do is move everything else in the run back by one slot
-        for (long i = matching_fingerprint_index; i != run_end; i = (i + 1) & getMask()) {
-            long f = get_fingerprint((i + 1) & getMask());
-            set_fingerprint(i, f);
+      for (long i = nextRunStart; i != ((runEnd + 1) & getMask()); i = (i + 1) & getMask()) {
+        long f = getFingerprint(i);
+        setFingerprint((i - 1) & getMask(), f);
+        if (isContinuation(i)) {
+          setContinuation((i - 1) & getMask(), true);
         }
-
-        // for each slot, we want to know by how much the entry there is shifted
-        // we can do this by counting the number of continuation flags set to true
-        // and the number of occupied flags set to false from the start of the cluster to the given cell
-        // and then subtracting: num_shifted_count - num_non_occupied = number of slots by which an entry is shifted
-        long cluster_start = find_cluster_start(canonical_slot);
-        long num_shifted_count = 0;
-        long num_non_occupied = 0;
-        for (long i = cluster_start; i != ((run_end + 1) & getMask()); i = (i + 1) & getMask()) {
-            if (is_continuation(i)) {
-                num_shifted_count++;
-            }
-            if (!is_occupied(i)) {
-                num_non_occupied++;
-            }
+        if (!isOccupied(i)) {
+          numNonOccupied++;
         }
-
-        set_fingerprint(run_end, 0);
-        set_shifted(run_end, false);
-        set_continuation(run_end, false);
-
-        // we now have a nested loop. The outer do-while iterates over the remaining runs in the cluster.
-        // the inner for loop iterates over cells of particular runs, pushing entries one slot back.
-        do {
-            // we first check if the next run actually exists and if it is shifted.
-            // only if both conditions hold, we need to shift it back one slot.
-            //boolean does_next_run_exist = !is_slot_empty(run_end + 1);
-            //boolean is_next_run_shifted = is_shifted(run_end + 1);
-            //if (!does_next_run_exist || !is_next_run_shifted) {
-            if (is_slot_empty((run_end + 1) & getMask()) || !is_shifted((run_end + 1) & getMask())) {
-                if (turn_off_occupied) {
-                    // if we eliminated a run and now need to turn the is_occupied flag off, we do it at the end to not interfere in our counts
-                    set_occupied(canonical_slot, false);
-                }
-                return true;
-            }
-
-            // we now find the start and end of the next run
-            final long next_run_start = (run_end + 1) & getMask();
-            run_end = find_run_end(next_run_start);
-
-            // before we start processing the next run, we check whether the previous run we shifted is now back to its canonical slot
-            // The condition num_shifted_count - num_non_occupied == 1 ensures that the run was shifted by only 1 slot, meaning it is now back in its proper place
-            if (is_occupied((next_run_start - 1) & getMask()) && num_shifted_count - num_non_occupied == 1) {
-                set_shifted((next_run_start - 1) & getMask(), false);
-            }
-            else  {
-                set_shifted((next_run_start - 1) & getMask(), true);
-            }
-
-            for (long i = next_run_start; i != ((run_end + 1) & getMask()); i = (i + 1) & getMask()) {
-                long f = get_fingerprint(i);
-                set_fingerprint((i - 1) & getMask(), f);
-                if (is_continuation(i)) {
-                    set_continuation((i - 1) & getMask(), true);
-                }
-                if (!is_occupied(i)) {
-                    num_non_occupied++;
-                }
-                if (i != next_run_start) {
-                  num_shifted_count++;
-                }
-            }
-            set_fingerprint(run_end, 0);
-            set_shifted(run_end, false);
-            set_continuation(run_end, false);
-        } while (true);
-    }
-
-    boolean delete(long fingerprint, long canonical_slot) {
-        // if the run doesn't exist, the key can't have possibly been inserted
-        boolean does_run_exist = is_occupied(canonical_slot);
-        if (!does_run_exist) {
-            return false;
+        if (i != nextRunStart) {
+          numShiftedCount++;
         }
-        long run_start_index = find_run_start(canonical_slot);
+      }
+      setFingerprint(runEnd, 0);
+      setShifted(runEnd, false);
+      setContinuation(runEnd, false);
+    } while (true);
+  }
 
-        long matching_fingerprint_index = decide_which_fingerprint_to_delete(run_start_index, fingerprint);
-
-        if (matching_fingerprint_index == -1) {
-            // we didn't find a matching fingerprint
-            return false;
-        }
-
-        return delete(fingerprint, canonical_slot, run_start_index, matching_fingerprint_index);
+  boolean delete(final long fingerprint, final long canonicalSlot) {
+    // if the run doesn't exist, the key can't have possibly been inserted
+    boolean doesRunExist = isOccupied(canonicalSlot);
+    if (!doesRunExist) {
+      return false;
     }
-
-    /*
-    Performs the modular arithmetic of large_hash % bits_per_entry and uses this as the slot_index
-     */
-    long get_slot_index(long large_hash) {
-        long slot_index_mask = (1L << power_of_two_size) - 1;
-        long slot_index = large_hash & slot_index_mask;
-        //System.out.format("\n**get_slot_index(): [total_hash:index_hash:int_index] --> [%016x:%016x:%016x]\n", large_hash, (int)large_hash, slot_index);
-        return slot_index;
+    long runStartIndex = findRunStart(canonicalSlot);
+    long matchingFingerprintIndex = decideWhichFingerprintToDelete(runStartIndex, fingerprint);
+    if (matchingFingerprintIndex == -1) {
+      // we didn't find a matching fingerprint
+      return false;
     }
+    return delete(fingerprint, canonicalSlot, runStartIndex, matchingFingerprintIndex);
+  }
 
-    long gen_fingerprint(long large_hash) {
-        long fingerprint_mask = (1L << fingerprintLength) - 1L;
-        fingerprint_mask = fingerprint_mask << power_of_two_size;
-        long fingerprint = (large_hash & fingerprint_mask) >> power_of_two_size;
-        //System.out.format("\n**gen_fingerprint(): [total_hash:fingerprint_hash:int_fingerprint] --> [%016x:%016x:%016x]\n", large_hash, ((int)(large_hash>>32)), fingerprint);
-        return fingerprint;
+  /*
+   * Performs the modular arithmetic of large_hash % bits_per_entry and uses this as the slot_index
+   */
+  long getSlotIndex(final long largeHash) {
+    return largeHash & getMask();
+  }
+
+  long genFingerprint(final long largeHash) {
+    long fingerprintMask = (1L << fingerprintLength_) - 1L;
+    fingerprintMask = fingerprintMask << powerOfTwoSize_;
+    return (largeHash & fingerprintMask) >> powerOfTwoSize_;
+  }
+
+  void setExpansionThreshold(double thresh) {
+    expansionThreshold_ = thresh;
+    maxEntriesBeforeExpansion_ = (long)(Math.pow(2, powerOfTwoSize_) * expansionThreshold_);
+  }
+
+  /*
+  This is the main insertion function accessed externally.
+  It calls the underlying filter _insert function which hashes the input
+  item internally.
+  Hence, the `large_hash` argument is already a hash key that has been generated
+  by the hashing library (eg xxhash).
+   */
+  protected boolean _insert(long large_hash) {
+    if (isFull_) {
+      return false;
     }
+    final long slotIndex = getSlotIndex(large_hash);
+    final long fingerprint = genFingerprint(large_hash);
+    boolean success = insert(fingerprint, slotIndex);
 
-//    void print_key(int input) {
-//        long large_hash = HashFunctions.normal_hash(input);
-//        long slot_index = get_slot_index(large_hash);
-//        long fingerprint = gen_fingerprint(large_hash);
-//
-//        System.out.println("num   :  " + input);
-//        System.out.print("hash  :  ");
-//        print_long_in_binary(large_hash, fingerprintLength + power_of_two_size);
-//        //print_int_in_binary(slot_index_mask, 31);
-//        System.out.print("bucket:  ");
-//        print_long_in_binary(slot_index, power_of_two_size);
-//        System.out.print("FP    :  ");
-//        //print_int_in_binary(fingerprint_mask, 31);
-//        print_long_in_binary(fingerprint, fingerprintLength);
-//        System.out.println();
-//
-//    }
-//
-//    void set_expansion_threshold(double thresh) {
-//        expansion_threshold = thresh;
-//        max_entries_before_expansion = (long)(Math.pow(2, power_of_two_size) * expansion_threshold);
-//    }
-//
-    /*
-    This is the main insertion function accessed externally.
-    It calls the underlying filter _insert function which hashes the input
-    item internally.
-    Hence, the `large_hash` argument is already a hash key that has been generated
-    by the hashing library (eg xxhash).
-     */
-    protected boolean _insert(long large_hash) {
-        //System.out.println("Inserting long hash " + large_hash);
-        if (is_full) {
-            return false;
-        }
-        long slot_index = get_slot_index(large_hash);
-        long fingerprint = gen_fingerprint(large_hash);
-
-		/*print_long_in_binary(large_hash, 64);
-		print_long_in_binary(slot_index, 32);
-		print_long_in_binary((int)fingerprint, 64);
-		System.out.println(slot_index + "  " + fingerprint );
-		System.out.println(); */
-
-        boolean success = insert(fingerprint, slot_index);
-		/*if (!success) {
-			System.out.println("insertion failure");
-			System.out.println(input + "\t" + slot_index + "\t" + get_fingerprint_str(fingerprint, fingerprintLength));
-			pretty_print();
-			System.exit(1);
-		}*/
-
-//        if (expand_autonomously && num_entries >= max_entries_before_expansion) {
-//            boolean expanded = expand();
-//            if (expanded) {
-//                num_expansions++;
-//            }
-//        }
-        return success;
+    if (expandAutonomously_ && numEntries_ >= maxEntriesBeforeExpansion_) {
+      final boolean expanded = expand();
+      if (expanded) {
+        numExpansions_++;
+      }
     }
-//
-//    protected boolean _delete(long large_hash) {
-//        long slot_index = get_slot_index(large_hash);
-//        long fp_long = gen_fingerprint(large_hash);
-//        boolean success = delete(fp_long, slot_index);
-//        if (success) {
-//            num_entries--;
-//        }
-//        return success;
-//    }
-//
-    protected boolean _search(long large_hash) {
-        long slot_index = get_slot_index(large_hash);
-        long fingerprint = gen_fingerprint(large_hash);
-        return search(fingerprint, slot_index);
+    return success;
+  }
+
+  protected boolean _delete(final long largeHash) {
+    final long slotIndex = getSlotIndex(largeHash);
+    long fingerprint = genFingerprint(largeHash);
+    boolean success = delete(fingerprint, slotIndex);
+    if (success) {
+      numEntries_--;
     }
+    return success;
+  }
 
-    public boolean get_bit_at_offset(int offset) {
-        return filter.getBit(offset);
+  protected boolean _search(final long largeHash) {
+    final long slotIndex = getSlotIndex(largeHash);
+    long fingerprint = genFingerprint(largeHash);
+    return search(fingerprint, slotIndex);
+  }
+
+  public boolean getBitAtOffset(final int offset) {
+    return bitArray_.getBit(offset);
+  }
+
+  public void computeStatistics() {
+    numRuns_ = 0;
+    numClusters_ = 0;
+    double sumRunLengths = 0;
+    double sumClusterLengths = 0;
+
+    int currentRunLength = 0;
+    int currentCluster_length = 0;
+
+    final long numSlots = getNumSlots();
+    for (long i = 0; i < numSlots; i++) {
+      final boolean occupied = isOccupied(i);
+      final boolean continuation = isContinuation(i);
+      final boolean shifted = isShifted(i);
+
+      if (!occupied && !continuation && !shifted) { // empty slot
+        sumClusterLengths += currentCluster_length;
+        currentCluster_length = 0;
+        sumRunLengths += currentRunLength;
+        currentRunLength = 0;
+      } else if ( !occupied && !continuation && shifted ) { // start of new run
+        numRuns_++;
+        sumRunLengths += currentRunLength;
+        currentRunLength = 1;
+        currentCluster_length++;
+      } else if ( !occupied && continuation && !shifted ) {
+        // not used
+      } else if ( !occupied && continuation && shifted ) { // continuation of run
+        currentCluster_length++;
+        currentRunLength++;
+      } else if ( occupied && !continuation && !shifted ) { // start of new cluster & run
+        numRuns_++;
+        numClusters_++;
+        sumClusterLengths += currentCluster_length;
+        sumRunLengths += currentRunLength;
+        currentCluster_length = 1;
+        currentRunLength = 1;
+      } else if (occupied && !continuation && shifted ) { // start of new run
+        numRuns_++;
+        sumRunLengths += currentRunLength;
+        currentRunLength = 1;
+        currentCluster_length++;
+      } else if (occupied && continuation && !shifted ) {
+        // not used
+      } else if (occupied && continuation && shifted ) { // continuation of run
+        currentCluster_length++;
+        currentRunLength++;
+      }
     }
-
-    public void compute_statistics() {
-        num_runs = 0;
-        num_clusters = 0;
-        double sum_run_lengths = 0;
-        double sum_cluster_lengths = 0;
-
-        int current_run_length = 0;
-        int current_cluster_length = 0;
-
-        long num_slots = get_num_slots();
-        for (long i = 0; i < num_slots; i++) {
-
-            boolean occupied = is_occupied(i);
-            boolean continuation = is_continuation(i);
-            boolean shifted = is_shifted(i);
-
-            if 	( !occupied && !continuation && !shifted ) { // empty slot
-                sum_cluster_lengths += current_cluster_length;
-                current_cluster_length = 0;
-                sum_run_lengths += current_run_length;
-                current_run_length = 0;
-            }
-            else if ( !occupied && !continuation && shifted ) { // start of new run
-                num_runs++;
-                sum_run_lengths += current_run_length;
-                current_run_length = 1;
-                current_cluster_length++;
-            }
-            else if ( !occupied && continuation && !shifted ) {
-                // not used
-            }
-            else if ( !occupied && continuation && shifted ) { // continuation of run
-                current_cluster_length++;
-                current_run_length++;
-            }
-            else if ( occupied && !continuation && !shifted ) { // start of new cluster & run
-                num_runs++;
-                num_clusters++;
-                sum_cluster_lengths += current_cluster_length;
-                sum_run_lengths += current_run_length;
-                current_cluster_length = 1;
-                current_run_length = 1;
-            }
-            else if (occupied && !continuation && shifted ) { // start of new run
-                num_runs++;
-                sum_run_lengths += current_run_length;
-                current_run_length = 1;
-                current_cluster_length++;
-            }
-            else if (occupied && continuation && !shifted ) {
-                // not used
-            }
-            else if (occupied && continuation && shifted ) { // continuation of run
-                current_cluster_length++;
-                current_run_length++;
-            }
-        }
-        avg_run_length = sum_run_lengths / num_runs;
-        avg_cluster_length = sum_cluster_lengths / num_clusters;
-    }
-
-//
-//    void ar_sum1(ArrayList<Integer> ar, int index)
-//    {
-//        int s = ar.size();
-//        if (s <= index)
-//        {
-//            for (int i = s; i<index+1; i++)
-//            {
-//                ar.add(0);
-//            }
-//        }
-//        ar.set(index, ar.get(index)+1);
-//    }
-//
-//    public ArrayList<Integer> measure_cluster_length()
-//    {
-//        ArrayList<Integer> ar = new ArrayList<Integer>();
-//
-//        num_runs = 0;
-//        num_clusters = 0;
-//
-//        int current_run_length = 0;
-//        int current_cluster_length = 0;
-//
-//        int cnt = 0;
-//
-//        for (int i = 0; i < get_logical_num_slots_plus_extensions(); i++) {
-//
-//            boolean occupied = is_occupied(i);
-//            boolean continuation = is_continuation(i);
-//            boolean shifted = is_shifted(i);
-//
-//            if 	(!occupied && !continuation && !shifted ) { // empty slot
-//                if(current_cluster_length != 0) ar_sum1(ar, current_cluster_length-1);
-//                current_cluster_length = 0;
-//                current_run_length = 0;
-//            }
-//            else if (!occupied && !continuation && shifted ) { // start of new run
-//                num_runs++;
-//                current_run_length = 1;
-//                current_cluster_length++;
-//            }
-//            else if (!occupied && continuation && shifted ) { // continuation of run
-//                current_cluster_length++;
-//                current_run_length++;
-//            }
-//            else if (occupied && !continuation && !shifted ) { // start of new cluster & run
-//                if(current_cluster_length != 0) ar_sum1(ar, current_cluster_length-1);
-//                num_runs++;
-//                num_clusters++;
-//                //if(current_cluster_length == 0) cnt++;
-//                current_cluster_length = 1;
-//                current_run_length = 1;
-//            }
-//            else if (occupied && !continuation && shifted ) { // start of new run
-//                num_runs++;
-//                current_run_length = 1;
-//                current_cluster_length++;
-//            }
-//            else if (occupied && continuation && shifted ) { // continuation of run
-//                current_cluster_length++;
-//                current_run_length++;
-//            }
-//        }
-//        if(current_cluster_length != 0) ar_sum1(ar, current_cluster_length-1);
-//        //System.out.println("CNT = " + cnt);
-//        return ar;
-//    }
-//
-//    /*
-//    @charlied
-//    Returns the fraction of the filter that is occupied by inserted items.
-//    Extension slots are omitted from the calculation of the load factor because they are used to accomodate
-//    items in the filter at the top end of the filter.
-//    Asymptotically, these will make little-to-no difference to the load in these calculations as the slots
-//    contributed 2*j / (2^j) --> 0 entries.
-//     */
-//    public double get_load() {
-//        return num_entries / (double) get_logical_num_slots();
-//    }
+    avgRunLength_ = sumRunLengths / numRuns_;
+    avgClusterLength_ = sumClusterLengths / numClusters_;
+  }
 
 }

@@ -99,7 +99,7 @@ public abstract class Filter {
         return XxHash.hashLong(input, 0L) ; // CD edit for datasketches hash function using same seed.
     }
 
-    public long get_space_use() { return 0 ; }
+    public long getSpaceUse() { return 0 ; }
 //    public int get_bits_per_entry() { return 0 ; }
 //
 //    public abstract long get_num_entries(boolean include_all_internal_filters);

@@ -62,30 +62,30 @@ public class QuotientFilterTest {
         qf.insert(C, 1);
         qf.insert(D, 2);
         qf.insert(A, 1);
-        assertEquals(qf.get_num_entries(), 6);
+        assertEquals(qf.getNumEntries(), 6);
 
         assertEquals(getState(qf, 0), 0);
-        assertEquals(qf.get_fingerprint(0), 0);
+        assertEquals(qf.getFingerprint(0), 0);
         assertEquals(getState(qf, 1), 0b100);
-        assertEquals(qf.get_fingerprint(1), A);
+        assertEquals(qf.getFingerprint(1), A);
         assertEquals(getState(qf, 2), 0b111);
-        assertEquals(qf.get_fingerprint(2), B);
+        assertEquals(qf.getFingerprint(2), B);
         assertEquals(getState(qf, 3), 0b011);
-        assertEquals(qf.get_fingerprint(3), C);
+        assertEquals(qf.getFingerprint(3), C);
         assertEquals(getState(qf, 4), 0b101);
-        assertEquals(qf.get_fingerprint(4), D);
+        assertEquals(qf.getFingerprint(4), D);
         assertEquals(getState(qf, 5), 0b001);
-        assertEquals(qf.get_fingerprint(5), E);
+        assertEquals(qf.getFingerprint(5), E);
         assertEquals(getState(qf, 6), 0);
-        assertEquals(qf.get_fingerprint(6), 0);
+        assertEquals(qf.getFingerprint(6), 0);
         assertEquals(getState(qf, 7), 0b100);
-        assertEquals(qf.get_fingerprint(7), F);
+        assertEquals(qf.getFingerprint(7), F);
     }
 
     public int getState(QuotientFilter filter, int slot) {
-      return (filter.is_occupied(slot) ? 1 : 0) << 2
-          | (filter.is_continuation(slot) ? 1 : 0) << 1
-          | (filter.is_shifted(slot) ? 1 : 0);
+      return (filter.isOccupied(slot) ? 1 : 0) << 2
+          | (filter.isContinuation(slot) ? 1 : 0) << 1
+          | (filter.isShifted(slot) ? 1 : 0);
     }
 
     /*
@@ -157,13 +157,13 @@ public class QuotientFilterTest {
         final long fp1 = 1;
         final long fp2 = 1 << fingerprint_size - 1;
         qf.insert(fp1, num_entries - 1);
-        assertEquals(qf.get_fingerprint(num_entries - 1), fp1);
+        assertEquals(qf.getFingerprint(num_entries - 1), fp1);
         assertEquals(getState(qf, num_entries - 1), 0b100);
         qf.insert(fp2, num_entries - 1);
-        assertEquals(qf.get_fingerprint(0), fp2);
+        assertEquals(qf.getFingerprint(0), fp2);
         assertEquals(getState(qf, 0), 0b011);
         qf.delete(fp2, num_entries - 1);
-        assertEquals(qf.get_fingerprint(0), 0);
+        assertEquals(qf.getFingerprint(0), 0);
         assertEquals(getState(qf, 0), 0b000);
         final boolean found = qf.search(fp1, num_entries - 1);
         assertTrue(found);
@@ -190,7 +190,7 @@ public class QuotientFilterTest {
         qf.insert(0x1F, 4);
         qf.insert(0x1F, 15); // last slot in the filter
         qf.insert(0x1F, 16); // outside the bounds
-        qf.pretty_print() ;
+//        qf.pretty_print();
 
         Iterator it = new Iterator(qf);
         int[] arr = new int[] {2, 3, 4, 15};
@@ -261,8 +261,8 @@ public class QuotientFilterTest {
 
     static public boolean check_equality(QuotientFilter qf, BitSet bs, boolean check_also_fingerprints) {
         for (int i = 0; i < bs.size(); i++) {
-            if (check_also_fingerprints || (i % qf.bitPerEntry == 0 || i % qf.bitPerEntry == 1 || i % qf.bitPerEntry == 2)) {
-                if (qf.get_bit_at_offset(i) != bs.get(i)) {
+            if (check_also_fingerprints || (i % qf.getBitsPerEntry() == 0 || i % qf.getBitsPerEntry() == 1 || i % qf.getBitsPerEntry() == 2)) {
+                if (qf.getBitAtOffset(i) != bs.get(i)) {
                     return false;
                 }
             }

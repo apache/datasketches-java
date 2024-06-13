@@ -49,22 +49,22 @@ public class Iterator  {
 
     boolean next() {
 
-        if (index == qf.get_num_slots()) {
+        if (index == qf.getNumSlots()) {
             return false;
         }
 
-        long slot = qf.get_slot(index);
+        long slot = qf.getSlot(index);
         boolean occupied = (slot & 1) != 0;
         boolean continuation = (slot & 2) != 0;
         boolean shifted = (slot & 4) != 0;
 
 
-        while (!occupied && !continuation && !shifted && index < qf.get_num_slots()) {
+        while (!occupied && !continuation && !shifted && index < qf.getNumSlots()) {
             index++;
-            if (index == qf.get_num_slots()) {
+            if (index == qf.getNumSlots()) {
                 return false;
             }
-            slot = qf.get_slot(index);
+            slot = qf.getSlot(index);
             occupied = (slot & 1) != 0;
             continuation = (slot & 2) != 0;
             shifted = (slot & 4) != 0;
