@@ -143,46 +143,35 @@ public class DoublesSketchTest {
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
 
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(1000, 1,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
-
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
-      Assert.assertTrue(sketch.isSameResource(wmem));
-      for (int i = 0; i < 1000; i++) {
-        sketch.update(i);
-      }
-      Assert.assertFalse(sketch.isSameResource(wmem));
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
+    WritableMemory wmem = WritableMemory.allocateDirect(1000, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
+    Assert.assertTrue(sketch.isSameResource(wmem));
+    for (int i = 0; i < 1000; i++) {
+      sketch.update(i);
     }
+    Assert.assertFalse(sketch.isSameResource(wmem));
   }
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
     int i = 0;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(50, 1,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
+    WritableMemory wmem = WritableMemory.allocateDirect(50, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
 
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
-      Assert.assertTrue(sketch.isSameResource(wmem));
-      for (; i < 1000; i++) {
-        if (sketch.isSameResource(wmem)) {
-          sketch.update(i);
-        } else {
-          //println("MOVED OUT at i = " + i);
-          break;
-        }
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
+    Assert.assertTrue(sketch.isSameResource(wmem));
+    for (; i < 1000; i++) {
+      if (sketch.isSameResource(wmem)) {
+        sketch.update(i);
+      } else {
+        //println("MOVED OUT at i = " + i);
+        break;
       }
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
     }
   }
 
   @Test
   public void checkEmptyDirect() {
-    WritableMemory wmem;
+    WritableMemory wmem ;
     try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(1000, 1,
             ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
 

@@ -197,24 +197,21 @@ public class UnionImplTest {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    try (ResourceScope scope = ResourceScope.newConfinedScope()) {
+    ResourceScope scope = ResourceScope.newConfinedScope();
 
-      final WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-      final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
-      assertTrue(sketch.isSameResource(wmem));
+    final WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    assertTrue(sketch.isSameResource(wmem));
 
-      final WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-      final Union union = SetOperation.builder().buildUnion(wmem2);
-      assertTrue(union.isSameResource(wmem2));
+    final WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    final Union union = SetOperation.builder().buildUnion(wmem2);
+    assertTrue(union.isSameResource(wmem2));
 
-      for (int i = 0; i < u; i++) { union.update(i); }
-      assertFalse(union.isSameResource(wmem));
+    for (int i = 0; i < u; i++) { union.update(i); }
+    assertFalse(union.isSameResource(wmem));
 
-      final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
-      assertFalse(union2.isSameResource(wmem2));  //obviously not
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
-    }
+    final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
+    assertFalse(union2.isSameResource(wmem2));  //obviously not
   }
 
   @Test

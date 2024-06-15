@@ -876,16 +876,12 @@ public class DirectQuickSelectSketchTest {
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
 
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes / 2, 1,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
-      UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
-      assertTrue(sketch.isSameResource(wmem));
-      for (int i = 0; i < u; i++) { sketch.update(i); }
-      assertFalse(sketch.isSameResource(wmem));
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
-    }
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    assertTrue(sketch.isSameResource(wmem));
+    for (int i = 0; i < u; i++) { sketch.update(i); }
+    assertFalse(sketch.isSameResource(wmem));
   }
 
   @Test
@@ -893,35 +889,29 @@ public class DirectQuickSelectSketchTest {
     int k = 1 << 12;
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes / 2, 1,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
-      UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
-      for (int i = 0; i < u; i++) { sketch.update(i); }
-      double est1 = sketch.getEstimate();
-      byte[] ser = sketch.toByteArray();
-      Memory mem = Memory.wrap(ser);
-      UpdateSketch roSketch = (UpdateSketch) Sketches.wrapSketch(mem);
-      double est2 = roSketch.getEstimate();
-      assertEquals(est2, est1);
-      try {
-        roSketch.rebuild();
-        fail();
-      } catch (SketchesReadOnlyException e) {
-        //expected
-      }
-      try {
-        roSketch.reset();
-        fail();
-      } catch (SketchesReadOnlyException e) {
-        //expected
-      }
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    for (int i = 0; i < u; i++) { sketch.update(i); }
+    double est1 = sketch.getEstimate();
+    byte[] ser = sketch.toByteArray();
+    Memory mem = Memory.wrap(ser);
+    UpdateSketch roSketch = (UpdateSketch) Sketches.wrapSketch(mem);
+    double est2 = roSketch.getEstimate();
+    assertEquals(est2, est1);
+    try {
+      roSketch.rebuild();
+      fail();
+    } catch (SketchesReadOnlyException e) {
+      //expected
     }
-
+    try {
+      roSketch.reset();
+      fail();
+    } catch (SketchesReadOnlyException e) {
+      //expected
+    }
   }
-
 
   @Test
   public void printlnTest() {
