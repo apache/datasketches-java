@@ -292,14 +292,11 @@ public abstract class Sketch {
 
   /**
    * Returns the maximum number of storage bytes required for a CompactSketch with the given
-   * number of actual entries. Note that this assumes the worse case of the sketch in
-   * estimation mode, which requires storing theta and count.
-   * @param numberOfEntries the actual number of entries stored with the CompactSketch.
+   * number of actual entries.
+   * @param numberOfEntries the actual number of retained entries stored in the sketch.
    * @return the maximum number of storage bytes required for a CompactSketch with the given number
-   * of entries.
-   * @deprecated as a public method. Use {@link #getCompactSketchMaxBytes(int) instead}
+   * of retained entries.
    */
-  @Deprecated
   public static int getMaxCompactSketchBytes(final int numberOfEntries) {
     if (numberOfEntries == 0) { return 8; }
     if (numberOfEntries == 1) { return 16; }

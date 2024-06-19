@@ -139,7 +139,7 @@ public class DirectBitArrayTest {
   @Test
   public void countWritableWrappedBitsWhenDirty() {
     // like basicOperationTest but with setBit which does
-    // not neecssarily track numBitsSet_
+    // not necessarily track numBitsSet_
     final HeapBitArray hba = new HeapBitArray(128);
     assertFalse(hba.getAndSetBit(1));
     assertFalse(hba.getAndSetBit(2));
