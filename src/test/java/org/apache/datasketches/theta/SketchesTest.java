@@ -145,7 +145,8 @@ public class SketchesTest {
     assertEquals(24+(k+1)*8, maxCompSkBytes);
 
     final int compSkMaxBytes = getCompactSketchMaxBytes(lgK); {
-      assertEquals(compSkMaxBytes, ((2 << lgK) * 15) / 16 + (Family.QUICKSELECT.getMaxPreLongs() << 3));
+      int bytes = (int)((2 << lgK) * ThetaUtil.REBUILD_THRESHOLD + Family.QUICKSELECT.getMaxPreLongs()) * Long.BYTES;
+      assertEquals(compSkMaxBytes, bytes);
     }
 
     final int maxSkBytes = getMaxUpdateSketchBytes(k);

@@ -311,8 +311,8 @@ public abstract class Sketch {
    * nomEntries.
    */
   public static int getCompactSketchMaxBytes(final int lgNomEntries) {
-    return (int)((2 << lgNomEntries) * ThetaUtil.REBUILD_THRESHOLD)
-        + Family.QUICKSELECT.getMaxPreLongs() * Long.BYTES;
+    return (int)((2 << lgNomEntries) * ThetaUtil.REBUILD_THRESHOLD
+        + Family.QUICKSELECT.getMaxPreLongs()) * Long.BYTES;
   }
 
   /**
