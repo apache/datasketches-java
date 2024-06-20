@@ -204,6 +204,7 @@ public class UnionImplTest {
 
     final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
     assertFalse(union2.isSameResource(wmem2));  //obviously not
+    wmem.close();
   }
 
   @Test

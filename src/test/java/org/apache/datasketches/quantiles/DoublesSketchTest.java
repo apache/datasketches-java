@@ -139,9 +139,9 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-    WritableMemory mem = WritableMemory.allocateDirect(1000, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-    UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
-    Assert.assertTrue(sketch.isSameResource(mem));
+    WritableMemory wmem = WritableMemory.allocateDirect(1000, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
+    Assert.assertTrue(sketch.isSameResource(wmem));
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
@@ -151,11 +151,11 @@ public class DoublesSketchTest {
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
     int i = 0;
-    WritableMemory mem = WritableMemory.allocateDirect(50, ByteOrder.LITTLE_ENDIAN, new DefaultMemoryRequestServer());
-    UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
-    Assert.assertTrue(sketch.isSameResource(mem));
+    WritableMemory wmem = WritableMemory.allocateDirect(50, ByteOrder.LITTLE_ENDIAN, new DefaultMemoryRequestServer());
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
+    Assert.assertTrue(sketch.isSameResource(wmem));
     for (; i < 1000; i++) {
-      if (mem.isAlive()) {
+      if (wmem.isAlive()) {
         sketch.update(i);
       } else {
         println("Sketch Move to Heap at i = " + i);
@@ -166,9 +166,10 @@ public class DoublesSketchTest {
 
   @Test
   public void checkEmptyDirect() {
-    WritableMemory mem = WritableMemory.allocateDirect(1000);
-    UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
+    WritableMemory wmem = WritableMemory.allocateDirect(1000);
+    UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
     sketch.toByteArray(); //exercises a specific path
+    wmem.close();
   }
 
   @Test

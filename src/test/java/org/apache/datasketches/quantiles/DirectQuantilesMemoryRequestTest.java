@@ -70,6 +70,7 @@ public class DirectQuantilesMemoryRequestTest {
     // so the the wmem reference is invalid. Use the sketch to get the last memory reference.
     WritableMemory lastMem = usk1.getMemory();
     println("Final mem size: " + usk1.getMemory().getCapacity());
+    if (wmem.isAlive()) { System.out.println("Here"); }
   }
 
   @Test
@@ -78,9 +79,9 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = 32; // don't need the BB to fill here
     final int initBytes = (4 + (u / 2)) << 3; // not enough to hold everything
 
-    WritableMemory mem1 = WritableMemory.allocateDirect(initBytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-    println("Initial mem size: " + mem1.getCapacity());
-    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
+    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    println("Initial mem size: " + wmem.getCapacity());
+    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
     for (int i = 1; i <= u; i++) {
       usk1.update(i);
     }
@@ -96,9 +97,9 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = (2 * k) - 1; //just to fill the BB
     final int initBytes = ((2 * k) + 4) << 3; //just room for BB
 
-    WritableMemory mem1 = WritableMemory.allocateDirect(initBytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-    println("Initial mem size: " + mem1.getCapacity());
-    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(mem1);
+    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    println("Initial mem size: " + wmem.getCapacity());
+    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
     for (int i = 1; i <= u; i++) {
       usk1.update(i);
     }
@@ -118,19 +119,19 @@ public class DirectQuantilesMemoryRequestTest {
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
-    WritableMemory mem = WritableMemory.allocateDirect(initBytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-    origSketchMem.copyTo(0, mem, 0, initBytes);
-    UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);
-    assertTrue(mem.isSameResource(usk2.getMemory()));
-    assertEquals(mem.getCapacity(), initBytes);
-    assertTrue(mem.isDirect());
+    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    origSketchMem.copyTo(0, wmem, 0, initBytes);
+    UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(wmem);
+    assertTrue(wmem.isSameResource(usk2.getMemory()));
+    assertEquals(wmem.getCapacity(), initBytes);
+    assertTrue(wmem.isDirect());
     assertTrue(usk2.isEmpty());
 
     //update the sketch forcing it to grow on-heap
     for (int i = 1; i <= 5; i++) { usk2.update(i); }
     assertEquals(usk2.getN(), 5);
     WritableMemory mem2 = usk2.getMemory();
-    assertFalse(mem.isAlive()); //
+    assertFalse(wmem.isAlive()); //
     assertFalse(mem2.isDirect()); //should now be on-heap
 
     final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);
@@ -146,7 +147,7 @@ public class DirectQuantilesMemoryRequestTest {
    * @param s value to print
    */
   static void println(final String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }
