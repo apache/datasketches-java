@@ -70,7 +70,6 @@ public class DirectQuantilesMemoryRequestTest {
     // so the the wmem reference is invalid. Use the sketch to get the last memory reference.
     WritableMemory lastMem = usk1.getMemory();
     println("Final mem size: " + usk1.getMemory().getCapacity());
-    if (wmem.isAlive()) { System.out.println("Here"); }
   }
 
   @Test
