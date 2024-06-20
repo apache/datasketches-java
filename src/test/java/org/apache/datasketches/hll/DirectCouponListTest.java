@@ -73,8 +73,7 @@ public class DirectCouponListTest {
     //println("DIRECT");
     byte[] barr1;
     WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes,
-            new DefaultMemoryRequestServer())).scope()) {
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes)).scope()) {
       //byte[] byteArr = new byte[bytes];
       //WritableMemory wmem = WritableMemory.wrap(byteArr);
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);

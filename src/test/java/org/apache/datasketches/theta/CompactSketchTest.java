@@ -84,8 +84,7 @@ public class CompactSketchTest {
     int bytes = usk.getCompactBytes(); //for Compact
 
     WritableMemory directMem;
-    try (ResourceScope scope = (directMem = WritableMemory.allocateDirect(bytes,
-        new DefaultMemoryRequestServer())).scope()) {
+    try (ResourceScope scope = (directMem = WritableMemory.allocateDirect(bytes)).scope()) {
 
       /**Via CompactSketch.compact**/
       refSk = usk.compact(ordered, directMem);

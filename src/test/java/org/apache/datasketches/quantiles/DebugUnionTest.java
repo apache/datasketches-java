@@ -67,8 +67,7 @@ public class DebugUnionTest {
     DoublesUnion dUnion;
     DoublesSketch dSketch;
     WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(10_000_000,
-            new DefaultMemoryRequestServer())).scope()) {
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(10_000_000)).scope()) {
       dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
       for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap

@@ -683,8 +683,7 @@ public class DirectQuickSelectSketchTest {
     int memCapacity = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
     WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(memCapacity,
-            new DefaultMemoryRequestServer())).scope()) {
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(memCapacity)).scope()) {
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -930,7 +929,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   private static WritableMemory makeNativeMemory(int k) {
-    return WritableMemory.allocateDirect(getMaxBytes(k), new DefaultMemoryRequestServer());
+    return WritableMemory.allocateDirect(getMaxBytes(k));
   }
 
 }

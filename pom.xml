@@ -18,18 +18,10 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-
-  <parent>
-    <groupId>org.apache</groupId>
-    <artifactId>apache</artifactId>
-    <version>32</version>
-  </parent>
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
@@ -66,8 +58,8 @@ under the License.
   </scm>
 
   <issueManagement>
-    <!-- <system>jira</system>
-      <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
+    <!-- <system>jira</system> -->
+    <!-- <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
     <system>GitHub</system>
     <url>https://github.com/apache/${project.artifactId}/issues</url>
   </issueManagement>
@@ -83,9 +75,7 @@ under the License.
   </developers>
 
   <properties>
-    <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <datasketches-memory.version>2.2.0</datasketches-memory.version>
-    <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
 
     <!-- Test -->
     <testng.version>7.10.0</testng.version>
@@ -95,52 +85,51 @@ under the License.
     <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
 
     <!-- System-wide properties -->
-    <maven.version>3.6.3</maven.version> <!-- may override parent, used in enforcer plugin -->
+    <maven.version>3.6.3</maven.version>
     <java.version>17</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
+    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 --add-modules=jdk.incubator.foreign</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
     <project.reporting.outputEncoding>${charset.encoding}</project.reporting.outputEncoding>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss'Z'</maven.build.timestamp.format>
 
-    <!-- org.mojohaus plugins: used for checking & updating dependency versions -->
-    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-
     <!--  Maven Plugins -->
-    <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version> <!-- may override parent -->
-    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version> <!-- may override parent -->
-    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version> <!-- may override parent -->
-    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version> <!-- may override parent -->
-    <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version> <!-- may override parent -->
-    <maven-jar-plugin.version>3.4.0</maven-jar-plugin.version> <!-- may override parent -->
-    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version> <!-- may override parent -->
-    <maven-release-plugin.version>3.0.1</maven-release-plugin.version> <!-- may override parent -->
-    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version> <!-- may override parent -->
-    <maven-source-plugin.version>3.3.1</maven-source-plugin.version> <!-- may override parent -->
-    <maven-surefire-failsafe-plugins.version>3.2.5</maven-surefire-failsafe-plugins.version><!-- for surefire, failsafe and surefire-report, may override parent-->
+    <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+    <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version>
+    <maven-jar-plugin.version>3.4.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
+    <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
+    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
+    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+    <maven-surefire-failsafe-plugins.version>3.2.5</maven-surefire-failsafe-plugins.version><!-- for surefire, failsafe and surefire-report -->
+    <maven-install-plugin.version>3.1.2</maven-install-plugin.version>
     <!-- Apache Plugins -->
-    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version> <!-- may override parent -->
+    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version>
     <!-- org.jacoco Maven Plugins -->
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <!-- org.eluder Maven Plugins -->
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
+    <!-- mojohaus.org plugins -->
+    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
+
     <!-- other -->
-    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version> <!-- not used -->
+    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version> <!-- no actual plugin, referenced by m2e -->
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
   </properties>
 
   <dependencies>
-    <!-- UNIQUE FOR THIS JAVA COMPONENT 
     <dependency>
       <groupId>org.apache.datasketches</groupId>
       <artifactId>datasketches-memory</artifactId>
       <version>${datasketches-memory.version}</version>
-    </dependency> -->
-    <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
+    </dependency>
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>
@@ -170,6 +159,11 @@ under the License.
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <compilerArgs>
+              <arg>--add-modules=jdk.incubator.foreign</arg>
+            </compilerArgs>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -193,7 +187,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[1.8.0,9.0),[11.0,12.0), [17,18)</version>
+                    <version>[17,18)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},)</version>
@@ -212,7 +206,6 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Extends Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>${maven-jar-plugin.version}</version>
@@ -235,12 +228,15 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Extends Apache Parent pom, apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
             <docfilessubdirs>true</docfilessubdirs>
+            <show>public</show>
+            <additionalOptions>
+              <additionalOption>--add-modules=jdk.incubator.foreign</additionalOption>
+            </additionalOptions>
           </configuration>
           <executions>
             <execution>
@@ -253,14 +249,12 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
           <version>${maven-release-plugin.version}</version>
         </plugin>
 
         <plugin>
-          <!-- Extends Apache Parent pom, apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <version>${maven-source-plugin.version}</version>
@@ -283,11 +277,11 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
+            <argLine>--add-modules=jdk.incubator.foreign</argLine>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -297,7 +291,6 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
           <version>${apache-rat-plugin.version}</version>
@@ -423,44 +416,8 @@ under the License.
       </plugin>
     </plugins>
   </build>
-  <profiles>
-    <!-- Ignore nuisance warning from Apache parent plugin:
-         "maven-remote-resources-plugin (goal "process") is ignored by m2e".
-         This profile is only active when the property "m2e.version" is set,
-         which is the case when building in Eclipse with m2e.
-    -->
-    <profile>
-      <id>only-eclipse</id>
-      <activation>
-        <property>
-          <name>m2e.version</name>
-        </property>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-remote-resources-plugin</artifactId>
-              <version>${maven-remote-resources-plugin.version}</version>
-              <executions>
-                <execution>
-                  <id>process-resource-bundles</id>
-                  <phase>none</phase>
-                </execution>
-              </executions>
-            </plugin>
-          </plugins>
-        </pluginManagement>
 
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-remote-resources-plugin</artifactId>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
+  <profiles>
 
     <!--  This profile is used to release signed jars to the Apache Nexus repository.
           This must be executed from a git repository set at the proper Release branch (e.g., 1.1.X)
@@ -606,8 +563,9 @@ under the License.
         </plugins>
       </build>
     </profile>
+
     <!-- Disable source release assembly for 'apache-release' profile.
-             This is performed from a script outside Maven -->
+             This is performed from a script outside Maven
     <profile>
       <id>apache-release</id>
       <build>
@@ -624,44 +582,7 @@ under the License.
           </plugin>
         </plugins>
       </build>
-    </profile>
-
-    <profile>
-      <id>java8only</id>
-      <activation>
-        <jdk>[1.8,1.9),8</jdk>
-      </activation>
-    </profile>
-
-    <profile>
-      <id>java11plus</id>
-      <activation>
-        <jdk>[11,14)</jdk>
-      </activation>
-      <properties>
-        <maven.compiler.release>8</maven.compiler.release>
-      </properties>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <!-- Apache Parent pom, pluginManagement-->
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-surefire-plugin</artifactId>
-              <configuration>
-                <argLine>@{argLine}
-                  --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-                  --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
-                  --add-opens java.base/java.nio=ALL-UNNAMED
-                  --add-opens java.base/sun.nio.ch=ALL-UNNAMED
-                </argLine>
-                <excludedGroups>${testng.generate-java-files},${testng.check-cpp-files}</excludedGroups>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
+    </profile> -->
 
     <profile>
       <id>generate-java-files</id>

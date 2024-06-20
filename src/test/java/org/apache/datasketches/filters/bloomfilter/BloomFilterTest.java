@@ -57,8 +57,7 @@ public class BloomFilterTest {
     assertFalse(bf1.isReadOnly());
 
     WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(sizeBytes,
-            new DefaultMemoryRequestServer())).scope()) {
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(sizeBytes)).scope()) {
 
       final BloomFilter bf2 = new BloomFilter(numBits, numHashes, seed, wmem);
       assertTrue(bf2.isEmpty());

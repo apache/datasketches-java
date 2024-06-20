@@ -234,8 +234,7 @@ public class UnionImplTest {
 
     final int bytes = Sketches.getCompactSketchMaxBytes(lgK);
     WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes,
-            new DefaultMemoryRequestServer())).scope()) {
+    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes)).scope()) {
 
       final CompactSketch csk = sk.compact(true, wmem); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();

@@ -566,7 +566,7 @@ public class HeapifyWrapSerVer1and2Test {
 
   private static WritableMemory putOffHeap(Memory heapMem) {
     final long cap = heapMem.getCapacity();
-    WritableMemory wmem = WritableMemory.allocateDirect(cap, new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(cap);
     heapMem.copyTo(0, wmem, 0, cap);
     return wmem;
   }
