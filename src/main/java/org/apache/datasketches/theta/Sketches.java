@@ -86,7 +86,7 @@ public final class Sketches {
    * @return the maximum number of storage bytes required for a CompactSketch with the given number
    * of entries.
    * @see Sketch#getMaxCompactSketchBytes(int)
-   * @deprecated as a public method. Use {@link #getCompactSketchMaxBytes(int) instead}
+   * @deprecated as a public method. Use {@link #getCompactSketchMaxBytes(int) getCompactSketchMaxBytes(int)} instead.
    */
   @Deprecated
   public static int getMaxCompactSketchBytes(final int numberOfEntries) {
@@ -95,14 +95,14 @@ public final class Sketches {
 
   /**
    * Returns the maximum number of storage bytes required for a CompactSketch given the configured
-   * number of nominal entries (power of 2).
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
+   * log_base2 of the number of nominal entries, which is a power of 2.
+   * @param lgNomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * @return the maximum number of storage bytes required for a CompactSketch with the given
-   * nomEntries.
+   * lgNomEntries.
    * @see Sketch#getCompactSketchMaxBytes(int)
    */
-  public static int getCompactSketchMaxBytes(final int nomEntries) {
-    return Sketch.getCompactSketchMaxBytes(nomEntries);
+  public static int getCompactSketchMaxBytes(final int lgNomEntries) {
+    return Sketch.getCompactSketchMaxBytes(lgNomEntries);
   }
 
   /**

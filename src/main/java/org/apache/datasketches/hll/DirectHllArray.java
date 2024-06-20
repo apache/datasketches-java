@@ -56,7 +56,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   WritableMemory wmem;
   Memory mem;
   Object memObj;
-  long memAdd;
+  //long memAdd;
   final boolean compact;
 
   private static int checkMemCompactFlag(final WritableMemory wmem, final int lgConfigK) {
@@ -70,7 +70,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     this.wmem = wmem;
     mem = wmem;
     memObj = wmem.getArray();
-    memAdd = wmem.getCumulativeOffset(0L);
+    //memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(mem);
     insertEmptyFlag(wmem, false);
   }
@@ -81,7 +81,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     wmem = null;
     this.mem = mem;
     memObj = ((WritableMemory) mem).getArray();
-    memAdd = mem.getCumulativeOffset(0L);
+    //memAdd = mem.getCumulativeOffset(0L);
     compact = extractCompactFlag(mem);
   }
 
@@ -90,7 +90,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     wmem = newWmem;
     mem = newWmem;
     memObj = wmem.getArray();
-    memAdd = wmem.getCumulativeOffset(0L);
+    //memAdd = wmem.getCumulativeOffset(0L);
   }
 
   @Override

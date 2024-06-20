@@ -145,7 +145,7 @@ public class SketchesTest {
     assertEquals(24+(k+1)*8, maxCompSkBytes);
 
     final int compSkMaxBytes = getCompactSketchMaxBytes(lgK); {
-      assertEquals(compSkMaxBytes, ((2 << lgK) * 15) / 16 + (Family.QUICKSELECT.getMaxPreLongs() << 3));
+      assertEquals(compSkMaxBytes, (((2 << lgK) * 15) / 16 + Family.QUICKSELECT.getMaxPreLongs()) << 3);
     }
 
     final int maxSkBytes = getMaxUpdateSketchBytes(k);

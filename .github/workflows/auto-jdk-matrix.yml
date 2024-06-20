@@ -7,41 +7,43 @@ on:
     workflow_dispatch:
 
 env:
-    MAVEN_OPTS: -Xmx4g -Xms1g
+    MAVEN_OPTS: -Xmx1g -Xms1g
 
 jobs:
     build:
         name: Build, Test, Install
         runs-on: ubuntu-latest
+
         strategy:
           fail-fast: false
-          matrix:
-              jdk: [ 8,11 ]
+
         env:
-          JDK_VERSION: ${{ matrix.jdk }}
+          JDK_VERSION: 17
 
         steps:
         - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
           with:
               persist-credentials: false
 
+        - name: Print Current workflow
+          run: >
+             cat .github/workflows/auto-jdk-matrix.yml
+
+        - name: Setup Java
+          uses: actions/setup-java@v4
+          with:
+              distribution: 'temurin'
+              java-package: jdk
+              architecture: x64
+              java-version: 17        
+        
         - name: Cache local Maven repository
-          uses: actions/cache@v3
+          uses: actions/cache@v4
           with:
               path: ~/.m2/repository
               key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
               restore-keys: build-${{ runner.os }}-maven-
-
-        - name: Install Matrix JDK
-          uses: actions/setup-java@v3
-          with:
-              java-version: ${{ matrix.jdk }}
-              distribution: 'temurin'
-              java-package: jdk
-              architecture: x64 
-# Architecture options: x86, x64, armv7, aarch64, ppc64le
-# setup-java@v3 has a "with cache" option
 
         - name: Echo Java Version
           run: >
@@ -49,7 +51,7 @@ jobs:
 
         - name: Test
           run: >
-              mvn clean test
+              mvn clean test -B
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
 
@@ -59,7 +61,10 @@ jobs:
               -DskipTests=true
               -Dgpg.skip=true
 
+# Architecture options: x86, x64, armv7, aarch64, ppc64le
+# setup-java@v4 has a "with cache" option
 # Lifecycle: validate, compile, test, package, verify, install, deploy
-# -B batch mode
+# -B batch mode, never stops for user input
 # -V show Version without stopping
+# -X debug mode
 # -q quiet, only show errors

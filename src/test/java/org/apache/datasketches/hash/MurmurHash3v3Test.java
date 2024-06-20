@@ -28,13 +28,13 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MurmurHash3v2;
+import org.apache.datasketches.memory.internal.MurmurHash3v3;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  */
-public class MurmurHash3v2Test {
+public class MurmurHash3v3Test {
   private Random rand = new Random();
   private static final int trials = 1 << 20;
 
@@ -154,33 +154,33 @@ public class MurmurHash3v2Test {
   }
 
   private static final long[] hashV2(long[] key, long seed) {
-    return MurmurHash3v2.hash(key, seed);
+    return MurmurHash3v3.hash(key, seed);
   }
 
   private static final long[] hashV2(int[] key2, long seed) {
-    return MurmurHash3v2.hash(key2, seed);
+    return MurmurHash3v3.hash(key2, seed);
   }
 
   private static final long[] hashV2(char[] key, long seed) {
-    return MurmurHash3v2.hash(key, seed);
+    return MurmurHash3v3.hash(key, seed);
   }
 
   private static final long[] hashV2(byte[] key, long seed) {
-    return MurmurHash3v2.hash(key, seed);
+    return MurmurHash3v3.hash(key, seed);
   }
 
   //V2 single primitives
 
   private static final long[] hashV2(long key, long seed, long[] out) {
-    return MurmurHash3v2.hash(key, seed, out);
+    return MurmurHash3v3.hash(key, seed, out);
   }
 
 //  private static final long[] hashV2(double key, long seed, long[] out) {
-//    return MurmurHash3v2.hash(key, seed, out);
+//    return MurmurHash3v3.hash(key, seed, out);
 //  }
 
 //  private static final long[] hashV2(String key, long seed, long[] out) {
-//    return MurmurHash3v2.hash(key, seed, out);
+//    return MurmurHash3v3.hash(key, seed, out);
 //  }
 
 
@@ -199,7 +199,7 @@ public class MurmurHash3v2Test {
 
     for (int offset = 0; offset < 16; offset++) {
       int arrLen = cap - offset;
-      hash1 = MurmurHash3v2.hash(wmem, offset, arrLen, seed, hash1);
+      hash1 = MurmurHash3v3.hash(wmem, offset, arrLen, seed, hash1);
       byte[] byteArr2 = new byte[arrLen];
       wmem.getByteArray(offset, byteArr2, 0, arrLen);
       hash2 = MurmurHash3.hash(byteArr2, seed);
@@ -222,8 +222,8 @@ public class MurmurHash3v2Test {
       for (int i = 0; i < j; i++) { wmem.putByte(i, (byte) (-128 + i)); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MurmurHash3v2.hash(in, seed);
+      hash2 = MurmurHash3v3.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v3.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -246,8 +246,8 @@ public class MurmurHash3v2Test {
       for (int i = 0; i < j; i++) { wmem.putInt(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MurmurHash3v2.hash(in, seed);
+      hash2 = MurmurHash3v3.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v3.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -270,8 +270,8 @@ public class MurmurHash3v2Test {
       for (int i = 0; i < j; i++) { wmem.putInt(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MurmurHash3v2.hash(in, seed);
+      hash2 = MurmurHash3v3.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v3.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -294,8 +294,8 @@ public class MurmurHash3v2Test {
       for (int i = 0; i < j; i++) { wmem.putLong(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MurmurHash3v2.hash(in, seed);
+      hash2 = MurmurHash3v3.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v3.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -313,8 +313,8 @@ public class MurmurHash3v2Test {
     WritableMemory wmem = WritableMemory.writableWrap(in);
 
     long[] hash1 = MurmurHash3.hash(in, 0);
-    hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
-    long[] hash3 = MurmurHash3v2.hash(in, seed);
+    hash2 = MurmurHash3v3.hash(wmem, offset, bytes, seed, hash2);
+    long[] hash3 = MurmurHash3v3.hash(in, seed);
 
     assertEquals(hash1, hash2);
     assertEquals(hash1, hash3);
@@ -325,62 +325,57 @@ public class MurmurHash3v2Test {
     long seed = 123;
     long[] hashOut = new long[2];
     try {
-      MurmurHash3v2.hash(Memory.wrap(new long[0]), 0, 0, seed, hashOut);  //mem empty
-      fail();
-    } catch (final IllegalArgumentException e) { } //OK
-    try {
-      Memory mem = null;
-      MurmurHash3v2.hash(mem, 0, 0, seed, hashOut); //mem null
+      MurmurHash3v3.hash(Memory.wrap(new long[0]), 0, 0, seed, hashOut);  //mem empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       String s = "";
-      MurmurHash3v2.hash(s, seed, hashOut); //string empty
+      MurmurHash3v3.hash(s, seed, hashOut); //string empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       String s = null;
-      MurmurHash3v2.hash(s, seed, hashOut); //string null
+      MurmurHash3v3.hash(s, seed, hashOut); //string null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       byte[] barr = new byte[0];
-      MurmurHash3v2.hash(barr, seed); //byte[] empty
+      MurmurHash3v3.hash(barr, seed); //byte[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       byte[] barr = null;
-      MurmurHash3v2.hash(barr, seed); //byte[] null
+      MurmurHash3v3.hash(barr, seed); //byte[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       char[] carr = new char[0];
-      MurmurHash3v2.hash(carr, seed); //char[] empty
+      MurmurHash3v3.hash(carr, seed); //char[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       char[] carr = null;
-      MurmurHash3v2.hash(carr, seed); //char[] null
+      MurmurHash3v3.hash(carr, seed); //char[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       int[] iarr = new int[0];
-      MurmurHash3v2.hash(iarr, seed); //int[] empty
+      MurmurHash3v3.hash(iarr, seed); //int[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       int[] iarr = null;
-      MurmurHash3v2.hash(iarr, seed); //int[] null
+      MurmurHash3v3.hash(iarr, seed); //int[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       long[] larr = new long[0];
-      MurmurHash3v2.hash(larr, seed); //long[] empty
+      MurmurHash3v3.hash(larr, seed); //long[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       long[] larr = null;
-      MurmurHash3v2.hash(larr, seed); //long[] null
+      MurmurHash3v3.hash(larr, seed); //long[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
   }
@@ -390,9 +385,9 @@ public class MurmurHash3v2Test {
     long seed = 123;
     long[] hashOut = new long[2];
     String s = "123";
-    assertTrue(MurmurHash3v2.hash(s, seed, hashOut)[0] != 0);
+    assertTrue(MurmurHash3v3.hash(s, seed, hashOut)[0] != 0);
     long v = 123;
-    assertTrue(MurmurHash3v2.hash(v, seed, hashOut)[0] != 0);
+    assertTrue(MurmurHash3v3.hash(v, seed, hashOut)[0] != 0);
   }
 
   @Test
@@ -420,8 +415,8 @@ public class MurmurHash3v2Test {
 
     WritableMemory wmem = WritableMemory.writableWrap(dataArr);
     long[] hash1 = MurmurHash3.hash(dataArr, 0);
-    hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
-    long[] hash3 = MurmurHash3v2.hash(dbl, seed, hash2);
+    hash2 = MurmurHash3v3.hash(wmem, offset, bytes, seed, hash2);
+    long[] hash3 = MurmurHash3v3.hash(dbl, seed, hash2);
 
     assertEquals(hash1, hash2);
     assertEquals(hash1, hash3);

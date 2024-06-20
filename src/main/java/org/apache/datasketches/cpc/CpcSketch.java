@@ -300,7 +300,7 @@ public final class CpcSketch {
     final long cap = state.getRequiredSerializedBytes();
     final WritableMemory wmem = WritableMemory.allocate((int) cap);
     state.exportToMemory(wmem);
-    return (byte[]) wmem.getArray();
+    return wmem.getArray();
   }
 
   /**

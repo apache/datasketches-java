@@ -172,12 +172,12 @@ public class DirectBitArrayTest {
       dba.getAndSetBit(i);
     }
 
-    assertThrows(AssertionError.class, () -> dba.getBit(-10));
-    assertThrows(AssertionError.class, () -> dba.getBit(2048));
-    assertThrows(AssertionError.class, () -> dba.setBit(-20));
-    assertThrows(AssertionError.class, () -> dba.setBit(4096));
-    assertThrows(AssertionError.class, () -> dba.getAndSetBit(-30));
-    assertThrows(AssertionError.class, () -> dba.getAndSetBit(8192));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.getBit(-10));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.getBit(2048));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.setBit(-20));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.setBit(4096));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.getAndSetBit(-30));
+    assertThrows(IndexOutOfBoundsException.class, () -> dba.getAndSetBit(8192));
   }
 
   @Test
