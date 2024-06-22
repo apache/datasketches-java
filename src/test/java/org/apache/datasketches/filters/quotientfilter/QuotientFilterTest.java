@@ -22,7 +22,6 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
@@ -261,7 +260,7 @@ public class QuotientFilterTest {
 
     static public boolean check_equality(QuotientFilter qf, BitSet bs, boolean check_also_fingerprints) {
         for (int i = 0; i < bs.size(); i++) {
-            if (check_also_fingerprints || (i % qf.getBitsPerEntry() == 0 || i % qf.getBitsPerEntry() == 1 || i % qf.getBitsPerEntry() == 2)) {
+            if (check_also_fingerprints || (i % qf.getNumBitsPerEntry() == 0 || i % qf.getNumBitsPerEntry() == 1 || i % qf.getNumBitsPerEntry() == 2)) {
                 if (qf.getBitAtOffset(i) != bs.get(i)) {
                     return false;
                 }
@@ -297,4 +296,45 @@ public class QuotientFilterTest {
         }
         return true;
     }
+
+    @Test
+    public void smallExpansion() {
+      final QuotientFilter qf = new QuotientFilter(5, 12);
+      final int n = 30;
+      for (int i = 0; i < n; i++) { qf.insert(i); }
+      qf.printFilterSummary();
+      assertEquals(qf.getNumExpansions(), 1);
+      assertEquals(qf.getNumEntries(), n);
+      
+      // query the same keys
+      int positives = 0;
+      for (int i = 0; i < n; i++) { if (qf.search(i)) { positives++; } }
+      assertEquals(positives, n);
+
+      // query novel keys
+      positives = 0;
+      for (int i = 0; i < n; i++) { if (qf.search(i + n)) { positives++; } }
+      assertTrue(positives < 2);
+    }
+
+    @Test
+    public void expansion() {
+      final QuotientFilter qf = new QuotientFilter(16, 16);
+      final int n = 60000;
+      for (int i = 0; i < n; i++) { qf.insert(i); }
+//      qf.printFilterSummary();
+      assertEquals(qf.getNumExpansions(), 1);
+      assertTrue(qf.getNumEntries() > n * 0.99); // allow a few hash collisions
+      
+      // query the same keys
+      int positives = 0;
+      for (int i = 0; i < n; i++) { if (qf.search(i)) { positives++; } }
+      assertEquals(positives, n);
+
+      // query novel keys
+      positives = 0;
+      for (int i = 0; i < n; i++) { if (qf.search(i + n)) { positives++; } }
+      assertTrue(positives < 6);
+    }
+
 }
