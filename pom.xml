@@ -25,12 +25,6 @@ under the License.
 
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.apache</groupId>
-    <artifactId>apache</artifactId>
-    <version>32</version>
-  </parent>
-
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
   <version>6.1.0-SNAPSHOT</version>
@@ -134,13 +128,13 @@ under the License.
   </properties>
 
   <dependencies>
-    <!-- UNIQUE FOR THIS JAVA COMPONENT -->
+    <!--
     <dependency>
       <groupId>org.apache.datasketches</groupId>
       <artifactId>datasketches-memory</artifactId>
       <version>${datasketches-memory.version}</version>
     </dependency>
-    <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
+    -->
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>
