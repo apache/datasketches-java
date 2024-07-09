@@ -31,10 +31,11 @@ import org.apache.datasketches.filters.common.HeapBitArray;
 
 public class QuotientFilter extends Filter {
 
-  public static final double LOAD_FACTOR = 0.9;
+  public static final float DEFAULT_LOAD_FACTOR = 0.8f;
 
-  int numBitsPerEntry_;
-  int powerOfTwoSize_;
+  int lgQ_;
+  int numFingerprintBits_;
+  float loadFactor_;
   int numEntries_;
   int numExpansions_;
   BitArray bitArray_;
@@ -45,10 +46,15 @@ public class QuotientFilter extends Filter {
   public double avgRunLength_;
   public double avgClusterLength_;
 
-  public QuotientFilter(final int powerOfTwo, final int numBitsPerEntry) {
-    powerOfTwoSize_ = powerOfTwo;
-    numBitsPerEntry_ = numBitsPerEntry;
-    bitArray_ = makeFilter(getNumSlots(), numBitsPerEntry);
+  public QuotientFilter(final int lgQ, final int numFingerprintBits) {
+    this(lgQ, numFingerprintBits, DEFAULT_LOAD_FACTOR);
+  }
+
+  public QuotientFilter(final int lgQ, final int numFingerprintBits, final float loadFactor) {
+    lgQ_ = lgQ;
+    numFingerprintBits_ = numFingerprintBits;
+    loadFactor_ = loadFactor;
+    bitArray_ = makeFilter(getNumSlots(), getNumBitsPerEntry());
     numExpansions_ = 0;
     //hash_type = XxHash.hashLong ; //HashType.xxh;
   }
@@ -66,7 +72,7 @@ public class QuotientFilter extends Filter {
   }
 
   public long getMaxEntriesBeforeExpansion() {
-    return (long)(getNumSlots() * LOAD_FACTOR);
+    return (long)(getNumSlots() * loadFactor_);
   }
 
   BitArray makeFilter(final long initSize, final int bitsPerEntry) {
@@ -74,23 +80,23 @@ public class QuotientFilter extends Filter {
   }
 
   public int getFingerprintLength() {
-    return numBitsPerEntry_ - 3;
+    return numFingerprintBits_;
   }
 
-  QuotientFilter(final int powerOfTwo, final int numBitsPerEntry, final BitArray bitArray) {
-    powerOfTwoSize_ = powerOfTwo;
-    numBitsPerEntry_ = numBitsPerEntry;
-    bitArray_ = bitArray;
-  }
+//  QuotientFilter(final int powerOfTwo, final int numBitsPerEntry, final BitArray bitArray) {
+//    powerOfTwoSize_ = powerOfTwo;
+//    numBitsPerEntry_ = numBitsPerEntry;
+//    bitArray_ = bitArray;
+//  }
 
   void expand() {
     if (getFingerprintLength() < 2) throw new SketchesException("for expansion value must have at least 2 bits");
-    QuotientFilter other = new QuotientFilter(powerOfTwoSize_ + 1, numBitsPerEntry_ - 1);
+    final QuotientFilter other = new QuotientFilter(lgQ_ + 1, numFingerprintBits_ - 1, loadFactor_);
 
     long i = 0;
     if (!isSlotEmpty(i)) { i = findClusterStart(i); }
 
-    Queue<Long> fifo = new LinkedList<Long>();
+    final Queue<Long> fifo = new LinkedList<Long>();
     long count = 0;
     while (count < numEntries_) {
       if (!isSlotEmpty(i)) {
@@ -104,8 +110,8 @@ public class QuotientFilter extends Filter {
       i = (i + 1) & getSlotMask();
       if (!fifo.isEmpty() && ! isContinuation(i)) { fifo.remove(); }
     }
-    powerOfTwoSize_++;
-    numBitsPerEntry_--;
+    lgQ_++;
+    numFingerprintBits_--;
     bitArray_ = other.bitArray_;
     numExpansions_++;
   }
@@ -146,7 +152,7 @@ public class QuotientFilter extends Filter {
 
   // returns the number of slots in the filter without the extension/buffer slots
   public long getNumSlots() {
-    return 1L << powerOfTwoSize_;
+    return 1L << lgQ_;
   }
 
   long getSlotMask() {
@@ -166,18 +172,18 @@ public class QuotientFilter extends Filter {
 
   // sets the fingerprint for a given slot index
   void setFingerprint(final long index, final long fingerprint) {
-    bitArray_.setBits(index * numBitsPerEntry_ + 3, getFingerprintLength(), fingerprint);
+    bitArray_.setBits(index * getNumBitsPerEntry() + 3, getFingerprintLength(), fingerprint);
   }
 
   // print a nice representation of the filter that can be understood.
   // if vertical is on, each line will represent a slot
   public String getPrettyStr(final boolean vertical) {
     final StringBuffer sbr = new StringBuffer();
-    final long numBits = getNumSlots() * numBitsPerEntry_;
+    final long numBits = getNumSlots() * getNumBitsPerEntry();
     for (long i = 0; i < numBits; i++) {
-      final long remainder = i % numBitsPerEntry_;
+      final long remainder = i % getNumBitsPerEntry();
       if (remainder == 0) {
-        final long slot = i / numBitsPerEntry_;
+        final long slot = i / getNumBitsPerEntry();
         sbr.append(" ");
         if (vertical) {
           sbr.append("\n" + String.format("%-10d", slot) + "\t");
@@ -199,12 +205,12 @@ public class QuotientFilter extends Filter {
 
   // return a fingerprint in a given slot index
   long getFingerprint(final long index) {
-    return bitArray_.getBits(index * numBitsPerEntry_ + 3, getFingerprintLength());
+    return bitArray_.getBits(index * getNumBitsPerEntry() + 3, getFingerprintLength());
   }
 
   // return an entire slot representation, including metadata flags and fingerprint
   long getSlot(final long index) {
-    return bitArray_.getBits(index * numBitsPerEntry_, numBitsPerEntry_);
+    return bitArray_.getBits(index * getNumBitsPerEntry(), getNumBitsPerEntry());
   }
 
   // compare a fingerprint input to the fingerprint in some slot index
@@ -222,7 +228,7 @@ public class QuotientFilter extends Filter {
   // summarize some statistical measures about the filter
   public void printFilterSummary() {
     final long slots = getNumSlots();
-    final long numBits = slots * numBitsPerEntry_;
+    final long numBits = slots * getNumBitsPerEntry();
     System.out.println("slots:      " + slots);
     System.out.println("bits:       " + numBits);
     System.out.println("bits/entry: " + numBits / (double)numEntries_);
@@ -242,35 +248,35 @@ public class QuotientFilter extends Filter {
    */
   @Override
   public long getSpaceUse() {
-    return getNumSlots() * numBitsPerEntry_;
+    return getNumSlots() * getNumBitsPerEntry();
   }
 
   public int getNumBitsPerEntry() {
-    return numBitsPerEntry_;
+    return numFingerprintBits_ + 3;
   }
 
   boolean isOccupied(final long index) {
-    return bitArray_.getBit(index * numBitsPerEntry_);
+    return bitArray_.getBit(index * getNumBitsPerEntry());
   }
 
   boolean isContinuation(final long index) {
-    return bitArray_.getBit(index * numBitsPerEntry_ + 1);
+    return bitArray_.getBit(index * getNumBitsPerEntry() + 1);
   }
 
   boolean isShifted(final long index) {
-    return bitArray_.getBit(index * numBitsPerEntry_ + 2);
+    return bitArray_.getBit(index * getNumBitsPerEntry() + 2);
   }
 
   void setOccupied(final long index, final boolean val) {
-    bitArray_.assignBit(index * numBitsPerEntry_, val);
+    bitArray_.assignBit(index * getNumBitsPerEntry(), val);
   }
 
   void setContinuation(final long index, final boolean val) {
-    bitArray_.assignBit(index * numBitsPerEntry_ + 1, val);
+    bitArray_.assignBit(index * getNumBitsPerEntry() + 1, val);
   }
 
   void setShifted(final long index, final boolean val) {
-    bitArray_.assignBit(index * numBitsPerEntry_ + 2, val);
+    bitArray_.assignBit(index * getNumBitsPerEntry() + 2, val);
   }
 
   boolean isSlotEmpty(final long index) {
@@ -432,7 +438,7 @@ public class QuotientFilter extends Filter {
     numEntries_++;
   }
 
-  boolean delete(final long fingerprint, final long canonicalSlot, long runStartIndex, long matchingFingerprintIndex) {
+  boolean delete(final long canonicalSlot, long runStartIndex, long matchingFingerprintIndex) {
     long runEnd = findRunEnd(matchingFingerprintIndex);
 
     // the run has only one entry, we need to disable its is_occupied flag
@@ -524,7 +530,7 @@ public class QuotientFilter extends Filter {
       // we didn't find a matching fingerprint
       return false;
     }
-    return delete(fingerprint, canonicalSlot, runStartIndex, matchingFingerprintIndex);
+    return delete(canonicalSlot, runStartIndex, matchingFingerprintIndex);
   }
 
   long getSlotFromHash(final long largeHash) {
