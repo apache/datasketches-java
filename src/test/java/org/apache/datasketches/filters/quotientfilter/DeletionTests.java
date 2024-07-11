@@ -35,10 +35,10 @@ public class DeletionTests {
      */
     @Test
     static public void BasicDeletions() {
-        int bits_per_entry = 8;
+        int fingerprint_len_bits = 5;
         int num_entries_power = 3;
-        int num_entries = (int)Math.pow(2, num_entries_power);
-        QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
+        int num_entries = 1 << num_entries_power;
+        QuotientFilter qf = new QuotientFilter(num_entries_power, fingerprint_len_bits);
 
         long fp1 = 1 << 4;
         long fp2 = 1 << 3;
@@ -60,9 +60,9 @@ public class DeletionTests {
         qf.delete(fp1, 1);
         qf.delete(fp1, 1);
 
-        BitSet result = new BitSet(num_entries * bits_per_entry);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 2, true, false, false, fp2);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 4, true, false, false, fp3);
+        BitSet result = new BitSet(num_entries * qf.getNumBitsPerEntry());
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 2, true, false, false, fp2);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 4, true, false, false, fp3);
         assertTrue(QuotientFilterTest.check_equality(qf, result, true));
     }
 
@@ -76,10 +76,10 @@ public class DeletionTests {
      */
     @Test
     static public void Deletions() {
-        int bits_per_entry = 8;
+        int fingerprint_len_bits = 5;
         int num_entries_power = 3;
         int num_entries = (int)Math.pow(2, num_entries_power);
-        QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
+        QuotientFilter qf = new QuotientFilter(num_entries_power, fingerprint_len_bits);
 
         qf.insert(1, 1);
         qf.insert(2, 1);
@@ -96,15 +96,15 @@ public class DeletionTests {
         qf.delete(3, 2);
         qf.delete(5, 3);
 
-        BitSet result = new BitSet(num_entries * bits_per_entry);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 0, false, false, false, 0);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 1, true, false, false, 1);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 2, true, true, true, 2);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 3, true, false, true, 4);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 4, false, false, true, 6);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 5, false, true, true, 7);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 6, true, false, false, 8);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 7, false, false, false, 0);
+        BitSet result = new BitSet(num_entries * qf.getNumBitsPerEntry());
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 0, false, false, false, 0);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 1, true, false, false, 1);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 2, true, true, true, 2);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 3, true, false, true, 4);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 4, false, false, true, 6);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 5, false, true, true, 7);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 6, true, false, false, 8);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 7, false, false, false, 0);
 
         assertTrue(QuotientFilterTest.check_equality(qf, result, true));
     }
@@ -121,10 +121,10 @@ public class DeletionTests {
      * The expected outcome is that after deletion, the remaining keys should be in their canonical slots.
      */
     static public void DeletionsWithWrap() {
-        int bits_per_entry = 8;
+        int fingerprint_len_bits = 5;
         int num_entries_power = 3;
         int num_entries = (int)Math.pow(2, num_entries_power);
-        QuotientFilter qf = new QuotientFilter(num_entries_power, bits_per_entry);
+        QuotientFilter qf = new QuotientFilter(num_entries_power, fingerprint_len_bits);
 
         qf.insert(1, 1);
         qf.insert(2, 1);
@@ -139,15 +139,15 @@ public class DeletionTests {
         qf.delete(5, 3);
         //qf.pretty_print();
 
-        BitSet result = new BitSet(num_entries * bits_per_entry);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 0, false, false, false, 0);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 1, true, false, false, 1);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 2, true, true, true, 2);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 3, false, false, true, 3);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 4, true, true, true, 4);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 5, true, false, true, 6);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 6, false, true, true, 7);
-        result = QuotientFilterTest.set_slot_in_test(result, bits_per_entry, 7, false, false, true, 8);
+        BitSet result = new BitSet(num_entries * qf.getNumBitsPerEntry());
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 0, false, false, false, 0);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 1, true, false, false, 1);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 2, true, true, true, 2);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 3, false, false, true, 3);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 4, true, true, true, 4);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 5, true, false, true, 6);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 6, false, true, true, 7);
+        result = QuotientFilterTest.set_slot_in_test(result, qf.getNumBitsPerEntry(), 7, false, false, true, 8);
         assertTrue(QuotientFilterTest.check_equality(qf, result, true));
     }
 }
