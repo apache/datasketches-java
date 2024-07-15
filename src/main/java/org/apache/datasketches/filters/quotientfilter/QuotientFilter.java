@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.filters.common.BitArray;
 import org.apache.datasketches.filters.common.HeapBitArray;
@@ -82,12 +83,6 @@ public class QuotientFilter extends Filter {
   public int getFingerprintLength() {
     return numFingerprintBits_;
   }
-
-//  QuotientFilter(final int powerOfTwo, final int numBitsPerEntry, final BitArray bitArray) {
-//    powerOfTwoSize_ = powerOfTwo;
-//    numBitsPerEntry_ = numBitsPerEntry;
-//    bitArray_ = bitArray;
-//  }
 
   void expand() {
     if (getFingerprintLength() < 2) throw new SketchesException("for expansion value must have at least 2 bits");
@@ -148,6 +143,14 @@ public class QuotientFilter extends Filter {
   // returns the fraction of occupied slots in the filter
   public double getUtilization() {
     return numEntries_ / (double) getNumSlots();
+  }
+
+  public int getLgQ() {
+    return lgQ_;
+  }
+
+  public float getLoadFactor() {
+    return loadFactor_;
   }
 
   // returns the number of slots in the filter without the extension/buffer slots
@@ -229,13 +232,14 @@ public class QuotientFilter extends Filter {
   public void printFilterSummary() {
     final long slots = getNumSlots();
     final long numBits = slots * getNumBitsPerEntry();
-    System.out.println("slots:      " + slots);
-    System.out.println("bits:       " + numBits);
-    System.out.println("bits/entry: " + numBits / (double)numEntries_);
-    System.out.println("FP length:  " + getFingerprintLength());
-    System.out.println("entries:    " + numEntries_);
-    System.out.println("expansions: " + numExpansions_);
-    System.out.println("load:       " + numEntries_ / (double)(slots));
+    System.out.println("lgQ:         " + lgQ_);
+    System.out.println("FP length:   " + getFingerprintLength());
+    System.out.println("load factor: " + getLoadFactor());
+    System.out.println("bits:        " + numBits);
+    System.out.println("bits/entry:  " + numBits / (double)numEntries_);
+    System.out.println("entries:     " + numEntries_);
+    System.out.println("expansions:  " + numExpansions_);
+    System.out.println("load:        " + numEntries_ / (double)(slots));
     computeStatistics();
     //System.out.println("num runs: \t\t" + num_runs);
     //System.out.println("avg run length: \t" + avg_run_length);
@@ -632,4 +636,27 @@ public class QuotientFilter extends Filter {
     avgClusterLength_ = sumClusterLengths / numClusters_;
   }
 
+  public void merge(final QuotientFilter other) {
+    if (lgQ_ + numFingerprintBits_ != other.lgQ_ + other.numFingerprintBits_) {
+      throw new SketchesArgumentException("incompatible sketches in merge");
+    }
+    long i = 0;
+    if (!other.isSlotEmpty(i)) { i = other.findClusterStart(i); }
+
+    final Queue<Long> fifo = new LinkedList<Long>();
+    long count = 0;
+    while (count < other.numEntries_) {
+      if (!other.isSlotEmpty(i)) {
+        if (other.isOccupied(i)) { fifo.add(i); }
+        final long quotient = fifo.element();
+        final long fingerprint = other.getFingerprint(i);
+        final long hash = quotient << other.getFingerprintLength() | fingerprint;
+        System.out.println("q=" + quotient + ", fp=" + fingerprint + ", hash=" + hash);
+        _insert(hash);
+        count++;
+      }
+      i = (i + 1) & other.getSlotMask();
+      if (!fifo.isEmpty() && ! other.isContinuation(i)) { fifo.remove(); }
+    }
+  }
 }
