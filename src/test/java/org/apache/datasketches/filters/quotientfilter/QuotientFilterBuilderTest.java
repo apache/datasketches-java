@@ -46,6 +46,9 @@ public class QuotientFilterBuilderTest {
         QuotientFilterBuilder qfb = new QuotientFilterBuilder();
 
         // invalid number of items
+        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(0,0.9f));
+        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(-1, 0.9f));
+        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(5000000000L, 0.9f));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(0));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(-1));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(5000000000L));
@@ -55,7 +58,9 @@ public class QuotientFilterBuilderTest {
 
         for (int i = 0; i < numItems.length; i++) {
             long num = numItems[i];
-            byte result = qfb.suggestLgNumSlots(num);
+            byte result = qfb.suggestLgNumSlots(num, 0.9f);
+            assertEquals(result, results[i]);
+            result = qfb.suggestLgNumSlots(num);
             assertEquals(result, results[i]);
         }
     }
@@ -70,12 +75,15 @@ public class QuotientFilterBuilderTest {
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestMaxNumItemsFromNumSlots((byte)32));
 
 
-        byte[] lgNumSlots = {1, 2, 3, 6, 10, 15, 25, 30,};
-        long[] results = {1, 3, 7, 57, 921, 29491, 30198988, 966367641} ;
+        int[] lgNumSlots = {1, 2, 3, 6, 10, 15, 25, 30,};
+        long[] results_ninety_pc = {1, 3, 7, 57, 921, 29491, 30198988, 966367641} ;
+        long[] results_eighty_pc = {1, 3, 6, 51, 819, 26214, 26843545, 858993459} ;
 
         for (int i = 0; i < lgNumSlots.length; i++) {
-            long result = qfb.suggestMaxNumItemsFromNumSlots(lgNumSlots[i]);
-            assertEquals(result, results[i]);
+            long result_ninety = qfb.suggestMaxNumItemsFromNumSlots(lgNumSlots[i], 0.9);
+            long result_eighty = qfb.suggestMaxNumItemsFromNumSlots(lgNumSlots[i], 0.8);
+            assertEquals(result_ninety, results_ninety_pc[i]);
+            assertEquals(result_eighty, results_eighty_pc[i]);
         }
     }
 
@@ -96,14 +104,22 @@ public class QuotientFilterBuilderTest {
         double[] fpp = {1E-10, 1E-2, 1e-7} ;
 
         // expected outcomes
-        byte[] expected_lgNumSlots = {1, 10, 30} ;
+        byte[] expected_lgNumSlotsNinety = {1, 10, 30} ;
+        byte[] expected_lgNumSlotsEighty = {1, 11, 30} ;
         byte[] expected_fingerprintLength = {34, 7, 24} ;
 
         for (int i = 0; i < numItems.length; i++) {
-            QuotientFilterBuilder.QFPair pair = qfb.suggestParamsFromMaxDistinctsFPP(numItems[i], fpp[i]);
+            QuotientFilterBuilder.QFPair pair = qfb.suggestParamsFromMaxDistinctsFPP(numItems[i], 0.9, fpp[i]);
             lgNumSlots = pair.lgNumSlots;
             fingerprintLength = pair.fingerprintLength;
-            assertEquals(expected_lgNumSlots[i], lgNumSlots);
+            assertEquals(expected_lgNumSlotsNinety[i], lgNumSlots);
+            assertEquals(expected_fingerprintLength[i], fingerprintLength);
+
+            // 80% load
+            pair = qfb.suggestParamsFromMaxDistinctsFPP(numItems[i], fpp[i]);
+            lgNumSlots = pair.lgNumSlots;
+            fingerprintLength = pair.fingerprintLength;
+            assertEquals(expected_lgNumSlotsEighty[i], lgNumSlots);
             assertEquals(expected_fingerprintLength[i], fingerprintLength);
         }
     }
