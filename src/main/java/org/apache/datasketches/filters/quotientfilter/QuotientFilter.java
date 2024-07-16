@@ -32,7 +32,7 @@ import org.apache.datasketches.filters.common.HeapBitArray;
 
 public class QuotientFilter extends Filter {
 
-  public static final double DEFAULT_LOAD_FACTOR = 0.8f;
+  public static final double DEFAULT_LOAD_FACTOR = 0.8;
 
   int lgQ_;
   int numFingerprintBits_;
