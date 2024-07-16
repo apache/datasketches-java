@@ -327,7 +327,7 @@ public class QuotientFilterTest {
       final int n = 50000;
       for (int i = 0; i < n / 2; i++) {
         qf1.insert(i);
-        qf1.insert(i + n / 2);
+        qf2.insert(i + n / 2);
       }
       qf1.merge(qf2);
 
