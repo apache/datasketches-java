@@ -46,9 +46,9 @@ public class QuotientFilterBuilderTest {
         QuotientFilterBuilder qfb = new QuotientFilterBuilder();
 
         // invalid number of items
-        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(0,0.9f));
-        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(-1, 0.9f));
-        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(5000000000L, 0.9f));
+        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(0,0.9));
+        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(-1, 0.9));
+        assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(5000000000L, 0.9));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(0));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(-1));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(5000000000L));
@@ -58,7 +58,7 @@ public class QuotientFilterBuilderTest {
 
         for (int i = 0; i < numItems.length; i++) {
             long num = numItems[i];
-            byte result = qfb.suggestLgNumSlots(num, 0.9f);
+            byte result = qfb.suggestLgNumSlots(num, 0.9);
             assertEquals(result, results[i]);
             result = qfb.suggestLgNumSlots(num);
             assertEquals(result, results[i]);
