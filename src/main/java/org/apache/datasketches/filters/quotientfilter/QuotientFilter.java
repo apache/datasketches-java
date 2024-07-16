@@ -18,7 +18,6 @@
  */
 
 package org.apache.datasketches.filters.quotientfilter;
-import static org.apache.datasketches.filters.quotientfilter.QuotientFilter.DEFAULT_LOAD_FACTOR;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,11 +31,11 @@ import org.apache.datasketches.filters.common.HeapBitArray;
 
 public class QuotientFilter extends Filter {
 
-  public static final double DEFAULT_LOAD_FACTOR = 0.8;
+  public static final float DEFAULT_LOAD_FACTOR = 0.8f;
 
   int lgQ_;
   int numFingerprintBits_;
-  double loadFactor_;
+  float loadFactor_;
   int numEntries_;
   int numExpansions_;
   BitArray bitArray_;
@@ -51,12 +50,13 @@ public class QuotientFilter extends Filter {
     this(lgQ, numFingerprintBits, DEFAULT_LOAD_FACTOR);
   }
 
-  public QuotientFilter(final int lgQ, final int numFingerprintBits, final double loadFactor) {
+  public QuotientFilter(final int lgQ, final int numFingerprintBits, final float loadFactor) {
     lgQ_ = lgQ;
     numFingerprintBits_ = numFingerprintBits;
     loadFactor_ = loadFactor;
     bitArray_ = makeFilter(getNumSlots(), getNumBitsPerEntry());
     numExpansions_ = 0;
+    //hash_type = XxHash.hashLong ; //HashType.xxh;
   }
 
   public boolean rejuvenate(final long key) {
