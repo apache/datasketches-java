@@ -32,11 +32,11 @@ import org.apache.datasketches.filters.common.HeapBitArray;
 
 public class QuotientFilter extends Filter {
 
-  public static final float DEFAULT_LOAD_FACTOR = 0.8f;
+  public static final double DEFAULT_LOAD_FACTOR = 0.8f;
 
   int lgQ_;
   int numFingerprintBits_;
-  float loadFactor_;
+  double loadFactor_;
   int numEntries_;
   int numExpansions_;
   BitArray bitArray_;
@@ -51,7 +51,7 @@ public class QuotientFilter extends Filter {
     this(lgQ, numFingerprintBits, DEFAULT_LOAD_FACTOR);
   }
 
-  public QuotientFilter(final int lgQ, final int numFingerprintBits, final float loadFactor) {
+  public QuotientFilter(final int lgQ, final int numFingerprintBits, final double loadFactor) {
     lgQ_ = lgQ;
     numFingerprintBits_ = numFingerprintBits;
     loadFactor_ = loadFactor;
@@ -149,7 +149,7 @@ public class QuotientFilter extends Filter {
     return lgQ_;
   }
 
-  public float getLoadFactor() {
+  public double getLoadFactor() {
     return loadFactor_;
   }
 
@@ -223,7 +223,7 @@ public class QuotientFilter extends Filter {
 
   // modify the flags and fingerprint of a given slot
   void modifySlot(final boolean isOccupied, final boolean isContinuation, final boolean isShifted,
-    final long index, final long fingerprint) {
+                  final long index, final long fingerprint) {
     modifySlot(isOccupied, isContinuation, isShifted, index);
     setFingerprint(index, fingerprint);
   }
@@ -324,7 +324,7 @@ public class QuotientFilter extends Filter {
       if (fingerprintAtIndex == fingerprint) {
         return index;
       } else if (fingerprintAtIndex > fingerprint) {
-        return ~index; 
+        return ~index;
       }
       index = (index + 1) & getSlotMask();
     } while (isContinuation(index));
@@ -396,7 +396,7 @@ public class QuotientFilter extends Filter {
   }
 
   void insertFingerprintAndPushAllElse(long fingerprint, long index, final long canonical,
-      final boolean isNewRun, final boolean isRunStart) {
+                                       final boolean isNewRun, final boolean isRunStart) {
     // in the first shifted entry set isContinuation flag if inserting at the start of the existing run
     // otherwise just shift the existing flag as it is
     boolean forceContinuation = !isNewRun && isRunStart;
