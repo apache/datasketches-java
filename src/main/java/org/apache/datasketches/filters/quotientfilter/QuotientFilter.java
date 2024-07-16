@@ -651,7 +651,6 @@ public class QuotientFilter extends Filter {
         final long quotient = fifo.element();
         final long fingerprint = other.getFingerprint(i);
         final long hash = quotient << other.getFingerprintLength() | fingerprint;
-        System.out.println("q=" + quotient + ", fp=" + fingerprint + ", hash=" + hash);
         _insert(hash);
         count++;
       }
