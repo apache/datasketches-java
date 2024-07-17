@@ -18,6 +18,7 @@
  */
 
 package org.apache.datasketches.filters.quotientfilter;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertEquals;
@@ -306,6 +307,59 @@ public class QuotientFilterTest {
       positives = 0;
       for (int i = 0; i < n; i++) { if (qf.search(i + n)) { positives++; } }
       assertTrue(positives < 6);
+    }
+
+    @Test
+    public void mergeEmpty() {
+      final QuotientFilter qf1 = new QuotientFilter(4, 3);
+      final QuotientFilter qf2 = new QuotientFilter(4, 3);
+      qf1.merge(qf2);
+
+      assertEquals(qf1.getLgQ(), 4);
+      assertEquals(qf1.getFingerprintLength(), 3);
+      assertEquals(qf1.getNumEntries(), 0);
+    }
+
+    @Test
+    public void merge() {
+      final QuotientFilter qf1 = new QuotientFilter(16, 13);
+      final QuotientFilter qf2 = new QuotientFilter(16, 13);
+      final int n = 50000;
+      for (int i = 0; i < n / 2; i++) {
+        qf1.insert(i);
+        qf2.insert(i + n / 2);
+      }
+      qf1.merge(qf2);
+
+      assertEquals(qf1.getNumExpansions(), 0);
+      assertTrue(qf1.getNumEntries() > n * 0.99); // allow a few hash collisions
+
+      // query the same keys
+      int positives = 0;
+      for (int i = 0; i < n; i++) { if (qf1.search(i)) { positives++; } }
+      assertEquals(positives, n);
+
+      // query novel keys
+      positives = 0;
+      for (int i = 0; i < n; i++) { if (qf1.search(i + n)) { positives++; } }
+      assertTrue(positives < 4);
+    }
+
+    @Test
+    public void mergeDifferentConfiguration() {
+      final QuotientFilter qf1 = new QuotientFilter(3, 4);
+      final QuotientFilter qf2 = new QuotientFilter(4, 3);
+      qf1.insert(4);
+      qf2.insert(4);
+      qf1.merge(qf2);
+      assertEquals(qf1.getNumEntries(), 1);
+    }
+
+    @Test(expectedExceptions = SketchesArgumentException.class)
+    public void mergeIncompatible() {
+      final QuotientFilter qf1 = new QuotientFilter(4, 4);
+      final QuotientFilter qf2 = new QuotientFilter(4, 3);
+      qf1.merge(qf2);
     }
 
 }
