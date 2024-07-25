@@ -59,7 +59,7 @@ public final class QuotientFilterBuilder {
      * @param maxDistinctItems The maximum number of distinct items that can be inserted into the filter.
      * @return The log-base-2 of the number of slots in the filter.
      */
-    public static byte suggestLgNumSlots(long maxDistinctItems, double loadFactor) {
+    public static byte suggestLgNumSlots(long maxDistinctItems, float loadFactor) {
         if (maxDistinctItems <= 0) {
             throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
         }
@@ -82,7 +82,7 @@ public final class QuotientFilterBuilder {
     @param lgNumSlots The log-base-2 of the number of slots in the filter
     @return The maximum number of items that can be inserted into the filter
      */
-    public static long suggestMaxNumItemsFromNumSlots(int lgNumSlots, double loadFactor) {
+    public static long suggestMaxNumItemsFromNumSlots(int lgNumSlots, float loadFactor) {
         if (lgNumSlots <= 0) {
             throw new SketchesArgumentException("lgNumSlots must be at least 1.");
         } else if (lgNumSlots >= 31) {
@@ -107,7 +107,7 @@ public final class QuotientFilterBuilder {
      * @return A QFPair object containing the suggested number of slots (lgNumSlots) and the suggested fingerprint length.
      * @throws SketchesArgumentException if the input parameters are not valid.
      */
-    public static QFPair suggestParamsFromMaxDistinctsFPP(long maxDistinctItems, double loadFactor, double targetFalsePositiveProb) {
+    public static QFPair suggestParamsFromMaxDistinctsFPP(long maxDistinctItems, float loadFactor, double targetFalsePositiveProb) {
         validateAccuracyInputs(maxDistinctItems, loadFactor, targetFalsePositiveProb);
         byte lgNumSlots = suggestLgNumSlots(maxDistinctItems, loadFactor);
         byte fingerprintLength = suggestFingerprintLength(targetFalsePositiveProb);
@@ -118,7 +118,7 @@ public final class QuotientFilterBuilder {
         return suggestParamsFromMaxDistinctsFPP(maxDistinctItems, DEFAULT_LOAD_FACTOR, targetFalsePositiveProb);
     }
 
-    private static void validateAccuracyInputs(final long maxDistinctItems, final double loadFactor, final double targetFalsePositiveProb) {
+    private static void validateAccuracyInputs(final long maxDistinctItems, final float loadFactor, final double targetFalsePositiveProb) {
         if (maxDistinctItems <= 0) {
             throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
         }
