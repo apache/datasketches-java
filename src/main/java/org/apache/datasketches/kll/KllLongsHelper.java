@@ -35,7 +35,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  * @author Zac Blanco
  */
-final class KllLongsHelper {
+final class KllLongsHelper{
 
   /**
    * Create Items Array from given item and weight.
@@ -54,20 +54,20 @@ final class KllLongsHelper {
   /**
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
-   * @param lngSk the current KllLongsSketch
+   * @param longSketch the current KllLongsSketch
    */
-  static void compressWhileUpdatingSketch(final KllLongsSketch lngSk) {
+  static void compressWhileUpdatingSketch(final KllLongsSketch longSketch) {
     final int level =
-        findLevelToCompact(lngSk.getK(), lngSk.getM(), lngSk.getNumLevels(), lngSk.levelsArr);
-    if (level == lngSk.getNumLevels() - 1) {
+        findLevelToCompact(longSketch.getK(), longSketch.getM(), longSketch.getNumLevels(), longSketch.levelsArr);
+    if (level == longSketch.getNumLevels() - 1) {
       //The level to compact is the top level, thus we need to add a level.
       //Be aware that this operation grows the items array,
       //shifts the items data and the level boundaries of the data,
       //and grows the levels array and increments numLevels_.
-      KllHelper.addEmptyTopLevelToCompletelyFullSketch(lngSk);
+      KllHelper.addEmptyTopLevelToCompletelyFullSketch(longSketch);
     }
     //after this point, the levelsArray will not be expanded, only modified.
-    final int[] myLevelsArr = lngSk.levelsArr;
+    final int[] myLevelsArr = longSketch.levelsArr;
     final int rawBeg = myLevelsArr[level];
     final int rawEnd = myLevelsArr[level + 1];
     // +2 is OK because we already added a new top level if necessary
@@ -79,7 +79,7 @@ final class KllLongsHelper {
     final int halfAdjPop = adjPop / 2;
 
     //the following is specific to longs
-    final long[] myLongItemsArray = lngSk.getLongItemsArray();
+    final long[] myLongItemsArray = longSketch.getLongItemsArray();
     if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
       Arrays.sort(myLongItemsArray, adjBeg, adjBeg + adjPop);
     }
@@ -94,13 +94,13 @@ final class KllLongsHelper {
     }
 
     int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
-    lngSk.setLevelsArrayAt(level + 1, newIndex);
+    longSketch.setLevelsArrayAt(level + 1, newIndex);
 
     if (oddPop) {
-      lngSk.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
+      longSketch.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
       myLongItemsArray[myLevelsArr[level]] = myLongItemsArray[rawBeg];  // namely this leftover guy
     } else {
-      lngSk.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
+      longSketch.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
     }
 
     // verify that we freed up halfAdjPop array slots just below the current level
@@ -114,9 +114,9 @@ final class KllLongsHelper {
     }
     for (int lvl = 0; lvl < level; lvl++) {
       newIndex = myLevelsArr[lvl] + halfAdjPop; //adjust boundary
-      lngSk.setLevelsArrayAt(lvl, newIndex);
+      longSketch.setLevelsArrayAt(lvl, newIndex);
     }
-    lngSk.setLongItemsArray(myLongItemsArray);
+    longSketch.setLongItemsArray(myLongItemsArray);
   }
 
   //assumes readOnly = false and UPDATABLE, called from KllLongsSketch::merge
