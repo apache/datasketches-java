@@ -59,24 +59,24 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes, Kevin Lang
  */
 class KllDirectLongsSketch extends KllLongsSketch {
-  private WritableMemory wmem;
-  private MemoryRequestServer memReqSvr;
+  private WritableMemory writableMemory;
+  private MemoryRequestServer memoryRequestServer;
 
   /**
    * Constructs from Memory or WritableMemory already initialized with a sketch image and validated.
-   * @param wmem the current WritableMemory
+   * @param writableMemory the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @param memVal the MemoryValadate object
    */
   KllDirectLongsSketch(
       final SketchStructure sketchStructure,
-      final WritableMemory wmem,
+      final WritableMemory writableMemory,
       final MemoryRequestServer memReqSvr,
       final KllMemoryValidate memVal) {
     super(sketchStructure);
-    this.wmem = wmem;
-    this.memReqSvr = memReqSvr;
-    readOnly = (wmem != null && wmem.isReadOnly()) || sketchStructure != UPDATABLE;
+    this.writableMemory = writableMemory;
+    this.memoryRequestServer = memReqSvr;
+    readOnly = (writableMemory != null && writableMemory.isReadOnly()) || sketchStructure != UPDATABLE;
     levelsArr = memVal.levelsArr; //always converted to writable form.
   }
 
@@ -126,7 +126,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
 
   @Override
   public int getK() {
-    return getMemoryK(wmem);
+    return getMemoryK(writableMemory);
   }
 
   //MinMax Methods
@@ -137,7 +137,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     if (sketchStructure == COMPACT_SINGLE) { return getLongSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    return wmem.getLong(offset);
+    return writableMemory.getLong(offset);
   }
 
   @Override
@@ -146,7 +146,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     if (sketchStructure == COMPACT_SINGLE) { return getLongSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    return wmem.getLong(offset);
+    return writableMemory.getLong(offset);
   }
 
   @Override
@@ -161,7 +161,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     if (sketchStructure == COMPACT_SINGLE) { return getLongSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    return wmem.getLong(offset);
+    return writableMemory.getLong(offset);
   }
 
   @Override
@@ -170,7 +170,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     if (sketchStructure == COMPACT_SINGLE) { return getLongSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    return wmem.getLong(offset);
+    return writableMemory.getLong(offset);
   }
 
   @Override
@@ -183,14 +183,14 @@ class KllDirectLongsSketch extends KllLongsSketch {
   void setMaxItem(final long item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    wmem.putLong(offset, item);
+    writableMemory.putLong(offset, item);
   }
 
   @Override
   void setMinItem(final long item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    wmem.putLong(offset, item);
+    writableMemory.putLong(offset, item);
   }
 
   //END MinMax Methods
@@ -199,7 +199,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
   public long getN() {
     if (sketchStructure == COMPACT_EMPTY) { return 0; }
     else if (sketchStructure == COMPACT_SINGLE) { return 1; }
-    else { return getMemoryN(wmem); }
+    else { return getMemoryN(writableMemory); }
   }
 
   //other restricted
@@ -218,7 +218,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
     final int shift = (sketchStructure == COMPACT_FULL) ? levelsArr[0] : 0;
     final int numItems = (sketchStructure == COMPACT_FULL) ? getNumRetained() : capacityItems;
-    wmem.getLongArray(offset, longItemsArr, shift, numItems);
+    writableMemory.getLongArray(offset, longItemsArr, shift, numItems);
     return longItemsArr;
   }
 
@@ -230,7 +230,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     final long[] longItemsArr = new long[numRetained];
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES
         + (sketchStructure == COMPACT_FULL ? 0 : levelsArr[0] * ITEM_BYTES);
-    wmem.getLongArray(offset, longItemsArr, 0, numRetained);
+    writableMemory.getLongArray(offset, longItemsArr, 0, numRetained);
     return longItemsArr;
   }
 
@@ -238,7 +238,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
   long getLongSingleItem() {
     if (!isSingleItem()) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     if (sketchStructure == COMPACT_SINGLE) {
-      return wmem.getLong(DATA_START_ADR_SINGLE_ITEM);
+      return writableMemory.getLong(DATA_START_ADR_SINGLE_ITEM);
     }
     final int offset;
     if (sketchStructure == COMPACT_FULL) {
@@ -246,20 +246,20 @@ class KllDirectLongsSketch extends KllLongsSketch {
     } else { //sketchStructure == UPDATABLE
       offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (2 + getK() - 1) * ITEM_BYTES;
     }
-    return wmem.getLong(offset);
+    return writableMemory.getLong(offset);
   }
 
   @Override
   int getM() {
-    return getMemoryM(wmem);
+    return getMemoryM(writableMemory);
   }
 
   @Override
-  MemoryRequestServer getMemoryRequestServer() { return memReqSvr; }
+  MemoryRequestServer getMemoryRequestServer() { return memoryRequestServer; }
 
   @Override
   int getMinK() {
-    if (sketchStructure == COMPACT_FULL || sketchStructure == UPDATABLE) { return getMemoryMinK(wmem); }
+    if (sketchStructure == COMPACT_FULL || sketchStructure == UPDATABLE) { return getMemoryMinK(writableMemory); }
     return getK();
   }
 
@@ -274,14 +274,14 @@ class KllDirectLongsSketch extends KllLongsSketch {
     final int offset;
     if (sketchStructure == COMPACT_SINGLE) {
       offset = DATA_START_ADR_SINGLE_ITEM;
-      wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
+      writableMemory.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
       copyBytes(bytesOut, 0, bytesOut, ITEM_BYTES, ITEM_BYTES);
       return bytesOut;
     }
     //sketchStructure == UPDATABLE OR COMPACT_FULL
     offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
-    wmem.getByteArray(offset + ITEM_BYTES, bytesOut, ITEM_BYTES, ITEM_BYTES);
+    writableMemory.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
+    writableMemory.getByteArray(offset + ITEM_BYTES, bytesOut, ITEM_BYTES, ITEM_BYTES);
     return bytesOut;
   }
 
@@ -306,32 +306,32 @@ class KllDirectLongsSketch extends KllLongsSketch {
 
   @Override
   WritableMemory getWritableMemory() {
-    return wmem;
+    return writableMemory;
   }
 
   @Override
   void incN(final int increment) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryN(wmem, getMemoryN(wmem) + increment);
+    setMemoryN(writableMemory, getMemoryN(writableMemory) + increment);
   }
 
   @Override
   void incNumLevels() {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    int numLevels = getMemoryNumLevels(wmem);
-    setMemoryNumLevels(wmem, ++numLevels);
+    int numLevels = getMemoryNumLevels(writableMemory);
+    setMemoryNumLevels(writableMemory, ++numLevels);
   }
 
   @Override
   boolean isLevelZeroSorted() {
-    return getMemoryLevelZeroSortedFlag(wmem);
+    return getMemoryLevelZeroSortedFlag(writableMemory);
   }
 
   @Override
   void setLongItemsArray(final long[] longItems) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
-    wmem.putLongArray(offset, longItems, 0, longItems.length);
+    writableMemory.putLongArray(offset, longItems, 0, longItems.length);
   }
 
   @Override
@@ -339,43 +339,43 @@ class KllDirectLongsSketch extends KllLongsSketch {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset =
         DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
-    wmem.putLong(offset, item);
+    writableMemory.putLong(offset, item);
   }
 
   @Override
   void setLongItemsArrayAt(final int index, final long[] items, final int srcOffset, final int length) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
-    wmem.putLongArray(offset, items, srcOffset, length);
+    writableMemory.putLongArray(offset, items, srcOffset, length);
   }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryLevelZeroSortedFlag(wmem, sorted);
+    setMemoryLevelZeroSortedFlag(writableMemory, sorted);
   }
 
   @Override
   void setMinK(final int minK) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryMinK(wmem, minK);
+    setMemoryMinK(writableMemory, minK);
   }
 
   @Override
   void setN(final long n) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryN(wmem, n);
+    setMemoryN(writableMemory, n);
   }
 
   @Override
   void setNumLevels(final int numLevels) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryNumLevels(wmem, numLevels);
+    setMemoryNumLevels(writableMemory, numLevels);
   }
 
   @Override
-  void setWritableMemory(final WritableMemory wmem) {
-    this.wmem = wmem;
+  void setWritableMemory(final WritableMemory writableMemory) {
+    this.writableMemory = writableMemory;
   }
 
   final static class KllDirectCompactLongsSketch extends KllDirectLongsSketch {
