@@ -18,8 +18,6 @@
 -->
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java)
-[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/apache/datasketches-java.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/apache/datasketches-java/context:java)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/apache/datasketches-java.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/apache/datasketches-java/alerts/)
 [![Coverage Status](https://coveralls.io/repos/github/apache/datasketches-java/badge.svg)](https://coveralls.io/github/apache/datasketches-java)
 
 =================
@@ -29,8 +27,7 @@ This is the core Java component of the DataSketches library.  It contains all of
 
 This component is also a dependency of other components of the library that create adaptors for target systems, such as the [Apache Pig adaptor](https://github.com/apache/datasketches-pig) and the [Apache Hive adaptor](https://github.com/apache/datasketches-hive).
 
-Note that we have a parallel core component for C++ and Python implementations of the same sketch algorithms, 
-[datasketches-cpp](https://github.com/apache/datasketches-cpp).
+Note that we have a parallel core components for [C++](https://github.com/apache/datasketches-cpp) and [Python](https://github.com/apache/datasketches-python) implementations of the same sketch algorithms.
 
 Please visit the main [DataSketches website](https://datasketches.apache.org) for more information. 
 
