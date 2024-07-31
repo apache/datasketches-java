@@ -115,44 +115,54 @@ final class KllHeapLongsSketch extends KllLongsSketch {
     this.levelsArr = memValidate.levelsArr; //normalized to full
     this.isLevelZeroSorted = memValidate.level0SortedFlag;
 
-    if (memStructure == COMPACT_EMPTY) {
-      minLongItem = Long.MAX_VALUE;
-      maxLongItem = Long.MIN_VALUE;
-      longItems = new long[k];
-    }
-    else if (memStructure == COMPACT_SINGLE) {
-      final long item = srcMem.getLong(DATA_START_ADR_SINGLE_ITEM);
-      minLongItem = maxLongItem = item;
-      longItems = new long[k];
-      longItems[k - 1] = item;
-    }
-    else if (memStructure == COMPACT_FULL) {
-      int offsetBytes = DATA_START_ADR;
-      offsetBytes += (levelsArr.length - 1) * Integer.BYTES; //shortened levelsArr
-      minLongItem = srcMem.getLong(offsetBytes);
-      offsetBytes += Long.BYTES;
-      maxLongItem = srcMem.getLong(offsetBytes);
-      offsetBytes += Long.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      final int freeSpace = levelsArr[0];
-      final int retainedItems = capacityItems - freeSpace;
-      longItems = new long[capacityItems];
-      srcMem.getLongArray(offsetBytes, longItems, freeSpace, retainedItems);
-    }
-    else { //(memStructure == UPDATABLE)
-      int offsetBytes = DATA_START_ADR;
-      offsetBytes += levelsArr.length * Integer.BYTES; //full levelsArr
-      minLongItem = srcMem.getLong(offsetBytes);
-      offsetBytes += Long.BYTES;
-      maxLongItem = srcMem.getLong(offsetBytes);
-      offsetBytes += Long.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      longItems = new long[capacityItems];
-      srcMem.getLongArray(offsetBytes, longItems, 0, capacityItems);
-    }
+      initializeSketchFromMemory(srcMem, memStructure);
   }
 
-  static KllHeapLongsSketch heapifyImpl(final Memory srcMem) {
+    private void initializeSketchFromMemory(Memory srcMem, SketchStructure memStructure) {
+        switch (memStructure) {
+            case COMPACT_EMPTY:
+                minLongItem = Long.MAX_VALUE;
+                maxLongItem = Long.MIN_VALUE;
+                longItems = new long[k];
+                break;
+            case COMPACT_SINGLE:
+                final long item = srcMem.getLong(DATA_START_ADR_SINGLE_ITEM);
+                minLongItem = maxLongItem = item;
+                longItems = new long[k];
+                longItems[k - 1] = item;
+                break;
+            case COMPACT_FULL: {
+                int offsetBytes = DATA_START_ADR;
+                offsetBytes += (levelsArr.length - 1) * Integer.BYTES; //shortened levelsArr
+
+                minLongItem = srcMem.getLong(offsetBytes);
+                offsetBytes += Long.BYTES;
+                maxLongItem = srcMem.getLong(offsetBytes);
+                offsetBytes += Long.BYTES;
+                final int capacityItems = levelsArr[getNumLevels()];
+                final int freeSpace = levelsArr[0];
+                final int retainedItems = capacityItems - freeSpace;
+                longItems = new long[capacityItems];
+                srcMem.getLongArray(offsetBytes, longItems, freeSpace, retainedItems);
+                break;
+            }
+            default: { //(memStructure == UPDATABLE)
+                int offsetBytes = DATA_START_ADR;
+                offsetBytes += levelsArr.length * Integer.BYTES; //full levelsArr
+
+                minLongItem = srcMem.getLong(offsetBytes);
+                offsetBytes += Long.BYTES;
+                maxLongItem = srcMem.getLong(offsetBytes);
+                offsetBytes += Long.BYTES;
+                final int capacityItems = levelsArr[getNumLevels()];
+                longItems = new long[capacityItems];
+                srcMem.getLongArray(offsetBytes, longItems, 0, capacityItems);
+                break;
+            }
+        }
+    }
+
+    static KllHeapLongsSketch heapifyImpl(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, LONGS_SKETCH);
     return new KllHeapLongsSketch(srcMem, memVal);
@@ -162,8 +172,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
 
   @Override
   String getItemAsString(final int index) {
-    if (isEmpty()) { return "Null"; }
-    return Long.toString(longItems[index]);
+      return isEmpty() ? "Null" : Long.toString(longItems[index]);
   }
 
   @Override
