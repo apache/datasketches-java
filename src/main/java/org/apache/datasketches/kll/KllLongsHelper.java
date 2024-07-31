@@ -160,21 +160,21 @@ final class KllLongsHelper {
     if (otherNumLevels > 1  && !otherLngSk.isCompactSingleItem()) {
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
-      final long[] workbuf = new long[tmpSpaceNeeded];
+      final long[] workBuffer = new long[tmpSpaceNeeded];
 
       final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
 
-      final int ub = max(KllHelper.ubOnNumLevels(finalN), provisionalNumLevels);
-      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
-      final int[] outlevels  = new int[ub + 2];
+      final int upperBound = max(KllHelper.ubOnNumLevels(finalN), provisionalNumLevels);
+      final int[] worklevels = new int[upperBound + 2]; // upperBound+1 does not work
+      final int[] outlevels  = new int[upperBound + 2];
 
-      populateLongWorkArrays(workbuf, worklevels, provisionalNumLevels,
+      populateLongWorkArrays(workBuffer, worklevels, provisionalNumLevels,
           myCurNumLevels, myCurLevelsArr, myCurLongItemsArray,
           otherNumLevels, otherLevelsArr, otherLongItemsArray);
 
-      // notice that workbuf is being used as both the input and output
+      // notice that workBuffer is being used as both the input and output
       final int[] result = generalLongsCompress(mySketch.getK(), mySketch.getM(), provisionalNumLevels,
-          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), KllSketch.random);
+              workBuffer, worklevels, workBuffer, outlevels, mySketch.isLevelZeroSorted(), KllSketch.random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 
@@ -182,7 +182,7 @@ final class KllLongsHelper {
 
       //THE NEW NUM LEVELS
       myNewNumLevels = result[0];
-      assert myNewNumLevels <= ub; // ub may be much bigger
+      assert myNewNumLevels <= upperBound; // upperBound may be much bigger
 
       // THE NEW ITEMS ARRAY
       myNewLongItemsArray = (targetItemCount == myCurLongItemsArray.length)
@@ -191,7 +191,7 @@ final class KllLongsHelper {
       final int freeSpaceAtBottom = targetItemCount - curItemCount;
 
       //shift the new items array create space at bottom
-      System.arraycopy(workbuf, outlevels[0], myNewLongItemsArray, freeSpaceAtBottom, curItemCount);
+      System.arraycopy(workBuffer, outlevels[0], myNewLongItemsArray, freeSpaceAtBottom, curItemCount);
       final int theShift = freeSpaceAtBottom - outlevels[0];
 
       //calculate the new levels array length
@@ -324,20 +324,20 @@ final class KllLongsHelper {
    *
    * <p>It can be proved that generalCompress returns a sketch that satisfies the space constraints
    * no matter how much data is passed in.
-   * We are pretty sure that it works correctly when inBuf and outBuf are the same.
+   * We are pretty sure that it works correctly when inputBuffer and outBuf are the same.
    * All levels except for level zero must be sorted before calling this, and will still be
    * sorted afterwards.
    * Level zero is not required to be sorted before, and may not be sorted afterwards.</p>
    *
-   * <p>This trashes inBuf and inLevels and modifies outBuf and outLevels.</p>
+   * <p>This trashes inputBuffer and inLevels and modifies outBuf and outLevels.</p>
    *
    * @param k The sketch parameter k
    * @param m The minimum level size
    * @param numLevelsIn provisional number of number of levels = max(this.numLevels, other.numLevels)
-   * @param inBuf work buffer of size = this.getNumRetained() + other.getNumRetainedAboveLevelZero().
+   * @param inputBuffer work buffer of size = this.getNumRetained() + other.getNumRetainedAboveLevelZero().
    * This contains the long[] of the other sketch
    * @param inLevels work levels array size = ubOnNumLevels(this.n + other.n) + 2
-   * @param outBuf the same array as inBuf
+   * @param outBuf the same array as inputBuffer
    * @param outLevels the same size as inLevels
    * @param isLevelZeroSorted true if this.level 0 is sorted
    * @param random instance of java.util.Random
@@ -348,7 +348,7 @@ final class KllLongsHelper {
       final int k,
       final int m,
       final int numLevelsIn,
-      final long[] inBuf,
+      final long[] inputBuffer,
       final int[] inLevels,
       final long[] outBuf,
       final int[] outLevels,
@@ -376,9 +376,9 @@ final class KllLongsHelper {
 
       if ((currentItemCount < targetItemCount) || (rawPop < KllHelper.levelCapacity(k, numLevels, curLevel, m))) {
         // copy level over as is
-        // because inBuf and outBuf could be the same, make sure we are not moving data upwards!
+        // because inputBuffer and outBuf could be the same, make sure we are not moving data upwards!
         assert (rawBeg >= outLevels[curLevel]);
-        System.arraycopy(inBuf, rawBeg, outBuf, outLevels[curLevel], rawPop);
+        System.arraycopy(inputBuffer, rawBeg, outBuf, outLevels[curLevel], rawPop);
         outLevels[curLevel + 1] = outLevels[curLevel] + rawPop;
       }
       else {
@@ -392,7 +392,7 @@ final class KllLongsHelper {
         final int halfAdjPop = adjPop / 2;
 
         if (oddPop) { // copy one guy over
-          outBuf[outLevels[curLevel]] = inBuf[rawBeg];
+          outBuf[outLevels[curLevel]] = inputBuffer[rawBeg];
           outLevels[curLevel + 1] = outLevels[curLevel] + 1;
         } else { // copy zero guys over
           outLevels[curLevel + 1] = outLevels[curLevel];
@@ -400,14 +400,14 @@ final class KllLongsHelper {
 
         // level zero might not be sorted, so we must sort it if we wish to compact it
         if ((curLevel == 0) && !isLevelZeroSorted) {
-          Arrays.sort(inBuf, adjBeg, adjBeg + adjPop);
+          Arrays.sort(inputBuffer, adjBeg, adjBeg + adjPop);
         }
 
         if (popAbove == 0) { // Level above is empty, so halve up
-          randomlyHalveUpLongs(inBuf, adjBeg, adjPop, random);
+          randomlyHalveUpLongs(inputBuffer, adjBeg, adjPop, random);
         } else { // Level above is nonempty, so halve down, then merge up
-          randomlyHalveDownLongs(inBuf, adjBeg, adjPop, random);
-          mergeSortedLongArrays(inBuf, adjBeg, halfAdjPop, inBuf, rawLim, popAbove, inBuf, adjBeg + halfAdjPop);
+          randomlyHalveDownLongs(inputBuffer, adjBeg, adjPop, random);
+          mergeSortedLongArrays(inputBuffer, adjBeg, halfAdjPop, inputBuffer, rawLim, popAbove, inputBuffer, adjBeg + halfAdjPop);
         }
 
         // track the fact that we just eliminated some data
