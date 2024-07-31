@@ -227,6 +227,11 @@ final class KllLongsHelper {
     //Update min, max items
     final long otherMin = otherLngSk.getMinItemInternal();
     final long otherMax = otherLngSk.getMaxItemInternal();
+    updateMinMaxItems(mySketch, myEmpty, myMin, myMax, otherMin, otherMax);
+    assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
+  }
+
+  private static void updateMinMaxItems(KllLongsSketch mySketch, boolean myEmpty, long myMin, long myMax, long otherMin, long otherMax) {
     if (myEmpty) {
       mySketch.setMinItem(otherMin);
       mySketch.setMaxItem(otherMax);
@@ -234,7 +239,6 @@ final class KllLongsHelper {
       mySketch.setMinItem(min(myMin, otherMin));
       mySketch.setMaxItem(max(myMax, otherMax));
     }
-    assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
   }
 
   private static void mergeSortedLongArrays( //only bufC is modified
@@ -370,15 +374,15 @@ final class KllLongsHelper {
         inLevels[curLevel + 2] = inLevels[curLevel + 1];
       }
 
-      final int rawBeg = inLevels[curLevel];
+      final int rawBegin = inLevels[curLevel];
       final int rawLim = inLevels[curLevel + 1];
-      final int rawPop = rawLim - rawBeg;
+      final int rawPop = rawLim - rawBegin;
 
       if ((currentItemCount < targetItemCount) || (rawPop < KllHelper.levelCapacity(k, numLevels, curLevel, m))) {
         // copy level over as is
         // because inputBuffer and outBuf could be the same, make sure we are not moving data upwards!
-        assert (rawBeg >= outLevels[curLevel]);
-        System.arraycopy(inputBuffer, rawBeg, outBuf, outLevels[curLevel], rawPop);
+        assert (rawBegin >= outLevels[curLevel]);
+        System.arraycopy(inputBuffer, rawBegin, outBuf, outLevels[curLevel], rawPop);
         outLevels[curLevel + 1] = outLevels[curLevel] + rawPop;
       }
       else {
@@ -387,12 +391,12 @@ final class KllLongsHelper {
 
         final int popAbove = inLevels[curLevel + 2] - rawLim;
         final boolean oddPop = isOdd(rawPop);
-        final int adjBeg = oddPop ? 1 + rawBeg : rawBeg;
+        final int adjBeg = oddPop ? 1 + rawBegin : rawBegin;
         final int adjPop = oddPop ? rawPop - 1 : rawPop;
         final int halfAdjPop = adjPop / 2;
 
         if (oddPop) { // copy one guy over
-          outBuf[outLevels[curLevel]] = inputBuffer[rawBeg];
+          outBuf[outLevels[curLevel]] = inputBuffer[rawBegin];
           outLevels[curLevel + 1] = outLevels[curLevel] + 1;
         } else { // copy zero guys over
           outLevels[curLevel + 1] = outLevels[curLevel];
@@ -403,12 +407,7 @@ final class KllLongsHelper {
           Arrays.sort(inputBuffer, adjBeg, adjBeg + adjPop);
         }
 
-        if (popAbove == 0) { // Level above is empty, so halve up
-          randomlyHalveUpLongs(inputBuffer, adjBeg, adjPop, random);
-        } else { // Level above is nonempty, so halve down, then merge up
-          randomlyHalveDownLongs(inputBuffer, adjBeg, adjPop, random);
-          mergeSortedLongArrays(inputBuffer, adjBeg, halfAdjPop, inputBuffer, rawLim, popAbove, inputBuffer, adjBeg + halfAdjPop);
-        }
+        populateRandomlyHalveDownLongs(inputBuffer, random, rawLim, popAbove, adjBeg, adjPop, halfAdjPop);
 
         // track the fact that we just eliminated some data
         currentItemCount -= halfAdjPop;
@@ -432,6 +431,15 @@ final class KllLongsHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
+  private static void populateRandomlyHalveDownLongs(long[] inputBuffer, Random random, int rawLim, int popAbove, int adjBeg, int adjPop, int halfAdjPop) {
+    if (popAbove == 0) { // Level above is empty, so halve up
+      randomlyHalveUpLongs(inputBuffer, adjBeg, adjPop, random);
+    } else { // Level above is nonempty, so halve down, then merge up
+      randomlyHalveDownLongs(inputBuffer, adjBeg, adjPop, random);
+      mergeSortedLongArrays(inputBuffer, adjBeg, halfAdjPop, inputBuffer, rawLim, popAbove, inputBuffer, adjBeg + halfAdjPop);
+    }
+  }
+
   private static void populateLongWorkArrays( //workBuf and workLevels are modified
       final long[] workBuf, final int[] workLevels, final int provisionalNumLevels,
       final int myCurNumLevels, final int[] myCurLevelsArr, final long[] myCurLongItemsArr,
@@ -441,6 +449,10 @@ final class KllLongsHelper {
 
     // Note: the level zero data from "other" was already inserted into "self".
     // This copies into workbuf.
+    handleArrayCopy(workBuf, workLevels, provisionalNumLevels, myCurNumLevels, myCurLevelsArr, myCurLongItemsArr, otherNumLevels, otherLevelsArr, otherLongItemsArr);
+  }
+
+  private static void handleArrayCopy(long[] workBuf, int[] workLevels, int provisionalNumLevels, int myCurNumLevels, int[] myCurLevelsArr, long[] myCurLongItemsArr, int otherNumLevels, int[] otherLevelsArr, long[] otherLongItemsArr) {
     final int selfPopZero = KllHelper.currentLevelSizeItems(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy(myCurLongItemsArr, myCurLevelsArr[0], workBuf, workLevels[0], selfPopZero);
     workLevels[1] = workLevels[0] + selfPopZero;
@@ -451,18 +463,22 @@ final class KllLongsHelper {
       workLevels[lvl + 1] = workLevels[lvl] + selfPop + otherPop;
       assert selfPop >= 0 && otherPop >= 0;
       if (selfPop == 0 && otherPop == 0) { continue; }
-      if (selfPop > 0 && otherPop == 0) {
-        System.arraycopy(myCurLongItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);
-      }
-      else if (selfPop == 0 && otherPop > 0) {
-        System.arraycopy(otherLongItemsArr, otherLevelsArr[lvl], workBuf, workLevels[lvl], otherPop);
-      }
-      else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedLongArrays( //only workBuf is modified
-            myCurLongItemsArr, myCurLevelsArr[lvl], selfPop,
-            otherLongItemsArr, otherLevelsArr[lvl], otherPop,
-            workBuf, workLevels[lvl]);
-      }
+      populateMergeSortedLongArrays(workBuf, workLevels, myCurLevelsArr, myCurLongItemsArr, otherLevelsArr, otherLongItemsArr, lvl, selfPop, otherPop);
+    }
+  }
+
+  private static void populateMergeSortedLongArrays(long[] workBuf, int[] workLevels, int[] myCurLevelsArr, long[] myCurLongItemsArr, int[] otherLevelsArr, long[] otherLongItemsArr, int lvl, int selfPop, int otherPop) {
+    if (selfPop > 0 && otherPop == 0) {
+      System.arraycopy(myCurLongItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);
+    }
+    else if (selfPop == 0 && otherPop > 0) {
+      System.arraycopy(otherLongItemsArr, otherLevelsArr[lvl], workBuf, workLevels[lvl], otherPop);
+    }
+    else if (selfPop > 0 && otherPop > 0) {
+      mergeSortedLongArrays( //only workBuf is modified
+              myCurLongItemsArr, myCurLevelsArr[lvl], selfPop,
+              otherLongItemsArr, otherLevelsArr[lvl], otherPop,
+              workBuf, workLevels[lvl]);
     }
   }
 
