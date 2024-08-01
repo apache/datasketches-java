@@ -35,7 +35,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  * @author Zac Blanco
  */
-final class KllLongsHelper{
+final class KllLongsHelper {
 
   /**
    * Create Items Array from given item and weight.
