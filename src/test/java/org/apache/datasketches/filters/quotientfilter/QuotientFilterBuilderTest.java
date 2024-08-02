@@ -20,8 +20,6 @@
 package org.apache.datasketches.filters.quotientfilter;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.filters.quotientfilter.QuotientFilterBuilder;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
@@ -43,8 +41,6 @@ public class QuotientFilterBuilderTest {
 
     @Test
     public static void testSuggestLgNumSlots(){
-        QuotientFilterBuilder qfb = new QuotientFilterBuilder();
-
         // invalid number of items
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(0,0.9f));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestLgNumSlots(-1, 0.9f));
@@ -58,17 +54,15 @@ public class QuotientFilterBuilderTest {
 
         for (int i = 0; i < numItems.length; i++) {
             long num = numItems[i];
-            byte result = qfb.suggestLgNumSlots(num, 0.9f);
+            byte result = QuotientFilterBuilder.suggestLgNumSlots(num, 0.9f);
             assertEquals(result, results[i]);
-            result = qfb.suggestLgNumSlots(num);
+            result = QuotientFilterBuilder.suggestLgNumSlots(num);
             assertEquals(result, results[i]);
         }
     }
 
     @Test
     public static void testSuggestMaxNumItems(){
-        QuotientFilterBuilder qfb = new QuotientFilterBuilder();
-
         // invalid number of slots
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestMaxNumItemsFromNumSlots((byte)-127));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestMaxNumItemsFromNumSlots((byte)0));
@@ -83,8 +77,8 @@ public class QuotientFilterBuilderTest {
         float eighty_pc_appx = 820f / 1024f; // ≈ 0.8
 
         for (int i = 0; i < lgNumSlots.length; i++) {
-            long result_ninety = qfb.suggestMaxNumItemsFromNumSlots(lgNumSlots[i], ninety_pc_appx);
-            long result_eighty = qfb.suggestMaxNumItemsFromNumSlots(lgNumSlots[i], eighty_pc_appx);
+            long result_ninety = QuotientFilterBuilder.suggestMaxNumItemsFromNumSlots(lgNumSlots[i], ninety_pc_appx);
+            long result_eighty = QuotientFilterBuilder.suggestMaxNumItemsFromNumSlots(lgNumSlots[i], eighty_pc_appx);
             assertEquals(result_ninety, results_ninety_pc[i]);
             assertEquals(result_eighty, results_eighty_pc[i]);
         }
@@ -92,15 +86,12 @@ public class QuotientFilterBuilderTest {
 
     @Test
     public static void testSuggestParamsFromMaxDistinctsFPP(){
-
         // invalid number of slots
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestParamsFromMaxDistinctsFPP(5000000000L, 0.0001));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestParamsFromMaxDistinctsFPP(100000000, 0.));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestParamsFromMaxDistinctsFPP(100000000, 1.5));
         assertThrows(SketchesArgumentException.class, () -> QuotientFilterBuilder.suggestParamsFromMaxDistinctsFPP(5000000000L, -1.));
 
-
-        QuotientFilterBuilder qfb = new QuotientFilterBuilder();
         byte lgNumSlots ;
         byte fingerprintLength ;
         long[] numItems = {1L, 900L, 500_000_000L} ;
@@ -112,21 +103,18 @@ public class QuotientFilterBuilderTest {
         byte[] expected_fingerprintLength = {34, 7, 24} ;
 
         for (int i = 0; i < numItems.length; i++) {
-            QuotientFilterBuilder.QFPair pair = qfb.suggestParamsFromMaxDistinctsFPP(numItems[i], 0.9f, fpp[i]);
+            QuotientFilterBuilder.QFPair pair = QuotientFilterBuilder.suggestParamsFromMaxDistinctsFPP(numItems[i], 0.9f, fpp[i]);
             lgNumSlots = pair.lgNumSlots;
             fingerprintLength = pair.fingerprintLength;
             assertEquals(expected_lgNumSlotsNinety[i], lgNumSlots);
             assertEquals(expected_fingerprintLength[i], fingerprintLength);
 
             // 80% load
-            pair = qfb.suggestParamsFromMaxDistinctsFPP(numItems[i], fpp[i]);
+            pair = QuotientFilterBuilder.suggestParamsFromMaxDistinctsFPP(numItems[i], fpp[i]);
             lgNumSlots = pair.lgNumSlots;
             fingerprintLength = pair.fingerprintLength;
             assertEquals(expected_lgNumSlotsEighty[i], lgNumSlots);
             assertEquals(expected_fingerprintLength[i], fingerprintLength);
         }
     }
-
-
-
 }

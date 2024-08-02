@@ -19,7 +19,8 @@
 
 package org.apache.datasketches.filters.quotientfilter;
 
-import java.util.ArrayList;
+import static org.apache.datasketches.common.Util.LS;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -41,12 +42,6 @@ public class QuotientFilter extends Filter {
   int numExpansions_;
   BitArray bitArray_;
 
-  // statistics, computed in the compute_statistics method. method should be called before these are used
-  long numRuns_;
-  long numClusters_;
-  public double avgRunLength_;
-  public double avgClusterLength_;
-
   public QuotientFilter(final int lgQ, final int numFingerprintBits) {
     this(lgQ, numFingerprintBits, DEFAULT_LOAD_FACTOR);
   }
@@ -57,7 +52,6 @@ public class QuotientFilter extends Filter {
     loadFactor_ = loadFactor;
     bitArray_ = makeFilter(getNumSlots(), getNumBitsPerEntry());
     numExpansions_ = 0;
-    //hash_type = XxHash.hashLong ; //HashType.xxh;
   }
 
   public boolean rejuvenate(final long key) {
@@ -85,7 +79,9 @@ public class QuotientFilter extends Filter {
   }
 
   void expand() {
-    if (getFingerprintLength() < 2) throw new SketchesException("for expansion value must have at least 2 bits");
+    if (getFingerprintLength() < 2) {
+      throw new SketchesException("for expansion value must have at least 2 bits");
+    }
     final QuotientFilter other = new QuotientFilter(lgQ_ + 1, numFingerprintBits_ - 1, loadFactor_);
 
     long i = 0;
@@ -109,40 +105,6 @@ public class QuotientFilter extends Filter {
     numFingerprintBits_--;
     bitArray_ = other.bitArray_;
     numExpansions_++;
-  }
-
-  // measures the number of bits per entry for the filter
-  public double measureNumBitsPerEntry() {
-    return measureNumBitsPerEntry(this, new ArrayList<QuotientFilter>());
-  }
-
-  // measures the number of bits per entry for the filter
-  // it takes an array of filters as a parameter since some filter implementations here consist of multiple filter objects
-  protected static double measureNumBitsPerEntry(final QuotientFilter current, final ArrayList<QuotientFilter> otherFilters) {
-    //System.out.println("--------------------------");
-    //current.print_filter_summary();
-    //System.out.println();
-    double numEntries = current.getNumEntries();
-    for (QuotientFilter q : otherFilters) {
-      //q.print_filter_summary();
-      //System.out.println();
-      numEntries += q.getNumEntries();
-    }
-    long numBits = current.getNumBitsPerEntry() * current.getNumSlots();
-    for (final QuotientFilter q : otherFilters) {
-      numBits += q.getNumBitsPerEntry() * q.getNumSlots();
-    }
-    //System.out.println("total entries: \t\t" + num_entries);
-    //System.out.println("total bits: \t\t" + num_bits);
-    final double bits_per_entry = numBits / numEntries;
-    //System.out.println("total bits/entry: \t" + bits_per_entry);
-    //System.out.println();
-    return bits_per_entry;
-  }
-
-  // returns the fraction of occupied slots in the filter
-  public double getUtilization() {
-    return numEntries_ / (double) getNumSlots();
   }
 
   public int getLgQ() {
@@ -228,23 +190,21 @@ public class QuotientFilter extends Filter {
     setFingerprint(index, fingerprint);
   }
 
-  // summarize some statistical measures about the filter
-  public void printFilterSummary() {
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
     final long slots = getNumSlots();
     final long numBits = slots * getNumBitsPerEntry();
-    System.out.println("lgQ:         " + lgQ_);
-    System.out.println("FP length:   " + getFingerprintLength());
-    System.out.println("load factor: " + getLoadFactor());
-    System.out.println("bits:        " + numBits);
-    System.out.println("bits/entry:  " + numBits / (double)numEntries_);
-    System.out.println("entries:     " + numEntries_);
-    System.out.println("expansions:  " + numExpansions_);
-    System.out.println("load:        " + numEntries_ / (double)(slots));
-    computeStatistics();
-    //System.out.println("num runs: \t\t" + num_runs);
-    //System.out.println("avg run length: \t" + avg_run_length);
-    //System.out.println("num clusters: \t\t" + num_clusters);
-    //System.out.println("avg cluster length: \t" + avg_cluster_length);
+    sb.append("***Quotient Filter Summary***").append(LS);
+    sb.append("lgQ:         " + lgQ_).append(LS);
+    sb.append("FP length:   " + getFingerprintLength()).append(LS);
+    sb.append("load factor: " + getLoadFactor()).append(LS);
+    sb.append("bits:        " + numBits).append(LS);
+    sb.append("bits/entry:  " + numBits / (double)numEntries_).append(LS);
+    sb.append("entries:     " + numEntries_).append(LS);
+    sb.append("expansions:  " + numExpansions_).append(LS);
+    sb.append("load:        " + numEntries_ / (double)(slots)).append(LS);
+    sb.append("*********End Summary*********").append(LS);
+    return sb.toString();
   }
 
   /*
@@ -442,16 +402,16 @@ public class QuotientFilter extends Filter {
     numEntries_++;
   }
 
-  boolean delete(final long canonicalSlot, long runStartIndex, long matchingFingerprintIndex) {
+  boolean delete(final long canonicalSlot, final long runStartIndex, final long matchingFingerprintIndex) {
     long runEnd = findRunEnd(matchingFingerprintIndex);
 
     // the run has only one entry, we need to disable its is_occupied flag
     // we just remember we need to do this here, and we do it later to not interfere with counts
-    boolean turnOffOccupied = runStartIndex == runEnd;
+    final boolean turnOffOccupied = runStartIndex == runEnd;
 
     // First thing to do is move everything else in the run back by one slot
     for (long i = matchingFingerprintIndex; i != runEnd; i = (i + 1) & getSlotMask()) {
-      long f = getFingerprint((i + 1) & getSlotMask());
+      final long f = getFingerprint((i + 1) & getSlotMask());
       setFingerprint(i, f);
     }
 
@@ -459,7 +419,7 @@ public class QuotientFilter extends Filter {
     // we can do this by counting the number of continuation flags set to true
     // and the number of occupied flags set to false from the start of the cluster to the given cell
     // and then subtracting: num_shifted_count - num_non_occupied = number of slots by which an entry is shifted
-    long clusterStart = findClusterStart(canonicalSlot);
+    final long clusterStart = findClusterStart(canonicalSlot);
     long numShiftedCount = 0;
     long numNonOccupied = 0;
     for (long i = clusterStart; i != ((runEnd + 1) & getSlotMask()); i = (i + 1) & getSlotMask()) {
@@ -496,7 +456,8 @@ public class QuotientFilter extends Filter {
       runEnd = findRunEnd(nextRunStart);
 
       // before we start processing the next run, we check whether the previous run we shifted is now back to its canonical slot
-      // The condition num_shifted_count - num_non_occupied == 1 ensures that the run was shifted by only 1 slot, meaning it is now back in its proper place
+      // The condition num_shifted_count - num_non_occupied == 1 ensures that the run was shifted by only 1 slot,
+      // meaning it is now back in its proper place
       if (isOccupied((nextRunStart - 1) & getSlotMask()) && numShiftedCount - numNonOccupied == 1) {
         setShifted((nextRunStart - 1) & getSlotMask(), false);
       } else {
@@ -504,7 +465,7 @@ public class QuotientFilter extends Filter {
       }
 
       for (long i = nextRunStart; i != ((runEnd + 1) & getSlotMask()); i = (i + 1) & getSlotMask()) {
-        long f = getFingerprint(i);
+        final long f = getFingerprint(i);
         setFingerprint((i - 1) & getSlotMask(), f);
         if (isContinuation(i)) {
           setContinuation((i - 1) & getSlotMask(), true);
@@ -524,12 +485,12 @@ public class QuotientFilter extends Filter {
 
   boolean delete(final long fingerprint, final long canonicalSlot) {
     // if the run doesn't exist, the key can't have possibly been inserted
-    boolean doesRunExist = isOccupied(canonicalSlot);
+    final boolean doesRunExist = isOccupied(canonicalSlot);
     if (!doesRunExist) {
       return false;
     }
-    long runStartIndex = findRunStart(canonicalSlot);
-    long matchingFingerprintIndex = decideWhichFingerprintToDelete(runStartIndex, fingerprint);
+    final long runStartIndex = findRunStart(canonicalSlot);
+    final long matchingFingerprintIndex = decideWhichFingerprintToDelete(runStartIndex, fingerprint);
     if (matchingFingerprintIndex == -1) {
       // we didn't find a matching fingerprint
       return false;
@@ -565,8 +526,8 @@ public class QuotientFilter extends Filter {
 
   protected boolean _delete(final long largeHash) {
     final long slotIndex = getSlotFromHash(largeHash);
-    long fingerprint = getFingerprintFromHash(largeHash);
-    boolean success = delete(fingerprint, slotIndex);
+    final long fingerprint = getFingerprintFromHash(largeHash);
+    final boolean success = delete(fingerprint, slotIndex);
     if (success) {
       numEntries_--;
     }
@@ -581,59 +542,6 @@ public class QuotientFilter extends Filter {
 
   public boolean getBitAtOffset(final int offset) {
     return bitArray_.getBit(offset);
-  }
-
-  public void computeStatistics() {
-    numRuns_ = 0;
-    numClusters_ = 0;
-    double sumRunLengths = 0;
-    double sumClusterLengths = 0;
-
-    int currentRunLength = 0;
-    int currentCluster_length = 0;
-
-    final long numSlots = getNumSlots();
-    for (long i = 0; i < numSlots; i++) {
-      final boolean occupied = isOccupied(i);
-      final boolean continuation = isContinuation(i);
-      final boolean shifted = isShifted(i);
-
-      if (!occupied && !continuation && !shifted) { // empty slot
-        sumClusterLengths += currentCluster_length;
-        currentCluster_length = 0;
-        sumRunLengths += currentRunLength;
-        currentRunLength = 0;
-      } else if ( !occupied && !continuation && shifted ) { // start of new run
-        numRuns_++;
-        sumRunLengths += currentRunLength;
-        currentRunLength = 1;
-        currentCluster_length++;
-      } else if ( !occupied && continuation && !shifted ) {
-        // not used
-      } else if ( !occupied && continuation && shifted ) { // continuation of run
-        currentCluster_length++;
-        currentRunLength++;
-      } else if ( occupied && !continuation && !shifted ) { // start of new cluster & run
-        numRuns_++;
-        numClusters_++;
-        sumClusterLengths += currentCluster_length;
-        sumRunLengths += currentRunLength;
-        currentCluster_length = 1;
-        currentRunLength = 1;
-      } else if (occupied && !continuation && shifted ) { // start of new run
-        numRuns_++;
-        sumRunLengths += currentRunLength;
-        currentRunLength = 1;
-        currentCluster_length++;
-      } else if (occupied && continuation && !shifted ) {
-        // not used
-      } else if (occupied && continuation && shifted ) { // continuation of run
-        currentCluster_length++;
-        currentRunLength++;
-      }
-    }
-    avgRunLength_ = sumRunLengths / numRuns_;
-    avgClusterLength_ = sumClusterLengths / numClusters_;
   }
 
   public void merge(final QuotientFilter other) {
