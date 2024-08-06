@@ -132,13 +132,12 @@ under the License.
   </properties>
 
   <dependencies>
-    <!--
     <dependency>
       <groupId>org.apache.datasketches</groupId>
       <artifactId>datasketches-memory</artifactId>
       <version>${datasketches-memory.version}</version>
     </dependency>
-    -->
+
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>
