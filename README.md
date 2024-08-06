@@ -18,8 +18,6 @@
 -->
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java)
-[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/apache/datasketches-java.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/apache/datasketches-java/context:java)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/apache/datasketches-java.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/apache/datasketches-java/alerts/)
 [![Coverage Status](https://coveralls.io/repos/github/apache/datasketches-java/badge.svg)](https://coveralls.io/github/apache/datasketches-java)
 
 =================
@@ -48,21 +46,14 @@ However, if your application also directly relies on the APIs of the *datasketch
 you may need additional JVM arguments.
 Please refer to the [datasketches-memory README](https://github.com/apache/datasketches-memory/blob/master/README.md) for details.
 
-If your application uses Maven, you can also use the *pom.xml* of this component as an example of how to automatically
-configure the JVM arguments for compilation and testing based on the version of the JDK.
+If your application uses Maven, you can also use the *pom.xml* of this component as an example of how to automatically configure the JVM arguments for compilation and testing based on the version of the JDK.
 
 ### Recommended Build Tool
 This DataSketches component is structured as a Maven project and Maven is the recommended Build Tool.
 
-There are two types of tests: normal unit tests and tests run by the strict profile.  
-
 To run normal unit tests:
 
     $ mvn clean test
-
-To run the strict profile tests (only supported in Java 8):
-
-    $ mvn clean test -P strict
 
 To install jars built from the downloaded source:
 

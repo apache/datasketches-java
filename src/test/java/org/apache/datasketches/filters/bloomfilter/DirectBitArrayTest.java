@@ -25,6 +25,7 @@ import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.MemoryBoundsException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -139,7 +140,7 @@ public class DirectBitArrayTest {
   @Test
   public void countWritableWrappedBitsWhenDirty() {
     // like basicOperationTest but with setBit which does
-    // not neecssarily track numBitsSet_
+    // not necessarily track numBitsSet_
     final HeapBitArray hba = new HeapBitArray(128);
     assertFalse(hba.getAndSetBit(1));
     assertFalse(hba.getAndSetBit(2));
@@ -172,12 +173,12 @@ public class DirectBitArrayTest {
       dba.getAndSetBit(i);
     }
 
-    assertThrows(AssertionError.class, () -> dba.getBit(-10));
-    assertThrows(AssertionError.class, () -> dba.getBit(2048));
-    assertThrows(AssertionError.class, () -> dba.setBit(-20));
-    assertThrows(AssertionError.class, () -> dba.setBit(4096));
-    assertThrows(AssertionError.class, () -> dba.getAndSetBit(-30));
-    assertThrows(AssertionError.class, () -> dba.getAndSetBit(8192));
+    assertThrows(MemoryBoundsException.class, () -> dba.getBit(-10));
+    assertThrows(MemoryBoundsException.class, () -> dba.getBit(2048));
+    assertThrows(MemoryBoundsException.class, () -> dba.setBit(-20));
+    assertThrows(MemoryBoundsException.class, () -> dba.setBit(4096));
+    assertThrows(MemoryBoundsException.class, () -> dba.getAndSetBit(-30));
+    assertThrows(MemoryBoundsException.class, () -> dba.getAndSetBit(8192));
   }
 
   @Test

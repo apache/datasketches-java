@@ -245,7 +245,8 @@ public final class Util {
 
   /**
    * Prepend or postpend the given string with the given character to fill the given field length.
-   * If the given string is equal to or greater than the given field length, it will be returned without modification.
+   * If the given string is equal to or greater than the given field length, it will be returned
+   * without modification.
    * @param s the given string
    * @param fieldLength the desired field length
    * @param padChar the desired pad character
