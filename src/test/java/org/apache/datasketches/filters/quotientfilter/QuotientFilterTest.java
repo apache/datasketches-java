@@ -274,7 +274,7 @@ public class QuotientFilterTest {
       final QuotientFilter qf = new QuotientFilter(5, 9);
       final int n = 30;
       for (int i = 0; i < n; i++) { qf.insert(i); }
-      qf.printFilterSummary();
+      System.out.println(qf.toString());
       assertEquals(qf.getNumExpansions(), 1);
       assertEquals(qf.getNumEntries(), n);
       
