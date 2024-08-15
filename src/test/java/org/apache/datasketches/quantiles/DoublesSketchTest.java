@@ -162,13 +162,16 @@ public class DoublesSketchTest {
         break;
       }
     }
+    assertFalse(wmem.isAlive());
   }
 
   @Test
   public void checkEmptyDirect() {
     WritableMemory wmem = WritableMemory.allocateDirect(1000);
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
-    sketch.toByteArray(); //exercises a specific path
+    byte[] bytes = sketch.toByteArray(); //exercises a specific path
+    byte[] result = {1,3,8,4,-128,0,0,0};
+    assertEquals(bytes, result);
     wmem.close();
   }
 

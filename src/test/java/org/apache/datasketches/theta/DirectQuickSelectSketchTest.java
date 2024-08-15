@@ -74,26 +74,18 @@ public class DirectQuickSelectSketchTest {
     }
   }
 
-  @Test//(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int k = 8;
-    try (WritableMemory mem = makeNativeMemory(k)) {
-      UpdateSketch.builder().setNominalEntries(k).build(mem);
-    } catch (final Exception e) {
-      if (e instanceof SketchesArgumentException) {}
-      else { throw new RuntimeException(e); }
-    }
+    WritableMemory mem = makeNativeMemory(k);
+    UpdateSketch.builder().setNominalEntries(k).build(mem);
   }
 
-  @Test//(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorMemTooSmall() {
     int k = 16;
-    try (WritableMemory mem = makeNativeMemory(k/2)) {
-      UpdateSketch.builder().setNominalEntries(k).build(mem);
-    } catch (final Exception e) {
-      if (e instanceof SketchesArgumentException) {}
-      else { throw new RuntimeException(e); }
-    }
+    WritableMemory mem = makeNativeMemory(k/2);
+    UpdateSketch.builder().setNominalEntries(k).build(mem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

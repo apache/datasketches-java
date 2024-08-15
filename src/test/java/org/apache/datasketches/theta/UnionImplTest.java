@@ -187,14 +187,14 @@ public class UnionImplTest {
   }
 
   @Test
-  public void checkMoveAndResize() {
+  public void checkMoveAndResizeOffHeap() {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2);
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2); //too small, forces new allocation on heap
     WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
-    assertTrue(sketch.isSameResource(wmem));
+    assertTrue(sketch.isSameResource(wmem)); //also testing the isSameResource function
 
     final Union union = SetOperation.builder().buildUnion(wmem2);
     assertTrue(union.isSameResource(wmem2));
@@ -205,6 +205,7 @@ public class UnionImplTest {
     final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
     assertFalse(union2.isSameResource(wmem2));  //obviously not
     wmem.close();
+    //note wmem2 has already been closed by the DefaultMemoryRequestServer
   }
 
   @Test
