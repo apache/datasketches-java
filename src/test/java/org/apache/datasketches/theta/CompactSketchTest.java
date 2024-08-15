@@ -29,7 +29,6 @@ import static org.testng.Assert.assertTrue;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -78,8 +77,7 @@ public class CompactSketchTest {
     //Prepare Memory for direct
     int bytes = usk.getCompactBytes(); //for Compact
 
-    try (WritableHandle wdh = WritableMemory.allocateDirect(bytes)) {
-      WritableMemory directMem = wdh.getWritable();
+    try (WritableMemory directMem = WritableMemory.allocateDirect(bytes)) {
 
       /**Via CompactSketch.compact**/
       refSk = usk.compact(ordered, directMem);
@@ -90,8 +88,6 @@ public class CompactSketchTest {
       /**Via CompactSketch.compact**/
       testSk = (CompactSketch)Sketch.wrap(directMem);
       checkByRange(refSk, testSk, u, ordered);
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
     }
   }
 

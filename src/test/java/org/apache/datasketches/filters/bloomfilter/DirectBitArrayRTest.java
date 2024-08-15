@@ -27,6 +27,7 @@ import static org.testng.Assert.assertTrue;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.MemoryBoundsException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -142,8 +143,8 @@ public class DirectBitArrayRTest {
 
     final Memory mem = bitArrayToMemory(hba);
     DirectBitArrayR dba = DirectBitArrayR.wrap(mem, hba.isEmpty());
-    assertThrows(AssertionError.class, () -> dba.getBit(-10));
-    assertThrows(AssertionError.class, () -> dba.getBit(2048));
+    assertThrows(MemoryBoundsException.class, () -> dba.getBit(-10));
+    assertThrows(MemoryBoundsException.class, () -> dba.getBit(2048));
   }
 
   @Test

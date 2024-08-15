@@ -40,7 +40,6 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 public class PreambleUtilTest {
@@ -48,8 +47,7 @@ public class PreambleUtilTest {
   @Test
   public void checkInsertsAndExtracts() {
     final int bytes = 32;
-    try (WritableHandle offHeapMemHandler = WritableMemory.allocateDirect(bytes)) {
-      final WritableMemory offHeapMem = offHeapMemHandler.getWritable();
+    try (WritableMemory offHeapMem = WritableMemory.allocateDirect(bytes)) {
       final WritableMemory onHeapMem = WritableMemory.writableWrap(new byte[bytes]);
 
       onHeapMem.clear();
@@ -156,8 +154,6 @@ public class PreambleUtilTest {
       assertEquals(offHD, vD);
       onHeapMem.clear();
       offHeapMem.clear();
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
     }
   }
 

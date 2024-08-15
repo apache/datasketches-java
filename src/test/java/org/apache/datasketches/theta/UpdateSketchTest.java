@@ -213,8 +213,8 @@ public class UpdateSketchTest {
     UpdateSketch sk = Sketches.updateSketchBuilder().setLogNominalEntries(lgK).build();
     int n = 1 << (lgK + 1);
     for (int i = 2; i < n; i++) { sk.update(i); }
-    int cbytes = sk.getCompactBytes();
-    byte[] byteArr = sk.toByteArray();
+    int cbytes = sk.getCompactBytes(); //560
+    byte[] byteArr = sk.toByteArray(); //1048
     skwmem = WritableMemory.writableWrap(byteArr);
     cskwmem1 = WritableMemory.allocate(cbytes);
     cskwmem2 = WritableMemory.allocate(cbytes);
@@ -222,8 +222,8 @@ public class UpdateSketchTest {
     csk1 = sk.compact(true, cskwmem1);
     csk2 = CompactOperations.memoryToCompact(skwmem, true, cskwmem2);
     csk3 = CompactOperations.memoryToCompact(cskwmem1, true, cskwmem3);
-    assertTrue(cskwmem1.equals(cskwmem2));
-    assertTrue(cskwmem1.equals(cskwmem3));
+    assertTrue(cskwmem1.equalTo(cskwmem2)); //both 560
+    assertTrue(cskwmem1.equalTo(cskwmem3));
   }
 
   @Test

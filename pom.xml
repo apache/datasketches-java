@@ -83,9 +83,7 @@ under the License.
   </developers>
 
   <properties>
-    <!-- UNIQUE FOR THIS JAVA COMPONENT -->
-    <datasketches-memory.version>2.2.1</datasketches-memory.version>
-    <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
+    <datasketches-memory.version>3.0.0</datasketches-memory.version>
 
     <!-- Test -->
     <testng.version>7.5.1</testng.version>
@@ -95,8 +93,8 @@ under the License.
     <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
 
     <!-- System-wide properties -->
-    <maven.version>3.6.3</maven.version> <!-- may override parent, used in enforcer plugin -->
-    <java.version>1.8</java.version>
+    <maven.version>3.6.3</maven.version>
+    <java.version>8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
@@ -106,41 +104,40 @@ under the License.
     <project.reporting.outputEncoding>${charset.encoding}</project.reporting.outputEncoding>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss'Z'</maven.build.timestamp.format>
 
-    <!-- org.mojohaus plugins: used for checking & updating dependency versions -->
-    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-
-    <!--  Maven Plugins -->
-    <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version> <!-- may override parent -->
-    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version> <!-- may override parent -->
-    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version> <!-- may override parent -->
-    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version> <!-- may override parent -->
-    <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version> <!-- may override parent -->
-    <maven-jar-plugin.version>3.4.0</maven-jar-plugin.version> <!-- may override parent -->
-    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version> <!-- may override parent -->
-    <maven-release-plugin.version>3.0.1</maven-release-plugin.version> <!-- may override parent -->
-    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version> <!-- may override parent -->
-    <maven-source-plugin.version>3.3.1</maven-source-plugin.version> <!-- may override parent -->
-    <maven-surefire-failsafe-plugins.version>3.2.5</maven-surefire-failsafe-plugins.version><!-- for surefire, failsafe and surefire-report, may override parent-->
-    <!-- Apache Plugins -->
-    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version> <!-- may override parent -->
-    <!-- org.jacoco Maven Plugins -->
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    <!-- org.eluder Maven Plugins -->
+    <!--  org.apache.maven plugins -->
+    <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-deploy-plugin.version>3.1.2</maven-deploy-plugin.version>
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+    <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version>
+    <maven-jar-plugin.version>3.4.1</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+    <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
+    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
+    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+    <maven-surefire-failsafe-plugins.version>3.2.5</maven-surefire-failsafe-plugins.version> <!-- for surefire, failsafe and surefire-report-->
+    <!-- com.github plugins -->
+    <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>    
+    <!-- org.apache.creadur plugins -->
+    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version> 
+    <!-- org.eluder maven plugins -->
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
+    <!-- org.jacoco maven plugins -->
+    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+    <!-- org.mojohaus plugins -->
+    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
     <!-- other -->
-    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version> <!-- not used -->
-    <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
+    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
   </properties>
 
   <dependencies>
-    <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <dependency>
       <groupId>org.apache.datasketches</groupId>
       <artifactId>datasketches-memory</artifactId>
       <version>${datasketches-memory.version}</version>
     </dependency>
-    <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
+
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>

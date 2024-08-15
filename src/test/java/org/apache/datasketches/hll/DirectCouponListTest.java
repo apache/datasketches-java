@@ -28,7 +28,6 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -69,32 +68,25 @@ public class DirectCouponListTest {
 
     //println("DIRECT");
     byte[] barr1;
-    WritableMemory wmem = null;
-    try (WritableHandle hand = WritableMemory.allocateDirect(bytes)) {
-      wmem = hand.getWritable();
-      //byte[] byteArr = new byte[bytes];
-      //WritableMemory wmem = WritableMemory.wrap(byteArr);
-      hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
-      assertTrue(hllSketch.isEmpty());
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes);
+    hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
+    assertTrue(hllSketch.isEmpty());
 
-      for (int i = 0; i < n; i++) {
-        hllSketch.update(i);
-      }
-      //println(hllSketch.toString(true, true, false, false));
-      assertFalse(hllSketch.isEmpty());
-      assertEquals(hllSketch.getCurMode(), tgtMode);
-      assertTrue(hllSketch.isMemory());
-      assertTrue(hllSketch.isOffHeap());
-      assertTrue(hllSketch.isSameResource(wmem));
-
-      //convert direct sketch to byte[]
-      barr1 = (compact) ? hllSketch.toCompactByteArray() : hllSketch.toUpdatableByteArray();
-      //println(PreambleUtil.toString(barr1));
-      hllSketch.reset();
-      assertTrue(hllSketch.isEmpty());
-    } catch (final Exception e) {
-      throw new RuntimeException(e);
+    for (int i = 0; i < n; i++) {
+      hllSketch.update(i);
     }
+    //println(hllSketch.toString(true, true, false, false));
+    assertFalse(hllSketch.isEmpty());
+    assertEquals(hllSketch.getCurMode(), tgtMode);
+    assertTrue(hllSketch.isMemory());
+    assertTrue(hllSketch.isOffHeap());
+    assertTrue(hllSketch.isSameResource(wmem));
+
+    //convert direct sketch to byte[]
+    barr1 = (compact) ? hllSketch.toCompactByteArray() : hllSketch.toUpdatableByteArray();
+    //println(PreambleUtil.toString(barr1));
+    hllSketch.reset();
+    assertTrue(hllSketch.isEmpty());
 
     //println("HEAP");
     HllSketch hllSketch2 = new HllSketch(lgConfigK, tgtHllType);
@@ -111,6 +103,7 @@ public class DirectCouponListTest {
     assertEquals(barr1.length, barr2.length, barr1.length + ", " + barr2.length);
     //printDiffs(barr1, barr2);
     assertEquals(barr1, barr2);
+    wmem.close();
   }
 
   @SuppressWarnings("unused") //only used when above printlns are enabled.
