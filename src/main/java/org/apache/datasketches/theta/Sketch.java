@@ -602,8 +602,8 @@ public abstract class Sketch {
   abstract int getCurrentPreambleLongs();
 
   /**
-   * Returns the Memory object if it exists, otherwise null.
-   * @return the Memory object if it exists, otherwise null.
+   * Returns the backing Memory object if it exists, otherwise null.
+   * @return the backing Memory object if it exists, otherwise null.
    */
   abstract Memory getMemory();
 

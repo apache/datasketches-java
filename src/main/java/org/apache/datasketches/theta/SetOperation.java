@@ -245,7 +245,7 @@ public abstract class SetOperation {
    * <p>Note: Only certain set operators during stateful operations can be serialized.
    * Only when they are stored into Memory will this be relevant.</p>
    *
-   * @param that A different non-null object
+   * @param that A different non-null and alive object
    * @return true if the backing resource of <i>this</i> is the same as the backing resource
    * of <i>that</i>.
    */

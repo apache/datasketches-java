@@ -63,8 +63,8 @@ interface ConcurrentSharedThetaSketch {
   void endPropagation(AtomicBoolean localPropagationInProgress, boolean isEager);
 
   /**
-   * Returns the value of the volatile theta manged by the shared sketch
-   * @return the value of the volatile theta manged by the shared sketch
+   * Returns the value of the volatile theta managed by the shared sketch
+   * @return the value of the volatile theta managed by the shared sketch
    */
   long getVolatileTheta();
 
@@ -124,7 +124,7 @@ interface ConcurrentSharedThetaSketch {
   //
   //For the external user all of the below methods can be obtained by casting the shared
   //sketch to UpdateSketch.  However, these methods here also act as an alias so that an
-  //attempt to access these methods from the local buffer will be divered to the shared
+  //attempt to access these methods from the local buffer will be diverted to the shared
   //sketch.
 
   //From Sketch
