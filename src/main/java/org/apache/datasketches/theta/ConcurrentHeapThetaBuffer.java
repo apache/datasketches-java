@@ -94,7 +94,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @param hash to be propagated
    */
   private boolean propagateToSharedSketch(final long hash) {
-    //noinspection StatementWithEmptyBody
+    //no inspection StatementWithEmptyBody
     while (localPropagationInProgress.get()) {
     } //busy wait until previous propagation completed
     localPropagationInProgress.set(true);
@@ -108,7 +108,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * Propagates the content of the buffer as a sketch to the shared sketch
    */
   private void propagateToSharedSketch() {
-    //noinspection StatementWithEmptyBody
+    //no inspection StatementWithEmptyBody
     while (localPropagationInProgress.get()) {
     } //busy wait until previous propagation completed
 
