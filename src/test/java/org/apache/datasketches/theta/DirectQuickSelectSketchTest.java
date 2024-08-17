@@ -77,15 +77,17 @@ public class DirectQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int k = 8;
-    WritableMemory mem = makeNativeMemory(k);
-    UpdateSketch.builder().setNominalEntries(k).build(mem);
+    try (WritableMemory mem = makeNativeMemory(k)) {
+      UpdateSketch.builder().setNominalEntries(k).build(mem);
+    }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorMemTooSmall() {
     int k = 16;
-    WritableMemory mem = makeNativeMemory(k/2);
-    UpdateSketch.builder().setNominalEntries(k).build(mem);
+    try (WritableMemory mem = makeNativeMemory(k/2)) {
+      UpdateSketch.builder().setNominalEntries(k).build(mem);
+    }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -589,7 +591,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2*k;
     int memCapacity = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
-    try(WritableMemory mem = WritableMemory.allocateDirect(memCapacity)) {
+    try(WritableMemory mem = WritableMemory.allocateDirect(memCapacity)) { //will not request more memory
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(mem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
       assertTrue(usk.isEmpty());
@@ -599,6 +601,10 @@ public class DirectQuickSelectSketchTest {
       println(""+est);
       assertEquals(usk.getEstimate(), u, u*.05);
       assertTrue(sk1.getRetainedEntries(false) > k);
+      Memory mem2 = usk.getMemory();
+      assertTrue(mem2.isAlive());
+      assertTrue(mem2.isDirect()); //still off heap.
+      assertTrue(mem2.isSameResource(mem));
     }
   }
 
@@ -774,12 +780,14 @@ public class DirectQuickSelectSketchTest {
     int k = 1 << 12;
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    WritableMemory wmem = WritableMemory.allocateDirect(bytes/2); //will request
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes/2); //will request more memory
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem));
     for (int i = 0; i < u; i++) { sketch.update(i); }
-    assertTrue(sketch.getMemory().isAlive());
-    assertFalse(wmem.isAlive());
+    Memory mem = sketch.getMemory();
+    assertTrue(mem.isAlive());
+    assertFalse(mem.isDirect()); //now on heap.
+    assertFalse(wmem.isAlive()); //wmem closed by MemoryRequestServer
   }
 
   @Test
@@ -787,7 +795,7 @@ public class DirectQuickSelectSketchTest {
     int k = 1 << 12;
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    WritableMemory wmem = WritableMemory.allocateDirect(bytes/2); //will request
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes/2); //will request more memory
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     for (int i = 0; i < u; i++) { sketch.update(i); }
     double est1 = sketch.getEstimate();
@@ -796,6 +804,10 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch roSketch = (UpdateSketch) Sketches.wrapSketch(mem);
     double est2 = roSketch.getEstimate();
     assertEquals(est2, est1);
+    Memory mem2 = sketch.getMemory();
+    assertTrue(mem2.isAlive());
+    assertFalse(mem2.isDirect()); //now on heap
+    assertFalse(wmem.isAlive());  //wmem closed by MemoryRequestServer
     try {
       roSketch.rebuild();
       fail();

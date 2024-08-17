@@ -191,8 +191,8 @@ public class UnionImplTest {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2); //too small, forces new allocation on heap
-    WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2);
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2); //not really used, except as a reference.
+    WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2); //too small, forces new allocation on heap
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem)); //also testing the isSameResource function
 
@@ -200,12 +200,12 @@ public class UnionImplTest {
     assertTrue(union.isSameResource(wmem2));
 
     for (int i = 0; i < u; i++) { union.update(i); }
-    assertFalse(union.isSameResource(wmem));
+    assertFalse(union.isSameResource(wmem)); //different Memories altogether
 
     final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
     assertFalse(union2.isSameResource(wmem2));  //obviously not
-    wmem.close();
-    //note wmem2 has already been closed by the DefaultMemoryRequestServer
+    wmem.close(); //empty, but we must close it anyway.
+    //note wmem2 has already been closed by the DefaultMemoryRequestServer.
   }
 
   @Test
@@ -226,13 +226,13 @@ public class UnionImplTest {
     final double est1 = sk.getEstimate();
 
     final int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
-    try (WritableMemory wmem = WritableMemory.allocateDirect(bytes)) {
+    try (WritableMemory wmem = WritableMemory.allocateDirect(bytes)) { //sufficient memory
       final CompactSketch csk = sk.compact(true, wmem); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();
       union.union(csk);
       final double est2 = union.getResult().getEstimate();
       assertEquals(est2, est1);
-    }
+    } //wmem is closed here
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
