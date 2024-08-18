@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.datasketches.common;
 
 import org.apache.datasketches.memory.Memory;
