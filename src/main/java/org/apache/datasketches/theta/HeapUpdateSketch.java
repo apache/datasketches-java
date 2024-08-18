@@ -66,16 +66,6 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return (preLongs + dataLongs) << 3;
   }
 
-  @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
-  public boolean hasMemory() {
-    return false;
-  }
-
   //UpdateSketch
 
   @Override

@@ -337,13 +337,23 @@ class IntersectionImpl extends Intersection {
   }
 
   @Override
+  public boolean hasMemory() {
+    return wmem_ != null;
+  }
+
+  @Override
   public boolean hasResult() {
-    return wmem_ != null ? wmem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
+    return hasMemory() ? wmem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
+  }
+
+  @Override
+  public boolean isDirect() {
+    return hasMemory() ? wmem_.isDirect() : false;
   }
 
   @Override
   public boolean isSameResource(final Memory that) {
-    return wmem_ != null ? wmem_.isSameResource(that) : false;
+    return hasMemory() ? wmem_.isSameResource(that) : false;
   }
 
   @Override
