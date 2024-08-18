@@ -205,7 +205,7 @@ public class UnionImplTest {
     final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
     assertFalse(union2.isSameResource(wmem2));  //obviously not
     wmem.close(); //empty, but we must close it anyway.
-    //note wmem2 has already been closed by the DefaultMemoryRequestServer.
+    assertFalse(wmem2.isAlive());//previously closed via the DefaultMemoryRequestServer.
   }
 
   @Test
