@@ -4144,6 +4144,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Hash a String and long seed.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/common/MemoryStatus.html#hasMemory()">hasMemory()</a></span> - Method in interface org.apache.datasketches.common.<a href="org/apache/datasketches/common/MemoryStatus.html" title="interface in org.apache.datasketches.common">MemoryStatus</a></dt>
+<dd>
+<div class="block">Returns true if this object's internal data is backed by a Memory object,
+ which may be on-heap or off-heap.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#hasMemory()">hasMemory()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
 <div class="block">Returns whether the filter has a backing Memory object</div>
@@ -4161,10 +4166,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/ItemsSketch.html#hasMemory()">hasMemory()</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#hasMemory()">hasMemory()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></dt>
-<dd>
-<div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketch.html#hasMemory()">hasMemory()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
 </dd>
@@ -4748,6 +4749,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Helps identify if two BloomFilters may be unioned or intersected.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/common/MemoryStatus.html#isDirect()">isDirect()</a></span> - Method in interface org.apache.datasketches.common.<a href="org/apache/datasketches/common/MemoryStatus.html" title="interface in org.apache.datasketches.common">MemoryStatus</a></dt>
+<dd>
+<div class="block">Returns true if this object's internal data is backed by direct (off-heap) Memory.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html#isDirect()">isDirect()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/BloomFilter.html" title="class in org.apache.datasketches.filters.bloomfilter">BloomFilter</a></dt>
 <dd>
 <div class="block">Returns whether the filter is a direct (off-heap) or on-heap object.</div>
@@ -4771,11 +4776,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#isDirect()">isDirect()</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></dt>
 <dd>
 <div class="block">Returns true if this sketch's data structure is off-heap (a.k.a., Direct or Native memory).</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketch.html#isDirect()">isDirect()</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
-<dd>
-<div class="block">Returns true if the this sketch's internal data structure is backed by direct (off-heap)
- Memory.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html#isDirty()">isDirty()</a></span> - Method in class org.apache.datasketches.filters.bloomfilter.<a href="org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.html" title="class in org.apache.datasketches.filters.bloomfilter">DirectBitArrayR</a></dt>
 <dd>&nbsp;</dd>
@@ -4931,6 +4931,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">Returns true if this sketch is read only.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/common/MemoryStatus.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource(Memory)</a></span> - Method in interface org.apache.datasketches.common.<a href="org/apache/datasketches/common/MemoryStatus.html" title="interface in org.apache.datasketches.common">MemoryStatus</a></dt>
+<dd>
+<div class="block">Returns true if the backing resource of <i>this</i> is identical with the backing resource
+ of <i>that</i>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/HllSketch.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource(Memory)</a></span> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/hll/Union.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource(Memory)</a></span> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/Union.html" title="class in org.apache.datasketches.hll">Union</a></dt>
@@ -4946,16 +4951,6 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
  of <i>that</i>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesUnion.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource(Memory)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesUnion.html" title="class in org.apache.datasketches.quantiles">DoublesUnion</a></dt>
-<dd>
-<div class="block">Returns true if the backing resource of <i>this</i> is identical with the backing resource
- of <i>that</i>.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/SetOperation.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource(Memory)</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></dt>
-<dd>
-<div class="block">Returns true if the backing resource of <i>this</i> is identical with the backing resource
- of <i>that</i>.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketch.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource(Memory)</a></span> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block">Returns true if the backing resource of <i>this</i> is identical with the backing resource
  of <i>that</i>.</div>
@@ -5356,6 +5351,10 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Intersection.html#memChecks(org.apache.datasketches.memory.Memory)">memChecks(Memory)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Intersection.html" title="class in org.apache.datasketches.theta">Intersection</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="org/apache/datasketches/common/MemoryStatus.html" title="interface in org.apache.datasketches.common"><span class="typeNameLink">MemoryStatus</span></a> - Interface in <a href="org/apache/datasketches/common/package-summary.html">org.apache.datasketches.common</a></dt>
+<dd>
+<div class="block">Methods for inquiring the status of a backing Memory object.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/frequencies/ItemsSketch.html#merge(org.apache.datasketches.frequencies.ItemsSketch)">merge(ItemsSketch&lt;T&gt;)</a></span> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.html" title="class in org.apache.datasketches.frequencies">ItemsSketch</a></dt>
 <dd>
 <div class="block">This function merges the other sketch into this one.</div>

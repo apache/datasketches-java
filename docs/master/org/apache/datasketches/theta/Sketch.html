@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":6,"i2":6,"i3":9,"i4":10,"i5":6,"i6":6,"i7":6,"i8":10,"i9":9,"i10":9,"i11":10,"i12":6,"i13":9,"i14":10,"i15":6,"i16":10,"i17":6,"i18":9,"i19":9,"i20":6,"i21":6,"i22":6,"i23":10,"i24":6,"i25":10,"i26":6,"i27":6,"i28":10,"i29":10,"i30":9,"i31":9,"i32":9,"i33":9};
+var data = {"i0":10,"i1":6,"i2":6,"i3":9,"i4":10,"i5":6,"i6":6,"i7":6,"i8":10,"i9":9,"i10":9,"i11":10,"i12":6,"i13":9,"i14":10,"i15":6,"i16":10,"i17":9,"i18":9,"i19":6,"i20":6,"i21":10,"i22":6,"i23":6,"i24":6,"i25":10,"i26":10,"i27":9,"i28":9,"i29":9,"i30":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -132,12 +132,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <dl>
+<dt>All Implemented Interfaces:</dt>
+<dd><code><a href="../common/MemoryStatus.html" title="interface in org.apache.datasketches.common">MemoryStatus</a></code></dd>
+</dl>
+<dl>
 <dt>Direct Known Subclasses:</dt>
 <dd><code><a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code>, <code><a href="UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></dd>
 </dl>
 <hr>
 <pre>public abstract class <span class="typeNameLabel">Sketch</span>
-extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></pre>
+extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>
+implements <a href="../common/MemoryStatus.html" title="interface in org.apache.datasketches.common">MemoryStatus</a></pre>
 <div class="block">The top-level class for all theta sketches. This class is never constructed directly.
  Use the UpdateSketch.builder() methods to create UpdateSketches.</div>
 <dl>
@@ -289,20 +294,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </td>
 </tr>
 <tr id="i17" class="rowColor">
-<td class="colFirst"><code>abstract boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#hasMemory()">hasMemory</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
-</td>
-</tr>
-<tr id="i18" class="altColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapify(org.apache.datasketches.memory.Memory)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Heapify takes the sketch image in Memory and instantiates an on-heap Sketch.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapify(org.apache.datasketches.memory.Memory,long)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
        long&nbsp;expectedSeed)</code></th>
@@ -310,51 +308,35 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Heapify takes the sketch image in Memory and instantiates an on-heap Sketch.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isCompact()">isCompact</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is in compact form.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
-<td class="colFirst"><code>abstract boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isDirect()">isDirect</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns true if the this sketch's internal data structure is backed by direct (off-heap)
- Memory.</div>
-</td>
-</tr>
-<tr id="i22" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block"><a href="../../../../resources/dictionary.html#empty">See Empty</a></div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEstimationMode()">isEstimationMode</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).</div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>abstract boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isOrdered()">isOrdered</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if internal cache is ordered</div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;that)</code></th>
-<td class="colLast">
-<div class="block">Returns true if the backing resource of <i>this</i> is identical with the backing resource
- of <i>that</i>.</div>
-</td>
-</tr>
-<tr id="i26" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>abstract <a href="HashIterator.html" title="interface in org.apache.datasketches.theta">HashIterator</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
@@ -362,21 +344,21 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  Theta sketch.</div>
 </td>
 </tr>
-<tr id="i27" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>abstract byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toByteArray()">toByteArray</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Serialize this sketch to a byte array form.</div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns a human readable summary of the sketch.</div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean,int,boolean)">toString</a></span>&#8203;(boolean&nbsp;sketchSummary,
         boolean&nbsp;dataDetail,
@@ -386,28 +368,28 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Gets a human readable listing of contents and summary of the given sketch.</div>
 </td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(byte%5B%5D)">toString</a></span>&#8203;(byte[]&nbsp;byteArr)</code></th>
 <td class="colLast">
 <div class="block">Returns a human readable string of the preamble of a byte array image of a Theta Sketch.</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(org.apache.datasketches.memory.Memory)">toString</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem)</code></th>
 <td class="colLast">
 <div class="block">Returns a human readable string of the preamble of a Memory image of a Theta Sketch.</div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.Memory)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Wrap takes the sketch image in the given Memory and refers to it directly.</div>
 </td>
 </tr>
-<tr id="i33" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>static <a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.Memory,long)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
     long&nbsp;expectedSeed)</code></th>
@@ -422,6 +404,13 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></h3>
 <code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone--" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals-java.lang.Object-" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize--" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass--" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode--" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify--" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll--" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait--" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait-long-int-" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.common.MemoryStatus">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;org.apache.datasketches.common.<a href="../common/MemoryStatus.html" title="interface in org.apache.datasketches.common">MemoryStatus</a></h3>
+<code><a href="../common/MemoryStatus.html#hasMemory()">hasMemory</a>, <a href="../common/MemoryStatus.html#isDirect()">isDirect</a>, <a href="../common/MemoryStatus.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource</a></code></li>
 </ul>
 </li>
 </ul>
@@ -861,20 +850,6 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </dl>
 </li>
 </ul>
-<a id="hasMemory()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>hasMemory</h4>
-<pre class="methodSignature">public abstract&nbsp;boolean&nbsp;hasMemory()</pre>
-<div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>true if this sketch's data structure is backed by Memory or WritableMemory.</dd>
-</dl>
-</li>
-</ul>
 <a id="isCompact()">
 <!--   -->
 </a>
@@ -886,22 +861,6 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>true if this sketch is in compact form.</dd>
-</dl>
-</li>
-</ul>
-<a id="isDirect()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isDirect</h4>
-<pre class="methodSignature">public abstract&nbsp;boolean&nbsp;isDirect()</pre>
-<div class="block">Returns true if the this sketch's internal data structure is backed by direct (off-heap)
- Memory.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>true if the this sketch's internal data structure is backed by direct (off-heap)
- Memory.</dd>
 </dl>
 </li>
 </ul>
@@ -945,25 +904,6 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>true if internal cache is ordered</dd>
-</dl>
-</li>
-</ul>
-<a id="isSameResource(org.apache.datasketches.memory.Memory)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isSameResource</h4>
-<pre class="methodSignature">public&nbsp;boolean&nbsp;isSameResource&#8203;(org.apache.datasketches.memory.Memory&nbsp;that)</pre>
-<div class="block">Returns true if the backing resource of <i>this</i> is identical with the backing resource
- of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
- the region offset must also be the same.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>that</code> - A different non-null object</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>true if the backing resource of <i>this</i> is the same as the backing resource
- of <i>that</i>.</dd>
 </dl>
 </li>
 </ul>
