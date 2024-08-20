@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.datasketches.common.MemoryStatus;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -30,7 +31,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author eshcar
  */
-interface ConcurrentSharedThetaSketch {
+interface ConcurrentSharedThetaSketch extends MemoryStatus {
 
   long NOT_SINGLE_HASH = -1L;
   double MIN_ERROR = 0.0000001;
@@ -127,7 +128,7 @@ interface ConcurrentSharedThetaSketch {
   //attempt to access these methods from the local buffer will be diverted to the shared
   //sketch.
 
-  //From Sketch
+  //From Sketch and MemoryStatus
 
   int getCompactBytes();
 
@@ -138,10 +139,6 @@ interface ConcurrentSharedThetaSketch {
   double getLowerBound(int numStdDev);
 
   double getUpperBound(int numStdDev);
-
-  boolean hasMemory();
-
-  boolean isDirect();
 
   boolean isEmpty();
 

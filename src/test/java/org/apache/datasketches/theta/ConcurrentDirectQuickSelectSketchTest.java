@@ -119,7 +119,6 @@ public class ConcurrentDirectQuickSelectSketchTest {
     // That is, this is being run for its side-effect of accessing things.
     // If something is wonky, it will generate an exception and fail the test.
     local2.toString(true, true, 8, true);
-
   }
 
   @Test

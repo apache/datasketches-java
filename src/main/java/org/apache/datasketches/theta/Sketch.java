@@ -32,6 +32,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemoryStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -44,7 +45,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public abstract class Sketch {
+public abstract class Sketch implements MemoryStatus {
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;   //Unique to Heap
 
   Sketch() {}
@@ -384,24 +385,10 @@ public abstract class Sketch {
   }
 
   /**
-   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
-   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
-   */
-  public abstract boolean hasMemory();
-
-  /**
    * Returns true if this sketch is in compact form.
    * @return true if this sketch is in compact form.
    */
   public abstract boolean isCompact();
-
-  /**
-   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   */
-  public abstract boolean isDirect();
 
   /**
    * <a href="{@docRoot}/resources/dictionary.html#empty">See Empty</a>
@@ -423,18 +410,6 @@ public abstract class Sketch {
    * @return true if internal cache is ordered
    */
   public abstract boolean isOrdered();
-
-  /**
-   * Returns true if the backing resource of <i>this</i> is identical with the backing resource
-   * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
-   * the region offset must also be the same.
-   * @param that A different non-null object
-   * @return true if the backing resource of <i>this</i> is the same as the backing resource
-   * of <i>that</i>.
-   */
-  public boolean isSameResource(final Memory that) {
-    return false;
-  }
 
   /**
    * Returns a HashIterator that can be used to iterate over the retained hash values of the

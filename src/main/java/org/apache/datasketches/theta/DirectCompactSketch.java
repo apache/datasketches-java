@@ -109,12 +109,12 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean hasMemory() {
-    return true;
+    return mem_ != null;
   }
 
   @Override
   public boolean isDirect() {
-    return mem_.isDirect();
+    return hasMemory() ? mem_.isDirect() : false;
   }
 
   @Override
@@ -132,7 +132,7 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean isSameResource(final Memory that) {
-    return mem_.isSameResource(that);
+    return hasMemory() ? mem_.isSameResource(that) : false;
   }
 
   @Override
