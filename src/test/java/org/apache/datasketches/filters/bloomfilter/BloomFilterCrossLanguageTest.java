@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
  * Serialize binary sketches to be tested by C++ code.
  * Test deserialization of binary sketches serialized by C++ code.
  */
-public class BloomFilterCorssLanguageTest {
+public class BloomFilterCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generatBloomFilterBinariesForCompatibilityTesting() throws IOException {
