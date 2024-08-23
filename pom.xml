@@ -93,8 +93,9 @@ under the License.
     <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
 
     <!-- System-wide properties -->
-    <maven.version>3.6.3</maven.version>
-    <java.version>8</java.version>
+    <maven.version>[3.6.3,4.0.0)</maven.version>
+    <java.version>1.8</java.version>
+    <require-java.version>[1.8,9.0),[11.0,12.0),[17,18)</require-java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
@@ -107,15 +108,15 @@ under the License.
     <!--  org.apache.maven plugins -->
     <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-    <maven-deploy-plugin.version>3.1.2</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
-    <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version>
-    <maven-jar-plugin.version>3.4.1</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
-    <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
+    <maven-deploy-plugin.version>3.1.3</maven-deploy-plugin.version>
+    <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+    <maven-gpg-plugin.version>3.2.5</maven-gpg-plugin.version>
+    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.8.0</maven-javadoc-plugin.version>
+    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
     <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-surefire-failsafe-plugins.version>3.2.5</maven-surefire-failsafe-plugins.version> <!-- for surefire, failsafe and surefire-report-->
+    <maven-surefire-failsafe-plugins.version>3.4.0</maven-surefire-failsafe-plugins.version> <!-- for surefire, failsafe and surefire-report-->
     <!-- com.github plugins -->
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>    
     <!-- org.apache.creadur plugins -->
@@ -126,7 +127,7 @@ under the License.
     <!-- org.jacoco maven plugins -->
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <!-- org.mojohaus plugins -->
-    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
   </properties>
@@ -145,13 +146,6 @@ under the License.
       <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
-    <!--
-    <dependency>
-      <groupId>org.apache.datasketches</groupId>
-      <artifactId>datasketches-java-common</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    -->
   </dependencies>
 
   <build>
@@ -190,10 +184,10 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[1.8.0,9.0),[11.0,12.0)</version>
+                    <version>${require-java.version}</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
-                    <version>[${maven.version},)</version>
+                    <version>${maven.version}</version>
                   </requireMavenVersion>
                   <bannedDependencies>
                     <excludes>
@@ -626,7 +620,7 @@ under the License.
     <profile>
       <id>java8only</id>
       <activation>
-        <jdk>[1.8,1.9),8</jdk>
+        <jdk>[1.8,9)</jdk>
       </activation>
     </profile>
 
