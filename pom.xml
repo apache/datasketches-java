@@ -83,7 +83,7 @@ under the License.
   </developers>
 
   <properties>
-    <datasketches-memory.version>3.0.0</datasketches-memory.version>
+    <datasketches-memory.version>3.0.1</datasketches-memory.version>
 
     <!-- Test -->
     <testng.version>7.5.1</testng.version>
