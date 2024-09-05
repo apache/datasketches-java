@@ -41,6 +41,7 @@ under the License.
   <Match>
     <Bug pattern="EI_EXPOSE_REP2"/>
     <Or>
+      <Class name="org.apache.datasketches.quantilescommon.LongsSortedViewIterator"/>
       <Class name="org.apache.datasketches.quantilescommon.FloatsSortedViewIterator"/>
       <Class name="org.apache.datasketches.quantilescommon.DoublesSortedViewIterator"/>
       <Class name="org.apache.datasketches.quantilescommon.GenericSortedViewIterator"/>
