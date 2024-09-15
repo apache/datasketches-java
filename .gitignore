@@ -11,7 +11,7 @@
 *.iws
 
 # VSCode project files
-**/.vscode
+**/.vscode/
 
 # Additional tools
 .clover/
