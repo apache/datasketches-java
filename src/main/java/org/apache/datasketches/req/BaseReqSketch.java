@@ -28,7 +28,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  * This abstract class provides a single place to define and document the public API
  * for the Relative Error Quantiles Sketch.
  *
- * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * @see <a href="https://datasketches.apache.org/docs/QuantilesAll/SketchingQuantilesAndRanksTutorial.html">
  * Sketching Quantiles and Ranks Tutorial</a>
  *
  * @author Lee Rhodes
