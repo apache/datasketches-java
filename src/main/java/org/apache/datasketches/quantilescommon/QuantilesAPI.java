@@ -194,7 +194,7 @@ package org.apache.datasketches.quantilescommon;
  * <p>[*] Note that obtaining epsilon may require using a similar function but with more parameters
  * based on the specific sketch implementation.</p>
  *
- * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * @see <a href="https://datasketches.apache.org/docs/QuantilesAll/SketchingQuantilesAndRanksTutorial.html">
  * Sketching Quantiles and Ranks, Tutorial</a>
  * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
  *
