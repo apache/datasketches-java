@@ -22,7 +22,7 @@ package org.apache.datasketches.quantilescommon;
 /**
  * These search criteria are used by the KLL, REQ and Classic Quantiles sketches in the DataSketches library.
  *
- * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * @see <a href="https://datasketches.apache.org/docs/QuantilesAll/SketchingQuantilesAndRanksTutorial.html">
  * Sketching Quantiles and Ranks Tutorial</a>
  *
  * @author Lee Rhodes
