@@ -10,8 +10,8 @@
 *.ipr
 *.iws
 
-# VScode project files
-.vscode/
+# VSCode project files
+**/.vscode/
 
 # Additional tools
 .clover/
