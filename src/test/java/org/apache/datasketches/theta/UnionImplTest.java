@@ -193,6 +193,7 @@ public class UnionImplTest {
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
     WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2); //not really used, except as a reference.
     WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2); //too small, forces new allocation on heap
+    WritableMemory wmem2Copy = wmem2;
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem)); //also testing the isSameResource function
 
@@ -206,6 +207,8 @@ public class UnionImplTest {
     assertFalse(union2.isSameResource(wmem2));  //obviously not
     wmem.close(); //empty, but we must close it anyway.
     assertFalse(wmem2.isAlive());//previously closed via the DefaultMemoryRequestServer.
+    assertTrue(wmem2Copy.isDirect());
+    assertFalse(wmem2Copy.isAlive());
   }
 
   @Test
