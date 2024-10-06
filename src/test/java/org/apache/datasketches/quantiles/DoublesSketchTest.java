@@ -140,18 +140,22 @@ public class DoublesSketchTest {
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
     WritableMemory wmem = WritableMemory.allocateDirect(1000, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmemCopy = wmem;
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
     Assert.assertTrue(sketch.isSameResource(wmem));
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
     println(sketch.toString());
+    assertTrue(wmemCopy.isDirect());
+    assertFalse(wmemCopy.isAlive());
   }
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
     int i = 0;
     WritableMemory wmem = WritableMemory.allocateDirect(50, ByteOrder.LITTLE_ENDIAN, new DefaultMemoryRequestServer());
+    WritableMemory wmemCopy = wmem;
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
     Assert.assertTrue(sketch.isSameResource(wmem));
     for (; i < 1000; i++) {
@@ -163,6 +167,8 @@ public class DoublesSketchTest {
       }
     }
     assertFalse(wmem.isAlive());
+    assertTrue(wmemCopy.isDirect());
+    assertFalse(wmemCopy.isAlive());
   }
 
   @Test

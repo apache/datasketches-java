@@ -43,13 +43,16 @@ import org.apache.datasketches.memory.WritableMemory;
 public class DirectAuxHashMapTest {
 
   @Test
-  public void checkGrow() {
+  public void checkGrow() { //It is very rare, but this forces an HLL_4 to exceed its computed memory size.
     int lgConfigK = 4;
     TgtHllType tgtHllType = TgtHllType.HLL_4;
     int n = 8; //put lgConfigK == 4 into HLL mode
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
     WritableMemory wmem = WritableMemory.allocateDirect(bytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmemCopy = wmem;  //copy of wmem
+    assertTrue(wmemCopy.isDirect()); //original copy of wmem is off-heap
+    assertTrue(wmemCopy.isAlive());  //original copy of wmem is Alive
     hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
     for (int i = 0; i < n; i++) {
       hllSketch.update(i);
@@ -57,7 +60,7 @@ public class DirectAuxHashMapTest {
     hllSketch.couponUpdate(HllUtil.pair(7, 15)); //mock extreme values
     hllSketch.couponUpdate(HllUtil.pair(8, 15));
     hllSketch.couponUpdate(HllUtil.pair(9, 15));
-    //println(hllSketch.toString(true, true, true, true));
+    //println(hllSketch.toString(true, true, true, true)); //
     DirectHllArray dha = (DirectHllArray) hllSketch.hllSketchImpl;
     assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 2);
     assertTrue(hllSketch.isMemory());
@@ -75,19 +78,21 @@ public class DirectAuxHashMapTest {
     byteArray = hllSketch.toUpdatableByteArray();
     WritableMemory wmem2 = WritableMemory.writableWrap(byteArray);
     hllSketch2 = HllSketch.writableWrap(wmem2);
-    //println(hllSketch2.toString(true, true, true, true));
+    //println(hllSketch2.toString(true, true, true, true)); //
     DirectHllArray dha2 = (DirectHllArray) hllSketch2.hllSketchImpl;
     assertEquals(dha2.getAuxHashMap().getLgAuxArrInts(), 2);
     assertEquals(dha2.getAuxHashMap().getAuxCount(), 3);
 
     //Check grow to on-heap
     hllSketch.couponUpdate(HllUtil.pair(10, 15)); //puts it over the edge, must grow
-    //println(hllSketch.toString(true, true, true, true));
+    //println(hllSketch.toString(true, true, true, true)); //
     dha = (DirectHllArray) hllSketch.hllSketchImpl;
     assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 3);
     assertEquals(dha.getAuxHashMap().getAuxCount(), 4);
     assertTrue(hllSketch.isMemory());
     assertFalse(hllSketch.isOffHeap());
+    assertTrue(wmemCopy.isDirect()); //original copy of wmem was off-heap and still is
+    assertFalse(wmemCopy.isAlive()); //original copy of wmem has been closed
   }
 
   @Test
