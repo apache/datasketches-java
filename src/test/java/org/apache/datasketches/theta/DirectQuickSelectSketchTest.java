@@ -781,13 +781,16 @@ public class DirectQuickSelectSketchTest {
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
     WritableMemory wmem = WritableMemory.allocateDirect(bytes/2); //will request more memory
+    WritableMemory wmemCopy = wmem;
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem));
     for (int i = 0; i < u; i++) { sketch.update(i); }
     Memory mem = sketch.getMemory();
     assertTrue(mem.isAlive());
     assertFalse(mem.isDirect()); //now on heap.
+    assertTrue(wmemCopy.isDirect()); //original copy
     assertFalse(wmem.isAlive()); //wmem closed by MemoryRequestServer
+    assertFalse(wmemCopy.isAlive()); //original copy closed
   }
 
   @Test
@@ -796,6 +799,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
     WritableMemory wmem = WritableMemory.allocateDirect(bytes/2); //will request more memory
+    WritableMemory wmemCopy = wmem;
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     for (int i = 0; i < u; i++) { sketch.update(i); }
     double est1 = sketch.getEstimate();
@@ -808,6 +812,8 @@ public class DirectQuickSelectSketchTest {
     assertTrue(mem2.isAlive());
     assertFalse(mem2.isDirect()); //now on heap
     assertFalse(wmem.isAlive());  //wmem closed by MemoryRequestServer
+    assertTrue(wmemCopy.isDirect());
+    assertFalse(wmemCopy.isAlive());
     try {
       roSketch.rebuild();
       fail();

@@ -43,13 +43,16 @@ import org.apache.datasketches.memory.WritableMemory;
 public class DirectAuxHashMapTest {
 
   @Test
-  public void checkGrow() {
+  public void checkGrow() { //It is very rare, but this forces an HLL_4 to exceed its computed memory size.
     int lgConfigK = 4;
     TgtHllType tgtHllType = TgtHllType.HLL_4;
     int n = 8; //put lgConfigK == 4 into HLL mode
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
     WritableMemory wmem = WritableMemory.allocateDirect(bytes, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmemCopy = wmem;  //copy of wmem
+    assertTrue(wmemCopy.isDirect()); //original copy of wmem is off-heap
+    assertTrue(wmemCopy.isAlive());  //original copy of wmem is Alive
     hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
     for (int i = 0; i < n; i++) {
       hllSketch.update(i);
@@ -88,6 +91,8 @@ public class DirectAuxHashMapTest {
     assertEquals(dha.getAuxHashMap().getAuxCount(), 4);
     assertTrue(hllSketch.isMemory());
     assertFalse(hllSketch.isOffHeap());
+    assertTrue(wmemCopy.isDirect()); //original copy of wmem was off-heap and still is
+    assertFalse(wmemCopy.isAlive()); //original copy of wmem has been closed
   }
 
   @Test
