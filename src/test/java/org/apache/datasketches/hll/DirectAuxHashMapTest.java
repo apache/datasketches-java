@@ -60,7 +60,7 @@ public class DirectAuxHashMapTest {
     hllSketch.couponUpdate(HllUtil.pair(7, 15)); //mock extreme values
     hllSketch.couponUpdate(HllUtil.pair(8, 15));
     hllSketch.couponUpdate(HllUtil.pair(9, 15));
-    //println(hllSketch.toString(true, true, true, true)); //
+    //println(hllSketch.toString(true, true, true, true));
     DirectHllArray dha = (DirectHllArray) hllSketch.hllSketchImpl;
     assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 2);
     assertTrue(hllSketch.isMemory());
@@ -78,14 +78,14 @@ public class DirectAuxHashMapTest {
     byteArray = hllSketch.toUpdatableByteArray();
     WritableMemory wmem2 = WritableMemory.writableWrap(byteArray);
     hllSketch2 = HllSketch.writableWrap(wmem2);
-    //println(hllSketch2.toString(true, true, true, true)); //
+    //println(hllSketch2.toString(true, true, true, true));
     DirectHllArray dha2 = (DirectHllArray) hllSketch2.hllSketchImpl;
     assertEquals(dha2.getAuxHashMap().getLgAuxArrInts(), 2);
     assertEquals(dha2.getAuxHashMap().getAuxCount(), 3);
 
     //Check grow to on-heap
     hllSketch.couponUpdate(HllUtil.pair(10, 15)); //puts it over the edge, must grow
-    //println(hllSketch.toString(true, true, true, true)); //
+    //println(hllSketch.toString(true, true, true, true));
     dha = (DirectHllArray) hllSketch.hllSketchImpl;
     assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 3);
     assertEquals(dha.getAuxHashMap().getAuxCount(), 4);
