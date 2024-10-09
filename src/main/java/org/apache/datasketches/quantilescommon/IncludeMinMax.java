@@ -63,6 +63,24 @@ public class IncludeMinMax {
     }
   }
 
+  /** A simple structure to hold a pair of arrays */
+  public static class LongsPair {
+    /** the array of quantiles */
+    public long[] quantiles;
+    /** the array of associated cumulative weights */
+    public long[] cumWeights;
+
+    /**
+     * Constructor.
+     * @param quantiles the array of quantiles
+     * @param cumWeights the array of associated cumulative weights
+     */
+    public LongsPair(final long[] quantiles, final long[] cumWeights) {
+      this.quantiles = quantiles;
+      this.cumWeights = cumWeights;
+    }
+  }
+
   /**
    * A simple structure to hold a pair of arrays
    * @param <T> the item class type
@@ -129,6 +147,53 @@ public class IncludeMinMax {
 
     } //END of Adjust End Points
     return new DoublesPair(adjQuantiles, adjCumWeights);
+  }
+
+  /**
+   * The logic to include the min and max of type double.
+   * @param quantilesIn The array of quantiles
+   * @param cumWeightsIn The array of associated cumulative weights
+   * @param maxItem the maximum item of the stream
+   * @param minItem the minimum item of the stream
+   * @return a DoublesPair
+   */
+  public static LongsPair includeLongsMinMax(
+          final long[] quantilesIn,
+          final long[] cumWeightsIn,
+          final long maxItem,
+          final long minItem) {
+    final int lenIn = cumWeightsIn.length;
+    final boolean adjLow = quantilesIn[0] != minItem; //if true, adjust the low end
+    final boolean adjHigh = quantilesIn[lenIn - 1] != maxItem; //if true, adjust the high end
+    int adjLen = lenIn; //this will be the length of the local copies of quantiles and cumWeights
+    adjLen += adjLow ? 1 : 0;
+    adjLen += adjHigh ? 1 : 0;
+    final long[] adjQuantiles;
+    final long[] adjCumWeights;
+    if (adjLen > lenIn) { //is any adjustment required at all?
+      adjQuantiles = new long[adjLen];
+      adjCumWeights = new long[adjLen];
+      final int offset = adjLow ? 1 : 0;
+      System.arraycopy(quantilesIn, 0, adjQuantiles, offset, lenIn);
+      System.arraycopy(cumWeightsIn,0, adjCumWeights, offset, lenIn);
+
+      //Adjust the low end if required. Don't need to adjust weight of next one because it is cumulative.
+      if (adjLow) {
+        adjQuantiles[0] = minItem;
+        adjCumWeights[0] = 1;
+      }
+
+      if (adjHigh) {
+        adjQuantiles[adjLen - 1] = maxItem;
+        adjCumWeights[adjLen - 1] = cumWeightsIn[lenIn - 1];
+        adjCumWeights[adjLen - 2] = cumWeightsIn[lenIn - 1] - 1;
+      }
+    } else { //both min and max are already in place, no adjustments are required.
+      adjQuantiles = quantilesIn;
+      adjCumWeights = cumWeightsIn;
+
+    } //END of Adjust End Points
+    return new LongsPair(adjQuantiles, adjCumWeights);
   }
 
   /**
