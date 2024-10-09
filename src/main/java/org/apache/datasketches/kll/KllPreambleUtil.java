@@ -28,6 +28,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 
 import java.util.Objects;
 
@@ -210,7 +211,7 @@ final class KllPreambleUtil<T> {
    * Used primarily in testing.
    *
    * @param mem the given Memory
-   * @param sketchType the sketch type: FLOATS_SKETCH, DOUBLES_SKETCH, or ITEMS_SKETCH.
+   * @param sketchType the sketch type: FLOATS_SKETCH, DOUBLES_SKETCH, LONGS_SKETCH, or ITEMS_SKETCH.
    * @param includeData if true, includes detail of retained data.
    * @param serDe must be supplied for KllItemsSketch, otherwise can be null.
    * @return the summary string.
@@ -229,7 +230,7 @@ final class KllPreambleUtil<T> {
     //final boolean updatable = mySketchStructure == UPDATABLE;
     final boolean emptyFlag = memVal.emptyFlag;
     final int sketchBytes = memVal.sketchBytes;
-    final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES;
+    final int typeBytes = sketchType.getBytes();
     final int familyID = getMemoryFamilyID(mem);
     final String famName = idToFamily(familyID).toString();
 
@@ -295,6 +296,11 @@ final class KllPreambleUtil<T> {
           offsetBytes += typeBytes;
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
+        } else if (sketchType == LONGS_SKETCH) {
+          sb.append(mem.getLong(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+          sb.append(mem.getLong(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
         } else { //ITEMS_SKETCH
           sb.append("<<<Updatable Structure is not suppported by ItemsSketch>>>").append(LS);
         }
@@ -309,6 +315,11 @@ final class KllPreambleUtil<T> {
         } else if (sketchType == FLOATS_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
             sb.append(mem.getFloat(offsetBytes)).append(LS);
+            offsetBytes += typeBytes;
+          }
+        } else if (sketchType == LONGS_SKETCH) {
+          for (int i = 0; i < itemsSpace; i++) {
+            sb.append(mem.getLong(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
@@ -338,6 +349,11 @@ final class KllPreambleUtil<T> {
           offsetBytes += typeBytes;
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
+        } else if (sketchType == LONGS_SKETCH) {
+          sb.append(mem.getLong(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+          sb.append(mem.getLong(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
         } else {  //ITEMS_SKETCH
           sb.append(serDe.deserializeFromMemory(mem, offsetBytes, 1)[0]).append(LS);
           offsetBytes += serDe.sizeOf(mem, offsetBytes, 1);
@@ -346,7 +362,7 @@ final class KllPreambleUtil<T> {
         }
 
         sb.append("RETAINED DATA").append(LS);
-        final int itemSpace = (sketchBytes - offsetBytes) / typeBytes;
+        final int itemSpace = (sketchBytes - offsetBytes) / (typeBytes == 0 ? 1 : typeBytes);
         if (sketchType == DOUBLES_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
@@ -355,6 +371,11 @@ final class KllPreambleUtil<T> {
         } else if (sketchType == FLOATS_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + mem.getFloat(offsetBytes)).append(LS);
+            offsetBytes += typeBytes;
+          }
+        } else if (sketchType == LONGS_SKETCH) {
+          for (int i = 0; i < itemSpace; i++) {
+            sb.append(i + ", " + mem.getLong(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
@@ -372,6 +393,8 @@ final class KllPreambleUtil<T> {
             sb.append(mem.getDouble(DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else if (sketchType == FLOATS_SKETCH) {
             sb.append(mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
+          } else if (sketchType == LONGS_SKETCH) {
+            sb.append(mem.getLong(DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else { //ITEMS_SKETCH
             sb.append(serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0]).append(LS);
           }
