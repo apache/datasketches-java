@@ -383,7 +383,6 @@ final class KllPreambleUtil<T> {
           for (int i = 0; i < itemsArr.length; i++) {
             sb.append(i + ", " + serDe.toString(itemsArr[i])).append(LS);
           }
-          offsetBytes += serDe.sizeOf(mem, offsetBytes, retainedItems);
         }
 
       } else if (myStructure == COMPACT_SINGLE) {
