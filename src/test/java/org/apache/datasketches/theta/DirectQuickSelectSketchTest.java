@@ -876,11 +876,12 @@ public class DirectQuickSelectSketchTest {
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
 
     WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-
+    WritableMemory wmem2 = wmem;
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem));
     for (int i = 0; i < u; i++) { sketch.update(i); }
     assertFalse(sketch.isSameResource(wmem));
+    assertFalse(wmem2.isAlive());
   }
 
   @Test
@@ -889,7 +890,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
     WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-
+    WritableMemory wmem2 = wmem;
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     for (int i = 0; i < u; i++) { sketch.update(i); }
     double est1 = sketch.getEstimate();
@@ -910,6 +911,7 @@ public class DirectQuickSelectSketchTest {
     } catch (SketchesReadOnlyException e) {
       //expected
     }
+    assertFalse(wmem2.isAlive());
   }
 
   @Test

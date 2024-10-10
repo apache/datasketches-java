@@ -293,7 +293,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -301,7 +301,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -309,7 +309,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   @Test
@@ -329,7 +329,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -337,7 +337,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -345,7 +345,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), defaultSeedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   @Test
@@ -365,7 +365,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -373,7 +373,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -381,7 +381,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {/* ignore */}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   @Test
@@ -401,7 +401,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -409,7 +409,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -417,7 +417,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   @Test
@@ -437,7 +437,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -445,7 +445,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -453,7 +453,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   @Test
@@ -473,7 +473,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -481,7 +481,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -489,7 +489,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), defaultSeedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   @Test
@@ -509,7 +509,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -517,7 +517,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -525,7 +525,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   @Test
@@ -545,7 +545,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertTrue(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV2 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed));
@@ -553,7 +553,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
 
     //SV1 test
     wmem = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(sv3csk));
@@ -561,7 +561,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wmem.close(); } catch (Exception e) {}
+    if (wmem.isAlive()) { wmem.close(); }
   }
 
   private static WritableMemory putOffHeap(Memory heapMem) {

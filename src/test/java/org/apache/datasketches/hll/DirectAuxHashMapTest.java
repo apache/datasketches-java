@@ -90,6 +90,7 @@ public class DirectAuxHashMapTest {
     assertTrue(hllSketch.isMemory());
     assertFalse(hllSketch.isOffHeap());
     assertFalse(hllSketch.isSameResource(wmem));
+    assertFalse(wmem.isAlive());
   }
 
   @Test

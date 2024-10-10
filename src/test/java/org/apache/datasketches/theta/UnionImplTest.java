@@ -200,10 +200,12 @@ public class UnionImplTest {
     ResourceScope scope = ResourceScope.newConfinedScope();
 
     final WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    final WritableMemory wmemA = wmem;
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem));
 
     final WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    final WritableMemory wmemB = wmem2;
     final Union union = SetOperation.builder().buildUnion(wmem2);
     assertTrue(union.isSameResource(wmem2));
 
@@ -212,6 +214,8 @@ public class UnionImplTest {
 
     final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
     assertFalse(union2.isSameResource(wmem2));  //obviously not
+    assertFalse(wmemA.isAlive());
+    assertFalse(wmemB.isAlive());
   }
 
   @Test
