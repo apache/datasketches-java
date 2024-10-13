@@ -227,7 +227,6 @@ final class KllPreambleUtil<T> {
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
     final int preInts = memVal.preInts; //??
-    //final boolean updatable = mySketchStructure == UPDATABLE;
     final boolean emptyFlag = memVal.emptyFlag;
     final int sketchBytes = memVal.sketchBytes;
     final int typeBytes = sketchType.getBytes();

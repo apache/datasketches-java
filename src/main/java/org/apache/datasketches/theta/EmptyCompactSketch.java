@@ -92,16 +92,6 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   @Override
-  public boolean hasMemory() {
-    return false;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
   public boolean isEmpty() {
     return true;
   }

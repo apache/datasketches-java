@@ -148,7 +148,7 @@ public interface DoublesSortedView extends SortedView {
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
    * @throws IllegalArgumentException if sketch is empty.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   * @see QuantileSearchCriteria
    */
   double getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
@@ -165,7 +165,7 @@ public interface DoublesSortedView extends SortedView {
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
    * @return the normalized rank corresponding to the given quantile.
    * @throws IllegalArgumentException if sketch is empty.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   * @see QuantileSearchCriteria
    */
   double getRank(double quantile, QuantileSearchCriteria searchCrit);
 
@@ -173,4 +173,3 @@ public interface DoublesSortedView extends SortedView {
   DoublesSortedViewIterator iterator();
 
 }
-

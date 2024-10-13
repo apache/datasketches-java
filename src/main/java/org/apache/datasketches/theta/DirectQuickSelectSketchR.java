@@ -144,12 +144,12 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean hasMemory() {
-    return true;
+    return wmem_ != null;
   }
 
   @Override
   public boolean isDirect() {
-    return wmem_.isDirect();
+    return hasMemory() ? wmem_.isDirect() : false;
   }
 
   @Override
@@ -159,7 +159,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean isSameResource(final Memory that) {
-    return wmem_.isSameResource(that);
+    return hasMemory() ? wmem_.isSameResource(that) : false;
   }
 
   @Override

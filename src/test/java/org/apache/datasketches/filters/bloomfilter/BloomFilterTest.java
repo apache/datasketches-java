@@ -31,7 +31,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -58,7 +57,6 @@ public class BloomFilterTest {
 
     WritableMemory wmem;
     try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(sizeBytes)).scope()) {
-
       final BloomFilter bf2 = new BloomFilter(numBits, numHashes, seed, wmem);
       assertTrue(bf2.isEmpty());
       assertTrue(bf2.hasMemory());

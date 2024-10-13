@@ -84,7 +84,7 @@ final class Rebuilder {
   }
 
   /**
-   * Moves me (the entire sketch) to a new larger Memory location and rebuilds the hash table.
+   * Moves me (the entire updatable sketch) to a new larger Memory location and rebuilds the hash table.
    * This assumes a Memory preamble of standard form with the correct value of thetaLong.
    * Afterwards, the caller must update the local Memory reference, lgArrLongs
    * and hashTableThreshold from the dstMemory and free the source Memory.
