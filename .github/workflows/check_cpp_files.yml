@@ -18,6 +18,11 @@ jobs:
         with:
           repository: apache/datasketches-cpp
           path: cpp
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'temurin'
       - name: Configure C++ build
         run: cd cpp/build && cmake .. -DGENERATE=true
       - name: Build C++ unit tests
