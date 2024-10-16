@@ -91,14 +91,14 @@ public final class Sketches {
 
   /**
    * Returns the maximum number of storage bytes required for a CompactSketch given the configured
-   * number of nominal entries (power of 2).
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
+   * log_base2 of the number of nominal entries, which is a power of 2.
+   * @param lgNomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * @return the maximum number of storage bytes required for a CompactSketch with the given
-   * nomEntries.
+   * lgNomEntries.
    * @see Sketch#getCompactSketchMaxBytes(int)
    */
-  public static int getCompactSketchMaxBytes(final int nomEntries) {
-    return Sketch.getCompactSketchMaxBytes(nomEntries);
+  public static int getCompactSketchMaxBytes(final int lgNomEntries) {
+    return Sketch.getCompactSketchMaxBytes(lgNomEntries);
   }
 
   /**
