@@ -32,6 +32,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
  * t-Digest for estimating quantiles and ranks.
@@ -125,6 +126,7 @@ public final class TDigestDouble {
   /**
    * Process buffered values and merge centroids if needed
    */
+  // this method will become private in the next major version
   public void compress() {
     if (numBuffered_ == 0) { return; }
     final int num = numBuffered_ + numCentroids_;
@@ -275,6 +277,51 @@ public final class TDigestDouble {
     final double w1 = weight - centroidsWeight_ - centroidWeights_[numCentroids_ - 1] / 2.0;
     final double w2 = centroidWeights_[numCentroids_ - 1] / 2.0 - w1;
     return weightedAverage(centroidWeights_[numCentroids_ - 1], w1, maxValue_, w2);
+  }
+
+  /**
+   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
+   * given a set of split points.
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
+   * that divide the input domain into <i>m+1</i> consecutive disjoint intervals (bins).
+   *
+   * @return an array of m+1 doubles each of which is an approximation
+   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
+   * @throws SketchesStateException if sketch is empty.
+   */
+  public double[] getPMF(final double[] splitPoints) {
+    final double[] buckets = getCDF(splitPoints);
+    for (int i = buckets.length; i-- > 1; ) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
+
+  /**
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+   * cumulative analog of the PMF, of the input stream given a set of split points.
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing values
+   * that divide the input domain into <i>m+1</i> consecutive disjoint intervals.
+   *
+   * @return an array of m+1 doubles, which are a consecutive approximation to the CDF
+   * of the input stream given the splitPoints. The value at array position j of the returned
+   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
+   * array. This can be viewed as array of ranks of the given split points plus one more value
+   * that is always 1.
+   * @throws SketchesStateException if sketch is empty.
+   */
+  public double[] getCDF(final double[] splitPoints) {
+    if (isEmpty()) { throw new SketchesStateException(QuantilesAPI.EMPTY_MSG); }
+    QuantilesUtil.checkDoublesSplitPointsOrder(splitPoints);
+    final int len = splitPoints.length + 1;
+    final double[] ranks = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      ranks[i] = getRank(splitPoints[i]);
+    }
+    ranks[len - 1] = 1.0;
+    return ranks;
   }
 
   /**
