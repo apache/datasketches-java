@@ -20,6 +20,7 @@
 package org.apache.datasketches.quantilescommon;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * The Quantiles API for item type <i>double</i>.
