@@ -33,7 +33,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * This is equivalent to {@link #getCDF(double[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double[] getCDF(double[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
@@ -70,7 +70,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    *
    * @param searchCrit the desired search criteria.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double[] getCDF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -79,7 +79,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * item returned by <i>getQuantile(1.0)</i>.
    *
    * @return the maximum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double getMaxItem();
 
@@ -88,7 +88,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * item returned by <i>getQuantile(0.0)</i>.
    *
    * @return the minimum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double getMinItem();
 
@@ -96,7 +96,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * This is equivalent to {@link #getPMF(double[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double[] getPMF(double[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -140,7 +140,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    *
    * @param searchCrit the desired search criteria.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double[] getPMF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -148,7 +148,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * This is equivalent to {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
    * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @return the approximate quantile given the normalized rank.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double getQuantile(double rank) {
     return getQuantile(rank, INCLUSIVE);
@@ -163,7 +163,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * If EXCLUSIVE, he given rank includes all quantiles &lt;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double getQuantile(double rank, QuantileSearchCriteria searchCrit);
@@ -180,7 +180,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param rank the given normalized rank
    * @return the lower bound of the quantile confidence interval in which the quantile of the
    * given rank exists.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double getQuantileLowerBound(double rank);
 
@@ -196,7 +196,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param rank the given normalized rank
    * @return the upper bound of the quantile confidence interval in which the true quantile of the
    * given rank exists.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double getQuantileUpperBound(double rank);
 
@@ -205,7 +205,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param ranks the given array of normalized ranks, each of which must be
    * in the interval [0.0,1.0].
    * @return an array of quantiles corresponding to the given array of normalized ranks.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double[] getQuantiles(double[] ranks) {
     return getQuantiles(ranks, INCLUSIVE);
@@ -219,7 +219,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le;
    * the quantile directly corresponding to each rank.
    * @return an array of quantiles corresponding to the given array of normalized ranks.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double[] getQuantiles(double[] ranks, QuantileSearchCriteria searchCrit);
@@ -228,7 +228,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * This is equivalent to {@link #getRank(double, QuantileSearchCriteria) getRank(quantile, INCLUSIVE)}
    * @param quantile the given quantile
    * @return the normalized rank corresponding to the given quantile
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double getRank(double quantile) {
     return getRank(quantile, INCLUSIVE);
@@ -240,7 +240,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param quantile the given quantile
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
    * @return the normalized rank corresponding to the given quantile
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double getRank(double quantile, QuantileSearchCriteria searchCrit);
@@ -249,7 +249,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * This is equivalent to {@link #getRanks(double[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double[] getRanks(double[] quantiles) {
     return getRanks(quantiles, INCLUSIVE);
@@ -262,7 +262,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param quantiles the given array of quantiles
    * @param searchCrit if INCLUSIVE, the given quantiles include the rank directly corresponding to each quantile.
    * @return an array of normalized ranks corresponding to the given array of quantiles.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double[] getRanks(double[] quantiles, QuantileSearchCriteria searchCrit);
