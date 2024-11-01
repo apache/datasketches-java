@@ -1708,6 +1708,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd>
 <div class="block">This is equivalent to <a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getCDF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getCDF(splitPoints, INCLUSIVE)</code></a></div>
 </dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getCDF(double%5B%5D)">getCDF(double[])</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+ cumulative analog of the PMF, of the input stream given a set of split points.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getCDF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCDF(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getCDF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCDF(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
@@ -1830,7 +1835,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/theta/Sketches.html#getCompactSketchMaxBytes(int)">getCompactSketchMaxBytes(int)</a></span> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
 <div class="block">Returns the maximum number of storage bytes required for a CompactSketch given the configured
- number of nominal entries (power of 2).</div>
+ log_base2 of the number of nominal entries, which is a power of 2.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllItemsSketch.html#getComparator()">getComparator()</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a></dt>
 <dd>&nbsp;</dd>
@@ -2856,6 +2861,11 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getPMF(double%5B%5D)">getPMF(double[])</a></span> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></dt>
 <dd>
 <div class="block">This is equivalent to <a href="org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.html#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)"><code>getPMF(splitPoints, INCLUSIVE)</code></a></div>
+</dd>
+<dt><span class="memberNameLink"><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getPMF(double%5B%5D)">getPMF(double[])</a></span> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
+<dd>
+<div class="block">Returns an approximation to the Probability Mass Function (PMF) of the input stream
+ given a set of split points.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="org/apache/datasketches/kll/KllDoublesSketch.html#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF(double[], QuantileSearchCriteria)</a></span> - Method in class org.apache.datasketches.kll.<a href="org/apache/datasketches/kll/KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></dt>
 <dd>&nbsp;</dd>

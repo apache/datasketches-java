@@ -162,10 +162,10 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCompactSketchMaxBytes(int)">getCompactSketchMaxBytes</a></span>&#8203;(int&nbsp;nomEntries)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCompactSketchMaxBytes(int)">getCompactSketchMaxBytes</a></span>&#8203;(int&nbsp;lgNomEntries)</code></th>
 <td class="colLast">
 <div class="block">Returns the maximum number of storage bytes required for a CompactSketch given the configured
- number of nominal entries (power of 2).</div>
+ log_base2 of the number of nominal entries, which is a power of 2.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -515,15 +515,15 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <ul class="blockList">
 <li class="blockList">
 <h4>getCompactSketchMaxBytes</h4>
-<pre class="methodSignature">public static&nbsp;int&nbsp;getCompactSketchMaxBytes&#8203;(int&nbsp;nomEntries)</pre>
+<pre class="methodSignature">public static&nbsp;int&nbsp;getCompactSketchMaxBytes&#8203;(int&nbsp;lgNomEntries)</pre>
 <div class="block">Returns the maximum number of storage bytes required for a CompactSketch given the configured
- number of nominal entries (power of 2).</div>
+ log_base2 of the number of nominal entries, which is a power of 2.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>nomEntries</code> - <a href="../../../../resources/dictionary.html#nomEntries">Nominal Entries</a></dd>
+<dd><code>lgNomEntries</code> - <a href="../../../../resources/dictionary.html#nomEntries">Nominal Entries</a></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the maximum number of storage bytes required for a CompactSketch with the given
- nomEntries.</dd>
+ lgNomEntries.</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="Sketch.html#getCompactSketchMaxBytes(int)"><code>Sketch.getCompactSketchMaxBytes(int)</code></a></dd>
 </dl>
