@@ -28,7 +28,6 @@ import static org.testng.Assert.fail;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
@@ -144,19 +143,21 @@ public class DoublesSketchTest {
   public void directSketchShouldMoveOntoHeapEventually() {
 
     WritableMemory wmem = WritableMemory.allocateDirect(1000, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem2 = wmem;
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
     Assert.assertTrue(sketch.isSameResource(wmem));
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
     Assert.assertFalse(sketch.isSameResource(wmem));
+    Assert.assertFalse(wmem2.isAlive());
   }
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
     int i = 0;
     WritableMemory wmem = WritableMemory.allocateDirect(50, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-
+    WritableMemory wmem2 = wmem;
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
     Assert.assertTrue(sketch.isSameResource(wmem));
     for (; i < 1000; i++) {
@@ -167,6 +168,7 @@ public class DoublesSketchTest {
         break;
       }
     }
+    Assert.assertFalse(wmem2.isAlive());
   }
 
   @Test

@@ -18,14 +18,22 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.apache</groupId>
+    <artifactId>apache</artifactId>
+    <version>32</version>
+  </parent>
+
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>6.1.0-SNAPSHOT</version>
+  <version>7.0.0</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
@@ -58,8 +66,8 @@ under the License.
   </scm>
 
   <issueManagement>
-    <!-- <system>jira</system> -->
-    <!-- <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
+    <!-- <system>jira</system>
+      <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
     <system>GitHub</system>
     <url>https://github.com/apache/${project.artifactId}/issues</url>
   </issueManagement>
@@ -78,7 +86,7 @@ under the License.
     <datasketches-memory.version>4.0.0</datasketches-memory.version>
 
     <!-- Test -->
-    <testng.version>7.10.0</testng.version>
+    <testng.version>7.10.2</testng.version>
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
     <testng.generate-java-files>generate_java_files</testng.generate-java-files>
     <testng.check-cpp-files>check_cpp_files</testng.check-cpp-files>
@@ -96,32 +104,31 @@ under the License.
     <project.reporting.outputEncoding>${charset.encoding}</project.reporting.outputEncoding>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss'Z'</maven.build.timestamp.format>
 
-    <!--  Maven Plugins -->
-    <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
-    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
-    <maven-gpg-plugin.version>3.2.3</maven-gpg-plugin.version>
-    <maven-jar-plugin.version>3.4.0</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.7.0</maven-javadoc-plugin.version>
-    <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
-    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
-    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-surefire-failsafe-plugins.version>3.2.5</maven-surefire-failsafe-plugins.version><!-- for surefire, failsafe and surefire-report -->
-    <maven-install-plugin.version>3.1.2</maven-install-plugin.version>
-    <!-- Apache Plugins -->
-    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version>
-    <!-- org.jacoco Maven Plugins -->
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
-    <!-- org.eluder Maven Plugins -->
-    <coveralls-repo-token></coveralls-repo-token>
-    <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
-    <!-- mojohaus.org plugins -->
-    <versions-maven-plugin.version>2.16.2</versions-maven-plugin.version>
-
-    <!-- other -->
-    <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version> <!-- no actual plugin, referenced by m2e -->
-    <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
+    <!--  org.apache.maven plugins -->
+     <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
+     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+     <maven-deploy-plugin.version>3.1.3</maven-deploy-plugin.version>
+     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+     <maven-gpg-plugin.version>3.2.5</maven-gpg-plugin.version>
+     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+     <maven-javadoc-plugin.version>3.8.0</maven-javadoc-plugin.version>
+     <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+     <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
+     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+     <maven-surefire-failsafe-plugins.version>3.4.0</maven-surefire-failsafe-plugins.version> <!-- for surefire, failsafe and surefire-report-->
+     <!-- com.github plugins -->
+     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>    
+     <!-- org.apache.creadur plugins -->
+     <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version> 
+     <!-- org.eluder maven plugins -->
+     <coveralls-repo-token></coveralls-repo-token>
+     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
+     <!-- org.jacoco maven plugins -->
+     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+     <!-- org.mojohaus plugins -->
+     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
+     <!-- other -->
+     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
   </properties>
 
   <dependencies>
@@ -130,6 +137,7 @@ under the License.
       <artifactId>datasketches-memory</artifactId>
       <version>${datasketches-memory.version}</version>
     </dependency>
+
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>

@@ -26,7 +26,6 @@ import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
@@ -146,11 +145,6 @@ final class AnotBimpl extends AnotB {
   @Override
   int getRetainedEntries() {
     return curCount_;
-  }
-
-  @Override
-  public boolean isSameResource(final Memory that) {
-    return false;
   }
 
   //restricted

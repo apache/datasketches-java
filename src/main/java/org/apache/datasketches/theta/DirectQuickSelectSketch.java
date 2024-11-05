@@ -323,6 +323,10 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
           memReqSvr_ = (memReqSvr_ == null) ? wmem_.getMemoryRequestServer() : memReqSvr_;
 
+          if (memReqSvr_ == null) { //in case the MRS is not enabled or null.
+            throw new SketchesArgumentException("Out of Memory, MemoryRequestServer is null, cannot expand.");
+          }
+
           final WritableMemory newDstMem = memReqSvr_.request(wmem_,reqBytes);
 
           moveAndResize(wmem_, preambleLongs, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);

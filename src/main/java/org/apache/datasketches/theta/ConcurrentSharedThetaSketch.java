@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.datasketches.common.MemoryStatus;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -30,7 +31,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author eshcar
  */
-interface ConcurrentSharedThetaSketch {
+interface ConcurrentSharedThetaSketch extends MemoryStatus {
 
   long NOT_SINGLE_HASH = -1L;
   double MIN_ERROR = 0.0000001;
@@ -63,8 +64,8 @@ interface ConcurrentSharedThetaSketch {
   void endPropagation(AtomicBoolean localPropagationInProgress, boolean isEager);
 
   /**
-   * Returns the value of the volatile theta manged by the shared sketch
-   * @return the value of the volatile theta manged by the shared sketch
+   * Returns the value of the volatile theta managed by the shared sketch
+   * @return the value of the volatile theta managed by the shared sketch
    */
   long getVolatileTheta();
 
@@ -124,10 +125,10 @@ interface ConcurrentSharedThetaSketch {
   //
   //For the external user all of the below methods can be obtained by casting the shared
   //sketch to UpdateSketch.  However, these methods here also act as an alias so that an
-  //attempt to access these methods from the local buffer will be divered to the shared
+  //attempt to access these methods from the local buffer will be diverted to the shared
   //sketch.
 
-  //From Sketch
+  //From Sketch and MemoryStatus
 
   int getCompactBytes();
 
@@ -138,10 +139,6 @@ interface ConcurrentSharedThetaSketch {
   double getLowerBound(int numStdDev);
 
   double getUpperBound(int numStdDev);
-
-  boolean hasMemory();
-
-  boolean isDirect();
 
   boolean isEmpty();
 

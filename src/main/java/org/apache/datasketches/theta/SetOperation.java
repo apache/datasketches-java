@@ -25,6 +25,7 @@ import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemoryStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -35,7 +36,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public abstract class SetOperation {
+public abstract class SetOperation implements MemoryStatus {
   static final int CONST_PREAMBLE_LONGS = 3;
 
   SetOperation() {}
@@ -236,20 +237,6 @@ public abstract class SetOperation {
    * @return the Family of this SetOperation
    */
   public abstract Family getFamily();
-
-  /**
-   * Returns true if the backing resource of <i>this</i> is identical with the backing resource
-   * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
-   * the region offset must also be the same.
-   *
-   * <p>Note: Only certain set operators during stateful operations can be serialized.
-   * Only when they are stored into Memory will this be relevant.</p>
-   *
-   * @param that A different non-null object
-   * @return true if the backing resource of <i>this</i> is the same as the backing resource
-   * of <i>that</i>.
-   */
-  public abstract boolean isSameResource(Memory that);
 
   //restricted
 

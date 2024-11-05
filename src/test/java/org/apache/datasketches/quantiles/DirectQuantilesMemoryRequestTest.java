@@ -51,7 +51,7 @@ public class DirectQuantilesMemoryRequestTest {
     //########## Owning Implementation
     // This part would actually be part of the Memory owning implementation so it is faked here
     WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-
+    WritableMemory wmem2 = wmem;
     println("Initial mem size: " + wmem.getCapacity());
 
     //########## Receiving Application
@@ -74,6 +74,7 @@ public class DirectQuantilesMemoryRequestTest {
     //The actual Memory has been re-allocated several times,
     // so the above wmem reference is invalid.
     println("\nFinal mem size: " + wmem.getCapacity());
+    assertFalse(wmem2.isAlive());
   }
 
   @Test
@@ -83,7 +84,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int initBytes = (4 + (u / 2)) << 3; // not enough to hold everything
 
     WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-
+    WritableMemory wmem2 = wmem;
     println("Initial mem size: " + wmem.getCapacity());
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
     for (int i = 1; i <= u; i++) {
@@ -92,6 +93,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int currentSpace = usk1.getCombinedBufferItemCapacity();
     println("curCombBufItemCap: " + currentSpace);
     assertEquals(currentSpace, 2 * k);
+    assertFalse(wmem2.isAlive());
   }
 
   @Test
@@ -101,7 +103,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int initBytes = ((2 * k) + 4) << 3; //just room for BB
 
     WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-
+    WritableMemory wmem2 = wmem;
     println("Initial mem size: " + wmem.getCapacity());
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
     for (int i = 1; i <= u; i++) {
@@ -113,6 +115,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int newSpace = usk1.getCombinedBufferItemCapacity();
     println("newCombBurItemCap: " + newSpace);
     assertEquals(newCB.length, 3 * k);
+    assertFalse(wmem2.isAlive());
   }
 
   @Test
@@ -124,7 +127,7 @@ public class DirectQuantilesMemoryRequestTest {
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
     WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
-
+    WritableMemory wmem2 = wmem;
     origSketchMem.copyTo(0, wmem, 0, initBytes);
     UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(wmem);
     assertTrue(wmem.isSameResource(usk2.getMemory()));
@@ -141,6 +144,7 @@ public class DirectQuantilesMemoryRequestTest {
 
     final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);
     assertEquals(mem2.getCapacity(), expectedSize);
+    assertFalse(wmem2.isAlive());
   }
 
   @Test

@@ -66,7 +66,7 @@ public class SetOperationBuilder {
    * Sets the Maximum Nominal Entries (max K) for this set operation. The effective value of K of the result of a
    * Set Operation can be less than max K, but never greater.
    * The minimum value is 16 and the maximum value is 67,108,864, which is 2^26.
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not a power of 2.
    * @return this SetOperationBuilder
    */

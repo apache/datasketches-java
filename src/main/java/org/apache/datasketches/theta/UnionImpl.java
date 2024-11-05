@@ -263,9 +263,21 @@ final class UnionImpl extends Union {
   }
 
   @Override
+  public boolean hasMemory() {
+    return gadget_ instanceof DirectQuickSelectSketchR
+        ? gadget_.hasMemory() : false;
+  }
+
+  @Override
+  public boolean isDirect() {
+    return gadget_ instanceof DirectQuickSelectSketchR
+        ? gadget_.isDirect() : false;
+  }
+
+  @Override
   public boolean isSameResource(final Memory that) {
     return gadget_ instanceof DirectQuickSelectSketchR
-        ? gadget_.getMemory().isSameResource(that) : false;
+        ? gadget_.isSameResource(that) : false;
   }
 
   @Override
