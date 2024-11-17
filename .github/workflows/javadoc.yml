@@ -2,22 +2,34 @@ name: JavaDoc
 
 on:
   push:
-    branches:
-      - master
+    branches: [7.0.X, master]
   workflow_dispatch:
 
 jobs:
   javadoc:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Echo Java Version
+        run:  java -version
+
       - name: Generate JavaDoc
         run: mvn javadoc:javadoc
+
       - name: Deploy JavaDoc
-        uses: JamesIves/github-pages-deploy-action@5dc1d5a192aeb5ab5b7d5a77b7d36aea4a7f5c92
+        uses: JamesIves/github-pages-deploy-action@4.6.8
+        #uses: JamesIves/github-pages-deploy-action@5dc1d5a192aeb5ab5b7d5a77b7d36aea4a7f5c92
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          folder: target/site/apidocs
+          folder: target/reports/apidocs
           target-folder: docs/${{ github.ref_name }}
           branch: gh-pages
