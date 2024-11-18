@@ -34,8 +34,11 @@ public class SetOperationCornerCases {
 
   /** Intersection actions */
   public enum IntersectAction {
+    /** Degenerate{MinTheta, 0, F} */
     DEGEN_MIN_0_F("D", "Degenerate{MinTheta, 0, F}"),
+    /** Empty{1.0, 0, T */
     EMPTY_1_0_T("E", "Empty{1.0, 0, T}"),
+    /** Full Intersect */
     FULL_INTERSECT("I", "Full Intersect");
 
     private String actionId;
@@ -65,11 +68,17 @@ public class SetOperationCornerCases {
 
   /** A not B actions */
   public enum AnotbAction {
+    /** Sketch A Exact */
     SKETCH_A("A", "Sketch A Exactly"),
+    /** Trim Sketch A by MinTheta */
     TRIM_A("TA", "Trim Sketch A by MinTheta"),
+    /** Degenerate{MinTheta, 0, F} */
     DEGEN_MIN_0_F("D", "Degenerate{MinTheta, 0, F}"),
+    /** Degenerate{ThetaA, 0, F} */
     DEGEN_THA_0_F("DA", "Degenerate{ThetaA, 0, F}"),
+    /** Empty{1.0, 0, T} */
     EMPTY_1_0_T("E", "Empty{1.0, 0, T}"),
+    /** Full AnotB */
     FULL_ANOTB("N", "Full AnotB");
 
     private String actionId;
