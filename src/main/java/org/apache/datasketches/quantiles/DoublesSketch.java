@@ -140,7 +140,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   public static DoublesSketch heapify(final Memory srcMem) {
     if (checkIsCompactMemory(srcMem)) {
-      return CompactDoublesSketch.heapify(srcMem);
+      return HeapCompactDoublesSketch.heapifyInstance(srcMem);
     }
     return UpdateDoublesSketch.heapify(srcMem);
   }

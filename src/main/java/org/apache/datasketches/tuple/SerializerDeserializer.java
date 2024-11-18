@@ -32,8 +32,17 @@ public final class SerializerDeserializer {
    * Defines the sketch classes that this SerializerDeserializer can handle.
    */
   @SuppressWarnings("javadoc")
-  public static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch,
-    ArrayOfDoublesCompactSketch, ArrayOfDoublesUnion }
+  public static enum SketchType {
+    /** QuickSelectSketch */
+    QuickSelectSketch,
+    /** CompactSketch */
+    CompactSketch,
+    /** ArrayOfDoublesQuickSelectSketch */
+    ArrayOfDoublesQuickSelectSketch,
+    /** ArrayOfDoublesCompactSketch */
+    ArrayOfDoublesCompactSketch,
+    /** ArrayOfDoublesUnion */
+    ArrayOfDoublesUnion }
 
   static final int TYPE_BYTE_OFFSET = 3;
 

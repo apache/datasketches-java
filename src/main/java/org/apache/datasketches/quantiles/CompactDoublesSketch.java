@@ -20,7 +20,6 @@
 package org.apache.datasketches.quantiles;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Compact sketches are inherently <i>read only</i>.
@@ -29,10 +28,6 @@ import org.apache.datasketches.memory.Memory;
 public abstract class CompactDoublesSketch extends DoublesSketch {
   CompactDoublesSketch(final int k) {
     super(k);
-  }
-
-  public static CompactDoublesSketch heapify(final Memory srcMem) {
-    return HeapCompactDoublesSketch.heapifyInstance(srcMem);
   }
 
   @Override

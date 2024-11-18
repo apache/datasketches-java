@@ -249,7 +249,7 @@ public class QuantilesSketchCrossLanguageTest {
     Assert.assertEquals(q2, quantile, 0.0);
 
     // same thing with compact sketch
-    qs2 = CompactDoublesSketch.heapify(srcMem);
+    qs2 = HeapCompactDoublesSketch.heapifyInstance(srcMem);
     //Test the quantile
     q2 = qs2.getQuantile(nf, EXCLUSIVE);
     println("New Median: " + q2);

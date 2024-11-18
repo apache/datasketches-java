@@ -49,6 +49,13 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   @Override
   public abstract void update(double item);
 
+  /**
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based sketch based on the given Memory.
+   */
   public static UpdateDoublesSketch heapify(final Memory srcMem) {
     return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
   }

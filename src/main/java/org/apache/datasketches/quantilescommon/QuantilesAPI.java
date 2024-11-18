@@ -205,11 +205,22 @@ package org.apache.datasketches.quantilescommon;
 @SuppressWarnings("javadoc")
 public interface QuantilesAPI {
 
+  /** The sketch must not be empty for this operation. */
   static String EMPTY_MSG = "The sketch must not be empty for this operation. ";
+
+  /** Unsupported operation for this Sketch Type. */
   static String UNSUPPORTED_MSG = "Unsupported operation for this Sketch Type. ";
+
+  /** Sketch does not have just one item. */
   static String NOT_SINGLE_ITEM_MSG = "Sketch does not have just one item. ";
+
+  /** MemoryRequestServer must not be null. */
   static String MEM_REQ_SVR_NULL_MSG = "MemoryRequestServer must not be null. ";
+
+  /** Target sketch is Read Only, cannot write. */
   static String TGT_IS_READ_ONLY_MSG = "Target sketch is Read Only, cannot write. ";
+
+  /** A sketch cannot merge with itself. */
   static String SELF_MERGE_MSG = "A sketch cannot merge with itself. ";
 
   /**

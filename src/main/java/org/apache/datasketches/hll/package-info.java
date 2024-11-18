@@ -18,7 +18,7 @@
  */
 
 /**
- * <h1>The DataSketches&trade; HLL sketch family package</h1>
+ * <H1>The DataSketches&trade; HLL sketch family package</H1>
  * {@link org.apache.datasketches.hll.HllSketch HllSketch} and {@link org.apache.datasketches.hll.Union Union}
  * are the public facing classes of this high performance implementation of Phillipe Flajolet's
  * HyperLogLog algorithm[1] but with significantly improved error behavior and important features that can be

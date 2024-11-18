@@ -89,11 +89,23 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   @Override
   public abstract float getQuantileLowerBound(double rank);
 
+  /**
+   * Gets an approximate lower bound of the quantile associated with the given rank.
+   * @param rank the given normalized rank, a number between 0 and 1.0.
+   * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
+   * @return an approximate lower bound quantile, if it exists.
+   */
   public abstract float getQuantileLowerBound(double rank, int numStdDev);
 
   @Override
   public abstract float getQuantileUpperBound(double rank);
 
+  /**
+   * Gets an approximate upper bound of the quantile associated with the given rank.
+   * @param rank the given normalized rank, a number between 0 and 1.0.
+   * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
+   * @return an approximate upper bound quantile, if it exists.
+   */
   public abstract float getQuantileUpperBound(double rank, int numStdDev);
 
   @Override
@@ -101,7 +113,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
 
   /**
    * Gets an approximate lower bound rank of the given normalized rank.
-   * @param rank the given rank, a number between 0 and 1.0.
+   * @param rank the given normalized rank, a number between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate lower bound rank.
    */

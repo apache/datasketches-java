@@ -16,5 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
+/**
+ * BloomFilter package
+ */
 package org.apache.datasketches.filters.bloomfilter;
