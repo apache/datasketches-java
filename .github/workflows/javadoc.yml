@@ -2,7 +2,7 @@ name: JavaDoc
 
 on:
   push:
-    branches: [7.0.X, master]
+    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
@@ -22,12 +22,15 @@ jobs:
       - name: Echo Java Version
         run:  java -version
 
+      - name: Print Current workflow
+        run: >
+         cat .github/workflows/javadoc.yml
+
       - name: Generate JavaDoc
         run: mvn javadoc:javadoc
 
       - name: Deploy JavaDoc
         uses: JamesIves/github-pages-deploy-action@v4.6.8
-        #uses: JamesIves/github-pages-deploy-action@881db5376404c5c8d621010bcbec0310b58d5e29 #alternate
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           folder: target/reports/apidocs

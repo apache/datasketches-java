@@ -50,7 +50,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
    * that divide the item input domain into <i>m+1</i> overlapping intervals.
-   *
+   * <blockquote>
    * <p>The start of each interval is below the lowest item retained by the sketch
    * corresponding to a zero rank or zero probability, and the end of the interval
    * is the rank or cumulative probability corresponding to the split point.</p>
@@ -67,7 +67,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * </ul>
    *
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
-   *
+   * </blockquote>
    * @param searchCrit the desired search criteria.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
@@ -113,7 +113,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
    * that divide the item input domain into <i>m+1</i> consecutive, non-overlapping intervals.
-   *
+   * <blockquote>
    * <p>Each interval except for the end intervals starts with a split point and ends with the next split
    * point in sequence.</p>
    *
@@ -137,7 +137,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * </ul>
    *
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
-   *
+   * </blockquote>
    * @param searchCrit the desired search criteria.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.

@@ -31,6 +31,7 @@ import org.apache.datasketches.memory.Memory;
 /**
  * This class defines the preamble data structure and provides basic utilities for some of the key
  * fields.
+ *
  * <p>
  * The intent of the design of this class was to isolate the detailed knowledge of the bit and byte
  * layout of the serialized form of the sketches derived from the Sketch class into one place. This

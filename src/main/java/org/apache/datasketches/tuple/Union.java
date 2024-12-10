@@ -100,8 +100,7 @@ public class Union<S extends Summary> {
   /**
    * Performs a stateful union of the internal set with the given tupleSketch.
    * @param tupleSketch input tuple sketch to merge with the internal set.
-   *
-   * <p>Nulls and empty sketches are ignored.</p>
+   * Nulls and empty sketches are ignored.
    */
   public void union(final Sketch<S> tupleSketch) {
     if (tupleSketch == null || tupleSketch.isEmpty()) { return; }

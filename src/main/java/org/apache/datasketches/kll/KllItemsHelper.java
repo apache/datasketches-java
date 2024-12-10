@@ -346,6 +346,7 @@ final class KllItemsHelper {
 
   /**
    * Compression algorithm used to merge higher levels.
+   *
    * <p>Here is what we do for each level:</p>
    * <ul><li>If it does not need to be compacted, then simply copy it over.</li>
    * <li>Otherwise, it does need to be compacted, so...

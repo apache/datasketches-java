@@ -278,6 +278,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   /**
    * {@inheritDoc}
+   *
    * <p>The parameter <i>k</i> will not change.</p>
    */
   @Override

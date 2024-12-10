@@ -132,10 +132,9 @@ public final class ReservoirLongsUnion {
 
   /**
    * Union the given sketch.
-   * <p>
-   * This method can be repeatedly called. If the given sketch is null it is interpreted as an empty
-   * sketch.
-   * </p>
+   *
+   * <p>This method can be repeatedly called. If the given sketch is null it is interpreted as an empty
+   * sketch.</p>
    *
    * @param sketchIn The incoming sketch.
    */

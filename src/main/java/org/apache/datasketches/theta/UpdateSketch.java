@@ -343,6 +343,7 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * All potential updates converge here.
+   *
    * <p>Don't ever call this unless you really know what you are doing!</p>
    *
    * @param hash the given input hash value.  A hash of zero or Long.MAX_VALUE is ignored.

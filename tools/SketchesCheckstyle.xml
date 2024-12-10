@@ -230,7 +230,7 @@ under the License.
       <property name="allowedAnnotations" value="Override, Test"/>
     </module>
     
-    <module name="JavadocParagraph"/>
+    <!-- <module name="JavadocParagraph"/> disabled because of a bug with <p> after @param -->
 
     <module name="JavadocTagContinuationIndentation">
       <property name="severity" value="ignore"/>

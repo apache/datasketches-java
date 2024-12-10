@@ -172,6 +172,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
 
   /**
    * {@inheritDoc}
+   *
    * <p>The parameters k, highRankAccuracy, and reqDebug will not change.</p>
    */
   @Override

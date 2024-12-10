@@ -20,12 +20,12 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
+ * This is a stochastic streaming sketch that enables near-real time analysis of the
  * approximate distribution of items from a very large stream in a single pass, requiring only
  * that the items are comparable.
  * The analysis is obtained using the <i>getQuantile()</i> function or the
  * inverse functions getRank(), getPMF() (the Probability Mass Function), and getCDF()
- * (the Cumulative Distribution Function).</p>
+ * (the Cumulative Distribution Function).
  *
  * <p>Given an input stream of <i>N</i> items, the <i>natural rank</i> of any specific
  * item is defined as its index <i>(1 to N)</i> in the hypothetical sorted stream of all

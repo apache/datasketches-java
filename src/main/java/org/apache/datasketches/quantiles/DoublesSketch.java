@@ -506,6 +506,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * {@inheritDoc}
+   *
    * <p>The parameter <i>k</i> will not change.</p>
    */
   @Override

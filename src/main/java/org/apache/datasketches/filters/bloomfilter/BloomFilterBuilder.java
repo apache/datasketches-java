@@ -25,8 +25,8 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * <p>This class provides methods to help estimate the correct parameters when
- * creating a Bloom filter, and methods to create the filter using those values.</p>
+ * This class provides methods to help estimate the correct parameters when
+ * creating a Bloom filter, and methods to create the filter using those values.
  *
  * <p>The underlying math is described in the
  * <a href='https://en.wikipedia.org/wiki/Bloom_filter#Optimal_number_of_hash_functions'>

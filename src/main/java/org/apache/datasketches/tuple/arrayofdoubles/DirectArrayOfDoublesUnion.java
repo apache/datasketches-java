@@ -27,6 +27,7 @@ import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
  * Direct Union operation for tuple sketches of type ArrayOfDoubles.
+ *
  * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
