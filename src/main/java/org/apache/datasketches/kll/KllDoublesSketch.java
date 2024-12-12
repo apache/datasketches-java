@@ -278,6 +278,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   /**
    * {@inheritDoc}
+   *
    * <p>The parameter <i>k</i> will not change.</p>
    */
   @Override
