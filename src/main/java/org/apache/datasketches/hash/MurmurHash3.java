@@ -29,10 +29,8 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 
 /**
- * <p>
  * The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
  * excellent avalanche and 2-way bit independence properties.
- * </p>
  *
  * <p>
  * Austin Appleby's C++

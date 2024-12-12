@@ -278,6 +278,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
 
   /**
    * {@inheritDoc}
+   *
    * <p>The parameter <i>k</i> will not change.</p>
    */
   @Override

@@ -33,8 +33,8 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.memory.XxHash;
 
 /**
- * <p>A Bloom filter is a data structure that can be used for probabilistic
- * set membership.</p>
+ * A Bloom filter is a data structure that can be used for probabilistic
+ * set membership.
  *
  * <p>When querying a Bloom filter, there are no false positives. Specifically:
  * When querying an item that has already been inserted to the filter, the filter will

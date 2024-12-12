@@ -25,6 +25,7 @@ import org.apache.datasketches.common.Util;
 /**
  * This class provides a compact representation of reservoir size by encoding it into a
  * fixed-point 16-bit value.
+ *
  * <p>The value itself is a fractional power of 2, with 5 bits of exponent and 11 bits of
  * mantissa. The exponent allows a choice of anywhere from 0-30, and there are 2048 possible
  * reservoir size values within each octave. Because reservoir size must be an integer, this

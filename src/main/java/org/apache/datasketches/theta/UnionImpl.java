@@ -333,7 +333,7 @@ final class UnionImpl extends Union {
       if (sketchIn.isOrdered() && (sketchIn instanceof CompactSketch)) { //Use early stop
         //Ordered, thus compact
         if (sketchIn.hasMemory()) {
-          final Memory skMem = ((CompactSketch) sketchIn).getMemory();
+          final Memory skMem = sketchIn.getMemory();
           final int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
           for (int i = 0; i < curCountIn; i++ ) {
             final int offsetBytes = preambleLongs + i << 3;

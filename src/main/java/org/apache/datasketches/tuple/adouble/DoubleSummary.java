@@ -41,24 +41,28 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
 
     /**
      * The aggregation mode is the summation function.
+     *
      * <p>New retained value = previous retained value + incoming value</p>
      */
     Sum,
 
     /**
      * The aggregation mode is the minimum function.
+     *
      * <p>New retained value = min(previous retained value, incoming value)</p>
      */
     Min,
 
     /**
      * The aggregation mode is the maximum function.
+     *
      * <p>New retained value = max(previous retained value, incoming value)</p>
      */
     Max,
 
     /**
      * The aggregation mode is always one.
+     *
      * <p>New retained value = 1.0</p>
      */
     AlwaysOne

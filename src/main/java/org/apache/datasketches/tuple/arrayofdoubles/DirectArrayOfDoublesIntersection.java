@@ -23,6 +23,7 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Direct Intersection operation for tuple sketches of type ArrayOfDoubles.
+ *
  * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
@@ -43,7 +44,7 @@ final class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection 
   }
 
   @Override
-  protected ArrayOfDoublesQuickSelectSketch createSketch(final int nomEntries, final int numValues, 
+  protected ArrayOfDoublesQuickSelectSketch createSketch(final int nomEntries, final int numValues,
       final long seed) {
     return new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 0, 1f, numValues, seed, mem_);
   }
