@@ -55,10 +55,10 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * <p>This sketch is useful for tracking approximate frequencies of items of type <i>&lt;T&gt;</i>
+ * This sketch is useful for tracking approximate frequencies of items of type <i>&lt;T&gt;</i>
  * with optional associated counts (<i>&lt;T&gt;</i> item, <i>long</i> count) that are members of a
  * multiset of such items. The true frequency of an item is defined to be the sum of associated
- * counts.</p>
+ * counts.
  *
  * <p>This implementation provides the following capabilities:</p>
  * <ul>

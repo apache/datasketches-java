@@ -110,7 +110,8 @@ import org.apache.datasketches.memory.WritableMemory;
    *  0   || (empty)|    0   |        K        | Flags  |FamID=17| SerVer |     PreInts = 2    |
    * </pre>
    * <pre>
-   * <p>Flags:</p>
+   *
+   * <b>Flags:</b>
    * Bit 0 : Endianness, reserved
    * Bit 1 : ReadOnly, reserved
    * Bit 2 : Empty

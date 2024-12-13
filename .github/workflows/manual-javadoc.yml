@@ -1,9 +1,6 @@
 name: JavaDoc
 
 on:
-  push:
-    branches:
-      - master
   workflow_dispatch:
 
 jobs:
@@ -11,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Generate JavaDoc
         run: mvn javadoc:javadoc
       - name: Deploy JavaDoc
