@@ -18,12 +18,11 @@
  */
 
 /**
- * <p>The hash package contains a high-performing and extended Java implementations
+ * The hash package contains a high-performing and extended Java implementations
  * of Austin Appleby's 128-bit MurmurHash3 hash function originally coded in C.
  * This core MurmurHash3.java class is used throughout many of the sketch classes for consistency
  * and as long as the user specifies the same seed will result in coordinated hash operations.
  * This package also contains an adaptor class that extends the basic class with more functions
  * commonly associated with hashing.
- * </p>
  */
 package org.apache.datasketches.hash;

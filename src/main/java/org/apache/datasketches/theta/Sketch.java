@@ -309,7 +309,7 @@ public abstract class Sketch implements MemoryStatus {
    * log_base2 of the number of nominal entries, which is a power of 2.
    * @param lgNomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * @return the maximum number of storage bytes required for a CompactSketch with the given
-   * nomEntries.
+   * lgNomEntries.
    */
   public static int getCompactSketchMaxBytes(final int lgNomEntries) {
     return (int)((2 << lgNomEntries) * ThetaUtil.REBUILD_THRESHOLD

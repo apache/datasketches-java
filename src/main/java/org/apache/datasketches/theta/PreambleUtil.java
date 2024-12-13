@@ -37,6 +37,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 /**
  * This class defines the preamble data structure and provides basic utilities for some of the key
  * fields.
+ *
  * <p>The intent of the design of this class was to isolate the detailed knowledge of the bit and
  * byte layout of the serialized form of the sketches derived from the Sketch class into one place.
  * This allows the possibility of the introduction of different serialization
@@ -126,7 +127,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *  3   ||----------------------Start of Hash Table of longs---------------------------------|
  *  </pre>
  *
- * <p> Union objects require 32 bytes of preamble plus a non-compact array of longs representing a
+ * <p>Union objects require 32 bytes of preamble plus a non-compact array of longs representing a
  * hash table.</p>
  *
  * <pre>
