@@ -50,6 +50,16 @@ public class ThetaSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateBinariesForCompatibilityTestingCompressed() throws IOException {
+    final int[] nArr = {10, 100, 1000, 10_000, 100_000, 1_000_000};
+    for (int n: nArr) {
+      final UpdateSketch sk = UpdateSketch.builder().build();
+      for (int i = 0; i < n; i++) sk.update(i);
+      Files.newOutputStream(javaPath.resolve("theta_compressed_n" + n + "_java.sk")).write(sk.compact().toByteArrayCompressed());
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
     final UpdateSketch sk = UpdateSketch.builder().setP(0.01f).build();
     sk.update(1);

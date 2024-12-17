@@ -47,7 +47,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -86,7 +85,7 @@ public class DirectQuickSelectSketchTest {
     }
   }
 
-  @Test//(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void checkConstructorKtooSmall() {
     int k = 8;
     WritableMemory wmem;
@@ -98,7 +97,7 @@ public class DirectQuickSelectSketchTest {
     }
   }
 
-  @Test//(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void checkConstructorMemTooSmall() {
     int k = 16;
     WritableMemory wmem;
@@ -195,7 +194,7 @@ public class DirectQuickSelectSketchTest {
     DirectQuickSelectSketch.writableWrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
-  @Test //(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
@@ -213,7 +212,7 @@ public class DirectQuickSelectSketchTest {
     }
   }
 
-  @Test//(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void checkCorruptLgNomLongs() {
     int k = 16;
     WritableMemory wmem;

@@ -114,7 +114,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
-    //try to heapify the corruped mem
+    //try to heapify the corrupted mem
     Sketch.heapify(mem, sl.seed);
   }
 

@@ -41,6 +41,8 @@ public class TDigestDoubleTest {
     assertThrows(SketchesStateException.class, () -> td.getMaxValue());
     assertThrows(SketchesStateException.class, () -> td.getRank(0));
     assertThrows(SketchesStateException.class, () -> td.getQuantile(0.5));
+    assertThrows(SketchesStateException.class, () -> td.getPMF(new double[]{0}));
+    assertThrows(SketchesStateException.class, () -> td.getCDF(new double[]{0}));
   }
 
   @Test
@@ -82,6 +84,14 @@ public class TDigestDoubleTest {
     assertEquals(td.getQuantile(0.9), n * 0.9, n * 0.9 * 0.01);
     assertEquals(td.getQuantile(0.95), n * 0.95, n * 0.95 * 0.01);
     assertEquals(td.getQuantile(1), n - 1);
+    final double[] pmf = td.getPMF(new double[] {n / 2});
+    assertEquals(pmf.length, 2);
+    assertEquals(pmf[0], 0.5, 0.0001);
+    assertEquals(pmf[1], 0.5, 0.0001);
+    final double[] cdf = td.getCDF(new double[] {n / 2});
+    assertEquals(cdf.length, 2);
+    assertEquals(cdf[0], 0.5, 0.0001);
+    assertEquals(cdf[1], 1.0);
   }
 
   @Test

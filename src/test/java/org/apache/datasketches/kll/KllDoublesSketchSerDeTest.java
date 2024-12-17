@@ -64,7 +64,7 @@ public class KllDoublesSketchSerDeTest {
   @Test
   public void serializeDeserializeOneValue() {
     final KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance();
-    sk1.update(1);
+    sk1.update(1.0);
 
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();

@@ -141,7 +141,6 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-
     WritableMemory wmem = WritableMemory.allocateDirect(1000, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
     WritableMemory wmem2 = wmem;
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);

@@ -31,7 +31,6 @@ import org.testng.annotations.Test;
 import jdk.incubator.foreign.ResourceScope;
 
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 

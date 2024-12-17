@@ -109,7 +109,6 @@ public class PreambleUtilTest {
     HllSketch sk = new HllSketch(12);
     byte[] memObj = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(memObj);
-    //long memAdd = wmem.getCumulativeOffset(0);
     HllSketch bad;
 
     //checkFamily
@@ -148,7 +147,6 @@ public class PreambleUtilTest {
     for (int i = 1; i <= 15; i++) { sk.update(i); }
     memObj = sk.toCompactByteArray();
     wmem = WritableMemory.writableWrap(memObj);
-    //memAdd = wmem.getCumulativeOffset(0);
 
     //check wrong PreInts and SET
     try {
@@ -162,7 +160,6 @@ public class PreambleUtilTest {
     for (int i = 15; i <= 1000; i++) { sk.update(i); }
     memObj = sk.toCompactByteArray();
     wmem = WritableMemory.writableWrap(memObj);
-    //memAdd = wmem.getCumulativeOffset(0);
 
     //check wrong PreInts and HLL
     try {
@@ -179,7 +176,6 @@ public class PreambleUtilTest {
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
     WritableMemory wmem = WritableMemory.allocate(bytes);
     Object memObj = wmem.getArray();
-    //long memAdd = wmem.getCumulativeOffset(0L);
     HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
     int flags = extractFlags(wmem);
     assertEquals(flags, EMPTY_FLAG_MASK);

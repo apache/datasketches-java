@@ -58,7 +58,7 @@ final class DoublesByteArrayImpl {
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK) : 0);
 
-    if (empty && !sketch.hasMemory()) { //empty & has Memory
+    if (empty && !sketch.hasMemory()) { //empty & !has Memory
       final byte[] outByteArr = new byte[Long.BYTES];
       final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
       final int preLongs = 1;
@@ -79,15 +79,7 @@ final class DoublesByteArrayImpl {
    */
   private static byte[] convertToByteArray(final DoublesSketch sketch, final int flags,
                                            final boolean ordered, final boolean compact) {
-    final int preLongs = 2;
-    final int extra = 2; // extra space for min and max quantiles
-    final int prePlusExtraBytes = (preLongs + extra) << 3;
-    final int k = sketch.getK();
-    final long n = sketch.getN();
-
-    // If not-compact, have accessor always report full levels. Then use level size to determine
-    // whether to copy data out.
-    final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(sketch, !compact);
+    final int preLongs = sketch.isEmpty() ? 1 : 2;
 
     final int outBytes = (compact ? sketch.getCurrentCompactSerializedSizeBytes()
         : sketch.getCurrentUpdatableSerializedSizeBytes());
@@ -95,15 +87,23 @@ final class DoublesByteArrayImpl {
     final byte[] outByteArr = new byte[outBytes];
     final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
 
-    //insert preamble-0, N, min, max
+    //insert pre0
+    final int k = sketch.getK();
     insertPre0(memOut, preLongs, flags, k);
     if (sketch.isEmpty()) { return outByteArr; }
 
+    //insert N, min, max
+    final long n = sketch.getN();
     insertN(memOut, n);
     insertMinDouble(memOut, sketch.isEmpty() ? Double.NaN : sketch.getMinItem());
     insertMaxDouble(memOut, sketch.isEmpty() ? Double.NaN : sketch.getMaxItem());
 
-    long memOffsetBytes = prePlusExtraBytes;
+    // If not-compact, have accessor always report full levels. Then use level size to determine
+    // whether to copy data out.
+    final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(sketch, !compact);
+
+    final int minAndMax = 2; // extra space for min and max quantiles
+    long memOffsetBytes = (preLongs + minAndMax) << 3;
 
     // might need to sort base buffer but don't want to change input sketch
     final int bbCnt = computeBaseBufferItems(k, n);

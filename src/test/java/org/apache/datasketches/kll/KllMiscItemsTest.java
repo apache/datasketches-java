@@ -293,7 +293,7 @@ public class KllMiscItemsTest {
     final int digits = Util.numDigits(n);
     KllItemsSketch<String> sk;
 
-    println("#### CASE: FLOAT FULL HEAP");
+    println("#### CASE: ITEM FULL HEAP");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     for (int i = 1; i <= n; i++) { sk.update(Util.longToFixedLengthString(i, digits)); }
     println(sk.toString(true, true));
@@ -310,7 +310,7 @@ public class KllMiscItemsTest {
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: FLOAT HEAP EMPTY");
+    println("#### CASE: ITEM HEAP EMPTY");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
@@ -326,7 +326,7 @@ public class KllMiscItemsTest {
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: FLOAT HEAP SINGLE");
+    println("#### CASE: ITEM HEAP SINGLE");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     sk.update("1");
     println(sk.toString(true, true));
@@ -354,7 +354,7 @@ public class KllMiscItemsTest {
     byte[] compBytes;
     Memory mem;
 
-    println("#### CASE: FLOAT FULL HEAPIFIED FROM COMPACT");
+    println("#### CASE: ITEM FULL HEAPIFIED FROM COMPACT");
     sk2 = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     for (int i = 1; i <= n; i++) { sk2.update(Util.longToFixedLengthString(i, digits)); }
     println(sk2.toString(true, true));
@@ -375,7 +375,7 @@ public class KllMiscItemsTest {
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: FLOAT EMPTY HEAPIFIED FROM COMPACT");
+    println("#### CASE: ITEM EMPTY HEAPIFIED FROM COMPACT");
     sk2 =  KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
@@ -395,7 +395,7 @@ public class KllMiscItemsTest {
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: FLOAT SINGLE HEAPIFIED FROM COMPACT");
+    println("#### CASE: ITEM SINGLE HEAPIFIED FROM COMPACT");
     sk2 = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     sk2.update("1");
     //println(sk2.toString(true, true));
@@ -417,7 +417,7 @@ public class KllMiscItemsTest {
     assertFalse(sk.isLevelZeroSorted());
   }
 
-  //public void checkSketchInitializeFloatHeapifyUpdatableMem() Not Supported
+  //public void checkSketchInitializeItemHeapifyUpdatableMem() Not Supported
 
   @Test //set static enablePrinting = true for visual checking
   public void checkMemoryToStringItemsCompact() {
@@ -431,7 +431,7 @@ public class KllMiscItemsTest {
     Memory mem;
     String s;
 
-    println("#### CASE: FLOAT FULL COMPACT");
+    println("#### CASE: ITEM FULL COMPACT");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     for (int i = 1; i <= n; i++) { sk.update(Util.longToFixedLengthString(i, digits)); }
     compBytes = sk.toByteArray();
@@ -447,7 +447,7 @@ public class KllMiscItemsTest {
     println(s);
     assertEquals(compBytes, compBytes2);
 
-    println("#### CASE: FLOAT EMPTY COMPACT");
+    println("#### CASE: ITEM EMPTY COMPACT");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     compBytes = sk.toByteArray();
     mem = Memory.wrap(compBytes);
@@ -462,7 +462,7 @@ public class KllMiscItemsTest {
     println(s);
     assertEquals(compBytes, compBytes2);
 
-    println("#### CASE: FLOAT SINGLE COMPACT");
+    println("#### CASE: ITEM SINGLE COMPACT");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     sk.update("1");
     compBytes = sk.toByteArray();

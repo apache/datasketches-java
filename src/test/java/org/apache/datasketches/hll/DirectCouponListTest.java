@@ -31,7 +31,6 @@ import jdk.incubator.foreign.ResourceScope;
 
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -74,8 +73,6 @@ public class DirectCouponListTest {
     byte[] barr1;
     WritableMemory wmem;
     try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes)).scope()) {
-      //byte[] byteArr = new byte[bytes];
-      //WritableMemory wmem = WritableMemory.wrap(byteArr);
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
       assertTrue(hllSketch.isEmpty());
 

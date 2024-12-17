@@ -30,7 +30,6 @@ import java.nio.ByteOrder;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
-//import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
@@ -193,7 +192,7 @@ public class UnionImplTest {
   }
 
   @Test
-  public void checkMoveAndResize() {
+  public void checkMoveAndResizeOffHeap() {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
