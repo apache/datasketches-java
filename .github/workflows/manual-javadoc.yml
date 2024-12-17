@@ -1,8 +1,6 @@
 name: JavaDoc
 
 on:
-  push:
-    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
@@ -24,7 +22,7 @@ jobs:
 
       - name: Print Current workflow
         run: >
-         cat .github/workflows/javadoc.yml
+         cat .github/workflows/manual-javadoc.yml
 
       - name: Generate JavaDoc
         run: mvn javadoc:javadoc
@@ -33,6 +31,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.6.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          folder: target/reports/apidocs
+          folder: target/site/apidocs
           target-folder: docs/${{ github.ref_name }}
           branch: gh-pages

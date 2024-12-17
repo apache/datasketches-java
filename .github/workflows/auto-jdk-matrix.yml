@@ -7,7 +7,7 @@ on:
     workflow_dispatch:
 
 env:
-    MAVEN_OPTS: -Xmx1g -Xms1g
+    MAVEN_OPTS: -Xmx4g -Xms1g
 
 jobs:
     build:
@@ -16,9 +16,11 @@ jobs:
 
         strategy:
           fail-fast: false
+          matrix:
+              jdk: [ 17 ]
 
         env:
-          JDK_VERSION: 17
+          JDK_VERSION: ${{ matrix.jdk }}
 
         steps:
         - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
@@ -30,20 +32,20 @@ jobs:
           run: >
              cat .github/workflows/auto-jdk-matrix.yml
 
-        - name: Setup Java
-          uses: actions/setup-java@v4
-          with:
-              distribution: 'temurin'
-              java-package: jdk
-              architecture: x64
-              java-version: 17        
-        
         - name: Cache local Maven repository
           uses: actions/cache@v4
           with:
               path: ~/.m2/repository
               key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
               restore-keys: build-${{ runner.os }}-maven-
+
+        - name: Install Matrix JDK
+          uses: actions/setup-java@v4
+          with:
+              java-version: ${{ matrix.jdk }}
+              distribution: 'temurin'
+              java-package: jdk
+              architecture: x64 
 
         - name: Echo Java Version
           run: >
