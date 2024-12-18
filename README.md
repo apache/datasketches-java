@@ -53,7 +53,7 @@ and, as a result, must be compiled with JDK17 and this dependency:
 
 If your application only relies on the APIs of datasketches-java no special JVM arguments are required.
 However, if your application also directly relies on the APIs of the *datasketches-memory* component, 
-you may need the additional JVM argument **--enable-preview**.
+you may need the additional JVM argument **--add-modules=jdk.incubator.foreign**.
 
 ### Recommended Build Tool
 This DataSketches component is structured as a Maven project and Maven is the recommended Build Tool.
