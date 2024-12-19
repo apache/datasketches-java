@@ -1,8 +1,9 @@
 name: Serialization Compatibility Test
 
 on:
+  pull_request:
   push:
-    branches: [ master, main ]
+    branches: [ 7.0.X ]
   workflow_dispatch:
 
 jobs:
