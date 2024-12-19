@@ -1,4 +1,4 @@
-name: DataSketches-Java Auto JDK Matrix Test & Install
+name: Auto JDK Matrix Test, Install
 
 on:
   pull_request:

@@ -1,4 +1,4 @@
-name: JavaDoc
+name: Publish JavaDoc
 
 on:
   workflow_dispatch:

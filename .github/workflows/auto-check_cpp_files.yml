@@ -1,4 +1,4 @@
-name: Serialization Compatibility Test
+name: C++ Serialization Compatibility Test
 
 on:
   pull_request:
