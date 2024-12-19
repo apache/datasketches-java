@@ -2,8 +2,15 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ 7.0.X ]
-  pull_request: [ 7.0.X ]
+    branches:
+      - '7.0.X'
+      - 'main'
+  pull_request_target:
+    types:
+      - opened
+    branches:
+      - '7.0.X'
+      - 'main'
   workflow_dispatch:
 
 jobs:
