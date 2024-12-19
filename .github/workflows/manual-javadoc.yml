@@ -25,12 +25,12 @@ jobs:
          cat .github/workflows/manual-javadoc.yml
 
       - name: Generate JavaDoc
-        run: mvn javadoc:javadoc
+        run: mvn clean javadoc:javadoc
 
       - name: Deploy JavaDoc
         uses: JamesIves/github-pages-deploy-action@v4.6.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          folder: target/site/apidocs
+          folder: target/reports/apidocs
           target-folder: docs/${{ github.ref_name }}
           branch: gh-pages
