@@ -1,6 +1,9 @@
 name: Publish JavaDoc
 
 on:
+  pull_request:
+  push:
+    branches: [ 7.0.X ]
   workflow_dispatch:
 
 jobs:
