@@ -24,7 +24,7 @@ jobs:
         jdk: [ 17 ]
 
     env:
-      addJDK_VERSION: ${{ matrix.jdk }}
+      JDK_VERSION: ${{ matrix.jdk }}
 
     steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
