@@ -1,4 +1,4 @@
-name: DataSketches-Java Auto JDK Matrix Test & Install
+name: Auto JDK Matrix Test & Install
 
 on:
   push:
@@ -23,10 +23,10 @@ jobs:
       matrix:
         jdk: [ 17 ]
 
-      env:
-        JDK_VERSION: ${{ matrix.jdk }}
+    env:
+      JDK_VERSION: ${{ matrix.jdk }}
 
-      steps:
+    steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
         uses: actions/checkout@v4
         with:

@@ -27,45 +27,45 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        cache: 'maven'
-        java-version: '17'
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          cache: 'maven'
+          java-version: '17'
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        languages: ${{ matrix.language }}
-        queries: +security-and-quality
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+         languages: ${{ matrix.language }}
+         queries: +security-and-quality
         
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
         # Details on CodeQL's query packs refer to link below. 
 
-    - name: Custom building using maven
-      run: >
-        mvn clean package -f "pom.xml" -B -V -e
-        -Dfindbugs.skip=true
-        -Dcheckstyle.skip=true
-        -Dpmd.skip=true
-        -Denforcer.skip
-        -Dmaven.javadoc.skip
-        -DskipTests=true
-        -Dmaven.test.skip.exec
-        -Dlicense.skip=true
-        -Dweb.console.skip=true
-        -Dgpg.skip=true
+      - name: Custom building using maven
+        run: >
+          mvn clean package -f "pom.xml" -B -V -e
+          -Dfindbugs.skip=true
+          -Dcheckstyle.skip=true
+          -Dpmd.skip=true
+          -Denforcer.skip
+          -Dmaven.javadoc.skip
+          -DskipTests=true
+          -Dmaven.test.skip.exec
+          -Dlicense.skip=true
+          -Dweb.console.skip=true
+          -Dgpg.skip=true
         
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:${{matrix.language}}"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+         category: "/language:${{matrix.language}}"
 
 
 # CodeQL's Query Packs:
