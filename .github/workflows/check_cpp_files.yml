@@ -1,4 +1,4 @@
-name: Serialization Compatibility Test
+name: CPP SerDe Compatibility Test
 
 on:
   push:
