@@ -1,0 +1,49 @@
+name: CPP SerDe Compatibility Test
+
+on:
+  push:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/.*', '**/LICENSE', '**/NOTICE' ]
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+  pull_request:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/.*', '**/LICENSE', '**/NOTICE' ]
+    # The branches below must be a subset of the branches above
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: SerDe Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout C++
+        uses: actions/checkout@v4
+        with:
+          repository: apache/datasketches-cpp
+          path: cpp
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Configure C++ build
+        run: cd cpp/build && cmake .. -DGENERATE=true
+
+      - name: Build C++ unit tests
+        run: cd cpp && cmake --build build --config Release
+
+      - name: Run C++ tests
+        run: cd cpp && cmake --build build --config Release --target test
+
+      - name: Make dir
+        run: mkdir -p serialization_test_data/cpp_generated_files
+
+      - name: Copy files
+        run: cp cpp/build/*/test/*_cpp.sk serialization_test_data/cpp_generated_files
+
+      - name: Run Java tests
+        run: mvn test -P check-cpp-files
