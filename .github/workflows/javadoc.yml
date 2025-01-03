@@ -22,7 +22,7 @@ jobs:
 
       - name: Print Current workflow
         run: >
-         cat .github/workflows/manual-javadoc.yml
+         cat .github/workflows/javadoc.yml
 
       - name: Generate JavaDoc
         run: mvn javadoc:javadoc
