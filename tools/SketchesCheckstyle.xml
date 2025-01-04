@@ -49,10 +49,12 @@ under the License.
     <property name="fileNamePattern" value=".*[\\/]src[\\/]test[\\/].*$"/>
   </module>
 
+  <!-- flag the first instance of a tab character in each java, xml, yml or yaml file -->
   <module name="FileTabCharacter">
-    <property name="eachLine" value="true"/>
+    <property name="fileExtensions" value="java, xml, yml, yaml"/>
   </module>
   
+  <!-- each package must have a package-info.java file -->
   <module name="JavadocPackage"/>
   
   <module name="NewlineAtEndOfFile">
@@ -67,6 +69,7 @@ under the License.
     <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
   </module>
   
+  <!-- Filters -->
   <module name="SuppressWithPlainTextCommentFilter">
     <property name="offCommentFormat" value="//CHECKSTYLE.OFF\: ([\w\|]+)"/>
     <property name="onCommentFormat" value="//CHECKSTYLE.ON\: ([\w\|]+)"/>
@@ -80,13 +83,6 @@ under the License.
     <!-- Be able to ignore violations with @SuppressWarnings -->
     <!-- See https://checkstyle.org/filters/suppresswarningsfilter.html -->
     <module name="SuppressWarningsHolder"/>
-  
-    <!--
-      <module name="SuppressionFilter">
-      <property name="file" value="basedir/tools/suppressions.xml"/>
-      <property name="optional" value="false"/>
-      </module>
-    -->
 
     <!-- Annotations -->
     <module name="AnnotationLocation">
@@ -230,7 +226,8 @@ under the License.
       <property name="allowedAnnotations" value="Override, Test"/>
     </module>
     
-    <!-- <module name="JavadocParagraph"/> disabled because of a Checkstyle bug with <p> after @param -->
+    <!-- disabled because of a Checkstyle bug with <p> after @param -->
+    <!-- <module name="JavadocParagraph"/>  -->
 
     <module name="JavadocTagContinuationIndentation">
       <property name="severity" value="ignore"/>
