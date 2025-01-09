@@ -482,7 +482,7 @@ public class BitPacking {
 
     buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[i + 3] >>> 4);
+    buf[off] = (byte) (values[i + 3] << 4);
     buf[off++] |= values[i + 4] >>> 9;
 
     buf[off++] = (byte) (values[i + 4] >>> 1);
@@ -4449,7 +4449,7 @@ public class BitPacking {
     values[i + 1] |= Byte.toUnsignedLong(buf[off++]) << 6;
     values[i + 1] |= Byte.toUnsignedLong(buf[off]) >>> 2;
 
-    values[i + 2] = (Byte.toUnsignedLong(buf[off++]) & 2) << 33;
+    values[i + 2] = (Byte.toUnsignedLong(buf[off++]) & 3) << 33;
     values[i + 2] |= (Byte.toUnsignedLong(buf[off++])) << 25;
     values[i + 2] |= Byte.toUnsignedLong(buf[off++]) << 17;
     values[i + 2] |= Byte.toUnsignedLong(buf[off++]) << 9;
