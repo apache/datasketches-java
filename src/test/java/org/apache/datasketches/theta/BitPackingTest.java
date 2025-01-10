@@ -32,7 +32,7 @@ public class BitPackingTest {
   @Test
   public void packUnpackBits() {
     long value = 0xaa55aa55aa55aa55L; // arbitrary starting value
-    for (int n = 0; n < 100; n++) {
+    for (int n = 0; n < 10000; n++) {
       for (int bits = 1; bits <= 63; bits++) {
         final long mask = (1 << bits) - 1;
         long[] input = new long[8];
@@ -67,7 +67,7 @@ public class BitPackingTest {
   @Test
   public void packUnpackBlocks() {
     long value = 0xaa55aa55aa55aa55L; // arbitrary starting value
-    for (int n = 0; n < 100; n++) {
+    for (int n = 0; n < 10000; n++) {
       for (int bits = 1; bits <= 63; bits++) {
         if (enablePrinting) { System.out.println("bits " + bits); }
         final long mask = (1L << bits) - 1;
