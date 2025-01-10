@@ -152,7 +152,7 @@ public class BitPacking {
       case 61: packBits61(values, i, buf, off); break;
       case 62: packBits62(values, i, buf, off); break;
       case 63: packBits63(values, i, buf, off); break;
-      default: throw new SketchesArgumentException("wrong number of bits " + bits);
+      default: throw new SketchesArgumentException("wrong number of bits in packBitsBlock8: " + bits);
     }
   }
 
@@ -221,7 +221,7 @@ public class BitPacking {
       case 61: unpackBits61(values, i, buf, off); break;
       case 62: unpackBits62(values, i, buf, off); break;
       case 63: unpackBits63(values, i, buf, off); break;
-      default: throw new SketchesArgumentException("wrong number of bits " + bits);
+      default: throw new SketchesArgumentException("wrong number of bits unpackBitsBlock8: " + bits);
     }
   }
 
