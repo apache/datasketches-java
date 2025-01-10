@@ -152,7 +152,7 @@ public class BitPacking {
       case 61: packBits61(values, i, buf, off); break;
       case 62: packBits62(values, i, buf, off); break;
       case 63: packBits63(values, i, buf, off); break;
-      default: throw new SketchesArgumentException("wrong number of bits " + bits);
+      default: throw new SketchesArgumentException("wrong number of bits in packBitsBlock8: " + bits);
     }
   }
 
@@ -221,7 +221,7 @@ public class BitPacking {
       case 61: unpackBits61(values, i, buf, off); break;
       case 62: unpackBits62(values, i, buf, off); break;
       case 63: unpackBits63(values, i, buf, off); break;
-      default: throw new SketchesArgumentException("wrong number of bits " + bits);
+      default: throw new SketchesArgumentException("wrong number of bits unpackBitsBlock8: " + bits);
     }
   }
 
@@ -482,7 +482,7 @@ public class BitPacking {
 
     buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[i + 3] >>> 4);
+    buf[off] = (byte) (values[i + 3] << 4);
     buf[off++] |= values[i + 4] >>> 9;
 
     buf[off++] = (byte) (values[i + 4] >>> 1);
@@ -4449,7 +4449,7 @@ public class BitPacking {
     values[i + 1] |= Byte.toUnsignedLong(buf[off++]) << 6;
     values[i + 1] |= Byte.toUnsignedLong(buf[off]) >>> 2;
 
-    values[i + 2] = (Byte.toUnsignedLong(buf[off++]) & 2) << 33;
+    values[i + 2] = (Byte.toUnsignedLong(buf[off++]) & 3) << 33;
     values[i + 2] |= (Byte.toUnsignedLong(buf[off++])) << 25;
     values[i + 2] |= Byte.toUnsignedLong(buf[off++]) << 17;
     values[i + 2] |= Byte.toUnsignedLong(buf[off++]) << 9;
