@@ -1,7 +1,7 @@
 name: JavaDoc
 
 on:
-  puah:
+  push:
     branches: main
   workflow_dispatch:
 
