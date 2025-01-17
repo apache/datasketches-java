@@ -29,7 +29,6 @@ import org.testng.annotations.Test;
 
 import jdk.incubator.foreign.ResourceScope;
 
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
