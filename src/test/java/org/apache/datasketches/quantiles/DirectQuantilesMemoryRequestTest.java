@@ -32,8 +32,6 @@ import org.testng.annotations.Test;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
-import jdk.incubator.foreign.ResourceScope;
-
 /**
  * The concept for these tests is that the "MemoryManager" classes below are proxies for the
  * implementation that <i>owns</i> the native memory allocations, thus is responsible for
