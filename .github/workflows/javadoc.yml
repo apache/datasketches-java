@@ -34,6 +34,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.6.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          folder: target/reports/apidocs
+          folder: target/site/apidocs
           target-folder: docs/${{ github.ref_name }}
           branch: gh-pages
