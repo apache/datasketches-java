@@ -1,0 +1,83 @@
+name: "CodeQL"
+
+on:
+  push:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+  pull_request:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
+    # The branches below must be a subset of the branches above
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java' ]
+        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
+        # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          cache: 'maven'
+          java-version: '1.8'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+         languages: ${{ matrix.language }}
+         queries: +security-and-quality
+        
+        # If you wish to specify custom queries, you can do so here or in a config file.
+        # By default, queries listed here will override any specified in a config file.
+        # Prefix the list here with "+" to use these queries and those in the config file.
+        # Details on CodeQL's query packs refer to link below. 
+
+      - name: Custom building using maven
+        run: >
+          mvn clean package -f "pom.xml" -B -V -e
+          -Dfindbugs.skip=true
+          -Dcheckstyle.skip=true
+          -Dpmd.skip=true
+          -Denforcer.skip
+          -Dmaven.javadoc.skip
+          -DskipTests=true
+          -Dmaven.test.skip.exec
+          -Dlicense.skip=true
+          -Dweb.console.skip=true
+          -Dgpg.skip=true
+        
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+         category: "/language:${{matrix.language}}"
+
+
+# CodeQL's Query Packs:
+# https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+
+# Command-line programs to run using the OS shell.
+# See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+# Architecture options: x86, x64, armv7, aarch64, ppc64le
+# Lifecycles: validate, compile, test, package, verify, install, deploy
+# -B batch mode, never stops for user input
+# -V show Version without stopping
+# -X debug mode
+# -q quiet, only show errors
+# -e produce execution error messages
