@@ -320,46 +320,17 @@ final class UnionImpl extends Union {
     }
     //sketchIn is valid and not empty
     ThetaUtil.checkSeedHashes(expectedSeedHash_, sketchIn.getSeedHash());
-    if (sketchIn instanceof SingleItemSketch) {
-      gadget_.hashUpdate(sketchIn.getCache()[0]);
-      return;
-    }
     Sketch.checkSketchAndMemoryFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
     unionEmpty_ = false;
-    final int curCountIn = sketchIn.getRetainedEntries(true);
-    if (curCountIn > 0) {
-      if (sketchIn.isOrdered() && (sketchIn instanceof CompactSketch)) { //Use early stop
-        //Ordered, thus compact
-        if (sketchIn.hasMemory()) {
-          final Memory skMem = sketchIn.getMemory();
-          final int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-          for (int i = 0; i < curCountIn; i++ ) {
-            final int offsetBytes = preambleLongs + i << 3;
-            final long hashIn = skMem.getLong(offsetBytes);
-            if (hashIn >= unionThetaLong_) { break; } // "early stop"
-            gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-          }
-        }
-        else { //sketchIn is on the Java Heap or has array
-          final long[] cacheIn = sketchIn.getCache(); //not a copy!
-          for (int i = 0; i < curCountIn; i++ ) {
-            final long hashIn = cacheIn[i];
-            if (hashIn >= unionThetaLong_) { break; } // "early stop"
-            gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-          }
-        }
-      } //End ordered, compact
-      else { //either not-ordered compact or Hash Table form. A HT may have dirty values.
-        final long[] cacheIn = sketchIn.getCache(); //if off-heap this will be a copy
-        final int arrLongs = cacheIn.length;
-        for (int i = 0, c = 0; i < arrLongs && c < curCountIn; i++ ) {
-          final long hashIn = cacheIn[i];
-          if (hashIn <= 0L || hashIn >= unionThetaLong_) { continue; } //rejects dirty values
-          gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-          c++; //ensures against invalid state inside the incoming sketch
-        }
+    HashIterator it = sketchIn.iterator();
+    while (it.next()) {
+      final long hash = it.get();
+      if (hash < unionThetaLong_ && hash < gadget_.getThetaLong()) {
+        gadget_.hashUpdate(hash); // backdoor update, hash function is bypassed
+      } else {
+        if (sketchIn.isOrdered()) { break; }
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
@@ -379,11 +350,8 @@ final class UnionImpl extends Union {
     final int fam = extractFamilyID(skMem);
 
     if (serVer == 4) { // compressed ordered compact
-      // performance can be improved by decompression while performing the union
-      // potentially only partial decompression might be needed
       ThetaUtil.checkSeedHashes(expectedSeedHash_, (short) extractSeedHash(skMem));
-      final CompactSketch csk = CompactSketch.wrap(skMem);
-      union(csk);
+      union(CompactSketch.wrap(skMem));
       return;
     }
     if (serVer == 3) { //The OpenSource sketches (Aug 4, 2015) starts with serVer = 3
@@ -396,16 +364,13 @@ final class UnionImpl extends Union {
     }
     if (serVer == 2) { //older Sketch, which is compact and ordered
       ThetaUtil.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
-      final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem, expectedSeedHash_);
-      union(csk);
+      union(ForwardCompatibility.heapify2to3(skMem, expectedSeedHash_));
       return;
     }
     if (serVer == 1) { //much older Sketch, which is compact and ordered, no seedHash
-      final CompactSketch csk = ForwardCompatibility.heapify1to3(skMem, expectedSeedHash_);
-      union(csk);
+      union(ForwardCompatibility.heapify1to3(skMem, expectedSeedHash_));
       return;
     }
-
     throw new SketchesArgumentException("SerVer is unknown: " + serVer);
   }
 

@@ -20,8 +20,11 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
-import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
+import static org.apache.datasketches.thetacommon.HashOperations.checkThetaCorruption;
+import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsert;
+import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
 
 import java.util.Arrays;
 
@@ -124,7 +127,7 @@ final class AnotBimpl extends AnotB {
 
     if (skB.isEmpty()) {
       return skA.compact(dstOrdered, dstMem);
-   }
+    }
     ThetaUtil.checkSeedHashes(skB.getSeedHash(), seedHash_);
     //Both skA & skB are not empty
 
@@ -162,14 +165,12 @@ final class AnotBimpl extends AnotB {
       final long[] hashArrA,
       final Sketch skB) {
 
-    //Rebuild/get hashtable of skB
+    // Rebuild or get hashtable of skB
     final long[] hashTableB; //read only
-    final long[] thetaCache = skB.getCache();
-    final int countB = skB.getRetainedEntries(true);
     if (skB instanceof CompactSketch) {
-      hashTableB = convertToHashTable(thetaCache, countB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
+      hashTableB = convertToHashTable(skB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {
-      hashTableB = thetaCache;
+      hashTableB = skB.getCache();
     }
 
     //build temporary result arrays of skA
@@ -189,6 +190,25 @@ final class AnotBimpl extends AnotB {
       }
     }
     return Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
+  }
+
+  private static long[] convertToHashTable(
+      final Sketch sketch,
+      final long thetaLong,
+      final double rebuildThreshold) {
+    final int lgArrLongs = minLgHashTableSize(sketch.getRetainedEntries(true), rebuildThreshold);
+    final int arrLongs = 1 << lgArrLongs;
+    final long[] hashTable = new long[arrLongs];
+    checkThetaCorruption(thetaLong);
+    HashIterator it = sketch.iterator();
+    while (it.next()) {
+      final long hash = it.get();
+      if (continueCondition(thetaLong, hash) ) {
+        continue;
+      }
+      hashSearchOrInsert(hashTable, lgArrLongs, hash);
+    }
+    return hashTable;
   }
 
   private void reset() {

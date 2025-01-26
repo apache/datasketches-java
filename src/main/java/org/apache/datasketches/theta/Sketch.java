@@ -451,9 +451,8 @@ public abstract class Sketch implements MemoryStatus {
       final boolean hexMode) {
     final StringBuilder sb = new StringBuilder();
 
-    final long[] cache = getCache();
     int nomLongs = 0;
-    int arrLongs = cache.length;
+    int arrLongs = 0;
     float p = 0;
     int rf = 0;
     final boolean updateSketch = this instanceof UpdateSketch;
@@ -473,12 +472,10 @@ public abstract class Sketch implements MemoryStatus {
       final int w = width > 0 ? width : 8; // default is 8 wide
       if (curCount > 0) {
         sb.append("### SKETCH DATA DETAIL");
-        for (int i = 0, j = 0; i < arrLongs; i++ ) {
-          final long h;
-          h = cache[i];
-          if (h <= 0 || h >= thetaLong) {
-            continue;
-          }
+        HashIterator it = iterator();
+        int j = 0;
+        while (it.next()) {
+          final long h = it.get();
           if (j % w == 0) {
             sb.append(LS).append(String.format("   %6d", j + 1));
           }
