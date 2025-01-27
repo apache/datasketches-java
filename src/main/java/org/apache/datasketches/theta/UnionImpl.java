@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static java.lang.Math.min;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.clearEmpty;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
@@ -320,6 +319,10 @@ final class UnionImpl extends Union {
     }
     //sketchIn is valid and not empty
     ThetaUtil.checkSeedHashes(expectedSeedHash_, sketchIn.getSeedHash());
+    if (sketchIn instanceof SingleItemSketch) {
+      gadget_.hashUpdate(sketchIn.getCache()[0]);
+      return;
+    }
     Sketch.checkSketchAndMemoryFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
