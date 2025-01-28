@@ -200,7 +200,7 @@ final class AnotBimpl extends AnotB {
     final int arrLongs = 1 << lgArrLongs;
     final long[] hashTable = new long[arrLongs];
     checkThetaCorruption(thetaLong);
-    HashIterator it = sketch.iterator();
+    final HashIterator it = sketch.iterator();
     while (it.next()) {
       final long hash = it.get();
       if (continueCondition(thetaLong, hash) ) {

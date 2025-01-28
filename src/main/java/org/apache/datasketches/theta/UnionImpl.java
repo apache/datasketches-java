@@ -327,13 +327,14 @@ final class UnionImpl extends Union {
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
     unionEmpty_ = false;
-    HashIterator it = sketchIn.iterator();
+    final boolean isOrdered = sketchIn.isOrdered();
+    final HashIterator it = sketchIn.iterator();
     while (it.next()) {
       final long hash = it.get();
       if (hash < unionThetaLong_ && hash < gadget_.getThetaLong()) {
         gadget_.hashUpdate(hash); // backdoor update, hash function is bypassed
       } else {
-        if (sketchIn.isOrdered()) { break; }
+        if (isOrdered) { break; }
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget

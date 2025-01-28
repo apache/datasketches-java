@@ -446,7 +446,8 @@ class IntersectionImpl extends Intersection {
     final long[] matchSet = new long[ min(curCount_, sketchIn.getRetainedEntries(true)) ];
 
     int matchSetCount = 0;
-    HashIterator it = sketchIn.iterator();
+    final boolean isOrdered = sketchIn.isOrdered();
+    final HashIterator it = sketchIn.iterator();
     while (it.next()) {
       final long hashIn = it.get();
       if (hashIn < thetaLong_) {
@@ -455,7 +456,7 @@ class IntersectionImpl extends Intersection {
           matchSet[matchSetCount++] = hashIn;
         }
       } else {
-        if (sketchIn.isOrdered()) { break; } // early stop
+        if (isOrdered) { break; } // early stop
       }
     }
     //reduce effective array size to minimum

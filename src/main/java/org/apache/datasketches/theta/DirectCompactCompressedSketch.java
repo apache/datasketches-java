@@ -42,7 +42,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 class DirectCompactCompressedSketch extends DirectCompactSketch {
   /**
    * Construct this sketch with the given memory.
-   * @param mem Read-only Memory object with the order bit properly set.
+   * @param mem Read-only Memory object.
    */
   DirectCompactCompressedSketch(final Memory mem) {
     super(mem);
@@ -50,7 +50,7 @@ class DirectCompactCompressedSketch extends DirectCompactSketch {
 
   /**
    * Wraps the given Memory, which must be a SerVer 4 compressed CompactSketch image.
-   * Must check the validity of the Memory before calling. The order bit must be set properly.
+   * Must check the validity of the Memory before calling.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
@@ -80,11 +80,17 @@ class DirectCompactCompressedSketch extends DirectCompactSketch {
     return preLongs * Long.BYTES + numEntriesBytes + wholeBytesToHoldBits(getRetainedEntries() * entryBits);
   }
 
+  private static final int START_PACKED_DATA_EXACT_MODE = 8;
+  private static final int START_PACKED_DATA_ESTIMATION_MODE = 16;
+  
   @Override
   public int getRetainedEntries(final boolean valid) { //compact is always valid
-    final int preLongs = extractPreLongs(mem_);
+    // number of entries is stored using variable length encoding
+    // most significant bytes with all zeros are not stored
+    // one byte in the preamble has the number of non-zero bytes used
+    final int preLongs = extractPreLongs(mem_); // if > 1 then the second long has theta
     final int numEntriesBytes = extractNumEntriesBytesV4(mem_);
-    int offsetBytes = preLongs > 1 ? 16 : 8;
+    int offsetBytes = preLongs > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE;
     int numEntries = 0;
     for (int i = 0; i < numEntriesBytes; i++) {
       numEntries |= Byte.toUnsignedInt(mem_.getByte(offsetBytes++)) << (i << 3);
