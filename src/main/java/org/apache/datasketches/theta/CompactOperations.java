@@ -161,7 +161,7 @@ final class CompactOperations {
       final long hash = srcMem.getLong(srcPreLongs << 3);
       final SingleItemSketch sis = new SingleItemSketch(hash, srcSeedHash);
       if (dstMem != null) {
-        dstMem.putByteArray(0, sis.toByteArray(),0, 16);
+        dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
         return new DirectCompactSketch(dstMem);
       } else { //heap
         return sis;

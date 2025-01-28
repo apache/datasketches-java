@@ -32,6 +32,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractEntryBitsV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractNumEntriesBytesV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLongV4;
+import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
 import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
 import org.apache.datasketches.common.Family;
@@ -189,7 +190,8 @@ public abstract class CompactSketch extends Sketch {
     if (serVer == 4) {
       // not wrapping the compressed format since currently we cannot take advantage of
       // decompression during iteration because set operations reach into memory directly
-      return heapifyV4(srcMem, seed, enforceSeed);
+      return DirectCompactCompressedSketch.wrapInstance(srcMem,
+          enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
     }
     else if (serVer == 3) {
       if (PreambleUtil.isEmptyFlag(srcMem)) {
@@ -274,10 +276,6 @@ public abstract class CompactSketch extends Sketch {
     return Long.numberOfLeadingZeros(ored);
   }
 
-  private static int wholeBytesToHoldBits(final int bits) {
-    return (bits >>> 3) + ((bits & 7) > 0 ? 1 : 0);
-  }
-
   private byte[] toByteArrayV4() {
     final int preambleLongs = isEstimationMode() ? 2 : 1;
     final int entryBits = 64 - computeMinLeadingZeros();
@@ -286,8 +284,8 @@ public abstract class CompactSketch extends Sketch {
     // store num_entries as whole bytes since whole-byte blocks will follow (most probably)
     final int numEntriesBytes = wholeBytesToHoldBits(32 - Integer.numberOfLeadingZeros(getRetainedEntries()));
 
-    final int size = preambleLongs * Long.BYTES + numEntriesBytes + wholeBytesToHoldBits(compressedBits);
-    final byte[] bytes = new byte[size];
+    final int sizeBytes = preambleLongs * Long.BYTES + numEntriesBytes + wholeBytesToHoldBits(compressedBits);
+    final byte[] bytes = new byte[sizeBytes];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     int offsetBytes = 0;
     mem.putByte(offsetBytes++, (byte) preambleLongs);
@@ -334,12 +332,10 @@ public abstract class CompactSketch extends Sketch {
 
   private static CompactSketch heapifyV4(final Memory srcMem, final long seed, final boolean enforceSeed) {
     final int preLongs = extractPreLongs(srcMem);
-    final int flags = extractFlags(srcMem);
     final int entryBits = extractEntryBitsV4(srcMem);
     final int numEntriesBytes = extractNumEntriesBytesV4(srcMem);
     final short seedHash = (short) extractSeedHash(srcMem);
-    final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
-    if (enforceSeed && !isEmpty) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
+    if (enforceSeed) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
     int offsetBytes = 8;
     long theta = Long.MAX_VALUE;
     if (preLongs > 1) {
@@ -374,7 +370,7 @@ public abstract class CompactSketch extends Sketch {
       entries[i] += previous;
       previous = entries[i];
     }
-    return new HeapCompactSketch(entries, isEmpty, seedHash, numEntries, theta, true);
+    return new HeapCompactSketch(entries, false, seedHash, numEntries, theta, true);
   }
 
 }

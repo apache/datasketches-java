@@ -288,7 +288,7 @@ class IntersectionImpl extends Intersection {
       else { //On the heap, allocate a HT
         hashTable_ = new long[1 << lgArrLongs_];
       }
-      moveDataToTgt(sketchIn.getCache(), curCount_);
+      moveDataToTgt(sketchIn);
     } //end of state 5
 
     //state 7
@@ -434,8 +434,6 @@ class IntersectionImpl extends Intersection {
   private void performIntersect(final Sketch sketchIn) {
     // curCount and input data are nonzero, match against HT
     assert curCount_ > 0 && !empty_;
-    final long[] cacheIn = sketchIn.getCache();
-    final int arrLongsIn = cacheIn.length;
     final long[] hashTable;
     if (wmem_ != null) {
       final int htLen = 1 << lgArrLongs_;
@@ -448,27 +446,17 @@ class IntersectionImpl extends Intersection {
     final long[] matchSet = new long[ min(curCount_, sketchIn.getRetainedEntries(true)) ];
 
     int matchSetCount = 0;
-    if (sketchIn.isOrdered()) {
-      //ordered compact, which enables early stop
-      for (int i = 0; i < arrLongsIn; i++ ) {
-        final long hashIn = cacheIn[i];
-        //if (hashIn <= 0L) continue;  //<= 0 should not happen
-        if (hashIn >= thetaLong_) {
-          break; //early stop assumes that hashes in input sketch are ordered!
+    final boolean isOrdered = sketchIn.isOrdered();
+    final HashIterator it = sketchIn.iterator();
+    while (it.next()) {
+      final long hashIn = it.get();
+      if (hashIn < thetaLong_) {
+        final int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
+        if (foundIdx != -1) {
+          matchSet[matchSetCount++] = hashIn;
         }
-        final int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
-        if (foundIdx == -1) { continue; }
-        matchSet[matchSetCount++] = hashIn;
-      }
-    }
-    else {
-      //either unordered compact or hash table
-      for (int i = 0; i < arrLongsIn; i++ ) {
-        final long hashIn = cacheIn[i];
-        if (hashIn <= 0L || hashIn >= thetaLong_) { continue; }
-        final int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
-        if (foundIdx == -1) { continue; }
-        matchSet[matchSetCount++] = hashIn;
+      } else {
+        if (isOrdered) { break; } // early stop
       }
     }
     //reduce effective array size to minimum
@@ -509,6 +497,32 @@ class IntersectionImpl extends Intersection {
         final long hashIn = arr[i];
         if (continueCondition(thetaLong_, hashIn)) { continue; }
         hashInsertOnly(hashTable_, lgArrLongs_, hashIn);
+        tmpCnt++;
+      }
+    }
+    assert tmpCnt == count : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
+  }
+
+  private void moveDataToTgt(final Sketch sketch) {
+    int count = sketch.getRetainedEntries();
+    int tmpCnt = 0;
+    if (wmem_ != null) { //Off Heap puts directly into mem
+      final int preBytes = CONST_PREAMBLE_LONGS << 3;
+      final int lgArrLongs = lgArrLongs_;
+      final long thetaLong = thetaLong_;
+      HashIterator it = sketch.iterator();
+      while (it.next()) {
+        final long hash = it.get();
+        if (continueCondition(thetaLong, hash)) { continue; }
+        hashInsertOnlyMemory(wmem_, lgArrLongs, hash, preBytes);
+        tmpCnt++;
+      }
+    } else { //On Heap. Assumes HT exists and is large enough
+      HashIterator it = sketch.iterator();
+      while (it.next()) {
+        final long hash = it.get();
+        if (continueCondition(thetaLong_, hash)) { continue; }
+        hashInsertOnly(hashTable_, lgArrLongs_, hash);
         tmpCnt++;
       }
     }

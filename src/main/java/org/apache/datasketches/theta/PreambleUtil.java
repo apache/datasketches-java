@@ -524,4 +524,7 @@ final class PreambleUtil {
         + ", Required: " + required);
   }
 
+  static int wholeBytesToHoldBits(final int bits) {
+    return (bits >>> 3) + ((bits & 7) > 0 ? 1 : 0);
+  }
 }

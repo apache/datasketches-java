@@ -86,11 +86,7 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public double getEstimate() {
-    if (otherCheckForSingleItem(mem_)) { return 1; }
-    final int preLongs = extractPreLongs(mem_);
-    final int curCount = (preLongs == 1) ? 0 : extractCurCount(mem_);
-    final long thetaLong = (preLongs > 2) ? extractThetaLong(mem_) : Long.MAX_VALUE;
-    return Sketch.estimate(thetaLong, curCount);
+    return Sketch.estimate(getThetaLong(), getRetainedEntries());
   }
 
   @Override
@@ -142,10 +138,8 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public byte[] toByteArray() {
-    final int curCount = getRetainedEntries(true);
-    checkIllegalCurCountAndEmpty(isEmpty(), curCount);
-    final int preLongs = extractPreLongs(mem_);
-    final int outBytes = (curCount + preLongs) << 3;
+    checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries());
+    final int outBytes = getCurrentBytes();
     final byte[] byteArrOut = new byte[outBytes];
     mem_.getByteArray(0, byteArrOut, 0, outBytes);
     return byteArrOut;
