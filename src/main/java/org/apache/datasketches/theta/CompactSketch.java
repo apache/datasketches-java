@@ -188,8 +188,6 @@ public abstract class CompactSketch extends Sketch {
     final short seedHash = ThetaUtil.computeSeedHash(seed);
 
     if (serVer == 4) {
-      // not wrapping the compressed format since currently we cannot take advantage of
-      // decompression during iteration because set operations reach into memory directly
       return DirectCompactCompressedSketch.wrapInstance(srcMem,
           enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
     }
@@ -249,6 +247,11 @@ public abstract class CompactSketch extends Sketch {
   @Override
   public boolean isCompact() {
     return true;
+  }
+
+  @Override
+  public double getEstimate() {
+    return Sketch.estimate(getThetaLong(), getRetainedEntries());
   }
 
   /**

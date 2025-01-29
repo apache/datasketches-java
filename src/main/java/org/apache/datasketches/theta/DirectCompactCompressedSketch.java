@@ -118,7 +118,8 @@ class DirectCompactCompressedSketch extends DirectCompactSketch {
   public HashIterator iterator() {
     return new MemoryCompactCompressedHashIterator(
       mem_,
-      (extractPreLongs(mem_) > 1 ? 16 : 8) + extractNumEntriesBytesV4(mem_),
+      (extractPreLongs(mem_) > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE)
+        + extractNumEntriesBytesV4(mem_),
       extractEntryBitsV4(mem_),
       getRetainedEntries()
     );

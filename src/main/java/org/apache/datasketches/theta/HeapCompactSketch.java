@@ -88,11 +88,6 @@ class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  public double getEstimate() {
-    return Sketch.estimate(thetaLong_, curCount_);
-  }
-
-  @Override
   public int getRetainedEntries(final boolean valid) {
     return curCount_;
   }
