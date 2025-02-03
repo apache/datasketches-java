@@ -85,11 +85,6 @@ class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  public double getEstimate() {
-    return Sketch.estimate(getThetaLong(), getRetainedEntries());
-  }
-
-  @Override
   public int getRetainedEntries(final boolean valid) { //compact is always valid
     if (otherCheckForSingleItem(mem_)) { return 1; }
     final int preLongs = extractPreLongs(mem_);

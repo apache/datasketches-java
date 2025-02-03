@@ -23,8 +23,8 @@ import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
 
 import org.apache.datasketches.memory.Memory;
 
-/**
- * @author Lee Rhodes
+/*
+ * This is to uncompress serial version 4 sketch incrementally
  */
 class MemoryCompactCompressedHashIterator implements HashIterator {
   private Memory mem;
