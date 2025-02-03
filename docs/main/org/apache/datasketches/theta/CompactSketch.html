@@ -137,41 +137,46 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the number of storage bytes required for this Sketch if its current state were
  compacted.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../common/Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getEstimate()" class="member-name-link">getEstimate</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Gets the unique count estimate.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../common/Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the Family that this sketch belongs to</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heapify(org.apache.datasketches.memory.Memory)" class="member-name-link">heapify</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.</div>
-</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heapify(org.apache.datasketches.memory.Memory,long)" class="member-name-link">heapify</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem,
- long&nbsp;expectedSeed)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heapify(org.apache.datasketches.memory.Memory)" class="member-name-link">heapify</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isCompact()" class="member-name-link">isCompact</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heapify(org.apache.datasketches.memory.Memory,long)" class="member-name-link">heapify</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem,
+ long&nbsp;expectedSeed)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#isCompact()" class="member-name-link">isCompact</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns true if this sketch is in compact form.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte[]</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toByteArrayCompressed()" class="member-name-link">toByteArrayCompressed</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte[]</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toByteArrayCompressed()" class="member-name-link">toByteArrayCompressed</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">gets the sketch as a compressed byte array</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#wrap(org.apache.datasketches.memory.Memory)" class="member-name-link">wrap</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#wrap(org.apache.datasketches.memory.Memory)" class="member-name-link">wrap</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Wrap takes the CompactSketch image in given Memory and refers to it directly.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#wrap(org.apache.datasketches.memory.Memory,long)" class="member-name-link">wrap</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#wrap(org.apache.datasketches.memory.Memory,long)" class="member-name-link">wrap</a><wbr>(org.apache.datasketches.memory.Memory&nbsp;srcMem,
  long&nbsp;expectedSeed)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Wrap takes the sketch image in the given Memory and refers to it directly.</div>
 </div>
 </div>
@@ -179,7 +184,7 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-org.apache.datasketches.theta.Sketch">Methods inherited from class&nbsp;org.apache.datasketches.theta.<a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></h3>
-<code><a href="Sketch.html#compact()">compact</a>, <a href="Sketch.html#getCompactSketchMaxBytes(int)">getCompactSketchMaxBytes</a>, <a href="Sketch.html#getCountLessThanThetaLong(long)">getCountLessThanThetaLong</a>, <a href="Sketch.html#getCurrentBytes()">getCurrentBytes</a>, <a href="Sketch.html#getEstimate()">getEstimate</a>, <a href="Sketch.html#getLowerBound(int)">getLowerBound</a>, <a href="Sketch.html#getMaxCompactSketchBytes(int)">getMaxCompactSketchBytes</a>, <a href="Sketch.html#getMaxUpdateSketchBytes(int)">getMaxUpdateSketchBytes</a>, <a href="Sketch.html#getRetainedEntries()">getRetainedEntries</a>, <a href="Sketch.html#getRetainedEntries(boolean)">getRetainedEntries</a>, <a href="Sketch.html#getSerializationVersion(org.apache.datasketches.memory.Memory)">getSerializationVersion</a>, <a href="Sketch.html#getTheta()">getTheta</a>, <a href="Sketch.html#getThetaLong()">getThetaLong</a>, <a href="Sketch.html#getUpperBound(int)">getUpperBound</a>, <a href="Sketch.html#isEmpty()">isEmpty</a>, <a href="Sketch.html#isEstimationMode()">isEstimationMode</a>, <a href="Sketch.html#isOrdered()">isOrdered</a>, <a href="Sketch.html#iterator()">iterator</a>, <a href="Sketch.html#toByteArray()">toByteArray</a>, <a href="Sketch.html#toString()">toString</a>, <a href="Sketch.html#toString(boolean,boolean,int,boolean)">toString</a>, <a href="Sketch.html#toString(byte%5B%5D)">toString</a>, <a href="Sketch.html#toString(org.apache.datasketches.memory.Memory)">toString</a></code></div>
+<code><a href="Sketch.html#compact()">compact</a>, <a href="Sketch.html#getCompactSketchMaxBytes(int)">getCompactSketchMaxBytes</a>, <a href="Sketch.html#getCountLessThanThetaLong(long)">getCountLessThanThetaLong</a>, <a href="Sketch.html#getCurrentBytes()">getCurrentBytes</a>, <a href="Sketch.html#getLowerBound(int)">getLowerBound</a>, <a href="Sketch.html#getMaxCompactSketchBytes(int)">getMaxCompactSketchBytes</a>, <a href="Sketch.html#getMaxUpdateSketchBytes(int)">getMaxUpdateSketchBytes</a>, <a href="Sketch.html#getRetainedEntries()">getRetainedEntries</a>, <a href="Sketch.html#getRetainedEntries(boolean)">getRetainedEntries</a>, <a href="Sketch.html#getSerializationVersion(org.apache.datasketches.memory.Memory)">getSerializationVersion</a>, <a href="Sketch.html#getTheta()">getTheta</a>, <a href="Sketch.html#getThetaLong()">getThetaLong</a>, <a href="Sketch.html#getUpperBound(int)">getUpperBound</a>, <a href="Sketch.html#isEmpty()">isEmpty</a>, <a href="Sketch.html#isEstimationMode()">isEstimationMode</a>, <a href="Sketch.html#isOrdered()">isOrdered</a>, <a href="Sketch.html#iterator()">iterator</a>, <a href="Sketch.html#toByteArray()">toByteArray</a>, <a href="Sketch.html#toString()">toString</a>, <a href="Sketch.html#toString(boolean,boolean,int,boolean)">toString</a>, <a href="Sketch.html#toString(byte%5B%5D)">toString</a>, <a href="Sketch.html#toString(org.apache.datasketches.memory.Memory)">toString</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
@@ -398,6 +403,20 @@ loadScripts(document, 'script');</script>
 <dd><code><a href="Sketch.html#isCompact()">isCompact</a></code>&nbsp;in class&nbsp;<code><a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></dd>
 <dt>Returns:</dt>
 <dd>true if this sketch is in compact form.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getEstimate()">
+<h3>getEstimate</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getEstimate</span>()</div>
+<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="Sketch.html#getEstimate()">Sketch</a></code></span></div>
+<div class="block">Gets the unique count estimate.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="Sketch.html#getEstimate()">getEstimate</a></code>&nbsp;in class&nbsp;<code><a href="Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></code></dd>
+<dt>Returns:</dt>
+<dd>the sketch's best estimate of the cardinality of the input stream.</dd>
 </dl>
 </section>
 </li>
