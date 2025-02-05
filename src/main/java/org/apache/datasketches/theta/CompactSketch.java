@@ -19,11 +19,15 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.common.ByteArrayUtil.getShortLE;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
@@ -219,6 +223,56 @@ public abstract class CompactSketch extends Sketch {
     else if (serVer == 2) {
       return ForwardCompatibility.heapify2to3(srcMem,
           enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
+    }
+    throw new SketchesArgumentException(
+        "Corrupted: Serialization Version " + serVer + " not recognized.");
+  }
+
+  public static CompactSketch wrap(final byte[] bytes) {
+    return wrap(bytes, ThetaUtil.DEFAULT_UPDATE_SEED, false);
+  }
+  
+  public static CompactSketch wrap(final byte[] bytes, final long expectedSeed) {
+    return wrap(bytes, expectedSeed, true);
+  }
+  
+  private static CompactSketch wrap(final byte[] bytes, final long seed, final boolean enforceSeed) {
+    final int serVer = bytes[PreambleUtil.SER_VER_BYTE];
+    final int familyId = bytes[PreambleUtil.FAMILY_BYTE];
+    final Family family = Family.idToFamily(familyId);
+    if (family != Family.COMPACT) {
+      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+    }
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
+    if (serVer == 4) {
+      return WrappedCompactCompressedSketch.wrapInstance(bytes, seedHash);
+    } else if (serVer == 3) {
+      final int flags = bytes[FLAGS_BYTE];
+      if ((flags & EMPTY_FLAG_MASK) > 0) {
+        return EmptyCompactSketch.getHeapInstance(Memory.wrap(bytes));
+      }
+      final int preLongs = bytes[PREAMBLE_LONGS_BYTE];
+      if (otherCheckForSingleItem(preLongs, serVer, familyId, flags)) {
+        return SingleItemSketch.heapify(Memory.wrap(bytes), enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
+      }
+      //not empty & not singleItem
+      final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
+      if (!compactFlag) {
+        throw new SketchesArgumentException(
+            "Corrupted: COMPACT family sketch image must have compact flag set");
+      }
+      final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
+      if (!readOnly) {
+        throw new SketchesArgumentException(
+            "Corrupted: COMPACT family sketch image must have Read-Only flag set");
+      }
+      return WrappedCompactSketch.wrapInstance(bytes,
+          enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
+    } else if (serVer == 1) {
+      return ForwardCompatibility.heapify1to3(Memory.wrap(bytes), seedHash);
+    } else if (serVer == 2) {
+      return ForwardCompatibility.heapify2to3(Memory.wrap(bytes),
+          enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
     }
     throw new SketchesArgumentException(
         "Corrupted: Serialization Version " + serVer + " not recognized.");

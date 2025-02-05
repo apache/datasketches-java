@@ -35,7 +35,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * An off-heap (Direct), compact, read-only sketch. The internal hash array can be either ordered
- * or unordered.
+ * or unordered. It is not empty, not a single item.
  *
  * <p>This sketch can only be associated with a Serialization Version 3 format binary image.</p>
  *
@@ -57,7 +57,7 @@ class DirectCompactSketch extends CompactSketch {
   }
 
   /**
-   * Wraps the given Memory, which must be a SerVer 3, ordered, CompactSketch image.
+   * Wraps the given Memory, which must be a SerVer 3, CompactSketch image.
    * Must check the validity of the Memory before calling. The order bit must be set properly.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seedHash The update seedHash.
