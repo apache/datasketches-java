@@ -589,36 +589,38 @@ public class CompactSketchTest {
 
   @Test
   public void serializeWrapBytesV3() {
-    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    CompactSketch cs1 = sk.compact();
-    byte[] bytes = cs1.toByteArray();
-    CompactSketch cs2 = new WrappedCompactSketch(bytes);
+    final CompactSketch cs1 = sk.compact();
+    final byte[] bytes = cs1.toByteArray();
+    final CompactSketch cs2 = new WrappedCompactSketch(bytes);
     assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
-    HashIterator it1 = cs1.iterator();
-    HashIterator it2 = cs2.iterator();
+    final HashIterator it1 = cs1.iterator();
+    final HashIterator it2 = cs2.iterator();
     while (it1.next() && it2.next()) {
       assertEquals(it2.get(), it2.get());
     }
+    assertEquals(bytes, cs2.toByteArray());
   }
 
   @Test
   public void serializeWrapBytesV4() {
-    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    CompactSketch cs1 = sk.compact();
-    byte[] bytes = cs1.toByteArrayCompressed();
-    CompactSketch cs2 = new WrappedCompactCompressedSketch(bytes);
+    final CompactSketch cs1 = sk.compact();
+    final byte[] bytes = cs1.toByteArrayCompressed();
+    final CompactSketch cs2 = new WrappedCompactCompressedSketch(bytes);
     assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
-    HashIterator it1 = cs1.iterator();
-    HashIterator it2 = cs2.iterator();
+    final HashIterator it1 = cs1.iterator();
+    final HashIterator it2 = cs2.iterator();
     while (it1.next() && it2.next()) {
       assertEquals(it2.get(), it2.get());
     }
+    assertEquals(bytes, cs2.toByteArray());
   }
 
   private static class State {
