@@ -23,6 +23,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.Arena;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -285,29 +287,29 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
-    
+
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
   @Test
@@ -322,28 +324,28 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), defaultSeedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
   @Test
@@ -356,30 +358,30 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch cskResult;
     WritableMemory offHeap;
     CompactSketch csk = usk.compact();
- 
+
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
   @Test
@@ -394,28 +396,28 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = Sketches.wrapCompactSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
   @Test
@@ -430,28 +432,28 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
   @Test
@@ -466,28 +468,28 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), defaultSeedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
   @Test
@@ -502,28 +504,28 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
   @Test
@@ -538,33 +540,33 @@ public class HeapifyWrapSerVer1and2Test {
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()));
+    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk));
+    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
     cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
     assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.close(); }
+    if (offHeap.isAlive()) { offHeap.getArena().close(); }
   }
 
-  private static WritableMemory putOffHeap(Memory heapMem) {
+  private static WritableMemory putOffHeap(Memory heapMem, Arena arena) {
     final long cap = heapMem.getCapacity();
-    WritableMemory wmem = WritableMemory.allocateDirect(cap);
+    WritableMemory wmem = WritableMemory.allocateDirect(cap, arena);
     heapMem.copyTo(0, wmem, 0, cap);
     return wmem;
   }

@@ -52,6 +52,7 @@ import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
+import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -353,7 +354,8 @@ final class KllHelper {
     final WritableMemory newWmem;
 
     if (requiredSketchBytes > oldWmem.getCapacity()) { //Acquire new WritableMemory
-      newWmem = sketch.getMemoryRequestServer().request(oldWmem, requiredSketchBytes);
+      final MemoryRequestServer memReqSvr = sketch.getMemoryRequestServer();
+      newWmem = memReqSvr.request(oldWmem, requiredSketchBytes);
       oldWmem.copyTo(0, newWmem, 0, DATA_START_ADR); //copy preamble (first 20 bytes)
     }
     else { //Expand or contract in current memory
@@ -617,7 +619,7 @@ final class KllHelper {
       maxFloat = fltSk.getMaxItem();
       //assert we are following a certain growth scheme
       assert myCurFloatItemsArr.length == myCurTotalItemsCapacity;
-    } 
+    }
     else if (sketchType == LONGS_SKETCH) {
       final KllLongsSketch lngSk = (KllLongsSketch) sketch;
       myCurLongItemsArr = lngSk.getLongItemsArray();
@@ -668,7 +670,7 @@ final class KllHelper {
       myNewFloatItemsArr = new float[myNewTotalItemsCapacity];
       // copy and shift the current items data into the new array
       System.arraycopy(myCurFloatItemsArr, 0, myNewFloatItemsArr, deltaItemsCap, myCurTotalItemsCapacity);
-    } 
+    }
     else if (sketchType == LONGS_SKETCH) {
       myNewLongItemsArr = new long[myNewTotalItemsCapacity];
       // copy and shift the current items data into the new array
@@ -682,7 +684,11 @@ final class KllHelper {
 
     //MEMORY SPACE MANAGEMENT
     if (sketch.getWritableMemory() != null) {
+      final WritableMemory oldWmem = sketch.getWritableMemory();
       final WritableMemory wmem = memorySpaceMgmt(sketch, myNewLevelsArr.length, myNewTotalItemsCapacity);
+      if (!wmem.isSameResource(oldWmem)) {
+        sketch.getMemoryRequestServer().requestClose(oldWmem);
+      }
       sketch.setWritableMemory(wmem);
     }
 
@@ -700,7 +706,7 @@ final class KllHelper {
       fltSk.setMinItem(minFloat);
       fltSk.setMaxItem(maxFloat);
       fltSk.setFloatItemsArray(myNewFloatItemsArr);
-    } 
+    }
     else if (sketchType == LONGS_SKETCH) {
       final KllLongsSketch lngSk = (KllLongsSketch) sketch;
       lngSk.setMinItem(minLong);

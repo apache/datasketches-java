@@ -31,7 +31,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.Arena;
 
 public class BloomFilterTest {
 
@@ -52,8 +52,9 @@ public class BloomFilterTest {
     assertFalse(bf1.isDirect());
     assertFalse(bf1.isReadOnly());
 
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(sizeBytes)).scope()) {
+
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = WritableMemory.allocateDirect(sizeBytes, arena);
       final BloomFilter bf2 = new BloomFilter(numBits, numHashes, seed, wmem);
       assertTrue(bf2.isEmpty());
       assertTrue(bf2.hasMemory());
@@ -158,8 +159,9 @@ public class BloomFilterTest {
 
     int numFound = 0;
     for (long i = 0; i < 2 * n; ++i) {
-      if (bf.query(i))
+      if (bf.query(i)) {
         ++numFound;
+      }
     }
     assertTrue(numFound >= n);
     assertTrue(numFound < 1.1 * n);
@@ -339,8 +341,12 @@ public class BloomFilterTest {
     int fromBytesCount = 0;
     for (int i = 0; i < numBits; ++i) {
       boolean val = fromBytes.query(0.5 + i);
-      if (val) ++fromBytesCount;
-      if (i < n) assertTrue(val);
+      if (val) {
+        ++fromBytesCount;
+      }
+      if (i < n) {
+        assertTrue(val);
+      }
     }
     assertEquals(fromBytesCount, n + count); // same numbers of items should match
 
@@ -354,8 +360,12 @@ public class BloomFilterTest {
     int fromLongsCount = 0;
     for (int i = 0; i < numBits; ++i) {
       boolean val = fromLongs.query(0.5 + i);
-      if (val) ++fromLongsCount;
-      if (i < n) assertTrue(val);
+      if (val) {
+        ++fromLongsCount;
+      }
+      if (i < n) {
+        assertTrue(val);
+      }
     }
     assertEquals(fromLongsCount, n + count); // same numbers of items should match
 

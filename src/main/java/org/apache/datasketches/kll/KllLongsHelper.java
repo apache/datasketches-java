@@ -207,8 +207,11 @@ final class KllLongsHelper {
 
       //MEMORY SPACE MANAGEMENT
       if (mySketch.getWritableMemory() != null) {
-        final WritableMemory wmem =
-            KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewLongItemsArray.length);
+        final WritableMemory oldWmem = mySketch.getWritableMemory();
+        final WritableMemory wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewLongItemsArray.length);
+        if (!wmem.isSameResource(oldWmem)) {
+          mySketch.getMemoryRequestServer().requestClose(oldWmem);
+        }
         mySketch.setWritableMemory(wmem);
       }
     } //end of updating levels above level 0

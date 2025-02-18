@@ -599,15 +599,18 @@ public class KllItemsSketchTest {
   @Test
   public void checkIsSameResource() {
     int cap = 128;
-    WritableMemory wmem = WritableMemory.allocate(cap);
+    WritableMemory wmem = WritableMemory.allocate(cap); //heap
     WritableMemory reg1 = wmem.writableRegion(0, 64);
     WritableMemory reg2 = wmem.writableRegion(64, 64);
     assertFalse(reg1 == reg2);
-    assertFalse(reg1.isSameResource(reg2));
+    assertFalse(reg1.isSameResource(reg2)); //same original resource, but different offsets
 
     WritableMemory reg3 = wmem.writableRegion(0, 64);
     assertFalse(reg1 == reg3);
-    assertTrue(reg1.isSameResource(reg3));
+    assertTrue(reg1.isSameResource(reg3)); //same original resource, same offsets, different views.
+    reg1.putInt(0, -1);
+    assertEquals(-1, reg3.getInt(0)); //proof
+    reg1.putInt(0, 0);
 
     byte[] byteArr1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe).toByteArray();
     reg1.putByteArray(0, byteArr1, 0, byteArr1.length);
@@ -615,11 +618,11 @@ public class KllItemsSketchTest {
 
     byte[] byteArr2 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe).toByteArray();
     reg2.putByteArray(0, byteArr2, 0, byteArr2.length);
-    assertFalse(sk1.isSameResource(reg2));
+    assertFalse(sk1.isSameResource(reg2)); //same original resource, but different offsets
 
     byte[] byteArr3 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe).toByteArray();
     reg3.putByteArray(0, byteArr3, 0, byteArr3.length);
-    assertTrue(sk1.isSameResource(reg3));
+    assertTrue(sk1.isSameResource(reg3)); //same original resource, same offsets, different views.
   }
 
   // New added tests specially for KllItemsSketch

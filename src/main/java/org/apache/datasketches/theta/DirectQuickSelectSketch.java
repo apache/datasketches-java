@@ -327,11 +327,11 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
             throw new SketchesArgumentException("Out of Memory, MemoryRequestServer is null, cannot expand.");
           }
 
-          final WritableMemory newDstMem = memReqSvr_.request(wmem_,reqBytes);
+          final WritableMemory newDstMem = memReqSvr_.request(wmem_, reqBytes);
 
           moveAndResize(wmem_, preambleLongs, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 
-          memReqSvr_.requestClose(wmem_, newDstMem);
+          memReqSvr_.requestClose(wmem_);
 
           wmem_ = newDstMem;
           hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, tgtLgArrLongs);

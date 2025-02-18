@@ -195,7 +195,7 @@ final class DirectAuxHashMap implements AuxHashMap {
       final WritableMemory newWmem = svr.request(host.wmem, requestBytes);
       host.wmem.copyTo(0, newWmem, 0, host.auxStart);
       newWmem.clear(host.auxStart, newAuxBytes); //clear space for new aux data
-      svr.requestClose(host.wmem, newWmem); //old host.wmem is now invalid
+      svr.requestClose(host.wmem); //old host.wmem is now invalid
       host.updateMemory(newWmem);
     }
     //rehash into larger aux array

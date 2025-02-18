@@ -194,7 +194,7 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
 
   @Override
   public void initBgPropagationService() {
-    executorService_ = ConcurrentPropagationService.getExecutorService(Thread.currentThread().getId());
+    executorService_ = ConcurrentPropagationService.getExecutorService(Thread.currentThread().threadId());
   }
 
   @Override
@@ -253,7 +253,7 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   private void advanceEpoch() {
     awaitBgPropagationTermination();
     startEagerPropagation();
-    ConcurrentPropagationService.resetExecutorService(Thread.currentThread().getId());
+    ConcurrentPropagationService.resetExecutorService(Thread.currentThread().threadId());
     //no inspection NonAtomicOperationOnVolatileField
     // this increment of a volatile field is done within the scope of the propagation
     // synchronization and hence is done by a single thread

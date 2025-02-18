@@ -34,7 +34,7 @@ import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.Arena;
 
 public class DoublesSketchTest {
 
@@ -141,7 +141,7 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-    WritableMemory wmem = WritableMemory.allocateDirect(1000, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(1000, Arena.ofConfined());
     WritableMemory wmem2 = wmem;
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
     Assert.assertTrue(sketch.isSameResource(wmem));
@@ -155,7 +155,7 @@ public class DoublesSketchTest {
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
     int i = 0;
-    WritableMemory wmem = WritableMemory.allocateDirect(50, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(50, Arena.ofConfined());
     WritableMemory wmem2 = wmem;
     UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
     Assert.assertTrue(sketch.isSameResource(wmem));
@@ -172,10 +172,8 @@ public class DoublesSketchTest {
 
   @Test
   public void checkEmptyDirect() {
-    WritableMemory wmem ;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(1000, 1,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
-
+    try (Arena arena = Arena.ofConfined()) {
+       WritableMemory wmem = WritableMemory.allocateDirect(1000, Arena.ofConfined());
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
       sketch.toByteArray(); //exercises a specific path
     } catch (final Exception e) {

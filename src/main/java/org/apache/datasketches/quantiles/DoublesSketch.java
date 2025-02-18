@@ -460,9 +460,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     final int totLevels = computeNumLevelsNeeded(k, n);
     if (n <= k) {
       final int ceil = Math.max(ceilingPowerOf2((int)n), MIN_K * 2);
-      return metaPre + ceil << 3;
+      return (metaPre + ceil) << 3;
     }
-    return metaPre + (2 + totLevels) * k << 3;
+    return (metaPre + (2 + totLevels) * k) << 3;
   }
 
   /**

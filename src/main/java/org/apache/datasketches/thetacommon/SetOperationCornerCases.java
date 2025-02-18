@@ -28,7 +28,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * Simplifies and speeds up set operations by resolving specific corner cases.
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
+
 public class SetOperationCornerCases {
   private static final long MAX = Long.MAX_VALUE;
 
