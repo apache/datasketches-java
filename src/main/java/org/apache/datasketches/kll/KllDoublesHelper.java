@@ -207,8 +207,11 @@ final class KllDoublesHelper {
 
       //MEMORY SPACE MANAGEMENT
       if (mySketch.getWritableMemory() != null) {
-        final WritableMemory wmem =
-            KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
+        final WritableMemory oldWmem = mySketch.getWritableMemory();
+        final WritableMemory wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
+        if (!wmem.isSameResource(oldWmem)) {
+          mySketch.getMemoryRequestServer().requestClose(oldWmem);
+        }
         mySketch.setWritableMemory(wmem);
       }
     } //end of updating levels above level 0

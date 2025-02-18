@@ -25,6 +25,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.Arena;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -33,8 +34,6 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
-
-import jdk.incubator.foreign.ResourceScope;
 
 public class UnionImplTest {
 
@@ -196,14 +195,13 @@ public class UnionImplTest {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    ResourceScope scope = ResourceScope.newConfinedScope();
-
-    final WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    final Arena arena = Arena.ofConfined();
+    final WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, arena);
     final WritableMemory wmemA = wmem;
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem));
 
-    final WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2, 1, scope, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    final WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2, arena);
     final WritableMemory wmemB = wmem2;
     final Union union = SetOperation.builder().buildUnion(wmem2);
     assertTrue(union.isSameResource(wmem2));
@@ -213,8 +211,9 @@ public class UnionImplTest {
 
     final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
     assertFalse(union2.isSameResource(wmem2));  //obviously not
-    assertFalse(wmemA.isAlive());
-    assertFalse(wmemB.isAlive());
+    assertFalse(wmemB.isAlive()); //closed when DirectQuickSelectSketch expanded into heap.
+    assertFalse(wmemA.isAlive()); //closed as part of the same Arena
+
   }
 
   @Test
@@ -236,8 +235,8 @@ public class UnionImplTest {
     final double est1 = sk.getEstimate();
 
     final int bytes = Sketches.getCompactSketchMaxBytes(lgK);
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+        WritableMemory wmem = WritableMemory.allocateDirect(bytes, arena);
 
       final CompactSketch csk = sk.compact(true, wmem); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();

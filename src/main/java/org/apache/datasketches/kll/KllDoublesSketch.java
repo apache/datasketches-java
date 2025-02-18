@@ -137,7 +137,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH, null);
     if (memVal.sketchStructure == UPDATABLE) {
-      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer(); //dummy
+      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
       return new KllDirectDoublesSketch(memVal.sketchStructure, (WritableMemory)srcMem, memReqSvr, memVal);
     } else {
       return new KllDirectCompactDoublesSketch(memVal.sketchStructure, srcMem, memVal);

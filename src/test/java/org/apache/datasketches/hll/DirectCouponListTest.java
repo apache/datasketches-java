@@ -25,12 +25,11 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.Arena;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -71,7 +70,8 @@ public class DirectCouponListTest {
     //println("DIRECT");
     byte[] barr1;
     WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(bytes)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      wmem = WritableMemory.allocateDirect(bytes, arena);
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
       assertTrue(hllSketch.isEmpty());
 

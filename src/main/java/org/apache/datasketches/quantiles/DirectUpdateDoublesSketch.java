@@ -266,9 +266,8 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     }
 
     final WritableMemory newMem = memReqSvr.request(mem_, needBytes);
-
     mem_.copyTo(0, newMem, 0, memBytes);
-    memReqSvr.requestClose(mem_, newMem);
+    memReqSvr.requestClose(mem_);
 
     return newMem;
   }

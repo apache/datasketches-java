@@ -38,6 +38,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.Arena;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -52,8 +53,6 @@ import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.ResourceScope;
-
 /**
  * @author Lee Rhodes
  */
@@ -62,8 +61,8 @@ public class DirectQuickSelectSketchTest {
   @Test//(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 512;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+        WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -88,8 +87,8 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkConstructorKtooSmall() {
     int k = 8;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+        WritableMemory wmem = makeNativeMemory(k, arena);
       UpdateSketch.builder().setNominalEntries(k).build(wmem);
     } catch (final Exception e) {
       if (e instanceof SketchesArgumentException) {}
@@ -100,8 +99,8 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkConstructorMemTooSmall() {
     int k = 16;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k/2)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+        WritableMemory wmem = makeNativeMemory(k/2, arena);
       UpdateSketch.builder().setNominalEntries(k).build(wmem);
     } catch (final Exception e) {
       if (e instanceof SketchesArgumentException) {}
@@ -126,10 +125,8 @@ public class DirectQuickSelectSketchTest {
   public void checkHeapifyMemoryEstimating() {
     int k = 512;
     int u = 2*k; //thus estimating
-
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
-
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
       UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       for (int i=0; i<u; i++) { sk1.update(i); }
 
@@ -199,9 +196,8 @@ public class DirectQuickSelectSketchTest {
     int k = 512;
     long seed1 = 1021;
     long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
-
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
       UpdateSketch usk = UpdateSketch.builder().setSeed(seed1).setNominalEntries(k).build(wmem);
       byte[] byteArray = usk.toByteArray();
       Memory srcMem = Memory.wrap(byteArray);
@@ -215,8 +211,9 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkCorruptLgNomLongs() {
     int k = 16;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
       UpdateSketch.builder().setNominalEntries(k).build(wmem);
       wmem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
       Sketch.heapify(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
@@ -229,8 +226,8 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkHeapifyByteArrayExact() {
     int k = 512;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
 
@@ -262,8 +259,8 @@ public class DirectQuickSelectSketchTest {
   public void checkHeapifyByteArrayEstimating() {
     int k = 4096;
     int u = 2*k;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
 
       for (int i=0; i<u; i++) { usk.update(i); }
@@ -291,9 +288,8 @@ public class DirectQuickSelectSketchTest {
   public void checkWrapMemoryEst() {
     int k = 512;
     int u = 2*k; //thus estimating
-
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
       UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       for (int i=0; i<u; i++) { sk1.update(i); }
 
@@ -318,8 +314,8 @@ public class DirectQuickSelectSketchTest {
   public void checkDQStoCompactForms() {
     int k = 512;
     int u = 4*k; //thus estimating
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -388,8 +384,8 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkDQStoCompactEmptyForms() {
     int k = 512;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
 
@@ -434,8 +430,8 @@ public class DirectQuickSelectSketchTest {
     int k = 4096;
     int u = 2*k;
 
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -455,8 +451,8 @@ public class DirectQuickSelectSketchTest {
     int k = 4096;
     float p = (float)0.5;
 
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setP(p).setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -481,8 +477,8 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkErrorBounds() {
     int k = 512;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
 
@@ -517,8 +513,8 @@ public class DirectQuickSelectSketchTest {
     //virgin, p = 1.0
     int k = 1024;
     float p = (float)1.0;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setP(p).setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -557,8 +553,8 @@ public class DirectQuickSelectSketchTest {
   public void checkUpperAndLowerBounds() {
     int k = 512;
     int u = 2*k;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
 
@@ -578,8 +574,8 @@ public class DirectQuickSelectSketchTest {
   public void checkRebuild() {
     int k = 512;
     int u = 4*k;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -607,8 +603,8 @@ public class DirectQuickSelectSketchTest {
   public void checkResetAndStartingSubMultiple() {
     int k = 512;
     int u = 4*k;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -638,8 +634,8 @@ public class DirectQuickSelectSketchTest {
   public void checkExactModeMemoryArr() {
     int k = 4096;
     int u = 4096;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -659,8 +655,8 @@ public class DirectQuickSelectSketchTest {
     int k = 4096;
     int u = 2*k;
 
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -681,8 +677,8 @@ public class DirectQuickSelectSketchTest {
     int u = 2*k;
     int memCapacity = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(memCapacity)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(memCapacity, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
@@ -702,8 +698,8 @@ public class DirectQuickSelectSketchTest {
   public void checkConstructReconstructFromMemory() {
     int k = 4096;
     int u = 2*k;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = makeNativeMemory(k)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = makeNativeMemory(k, arena);
 
       UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wmem);
       assertTrue(usk.isEmpty());
@@ -874,7 +870,7 @@ public class DirectQuickSelectSketchTest {
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
 
-    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, Arena.ofConfined());
     WritableMemory wmem2 = wmem;
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     assertTrue(sketch.isSameResource(wmem));
@@ -888,7 +884,7 @@ public class DirectQuickSelectSketchTest {
     int k = 1 << 12;
     int u = 2 * k;
     int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, Arena.ofConfined());
     WritableMemory wmem2 = wmem;
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
     for (int i = 0; i < u; i++) { sketch.update(i); }
@@ -929,8 +925,8 @@ public class DirectQuickSelectSketchTest {
     return (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
   }
 
-  private static WritableMemory makeNativeMemory(int k) {
-    return WritableMemory.allocateDirect(getMaxBytes(k));
+  private static WritableMemory makeNativeMemory(int k, Arena arena) {
+    return WritableMemory.allocateDirect(getMaxBytes(k), arena);
   }
 
 }

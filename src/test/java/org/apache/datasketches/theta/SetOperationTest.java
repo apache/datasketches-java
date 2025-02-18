@@ -317,19 +317,19 @@ public class SetOperationTest {
   @Test
   public void checkIsSameResource() {
     final int k = 16;
-    final WritableMemory wmem = WritableMemory.writableWrap(new byte[k*16 + 32]);
-    final Memory roCompactMem = Memory.wrap(new byte[8]);
+    final WritableMemory wmem = WritableMemory.writableWrap(new byte[k*16 + 32]);//288
+    final WritableMemory emptyMem = WritableMemory.writableWrap(new byte[8]);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(wmem);
     assertTrue(union.isSameResource(wmem));
-    assertFalse(union.isSameResource(roCompactMem));
+    assertFalse(union.isSameResource(emptyMem));
 
     final Intersection inter = Sketches.setOperationBuilder().buildIntersection(wmem);
     assertTrue(inter.isSameResource(wmem));
-    assertFalse(inter.isSameResource(roCompactMem));
+    assertFalse(inter.isSameResource(emptyMem));
 
     final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
 
-    assertFalse(aNotB.isSameResource(roCompactMem));
+    assertFalse(aNotB.isSameResource(emptyMem));
   }
 
   @Test

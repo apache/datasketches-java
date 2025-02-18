@@ -37,24 +37,19 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 import static org.testng.Assert.assertEquals;
 
-import java.nio.ByteOrder;
+import java.lang.foreign.Arena;
 
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
-
-import jdk.incubator.foreign.ResourceScope;
 
 public class PreambleUtilTest {
 
   @Test
   public void checkInsertsAndExtracts() {
     final int bytes = 32;
-    WritableMemory offHeapMem;
-    try (ResourceScope scope = (offHeapMem = WritableMemory.allocateDirect(bytes, 1,
-            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())).scope()) {
-
+    try (Arena arena = Arena.ofConfined()) {
+        WritableMemory offHeapMem = WritableMemory.allocateDirect(bytes, arena);
       final WritableMemory onHeapMem = WritableMemory.writableWrap(new byte[bytes]);
 
       onHeapMem.clear();
