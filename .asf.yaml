@@ -4,15 +4,24 @@ github:
   ghp_branch: gh-pages
   ghp_path: /docs
 
-  master:
-    required_status_checks:
-      # strict means "Require branches to be up to date before merging."
-      strict: true
+  protected_branches:
+    main:
+      required_status_checks:
+        # strict means "Require branches to be up to date before merging."
+        strict: true
 
-    required_pull_request_reviews:
-      dismiss_stale_reviews: true
-      required_approving_review_count: 1
-
+      required_pull_request_reviews:
+        dismiss_stale_reviews: false
+        equired_approving_review_count: 1
+      
+      # squash or rebase must be allowed in the repo for this setting to be set to true.
+      required_linear_history: false
+      
+      required_signatures: false
+      
+      # requires all conversations to be resolved before merging is possible
+      required_conversation_resolution: false
+      
   dependabot_alerts:  true
   dependabot_updates: false
 
