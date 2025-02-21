@@ -381,7 +381,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided long and
-   * returns the result from quering that value prior to the update.
+   * returns the result from querying that value prior to the update.
    * @param item an item with which to update the filter
    * @return The query result prior to applying the update
    */
@@ -393,7 +393,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided double and
-   * returns the result from quering that value prior to the update.
+   * returns the result from querying that value prior to the update.
    * The double is canonicalized (NaN and +/- infinity) in the call.
    * @param item an item with which to update the filter
    * @return The query result prior to applying the update
@@ -408,7 +408,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided String and
-   * returns the result from quering that value prior to the update.
+   * returns the result from querying that value prior to the update.
    * The string is converted to a byte array using UTF8 encoding.
    *
    * <p>Note: this will not produce the same output hash values as the {@link #queryAndUpdate(char[])}
@@ -428,7 +428,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided byte[] and
-   * returns the result from quering that array prior to the update.
+   * returns the result from querying that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
    */
@@ -440,7 +440,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided char[] and
-   * returns the result from quering that array prior to the update.
+   * returns the result from querying that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
    */
@@ -453,7 +453,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided short[] and
-   * returns the result from quering that array prior to the update.
+   * returns the result from querying that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
    */
@@ -466,7 +466,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided int[] and
-   * returns the result from quering that array prior to the update.
+   * returns the result from querying that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
    */
@@ -479,7 +479,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided long[] and
-   * returns the result from quering that array prior to the update.
+   * returns the result from querying that array prior to the update.
    * @param data an array with which to update the filter
    * @return The query result prior to applying the update, or false if data is null
    */
@@ -492,7 +492,7 @@ public final class BloomFilter {
 
   /**
    * Updates the filter with the provided Memory and
-   * returns the result from quering that Memory prior to the update.
+   * returns the result from querying that Memory prior to the update.
    * @param mem an array with which to update the filter
    * @return The query result prior to applying the update, or false if mem is null
    */
@@ -762,7 +762,7 @@ public final class BloomFilter {
  *  3   ||---------------------------------NumBitsSet------------------------------------|
  *  </pre>
  *
- * The raw BitArray bits, if non-empty start at byte 24.
+ * The raw BitArray bits, if non-empty, start at byte 32.
  */
 
   /**
