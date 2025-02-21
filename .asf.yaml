@@ -11,7 +11,7 @@ github:
         strict: true
 
       required_pull_request_reviews:
-        dismiss_stale_reviews: true
+        dismiss_stale_reviews: false
         equired_approving_review_count: 1
       
       # squash or rebase must be allowed in the repo for this setting to be set to true.
