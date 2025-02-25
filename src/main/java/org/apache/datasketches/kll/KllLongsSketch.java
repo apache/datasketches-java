@@ -137,7 +137,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, LONGS_SKETCH, null);
     if (memVal.sketchStructure == UPDATABLE) {
-      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer(); //dummy
+      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
       return new KllDirectLongsSketch(memVal.sketchStructure, (WritableMemory)srcMem, memReqSvr, memVal);
     } else {
       return new KllDirectCompactLongsSketch(memVal.sketchStructure, srcMem, memVal);

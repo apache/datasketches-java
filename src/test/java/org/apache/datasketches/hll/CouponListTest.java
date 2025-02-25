@@ -42,7 +42,7 @@ public class CouponListTest {
     TgtHllType tgtHllType = TgtHllType.HLL_4;
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
     WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = (direct) ? new HllSketch(lgK, tgtHllType, wmem) : new HllSketch(lgK);
+    HllSketch sk = (direct) ? new HllSketch(lgK, tgtHllType, wmem) : new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) { sk.update(i); }
     String store = direct ? "Memory" : "Heap";
     println("CurMode: " + sk.getCurMode().toString() + "; Store: " + store);

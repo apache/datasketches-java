@@ -146,7 +146,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
   @Override
   int getCombinedBufferItemCapacity() {
-    return ((int)mem_.getCapacity() - COMBINED_BUFFER) / 8;
+    return Math.max(0, (int)mem_.getCapacity() - COMBINED_BUFFER) / 8;
   }
 
   @Override

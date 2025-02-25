@@ -205,7 +205,6 @@ final class HeapAuxHashMap implements AuxHashMap {
   private void checkGrow() {
     if ((RESIZE_DENOM * auxCount) > (RESIZE_NUMER * auxIntArr.length)) {
       growAuxSpace();
-      //TODO if direct, ask for more memory
     }
   }
 

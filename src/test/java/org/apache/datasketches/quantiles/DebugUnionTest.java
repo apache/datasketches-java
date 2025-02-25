@@ -27,7 +27,8 @@ import java.util.HashSet;
 
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.Arena;
+import java.nio.ByteOrder;
 
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
@@ -63,8 +64,8 @@ public class DebugUnionTest {
     DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion dUnion;
     DoublesSketch dSketch;
-    WritableMemory wmem;
-    try (ResourceScope scope = (wmem = WritableMemory.allocateDirect(10_000_000)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory wmem = WritableMemory.allocateDirect(10_000_000, arena);
       dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
       for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap

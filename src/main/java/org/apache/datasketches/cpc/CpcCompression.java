@@ -288,7 +288,7 @@ final class CpcCompression {
       final long golombLo = yDelta & golombLoMask; //long for bitBuf
       final long golombHi = yDelta >>> numBaseBits; //cannot exceed 2^26
 
-      //TODO Inline WriteUnary
+      // Inline WriteUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
       ptrArr[BIT_BUF] = bitBuf;
       ptrArr[BUF_BITS] = bufBits;
@@ -372,7 +372,7 @@ final class CpcCompression {
       bitBuf >>>= codeWordLength;
       bufBits -= codeWordLength;
 
-      //TODO Inline ReadUnary
+      // Inline ReadUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
       ptrArr[BIT_BUF] = bitBuf;
       ptrArr[BUF_BITS] = bufBits;

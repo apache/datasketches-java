@@ -24,6 +24,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.Arena;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
@@ -47,7 +48,7 @@ public class DirectQuantilesMemoryRequestTest {
 
     //########## Owning Implementation
     // This part would actually be part of the Memory owning implementation so it is faked here
-    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, Arena.ofConfined());
     WritableMemory wmem2 = wmem;
     println("Initial mem size: " + wmem.getCapacity());
 
@@ -80,7 +81,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = 32; // don't need the BB to fill here
     final int initBytes = (4 + (u / 2)) << 3; // not enough to hold everything
 
-    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, Arena.ofConfined());
     WritableMemory wmem2 = wmem;
     println("Initial mem size: " + wmem.getCapacity());
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
@@ -99,7 +100,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = (2 * k) - 1; //just to fill the BB
     final int initBytes = ((2 * k) + 4) << 3; //just room for BB
 
-    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, Arena.ofConfined());
     WritableMemory wmem2 = wmem;
     println("Initial mem size: " + wmem.getCapacity());
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wmem);
@@ -116,14 +117,28 @@ public class DirectQuantilesMemoryRequestTest {
   }
 
   @Test
+  public void checkUpdatableStorageBytes() {
+    final int k = 16;
+    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, 1);
+    println("Predicted Updatable Storage Bytes: " + initBytes);
+    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
+    usk1.update(1.0);
+    byte[] uarr = usk1.toByteArray();
+    println("Actual Storage Bytes " + uarr.length);
+    assertEquals(initBytes, uarr.length);
+    assertEquals(initBytes, 64);
+  }
+
+
+  @Test
   public void checkGrowFromWrappedEmptySketch() {
     final int k = 16;
     final int n = 0;
-    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n); //8 bytes
+    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n); //empty: 8 bytes
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
-    final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
+    final Memory origSketchMem = Memory.wrap(usk1.toByteArray()); //on heap
 
-    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, 1, ByteOrder.nativeOrder(), new DefaultMemoryRequestServer());
+    WritableMemory wmem = WritableMemory.allocateDirect(initBytes, Arena.ofConfined()); //off heap
     WritableMemory wmem2 = wmem;
     origSketchMem.copyTo(0, wmem, 0, initBytes);
     UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(wmem);
@@ -133,8 +148,8 @@ public class DirectQuantilesMemoryRequestTest {
     assertTrue(usk2.isEmpty());
 
     //update the sketch forcing it to grow on-heap
-    for (int i = 1; i <= 5; i++) { usk2.update(i); }
-    assertEquals(usk2.getN(), 5);
+    usk2.update(1.0);
+    assertEquals(usk2.getN(), 1);
     WritableMemory mem2 = usk2.getMemory();
     assertFalse(wmem.isSameResource(mem2));
     assertFalse(mem2.isDirect()); //should now be on-heap

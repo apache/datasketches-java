@@ -137,7 +137,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH, null);
     if (memVal.sketchStructure == UPDATABLE) {
-      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer(); //dummy
+      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
       return new KllDirectFloatsSketch(memVal.sketchStructure, (WritableMemory)srcMem, memReqSvr, memVal);
     } else {
       return new KllDirectCompactFloatsSketch(memVal.sketchStructure, srcMem, memVal);

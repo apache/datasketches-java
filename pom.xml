@@ -33,7 +33,7 @@ under the License.
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>7.1.0-SNAPSHOT</version>
+  <version>8.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
@@ -83,7 +83,7 @@ under the License.
   </developers>
 
   <properties>
-    <datasketches-memory.version>4.1.0</datasketches-memory.version>
+    <datasketches-memory.version>6.0.0</datasketches-memory.version>
 
     <!-- Test -->
     <testng.version>7.10.2</testng.version>
@@ -94,11 +94,11 @@ under the License.
 
     <!-- System-wide properties -->
     <maven.version>3.6.3</maven.version>
-    <java.version>17</java.version>
-    <add-modules>--add-modules=jdk.incubator.foreign</add-modules>
+    <java.version>21</java.version>
+    <jvm-ffm-flag>--enable-preview</jvm-ffm-flag>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${add-modules}</argLine>
+    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-ffm-flag}</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -164,7 +164,7 @@ under the License.
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <compilerArgs>
-              <arg>${add-modules}</arg>
+              <arg>${jvm-ffm-flag}</arg>
             </compilerArgs>
           </configuration>
         </plugin>
@@ -238,7 +238,7 @@ under the License.
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
             <additionalOptions>
-              <additionalOption>${add-modules}</additionalOption>
+              <additionalOption>${jvm-ffm-flag}</additionalOption>
             </additionalOptions>
           </configuration>
           <executions>
@@ -284,7 +284,7 @@ under the License.
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
-            <argLine>${add-modules}</argLine>
+            <argLine>${jvm-ffm-flag}</argLine>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>

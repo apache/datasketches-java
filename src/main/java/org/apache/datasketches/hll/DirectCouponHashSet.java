@@ -35,6 +35,7 @@ import static org.apache.datasketches.hll.PreambleUtil.insertInt;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -105,13 +106,14 @@ final class DirectCouponHashSet extends DirectCouponList {
       if (lgCouponArrInts == (getLgConfigK() - 3)) {
         return true; // promote
       }
-      //TODO if direct, ask for more memory
       insertLgArr(wmem, ++lgCouponArrInts);
       growHashSet(wmem, lgCouponArrInts);
     }
     return false;
   }
 
+  //This could fail if the user has undersized the given WritableMemory
+  //  and not used the public methods for sizing the Memory.  See exception.
   private static final void growHashSet(final WritableMemory wmem, final int tgtLgCouponArrSize) {
     final int tgtArrSize = 1 << tgtLgCouponArrSize;
     final int[] tgtCouponIntArr = new int[tgtArrSize];
@@ -128,7 +130,11 @@ final class DirectCouponHashSet extends DirectCouponList {
       }
     }
     wmem.clear(HASH_SET_INT_ARR_START, tgtArrSize << 2);
-    wmem.putIntArray(HASH_SET_INT_ARR_START, tgtCouponIntArr, 0, tgtArrSize);
+    try { wmem.putIntArray(HASH_SET_INT_ARR_START, tgtCouponIntArr, 0, tgtArrSize); }
+    catch (final IndexOutOfBoundsException e) {
+      throw new SketchesException(
+          "The WritableMemory is undersized. Use the public methods for properly sizing Memory.", e);
+    }
   }
 
   //Searches the Coupon hash table (embedded in Memory) for an empty slot

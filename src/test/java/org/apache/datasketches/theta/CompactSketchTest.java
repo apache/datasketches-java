@@ -32,7 +32,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-import jdk.incubator.foreign.ResourceScope;
+import java.lang.foreign.Arena;
 
 /**
  * @author Lee Rhodes
@@ -79,8 +79,8 @@ public class CompactSketchTest {
     //Prepare Memory for direct
     int bytes = usk.getCompactBytes(); //for Compact
 
-    WritableMemory directMem;
-    try (ResourceScope scope = (directMem = WritableMemory.allocateDirect(bytes)).scope()) {
+    try (Arena arena = Arena.ofConfined()) {
+      WritableMemory directMem = WritableMemory.allocateDirect(bytes, arena);
 
       /**Via CompactSketch.compact**/
       refSk = usk.compact(ordered, directMem);
