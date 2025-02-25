@@ -504,13 +504,13 @@ class IntersectionImpl extends Intersection {
   }
 
   private void moveDataToTgt(final Sketch sketch) {
-    int count = sketch.getRetainedEntries();
+    final int count = sketch.getRetainedEntries();
     int tmpCnt = 0;
     if (wmem_ != null) { //Off Heap puts directly into mem
       final int preBytes = CONST_PREAMBLE_LONGS << 3;
       final int lgArrLongs = lgArrLongs_;
       final long thetaLong = thetaLong_;
-      HashIterator it = sketch.iterator();
+      final HashIterator it = sketch.iterator();
       while (it.next()) {
         final long hash = it.get();
         if (continueCondition(thetaLong, hash)) { continue; }
@@ -518,7 +518,7 @@ class IntersectionImpl extends Intersection {
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough
-      HashIterator it = sketch.iterator();
+      final HashIterator it = sketch.iterator();
       while (it.next()) {
         final long hash = it.get();
         if (continueCondition(thetaLong_, hash)) { continue; }

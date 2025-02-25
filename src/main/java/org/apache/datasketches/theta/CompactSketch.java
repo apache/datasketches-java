@@ -228,14 +228,61 @@ public abstract class CompactSketch extends Sketch {
         "Corrupted: Serialization Version " + serVer + " not recognized.");
   }
 
+  /**
+   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * There is no data copying onto the java heap.
+   * The wrap operation enables fast read-only merging and access to all the public read-only API.
+   *
+   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct sketches can be wrapped.
+   * Wrapping earlier serial version sketches will result in a heapify operation.
+   * These early versions were never designed to "wrap".</p>
+   *
+   * <p>Wrapping any subclass of this class that is empty or contains only a single item will
+   * result in heapified forms of empty and single item sketch respectively.
+   * This is actually faster and consumes less overall memory.</p>
+   *
+   * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source Memory image.
+   * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
+   * so the resulting heapified CompactSketch will be given the hash of DEFAULT_UPDATE_SEED.</p>
+   *
+   * @param bytes a byte array image of a Sketch that was created using the DEFAULT_UPDATE_SEED.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   *
+   * @return a CompactSketch backed by the given Memory except as above.
+   */
   public static CompactSketch wrap(final byte[] bytes) {
     return wrap(bytes, ThetaUtil.DEFAULT_UPDATE_SEED, false);
   }
-  
+
+  /**
+   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * There is no data copying onto the java heap.
+   * The wrap operation enables fast read-only merging and access to all the public read-only API.
+   *
+   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct sketches can be wrapped.
+   * Wrapping earlier serial version sketches will result in a heapify operation.
+   * These early versions were never designed to "wrap".</p>
+   *
+   * <p>Wrapping any subclass of this class that is empty or contains only a single item will
+   * result in heapified forms of empty and single item sketch respectively.
+   * This is actually faster and consumes less overall memory.</p>
+   *
+   * <p>This method checks if the given expectedSeed was used to create the source Memory image.
+   * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
+   * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
+   *
+   * @param bytes a byte array image of a Sketch that was created using the given expectedSeed.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @return a CompactSketch backed by the given Memory except as above.
+   */
   public static CompactSketch wrap(final byte[] bytes, final long expectedSeed) {
     return wrap(bytes, expectedSeed, true);
   }
-  
+
   private static CompactSketch wrap(final byte[] bytes, final long seed, final boolean enforceSeed) {
     final int serVer = bytes[PreambleUtil.SER_VER_BYTE];
     final int familyId = bytes[PreambleUtil.FAMILY_BYTE];
