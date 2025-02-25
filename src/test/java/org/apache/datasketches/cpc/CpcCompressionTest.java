@@ -56,7 +56,7 @@ public class CpcCompressionTest {
 
     for (int i = 0; i < 100; i++) {
 
-      //TODO Inline WriteUnary
+      // Inline WriteUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
       ptrArr[BIT_BUF] = bitBuf;
       ptrArr[BUF_BITS] = bufBits;
@@ -92,7 +92,7 @@ public class CpcCompressionTest {
 
     for (int i = 0; i < 100; i++) {
 
-      //TODO Inline ReadUnary
+      // Inline ReadUnary
       ptrArr[NEXT_WORD_IDX] = nextWordIndex;
       ptrArr[BIT_BUF] = bitBuf;
       ptrArr[BUF_BITS] = bufBits;

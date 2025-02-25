@@ -125,7 +125,8 @@ public class DirectQuantilesMemoryRequestTest {
     usk1.update(1.0);
     byte[] uarr = usk1.toByteArray();
     println("Actual Storage Bytes " + uarr.length);
-    assertEquals(initBytes, uarr.length); //64
+    assertEquals(initBytes, uarr.length);
+    assertEquals(initBytes, 64);
   }
 
 
@@ -151,7 +152,7 @@ public class DirectQuantilesMemoryRequestTest {
     assertEquals(usk2.getN(), 1);
     WritableMemory mem2 = usk2.getMemory();
     assertFalse(wmem.isSameResource(mem2));
-    assertFalse(mem2.isDirect()); //should now be on-heap //TODO
+    assertFalse(mem2.isDirect()); //should now be on-heap
 
     final int expectedSize = COMBINED_BUFFER + ((2 * k) << 3);
     assertEquals(mem2.getCapacity(), expectedSize);
