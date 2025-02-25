@@ -89,7 +89,7 @@ public class SizeAndModeTransitions {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
   /**
@@ -97,7 +97,7 @@ public class SizeAndModeTransitions {
    * @param args arguments
    */
   static void printf(String fmt, Object...args) {
-    System.out.printf(fmt, args); //disable here
+    //System.out.printf(fmt, args); //disable here
   }
 
 }
