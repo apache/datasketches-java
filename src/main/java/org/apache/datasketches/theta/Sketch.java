@@ -472,7 +472,7 @@ public abstract class Sketch implements MemoryStatus {
       final int w = width > 0 ? width : 8; // default is 8 wide
       if (curCount > 0) {
         sb.append("### SKETCH DATA DETAIL");
-        HashIterator it = iterator();
+        final HashIterator it = iterator();
         int j = 0;
         while (it.next()) {
           final long h = it.get();

@@ -45,7 +45,6 @@ public class SizeAndModeTransitions {
     } else {
       sk = new HllSketch(lgK, tgtHllType);
     }
-    String type = tgtHllType.toString();
     String store = direct ? "Memory" : "Heap";
     for (int i = 1; i <= N; i++) {
       sk.update(i);

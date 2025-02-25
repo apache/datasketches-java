@@ -136,7 +136,7 @@ class WrappedCompactSketch extends CompactSketch {
   long[] getCache() {
     final long[] cache = new long[getRetainedEntries()];
     int i = 0;
-    HashIterator it = iterator();
+    final HashIterator it = iterator();
     while (it.next()) {
       cache[i++] = it.get();
     }
