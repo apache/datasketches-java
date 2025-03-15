@@ -22,6 +22,7 @@ package org.apache.datasketches.tuple.strings;
 import org.apache.datasketches.tuple.SummarySetOperations;
 
 /**
+ * Implements SummarySetOperations&lt;ArrayOfStringsSummary&gt;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSummarySetOperations implements SummarySetOperations<ArrayOfStringsSummary> {

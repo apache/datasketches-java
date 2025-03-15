@@ -125,6 +125,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   }
 
   /**
+   * Returns current value of the DoubleSummary
    * @return current value of the DoubleSummary
    */
   public double getValue() {

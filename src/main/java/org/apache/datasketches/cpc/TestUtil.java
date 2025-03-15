@@ -25,6 +25,7 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 /**
+ * Utility methods for Test
  * @author Lee Rhodes
  */
 public class TestUtil {

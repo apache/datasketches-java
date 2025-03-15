@@ -172,6 +172,7 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
+   * Returns number of double values associated with each key
    * @return number of double values associated with each key
    */
   public int getNumValues() {
@@ -196,11 +197,13 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
+   * Returns number of retained entries
    * @return number of retained entries
    */
   public abstract int getRetainedEntries();
 
   /**
+   * Returns the maximum number of bytes for this sketch when serialized.
    * @return the maximum number of bytes for this sketch when serialized.
    */
   public abstract int getMaxBytes();
@@ -212,11 +215,13 @@ public abstract class ArrayOfDoublesSketch {
   public abstract int getCurrentBytes();
 
   /**
+   * Returns serialized representation of the sketch
    * @return serialized representation of the sketch
    */
   public abstract byte[] toByteArray();
 
   /**
+   * Returns array of arrays of double values in the sketch
    * @return array of arrays of double values in the sketch
    */
   public abstract double[][] getValues();
@@ -226,6 +231,7 @@ public abstract class ArrayOfDoublesSketch {
   abstract long[] getKeys();
 
   /**
+   * Returns the value of theta as a long
    * @return the value of theta as a long
    */
   long getThetaLong() {
@@ -235,11 +241,13 @@ public abstract class ArrayOfDoublesSketch {
   abstract short getSeedHash();
 
   /**
-   * @return iterator over the sketch
+   * Returns an iterator over the sketch
+   * @return an iterator over the sketch
    */
   public abstract ArrayOfDoublesSketchIterator iterator();
 
   /**
+   * Returns this sketch in compact form, which is immutable.
    * @return this sketch in compact form, which is immutable.
    */
   public ArrayOfDoublesCompactSketch compact() {
@@ -247,7 +255,7 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
-   *
+   * Returns this sketch in compact form, which is immutable.
    * @param dstMem the destination WritableMemory
    * @return this sketch in compact form, which is immutable.
    */

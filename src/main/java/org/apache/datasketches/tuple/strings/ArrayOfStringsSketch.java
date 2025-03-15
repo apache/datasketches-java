@@ -26,6 +26,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.UpdatableSketch;
 
 /**
+ * Extends UpdatableSketch&lt;String[], ArrayOfStringsSummary&gt;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStringsSummary> {

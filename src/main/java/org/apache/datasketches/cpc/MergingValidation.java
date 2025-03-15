@@ -56,7 +56,7 @@ public class MergingValidation {
   private PrintWriter printWriter;
 
   /**
-   *
+   * Constructor
    * @param lgMinK lgMinK
    * @param lgMaxK lgMaxK
    * @param lgMulK lgMulK
@@ -79,7 +79,7 @@ public class MergingValidation {
   }
 
   /**
-   *
+   * Start the merging validation process
    */
   public void start() {
     printf(hfmt, (Object[]) hStrArr); //print header

@@ -23,6 +23,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
+ * Extends DoubleSketch
  * @author Jon Malkin
  */
 public abstract class UpdateDoublesSketch extends DoublesSketch {
@@ -61,6 +62,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   }
 
   /**
+   * Returns a CompactDoublesSketch of this class
    * @return a CompactDoublesSketch of this class
    */
   public CompactDoublesSketch compact() {

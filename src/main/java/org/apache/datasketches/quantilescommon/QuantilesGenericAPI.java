@@ -78,6 +78,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
   double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
+   * Returns the sketch item class
    * @return the sketch item class
    */
   Class<T> getClassOfT();

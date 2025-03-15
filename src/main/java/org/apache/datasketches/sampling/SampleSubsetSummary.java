@@ -41,13 +41,15 @@ public class SampleSubsetSummary {
   }
 
   /**
-   * @return the Lower Bound
+   * Returns the lower bound
+   * @return the lower bound
    */
   public double getLowerBound() {
     return lowerBound;
   }
 
   /**
+   * Returns the total sketch weight
    * @return the total sketch weight
    */
   public double getTotalSketchWeight() {
@@ -55,13 +57,15 @@ public class SampleSubsetSummary {
   }
 
   /**
-   * @return the Upper Bound
+   * Returns the upper bound
+   * @return the upper bound
    */
   public double getUpperBound() {
     return upperBound;
   }
 
   /**
+   * Returns the unique count estimate
    * @return the unique count estimate
    */
   public double getEstimate() {

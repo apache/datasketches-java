@@ -86,6 +86,7 @@ public final class TDigestDouble {
   }
 
   /**
+   * Returns parameter k (compression) that was used to configure this TDigest
    * @return parameter k (compression) that was used to configure this TDigest
    */
   public short getK() {
@@ -137,6 +138,7 @@ public final class TDigestDouble {
   }
 
   /**
+   * Returns true if TDigest has not seen any data
    * @return true if TDigest has not seen any data
    */
   public boolean isEmpty() {
@@ -144,6 +146,7 @@ public final class TDigestDouble {
   }
 
   /**
+   * Returns minimum value seen by TDigest
    * @return minimum value seen by TDigest
    */
   public double getMinValue() {
@@ -152,6 +155,7 @@ public final class TDigestDouble {
   }
 
   /**
+   * Returns maximum value seen by TDigest
    * @return maximum value seen by TDigest
    */
   public double getMaxValue() {
@@ -160,6 +164,7 @@ public final class TDigestDouble {
   }
 
   /**
+   * Returns total weight
    * @return total weight
    */
   public long getTotalWeight() {

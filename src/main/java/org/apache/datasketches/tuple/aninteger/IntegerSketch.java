@@ -24,6 +24,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.UpdatableSketch;
 
 /**
+ * Extends UpdatableSketch&lt;Integer, IntegerSummary&gt;
  * @author Lee Rhodes
  */
 public class IntegerSketch extends UpdatableSketch<Integer, IntegerSummary> {

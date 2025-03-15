@@ -287,6 +287,7 @@ public final class HashOperations {
   //Other related methods
 
   /**
+   * Checks that the given theta is not negative nor zero.
    * @param thetaLong must be greater than zero otherwise throws an exception.
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
    */
@@ -299,6 +300,7 @@ public final class HashOperations {
   }
 
   /**
+   * Checks that the given hash value is not negative.
    * @param hash must be greater than -1 otherwise throws an exception.
    * Note a hash of zero is normally ignored, but a negative hash is never allowed.
    */

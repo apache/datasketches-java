@@ -24,6 +24,7 @@ import org.apache.datasketches.tuple.DeserializeResult;
 import org.apache.datasketches.tuple.SummaryDeserializer;
 
 /**
+ * Implements SummaryDeserializer&lt;ArrayOfStringsSummary&gt;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSummaryDeserializer implements SummaryDeserializer<ArrayOfStringsSummary> {

@@ -54,7 +54,7 @@ public class QuickMergingValidation {
   private PrintWriter printWriter;
 
   /**
-   *
+   * Constructor
    * @param lgMinK lgMinK
    * @param lgMaxK lgMaxK
    * @param incLgK incLgK
@@ -73,7 +73,7 @@ public class QuickMergingValidation {
   }
 
   /**
-   *
+   * Start the Quick Merging Validation process
    */
   public void start() {
     printf(hfmt, (Object[]) hStrArr); //print header

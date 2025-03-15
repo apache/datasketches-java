@@ -145,6 +145,7 @@ public abstract class Sketch<S extends Summary> {
   }
 
   /**
+   * Returns number of retained entries
    * @return number of retained entries
    */
   public abstract int getRetainedEntries();

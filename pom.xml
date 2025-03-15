@@ -237,9 +237,10 @@ under the License.
           <configuration>
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
-            <additionalOptions>
-              <additionalOption>${jvm-ffm-flag}</additionalOption>
-            </additionalOptions>
+            <doclint>all,-missing</doclint>
+            <additionalJOptions>
+              <additionalJOption>${jvm-ffm-flag}</additionalJOption>
+            </additionalJOptions>
           </configuration>
           <executions>
             <execution>
