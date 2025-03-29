@@ -190,7 +190,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>21,</version> <!-- java.version -->
+                    <version>[21,)</version> <!-- java.version -->
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},4.0.0)</version>
