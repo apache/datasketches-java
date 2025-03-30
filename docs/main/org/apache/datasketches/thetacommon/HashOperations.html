@@ -131,10 +131,14 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#checkHashCorruption(long)" class="member-name-link">checkHashCorruption</a><wbr>(long&nbsp;hash)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Checks that the given hash value is not negative.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#checkThetaCorruption(long)" class="member-name-link">checkThetaCorruption</a><wbr>(long&nbsp;thetaLong)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Checks that the given theta is not negative nor zero.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#continueCondition(long,long)" class="member-name-link">continueCondition</a><wbr>(long&nbsp;thetaLong,
  long&nbsp;hash)</code></div>
@@ -429,6 +433,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="checkThetaCorruption(long)">
 <h3>checkThetaCorruption</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">checkThetaCorruption</span><wbr><span class="parameters">(long&nbsp;thetaLong)</span></div>
+<div class="block">Checks that the given theta is not negative nor zero.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>thetaLong</code> - must be greater than zero otherwise throws an exception.
@@ -440,6 +445,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="checkHashCorruption(long)">
 <h3>checkHashCorruption</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">checkHashCorruption</span><wbr><span class="parameters">(long&nbsp;hash)</span></div>
+<div class="block">Checks that the given hash value is not negative.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>hash</code> - must be greater than -1 otherwise throws an exception.

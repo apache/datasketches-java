@@ -117,10 +117,14 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="ArrayOfDoublesCompactSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesCompactSketch</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#compact()" class="member-name-link">compact</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns this sketch in compact form, which is immutable.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract <a href="ArrayOfDoublesCompactSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesCompactSketch</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#compact(org.apache.datasketches.memory.WritableMemory)" class="member-name-link">compact</a><wbr>(org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns this sketch in compact form, which is immutable.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract int</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getCurrentBytes()" class="member-name-link">getCurrentBytes</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
@@ -138,13 +142,19 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract int</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getMaxBytes()" class="member-name-link">getMaxBytes</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns the maximum number of bytes for this sketch when serialized.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getNumValues()" class="member-name-link">getNumValues</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns number of double values associated with each key</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract int</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getRetainedEntries()" class="member-name-link">getRetainedEntries</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns number of retained entries</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTheta()" class="member-name-link">getTheta</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
@@ -157,7 +167,9 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract double[][]</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getValues()" class="member-name-link">getValues</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns array of arrays of double values in the sketch</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract boolean</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#hasMemory()" class="member-name-link">hasMemory</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
@@ -186,10 +198,14 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract <a href="ArrayOfDoublesSketchIterator.html" title="interface in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketchIterator</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#iterator()" class="member-name-link">iterator</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns an iterator over the sketch</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract byte[]</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#toByteArray()" class="member-name-link">toByteArray</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns serialized representation of the sketch</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -342,6 +358,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getNumValues()">
 <h3>getNumValues</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getNumValues</span>()</div>
+<div class="block">Returns number of double values associated with each key</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>number of double values associated with each key</dd>
@@ -375,6 +392,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getRetainedEntries()">
 <h3>getRetainedEntries</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getRetainedEntries</span>()</div>
+<div class="block">Returns number of retained entries</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>number of retained entries</dd>
@@ -385,6 +403,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getMaxBytes()">
 <h3>getMaxBytes</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getMaxBytes</span>()</div>
+<div class="block">Returns the maximum number of bytes for this sketch when serialized.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the maximum number of bytes for this sketch when serialized.</dd>
@@ -406,6 +425,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="toByteArray()">
 <h3>toByteArray</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">toByteArray</span>()</div>
+<div class="block">Returns serialized representation of the sketch</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>serialized representation of the sketch</dd>
@@ -416,6 +436,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getValues()">
 <h3>getValues</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">double[][]</span>&nbsp;<span class="element-name">getValues</span>()</div>
+<div class="block">Returns array of arrays of double values in the sketch</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>array of arrays of double values in the sketch</dd>
@@ -426,9 +447,10 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="iterator()">
 <h3>iterator</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type"><a href="ArrayOfDoublesSketchIterator.html" title="interface in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketchIterator</a></span>&nbsp;<span class="element-name">iterator</span>()</div>
+<div class="block">Returns an iterator over the sketch</div>
 <dl class="notes">
 <dt>Returns:</dt>
-<dd>iterator over the sketch</dd>
+<dd>an iterator over the sketch</dd>
 </dl>
 </section>
 </li>
@@ -436,6 +458,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="compact()">
 <h3>compact</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="ArrayOfDoublesCompactSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesCompactSketch</a></span>&nbsp;<span class="element-name">compact</span>()</div>
+<div class="block">Returns this sketch in compact form, which is immutable.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>this sketch in compact form, which is immutable.</dd>
@@ -446,6 +469,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="compact(org.apache.datasketches.memory.WritableMemory)">
 <h3>compact</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type"><a href="ArrayOfDoublesCompactSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesCompactSketch</a></span>&nbsp;<span class="element-name">compact</span><wbr><span class="parameters">(org.apache.datasketches.memory.WritableMemory&nbsp;dstMem)</span></div>
+<div class="block">Returns this sketch in compact form, which is immutable.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>dstMem</code> - the destination WritableMemory</dd>

@@ -100,8 +100,6 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Computes a set difference, A-AND-NOT-B, of two generic tuple sketches.</div>
 </dd>
-<dt><a href="org/apache/datasketches/theta/AnotB.html#%3Cinit%3E()" class="member-name-link">AnotB()</a> - Constructor for class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/AnotB.html" title="class in org.apache.datasketches.theta">AnotB</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/AnotB.html#%3Cinit%3E()" class="member-name-link">AnotB()</a> - Constructor for class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/AnotB.html" title="class in org.apache.datasketches.tuple">AnotB</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/common/BoundsOnBinomialProportions.html#approximateLowerBoundOnP(long,long,double)" class="member-name-link">approximateLowerBoundOnP(long, long, double)</a> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/BoundsOnBinomialProportions.html" title="class in org.apache.datasketches.common">BoundsOnBinomialProportions</a></dt>
@@ -227,7 +225,9 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/apache/datasketches/common/ArrayOfStringsSerDe.html#%3Cinit%3E()" class="member-name-link">ArrayOfStringsSerDe()</a> - Constructor for class org.apache.datasketches.common.<a href="org/apache/datasketches/common/ArrayOfStringsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfStringsSerDe</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html" class="type-name-link" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a> - Class in <a href="org/apache/datasketches/tuple/strings/package-summary.html">org.apache.datasketches.tuple.strings</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Extends UpdatableSketch&lt;String[], ArrayOfStringsSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html#%3Cinit%3E()" class="member-name-link">ArrayOfStringsSketch()</a> - Constructor for class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a></dt>
 <dd>
 <div class="block">Constructs new sketch with default <i>K</i> = 4096 (<i>lgK</i> = 12), default ResizeFactor=X8,
@@ -254,17 +254,25 @@ loadScripts(document, 'script');</script>
 <div class="block">Copy Constructor</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummary.html" class="type-name-link" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a> - Class in <a href="org/apache/datasketches/tuple/strings/package-summary.html">org.apache.datasketches.tuple.strings</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Implements UpdatableSummary&lt;String[]&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryDeserializer.html" class="type-name-link" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummaryDeserializer</a> - Class in <a href="org/apache/datasketches/tuple/strings/package-summary.html">org.apache.datasketches.tuple.strings</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Implements SummaryDeserializer&lt;ArrayOfStringsSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryDeserializer.html#%3Cinit%3E()" class="member-name-link">ArrayOfStringsSummaryDeserializer()</a> - Constructor for class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryDeserializer.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummaryDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryFactory.html" class="type-name-link" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummaryFactory</a> - Class in <a href="org/apache/datasketches/tuple/strings/package-summary.html">org.apache.datasketches.tuple.strings</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Implements SummaryFactory&lt;ArrayOfStringsSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryFactory.html#%3Cinit%3E()" class="member-name-link">ArrayOfStringsSummaryFactory()</a> - Constructor for class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryFactory.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummaryFactory</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummarySetOperations.html" class="type-name-link" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummarySetOperations</a> - Class in <a href="org/apache/datasketches/tuple/strings/package-summary.html">org.apache.datasketches.tuple.strings</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Implements SummarySetOperations&lt;ArrayOfStringsSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummarySetOperations.html#%3Cinit%3E()" class="member-name-link">ArrayOfStringsSummarySetOperations()</a> - Constructor for class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummarySetOperations.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummarySetOperations</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/common/ArrayOfUtf16StringsSerDe.html" class="type-name-link" title="class in org.apache.datasketches.common">ArrayOfUtf16StringsSerDe</a> - Class in <a href="org/apache/datasketches/common/package-summary.html">org.apache.datasketches.common</a></dt>
@@ -568,13 +576,17 @@ loadScripts(document, 'script');</script>
 <div class="block">Checks the sequential validity of the given array of double values.</div>
 </dd>
 <dt><a href="org/apache/datasketches/common/Family.html#checkFamilyID(int)" class="member-name-link">checkFamilyID(int)</a> - Method in enum class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Family.html" title="enum class in org.apache.datasketches.common">Family</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Checks the given Family ID</div>
+</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#checkFloatsSplitPointsOrder(float%5B%5D)" class="member-name-link">checkFloatsSplitPointsOrder(float[])</a> - Static method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></dt>
 <dd>
 <div class="block">Checks the sequential validity of the given array of float values.</div>
 </dd>
 <dt><a href="org/apache/datasketches/thetacommon/HashOperations.html#checkHashCorruption(long)" class="member-name-link">checkHashCorruption(long)</a> - Static method in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/HashOperations.html" title="class in org.apache.datasketches.thetacommon">HashOperations</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Checks that the given hash value is not negative.</div>
+</dd>
 <dt><a href="org/apache/datasketches/common/Util.html#checkIfMultipleOf8AndGT0(long,java.lang.String)" class="member-name-link">checkIfMultipleOf8AndGT0(long, String)</a> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Checks if parameter v is a multiple of 8 and greater than zero.</div>
@@ -610,7 +622,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Checks the two given seed hashes.</div>
 </dd>
 <dt><a href="org/apache/datasketches/thetacommon/HashOperations.html#checkThetaCorruption(long)" class="member-name-link">checkThetaCorruption(long)</a> - Static method in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/HashOperations.html" title="class in org.apache.datasketches.thetacommon">HashOperations</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Checks that the given theta is not negative nor zero.</div>
+</dd>
 <dt><a href="org/apache/datasketches/quantiles/ClassicUtil.html" class="type-name-link" title="class in org.apache.datasketches.quantiles">ClassicUtil</a> - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
 <dd>
 <div class="block">Utilities for the classic quantiles sketches and independent of the type.</div>
@@ -620,13 +634,17 @@ loadScripts(document, 'script');</script>
 <div class="block">Method of combining two arrays of double values</div>
 </dd>
 <dt><a href="org/apache/datasketches/quantiles/UpdateDoublesSketch.html#compact()" class="member-name-link">compact()</a> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/UpdateDoublesSketch.html" title="class in org.apache.datasketches.quantiles">UpdateDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns a CompactDoublesSketch of this class</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/Sketch.html#compact()" class="member-name-link">compact()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block">Converts this sketch to a ordered CompactSketch.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#compact()" class="member-name-link">compact()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns this sketch in compact form, which is immutable.</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html#compact()" class="member-name-link">compact()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUpdatableSketch</a></dt>
 <dd>
 <div class="block">Gets an on-heap compact representation of the sketch</div>
@@ -670,7 +688,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns a compact version of this sketch.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#compact(org.apache.datasketches.memory.WritableMemory)" class="member-name-link">compact(WritableMemory)</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns this sketch in compact form, which is immutable.</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html#compact(org.apache.datasketches.memory.WritableMemory)" class="member-name-link">compact(WritableMemory)</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUpdatableSketch</a></dt>
 <dd>
 <div class="block">Gets an off-heap compact representation of the sketch using the given memory</div>
@@ -896,7 +916,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Creates the CornerCase ID</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/Sketches.html#createEmptySketch()" class="member-name-link">createEmptySketch()</a> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Sketches.html" title="class in org.apache.datasketches.tuple">Sketches</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Creates an empty sketch.</div>
+</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/IncludeMinMax.DoublesPair.html#cumWeights" class="member-name-link">cumWeights</a> - Variable in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/IncludeMinMax.DoublesPair.html" title="class in org.apache.datasketches.quantilescommon">IncludeMinMax.DoublesPair</a></dt>
 <dd>
 <div class="block">the array of associated cumulative weights</div>
@@ -1073,7 +1095,9 @@ loadScripts(document, 'script');</script>
 <div class="block">KllDoublesSketch</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/adouble/DoubleSketch.html" class="type-name-link" title="class in org.apache.datasketches.tuple.adouble">DoubleSketch</a> - Class in <a href="org/apache/datasketches/tuple/adouble/package-summary.html">org.apache.datasketches.tuple.adouble</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Extends UpdatableSketch&lt;Double, DoubleSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/adouble/DoubleSketch.html#%3Cinit%3E(int,int,float,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSketch(int, int, float, DoubleSummary.Mode)</a> - Constructor for class org.apache.datasketches.tuple.adouble.<a href="org/apache/datasketches/tuple/adouble/DoubleSketch.html" title="class in org.apache.datasketches.tuple.adouble">DoubleSketch</a></dt>
 <dd>
 <div class="block">Creates this sketch with the following parameters:</div>
@@ -1145,7 +1169,9 @@ loadScripts(document, 'script');</script>
 <div class="block">The aggregation modes for this Summary</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/adouble/DoubleSummaryDeserializer.html" class="type-name-link" title="class in org.apache.datasketches.tuple.adouble">DoubleSummaryDeserializer</a> - Class in <a href="org/apache/datasketches/tuple/adouble/package-summary.html">org.apache.datasketches.tuple.adouble</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Implements SummaryDeserializer&lt;DoubleSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/adouble/DoubleSummaryDeserializer.html#%3Cinit%3E()" class="member-name-link">DoubleSummaryDeserializer()</a> - Constructor for class org.apache.datasketches.tuple.adouble.<a href="org/apache/datasketches/tuple/adouble/DoubleSummaryDeserializer.html" title="class in org.apache.datasketches.tuple.adouble">DoubleSummaryDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/adouble/DoubleSummaryFactory.html" class="type-name-link" title="class in org.apache.datasketches.tuple.adouble">DoubleSummaryFactory</a> - Class in <a href="org/apache/datasketches/tuple/adouble/package-summary.html">org.apache.datasketches.tuple.adouble</a></dt>
@@ -1805,7 +1831,9 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getClassOfT()" class="member-name-link">getClassOfT()</a> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html#getClassOfT()" class="member-name-link">getClassOfT()</a> - Method in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesGenericAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesGenericAPI</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the sketch item class</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/CompactSketch.html#getCompactBytes()" class="member-name-link">getCompactBytes()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/theta/Sketch.html#getCompactBytes()" class="member-name-link">getCompactBytes()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
@@ -1853,7 +1881,9 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/apache/datasketches/hll/Union.html#getCompositeEstimate()" class="member-name-link">getCompositeEstimate()</a> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/Union.html" title="class in org.apache.datasketches.hll">Union</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getCount()" class="member-name-link">getCount()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the count</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/Sketch.html#getCountLessThanThetaLong(long)" class="member-name-link">getCountLessThanThetaLong(long)</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block">Gets the number of hash values less than the given theta expressed as a long.</div>
@@ -1975,17 +2005,25 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the best estimate of the cardinality of the sketch.</div>
 </dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the estimate</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html" title="class in org.apache.datasketches.frequencies">ItemsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the estimate</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/LongsSketch.Row.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.Row.html" title="class in org.apache.datasketches.frequencies">LongsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the estimate</div>
+</dd>
 <dt><a href="org/apache/datasketches/hll/HllSketch.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/hll/Union.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/Union.html" title="class in org.apache.datasketches.hll">Union</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/sampling/SampleSubsetSummary.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/SampleSubsetSummary.html" title="class in org.apache.datasketches.sampling">SampleSubsetSummary</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the unique count estimate</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/CompactSketch.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/CompactSketch.html" title="class in org.apache.datasketches.theta">CompactSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/theta/Sketch.html#getEstimate()" class="member-name-link">getEstimate()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
@@ -2096,7 +2134,9 @@ loadScripts(document, 'script');</script>
  in little endian order.</div>
 </dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getFraction()" class="member-name-link">getFraction()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the fraction for this group</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.html#getFrequentItems(long,org.apache.datasketches.frequencies.ErrorType)" class="member-name-link">getFrequentItems(long, ErrorType)</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.html" title="class in org.apache.datasketches.frequencies">ItemsSketch</a></dt>
 <dd>
 <div class="block">Returns an array of Rows that include frequent items, estimates, upper and lower bounds
@@ -2131,7 +2171,9 @@ loadScripts(document, 'script');</script>
  of the original key passed to update().</div>
 </dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getHeader()" class="member-name-link">getHeader()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the descriptive header</div>
+</dd>
 <dt><a href="org/apache/datasketches/req/ReqSketchBuilder.html#getHighRankAccuracy()" class="member-name-link">getHighRankAccuracy()</a> - Method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketchBuilder.html" title="class in org.apache.datasketches.req">ReqSketchBuilder</a></dt>
 <dd>
 <div class="block">Gets the builder configured High Rank Accuracy.</div>
@@ -2204,9 +2246,13 @@ loadScripts(document, 'script');</script>
  in little endian order.</div>
 </dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html#getItem()" class="member-name-link">getItem()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html" title="class in org.apache.datasketches.frequencies">ItemsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns an item of type T</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/LongsSketch.Row.html#getItem()" class="member-name-link">getItem()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.Row.html" title="class in org.apache.datasketches.frequencies">LongsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns item of type long</div>
+</dd>
 <dt><a href="org/apache/datasketches/sampling/VarOptItemsSamples.WeightedSample.html#getItem()" class="member-name-link">getItem()</a> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/VarOptItemsSamples.WeightedSample.html" title="class in org.apache.datasketches.sampling">VarOptItemsSamples.WeightedSample</a></dt>
 <dd>
 <div class="block">Accesses the iterator's current object</div>
@@ -2249,7 +2295,9 @@ loadScripts(document, 'script');</script>
  sketch.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getK()" class="member-name-link">getK()</a> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns parameter k (compression) that was used to configure this TDigest</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketchIterator.html#getKey()" class="member-name-link">getKey()</a> - Method in interface org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketchIterator.html" title="interface in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketchIterator</a></dt>
 <dd>
 <div class="block">Gets a key from the current entry in the sketch, which is a hash
@@ -2341,13 +2389,21 @@ loadScripts(document, 'script');</script>
  in little endian order.</div>
 </dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getLowerBound()" class="member-name-link">getLowerBound()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the lower bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html#getLowerBound()" class="member-name-link">getLowerBound()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html" title="class in org.apache.datasketches.frequencies">ItemsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the lower bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/LongsSketch.Row.html#getLowerBound()" class="member-name-link">getLowerBound()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.Row.html" title="class in org.apache.datasketches.frequencies">LongsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the lower bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/sampling/SampleSubsetSummary.html#getLowerBound()" class="member-name-link">getLowerBound()</a> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/SampleSubsetSummary.html" title="class in org.apache.datasketches.sampling">SampleSubsetSummary</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the lower bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/hllmap/UniqueCountMap.html#getLowerBound(byte%5B%5D)" class="member-name-link">getLowerBound(byte[])</a> - Method in class org.apache.datasketches.hllmap.<a href="org/apache/datasketches/hllmap/UniqueCountMap.html" title="class in org.apache.datasketches.hllmap">UniqueCountMap</a></dt>
 <dd>
 <div class="block">Returns the lower bound cardinality with respect to <a href="org/apache/datasketches/hllmap/UniqueCountMap.html#getEstimate(byte%5B%5D)"><code>UniqueCountMap.getEstimate(byte[])</code></a> associated
@@ -2426,14 +2482,18 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#getMaxAnotBResultBytes(int)" class="member-name-link">getMaxAnotBResultBytes(int)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
-<div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxAnotBResultBytes(int)"><code>getMaxAnotBResultBytes(int)</code></a>.</div>
+<div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxAnotBResultBytes(int)"><code>SetOperation.getMaxAnotBResultBytes(int)</code></a>.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesCompactSketch.html#getMaxBytes()" class="member-name-link">getMaxBytes()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesCompactSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesCompactSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#getMaxBytes()" class="member-name-link">getMaxBytes()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the maximum number of bytes for this sketch when serialized.</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUnion.html#getMaxBytes(int,int)" class="member-name-link">getMaxBytes(int, int)</a> - Static method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUnion.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUnion</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns maximum required storage bytes given nomEntries and numValues</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/Sketch.html#getMaxCompactSketchBytes(int)" class="member-name-link">getMaxCompactSketchBytes(int)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block">Returns the maximum number of storage bytes required for a CompactSketch with the given
@@ -2449,9 +2509,13 @@ loadScripts(document, 'script');</script>
 <div class="block">Gets the Maximum Concurrency Error</div>
 </dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.html#getMaximumError()" class="member-name-link">getMaximumError()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.html" title="class in org.apache.datasketches.frequencies">ItemsSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns an upper bound on the maximum error of getEstimate(item) for any item.</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/LongsSketch.html#getMaximumError()" class="member-name-link">getMaximumError()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.html" title="class in org.apache.datasketches.frequencies">LongsSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns an upper bound on the maximum error of getEstimate(item) for any item.</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.html#getMaximumMapCapacity()" class="member-name-link">getMaximumMapCapacity()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.html" title="class in org.apache.datasketches.frequencies">ItemsSketch</a></dt>
 <dd>
 <div class="block">Returns the maximum number of counters the sketch is configured to support.</div>
@@ -2467,7 +2531,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#getMaxIntersectionBytes(int)" class="member-name-link">getMaxIntersectionBytes(int)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
-<div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxIntersectionBytes(int)"><code>getMaxIntersectionBytes(int)</code></a></div>
+<div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxIntersectionBytes(int)"><code>SetOperation.getMaxIntersectionBytes(int)</code></a></div>
 </dd>
 <dt><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getMaxItem()" class="member-name-link">getMaxItem()</a> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
@@ -2579,7 +2643,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#getMaxUnionBytes(int)" class="member-name-link">getMaxUnionBytes(int)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
-<div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxUnionBytes(int)"><code>getMaxUnionBytes(int)</code></a></div>
+<div class="block">Ref: <a href="org/apache/datasketches/theta/SetOperation.html#getMaxUnionBytes(int)"><code>SetOperation.getMaxUnionBytes(int)</code></a></div>
 </dd>
 <dt><a href="org/apache/datasketches/hll/HllSketch.html#getMaxUpdatableSerializationBytes(int,org.apache.datasketches.hll.TgtHllType)" class="member-name-link">getMaxUpdatableSerializationBytes(int, TgtHllType)</a> - Static method in class org.apache.datasketches.hll.<a href="org/apache/datasketches/hll/HllSketch.html" title="class in org.apache.datasketches.hll">HllSketch</a></dt>
 <dd>
@@ -2595,7 +2659,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Ref: <a href="org/apache/datasketches/theta/Sketch.html#getMaxUpdateSketchBytes(int)"><code>Sketch.getMaxUpdateSketchBytes(int)</code></a></div>
 </dd>
 <dt><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getMaxValue()" class="member-name-link">getMaxValue()</a> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns maximum value seen by TDigest</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/SetOperationBuilder.html#getMemoryRequestServer()" class="member-name-link">getMemoryRequestServer()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/SetOperationBuilder.html" title="class in org.apache.datasketches.theta">SetOperationBuilder</a></dt>
 <dd>
 <div class="block">Returns the MemoryRequestServer</div>
@@ -2668,7 +2734,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the minimum preamble size for this family in longs</div>
 </dd>
 <dt><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getMinValue()" class="member-name-link">getMinValue()</a> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns minimum value seen by TDigest</div>
+</dd>
 <dt><a href="org/apache/datasketches/quantiles/DoublesSketch.html#getN()" class="member-name-link">getN()</a> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/DoublesSketch.html" title="class in org.apache.datasketches.quantiles">DoublesSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantiles/ItemsSketch.html#getN()" class="member-name-link">getN()</a> - Method in class org.apache.datasketches.quantiles.<a href="org/apache/datasketches/quantiles/ItemsSketch.html" title="class in org.apache.datasketches.quantiles">ItemsSketch</a></dt>
@@ -2808,9 +2876,13 @@ loadScripts(document, 'script');</script>
  a specified search criterion.</div>
 </dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.html#getNumActiveItems()" class="member-name-link">getNumActiveItems()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.html" title="class in org.apache.datasketches.frequencies">ItemsSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the number of active items in the sketch.</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/LongsSketch.html#getNumActiveItems()" class="member-name-link">getNumActiveItems()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.html" title="class in org.apache.datasketches.frequencies">LongsSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the number of active items in the sketch.</div>
+</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html#getNumDeltaItems()" class="member-name-link">getNumDeltaItems()</a> - Method in class org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">GenericPartitionBoundaries</a></dt>
 <dd>
 <div class="block">Gets the number of items to be included for each partition as an array.</div>
@@ -2874,9 +2946,13 @@ loadScripts(document, 'script');</script>
  sketch capacity.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#getNumValues()" class="member-name-link">getNumValues()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns number of double values associated with each key</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/DeserializeResult.html#getObject()" class="member-name-link">getObject()</a> - Method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/DeserializeResult.html" title="class in org.apache.datasketches.tuple">DeserializeResult</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns Deserialized object</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/SetOperationBuilder.html#getP()" class="member-name-link">getP()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/SetOperationBuilder.html" title="class in org.apache.datasketches.theta">SetOperationBuilder</a></dt>
 <dd>
 <div class="block">Returns the pre-sampling probability <i>p</i></div>
@@ -3021,7 +3097,9 @@ loadScripts(document, 'script');</script>
 <div class="block">gets the Preamble Integers for this Structure.</div>
 </dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getPrimaryKey()" class="member-name-link">getPrimaryKey()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Gets the primary key of type String</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/UpdateSketchBuilder.html#getPropagateOrderedCompact()" class="member-name-link">getPropagateOrderedCompact()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/UpdateSketchBuilder.html" title="class in org.apache.datasketches.theta">UpdateSketchBuilder</a></dt>
 <dd>
 <div class="block">Gets the Propagate Ordered Compact flag used with concurrent sketches.</div>
@@ -3721,7 +3799,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the number of valid entries that have been retained by the sketch.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#getRetainedEntries()" class="member-name-link">getRetainedEntries()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns number of retained entries</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/CompactSketch.html#getRetainedEntries()" class="member-name-link">getRetainedEntries()</a> - Method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html#getRetainedEntries()" class="member-name-link">getRetainedEntries()</a> - Method in class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a></dt>
@@ -3735,7 +3815,9 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/apache/datasketches/tuple/UpdatableSketch.html#getRetainedEntries()" class="member-name-link">getRetainedEntries()</a> - Method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/UpdatableSketch.html" title="class in org.apache.datasketches.tuple">UpdatableSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/Sketch.html#getRetainedEntries()" class="member-name-link">getRetainedEntries()</a> - Method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns number of retained entries</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/Sketch.html#getRetainedEntries(boolean)" class="member-name-link">getRetainedEntries(boolean)</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block">Returns the number of entries that have been retained by the sketch.</div>
@@ -3745,11 +3827,17 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the Resize Factor given the Log-base 2 of the Resize Factor</div>
 </dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html#getRowHeader()" class="member-name-link">getRowHeader()</a> - Static method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html" title="class in org.apache.datasketches.frequencies">ItemsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the descriptive row header</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/LongsSketch.Row.html#getRowHeader()" class="member-name-link">getRowHeader()</a> - Static method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.Row.html" title="class in org.apache.datasketches.frequencies">LongsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the descriptive row header</div>
+</dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getRse()" class="member-name-link">getRse()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the RSE</div>
+</dd>
 <dt><a href="org/apache/datasketches/req/ReqSketch.html#getRSE(int,double,boolean,long)" class="member-name-link">getRSE(int, double, boolean, long)</a> - Static method in class org.apache.datasketches.req.<a href="org/apache/datasketches/req/ReqSketch.html" title="class in org.apache.datasketches.req">ReqSketch</a></dt>
 <dd>
 <div class="block">Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).</div>
@@ -3891,7 +3979,9 @@ loadScripts(document, 'script');</script>
  in little endian order.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/DeserializeResult.html#getSize()" class="member-name-link">getSize()</a> - Method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/DeserializeResult.html" title="class in org.apache.datasketches.tuple">DeserializeResult</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns size in bytes occupied by the object in the serialized form</div>
+</dd>
 <dt><a href="org/apache/datasketches/sampling/VarOptItemsSketch.html#getSketchSamples()" class="member-name-link">getSketchSamples()</a> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/VarOptItemsSketch.html" title="class in org.apache.datasketches.sampling">VarOptItemsSketch</a></dt>
 <dd>
 <div class="block">Gets a result iterator object.</div>
@@ -3983,9 +4073,13 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns Theta as a long</div>
 </dd>
 <dt><a href="org/apache/datasketches/sampling/SampleSubsetSummary.html#getTotalSketchWeight()" class="member-name-link">getTotalSketchWeight()</a> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/SampleSubsetSummary.html" title="class in org.apache.datasketches.sampling">SampleSubsetSummary</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the total sketch weight</div>
+</dd>
 <dt><a href="org/apache/datasketches/tdigest/TDigestDouble.html#getTotalWeight()" class="member-name-link">getTotalWeight()</a> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns total weight</div>
+</dd>
 <dt><a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.CornerCase.html#getUnionAction()" class="member-name-link">getUnionAction()</a> - Method in enum class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/SetOperationCornerCases.CornerCase.html" title="enum class in org.apache.datasketches.thetacommon">SetOperationCornerCases.CornerCase</a></dt>
 <dd>
 <div class="block">Gets the union action</div>
@@ -3999,13 +4093,21 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the number of bytes a sketch would require to store in updatable form.</div>
 </dd>
 <dt><a href="org/apache/datasketches/fdt/Group.html#getUpperBound()" class="member-name-link">getUpperBound()</a> - Method in class org.apache.datasketches.fdt.<a href="org/apache/datasketches/fdt/Group.html" title="class in org.apache.datasketches.fdt">Group</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the upper bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html#getUpperBound()" class="member-name-link">getUpperBound()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/ItemsSketch.Row.html" title="class in org.apache.datasketches.frequencies">ItemsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the upper bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/frequencies/LongsSketch.Row.html#getUpperBound()" class="member-name-link">getUpperBound()</a> - Method in class org.apache.datasketches.frequencies.<a href="org/apache/datasketches/frequencies/LongsSketch.Row.html" title="class in org.apache.datasketches.frequencies">LongsSketch.Row</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the upper bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/sampling/SampleSubsetSummary.html#getUpperBound()" class="member-name-link">getUpperBound()</a> - Method in class org.apache.datasketches.sampling.<a href="org/apache/datasketches/sampling/SampleSubsetSummary.html" title="class in org.apache.datasketches.sampling">SampleSubsetSummary</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the upper bound</div>
+</dd>
 <dt><a href="org/apache/datasketches/hllmap/UniqueCountMap.html#getUpperBound(byte%5B%5D)" class="member-name-link">getUpperBound(byte[])</a> - Method in class org.apache.datasketches.hllmap.<a href="org/apache/datasketches/hllmap/UniqueCountMap.html" title="class in org.apache.datasketches.hllmap">UniqueCountMap</a></dt>
 <dd>
 <div class="block">Returns the upper bound cardinality with respect to <a href="org/apache/datasketches/hllmap/UniqueCountMap.html#getEstimate(byte%5B%5D)"><code>UniqueCountMap.getEstimate(byte[])</code></a> associated
@@ -4080,13 +4182,21 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the Resize Factor</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/adouble/DoubleSummary.html#getValue()" class="member-name-link">getValue()</a> - Method in class org.apache.datasketches.tuple.adouble.<a href="org/apache/datasketches/tuple/adouble/DoubleSummary.html" title="class in org.apache.datasketches.tuple.adouble">DoubleSummary</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns current value of the DoubleSummary</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/aninteger/IntegerSummary.html#getValue()" class="member-name-link">getValue()</a> - Method in class org.apache.datasketches.tuple.aninteger.<a href="org/apache/datasketches/tuple/aninteger/IntegerSummary.html" title="class in org.apache.datasketches.tuple.aninteger">IntegerSummary</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the current value of the IntegerSummary</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummary.html#getValue()" class="member-name-link">getValue()</a> - Method in class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the nodes array for this summary.</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#getValues()" class="member-name-link">getValues()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns array of arrays of double values in the sketch</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketchIterator.html#getValues()" class="member-name-link">getValues()</a> - Method in interface org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketchIterator.html" title="interface in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketchIterator</a></dt>
 <dd>
 <div class="block">Gets an array of values from the current entry in the sketch.</div>
@@ -4726,7 +4836,9 @@ loadScripts(document, 'script');</script>
 <div class="block">The hash was accepted into the sketch and the retained count was not incremented.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/aninteger/IntegerSketch.html" class="type-name-link" title="class in org.apache.datasketches.tuple.aninteger">IntegerSketch</a> - Class in <a href="org/apache/datasketches/tuple/aninteger/package-summary.html">org.apache.datasketches.tuple.aninteger</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Extends UpdatableSketch&lt;Integer, IntegerSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/aninteger/IntegerSketch.html#%3Cinit%3E(int,int,float,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSketch(int, int, float, IntegerSummary.Mode)</a> - Constructor for class org.apache.datasketches.tuple.aninteger.<a href="org/apache/datasketches/tuple/aninteger/IntegerSketch.html" title="class in org.apache.datasketches.tuple.aninteger">IntegerSketch</a></dt>
 <dd>
 <div class="block">Creates this sketch with the following parameters:</div>
@@ -4756,7 +4868,9 @@ loadScripts(document, 'script');</script>
 <div class="block">The aggregation modes for this Summary</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/aninteger/IntegerSummaryDeserializer.html" class="type-name-link" title="class in org.apache.datasketches.tuple.aninteger">IntegerSummaryDeserializer</a> - Class in <a href="org/apache/datasketches/tuple/aninteger/package-summary.html">org.apache.datasketches.tuple.aninteger</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Implements SummaryDeserializer&lt;IntegerSummary&gt;</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/aninteger/IntegerSummaryDeserializer.html#%3Cinit%3E()" class="member-name-link">IntegerSummaryDeserializer()</a> - Constructor for class org.apache.datasketches.tuple.aninteger.<a href="org/apache/datasketches/tuple/aninteger/IntegerSummaryDeserializer.html" title="class in org.apache.datasketches.tuple.aninteger">IntegerSummaryDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/aninteger/IntegerSummaryFactory.html" class="type-name-link" title="class in org.apache.datasketches.tuple.aninteger">IntegerSummaryFactory</a> - Class in <a href="org/apache/datasketches/tuple/aninteger/package-summary.html">org.apache.datasketches.tuple.aninteger</a></dt>
@@ -4975,7 +5089,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns true if the sketch is empty.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tdigest/TDigestDouble.html#isEmpty()" class="member-name-link">isEmpty()</a> - Method in class org.apache.datasketches.tdigest.<a href="org/apache/datasketches/tdigest/TDigestDouble.html" title="class in org.apache.datasketches.tdigest">TDigestDouble</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns true if TDigest has not seen any data</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/Sketch.html#isEmpty()" class="member-name-link">isEmpty()</a> - Method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a></dt>
 <dd>
 <div class="block"><a href="./resources/dictionary.html#empty">See Empty</a></div>
@@ -5212,7 +5328,9 @@ loadScripts(document, 'script');</script>
  Theta sketch.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#iterator()" class="member-name-link">iterator()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns an iterator over the sketch</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/CompactSketch.html#iterator()" class="member-name-link">iterator()</a> - Method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html#iterator()" class="member-name-link">iterator()</a> - Method in class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a></dt>
@@ -5536,7 +5654,9 @@ loadScripts(document, 'script');</script>
  and by the characterization repository for longer running, more exhaustive testing.</div>
 </dd>
 <dt><a href="org/apache/datasketches/cpc/MergingValidation.html#%3Cinit%3E(int,int,int,int,int,java.io.PrintStream,java.io.PrintWriter)" class="member-name-link">MergingValidation(int, int, int, int, int, PrintStream, PrintWriter)</a> - Constructor for class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/MergingValidation.html" title="class in org.apache.datasketches.cpc">MergingValidation</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Constructor</div>
+</dd>
 <dt><a href="org/apache/datasketches/common/Util.html#milliSecToString(long)" class="member-name-link">milliSecToString(long)</a> - Static method in class org.apache.datasketches.common.<a href="org/apache/datasketches/common/Util.html" title="class in org.apache.datasketches.common">Util</a></dt>
 <dd>
 <div class="block">Returns the given time in milliseconds formatted as Hours:Min:Sec.mSec</div>
@@ -5686,7 +5806,9 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryFactory.html#newSummary()" class="member-name-link">newSummary()</a> - Method in class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryFactory.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummaryFactory</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/SummaryFactory.html#newSummary()" class="member-name-link">newSummary()</a> - Method in interface org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/SummaryFactory.html" title="interface in org.apache.datasketches.tuple">SummaryFactory</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns new instance of Summary</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/Util.html#newSummaryArray(S%5B%5D,int)" class="member-name-link">newSummaryArray(S[], int)</a> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Util.html" title="class in org.apache.datasketches.tuple">Util</a></dt>
 <dd>
 <div class="block">Creates a new Summary Array with the specified length</div>
@@ -6191,7 +6313,9 @@ loadScripts(document, 'script');</script>
  and by the characterization repository for longer running, more exhaustive testing.</div>
 </dd>
 <dt><a href="org/apache/datasketches/cpc/QuickMergingValidation.html#%3Cinit%3E(int,int,int,java.io.PrintStream,java.io.PrintWriter)" class="member-name-link">QuickMergingValidation(int, int, int, PrintStream, PrintWriter)</a> - Constructor for class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/QuickMergingValidation.html" title="class in org.apache.datasketches.cpc">QuickMergingValidation</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Constructor</div>
+</dd>
 <dt><a href="org/apache/datasketches/thetacommon/QuickSelect.html" class="type-name-link" title="class in org.apache.datasketches.thetacommon">QuickSelect</a> - Class in <a href="org/apache/datasketches/thetacommon/package-summary.html">org.apache.datasketches.thetacommon</a></dt>
 <dd>
 <div class="block">QuickSelect algorithm improved from Sedgewick.</div>
@@ -6899,11 +7023,17 @@ loadScripts(document, 'script');</script>
 <div class="block">Only used in test</div>
 </dd>
 <dt><a href="org/apache/datasketches/cpc/MergingValidation.html#start()" class="member-name-link">start()</a> - Method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/MergingValidation.html" title="class in org.apache.datasketches.cpc">MergingValidation</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Start the merging validation process</div>
+</dd>
 <dt><a href="org/apache/datasketches/cpc/QuickMergingValidation.html#start()" class="member-name-link">start()</a> - Method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/QuickMergingValidation.html" title="class in org.apache.datasketches.cpc">QuickMergingValidation</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Start the Quick Merging Validation process</div>
+</dd>
 <dt><a href="org/apache/datasketches/cpc/StreamingValidation.html#start()" class="member-name-link">start()</a> - Method in class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/StreamingValidation.html" title="class in org.apache.datasketches.cpc">StreamingValidation</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Start the streaming validation process</div>
+</dd>
 <dt><a href="org/apache/datasketches/thetacommon/ThetaUtil.html#startingSubMultiple(int,int,int)" class="member-name-link">startingSubMultiple(int, int, int)</a> - Static method in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/ThetaUtil.html" title="class in org.apache.datasketches.thetacommon">ThetaUtil</a></dt>
 <dd>
 <div class="block">Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero,
@@ -6915,19 +7045,25 @@ loadScripts(document, 'script');</script>
  and by the characterization repository for longer running, more exhaustive testing.</div>
 </dd>
 <dt><a href="org/apache/datasketches/cpc/StreamingValidation.html#%3Cinit%3E(int,int,int,int,java.io.PrintStream,java.io.PrintWriter)" class="member-name-link">StreamingValidation(int, int, int, int, PrintStream, PrintWriter)</a> - Constructor for class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/StreamingValidation.html" title="class in org.apache.datasketches.cpc">StreamingValidation</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Constructor</div>
+</dd>
 <dt><a href="org/apache/datasketches/thetacommon/HashOperations.html#STRIDE_MASK" class="member-name-link">STRIDE_MASK</a> - Static variable in class org.apache.datasketches.thetacommon.<a href="org/apache/datasketches/thetacommon/HashOperations.html" title="class in org.apache.datasketches.thetacommon">HashOperations</a></dt>
 <dd>
 <div class="block">The stride mask for the Open Address, Double Hashing (OADH) hash table algorithm.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/Util.html#stringArrHash(java.lang.String%5B%5D)" class="member-name-link">stringArrHash(String[])</a> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Util.html" title="class in org.apache.datasketches.tuple">Util</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the hash of the concatenated strings</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/Util.html#stringConcat(java.lang.String%5B%5D)" class="member-name-link">stringConcat(String[])</a> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Util.html" title="class in org.apache.datasketches.tuple">Util</a></dt>
 <dd>
 <div class="block">Concatenate array of Strings to a single String.</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/Util.html#stringHash(java.lang.String)" class="member-name-link">stringHash(String)</a> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Util.html" title="class in org.apache.datasketches.tuple">Util</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the hash of the given string</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/Util.html#stringToByteArray(java.lang.String)" class="member-name-link">stringToByteArray(String)</a> - Static method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/Util.html" title="class in org.apache.datasketches.tuple">Util</a></dt>
 <dd>
 <div class="block">Converts a String to a UTF_8 byte array.</div>
@@ -7006,7 +7142,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Constructor</div>
 </dd>
 <dt><a href="org/apache/datasketches/cpc/TestUtil.html" class="type-name-link" title="class in org.apache.datasketches.cpc">TestUtil</a> - Class in <a href="org/apache/datasketches/cpc/package-summary.html">org.apache.datasketches.cpc</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Utility methods for Test</div>
+</dd>
 <dt><a href="org/apache/datasketches/cpc/TestUtil.html#%3Cinit%3E()" class="member-name-link">TestUtil()</a> - Constructor for class org.apache.datasketches.cpc.<a href="org/apache/datasketches/cpc/TestUtil.html" title="class in org.apache.datasketches.cpc">TestUtil</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#TGT_IS_READ_ONLY_MSG" class="member-name-link">TGT_IS_READ_ONLY_MSG</a> - Static variable in interface org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></dt>
@@ -7096,9 +7234,13 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/apache/datasketches/tuple/aninteger/IntegerSummary.html#toByteArray()" class="member-name-link">toByteArray()</a> - Method in class org.apache.datasketches.tuple.aninteger.<a href="org/apache/datasketches/tuple/aninteger/IntegerSummary.html" title="class in org.apache.datasketches.tuple.aninteger">IntegerSummary</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html#toByteArray()" class="member-name-link">toByteArray()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns serialized representation of the sketch</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUnion.html#toByteArray()" class="member-name-link">toByteArray()</a> - Method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUnion.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUnion</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns a byte array representation of this object</div>
+</dd>
 <dt><a href="org/apache/datasketches/tuple/CompactSketch.html#toByteArray()" class="member-name-link">toByteArray()</a> - Method in class org.apache.datasketches.tuple.<a href="org/apache/datasketches/tuple/CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html#toByteArray()" class="member-name-link">toByteArray()</a> - Method in class org.apache.datasketches.tuple.strings.<a href="org/apache/datasketches/tuple/strings/ArrayOfStringsSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a></dt>
@@ -8153,7 +8295,9 @@ loadScripts(document, 'script');</script>
 <div class="block">This is to provide a method of updating summaries.</div>
 </dd>
 <dt><a href="org/apache/datasketches/quantiles/UpdateDoublesSketch.html" class="type-name-link" title="class in org.apache.datasketches.quantiles">UpdateDoublesSketch</a> - Class in <a href="org/apache/datasketches/quantiles/package-summary.html">org.apache.datasketches.quantiles</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Extends DoubleSketch</div>
+</dd>
 <dt><a href="org/apache/datasketches/theta/UpdateReturnState.html" class="type-name-link" title="enum class in org.apache.datasketches.theta">UpdateReturnState</a> - Enum Class in <a href="org/apache/datasketches/theta/package-summary.html">org.apache.datasketches.theta</a></dt>
 <dd>
 <div class="block"><a href="./resources/dictionary.html#updateReturnState">See Update Return State</a></div>
@@ -8552,11 +8696,11 @@ the order they are declared.</div>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#wrapIntersection(org.apache.datasketches.memory.Memory)" class="member-name-link">wrapIntersection(Memory)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
-<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>wrap(Memory)</code></a> and casts the result to a Intersection</div>
+<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Intersection</div>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#wrapIntersection(org.apache.datasketches.memory.WritableMemory)" class="member-name-link">wrapIntersection(WritableMemory)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
-<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>wrap(Memory)</code></a> and casts the result to a Intersection</div>
+<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Intersection</div>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#wrapSetOperation(org.apache.datasketches.memory.Memory)" class="member-name-link">wrapSetOperation(Memory)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
@@ -8592,7 +8736,7 @@ the order they are declared.</div>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#wrapUnion(org.apache.datasketches.memory.Memory)" class="member-name-link">wrapUnion(Memory)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
-<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>wrap(Memory)</code></a> and casts the result to a Union</div>
+<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Union</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketches.html#wrapUnion(org.apache.datasketches.memory.Memory)" class="member-name-link">wrapUnion(Memory)</a> - Static method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketches.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketches</a></dt>
 <dd>
@@ -8604,7 +8748,7 @@ the order they are declared.</div>
 </dd>
 <dt><a href="org/apache/datasketches/theta/Sketches.html#wrapUnion(org.apache.datasketches.memory.WritableMemory)" class="member-name-link">wrapUnion(WritableMemory)</a> - Static method in class org.apache.datasketches.theta.<a href="org/apache/datasketches/theta/Sketches.html" title="class in org.apache.datasketches.theta">Sketches</a></dt>
 <dd>
-<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>wrap(Memory)</code></a> and casts the result to a Union</div>
+<div class="block">Convenience method, calls <a href="org/apache/datasketches/theta/SetOperation.html#wrap(org.apache.datasketches.memory.Memory)"><code>SetOperation.wrap(Memory)</code></a> and casts the result to a Union</div>
 </dd>
 <dt><a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketches.html#wrapUnion(org.apache.datasketches.memory.WritableMemory)" class="member-name-link">wrapUnion(WritableMemory)</a> - Static method in class org.apache.datasketches.tuple.arrayofdoubles.<a href="org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketches.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketches</a></dt>
 <dd>
