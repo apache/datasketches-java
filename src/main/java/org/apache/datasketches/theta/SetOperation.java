@@ -39,6 +39,9 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 public abstract class SetOperation implements MemoryStatus {
   static final int CONST_PREAMBLE_LONGS = 3;
 
+  /**
+   * Constructor
+   */
   SetOperation() {}
 
   /**

@@ -38,6 +38,7 @@ public class DeserializeResult<T> {
   }
 
   /**
+   * Returns Deserialized object
    * @return Deserialized object
    */
   public T getObject() {
@@ -45,7 +46,8 @@ public class DeserializeResult<T> {
   }
 
   /**
-   * @return Size in bytes occupied by the object in the serialized form
+   * Returns size in bytes occupied by the object in the serialized form
+   * @return size in bytes occupied by the object in the serialized form
    */
   public int getSize() {
     return size;

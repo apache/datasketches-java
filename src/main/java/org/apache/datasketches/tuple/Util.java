@@ -119,16 +119,18 @@ public final class Util {
   }
 
   /**
+   * Returns the hash of the given string
    * @param s the string to hash
-   * @return the hash of the string
+   * @return the hash of the given string
    */
   public static long stringHash(final String s) {
     return hashString(s, 0, s.length(), PRIME);
   }
 
   /**
+   * Returns the hash of the concatenated strings
    * @param strArray array of Strings
-   * @return long hash of concatenated strings.
+   * @return the hash of concatenated strings.
    */
   public static long stringArrHash(final String[] strArray) {
     final String s = stringConcat(strArray);

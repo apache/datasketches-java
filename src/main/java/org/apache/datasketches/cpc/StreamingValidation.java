@@ -57,7 +57,7 @@ public class StreamingValidation {
   private BitMatrix matrix = null;
 
   /**
-   *
+   * Constructor
    * @param lgMinK lgMinK
    * @param lgMaxK lgMaxK
    * @param trials trials
@@ -78,7 +78,7 @@ public class StreamingValidation {
   }
 
   /**
-   *
+   * Start the streaming validation process
    */
   public void start() {
     printf(hfmt, (Object[]) hStrArr);

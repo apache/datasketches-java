@@ -31,6 +31,7 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.UpdatableSummary;
 
 /**
+ * Implements UpdatableSummary&lt;String[]&gt;
  * @author Lee Rhodes
  */
 public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
@@ -115,6 +116,7 @@ public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   }
 
   /**
+   * Returns the nodes array for this summary.
    * @return the nodes array for this summary.
    */
   public String[] getValue() {

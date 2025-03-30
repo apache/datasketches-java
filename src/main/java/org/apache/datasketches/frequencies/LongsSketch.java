@@ -439,6 +439,7 @@ public class LongsSketch {
   }
 
   /**
+   * Returns an upper bound on the maximum error of getEstimate(item) for any item.
    * @return An upper bound on the maximum error of getEstimate(item) for any item.
    * This is equivalent to the maximum distance between the upper bound and the lower bound
    * for any item.
@@ -457,6 +458,7 @@ public class LongsSketch {
   }
 
   /**
+   * Returns the number of active items in the sketch.
    * @return the number of active items in the sketch.
    */
   public int getNumActiveItems() {
@@ -693,26 +695,31 @@ public class LongsSketch {
     }
 
     /**
-     * @return item of type T
+     * Returns item of type long
+     * @return item of type long
      */
     public long getItem() { return item; }
 
     /**
+     * Returns the estimate
      * @return the estimate
      */
     public long getEstimate() { return est; }
 
     /**
+     * Returns the upper bound
      * @return the upper bound
      */
     public long getUpperBound() { return ub; }
 
     /**
+     * Returns the lower bound
      * @return return the lower bound
      */
     public long getLowerBound() { return lb; }
 
     /**
+     * Returns the descriptive row header
      * @return the descriptive row header
      */
     public static String getRowHeader() {

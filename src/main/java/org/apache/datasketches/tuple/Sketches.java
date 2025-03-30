@@ -28,6 +28,7 @@ import org.apache.datasketches.memory.Memory;
 public final class Sketches {
 
   /**
+   * Creates an empty sketch.
    * @param <S> Type of Summary
    * @return an empty instance of Sketch
    */

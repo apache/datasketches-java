@@ -56,6 +56,11 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public abstract class AnotB extends SetOperation {
 
+  /**
+   * Constructor
+   */
+  AnotB() {}
+
   @Override
   public Family getFamily() {
     return Family.A_NOT_B;

@@ -189,6 +189,7 @@ public abstract class ArrayOfDoublesUnion {
   //      ||   15   |   14   |   13   |   12   |   11    |   10   |    9   |     8              |
   //  1   ||---------------------------Union Theta Long-----------------------------------------|
   /**
+   * Returns a byte array representation of this object
    * @return a byte array representation of this object
    */
   public byte[] toByteArray() {
@@ -206,6 +207,7 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
+   * Returns maximum required storage bytes given nomEntries and numValues
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than or equal to
    * given value.
    * @param numValues Number of double values to keep for each key

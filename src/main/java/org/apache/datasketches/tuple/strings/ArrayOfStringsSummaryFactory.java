@@ -22,6 +22,7 @@ package org.apache.datasketches.tuple.strings;
 import org.apache.datasketches.tuple.SummaryFactory;
 
 /**
+ * Implements SummaryFactory&lt;ArrayOfStringsSummary&gt;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSummaryFactory implements SummaryFactory<ArrayOfStringsSummary> {

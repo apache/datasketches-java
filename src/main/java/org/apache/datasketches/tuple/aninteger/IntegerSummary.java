@@ -125,6 +125,7 @@ public class IntegerSummary implements UpdatableSummary<Integer> {
   }
 
   /**
+   * Returns the current value of the IntegerSummary
    * @return current value of the IntegerSummary
    */
   public int getValue() {

@@ -66,41 +66,49 @@ public class Group implements Comparable<Group> {
   }
 
   /**
-   * @return priKey of type T
+   * Gets the primary key of type String
+   * @return priKey of type String
    */
   public String getPrimaryKey() { return priKey; }
 
   /**
+   * Returns the count
    * @return the count
    */
   public int getCount() { return count; }
 
   /**
+   * Returns the estimate
    * @return the estimate
    */
   public double getEstimate() { return est; }
 
   /**
+   * Returns the upper bound
    * @return the upper bound
    */
   public double getUpperBound() { return ub; }
 
   /**
+   * Returns the lower bound
    * @return the lower bound
    */
   public double getLowerBound() { return lb; }
 
   /**
+   * Returns the fraction for this group
    * @return the fraction for this group
    */
   public double getFraction() { return fraction; }
 
   /**
+   * Returns the RSE
    * @return the RSE
    */
   public double getRse() { return rse; }
 
   /**
+   * Returns the descriptive header
    * @return the descriptive header
    */
   public String getHeader() {
@@ -112,9 +120,6 @@ public class Group implements Comparable<Group> {
     return String.format(fmt, count, est, ub, lb, fraction, rse, priKey);
   }
 
-  /**
-   * @param that The Group to compare to
-   */
   @Override
   public int compareTo(final Group that) {
     return that.count - count; //decreasing
@@ -133,4 +138,3 @@ public class Group implements Comparable<Group> {
   }
 
 }
-

@@ -24,6 +24,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.UpdatableSketch;
 
 /**
+ * Extends UpdatableSketch&lt;Double, DoubleSummary&gt;
  * @author Lee Rhodes
  */
 public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {

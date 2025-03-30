@@ -26,6 +26,7 @@ package org.apache.datasketches.tuple;
 public interface SummaryFactory<S extends Summary> {
 
   /**
+   * Returns new instance of Summary
    * @return new instance of Summary
    */
   public S newSummary();

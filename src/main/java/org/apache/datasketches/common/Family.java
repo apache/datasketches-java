@@ -194,7 +194,7 @@ public enum Family {
   }
 
   /**
-   *
+   * Checks the given Family ID
    * @param id the given id, a value &lt; 128.
    */
   public void checkFamilyID(final int id) {
