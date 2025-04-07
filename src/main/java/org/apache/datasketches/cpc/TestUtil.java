@@ -68,7 +68,7 @@ public class TestUtil {
       rtAssertEquals(sk1.mergeFlag, sk2.mergeFlag);
       rtAssertEquals(ficolA, ficolB);
       rtAssertEquals(sk1.kxp, sk2.kxp, .01 * sk1.kxp); //1% tolerance
-      rtAssertEquals(sk1.hipEstAccum, sk2.hipEstAccum, 01 * sk1.hipEstAccum); //1% tolerance
+      rtAssertEquals(sk1.hipEstAccum, sk2.hipEstAccum, .01 * sk1.hipEstAccum); //1% tolerance
     }
     return true;
   }
