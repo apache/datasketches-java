@@ -43,7 +43,7 @@ If you are interested in making contributions to this site please see our [Commu
 
 ### OpenJDK Version 21
 An OpenJDK-compatible build of Java 21, provided by one of the Open-Source providers, such as Azul Systems, Red Hat, SAP, Eclipse Temurin, etc, is required.
-All of the testing of this release has been performed with a Eclipse Temurin build.
+All of the testing of this release has been performed with an Eclipse Temurin build.
 
 This release uses the new Java Foreign Function & Memory (FFM) features that are in "preview" in Java 21.
 As a result, the JVM flag <nobr>**--enable-preview**</nobr> must be set at compile and at runtime.
@@ -62,7 +62,7 @@ This DataSketches component is structured as a Maven project and Maven is the re
 #### A Toolchain is required
 
 * You must have a JDK type toolchain defined in location *~/.m2/toolchains.xml* that specifies where to find a locally installed OpenJDK-compatible version 21.
-* Your default \$JAVA\_HOME compiler must be an OpenJDK compatible, specified in the toolchain, and may be a version greater than 21. Note that if your \$JAVA\_HOME is set to a Java version greater than 21, Maven will automatically use the Java 21 version specified in the toolchain instead. The included pom.xml specifies the necessary JVM flags, so no further action should be required.
+* Your default \$JAVA\_HOME compiler must be OpenJDK compatible, specified in the toolchain, and may be a version greater than 21. Note that if your \$JAVA\_HOME is set to a Java version greater than 21, Maven will automatically use the Java 21 version specified in the toolchain instead. The included pom.xml specifies the necessary JVM flags, so no further action should be required.
 * Note that the paths specified in the toolchain must be fully qualified direct paths to the OpenJDK version locations. Using environment variables will not work.
 
 #### To run normal unit tests:
