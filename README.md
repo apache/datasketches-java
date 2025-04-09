@@ -27,42 +27,49 @@ This is the core Java component of the DataSketches library.  It contains all of
 
 This component is also a dependency of other components of the library that create adaptors for target systems, such as the [Apache Pig adaptor](https://github.com/apache/datasketches-pig), the [Apache Hive adaptor](https://github.com/apache/datasketches-hive), and others.
 
-Note that we have a parallel core component for C++ and Python implementations of the same sketch algorithms, 
+Note that we have a parallel core component for C++ and Python implementations of many of the same sketch algorithms, 
 [datasketches-cpp](https://github.com/apache/datasketches-cpp) and [datasketches-python](https://github.com/apache/datasketches-python)
 
-Please visit the main [DataSketches website](https://datasketches.apache.org) for more information. 
+Please visit the main [DataSketches website](https://datasketches.apache.org) for more information.
 
 If you are interested in making contributions to this site please see our [Community](https://datasketches.apache.org/docs/Community/) page for how to contact us.
 
 ---
 
-## Maven Build Instructions
-__NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory must qualify as Java identifiers. In other words, the directory elements must not have any space characters (or non-Java identifier characters) in any of the path elements. This is required by the Oracle Java Specification in order to ensure location-independent access to resources: [See Oracle Location-Independent Access to Resources](https://docs.oracle.com/javase/8/docs/technotes/guides/lang/resources.html)
+## Build & Runtime Dependencies
 
-### JDK17 is required to compile
-This component depends on the [datasketches-memory-4.1.X](https://github.com/apache/datasketches-memory/tree/4.1.X) component, 
-and, as a result, must be compiled with JDK17 and this dependency:
+### Installation Directory Path
+**NOTE:** This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory must qualify as Java identifiers. In other words, the directory elements must not have any space characters (or non-Java identifier characters) in any of the path elements. This is required by the Oracle Java Specification in order to ensure location-independent access to resources: [See Oracle Location-Independent Access to Resources](https://docs.oracle.com/javase/8/docs/technotes/guides/lang/resources.html)
 
-```
-<dependency>
-  <groupId>org.apache.datasketches</groupId>
-  <artifactId>datasketches-memory</artifactId>
-  <version>4.1.0</version>
-</dependency>
-```
+### OpenJDK Version 21
+An OpenJDK-compatible build of Java 21, provided by one of the Open-Source providers, such as Azul Systems, Red Hat, SAP, Eclipse Temurin, etc, is required.
+All of the testing of this release has been performed with an Eclipse Temurin build.
 
-If your application only relies on the APIs of datasketches-java no special JVM arguments are required.
-However, if your application also directly relies on the APIs of the *datasketches-memory* component, 
-you may need the additional JVM argument **--add-modules=jdk.incubator.foreign**.
+This release uses the new Java Foreign Function & Memory (FFM) features that are in "preview" in Java 21.
+As a result, the JVM flag <nobr>**--enable-preview**</nobr> must be set at compile and at runtime.
 
-### Recommended Build Tool
-This DataSketches component is structured as a Maven project and Maven is the recommended Build Tool.
+**NOTE:** OpenJDK versions greater than 21 do not support running Java 21 class files (Class ID 65) with preview code. The runtime JVM version must be 21.
 
-To run normal unit tests:
+**NOTE:** The Eclipse Compiler for Java (ECJ) version 21, used by default in both the Eclipse JDT IDE and the VScode IDE, will not allow compilation of preview code for Java version 21. Both Eclipse and VScode can be configured to use an OpenJDK compiler instead, but you will loose the incremental build capability of the ECJ.
+
+### DataSketches Memory 6.0.0
+
+This component depends on the [datasketches-memory-6.0.0](https://github.com/apache/datasketches-memory/tree/6.0.0) component, 
+
+## Compilation and Test using Maven
+This DataSketches component is structured as a Maven project and Maven is the recommended tool for compile and test.
+
+#### A Toolchain is required
+
+* You must have a JDK type toolchain defined in location *~/.m2/toolchains.xml* that specifies where to find a locally installed OpenJDK-compatible version 21.
+* Your default \$JAVA\_HOME compiler must be OpenJDK compatible, specified in the toolchain, and may be a version greater than 21. Note that if your \$JAVA\_HOME is set to a Java version greater than 21, Maven will automatically use the Java 21 version specified in the toolchain instead. The included pom.xml specifies the necessary JVM flags, so no further action should be required.
+* Note that the paths specified in the toolchain must be fully qualified direct paths to the OpenJDK version locations. Using environment variables will not work.
+
+#### To run normal unit tests:
 
     $ mvn clean test
 
-To install jars built from the downloaded source:
+#### To install jars built from the downloaded source:
 
     $ mvn clean install -DskipTests=true
 
@@ -74,19 +81,9 @@ This will create the following jars:
 * datasketches-java-X.Y.Z-test-sources.jar The test source files
 * datasketches-java-X.Y.Z-javadoc.jar  The compressed Javadocs.
 
-### Dependencies
-
-#### Run-time
-There is one run-time dependency: 
-
-* [datasketches-memory-4.1.X](https://github.com/apache/datasketches-memory/tree/4.1.X)
-
-#### Testing
-See the pom.xml file for test dependencies.
-
 ## Known Issues
 
-#### SpotBugs
+### SpotBugs
 
 * Make sure you configure SpotBugs with the /tools/FindBugsExcludeFilter.xml file. Otherwise, you may get a lot of false positive or low risk issues that we have examined and eliminated with this exclusion file.
 
