@@ -24,17 +24,6 @@ under the License.
   <Match>
     <Class name="~.*\.*Test" />
   </Match>
-  
-  <Match>
-    <Class name="~.*\.*TestUtil" />
-  </Match>
-
-  <!-- Harmless, False Positive Mar 6, 2024. Alex may fix this. -->
-  <Match>   
-    <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-    <Class name="org.apache.datasketches.tdigest.TDigestDouble"/>
-    <Method name="merge" />
-  </Match>
 
   <!-- Complaining about copying of arrays from one internal class to another. 
        This is harmless since both classes are part of our library and work together. -->
@@ -49,7 +38,8 @@ under the License.
     </Or>
   </Match>
 
-  <Match> <!-- False Positive: These are intentional and we know what we are doing. -->
+  <!-- False Positive: These are intentional and we know what we are doing. -->
+  <Match> 
     <Bug pattern="FE_FLOATING_POINT_EQUALITY" />
     <Class name="org.apache.datasketches.sampling.EbppsItemsSample" />
     <Or>
@@ -58,7 +48,8 @@ under the License.
     </Or>
   </Match>
 
-  <Match> <!-- False Positive: Code is the recommended solution for preventing a Finalizer Attack. -->
+  <!-- False Positive: Code is the recommended solution for preventing a Finalizer Attack. -->
+  <Match> 
     <Bug pattern="CT_CONSTRUCTOR_THROW" />
     <Or>
       <Class name="org.apache.datasketches.tuple.arrayofdoubles.DirectArrayOfDoublesQuickSelectSketch"/>
