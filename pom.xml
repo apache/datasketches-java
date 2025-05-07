@@ -94,11 +94,11 @@ under the License.
 
     <!-- System-wide properties -->
     <maven.version>3.6.3</maven.version>
-    <java.version>21</java.version>
-    <jvm-ffm-flag>--enable-preview</jvm-ffm-flag>
+    <java.version>22</java.version>
+    <jvm-arguments></jvm-arguments>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-ffm-flag}</argLine>
+    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-arguments}</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -164,7 +164,7 @@ under the License.
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <compilerArgs>
-              <arg>${jvm-ffm-flag}</arg>
+              <arg>${jvm-arguments}</arg>
             </compilerArgs>
           </configuration>
         </plugin>
@@ -190,7 +190,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[21,)</version> <!-- java.version -->
+                    <version>[22,)</version> <!-- java.version -->
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},4.0.0)</version>
@@ -239,7 +239,7 @@ under the License.
             <show>public</show>
             <doclint>all,-missing</doclint>
             <additionalJOptions>
-              <additionalJOption>${jvm-ffm-flag}</additionalJOption>
+              <additionalJOption>${jvm-arguments}</additionalJOption>
             </additionalJOptions>
           </configuration>
           <executions>
@@ -285,7 +285,7 @@ under the License.
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
-            <argLine>${jvm-ffm-flag}</argLine>
+            <argLine>${jvm-arguments}</argLine>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>

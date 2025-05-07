@@ -38,7 +38,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getCDF(T[] splitPoints) {
+  default double[] getCDF(final T[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
   }
 
@@ -118,7 +118,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getPMF(T[] splitPoints) {
+  default double[] getPMF(final T[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
   }
 
@@ -170,7 +170,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @return the approximate quantile given the normalized rank.
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default T getQuantile(double rank) {
+  default T getQuantile(final double rank) {
     return getQuantile(rank, INCLUSIVE);
   }
 
@@ -227,7 +227,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @return an array of quantiles corresponding to the given array of normalized ranks.
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default T[] getQuantiles(double[] ranks) {
+  default T[] getQuantiles(final double[] ranks) {
     return getQuantiles(ranks, INCLUSIVE);
   }
 
@@ -250,7 +250,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @return the normalized rank corresponding to the given quantile.
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double getRank(T quantile) {
+  default double getRank(final T quantile) {
     return getRank(quantile, INCLUSIVE);
   }
 
@@ -271,7 +271,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getRanks(T[] quantiles) {
+  default double[] getRanks(final T[] quantiles) {
     return getRanks(quantiles, INCLUSIVE);
   }
 

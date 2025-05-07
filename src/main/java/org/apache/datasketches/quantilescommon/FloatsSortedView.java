@@ -60,7 +60,7 @@ public interface FloatsSortedView extends SortedView {
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getCDF(float[] splitPoints, QuantileSearchCriteria searchCrit) {
+  default double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     QuantilesUtil.checkFloatsSplitPointsOrder(splitPoints);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
@@ -129,7 +129,7 @@ public interface FloatsSortedView extends SortedView {
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getPMF(float[] splitPoints,  QuantileSearchCriteria searchCrit) {
+  default double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
     for (int i = len; i-- > 1; ) {

@@ -35,7 +35,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getCDF(long[] splitPoints) {
+  default double[] getCDF(final long[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
   }
 
@@ -98,7 +98,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getPMF(long[] splitPoints) {
+  default double[] getPMF(final long[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
   }
 
@@ -150,7 +150,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @return the approximate quantile given the normalized rank.
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default long getQuantile(double rank) {
+  default long getQuantile(final double rank) {
     return getQuantile(rank, INCLUSIVE);
   }
 
@@ -207,7 +207,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @return an array of quantiles corresponding to the given array of normalized ranks.
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default long[] getQuantiles(double[] ranks) {
+  default long[] getQuantiles(final double[] ranks) {
     return getQuantiles(ranks, INCLUSIVE);
   }
 
@@ -230,7 +230,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @return the normalized rank corresponding to the given quantile
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double getRank(long quantile) {
+  default double getRank(final long quantile) {
     return getRank(quantile, INCLUSIVE);
   }
 
@@ -251,7 +251,7 @@ public interface QuantilesLongsAPI extends QuantilesAPI {
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @throws IllegalArgumentException if sketch is empty.
    */
-  default double[] getRanks(long[] quantiles) {
+  default double[] getRanks(final long[] quantiles) {
     return getRanks(quantiles, INCLUSIVE);
   }
 

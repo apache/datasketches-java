@@ -36,7 +36,7 @@ interface ConcurrentSharedThetaSketch extends MemoryStatus {
   long NOT_SINGLE_HASH = -1L;
   double MIN_ERROR = 0.0000001;
 
-  static long computeExactLimit(long k, double error) {
+  static long computeExactLimit(final long k, final double error) {
     return 2 * Math.min(k, (long) Math.ceil(1.0 / Math.pow(Math.max(error,MIN_ERROR), 2.0)));
   }
 
