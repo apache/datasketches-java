@@ -94,8 +94,8 @@ under the License.
 
     <!-- System-wide properties -->
     <maven.version>3.6.3</maven.version>
-    <java.version>21</java.version>
-    <jvm-arguments>--enable-preview</jvm-arguments>
+    <java.version>24</java.version>
+    <jvm-arguments></jvm-arguments>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-arguments}</argLine>
@@ -190,7 +190,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[21,)</version> <!-- java.version -->
+                    <version>[22,)</version> <!-- java.version -->
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},4.0.0)</version>
