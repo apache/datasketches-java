@@ -22,8 +22,8 @@ package org.apache.datasketches.tuple;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.memory.XxHash.hashCharArr;
-import static org.apache.datasketches.memory.XxHash.hashString;
+import static org.apache.datasketches.hash.XxHash.hashCharArr;
+import static org.apache.datasketches.hash.XxHash.hashString;
 
 import java.lang.reflect.Array;
 

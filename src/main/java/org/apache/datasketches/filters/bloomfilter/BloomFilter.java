@@ -26,11 +26,11 @@ import java.nio.charset.StandardCharsets;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.hash.XxHash;
 import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.memory.XxHash;
 
 /**
  * A Bloom filter is a data structure that can be used for probabilistic
