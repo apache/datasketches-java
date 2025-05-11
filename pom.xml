@@ -83,7 +83,7 @@ under the License.
   </developers>
 
   <properties>
-    <datasketches-memory.version>6.0.0</datasketches-memory.version>
+    <datasketches-memory.version>6.1.0-SNAPSHOT</datasketches-memory.version>
 
     <!-- Test -->
     <testng.version>7.11.0</testng.version>
@@ -126,7 +126,7 @@ under the License.
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     <!-- org.jacoco.maven plugins -->
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <!-- org.mojohaus plugins -->
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
     <!-- other -->

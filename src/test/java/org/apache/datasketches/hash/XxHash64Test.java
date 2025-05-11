@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.hash;
 
-import static org.apache.datasketches.memory.XxHash.*;
+import static org.apache.datasketches.hash.XxHash.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
