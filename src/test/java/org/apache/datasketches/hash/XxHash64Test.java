@@ -19,15 +19,18 @@
 
 package org.apache.datasketches.hash;
 
-import static org.apache.datasketches.hash.XxHash.*;
+import static org.apache.datasketches.hash.XxHash.hashByteArr;
+import static org.apache.datasketches.hash.XxHash.hashCharArr;
+import static org.apache.datasketches.hash.XxHash.hashDoubleArr;
+import static org.apache.datasketches.hash.XxHash.hashFloatArr;
+import static org.apache.datasketches.hash.XxHash.hashIntArr;
+import static org.apache.datasketches.hash.XxHash.hashLong;
+import static org.apache.datasketches.hash.XxHash.hashLongArr;
+import static org.apache.datasketches.hash.XxHash.hashShortArr;
+import static org.apache.datasketches.hash.XxHash.hashString;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-
-import org.apache.datasketches.memory.Resource;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
