@@ -45,11 +45,11 @@ github:
     edit_comment_discussion: "Re: [D] {title} ({repository})"
     delete_comment_discussion: "Re: [D] {title} ({repository})"
 
-  notifications:
-    commits:              commits@dataskethces.apache.org
-    issues:               dev@dataskethces.apache.org
-    discussions:          dev@dataskethces.apache.org
-    pullrequests_status:  dev@dataskethces.apache.org
-    pullrequests_comment: dev@dataskethces.apache.org
-    # Send dependabot PRs to commits@ instead
-    pullrequests_bot_dependabot: commits@dataskethces.apache.org
+notifications:
+  commits:              commits@dataskethces.apache.org
+  issues:               dev@dataskethces.apache.org
+  discussions:          dev@dataskethces.apache.org
+  pullrequests_status:  dev@dataskethces.apache.org
+  pullrequests_comment: dev@dataskethces.apache.org
+  # Send dependabot PRs to commits@ instead
+  pullrequests_bot_dependabot: commits@dataskethces.apache.org
