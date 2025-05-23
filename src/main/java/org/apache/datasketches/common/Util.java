@@ -24,9 +24,11 @@ import static java.lang.Math.floor;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
-import static java.util.Arrays.fill;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Common utility functions.
@@ -257,7 +259,7 @@ public final class Util {
     final int sLen = s.length();
     if (sLen < fieldLength) {
       final char[] cArr = new char[fieldLength - sLen];
-      fill(cArr, padChar);
+      java.util.Arrays.fill(cArr, padChar);
       final String addstr = String.valueOf(cArr);
       return (postpend) ? s.concat(addstr) : addstr.concat(s);
     }
@@ -796,6 +798,112 @@ public final class Util {
    */
   public static <T> boolean le(final Object item1, final Object item2, final Comparator<? super T> c) {
     return c.compare((T)item1, (T)item2) <= 0;
+  }
+
+  //MemorySegment related
+
+  /**
+   * Returns true if the two given MemorySegments refer to the same backing resource,
+   * which is either an off-heap memory location and size, or the same on-heap array object.
+   *
+   * <p>If both segment are off-heap, they both must have the same starting address and the same size.</p>
+   *
+   * <p>For on-heap segments, both segments must be based on or derived from the same array object and neither segment
+   * can be read-only.</p>
+   *
+   * @param seg1 The first given MemorySegment
+   * @param seg2 The second given MemorySegment
+   * @return true if both MemorySegments are determined to be the same backing memory.
+   */
+  public static boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
+    Objects.requireNonNull(seg1, "seg1 must not be null.");
+    Objects.requireNonNull(seg2, "seg2 must not be null.");
+    if (!seg1.scope().isAlive() || !seg2.scope().isAlive()) {
+      throw new IllegalArgumentException("Both arguments must be alive.");
+    }
+    final boolean seg1Native = seg1.isNative();
+    final boolean seg2Native = seg2.isNative();
+    if (seg1Native ^ seg2Native) { return false; }
+    if (seg1Native && seg2Native) { //both off heap
+      return (seg1.address() == seg2.address()) && (seg1.byteSize() == seg2.byteSize());
+    }
+    //both on heap
+    if (seg1.isReadOnly() || seg2.isReadOnly()) {
+      throw new IllegalArgumentException("Cannot determine 'isSameBackingMemory(..)' on heap if either MemorySegment is Read-only.");
+    }
+    return (seg1.heapBase().orElse(null) == seg2.heapBase().orElse(null));
+  }
+
+  /**
+   * Request a new heap MemorySegment with the given capacityBytes.
+   *
+   * <p>The returned MemorySegment will be constructed from a <i>long[]</i> array.
+   * As a result, it will be on-heap and have a memory alignment of 8.
+   * If the requested capacity is not divisible by eight, the returned size
+   * will be rolled up to the next multiple of eight.</p>
+   *
+   * @param capacityBytes The new capacity being requested.
+   * @return a new MemorySegment with the requested capacity.
+   */
+  public static MemorySegment newHeapSegment(final int capacityBytes) {
+    if (capacityBytes < 0) {
+      throw new IllegalArgumentException("Requested capacity must be positive.");
+    }
+    final long[] array = ((capacityBytes * 0x7) == 0) ? new long[capacityBytes >>> 3] : new long[(capacityBytes >>> 3) + 1];
+    return MemorySegment.ofArray(array);
+  }
+
+  /**
+   * Clears all bytes of this MemorySegment to zero.
+   * @param seg the given MemorySegment
+   */
+  public static void clear(final MemorySegment seg) {
+    seg.fill((byte)0);
+  }
+
+  /**
+   * Clears a portion of this MemorySegment to zero.
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this MemorySegment start
+   * @param lengthBytes the length in bytes
+   */
+  public static void clear(final MemorySegment seg, final long offsetBytes, final long lengthBytes) {
+    final MemorySegment slice = seg.asSlice(offsetBytes, lengthBytes);
+    slice.fill((byte)0);
+  }
+
+  /**
+   * Fills a portion of this Memory region to the given byte value.
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param lengthBytes the length in bytes
+   * @param value the given byte value
+   */
+  public static void fill(final MemorySegment seg, final long offsetBytes, final long lengthBytes, final byte value) {
+    final MemorySegment slice = seg.asSlice(offsetBytes, lengthBytes);
+    slice.fill(value);
+  }
+
+  /**
+   * Clears the bits defined by the bitMask
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this Memory start.
+   * @param bitMask the bits set to one will be cleared
+   */
+  public static void clearBits(final MemorySegment seg, final long offsetBytes, final byte bitMask) {
+    final byte b = seg.get(JAVA_BYTE, offsetBytes);
+    seg.set(JAVA_BYTE, offsetBytes, (byte)(b & ~bitMask));
+  }
+
+  /**
+   * Sets the bits defined by the bitMask
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param bitMask the bits set to one will be set
+   */
+  public static void setBits(final MemorySegment seg, final long offsetBytes, final byte bitMask) {
+    final byte b = seg.get(JAVA_BYTE, offsetBytes);
+    seg.set(JAVA_BYTE, offsetBytes, (byte)(b | bitMask));
   }
 
 }

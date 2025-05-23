@@ -19,8 +19,11 @@
 
 package org.apache.datasketches.thetacommon;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.Math.max;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+
+import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -284,6 +287,107 @@ public final class HashOperations {
     throw new SketchesArgumentException("Key not found and no empty slot in table!");
   }
 
+  //With MemorySegment
+  
+  /**
+   * This is a classical Knuth-style Open Addressing, Double Hash (OADH) search scheme for MemorySegment.
+   * Returns the index if found, -1 if not found.  The input MemorySegment may be read only.
+   *
+   * @param seg The <i>MemorySegment</i> containing the hash table to search.
+   * The hash table portion must be a power of 2 in size.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash The hash value to search for. Must not be zero.
+   * @param segOffsetBytes offset in the MemorySegment where the hashTable starts
+   * @return Current probe index if found, -1 if not found.
+   */
+  public static int hashSearchMemory(final MemorySegment seg, final int lgArrLongs, final long hash,
+      final int segOffsetBytes) {
+    if (hash == 0) {
+      throw new SketchesArgumentException("Given hash must not be zero: " + hash);
+    }
+    final int arrayMask = (1 << lgArrLongs) - 1;
+    final int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    final int loopIndex = curProbe;
+    do {
+      final int curProbeOffsetBytes = (curProbe << 3) + segOffsetBytes;
+      final long curArrayHash = seg.get(JAVA_LONG_UNALIGNED, curProbeOffsetBytes);
+      if (curArrayHash == EMPTY) { return -1; }
+      else if (curArrayHash == hash) { return curProbe; }
+      curProbe = (curProbe + stride) & arrayMask;
+    } while (curProbe != loopIndex);
+    return -1;
+  }
+  
+  /**
+   * This is a classical Knuth-style Open Addressing, Double Hash (OADH) insert scheme for MemorySegment.
+   * This method assumes that the input hash is not a duplicate.
+   * Useful for rebuilding tables to avoid unnecessary comparisons.
+   * Returns the index of insertion, which is always positive or zero.
+   * Throws an exception if table has no empty slot.
+   *
+   * @param wseg The writable <i>MemorySegment</i> that contains the hashTable to insert into.
+   * The size of the hashTable portion must be a power of 2.
+   * @param lgArrLongs The log_base2(hashTable.length.
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash value that must not be zero and will be inserted into the array into an empty slot.
+   * @param memOffsetBytes offset in the writable <i>MemorySegment</i> where the hashTable starts
+   * @return index of insertion.  Always positive or zero.
+   */
+  public static int hashInsertOnlyMemory(final MemorySegment wseg, final int lgArrLongs,
+      final long hash, final int memOffsetBytes) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    // search for duplicate or zero
+    final int loopIndex = curProbe;
+    do {
+      final int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+      final long curArrayHash = wseg.get(JAVA_LONG_UNALIGNED, curProbeOffsetBytes);
+      if (curArrayHash == EMPTY) {
+        wseg.set(JAVA_LONG_UNALIGNED, curProbeOffsetBytes, hash);
+        return curProbe;
+      }
+      curProbe = (curProbe + stride) & arrayMask;
+    } while (curProbe != loopIndex);
+    throw new SketchesArgumentException("No empty slot in table!");
+  }
+  
+  /**
+   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
+   * values directly into a writable MemorySegment.
+   * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   * Throws an exception if the value is not found and table has no empty slot.
+   *
+   * @param wseg The writable <i>MemorySegment</i> that contains the hashTable to insert into.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash The hash value to be potentially inserted into an empty slot only if it is not
+   * a duplicate of any other hash value in the table. It must not be zero.
+   * @param memOffsetBytes offset in the writable <i>MemorySegment</i> where the hash array starts
+   * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
+   */
+  public static int hashSearchOrInsertMemory(final MemorySegment wseg, final int lgArrLongs,
+      final long hash, final int memOffsetBytes) {
+    final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
+    final int stride = getStride(hash, lgArrLongs);
+    int curProbe = (int) (hash & arrayMask);
+    // search for duplicate or zero
+    final int loopIndex = curProbe;
+    do {
+      final int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+      final long curArrayHash = wseg.get(JAVA_LONG_UNALIGNED, curProbeOffsetBytes);
+      if (curArrayHash == EMPTY) {
+        wseg.set(JAVA_LONG_UNALIGNED, curProbeOffsetBytes, hash);
+        return ~curProbe;
+      } else if (curArrayHash == hash) { return curProbe; } // curArrayHash is a duplicate
+      // curArrayHash is not a duplicate and not zero, continue searching
+      curProbe = (curProbe + stride) & arrayMask;
+    } while (curProbe != loopIndex);
+    throw new SketchesArgumentException("Key not found and no empty slot in table!");
+  }
+  
   //Other related methods
 
   /**
