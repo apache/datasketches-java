@@ -84,30 +84,59 @@ public class CountMinSketch {
     return updateLocations;
   }
 
+  /**
+   * Checks if the CountMinSketch has processed any items.
+   * @return True if the sketch is empty, otherwise false.
+   */
   public boolean isEmpty() {
     return totalWeight_ == 0;
   }
 
+  /**
+   * Returns the number of hash functions used in this sketch.
+   * @return The number of hash functions.
+   */
   public byte getNumHashes_() {
     return numHashes_;
   }
 
+  /**
+   * Returns the number of buckets per hash function.
+   * @return The number of buckets.
+   */
   public int getNumBuckets_() {
     return numBuckets_;
   }
 
+  /**
+   * Returns the hash seed used by this sketch.
+   * @return The seed value.
+   */
   public long getSeed_() {
     return seed_;
   }
 
+  /**
+   * Returns the total weight of all items inserted into the sketch.
+   * @return The total weight.
+   */
   public long getTotalWeight_() {
     return totalWeight_;
   }
 
+  /**
+   * Returns the relative error of the sketch.
+   * @return The relative error.
+   */
   public double getRelativeError() {
     return Math.exp(1.0) / (double)numBuckets_;
   }
 
+  /**
+   * Suggests an appropriate number of hash functions to use for a given confidence level.
+   * @param confidence The desired confidence level between 0 and 1.
+   * @return Suggested number of hash functions.
+   */
   public byte suggestNumHashes(double confidence) {
     if (confidence < 0 || confidence > 1) {
       throw new SketchesException("Confidence must be between 0 and 1.0 (inclusive).");
@@ -116,15 +145,30 @@ public class CountMinSketch {
     return (byte) Math.min(value, 127);
   }
 
+  /**
+   * Suggests an appropriate number of buckets per hash function for a given relative error.
+   * @param relativeError The desired relative error.
+   * @return Suggested number of buckets.
+   */
   public int suggestNumBuckets(double relativeError) {
     return (int) Math.ceil(Math.exp(1.0) / relativeError);
   }
 
+  /**
+   * Updates the sketch with the provided item and weight.
+   * @param item The item to update.
+   * @param weight The weight of the item.
+   */
   public void update(final long item, final long weight) {
     byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
     update(longByte, weight);
   }
 
+  /**
+   * Updates the sketch with the provided item and weight.
+   * @param item The item to update.
+   * @param weight The weight of the item.
+   */
   public void update(final String item, final long weight) {
     if (item == null || item.isEmpty()) {
       return;
@@ -133,6 +177,11 @@ public class CountMinSketch {
     update(strByte, weight);
   }
 
+  /**
+   * Updates the sketch with the provided item and weight.
+   * @param item The item to update.
+   * @param weight The weight of the item.
+   */
   public void update(final byte[] item, final long weight) {
     if (item.length == 0) {
       return;
@@ -145,11 +194,21 @@ public class CountMinSketch {
     }
   }
 
+  /**
+   * Returns the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Estimated frequency.
+   */
   public long getEstimate(final long item) {
     byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
     return getEstimate(longByte);
   }
 
+  /**
+   * Returns the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Estimated frequency.
+   */
   public long getEstimate(final String item) {
     if (item == null || item.isEmpty()) {
       return 0;
@@ -159,6 +218,11 @@ public class CountMinSketch {
     return getEstimate(strByte);
   }
 
+  /**
+   * Returns the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Estimated frequency.
+   */
   public long getEstimate(final byte[] item) {
     if (item.length == 0) {
       return 0;
@@ -173,11 +237,21 @@ public class CountMinSketch {
     return res;
   }
 
+  /**
+   * Returns the upper bound of the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Upper bound of estimated frequency.
+   */
   public long getUpperBound(final long item) {
     byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
     return getUpperBound(longByte);
   }
 
+  /**
+   * Returns the upper bound of the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Upper bound of estimated frequency.
+   */
   public long getUpperBound(final String item) {
     if (item == null || item.isEmpty()) {
       return 0;
@@ -187,6 +261,11 @@ public class CountMinSketch {
     return  getUpperBound(strByte);
   }
 
+  /**
+   * Returns the upper bound of the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Upper bound of estimated frequency.
+   */
   public long getUpperBound(final byte[] item) {
     if (item.length == 0) {
       return 0;
@@ -195,11 +274,21 @@ public class CountMinSketch {
     return getEstimate(item) + (long)(getRelativeError() * getTotalWeight_());
   }
 
+  /**
+   * Returns the lower bound of the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Lower bound of estimated frequency.
+   */
   public long getLowerBound(final long item) {
     byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
     return getLowerBound(longByte);
   }
 
+  /**
+   * Returns the lower bound of the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Lower bound of estimated frequency.
+   */
   public long getLowerBound(final String item) {
     if (item == null || item.isEmpty()) {
       return 0;
@@ -209,10 +298,19 @@ public class CountMinSketch {
     return getLowerBound(strByte);
   }
 
+  /**
+   * Returns the lower bound of the estimated frequency for the given item.
+   * @param item The item to estimate.
+   * @return Lower bound of estimated frequency.
+   */
   public long getLowerBound(final byte[] item) {
     return getEstimate(item);
   }
 
+  /**
+   * Merges another CountMinSketch into this one. The sketches must have the same configuration.
+   * @param other The other sketch to merge.
+   */
   public void merge(final CountMinSketch other) {
     if (this == other) {
       throw new SketchesException("Cannot merge a sketch with itself");
@@ -232,6 +330,10 @@ public class CountMinSketch {
     totalWeight_ += other.getTotalWeight_();
   }
 
+  /**
+   * Serializes the sketch into the provided ByteBuffer.
+   * @param buf The ByteBuffer to write into.
+   */
   public void serialize(ByteBuffer buf) {
     // Long 0
     final int preambleLongs = Family.COUNTMIN.getMinPreLongs();
@@ -262,6 +364,12 @@ public class CountMinSketch {
     }
   }
 
+  /**
+   * Deserializes a CountMinSketch from the provided byte array.
+   * @param b The byte array containing the serialized sketch.
+   * @param seed The seed used during serialization.
+   * @return The deserialized CountMinSketch.
+   */
   public static CountMinSketch deserialize(final byte[] b, final long seed) {
     ByteBuffer buf = ByteBuffer.allocate(b.length);
     buf.put(b);
