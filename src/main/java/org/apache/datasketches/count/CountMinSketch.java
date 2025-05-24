@@ -24,7 +24,6 @@ import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.tuple.Util;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
@@ -38,7 +37,14 @@ public class CountMinSketch {
   private final long[] sketchArray_;
   private long totalWeight_;
 
-  private static final int IS_EMPTY = 0;
+
+  private enum Flag {
+    IS_EMPTY;
+
+    int mask() {
+      return 1 << ordinal();
+    }
+  }
 
   /**
    * Creates a CountMin sketch with given number of hash functions and buckets,
@@ -342,7 +348,7 @@ public class CountMinSketch {
     buf.put((byte) serialVersion);
     final int familyId = Family.COUNTMIN.getID();
     buf.put((byte) familyId);
-    final int flagsByte = isEmpty() ? 1 << IS_EMPTY : 0;
+    final int flagsByte = isEmpty() ? Flag.IS_EMPTY.mask() : 0;
     buf.put((byte)flagsByte);
     final int NULL_32 = 0;
     buf.putInt(NULL_32);
@@ -391,7 +397,7 @@ public class CountMinSketch {
     }
 
     CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, seed);
-    final boolean empty = (flagsByte & (1 << IS_EMPTY)) > 0;
+    final boolean empty = (flagsByte & Flag.IS_EMPTY.mask()) > 0;
     if (empty) {
       return cms;
     }
