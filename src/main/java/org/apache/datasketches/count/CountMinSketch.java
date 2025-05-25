@@ -20,10 +20,12 @@
 package org.apache.datasketches.count;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.tuple.Util;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
@@ -63,17 +65,17 @@ public class CountMinSketch {
     totalWeight_ = 0;
 
     if (numBuckets < 3) {
-      throw new SketchesException("Using fewer than 3 buckets incurs relative error greater than 1.");
+      throw new SketchesArgumentException("Using fewer than 3 buckets incurs relative error greater than 1.");
     }
 
     // This check is to ensure later compatibility with a Java implementation whose maximum size can only
     // be 2^31-1.  We check only against 2^30 for simplicity.
     if (numBuckets * numHashes >= 1 << 30) {
-      throw new SketchesException("These parameters generate a sketch that exceeds 2^30 elements. \n" +
+      throw new SketchesArgumentException("These parameters generate a sketch that exceeds 2^30 elements. \n" +
           "Try reducing either the number of buckets or the number of hash functions.");
     }
 
-    Random rand = new Random();
+    Random rand = new Random(seed);
     for (int i = 0; i < numHashes; i++) {
       hashSeeds_[i] = rand.nextLong();
     }
@@ -84,7 +86,7 @@ public class CountMinSketch {
 
     for (int i = 0; i < numHashes_; i++) {
       long[] index = MurmurHash3.hash(item, hashSeeds_[i]);
-      updateLocations[i] = i * (long)numBuckets_ + index[0] % numBuckets_;
+      updateLocations[i] = i * (long)numBuckets_ + Math.floorMod(index[0], numBuckets_);
     }
 
     return updateLocations;
@@ -143,7 +145,7 @@ public class CountMinSketch {
    * @param confidence The desired confidence level between 0 and 1.
    * @return Suggested number of hash functions.
    */
-  public byte suggestNumHashes(double confidence) {
+  public static byte suggestNumHashes(double confidence) {
     if (confidence < 0 || confidence > 1) {
       throw new SketchesException("Confidence must be between 0 and 1.0 (inclusive).");
     }
@@ -156,7 +158,10 @@ public class CountMinSketch {
    * @param relativeError The desired relative error.
    * @return Suggested number of buckets.
    */
-  public int suggestNumBuckets(double relativeError) {
+  public static int suggestNumBuckets(double relativeError) {
+    if (relativeError < 0.) {
+      throw new SketchesException("Relative error must be at least 0.");
+    }
     return (int) Math.ceil(Math.exp(1.0) / relativeError);
   }
 
@@ -340,33 +345,35 @@ public class CountMinSketch {
    * Serializes the sketch into the provided ByteBuffer.
    * @param buf The ByteBuffer to write into.
    */
-  public void serialize(ByteBuffer buf) {
+  public void serialize(ByteArrayOutputStream buf) {
     // Long 0
     final int preambleLongs = Family.COUNTMIN.getMinPreLongs();
-    buf.put((byte) preambleLongs);
+    buf.write((byte) preambleLongs);
     final int serialVersion = 1;
-    buf.put((byte) serialVersion);
+    buf.write((byte) serialVersion);
     final int familyId = Family.COUNTMIN.getID();
-    buf.put((byte) familyId);
+    buf.write((byte) familyId);
     final int flagsByte = isEmpty() ? Flag.IS_EMPTY.mask() : 0;
-    buf.put((byte)flagsByte);
+    buf.write((byte)flagsByte);
     final int NULL_32 = 0;
-    buf.putInt(NULL_32);
+    buf.writeBytes(ByteBuffer.allocate(4).putInt(NULL_32).array());
 
     // Long 1
-    buf.putInt(numBuckets_);
-    buf.putShort(numHashes_);
-    buf.putShort(Util.computeSeedHash(seed_));
+    buf.writeBytes(ByteBuffer.allocate(4).putInt(numBuckets_).array());
+    buf.write(numHashes_);
+    short hashSeed = Util.computeSeedHash(seed_);
+    buf.writeBytes(ByteBuffer.allocate(2).putShort(hashSeed).array());
     final byte NULL_8 = 0;
-    buf.put(NULL_8);
+    buf.write(NULL_8);
     if (isEmpty()) {
       return;
     }
 
-    buf.putLong(totalWeight_);
+    final byte[] totWeightByte = ByteBuffer.allocate(8).putLong(totalWeight_).array();
+    buf.writeBytes(totWeightByte);
 
-    for (long estimate: sketchArray_) {
-      buf.putLong(estimate);
+    for (long w: sketchArray_) {
+      buf.writeBytes(ByteBuffer.allocate(8).putLong(w).array());
     }
   }
 
@@ -379,6 +386,7 @@ public class CountMinSketch {
   public static CountMinSketch deserialize(final byte[] b, final long seed) {
     ByteBuffer buf = ByteBuffer.allocate(b.length);
     buf.put(b);
+    buf.flip();
 
     final byte preambleLongs = buf.get();
     final byte serialVersion = buf.get();
@@ -392,7 +400,7 @@ public class CountMinSketch {
     final byte NULL_8 = buf.get();
 
     if (seedHash != Util.computeSeedHash(seed)) {
-      throw new SketchesException("Incompatible seed hashes: " + String.valueOf(seedHash) + ", "
+      throw new SketchesArgumentException("Incompatible seed hashes: " + String.valueOf(seedHash) + ", "
           + String.valueOf(Util.computeSeedHash(seed)));
     }
 
@@ -401,9 +409,10 @@ public class CountMinSketch {
     if (empty) {
       return cms;
     }
+    long w =  buf.getLong();
+    cms.totalWeight_ = w;
 
-    int i = 0;
-    while (buf.hasRemaining()) {
+    for (int i = 0; i < cms.sketchArray_.length; i++) {
       cms.sketchArray_[i] = buf.getLong();
     }
 
