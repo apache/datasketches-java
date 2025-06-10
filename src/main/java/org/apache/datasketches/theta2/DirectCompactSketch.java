@@ -33,6 +33,7 @@ import static org.apache.datasketches.theta2.SingleItemSketch.otherCheckForSingl
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -102,12 +103,12 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return seg_ != null;
+    return seg_ != null && seg_.scope().isAlive();
   }
 
   @Override
   public boolean isDirect() {
-    return hasMemorySegment() ? seg_.isNative() : false;
+    return hasMemorySegment() && seg_.isNative();
   }
 
   @Override
@@ -121,6 +122,12 @@ class DirectCompactSketch extends CompactSketch {
   @Override
   public boolean isOrdered() {
     return (extractFlags(seg_) & ORDERED_FLAG_MASK) > 0;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(seg_, that);
+
   }
 
   @Override

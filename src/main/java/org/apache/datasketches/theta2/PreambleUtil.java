@@ -20,10 +20,10 @@
 package org.apache.datasketches.theta2;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static java.lang.foreign.ValueLayout.JAVA_FLOAT;
-import static java.lang.foreign.ValueLayout.JAVA_INT;
-import static java.lang.foreign.ValueLayout.JAVA_LONG;
-import static java.lang.foreign.ValueLayout.JAVA_SHORT;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 
@@ -387,23 +387,23 @@ final class PreambleUtil {
   }
 
   static int extractSeedHash(final MemorySegment seg) {
-    return seg.get(JAVA_SHORT, SEED_HASH_SHORT) & 0XFFFF;
+    return seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT) & 0XFFFF;
   }
 
   static int extractCurCount(final MemorySegment seg) {
-    return seg.get(JAVA_INT, RETAINED_ENTRIES_INT);
+    return seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
   }
 
   static float extractP(final MemorySegment seg) {
-    return seg.get(JAVA_FLOAT, P_FLOAT);
+    return seg.get(JAVA_FLOAT_UNALIGNED, P_FLOAT);
   }
 
   static long extractThetaLong(final MemorySegment seg) {
-    return seg.get(JAVA_LONG, THETA_LONG);
+    return seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
   static long extractUnionThetaLong(final MemorySegment seg) {
-    return seg.get(JAVA_LONG, UNION_THETA_LONG);
+    return seg.get(JAVA_LONG_UNALIGNED, UNION_THETA_LONG);
   }
 
   static int extractEntryBitsV4(final MemorySegment seg) {
@@ -415,7 +415,7 @@ final class PreambleUtil {
   }
 
   static long extractThetaLongV4(final MemorySegment seg) {
-    return seg.get(JAVA_LONG, THETA_LONG_V4);
+    return seg.get(JAVA_LONG_UNALIGNED, THETA_LONG_V4);
   }
 
   /**
@@ -462,23 +462,23 @@ final class PreambleUtil {
   }
 
   static void insertSeedHash(final MemorySegment seg, final int seedHash) {
-    seg.set(JAVA_SHORT, SEED_HASH_SHORT, (short) seedHash);
+    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, (short) seedHash);
   }
 
   static void insertCurCount(final MemorySegment seg, final int curCount) {
-    seg.set(JAVA_INT, RETAINED_ENTRIES_INT, curCount);
+    seg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, curCount);
   }
 
   static void insertP(final MemorySegment seg, final float p) {
-    seg.set(JAVA_FLOAT, P_FLOAT, p);
+    seg.set(JAVA_FLOAT_UNALIGNED, P_FLOAT, p);
   }
 
   static void insertThetaLong(final MemorySegment seg, final long thetaLong) {
-    seg.set(JAVA_LONG, THETA_LONG, thetaLong);
+    seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong);
   }
 
   static void insertUnionThetaLong(final MemorySegment seg, final long unionThetaLong) {
-    seg.set(JAVA_LONG, UNION_THETA_LONG, unionThetaLong);
+    seg.set(JAVA_LONG_UNALIGNED, UNION_THETA_LONG, unionThetaLong);
   }
 
   static void setEmpty(final MemorySegment seg) {

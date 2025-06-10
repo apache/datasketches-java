@@ -129,11 +129,6 @@ class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  MemorySegment getMemorySegment() {
-    return null;
-  }
-
-  @Override
   short getSeedHash() {
     return seedHash_;
   }

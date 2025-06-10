@@ -294,11 +294,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  MemorySegment getMemorySegment() {
-    return null;
-  }
-
-  @Override
   long[] getCache() {
     return cache_;
   }

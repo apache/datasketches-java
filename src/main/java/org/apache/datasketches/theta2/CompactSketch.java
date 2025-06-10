@@ -344,8 +344,23 @@ public abstract class CompactSketch extends Sketch {
   }
 
   @Override
+  public boolean hasMemorySegment() {
+    return (this instanceof DirectCompactSketch &&  ((DirectCompactSketch)this).hasMemorySegment());
+  }
+
+  @Override
   public boolean isCompact() {
     return true;
+  }
+
+  @Override
+  public boolean isDirect() {
+    return (this instanceof DirectCompactSketch && ((DirectCompactSketch)this).isDirect());
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return (this instanceof DirectCompactSketch &&  ((DirectCompactSketch)this).isSameResource(that));
   }
 
   @Override

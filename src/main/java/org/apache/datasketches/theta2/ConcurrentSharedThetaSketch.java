@@ -22,8 +22,6 @@ package org.apache.datasketches.theta2;
 import java.lang.foreign.MemorySegment;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.datasketches.common.Util;
-
 /**
  * An internal interface to define the API of a concurrent shared theta sketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
@@ -139,34 +137,6 @@ interface ConcurrentSharedThetaSketch {
   double getLowerBound(int numStdDev);
 
   double getUpperBound(int numStdDev);
-
-  /**
-   * Returns true if this object's internal data is backed by a Memory object,
-   * which may be on-heap or off-heap.
-   * @return true if this object's internal data is backed by a Memory object.
-   */
-  boolean hasMemorySegment();
-
-  /**
-   * Returns true if this object's internal data is backed by direct (off-heap) Memory.
-   * @return true if this object's internal data is backed by direct (off-heap) Memory.
-   */
-  boolean isDirect();
-
-  /**
-   * Returns true if the two given MemorySegments refer to the same backing resource,
-   * which is either an off-heap memory location and size, or the same on-heap array object.
-   *
-   * <p>This is a convenient delegate of
-   * {@link org.apache.datasketches.common.Util#isSameResource(MemorySegment, MemorySegment) isSameResource()}</p>
-   *
-   * @param seg1 The first given MemorySegment
-   * @param seg2 The second given MemorySegment
-   * @return true if both MemorySegments are determined to be the same backing memory.
-   */
-  default boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
-    return Util.isSameResource(seg1, seg2);
-  }
 
   boolean isEmpty();
 

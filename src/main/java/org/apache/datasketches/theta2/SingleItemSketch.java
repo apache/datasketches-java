@@ -380,11 +380,6 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  MemorySegment getMemorySegment() {
-    return null;
-  }
-
-  @Override
   short getSeedHash() {
     return (short) (pre0_ >>> 48);
   }

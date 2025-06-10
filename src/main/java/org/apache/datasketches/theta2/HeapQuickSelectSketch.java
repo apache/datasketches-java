@@ -231,11 +231,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  MemorySegment getMemorySegment() {
-    return null;
-  }
-
-  @Override
   UpdateReturnState hashUpdate(final long hash) {
     HashOperations.checkHashCorruption(hash);
     empty_ = false;

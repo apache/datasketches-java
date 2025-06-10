@@ -234,6 +234,15 @@ final class AnotBimpl extends AnotB {
   }
 
   @Override
+  public boolean hasMemorySegment() { return false; }
+
+  @Override
+  public boolean isDirect() { return false; }
+
+  @Override
+  public boolean isSameResource( final MemorySegment that) { return false; }
+
+  @Override
   boolean isEmpty() {
     return empty_;
   }

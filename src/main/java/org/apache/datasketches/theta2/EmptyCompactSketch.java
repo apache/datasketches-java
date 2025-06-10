@@ -23,6 +23,7 @@ import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
@@ -132,11 +133,6 @@ final class EmptyCompactSketch extends CompactSketch {
   @Override
   int getCurrentPreambleLongs() {
     return 1;
-  }
-
-  @Override
-  MemorySegment getMemorySegment() {
-    return null;
   }
 
   @Override

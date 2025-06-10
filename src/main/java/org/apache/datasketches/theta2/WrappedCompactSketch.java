@@ -91,16 +91,6 @@ class WrappedCompactSketch extends CompactSketch {
   }
 
   @Override
-  public boolean hasMemorySegment() {
-    return false;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
   public boolean isEmpty() {
     return (bytes_[FLAGS_BYTE] & EMPTY_FLAG_MASK) > 0;
   }
@@ -145,11 +135,6 @@ class WrappedCompactSketch extends CompactSketch {
   @Override
   int getCurrentPreambleLongs() {
     return bytes_[PREAMBLE_LONGS_BYTE];
-  }
-
-  @Override
-  MemorySegment getMemorySegment() {
-    return null;
   }
 
   @Override

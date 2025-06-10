@@ -159,13 +159,28 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   @Override
+  public boolean hasMemorySegment() {
+    return (this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).hasMemorySegment());
+  }
+
+  @Override
   public boolean isCompact() {
     return false;
   }
 
   @Override
+  public boolean isDirect() {
+    return (this instanceof DirectQuickSelectSketchR && ((DirectQuickSelectSketchR)this).isDirect());
+  }
+
+  @Override
   public boolean isOrdered() {
     return false;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return (this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).isSameResource(that));
   }
 
   //UpdateSketch interface

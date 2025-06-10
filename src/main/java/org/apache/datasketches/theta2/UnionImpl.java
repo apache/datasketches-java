@@ -30,6 +30,7 @@ import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZer
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
@@ -87,7 +88,7 @@ final class UnionImpl extends Union {
   }
 
   /**
-   * Construct a new Direct Union in the off-heap destination MemorySegment.
+   * Construct a new Direct Union in the destination MemorySegment.
    * Called by SetOperationBuilder.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
@@ -121,11 +122,12 @@ final class UnionImpl extends Union {
    * @return this class
    */
   static UnionImpl heapifyInstance(final MemorySegment srcSeg, final long expectedSeed) {
-    Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
-    final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcSeg, expectedSeed);
+    final MemorySegment srcSegRO = srcSeg.asReadOnly();
+    Family.UNION.checkFamilyID(extractFamilyID(srcSegRO));
+    final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcSegRO, expectedSeed);
     final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
-    unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
+    unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSegRO);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSegRO);
     return unionImpl;
   }
 
@@ -139,7 +141,9 @@ final class UnionImpl extends Union {
    */
   static UnionImpl fastWrap(final MemorySegment srcSeg, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
-    final UpdateSketch gadget = DirectQuickSelectSketch.fastWritableWrap(srcSeg, expectedSeed);
+    final UpdateSketch gadget = srcSeg.isReadOnly()
+        ? DirectQuickSelectSketchR.fastReadOnlyWrap(srcSeg, expectedSeed)
+        : DirectQuickSelectSketch.fastWritableWrap(srcSeg, expectedSeed);
     final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
@@ -156,7 +160,9 @@ final class UnionImpl extends Union {
    */
   static UnionImpl wrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
-    final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed);
+    final UpdateSketch gadget = srcSeg.isReadOnly()
+        ? DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed)
+        : DirectQuickSelectSketch.writableWrap(srcSeg, expectedSeed);
     final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
@@ -172,6 +178,11 @@ final class UnionImpl extends Union {
   public int getMaxUnionBytes() {
     final int lgK = gadget_.getLgNomLongs();
     return (16 << lgK) + (Family.UNION.getMaxPreLongs() << 3);
+  }
+
+  @Override
+  MemorySegment getMemorySegment() {
+    return hasMemorySegment() ? gadget_.getMemorySegment() : null;
   }
 
   @Override
@@ -212,14 +223,17 @@ final class UnionImpl extends Union {
 
   @Override
   public boolean hasMemorySegment() {
-    return gadget_ instanceof DirectQuickSelectSketchR
-        ? gadget_.hasMemorySegment() : false;
+    return gadget_.hasMemorySegment();
   }
 
   @Override
   public boolean isDirect() {
-    return gadget_ instanceof DirectQuickSelectSketchR
-        ? gadget_.isDirect() : false;
+    return gadget_.isDirect();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return gadget_.isSameResource(that);
   }
 
   @Override
@@ -290,9 +304,8 @@ final class UnionImpl extends Union {
 
   @Override
   public void union(final MemorySegment seg) {
-    if (seg != null) {
-      union(Sketch.wrap(seg));
-    }
+    Objects.requireNonNull(seg, "MemorySegment must be non-null");
+    union(Sketch.wrap(seg.asReadOnly()));
   }
 
   @Override

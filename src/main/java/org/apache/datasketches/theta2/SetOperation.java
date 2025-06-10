@@ -28,8 +28,9 @@ import static org.apache.datasketches.theta2.PreambleUtil.SER_VER_BYTE;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
+//import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -37,7 +38,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public abstract class SetOperation {
+public abstract class SetOperation implements MemorySegmentStatus {
   static final int CONST_PREAMBLE_LONGS = 3;
 
   /**
@@ -140,7 +141,7 @@ public abstract class SetOperation {
         return UnionImpl.wrapInstance(srcSeg, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, true);
+        return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
@@ -199,6 +200,12 @@ public abstract class SetOperation {
   abstract long[] getCache();
 
   /**
+   * Returns the backing MemorySegment object if it exists, otherwise null.
+   * @return the backing MemorySegment object if it exists, otherwise null.
+   */
+  MemorySegment getMemorySegment() { return null; }
+
+  /**
    * Gets the current count of retained entries.
    * This is only useful during stateful operations.
    * Intentionally not made public because behavior will be confusing to end user.
@@ -221,18 +228,11 @@ public abstract class SetOperation {
    */
   abstract long getThetaLong();
 
-  /**
-   * Returns true if this object's internal data is backed by a Memory object,
-   * which may be on-heap or off-heap.
-   * @return true if this object's internal data is backed by a Memory object.
-   */
-  public boolean hasMemorySegment() { return false; }
+  @Override
+  public abstract boolean hasMemorySegment();
 
-  /**
-   * Returns true if this object's internal data is backed by an off-heap MemorySegment.
-   * @return true if this object's internal data is backed by an off-heap MemorySegment.
-   */
-  public boolean isDirect() { return false; }
+  @Override
+  public abstract boolean isDirect();
 
   /**
    * Returns true if this set operator is empty.
@@ -242,18 +242,7 @@ public abstract class SetOperation {
    */
   abstract boolean isEmpty();
 
-  /**
-   * Returns true if the two given MemorySegments refer to the same backing resource,
-   * which is either an off-heap memory location and size, or the same on-heap array object.
-   *
-   * <p>This is a convenient delegate of
-   * {@link org.apache.datasketches.common.Util#isSameResource(MemorySegment, MemorySegment) isSameResource()}</p>
-   *
-   * @param seg1 The first given MemorySegment
-   * @param seg2 The second given MemorySegment
-   * @return true if both MemorySegments are determined to be the same backing memory.
-   */
-  public boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
-    return Util.isSameResource(seg1, seg2);
-  }
+  @Override
+  public abstract boolean isSameResource(final MemorySegment seg);
+
 }

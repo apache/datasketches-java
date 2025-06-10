@@ -24,10 +24,13 @@ import static org.apache.datasketches.theta2.PreambleUtil.wholeBytesToHoldBits;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.MemorySegmentStatus;
+import org.apache.datasketches.common.Util;
+
 /*
  * This is to uncompress serial version 4 sketch incrementally
  */
-class MemoryCompactCompressedHashIterator implements HashIterator {
+class MemoryCompactCompressedHashIterator implements HashIterator, MemorySegmentStatus {
   private MemorySegment seg;
   private int offset;
   private int entryBits;
@@ -44,8 +47,7 @@ class MemoryCompactCompressedHashIterator implements HashIterator {
       final MemorySegment srcSeg,
       final int offset,
       final int entryBits,
-      final int numEntries
-  ) {
+      final int numEntries) {
     this.seg = srcSeg;
     this.offset = offset;
     this.entryBits = entryBits;
@@ -62,6 +64,21 @@ class MemoryCompactCompressedHashIterator implements HashIterator {
   @Override
   public long get() {
     return buffer[index & 7];
+  }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return seg != null && seg.scope().isAlive();
+  }
+
+  @Override
+  public boolean isDirect() {
+    return hasMemorySegment() && seg.isNative();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(seg, that);
   }
 
   @Override

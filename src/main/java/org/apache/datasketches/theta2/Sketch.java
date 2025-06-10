@@ -35,8 +35,8 @@ import static org.apache.datasketches.thetacommon.HashOperations.count;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.BinomialBoundsN;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
@@ -46,7 +46,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public abstract class Sketch {
+public abstract class Sketch implements MemorySegmentStatus {
 
   Sketch() {}
 
@@ -383,23 +383,10 @@ public abstract class Sketch {
   }
 
   /**
-   * Returns true if this object's internal data is backed by a MemorySegment object,
-   * which may be on-heap or off-heap.
-   * @return true if this object's internal data is backed by a MemorySegment object.
-   */
-  public boolean hasMemorySegment() { return false; }
-
-  /**
    * Returns true if this sketch is in compact form.
    * @return true if this sketch is in compact form.
    */
   public abstract boolean isCompact();
-
-  /**
-   * Returns true if this object's internal data is backed by an off-heap MemorySegment.
-   * @return true if this object's internal data is backed by an off-heap MemorySegment.
-   */
-  public boolean isDirect() { return false; }
 
   /**
    * <a href="{@docRoot}/resources/dictionary.html#empty">See Empty</a>
@@ -423,19 +410,21 @@ public abstract class Sketch {
   public abstract boolean isOrdered();
 
   /**
-   * Returns true if the two given MemorySegments refer to the same backing resource,
-   * which is either an off-heap memory location and size, or the same on-heap array object.
+   * Returns true if the backing MemorySegment of this object refers to the same MemorySegment of <i>that</i>.
+   * They can either have the same off-heap memory location and size, or refer to the same on-heap array object.
    *
-   * <p>This is a convenient delegate of
-   * {@link org.apache.datasketches.common.Util#isSameResource(MemorySegment, MemorySegment) isSameResource()}</p>
+   * <p>If both segment are off-heap, they both must have the same starting address and the same size.</p>
    *
-   * @param seg1 The first given MemorySegment
-   * @param seg2 The second given MemorySegment
-   * @return true if both MemorySegments are determined to be the same backing memory.
+   * <p>For on-heap segments, both segments must be based on or derived from the same array object and neither segment
+   * can be read-only.</p>
+   *
+   * <p>Returns false if either argument is null;</p>
+   *
+   * @param that The given MemorySegment.
+   * @return true if the backing MemorySegment of this object hierarchy refers to the same MemorySegment of <i>that</i>.
    */
-  public boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
-    return Util.isSameResource(seg1, seg2);
-  }
+  @Override
+  public abstract boolean isSameResource(final MemorySegment that);
 
   /**
    * Returns a HashIterator that can be used to iterate over the retained hash values of the
@@ -601,9 +590,10 @@ public abstract class Sketch {
 
   /**
    * Returns the backing MemorySegment object if it exists, otherwise null.
+   * This is overridden where relevant.
    * @return the backing MemorySegment object if it exists, otherwise null.
    */
-  abstract MemorySegment getMemorySegment();
+  MemorySegment getMemorySegment() { return null; }
 
   /**
    * Gets the 16-bit seed hash

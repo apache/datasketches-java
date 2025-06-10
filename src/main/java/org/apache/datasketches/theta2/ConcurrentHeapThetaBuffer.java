@@ -148,16 +148,6 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   }
 
   @Override
-  public boolean hasMemorySegment() {
-    return false;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
   public boolean isEmpty() {
     return shared.isEmpty();
   }

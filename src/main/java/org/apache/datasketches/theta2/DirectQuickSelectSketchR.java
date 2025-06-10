@@ -47,6 +47,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SuppressFBWarnings;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -147,17 +148,22 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return wseg_ != null;
+    return wseg_ != null && wseg_.scope().isAlive();
   }
 
   @Override
   public boolean isDirect() {
-    return hasMemorySegment() ? wseg_.isNative() : false;
+    return hasMemorySegment() && wseg_.isNative();
   }
 
   @Override
   public boolean isEmpty() {
     return PreambleUtil.isEmptyFlag(wseg_);
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(wseg_, that);
   }
 
   @Override

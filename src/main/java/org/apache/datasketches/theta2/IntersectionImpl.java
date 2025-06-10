@@ -65,6 +65,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -93,9 +94,9 @@ class IntersectionImpl extends Intersection {
 
   /**
    * Constructor: Sets the class finals and computes, sets and checks the seedHash.
-   * @param wseg Can be either a Source(e.g. wrap) or Destination (new Direct) MemorySegment.
+   * @param wseg Can be either a Source(e.g. wrap) or Destination (new offHeap) MemorySegment.
    * @param seed Used to validate incoming sketch arguments.
-   * @param dstMemFlag The given MemorySegment is a Destination (new Direct) MemorySegment.
+   * @param dstMemFlag The given MemorySegment is a Destination (new offHeap) MemorySegment.
    * @param readOnly True if MemorySegment is to be treated as read only.
    */
   protected IntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstMemFlag,
@@ -103,7 +104,7 @@ class IntersectionImpl extends Intersection {
     readOnly_ = readOnly;
     if (wseg != null) {
       wseg_ = wseg;
-      if (dstMemFlag) { //DstMem: compute & store seedHash, no seedhash checking
+      if (dstMemFlag) { //DstMem: compute & store seedHash, no seedHash checking
         checkMinSizeMemory(wseg);
         maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wseg) : 0; //Only Off Heap
         seedHash_ = ThetaUtil.computeSeedHash(seed);
@@ -275,17 +276,17 @@ class IntersectionImpl extends Intersection {
       final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
       lgArrLongs_ = requiredLgArrLongs;
 
-      if (wseg_ != null) { //Off heap, check if current dstMem is large enough
+      if (wseg_ != null) { //Off heap, check if current dstSeg is large enough
         insertCurCount(wseg_, curCount_);
         insertLgArrLongs(wseg_, lgArrLongs_);
         if (requiredLgArrLongs <= maxLgArrLongs_) {
           wseg_.asSlice(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_).fill((byte)0);
         }
-        else { //not enough space in dstMem
+        else { //not enough space in dstSeg
           final int requiredBytes = (8 << requiredLgArrLongs) + 24;
           final int givenBytes = (8 << priorLgArrLongs) + 24;
           throw new SketchesArgumentException(
-              "Insufficient internal Memory space: " + requiredBytes + " > " + givenBytes);
+              "Insufficient internal MemorySegment space: " + requiredBytes + " > " + givenBytes);
         }
       }
       else { //On the heap, allocate a HT
@@ -304,6 +305,9 @@ class IntersectionImpl extends Intersection {
       assert false : "Should not happen";
     }
   }
+
+  @Override
+  MemorySegment getMemorySegment() { return wseg_; }
 
   @Override
   public CompactSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg) {
@@ -327,7 +331,7 @@ class IntersectionImpl extends Intersection {
     if (wseg_ != null) {
       final int htLen = 1 << lgArrLongs_;
       hashTable = new long[htLen];
-      MemorySegment.copy(dstSeg, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+      MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     } else {
       hashTable = hashTable_;
     }
@@ -341,7 +345,7 @@ class IntersectionImpl extends Intersection {
 
   @Override
   public boolean hasMemorySegment() {
-    return wseg_ != null;
+    return wseg_ != null && wseg_.scope().isAlive();
   }
 
   @Override
@@ -351,7 +355,12 @@ class IntersectionImpl extends Intersection {
 
   @Override
   public boolean isDirect() {
-    return hasMemorySegment() ? wseg_.isNative() : false;
+    return hasMemorySegment() && wseg_.isNative();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(wseg_, that);
   }
 
   @Override
@@ -412,7 +421,7 @@ class IntersectionImpl extends Intersection {
     if (wseg_ == null) {
       return hashTable_ != null ? hashTable_ : new long[0];
     }
-    //Direct
+    //offHeap
     final int arrLongs = 1 << lgArrLongs_;
     final long[] outArr = new long[arrLongs];
     MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, outArr, 0, arrLongs);
