@@ -323,7 +323,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           //}
           //final MemorySegment newDstSeg = memReqSvr_.request(wseg_, reqBytes);
 
-          final MemorySegment newDstSeg = newHeapSegment(reqBytes);
+          final MemorySegment newDstSeg = newHeapSegment(reqBytes, false);
 
           moveAndResize(wseg_, preambleLongs, lgArrLongs, newDstSeg, tgtLgArrLongs, thetaLong);
           wseg_ = newDstSeg;

@@ -222,7 +222,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    *
    * <p>A new <i>CompactSketch</i> object is created:</p>
    * <ul><li>if <i>dstMem != null</i></li>
-   * <li>if <i>dstMem == null</i> and <i>this.hasMemory() == true</i></li>
+   * <li>if <i>dstMem == null</i> and <i>this.hasMemorySegment() == true</i></li>
    * <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
    * and <i>dstOrdered == true</i>.</li>
    *</ul>
@@ -564,7 +564,7 @@ public abstract class Sketch implements MemorySegmentStatus {
 
   /**
    * Gets the internal cache array. For on-heap sketches this will return a reference to the actual
-   * cache array. For Memory-based sketches this returns a copy.
+   * cache array. For MemorySegment-based sketches this returns a copy.
    * @return the internal cache array.
    */
   abstract long[] getCache();

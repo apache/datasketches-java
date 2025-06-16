@@ -909,21 +909,29 @@ public final class Util {
   }
 
   /**
-   * Request a new heap MemorySegment with the given capacityBytes.
+   * Request a new heap MemorySegment with the given capacityBytes and 8-byte aligned or one byte aligned.
    *
-   * <p>The returned MemorySegment will be constructed from a <i>long[]</i> array.
-   * As a result, it will be on-heap and have a memory alignment of 8.
-   * If the requested capacity is not divisible by eight, the returned size
-   * will be rolled up to the next multiple of eight.</p>
+   * <p>If <i>aligned</i> is true, the returned MemorySegment will be constructed from a <i>long[]</i> array,
+   * and, as a result, it will have a memory alignment of 8 bytes.
+   * If the requested capacity is not exactly divisible by eight, the returned size
+   * will be rolled up to the next multiple of eight bytes.</p>
    *
-   * @param capacityBytes The new capacity being requested. It must not be negative.
-   * @return a new MemorySegment with the requested capacity.
+   * <p>If <i>aligned</i> is false, the returned MemorySegment will be constructed from a <i>byte[]</i> array,
+   * and have a memory alignment of 1 byte.
+   *
+   * @param capacityBytes The new capacity being requested. It must not be negative and cannot exceed Integer.MAX_VALUE.
+   * @param aligned if true, the new heap segment will have an alignment of 8 bytes, otherwise the alignment will be 1 byte.
+   * @return a new MemorySegment with the requested capacity and alignment.
    */
-  public static MemorySegment newHeapSegment(final int capacityBytes) {
-    final long[] array = ((capacityBytes & 0x7) == 0)
-        ? new long[capacityBytes >>> 3]
-        : new long[(capacityBytes >>> 3) + 1];
-    return MemorySegment.ofArray(array);
+  public static MemorySegment newHeapSegment(final int capacityBytes, final boolean aligned) {
+    if (aligned) {
+      final int lenLongs = capacityBytes >>> 3;
+      final long[] array = ((capacityBytes & 0x7) == 0)
+          ? new long[lenLongs]
+          : new long[lenLongs + 1];
+      return MemorySegment.ofArray(array);
+    }
+    return MemorySegment.ofArray(new byte[capacityBytes]);
   }
 
   /**

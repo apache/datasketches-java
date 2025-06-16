@@ -223,8 +223,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final long lgArrLongs = wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
     final int preambleLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
     final long[] cacheArr = new long[1 << lgArrLongs];
-    final MemorySegment seg = MemorySegment.ofArray(cacheArr);
-    MemorySegment.copy(wseg_, preambleLongs << 3, seg, 0, 8 << lgArrLongs);
+    MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, preambleLongs << 3, cacheArr, 0, 1 << lgArrLongs);
     return cacheArr;
   }
 

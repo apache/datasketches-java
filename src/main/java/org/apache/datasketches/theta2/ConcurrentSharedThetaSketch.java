@@ -22,6 +22,8 @@ package org.apache.datasketches.theta2;
 import java.lang.foreign.MemorySegment;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.datasketches.common.MemorySegmentStatus;
+
 /**
  * An internal interface to define the API of a concurrent shared theta sketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author eshcar
  */
-interface ConcurrentSharedThetaSketch {
+interface ConcurrentSharedThetaSketch extends MemorySegmentStatus {
 
   long NOT_SINGLE_HASH = -1L;
   double MIN_ERROR = 0.0000001;
