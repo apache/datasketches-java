@@ -24,7 +24,6 @@ import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
-import static org.apache.datasketches.common.Util.newHeapSegment;
 import static org.apache.datasketches.theta2.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta2.PreambleUtil.PREAMBLE_LONGS_BYTE;
@@ -316,14 +315,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           tgtLgArrLongs = Math.min(lgArrLongs + lgRF, lgNomLongs + 1);
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
-
-          //memReqSvr_ = (memReqSvr_ == null) ? wseg_.getMemoryRequestServer() : memReqSvr_;
-          //if (memReqSvr_ == null) { //in case the MRS is not enabled or null.
-          //  throw new SketchesArgumentException("Out of Memory, MemoryRequestServer is null, cannot expand.");
-          //}
-          //final MemorySegment newDstSeg = memReqSvr_.request(wseg_, reqBytes);
-
-          final MemorySegment newDstSeg = newHeapSegment(reqBytes, false);
+          final MemorySegment newDstSeg = MemorySegment.ofArray(new byte[reqBytes]);
 
           moveAndResize(wseg_, preambleLongs, lgArrLongs, newDstSeg, tgtLgArrLongs, thetaLong);
           wseg_ = newDstSeg;

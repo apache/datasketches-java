@@ -220,7 +220,7 @@ public class BackwardConversions {
     final int entries = skV3.getRetainedEntries(true);
     final boolean unordered = !(skV3.isOrdered());
     final byte flags = (byte) (0xA | (unordered ? 16 : 0)); //Unordered, NoRebuild, notEmpty, ReadOnly, LE
-    wseg = Util.newHeapSegment((preLongs + entries) << 3, false);
+    wseg = MemorySegment.ofArray(new byte[(preLongs + entries) << 3]);
     wseg.set(JAVA_BYTE, 0, (byte) preLongs); //preLongs
     wseg.set(JAVA_BYTE, 1, (byte) 2); //SerVer
     wseg.set(JAVA_BYTE, 2, (byte) 3); //SetSketch

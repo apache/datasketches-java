@@ -909,7 +909,7 @@ public final class Util {
   }
 
   /**
-   * Request a new heap MemorySegment with the given capacityBytes and 8-byte aligned or one byte aligned.
+   * Request a new heap MemorySegment with the given capacityBytes and either 8-byte aligned or one byte aligned.
    *
    * <p>If <i>aligned</i> is true, the returned MemorySegment will be constructed from a <i>long[]</i> array,
    * and, as a result, it will have a memory alignment of 8 bytes.
@@ -923,7 +923,7 @@ public final class Util {
    * @param aligned if true, the new heap segment will have an alignment of 8 bytes, otherwise the alignment will be 1 byte.
    * @return a new MemorySegment with the requested capacity and alignment.
    */
-  public static MemorySegment newHeapSegment(final int capacityBytes, final boolean aligned) {
+  public static MemorySegment alignedHeapSegment(final int capacityBytes, final boolean aligned) {
     if (aligned) {
       final int lenLongs = capacityBytes >>> 3;
       final long[] array = ((capacityBytes & 0x7) == 0)
