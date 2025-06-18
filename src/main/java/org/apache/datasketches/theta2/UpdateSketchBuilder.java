@@ -37,7 +37,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public class UpdateSketchBuilder {
+public final class UpdateSketchBuilder {
   private int bLgNomLongs;
   private long bSeed;
   private ResizeFactor bRF;

@@ -38,7 +38,7 @@ import java.lang.foreign.MemorySegment;
  *
  * @author Lee Rhodes
  */
-class HeapCompactSketch extends CompactSketch {
+final class HeapCompactSketch extends CompactSketch {
   private final long thetaLong_; //computed
   private final int curCount_;
   private final int preLongs_; //computed

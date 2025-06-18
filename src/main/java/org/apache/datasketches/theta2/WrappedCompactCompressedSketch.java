@@ -32,8 +32,8 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * <p>This sketch can only be associated with a Serialization Version 4 format binary image.</p>
  */
-class WrappedCompactCompressedSketch extends WrappedCompactSketch {
-  
+final class WrappedCompactCompressedSketch extends WrappedCompactSketch {
+
   /**
    * Construct this sketch with the given bytes.
    * @param bytes containing serialized compact compressed sketch.
@@ -66,7 +66,7 @@ class WrappedCompactCompressedSketch extends WrappedCompactSketch {
 
   private static final int START_PACKED_DATA_EXACT_MODE = 8;
   private static final int START_PACKED_DATA_ESTIMATION_MODE = 16;
-  
+
   @Override
   public int getRetainedEntries(final boolean valid) { //compact is always valid
     // number of entries is stored using variable length encoding

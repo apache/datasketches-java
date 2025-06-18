@@ -40,7 +40,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
-class DirectCompactCompressedSketch extends DirectCompactSketch {
+final class DirectCompactCompressedSketch extends DirectCompactSketch {
   /**
    * Construct this sketch with the given MemorySegment.
    * @param seg Read-only MemorySegment object.

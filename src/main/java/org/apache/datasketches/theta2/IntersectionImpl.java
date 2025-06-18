@@ -79,7 +79,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class IntersectionImpl extends Intersection {
+final class IntersectionImpl extends Intersection {
   protected final short seedHash_;
   protected final boolean readOnly_; //True if this sketch is to be treated as read only
   protected final MemorySegment wseg_;

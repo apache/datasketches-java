@@ -24,7 +24,9 @@ import org.apache.datasketches.common.SketchesArgumentException;
 /**
  * Used as part of Theta compression.
  */
-public class BitPacking {
+public final class BitPacking {
+
+  private BitPacking() { }
 
   /**
    * The bit packing operation

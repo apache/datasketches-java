@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author eshcar
  */
-class ConcurrentBackgroundThetaPropagation implements Runnable {
+final class ConcurrentBackgroundThetaPropagation implements Runnable {
 
   // Shared sketch to absorb the data
   private final ConcurrentSharedThetaSketch sharedThetaSketch;

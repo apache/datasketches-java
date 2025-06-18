@@ -24,7 +24,7 @@ import org.apache.datasketches.common.ByteArrayUtil;
 /*
  * This is to iterate over serial version 3 sketch representation
  */
-class BytesCompactHashIterator implements HashIterator {
+final class BytesCompactHashIterator implements HashIterator {
   final private byte[] bytes;
   final private int offset;
   final private int numEntries;

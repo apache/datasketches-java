@@ -26,7 +26,7 @@ import java.lang.foreign.MemorySegment;
 /**
  * @author Lee Rhodes
  */
-class MemoryHashIterator implements HashIterator {
+final class MemoryHashIterator implements HashIterator {
   private MemorySegment seg;
   private int arrLongs;
   private long thetaLong;

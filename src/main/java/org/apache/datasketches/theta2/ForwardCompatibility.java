@@ -38,6 +38,8 @@ import org.apache.datasketches.common.SketchesArgumentException;
  */
 final class ForwardCompatibility {
 
+  private ForwardCompatibility() { }
+
   /**
    * Convert a serialization version (SerVer) 1 sketch (~Feb 2014) to a SerVer 3 sketch.
    * Note: SerVer 1 sketches always have (metadata) preamble-longs of 3 and are always stored

@@ -35,7 +35,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public class SetOperationBuilder {
+public final class SetOperationBuilder {
   private int bLgNomLongs;
   private long bSeed;
   private ResizeFactor bRF;

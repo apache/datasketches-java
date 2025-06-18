@@ -410,23 +410,6 @@ public abstract class Sketch implements MemorySegmentStatus {
   public abstract boolean isOrdered();
 
   /**
-   * Returns true if the backing MemorySegment of this object refers to the same MemorySegment of <i>that</i>.
-   * They can either have the same off-heap memory location and size, or refer to the same on-heap array object.
-   *
-   * <p>If both segment are off-heap, they both must have the same starting address and the same size.</p>
-   *
-   * <p>For on-heap segments, both segments must be based on or derived from the same array object and neither segment
-   * can be read-only.</p>
-   *
-   * <p>Returns false if either argument is null;</p>
-   *
-   * @param that The given MemorySegment.
-   * @return true if the backing MemorySegment of this object hierarchy refers to the same MemorySegment of <i>that</i>.
-   */
-  @Override
-  public abstract boolean isSameResource(final MemorySegment that);
-
-  /**
    * Returns a HashIterator that can be used to iterate over the retained hash values of the
    * Theta sketch.
    * @return a HashIterator that can be used to iterate over the retained hash values of the

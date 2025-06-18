@@ -37,6 +37,8 @@ public final class JaccardSimilarity {
   private static final double[] ZEROS = {0.0, 0.0, 0.0}; // LB, Estimate, UB
   private static final double[] ONES = {1.0, 1.0, 1.0};
 
+  private JaccardSimilarity() { }
+
   /**
    * Computes the Jaccard similarity index with upper and lower bounds. The Jaccard similarity index
    * <i>J(A,B) = (A ^ B)/(A U B)</i> is used to measure how similar the two sketches are to each
