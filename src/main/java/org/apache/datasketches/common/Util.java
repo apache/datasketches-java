@@ -937,7 +937,7 @@ public final class Util {
   /**
    * Sets the bits defined by the bitMask
    * @param seg the given MemorySegment
-   * @param offsetBytes offset bytes relative to this Memory start
+   * @param offsetBytes offset bytes relative to this MemorySegment start
    * @param bitMask the bits set to one will be set
    */
   public static void setBits(final MemorySegment seg, final long offsetBytes, final byte bitMask) {
