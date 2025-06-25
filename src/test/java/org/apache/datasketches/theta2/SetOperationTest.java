@@ -124,9 +124,9 @@ public class SetOperationTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBuilderAnotB_noMem() {
-    final MemorySegment mem = MemorySegment.ofArray(new byte[64]);
-    SetOperation.builder().build(Family.A_NOT_B, mem);
+  public void checkBuilderAnotB_noSeg() {
+    final MemorySegment seg = MemorySegment.ofArray(new byte[64]);
+    SetOperation.builder().build(Family.A_NOT_B, seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -167,8 +167,8 @@ public class SetOperationTest {
       usk1.update(i); //64
     }
     final byte[] byteArray = usk1.toByteArray();
-    final MemorySegment mem = MemorySegment.ofArray(byteArray).asReadOnly();
-    SetOperation.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
+    SetOperation.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -179,8 +179,8 @@ public class SetOperationTest {
       usk1.update(i); //64
     }
     final byte[] byteArray = usk1.toByteArray();
-    final MemorySegment mem = MemorySegment.ofArray(byteArray).asReadOnly();
-    Sketches.wrapIntersection(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
+    Sketches.wrapIntersection(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -190,10 +190,10 @@ public class SetOperationTest {
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
-    final MemorySegment wmem = MemorySegment.ofArray(usk1.toByteArray());
-    PreambleUtil.insertSerVer(wmem, 2); //corrupt
-    final MemorySegment mem = wmem.asReadOnly();
-    SetOperation.wrap(mem);
+    final MemorySegment wseg = MemorySegment.ofArray(usk1.toByteArray());
+    PreambleUtil.insertSerVer(wseg, 2); //corrupt
+    final MemorySegment seg = wseg.asReadOnly();
+    SetOperation.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -203,8 +203,8 @@ public class SetOperationTest {
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
-    final MemorySegment wmem = MemorySegment.ofArray(usk1.toByteArray());
-    SetOperation.wrap(wmem);
+    final MemorySegment wseg = MemorySegment.ofArray(usk1.toByteArray());
+    SetOperation.wrap(wseg);
   }
 
   @Test
@@ -246,22 +246,22 @@ public class SetOperationTest {
     final ByteBuffer heapBuf = ByteBuffer.wrap(backingArr).order(ByteOrder.nativeOrder());
 
     // Attaches a MemorySegment object to the underlying memory of heapBuf.
-    // heapMem will have a Read/Write view of the complete backing memory of heapBuf (direct or not).
-    // Any R/W action from heapMem will be visible via heapBuf and visa versa.
+    // heapSeg will have a Read/Write view of the complete backing segment of heapBuf (direct or not).
+    // Any R/W action from heapSeg will be visible via heapBuf and visa versa.
     //
     // However, if you had created this WM object directly in raw, off-heap "native" memory
     // you would have the responsibility to close it when you are done.
     // But, since it was allocated via BB, it closes it for you.
-    final MemorySegment heapMem = MemorySegment.ofBuffer(heapBuf);
+    final MemorySegment heapSeg = MemorySegment.ofBuffer(heapBuf);
 
-    double result = directUnionTrial1(heapMem, heapLayout, sketchNomEntries, unionNomEntries);
+    double result = directUnionTrial1(heapSeg, heapLayout, sketchNomEntries, unionNomEntries);
     println("1st est: "+result);
     final int expected = sketchNomEntries*2;
     assertEquals(result, expected, 0.0); //est must be exact.
 
     //For trial 2, we will use the same union space but use only part of it.
     unionNomEntries = 1 << 14; //16K
-    result = directUnionTrial2(heapMem, heapLayout, sketchNomEntries, unionNomEntries);
+    result = directUnionTrial2(heapSeg, heapLayout, sketchNomEntries, unionNomEntries);
 
     //intentionally loose bounds
     assertEquals(result, expected, expected*0.05);
@@ -310,19 +310,19 @@ public class SetOperationTest {
   @Test
   public void checkIsSameResource() {
     final int k = 16;
-    final MemorySegment wmem = MemorySegment.ofArray(new byte[k*16 + 32]);//288
-    final MemorySegment emptyMem = MemorySegment.ofArray(new byte[8]);
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(wmem);
-    assertTrue(union.isSameResource(wmem));
-    assertFalse(union.isSameResource(emptyMem));
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[k*16 + 32]);//288
+    final MemorySegment emptySeg = MemorySegment.ofArray(new byte[8]);
+    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(wseg);
+    assertTrue(union.isSameResource(wseg));
+    assertFalse(union.isSameResource(emptySeg));
 
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection(wmem);
-    assertTrue(inter.isSameResource(wmem));
-    assertFalse(inter.isSameResource(emptyMem));
+    final Intersection inter = Sketches.setOperationBuilder().buildIntersection(wseg);
+    assertTrue(inter.isSameResource(wseg));
+    assertFalse(inter.isSameResource(emptySeg));
 
     final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
 
-    assertFalse(aNotB.isSameResource(emptyMem));
+    assertFalse(aNotB.isSameResource(emptySeg));
   }
 
   @Test
@@ -358,23 +358,23 @@ public class SetOperationTest {
   }
 
   private static double directUnionTrial1(
-      final MemorySegment heapMem, final int[] heapLayout, final int sketchNomEntries, final int unionNomEntries) {
+      final MemorySegment heapSeg, final int[] heapLayout, final int sketchNomEntries, final int unionNomEntries) {
 
     final int offset = heapLayout[0];
     final int bytes = heapLayout[1] - offset;
-    final MemorySegment unionMem = heapMem.asSlice(offset, bytes);
+    final MemorySegment unionSeg = heapSeg.asSlice(offset, bytes);
 
-    Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionMem);
+    Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionSeg);
 
-    final MemorySegment sketch1mem = heapMem.asSlice(heapLayout[1], heapLayout[2]-heapLayout[1]);
-    final MemorySegment sketch2mem = heapMem.asSlice(heapLayout[2], heapLayout[3]-heapLayout[2]);
-    final MemorySegment sketch3mem = heapMem.asSlice(heapLayout[3], heapLayout[4]-heapLayout[3]);
-    final MemorySegment resultMem = heapMem.asSlice(heapLayout[4], heapLayout[5]-heapLayout[4]);
+    final MemorySegment sketch1seg = heapSeg.asSlice(heapLayout[1], heapLayout[2]-heapLayout[1]);
+    final MemorySegment sketch2seg = heapSeg.asSlice(heapLayout[2], heapLayout[3]-heapLayout[2]);
+    final MemorySegment sketch3seg = heapSeg.asSlice(heapLayout[3], heapLayout[4]-heapLayout[3]);
+    final MemorySegment resultSeg = heapSeg.asSlice(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Initialize the 3 sketches
-    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch1mem);
-    final UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch2mem);
-    final UpdateSketch sk3 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch3mem);
+    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch1seg);
+    final UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch2seg);
+    final UpdateSketch sk3 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch3seg);
 
     //This little trial has sk1 and sk2 distinct and sk2 overlap both.
     //Build the sketches.
@@ -394,28 +394,28 @@ public class SetOperationTest {
     union.union(sk2);
 
     //Let's recover the union and the 3rd sketch
-    union = Sketches.wrapUnion(unionMem);
-    union.union(Sketch.wrap(sketch3mem));
+    union = Sketches.wrapUnion(unionSeg);
+    union.union(Sketch.wrap(sketch3seg));
 
-    final Sketch resSk = union.getResult(true, resultMem);
+    final Sketch resSk = union.getResult(true, resultSeg);
     final double est = resSk.getEstimate();
 
     return est;
   }
 
   private static double directUnionTrial2(
-      final MemorySegment heapMem, final int[] heapLayout, final int sketchNomEntries, final int unionNomEntries) {
+      final MemorySegment heapSeg, final int[] heapLayout, final int sketchNomEntries, final int unionNomEntries) {
 
-    final MemorySegment unionMem = heapMem.asSlice(heapLayout[0], heapLayout[1]-heapLayout[0]);
-    final MemorySegment sketch1mem = heapMem.asSlice(heapLayout[1], heapLayout[2]-heapLayout[1]);
-    final MemorySegment sketch2mem = heapMem.asSlice(heapLayout[2], heapLayout[3]-heapLayout[2]);
-    final MemorySegment sketch3mem = heapMem.asSlice(heapLayout[3], heapLayout[4]-heapLayout[3]);
-    final MemorySegment resultMem = heapMem.asSlice(heapLayout[4], heapLayout[5]-heapLayout[4]);
+    final MemorySegment unionSeg = heapSeg.asSlice(heapLayout[0], heapLayout[1]-heapLayout[0]);
+    final MemorySegment sketch1seg = heapSeg.asSlice(heapLayout[1], heapLayout[2]-heapLayout[1]);
+    final MemorySegment sketch2seg = heapSeg.asSlice(heapLayout[2], heapLayout[3]-heapLayout[2]);
+    final MemorySegment sketch3seg = heapSeg.asSlice(heapLayout[3], heapLayout[4]-heapLayout[3]);
+    final MemorySegment resultSeg = heapSeg.asSlice(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Recover the 3 sketches
-    final UpdateSketch sk1 = (UpdateSketch) Sketch.wrap(sketch1mem);
-    final UpdateSketch sk2 = (UpdateSketch) Sketch.wrap(sketch2mem);
-    final UpdateSketch sk3 = (UpdateSketch) Sketch.wrap(sketch3mem);
+    final UpdateSketch sk1 = (UpdateSketch) Sketch.wrap(sketch1seg);
+    final UpdateSketch sk2 = (UpdateSketch) Sketch.wrap(sketch2seg);
+    final UpdateSketch sk3 = (UpdateSketch) Sketch.wrap(sketch3seg);
 
     //confirm that each of these 3 sketches is exact.
     assertEquals(sk1.getEstimate(), sketchNomEntries, 0.0);
@@ -423,13 +423,13 @@ public class SetOperationTest {
     assertEquals(sk3.getEstimate(), sketchNomEntries, 0.0);
 
     //Create a new union in the same space with a smaller size.
-    Util.clear(unionMem);
-    final Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionMem);
+    Util.clear(unionSeg);
+    final Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionSeg);
     union.union(sk1);
     union.union(sk2);
     union.union(sk3);
 
-    final Sketch resSk = union.getResult(true, resultMem);
+    final Sketch resSk = union.getResult(true, resultSeg);
     final double est = resSk.getEstimate();
 
     return est;

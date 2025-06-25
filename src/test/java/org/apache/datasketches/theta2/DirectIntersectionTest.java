@@ -63,9 +63,9 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
 
     inter.intersect(usk1);
     inter.intersect(usk2);
@@ -112,9 +112,9 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(usk1);
     inter.intersect(usk2);
 
@@ -156,13 +156,13 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     final CompactSketch csk1 = usk1.compact(true, null);
     final CompactSketch csk2 = usk2.compact(true, null);
 
     final Intersection inter =
-        SetOperation.builder().buildIntersection(iMem);
+        SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(csk1);
     inter.intersect(csk2);
 
@@ -179,9 +179,9 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     assertFalse(inter.hasResult());
     inter.getResult(false, null);
   }
@@ -192,8 +192,8 @@ public class DirectIntersectionTest {
     final int k = 1<<lgK;
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
-    final Intersection inter = SetOperation.builder().buildIntersection(iMem);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
+    final Intersection inter = SetOperation.builder().buildIntersection(iSeg);
     final UpdateSketch sk = null;
     try { inter.intersect(sk); fail(); }
     catch (final SketchesArgumentException e) { }
@@ -214,11 +214,11 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = empty
     sk = UpdateSketch.builder().setNominalEntries(k).build(); //empty
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -228,7 +228,7 @@ public class DirectIntersectionTest {
     //1st call = valid and not empty
     sk = UpdateSketch.builder().setNominalEntries(k).build();
     sk.update(1);
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -247,11 +247,11 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
@@ -263,7 +263,7 @@ public class DirectIntersectionTest {
 
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = valid and not empty
     sk2 = UpdateSketch.builder().build();
@@ -286,12 +286,12 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
@@ -304,7 +304,7 @@ public class DirectIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().build(); //empty
@@ -318,7 +318,7 @@ public class DirectIntersectionTest {
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = valid not intersecting
     sk2 = UpdateSketch.builder().build(); //empty
@@ -341,7 +341,7 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().setNominalEntries(k).build();
@@ -351,7 +351,7 @@ public class DirectIntersectionTest {
     }
     println("sk1: "+sk1.getEstimate());
 
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
 
     //2nd call = valid intersecting
@@ -382,7 +382,7 @@ public class DirectIntersectionTest {
 
     final int reqBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[reqBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().setNominalEntries(2 * k).build(); // bigger sketch
@@ -393,7 +393,7 @@ public class DirectIntersectionTest {
     println("sk1est: "+sk1.getEstimate());
     println("sk1cnt: "+sk1.getRetainedEntries(true));
 
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
   }
 
@@ -408,7 +408,7 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().setNominalEntries(k).build();
@@ -418,7 +418,7 @@ public class DirectIntersectionTest {
     }
     println("sk1: "+sk1.getEstimate());
 
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
 
     //2nd call = valid intersecting
@@ -461,10 +461,10 @@ public class DirectIntersectionTest {
     UpdateSketch sk1;
 
     final int segBytes = getMaxIntersectionBytes(k);
-    MemorySegment iMem = MemorySegment.ofArray(new byte[segBytes]);
+    MemorySegment iSeg = MemorySegment.ofArray(new byte[segBytes]);
 
-    inter1 = SetOperation.builder().buildIntersection(iMem); //virgin off-heap
-    inter2 = Sketches.wrapIntersection(iMem); //virgin off-heap, identical to inter1
+    inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin off-heap
+    inter2 = Sketches.wrapIntersection(iSeg); //virgin off-heap, identical to inter1
     //both in virgin state, empty = false
     //note: both inter1 and inter2 are tied to the same MemorySegment,
     // so an intersect to one also affects the other.  Don't do what I do!
@@ -485,8 +485,8 @@ public class DirectIntersectionTest {
     assertTrue(inter2.hasResult());
 
     //test the path via toByteArray, now in a different state
-    iMem = MemorySegment.ofArray(inter1.toByteArray());
-    inter2 = Sketches.wrapIntersection(iMem);
+    iSeg = MemorySegment.ofArray(inter1.toByteArray());
+    inter2 = Sketches.wrapIntersection(iSeg);
     assertTrue(inter2.hasResult()); //still true
 
     //test the compaction path
@@ -504,10 +504,10 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter1 = SetOperation.builder().buildIntersection(iMem); //virgin
-    inter2 = Sketches.wrapIntersection(iMem);
+    inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin
+    inter2 = Sketches.wrapIntersection(iSeg);
     //both in virgin state, empty = false
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
@@ -518,7 +518,7 @@ public class DirectIntersectionTest {
     //remains empty = false.
 
     inter1.intersect(sk1);
-    inter2 = Sketches.wrapIntersection(iMem);
+    inter2 = Sketches.wrapIntersection(iSeg);
     assertTrue(inter1.hasResult());
     assertTrue(inter2.hasResult());
     final CompactSketch comp = inter2.getResult(true, null);
@@ -532,9 +532,9 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    SetOperation.builder().buildIntersection(iMem);
+    SetOperation.builder().buildIntersection(iSeg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -545,7 +545,7 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k/2);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
 
@@ -555,7 +555,7 @@ public class DirectIntersectionTest {
 
     final CompactSketch csk1 = usk1.compact(true, null);
 
-    final Intersection inter = SetOperation.builder().buildIntersection(iMem);
+    final Intersection inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(csk1);
   }
 
@@ -565,9 +565,9 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Intersection inter1 = SetOperation.builder().buildIntersection(iMem); //virgin
+    final Intersection inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin
     final byte[] byteArray = inter1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
@@ -582,9 +582,9 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter1 = SetOperation.builder().buildIntersection(iMem); //virgin
+    inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin
     final byte[] byteArray = inter1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
@@ -614,7 +614,7 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr1 = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr1);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr1);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().setNominalEntries(k).build();
@@ -625,12 +625,12 @@ public class DirectIntersectionTest {
     final CompactSketch compSkIn1 = sk1.compact(true, null);
     println("compSkIn1: "+compSkIn1.getEstimate());
 
-    inter = SetOperation.builder().buildIntersection(iMem);
+    inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(compSkIn1);
 
     final byte[] segArr2 = inter.toByteArray();
-    final MemorySegment srcMem = MemorySegment.ofArray(segArr2);
-    inter2 = Sketches.wrapIntersection(srcMem);
+    final MemorySegment srcSeg = MemorySegment.ofArray(segArr2);
+    inter2 = Sketches.wrapIntersection(srcSeg);
 
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().setNominalEntries(k).build();
@@ -648,8 +648,8 @@ public class DirectIntersectionTest {
     println("Est: "+est);
 
     final byte[] segArr3 = inter2.toByteArray();
-    final MemorySegment srcMem2 = MemorySegment.ofArray(segArr3);
-    inter3 = Sketches.wrapIntersection(srcMem2);
+    final MemorySegment srcSeg2 = MemorySegment.ofArray(segArr3);
+    inter3 = Sketches.wrapIntersection(srcSeg2);
     resultComp2 = inter3.getResult(false, null);
     est2 = resultComp2.getEstimate();
     println("Est2: "+est2);
@@ -680,9 +680,9 @@ public class DirectIntersectionTest {
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
-    final MemorySegment iMem = MemorySegment.ofArray(segArr);
+    final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection(iMem);
+    final Intersection inter = Sketches.setOperationBuilder().buildIntersection(iSeg);
     inter.intersect(sk);
     final CompactSketch csk = inter.getResult();
     assertEquals(csk.getCompactBytes(), 8);

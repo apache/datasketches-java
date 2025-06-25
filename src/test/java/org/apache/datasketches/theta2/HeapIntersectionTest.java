@@ -115,12 +115,12 @@ public class HeapIntersectionTest {
 
     final int bytes = rsk1.getCompactBytes();
     final byte[] byteArray = new byte[bytes];
-    final MemorySegment mem = MemorySegment.ofArray(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
 
-    rsk1 = inter.getResult(!ordered, mem); //executed twice to fully exercise the internal state machine
+    rsk1 = inter.getResult(!ordered, seg); //executed twice to fully exercise the internal state machine
     assertEquals(rsk1.getEstimate(), k);
 
-    rsk1 = inter.getResult(ordered, mem);
+    rsk1 = inter.getResult(ordered, seg);
     assertEquals(rsk1.getEstimate(), k);
   }
 
@@ -353,7 +353,7 @@ public class HeapIntersectionTest {
     assertEquals(inter1est, cSk1Est, 0.0);
     println("Inter1Est: " + inter1est);
 
-    //Put the intersection into memory
+    //Put the intersection into segment
     final byte[] byteArray = inter.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //Heapify

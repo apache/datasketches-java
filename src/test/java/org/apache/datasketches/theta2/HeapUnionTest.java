@@ -27,10 +27,10 @@ import static org.apache.datasketches.theta2.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -229,8 +229,8 @@ public class HeapUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    final MemorySegment cskMem2 = MemorySegment.ofArray(new byte[usk2.getCompactBytes()]);
-    final CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
+    final MemorySegment cskSeg2 = MemorySegment.ofArray(new byte[usk2.getCompactBytes()]);
+    final CompactSketch cosk2 = usk2.compact(true, cskSeg2); //ordered, loads the cskSeg2 as ordered
 
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
@@ -253,7 +253,7 @@ public class HeapUnionTest {
   }
 
   @Test
-  public void checkHeapifyEstNoOverlapOrderedMemIn() {
+  public void checkHeapifyEstNoOverlapOrderedSegIn() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
     final int u = 4*k;
@@ -268,13 +268,13 @@ public class HeapUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    final MemorySegment cskMem2 = MemorySegment.ofArray(new byte[usk2.getCompactBytes()]);
-    usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
+    final MemorySegment cskSeg2 = MemorySegment.ofArray(new byte[usk2.getCompactBytes()]);
+    usk2.compact(true, cskSeg2); //ordered, loads the cskSeg2 as ordered
 
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.union(usk1);        //updates with heap UpdateSketch
-    union.union(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
+    union.union(cskSeg2);     //updates with direct CompactSketch, ordered, use early stop
 
     UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
     union.union(emptySketch); //updates with empty sketch
@@ -292,7 +292,7 @@ public class HeapUnionTest {
   }
 
   @Test
-  public void checkHeapifyEstNoOverlapUnorderedMemIn() {
+  public void checkHeapifyEstNoOverlapUnorderedSegIn() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
     final int u = 4*k;
@@ -307,13 +307,13 @@ public class HeapUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    final MemorySegment cskMem2 = MemorySegment.ofArray(new byte[usk2.getCompactBytes()]);
-    usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
+    final MemorySegment cskSeg2 = MemorySegment.ofArray(new byte[usk2.getCompactBytes()]);
+    usk2.compact(false, cskSeg2); //unordered, loads the cskSeg2 as unordered
 
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.union(usk1);        //updates with heap UpdateSketch
-    union.union(cskMem2);     //updates with direct CompactSketch, ordered, use early stop
+    union.union(cskSeg2);     //updates with direct CompactSketch, ordered, use early stop
 
     UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
     union.union(emptySketch); //updates with empty sketch
@@ -373,7 +373,7 @@ public class HeapUnionTest {
   }
 
   @Test
-  public void checkDirectMemoryIn() {
+  public void checkDirectSegmentIn() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
     final int u1 = 2*k;
@@ -390,11 +390,11 @@ public class HeapUnionTest {
       usk2.update(i); //2*k + 1024 no overlap
     }
 
-    final MemorySegment skMem1 = MemorySegment.ofArray(usk1.compact(false, null).toByteArray());
-    final MemorySegment skMem2 = MemorySegment.ofArray(usk2.compact(true, null).toByteArray());
+    final MemorySegment skSeg1 = MemorySegment.ofArray(usk1.compact(false, null).toByteArray());
+    final MemorySegment skSeg2 = MemorySegment.ofArray(usk2.compact(true, null).toByteArray());
 
-    final CompactSketch csk1 = (CompactSketch)Sketch.wrap(skMem1);
-    final CompactSketch csk2 = (CompactSketch)Sketch.wrap(skMem2);
+    final CompactSketch csk1 = (CompactSketch)Sketch.wrap(skSeg1);
+    final CompactSketch csk2 = (CompactSketch)Sketch.wrap(skSeg2);
 
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
@@ -466,7 +466,7 @@ public class HeapUnionTest {
   }
 
   @Test
-  public void checkUpdateMemorySpecialCases() {
+  public void checkUpdateSegmentSpecialCases() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
 
@@ -499,7 +499,7 @@ public class HeapUnionTest {
   }
 
   @Test
-  public void checkUpdateMemorySpecialCases2() {
+  public void checkUpdateSegmentSpecialCases2() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
     final int u = 2*k;
@@ -517,7 +517,7 @@ public class HeapUnionTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkMemBadSerVer() {
+  public void checkSegBadSerVer() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
     final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();

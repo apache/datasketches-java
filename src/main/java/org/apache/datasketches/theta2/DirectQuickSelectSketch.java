@@ -34,7 +34,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.THETA_LONG;
 import static org.apache.datasketches.theta2.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta2.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta2.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.theta2.PreambleUtil.getMemBytes;
+import static org.apache.datasketches.theta2.PreambleUtil.getSegBytes;
 import static org.apache.datasketches.theta2.PreambleUtil.insertCurCount;
 import static org.apache.datasketches.theta2.PreambleUtil.insertFamilyID;
 import static org.apache.datasketches.theta2.PreambleUtil.insertFlags;
@@ -91,12 +91,12 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @param p
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param rf Currently internally fixed at 2. Unless dstMem is not configured with a valid
+   * @param rf Currently internally fixed at 2. Unless dstSeg is not configured with a valid
    * MemoryRequest, in which case the rf is effectively 1, which is no resizing at all and the
-   * dstMem must be large enough for a full sketch.
+   * dstSeg must be large enough for a full sketch.
    * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param memReqSvr the given MemoryRequestServer
-   * @param dstSeg the given Memory object destination. It cannot be null.
+   * @param dstSeg the given MemorySegment object destination. It cannot be null.
    * It will be cleared prior to use.
    * @param unionGadget true if this sketch is implementing the Union gadget function.
    * Otherwise, it is behaving as a normal QuickSelectSketch.
@@ -109,7 +109,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       final MemorySegment dstSeg,
       final boolean unionGadget) {
     this(
-        checkMemSize(lgNomLongs, rf, dstSeg, unionGadget),
+        checkSegSize(lgNomLongs, rf, dstSeg, unionGadget),
         //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
         //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
         lgNomLongs,
@@ -171,16 +171,16 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
   }
 
-  private static final boolean checkMemSize(
+  private static final boolean checkSegSize(
       final int lgNomLongs, final ResizeFactor rf, final MemorySegment dstSeg, final boolean unionGadget) {
     final int preambleLongs = (unionGadget) ? Family.UNION.getMinPreLongs() : Family.QUICKSELECT.getMinPreLongs();
     final int lgRF = rf.lg();
     final int lgArrLongs = (lgRF == 0) ? lgNomLongs + 1 : ThetaUtil.MIN_LG_ARR_LONGS;
-    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
-    final long curMemCapBytes = dstSeg.byteSize();
-    if (curMemCapBytes < minReqBytes) {
+    final int minReqBytes = getSegBytes(lgArrLongs, preambleLongs);
+    final long curSegCapBytes = dstSeg.byteSize();
+    if (curSegCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-        "Memory capacity is too small: " + curMemCapBytes + " < " + minReqBytes);
+        "MemorySegment capacity is too small: " + curSegCapBytes + " < " + minReqBytes);
     }
     return true;
   }
@@ -198,7 +198,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 
     UpdateSketch.checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     if (isResizeFactorIncorrect(srcSeg, lgNomLongs, lgArrLongs)) {
       //If incorrect it sets it to X2 which always works.
@@ -297,7 +297,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
         return InsertedCountIncrementedRebuilt;
       } //end of rebuild, exit
 
-      else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
+      else { //Not at full size, resize. Should not get here if lgRF = 0 and segCap is too small.
         final int lgRF = getLgRF();
         final int actLgRF = actLgResizeFactor(wseg_.byteSize(), lgArrLongs, preambleLongs, lgRF);
         int tgtLgArrLongs = Math.min(lgArrLongs + actLgRF, lgNomLongs + 1);

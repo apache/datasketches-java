@@ -79,7 +79,7 @@ final class SingleItemSketch extends CompactSketch {
    * Creates a SingleItemSketch on the heap given a SingleItemSketch MemorySegment image and a seedHash.
    * Checks the seed hash of the given MemorySegment against the given seedHash.
    * @param srcSeg the MemorySegment to be heapified.
-   * @param expectedSeedHash the given seedHash to be checked against the srcMem seedHash
+   * @param expectedSeedHash the given seedHash to be checked against the srcSeg seedHash
    * @return a SingleItemSketch
    */ //does not override Sketch
   static SingleItemSketch heapify(final MemorySegment srcSeg, final short expectedSeedHash) {

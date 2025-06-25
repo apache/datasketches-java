@@ -525,7 +525,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
   //checks Alex's bug where lgArrLongs > lgNomLongs +1.
   @Test
-  public void checkResizeInBigMem() {
+  public void checkResizeInBigSeg() {
     int lgK = 14;
     int u = 1 << 20;
     boolean useSeg = true;
@@ -543,7 +543,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkConstructorMemTooSmall() {
+  public void checkConstructorSegTooSmall() {
     int lgK = 4;
     int k = 1 << lgK;
     MemorySegment wseg = MemorySegment.ofArray(new byte[k/2]);

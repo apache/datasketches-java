@@ -60,7 +60,7 @@ public abstract class Intersection extends SetOperation {
   }
 
   /**
-   * Gets the result of this operation as a CompactSketch in the given dstMem.
+   * Gets the result of this operation as a CompactSketch in the given dstSeg.
    * This does not disturb the underlying data structure of this intersection.
    * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
    * exception will be thrown. This is because a virgin Intersection object represents the
@@ -78,7 +78,7 @@ public abstract class Intersection extends SetOperation {
    *
    * @param dstSeg the destination MemorySegment.
    *
-   * @return the result of this operation as a CompactSketch stored in the given dstMem,
+   * @return the result of this operation as a CompactSketch stored in the given dstSeg,
    * which can be either on or off-heap..
    */
   public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg);
@@ -188,7 +188,7 @@ public abstract class Intersection extends SetOperation {
     return cacheOut;
   }
 
-  protected static void memChecks(final MemorySegment srcSeg) {
+  protected static void segChecks(final MemorySegment srcSeg) {
     //Get Preamble
     //Note: Intersection does not use lgNomLongs (or k), per se.
     //seedHash loaded and checked in private constructor
@@ -209,7 +209,7 @@ public abstract class Intersection extends SetOperation {
     if (empty) {
       if (curCount != 0) {
         throw new SketchesArgumentException(
-            "srcMem empty state inconsistent with curCount: " + empty + "," + curCount);
+            "srcSeg empty state inconsistent with curCount: " + empty + "," + curCount);
       }
       //empty = true AND curCount_ = 0: OK
     } //else empty = false, curCount could be anything

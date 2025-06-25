@@ -96,20 +96,20 @@ final class IntersectionImpl extends Intersection {
    * Constructor: Sets the class finals and computes, sets and checks the seedHash.
    * @param wseg Can be either a Source(e.g. wrap) or Destination (new offHeap) MemorySegment.
    * @param seed Used to validate incoming sketch arguments.
-   * @param dstMemFlag The given MemorySegment is a Destination (new offHeap) MemorySegment.
+   * @param dstSegFlag The given MemorySegment is a Destination (new offHeap) MemorySegment.
    * @param readOnly True if MemorySegment is to be treated as read only.
    */
-  protected IntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstMemFlag,
+  protected IntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstSegFlag,
       final boolean readOnly) {
     readOnly_ = readOnly;
     if (wseg != null) {
       wseg_ = wseg;
-      if (dstMemFlag) { //DstMem: compute & store seedHash, no seedHash checking
+      if (dstSegFlag) { //DstSeg: compute & store seedHash, no seedHash checking
         checkMinSizeMemory(wseg);
         maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wseg) : 0; //Only Off Heap
         seedHash_ = ThetaUtil.computeSeedHash(seed);
         wseg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
-      } else { //SrcMem:gets and stores the seedHash, checks mem_seedHash against the seed
+      } else { //SrcSeg:gets and stores the seedHash, checks seg_seedHash against the seed
         seedHash_ = wseg_.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
         ThetaUtil.checkSeedHashes(seedHash_, ThetaUtil.computeSeedHash(seed)); //check for seed hash conflict
         maxLgArrLongs_ = 0;
@@ -129,9 +129,9 @@ final class IntersectionImpl extends Intersection {
    * @return a new IntersectionImpl on the Java heap
    */
   static IntersectionImpl initNewHeapInstance(final long seed) {
-    final boolean dstMemFlag = false;
+    final boolean dstSegFlag = false;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstMemFlag, readOnly);
+    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstSegFlag, readOnly);
     impl.hardReset();
     return impl;
   }
@@ -162,9 +162,9 @@ final class IntersectionImpl extends Intersection {
     //thetaLong set by hardReset
 
     //Initialize
-    final boolean dstMemFlag = true;
+    final boolean dstSegFlag = true;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(dstSeg, seed, dstMemFlag, readOnly);
+    final IntersectionImpl impl = new IntersectionImpl(dstSeg, seed, dstSegFlag, readOnly);
     impl.hardReset();
     return impl;
   }
@@ -176,10 +176,10 @@ final class IntersectionImpl extends Intersection {
    * @return a IntersectionImpl instance on the Java heap
    */
   static IntersectionImpl heapifyInstance(final MemorySegment srcSeg, final long seed) {
-    final boolean dstMemFlag = false;
+    final boolean dstSegFlag = false;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstMemFlag, readOnly);
-    memChecks(srcSeg);
+    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstSegFlag, readOnly);
+    segChecks(srcSeg);
 
     //Initialize
     impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
@@ -207,9 +207,9 @@ final class IntersectionImpl extends Intersection {
       final MemorySegment srcSeg,
       final long seed,
       final boolean readOnly) {
-    final boolean dstMemFlag = false;
-    final IntersectionImpl impl = new IntersectionImpl(srcSeg, seed, dstMemFlag, readOnly);
-    memChecks(srcSeg);
+    final boolean dstSegFlag = false;
+    final IntersectionImpl impl = new IntersectionImpl(srcSeg, seed, dstSegFlag, readOnly);
+    segChecks(srcSeg);
     impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
     impl.curCount_ = extractCurCount(srcSeg);
     impl.thetaLong_ = extractThetaLong(srcSeg);
@@ -266,7 +266,7 @@ final class IntersectionImpl extends Intersection {
     if (curCount_ == 0 || sketchInEntries == 0) {
       curCount_ = 0;
       if (wseg_ != null) { insertCurCount(wseg_, 0); }
-      hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
+      hashTable_ = null; //No need for a HT. Don't bother clearing seg if valid
     } //end of states 1,2,3,6
 
     // state 5

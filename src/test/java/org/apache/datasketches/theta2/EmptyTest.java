@@ -113,23 +113,23 @@ public class EmptyTest {
     final int k = 16;
     final int bytes = Sketches.getMaxUnionBytes(k); //288
     final Union union = SetOperation.builder().buildUnion(MemorySegment.ofArray(new byte[bytes]));
-    final MemorySegment mem = badEmptySk();
-    final Sketch wsk = Sketches.wrapSketch(mem);
-    union.union(wsk); //union has memory
+    final MemorySegment seg = badEmptySk();
+    final Sketch wsk = Sketches.wrapSketch(seg);
+    union.union(wsk); //union has segment
   }
 
   @Test
   public void checkBackwardCompatibility2() {
     final Union union = SetOperation.builder().setNominalEntries(16).buildUnion();
-    final MemorySegment mem = badEmptySk();
-    final Sketch wsk = Sketches.wrapSketch(mem);
+    final MemorySegment seg = badEmptySk();
+    final Sketch wsk = Sketches.wrapSketch(seg);
     union.union(wsk); //heap union
   }
 
   @Test
   public void checkBackwardCompatibility3() {
-    final MemorySegment mem = badEmptySk();
-    Sketches.heapifySketch(mem);
+    final MemorySegment seg = badEmptySk();
+    Sketches.heapifySketch(seg);
   }
 
   @Test
@@ -154,9 +154,9 @@ public class EmptyTest {
     final long seedHash = 0x93CC;
     final long badEmptySk = seedHash << 48 | flags << 40
         | family << 16 | serVer << 8 | preLongs;
-    final MemorySegment wmem =  MemorySegment.ofArray(new byte[8]);
-    wmem.set(JAVA_LONG_UNALIGNED, 0, badEmptySk);
-    return wmem;
+    final MemorySegment wseg =  MemorySegment.ofArray(new byte[8]);
+    wseg.set(JAVA_LONG_UNALIGNED, 0, badEmptySk);
+    return wseg;
   }
 
   /**

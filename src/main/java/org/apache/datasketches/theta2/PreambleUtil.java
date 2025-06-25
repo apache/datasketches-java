@@ -208,7 +208,7 @@ final class PreambleUtil {
    * @param preambleLongs current preamble size
    * @return the size in bytes
    */
-  static final int getMemBytes(final int lgArrLongs, final int preambleLongs) {
+  static final int getSegBytes(final int lgArrLongs, final int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }
 
@@ -515,10 +515,10 @@ final class PreambleUtil {
     return preLongs;
   }
 
-  static final short checkMemorySeedHash(final MemorySegment seg, final long seed) {
-    final short seedHashMem = (short) extractSeedHash(seg);
-    ThetaUtil.checkSeedHashes(seedHashMem, ThetaUtil.computeSeedHash(seed)); //throws if bad seedHash
-    return seedHashMem;
+  static final short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
+    final short seedHashSeg = (short) extractSeedHash(seg);
+    ThetaUtil.checkSeedHashes(seedHashSeg, ThetaUtil.computeSeedHash(seed)); //throws if bad seedHash
+    return seedHashSeg;
   }
 
   private static void throwNotBigEnough(final long cap, final int required) {

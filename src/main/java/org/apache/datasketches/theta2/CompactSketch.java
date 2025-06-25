@@ -92,7 +92,6 @@ public abstract class CompactSketch extends Sketch {
    * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
    * @param srcSeg an image of a CompactSketch that was created using the given expectedSeed.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
    * @param expectedSeed the seed used to validate the given Memory image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a CompactSketch on the heap.
@@ -115,7 +114,7 @@ public abstract class CompactSketch extends Sketch {
       final int flags = extractFlags(srcSeg);
       final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
       final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
-      if (enforceSeed && !empty) { PreambleUtil.checkMemorySeedHash(srcSeg, seed); }
+      if (enforceSeed && !empty) { PreambleUtil.checkSegmentSeedHash(srcSeg, seed); }
       return CompactOperations.memoryToCompact(srcSeg, srcOrdered, null);
     }
     //not SerVer 3, assume compact stored form
@@ -326,7 +325,7 @@ public abstract class CompactSketch extends Sketch {
   //Sketch Overrides
 
   @Override
-  public abstract CompactSketch compact(final boolean dstOrdered, final MemorySegment dstMem);
+  public abstract CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg);
 
   @Override
   public int getCompactBytes() {
@@ -452,7 +451,7 @@ public abstract class CompactSketch extends Sketch {
     final int entryBits = extractEntryBitsV4(srcSeg);
     final int numEntriesBytes = extractNumEntriesBytesV4(srcSeg);
     final short seedHash = (short) extractSeedHash(srcSeg);
-    if (enforceSeed) { PreambleUtil.checkMemorySeedHash(srcSeg, seed); }
+    if (enforceSeed) { PreambleUtil.checkSegmentSeedHash(srcSeg, seed); }
     int offsetBytes = 8;
     long theta = Long.MAX_VALUE;
     if (preLongs > 1) {

@@ -33,14 +33,14 @@ import static org.apache.datasketches.theta2.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta2.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta2.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta2.PreambleUtil.checkMemorySeedHash;
+import static org.apache.datasketches.theta2.PreambleUtil.checkSegmentSeedHash;
 import static org.apache.datasketches.theta2.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta2.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta2.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta2.PreambleUtil.extractP;
 import static org.apache.datasketches.theta2.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta2.PreambleUtil.extractThetaLong;
-import static org.apache.datasketches.theta2.PreambleUtil.getMemBytes;
+import static org.apache.datasketches.theta2.PreambleUtil.getSegBytes;
 import static org.apache.datasketches.theta2.UpdateReturnState.RejectedNullOrEmpty;
 
 import java.lang.foreign.MemorySegment;
@@ -420,7 +420,7 @@ public abstract class UpdateSketch extends Sketch {
     }
   }
 
-  static void checkMemIntegrity(final MemorySegment srcSeg, final long expectedSeed, final int preambleLongs,
+  static void checkSegIntegrity(final MemorySegment srcSeg, final long expectedSeed, final int preambleLongs,
       final int lgNomLongs, final int lgArrLongs) {
 
     //Check SerVer
@@ -436,16 +436,16 @@ public abstract class UpdateSketch extends Sketch {
         ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
-        "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+        "Possible corruption: Input srcSeg cannot be: big-endian, compact, ordered, nor read-only");
     }
 
     //Check seed hashes
-    final short seedHash = checkMemorySeedHash(srcSeg, expectedSeed);              //byte 6,7
+    final short seedHash = checkSegmentSeedHash(srcSeg, expectedSeed);              //byte 6,7
     ThetaUtil.checkSeedHashes(seedHash, ThetaUtil.computeSeedHash(expectedSeed));
 
-    //Check mem capacity, lgArrLongs
+    //Check seg capacity, lgArrLongs
     final long curCapBytes = srcSeg.byteSize();
-    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    final int minReqBytes = getSegBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
           "Possible corruption: Current Memory size < min required size: "

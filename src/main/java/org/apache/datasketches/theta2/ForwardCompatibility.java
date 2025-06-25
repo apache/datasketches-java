@@ -155,11 +155,11 @@ final class ForwardCompatibility {
     throw new SketchesArgumentException("PreLongs must be 1,2, or 3: " + preLongs);
   }
 
-  private static final void validateInputSize(final int reqBytesIn, final int memCap) {
-    if (reqBytesIn > memCap) {
+  private static final void validateInputSize(final int reqBytesIn, final int segCap) {
+    if (reqBytesIn > segCap) {
       throw new SketchesArgumentException(
         "Input Memory or byte[] size is too small: Required Bytes: " + reqBytesIn
-          + ", bytesIn: " + memCap);
+          + ", bytesIn: " + segCap);
     }
   }
 

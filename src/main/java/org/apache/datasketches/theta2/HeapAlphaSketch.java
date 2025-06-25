@@ -128,21 +128,21 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
     checkAlphaFamily(srcSeg, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcSeg, expectedSeed, preambleLongs, lgNomLongs, lgArrLongs);
+    checkSegIntegrity(srcSeg, expectedSeed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final float p = extractP(srcSeg);                             //bytes 12-15
-    final int memlgRF = extractLgResizeFactor(srcSeg);            //byte 0
-    ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
+    final int seglgRF = extractLgResizeFactor(srcSeg);            //byte 0
+    ResizeFactor segRF = ResizeFactor.getRF(seglgRF);
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
     final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * LONG_MAX_VALUE_AS_DOUBLE);
 
     if (isResizeFactorIncorrect(srcSeg, lgNomLongs, lgArrLongs)) {
-      memRF = ResizeFactor.X2; //X2 always works.
+      segRF = ResizeFactor.X2; //X2 always works.
     }
 
-    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, expectedSeed, p, memRF, alpha, split1);
+    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, expectedSeed, p, segRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = extractCurCount(srcSeg);

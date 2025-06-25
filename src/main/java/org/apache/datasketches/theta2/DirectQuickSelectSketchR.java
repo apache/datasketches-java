@@ -87,7 +87,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 
     UpdateSketch.checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final DirectQuickSelectSketchR dqssr =
         new DirectQuickSelectSketchR(seed, srcSeg);
@@ -172,7 +172,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public byte[] toByteArray() { //MY_FAMILY is stored in wmem_
+  public byte[] toByteArray() { //MY_FAMILY is stored in wseg_
     checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wseg_));
     final int lengthBytes = getCurrentBytes();
     final byte[] byteArray = new byte[lengthBytes];

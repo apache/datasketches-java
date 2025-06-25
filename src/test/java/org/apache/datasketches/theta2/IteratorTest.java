@@ -35,8 +35,8 @@ public class IteratorTest {
   public void checkDirectCompactSketch() {
     int k = 16;
     int maxBytes = Sketch.getMaxUpdateSketchBytes(k);
-    MemorySegment wmem = MemorySegment.ofArray(new byte[maxBytes]);
-    UpdateSketch sk1 = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
+    MemorySegment wseg = MemorySegment.ofArray(new byte[maxBytes]);
+    UpdateSketch sk1 = Sketches.updateSketchBuilder().setNominalEntries(k).build(wseg);
     println(sk1.getClass().getSimpleName());
     for (int i = 0; i < (k/2); i++) { sk1.update(i); }
     HashIterator itr1 = sk1.iterator();

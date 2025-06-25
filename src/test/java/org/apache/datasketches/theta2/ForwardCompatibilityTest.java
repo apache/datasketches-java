@@ -190,7 +190,6 @@ public class ForwardCompatibilityTest {
     MemorySegment srcWseg = MemorySegment.ofArray(new byte[32]);
     MemorySegment.copy(srcSeg, 0, srcWseg, 0, 32);
     srcWseg.set(JAVA_INT_UNALIGNED, 8, 1); //corrupt curCount = 1
-    //srcMemW.putLong(16, Long.MAX_VALUE);
     long[] cache = csk.getCache();
     srcWseg.set(JAVA_LONG_UNALIGNED, 24, cache[0]); //corrupt cache with only one value
 

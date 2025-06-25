@@ -86,7 +86,7 @@ public class HeapAlphaSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkAlphaIncompatibleWithMem() {
+  public void checkAlphaIncompatibleWithSeg() {
     MemorySegment seg = MemorySegment.ofArray(new byte[(512*16)+24]);
     UpdateSketch.builder().setFamily(Family.ALPHA).setNominalEntries(512).build(seg);
   }
@@ -112,7 +112,7 @@ public class HeapAlphaSketchTest {
     MemorySegment seg = MemorySegment.ofArray(byteArray);
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
-    //try to heapify the corrupted mem
+    //try to heapify the corrupted seg
     Sketch.heapify(seg, seed);
   }
 
@@ -266,8 +266,8 @@ public class HeapAlphaSketchTest {
     int bytes = usk.getCompactBytes();
     int alphaBytes = sk1.getRetainedEntries(true) * 8;
     assertEquals(bytes, alphaBytes + (Family.COMPACT.getMaxPreLongs() << 3));
-    byte[] memArr2 = new byte[bytes];
-    MemorySegment seg2 = MemorySegment.ofArray(memArr2);
+    byte[] segArr2 = new byte[bytes];
+    MemorySegment seg2 = MemorySegment.ofArray(segArr2);
 
     comp3 = usk.compact(false, seg2);
 
@@ -587,7 +587,7 @@ public class HeapAlphaSketchTest {
   }
 
   @Test
-  public void checkMemDeSerExceptions() {
+  public void checkSegDeSerExceptions() {
     int k = 1024;
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     sk1.update(1L); //forces preLongs to 3
@@ -595,16 +595,16 @@ public class HeapAlphaSketchTest {
     MemorySegment seg = MemorySegment.ofArray(bytearray1);
     long pre0 = seg.get(JAVA_LONG_UNALIGNED, 0);
 
-    tryBadMem(seg, PREAMBLE_LONGS_BYTE, 2); //Corrupt PreLongs
+    tryBadSeg(seg, PREAMBLE_LONGS_BYTE, 2); //Corrupt PreLongs
     seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(seg, SER_VER_BYTE, 2); //Corrupt SerVer
+    tryBadSeg(seg, SER_VER_BYTE, 2); //Corrupt SerVer
     seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(seg, FAMILY_BYTE, 2); //Corrupt Family
+    tryBadSeg(seg, FAMILY_BYTE, 2); //Corrupt Family
     seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(seg, FLAGS_BYTE, 2); //Corrupt READ_ONLY to true
+    tryBadSeg(seg, FLAGS_BYTE, 2); //Corrupt READ_ONLY to true
     seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
     final long origThetaLong = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
@@ -633,7 +633,7 @@ public class HeapAlphaSketchTest {
     assertEquals(rf, ResizeFactor.X2);//ResizeFactor recovered to X2, which always works.
   }
 
-  private static void tryBadMem(MemorySegment seg, int byteOffset, int byteValue) {
+  private static void tryBadSeg(MemorySegment seg, int byteOffset, int byteValue) {
     try {
       seg.set(JAVA_BYTE, byteOffset, (byte) byteValue); //Corrupt
       HeapAlphaSketch.heapifyInstance(seg, ThetaUtil.DEFAULT_UPDATE_SEED);

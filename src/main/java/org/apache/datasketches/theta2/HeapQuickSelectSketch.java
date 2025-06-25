@@ -113,19 +113,19 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
     checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final float p = extractP(srcSeg);                             //bytes 12-15
-    final int memlgRF = extractLgResizeFactor(srcSeg);               //byte 0
-    ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
+    final int seglgRF = extractLgResizeFactor(srcSeg);            //byte 0
+    ResizeFactor segRF = ResizeFactor.getRF(seglgRF);
     final int familyID = extractFamilyID(srcSeg);
     final Family family = Family.idToFamily(familyID);
 
     if (isResizeFactorIncorrect(srcSeg, lgNomLongs, lgArrLongs)) {
-      memRF = ResizeFactor.X2; //X2 always works.
+      segRF = ResizeFactor.X2; //X2 always works.
     }
 
-    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, memRF,
+    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, segRF,
         preambleLongs, family);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = getHashTableThreshold(lgNomLongs, lgArrLongs);

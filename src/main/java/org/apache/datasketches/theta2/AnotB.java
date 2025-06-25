@@ -134,12 +134,11 @@ public abstract class AnotB extends SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    *
    * @param dstSeg if not <i>null</i> the given MemorySegment will be the target location of the result.
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination MemorySegment</a>.
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    *
-   * @return the result of this operation as a {@link CompactSketch} in the given dstMem.
+   * @return the result of this operation as a {@link CompactSketch} in the given dstSeg.
    */
   public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg, boolean reset);
 
@@ -195,8 +194,7 @@ public abstract class AnotB extends SetOperation {
    * @param skB The incoming sketch for the second argument. It must not be null.
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
-   * @param dstSeg
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination MemorySegment</a>.
+   * @param dstSeg the destination MemorySegment
    * @return the result as a CompactSketch.
    */
   public abstract CompactSketch aNotB(Sketch skA, Sketch skB, boolean dstOrdered,

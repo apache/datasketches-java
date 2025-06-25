@@ -98,7 +98,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkConstructorMemTooSmall() {
+  public void checkConstructorSegTooSmall() {
     int k = 16;
     try (Arena arena = Arena.ofConfined()) {
         MemorySegment wseg = makeNativeMemorySegment(k/2, arena);
@@ -123,7 +123,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkHeapifyMemoryEstimating() {
+  public void checkHeapifySegmentEstimating() {
     int k = 512;
     int u = 2*k; //thus estimating
     try (Arena arena = Arena.ofConfined()) {
@@ -201,8 +201,8 @@ public class DirectQuickSelectSketchTest {
       MemorySegment wseg = makeNativeMemorySegment(k, arena);
       UpdateSketch usk = UpdateSketch.builder().setSeed(seed1).setNominalEntries(k).build(wseg);
       byte[] byteArray = usk.toByteArray();
-      MemorySegment srcMem = MemorySegment.ofArray(byteArray);
-      Sketch.heapify(srcMem, seed2);
+      MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
+      Sketch.heapify(srcSeg, seed2);
     } catch (final Exception e) {
       if (e instanceof SketchesArgumentException) {}
       else { throw new RuntimeException(e); }
@@ -238,8 +238,8 @@ public class DirectQuickSelectSketchTest {
       byte[] byteArray = usk.toByteArray();
       assertEquals(bytes, byteArray.length);
 
-      MemorySegment srcMem = MemorySegment.ofArray(byteArray);
-      Sketch usk2 = Sketch.heapify(srcMem);
+      MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
+      Sketch usk2 = Sketch.heapify(srcSeg);
       assertEquals(usk2.getEstimate(), k, 0.0);
       assertEquals(usk2.getLowerBound(2), k, 0.0);
       assertEquals(usk2.getUpperBound(2), k, 0.0);
@@ -272,8 +272,8 @@ public class DirectQuickSelectSketchTest {
       assertEquals(usk.isEstimationMode(), true);
       byte[] byteArray = usk.toByteArray();
 
-      MemorySegment srcMem = MemorySegment.ofArray(byteArray);
-      Sketch usk2 = Sketch.heapify(srcMem);
+      MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
+      Sketch usk2 = Sketch.heapify(srcSeg);
       assertEquals(usk2.getEstimate(), uskEst);
       assertEquals(usk2.getLowerBound(2), uskLB);
       assertEquals(usk2.getUpperBound(2), uskUB);
@@ -754,7 +754,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkConstructorSrcMemCorruptions() {
+  public void checkConstructorSrcSegCorruptions() {
     int k = 1024; //lgNomLongs = 10
     int u = k; //exact mode, lgArrLongs = 11
 
@@ -848,7 +848,7 @@ public class DirectQuickSelectSketchTest {
 
   //checks Alex's bug where lgArrLongs > lgNomLongs +1.
   @Test
-  public void checkResizeInBigMem() {
+  public void checkResizeInBigSeg() {
     int k = 1 << 14;
     int u = 1 << 20;
     MemorySegment seg = MemorySegment.ofArray(new byte[(8*k*16) +24]);

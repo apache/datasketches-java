@@ -123,7 +123,6 @@ public abstract class Sketch implements MemorySegmentStatus {
    * correct hash seed, so it is not checked.</p>
    *
    * @param srcSeg an image of a Sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
    * @return a Sketch backed by the given MemorySegment
    */
   public static Sketch wrap(final MemorySegment srcSeg) {
@@ -221,9 +220,9 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <p>A <i>CompactSketch</i> is always immutable.</p>
    *
    * <p>A new <i>CompactSketch</i> object is created:</p>
-   * <ul><li>if <i>dstMem != null</i></li>
-   * <li>if <i>dstMem == null</i> and <i>this.hasMemorySegment() == true</i></li>
-   * <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
+   * <ul><li>if <i>dstSeg!= null</i></li>
+   * <li>if <i>dstSeg == null</i> and <i>this.hasMemorySegment() == true</i></li>
+   * <li>if <i>dstSeg == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
    * and <i>dstOrdered == true</i>.</li>
    *</ul>
    *
@@ -536,11 +535,11 @@ public abstract class Sketch implements MemorySegmentStatus {
 
   /**
    * Returns a human readable string of the preamble of a MemorySegment image of a Theta Sketch.
-   * @param mem the given Memory object
+   * @param seg the given MemorySegment object
    * @return a human readable string of the preamble of a MemorySegment image of a Theta Sketch.
    */
-  public static String toString(final MemorySegment mem) {
-    return PreambleUtil.preambleToString(mem);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.preambleToString(seg);
   }
 
   //Restricted methods

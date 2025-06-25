@@ -214,12 +214,12 @@ public class AnotBimplTest {
     final UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { cU.update(i); } //third 256
 
-    final int memBytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int segBytes = Sketch.getMaxUpdateSketchBytes(k);
     CompactSketch result1, result2, result3;
 
-    final MemorySegment wmem1 = MemorySegment.ofArray(new byte[memBytes]);
-    final MemorySegment wmem2 = MemorySegment.ofArray(new byte[memBytes]);
-    final MemorySegment wmem3 = MemorySegment.ofArray(new byte[memBytes]);
+    final MemorySegment wseg1 = MemorySegment.ofArray(new byte[segBytes]);
+    final MemorySegment wseg2 = MemorySegment.ofArray(new byte[segBytes]);
+    final MemorySegment wseg3 = MemorySegment.ofArray(new byte[segBytes]);
 
     final AnotB aNb = SetOperation.builder().buildANotB();
 
@@ -227,11 +227,11 @@ public class AnotBimplTest {
 
     aNb.setA(aU);                                     //stateful
 
-    result1 = aNb.aNotB(aU, bU, ordered, wmem1);      //stateless
+    result1 = aNb.aNotB(aU, bU, ordered, wseg1);      //stateless
 
     aNb.notB(bU);                                     //stateful
 
-    result2 = aNb.aNotB(result1, cU, ordered, wmem2); //stateless
+    result2 = aNb.aNotB(result1, cU, ordered, wseg2); //stateless
 
     aNb.notB(cU);                                     //stateful
 
@@ -239,13 +239,13 @@ public class AnotBimplTest {
     println("est: "+est2);
     assertEquals(est2, k/4.0, 0.0);
 
-    result3 = aNb.getResult(ordered, wmem3, true);    //stateful result, then reset
+    result3 = aNb.getResult(ordered, wseg3, true);    //stateful result, then reset
     final double est3 = result3.getEstimate();
     assertEquals(est3, k/4.0, 0.0);
   }
 
   @Test
-  public void checkAnotBnotC_sameMemory() {
+  public void checkAnotBnotC_sameMemorySegment() {
     final int k = 1024;
     final boolean ordered = true;
 
@@ -258,8 +258,8 @@ public class AnotBimplTest {
     final UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { c.update(i); }  //third 256
 
-    final int memBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
-    final MemorySegment mem = MemorySegment.ofArray(new byte[memBytes]);
+    final int segBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
+    final MemorySegment seg = MemorySegment.ofArray(new byte[segBytes]);
 
     CompactSketch result1, result2;
     final AnotB aNb = SetOperation.builder().buildANotB();
@@ -268,15 +268,15 @@ public class AnotBimplTest {
 
     aNb.setA(a);                                    //stateful
 
-    result1 = aNb.aNotB(a, b, ordered, mem);        //stateless
+    result1 = aNb.aNotB(a, b, ordered, seg);        //stateless
 
     aNb.notB(b);                                    //stateful
 
-    result1 = aNb.aNotB(result1, c, ordered, mem);  //stateless
+    result1 = aNb.aNotB(result1, c, ordered, seg);  //stateless
 
     aNb.notB(c);                                    //stateful
 
-    result2 = aNb.getResult(ordered, mem, true);    //stateful result, then reset
+    result2 = aNb.getResult(ordered, seg, true);    //stateful result, then reset
 
     final double est1 = result1.getEstimate();            //check stateless result
     println("est: "+est1);

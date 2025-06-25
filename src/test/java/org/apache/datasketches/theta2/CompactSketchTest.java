@@ -184,7 +184,7 @@ public class CompactSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkMemTooSmall() {
+  public void checkSegTooSmall() {
     int k = 512;
     int u = k;
     boolean ordered = false;
@@ -200,7 +200,7 @@ public class CompactSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkMemTooSmallOrdered() {
+  public void checkSegTooSmallOrdered() {
     int k = 512;
     int u = k;
     boolean ordered = true;
@@ -235,7 +235,7 @@ public class CompactSketchTest {
 
   @Test
   /**
-   * Empty, memory-based Compact sketches are always ordered
+   * Empty, segment-based Compact sketches are always ordered
    */
   public void checkEmptyMemoryCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
@@ -275,7 +275,7 @@ public class CompactSketchTest {
 
   @Test
   /**
-   * Single-Item, memory-based Compact sketches are always ordered:
+   * Single-Item, segment-based Compact sketches are always ordered:
    */
   public void checkSingleItemMemoryCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
@@ -290,14 +290,14 @@ public class CompactSketchTest {
     CompactSketch csk2 = sk.compact(false, wseg2); //the first parameter is ignored when single item
     state1.check(csk2);
 
-    assertNotEquals(csk1, csk2); //different object because memory is valid
+    assertNotEquals(csk1, csk2); //different object because segment is valid
     assertFalse(csk1 == csk2);
 
     MemorySegment wseg3 = MemorySegment.ofArray(new byte[16]);
     CompactSketch csk3 = csk1.compact(false, wseg3);
     state1.check(csk3);
 
-    assertNotEquals(csk1, csk3); //different object because memory is valid
+    assertNotEquals(csk1, csk3); //different object because segment is valid
     assertFalse(csk1 == csk3);
 
     CompactSketch cskc = csk1.compact();
@@ -325,14 +325,14 @@ public class CompactSketchTest {
     State state2 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, MEMORY, !ORDERED, !ESTIMATION);
     state2.check(csk2);
 
-    assertNotEquals(csk1, csk2); //different object because memory is valid
+    assertNotEquals(csk1, csk2); //different object because segment is valid
     assertFalse(csk1 == csk2);
 
     MemorySegment wseg3 = MemorySegment.ofArray(new byte[50]);
     CompactSketch csk3 = csk1.compact(false, wseg3);
     state2.check(csk3);
 
-    assertNotEquals(csk1, csk3); //different object because memory is valid
+    assertNotEquals(csk1, csk3); //different object because segment is valid
     assertFalse(csk1 == csk3);
 
     CompactSketch cskc = csk1.compact();
@@ -426,10 +426,10 @@ public class CompactSketchTest {
     CompactSketch csk3 = csk1.compact(true, null);
     state1.check(csk3);
 
-    assertEquals(csk1, csk3); //the same object because wmem = null and csk1.ordered = dstOrdered
+    assertEquals(csk1, csk3); //the same object because wseg = null and csk1.ordered = dstOrdered
     assertTrue(csk1 == csk3);
 
-    assertNotEquals(csk2, csk3); //different object because wmem = null and csk2.ordered = false && dstOrdered = true
+    assertNotEquals(csk2, csk3); //different object because wseg = null and csk2.ordered = false && dstOrdered = true
     assertFalse(csk2 == csk3);
 
     CompactSketch cskc = csk1.compact();
@@ -629,19 +629,19 @@ public class CompactSketchTest {
     boolean compact = false;
     boolean empty = false;
     boolean direct = false;
-    boolean memSeg = false;
+    boolean hasSeg = false;
     boolean ordered = false;
     boolean estimation = false;
 
     State(String classType, int count, int bytes, boolean compact, boolean empty, boolean direct,
-        boolean memory, boolean ordered, boolean estimation) {
+        boolean hasSeg, boolean ordered, boolean estimation) {
       this.classType = classType;
       this.count = count;
       this.bytes = bytes;
       this.compact = compact;
       this.empty = empty;
       this.direct = direct;
-      this.memSeg = memory;
+      this.hasSeg = hasSeg;
       this.ordered = ordered;
       this.estimation = estimation;
     }
@@ -653,7 +653,7 @@ public class CompactSketchTest {
       assertEquals(csk.isCompact(), compact, "Compact");
       assertEquals(csk.isEmpty(), empty, "Empty");
       assertEquals(csk.isDirect(), direct, "Direct");
-      assertEquals(csk.hasMemorySegment(), memSeg, "MemorySegment");
+      assertEquals(csk.hasMemorySegment(), hasSeg, "MemorySegment");
       assertEquals(csk.isOrdered(), ordered, "Ordered");
       assertEquals(csk.isEstimationMode(), estimation, "Estimation");
     }

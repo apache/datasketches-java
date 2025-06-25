@@ -34,7 +34,7 @@ public class ArrayOfStringsSummaryDeserializer implements SummaryDeserializer<Ar
 
   @Override
   public DeserializeResult<ArrayOfStringsSummary> heapifySummary(final MemorySegment seg) {
-    return ArrayOfStringsSummaryDeserializer.fromMemory(seg);
+    return ArrayOfStringsSummaryDeserializer.fromMemorySegment(seg);
   }
 
   /**
@@ -42,7 +42,7 @@ public class ArrayOfStringsSummaryDeserializer implements SummaryDeserializer<Ar
    * @param seg the given MemorySegment
    * @return the DeserializeResult
    */
-  static DeserializeResult<ArrayOfStringsSummary> fromMemory(final MemorySegment seg) {
+  static DeserializeResult<ArrayOfStringsSummary> fromMemorySegment(final MemorySegment seg) {
     final ArrayOfStringsSummary nsum = new ArrayOfStringsSummary(seg);
     final int totBytes = seg.get(JAVA_INT_UNALIGNED, 0);
     return new DeserializeResult<>(nsum, totBytes);
