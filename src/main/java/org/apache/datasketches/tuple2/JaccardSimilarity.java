@@ -22,12 +22,12 @@ package org.apache.datasketches.tuple2;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
-import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets2.getEstimateOfBoverA;
-import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets2.getLowerBoundForBoverA;
-import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets2.getUpperBoundForBoverA;
+import static org.apache.datasketches.thetacommon2.BoundsOnRatiosInTupleSketchedSets.getEstimateOfBoverA;
+import static org.apache.datasketches.thetacommon2.BoundsOnRatiosInTupleSketchedSets.getLowerBoundForBoverA;
+import static org.apache.datasketches.thetacommon2.BoundsOnRatiosInTupleSketchedSets.getUpperBoundForBoverA;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Jaccard similarity of two Tuple Sketches, or alternatively, of a Tuple and Theta Sketch.

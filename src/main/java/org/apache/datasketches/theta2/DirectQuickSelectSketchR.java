@@ -48,14 +48,14 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The default Theta Sketch using the QuickSelect algorithm.
  * This is the read-only implementation with non-functional methods, which affect the state.
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  *
  * @author Lee Rhodes
@@ -65,7 +65,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   final long seed_; //provided, kept only on heap, never serialized.
   int hashTableThreshold_; //computed, kept only on heap, never serialized.
-  MemorySegment wseg_; //A WritableMemory for child class, but no write methods here
+  MemorySegment wseg_; //A MemorySegment for child class, but no write methods here
 
   //only called by DirectQuickSelectSketch and below
   DirectQuickSelectSketchR(final long seed, final MemorySegment wseg) {
@@ -168,7 +168,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public HashIterator iterator() {
-    return new MemoryHashIterator(wseg_, 1 << getLgArrLongs(), getThetaLong());
+    return new MemorySegmentHashIterator(wseg_, 1 << getLgArrLongs(), getThetaLong());
   }
 
   @Override

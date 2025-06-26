@@ -21,21 +21,21 @@ package org.apache.datasketches.tuple2.arrayofdoubles;
 
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
-import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
-import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
-import static org.apache.datasketches.thetacommon.HashOperations.count;
-import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
+import static org.apache.datasketches.thetacommon2.HashOperations.continueCondition;
+import static org.apache.datasketches.thetacommon2.HashOperations.convertToHashTable;
+import static org.apache.datasketches.thetacommon2.HashOperations.count;
+import static org.apache.datasketches.thetacommon2.HashOperations.hashSearch;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.thetacommon.SetOperationCornerCases;
-import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
-import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
-import org.apache.datasketches.thetacommon.ThetaUtil;
-import org.apache.datasketches.tuple2.Util;
+import org.apache.datasketches.thetacommon2.SetOperationCornerCases;
+import org.apache.datasketches.thetacommon2.SetOperationCornerCases.AnotbAction;
+import org.apache.datasketches.thetacommon2.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two ArrayOfDoublesSketches.
@@ -60,7 +60,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
 
   ArrayOfDoublesAnotBImpl(final int numValues, final long seed) {
     numValues_ = numValues;
-    seedHash_ = Util.computeSeedHash(seed);
+    seedHash_ = computeSeedHash(seed);
   }
 
   @Override

@@ -32,7 +32,7 @@ public class DoubleSummaryDeserializer implements SummaryDeserializer<DoubleSumm
 
   @Override
   public DeserializeResult<DoubleSummary> heapifySummary(final MemorySegment seg) {
-    return DoubleSummary.fromMemory(seg);
+    return DoubleSummary.fromMemorySegment(seg);
   }
 
 }

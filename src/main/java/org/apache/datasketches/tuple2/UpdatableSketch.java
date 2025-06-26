@@ -23,7 +23,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.hash.MurmurHash3;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.

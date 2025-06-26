@@ -52,11 +52,11 @@ import static org.apache.datasketches.theta2.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.theta2.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.theta2.PreambleUtil.insertThetaLong;
 import static org.apache.datasketches.theta2.PreambleUtil.setEmpty;
-import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
-import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
-import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnlyMemory;
-import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
-import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
+import static org.apache.datasketches.thetacommon2.HashOperations.continueCondition;
+import static org.apache.datasketches.thetacommon2.HashOperations.hashInsertOnly;
+import static org.apache.datasketches.thetacommon2.HashOperations.hashInsertOnlyMemorySegment;
+import static org.apache.datasketches.thetacommon2.HashOperations.hashSearch;
+import static org.apache.datasketches.thetacommon2.HashOperations.minLgHashTableSize;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
@@ -66,7 +66,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Intersection operation for Theta Sketches.
@@ -105,7 +105,7 @@ final class IntersectionImpl extends Intersection {
     if (wseg != null) {
       wseg_ = wseg;
       if (dstSegFlag) { //DstSeg: compute & store seedHash, no seedHash checking
-        checkMinSizeMemory(wseg);
+        checkMinSizeMemorySegment(wseg);
         maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wseg) : 0; //Only Off Heap
         seedHash_ = ThetaUtil.computeSeedHash(seed);
         wseg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
@@ -496,7 +496,7 @@ final class IntersectionImpl extends Intersection {
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = arr[i];
         if (continueCondition(thetaLong, hashIn)) { continue; }
-        hashInsertOnlyMemory(wseg_, lgArrLongs, hashIn, preBytes);
+        hashInsertOnlyMemorySegment(wseg_, lgArrLongs, hashIn, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough
@@ -521,7 +521,7 @@ final class IntersectionImpl extends Intersection {
       while (it.next()) {
         final long hash = it.get();
         if (continueCondition(thetaLong, hash)) { continue; }
-        hashInsertOnlyMemory(wseg_, lgArrLongs, hash, preBytes);
+        hashInsertOnlyMemorySegment(wseg_, lgArrLongs, hash, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough

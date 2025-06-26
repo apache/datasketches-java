@@ -40,7 +40,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -48,7 +48,7 @@ import org.testng.annotations.Test;
  */
 public class SketchesTest {
 
-  private static MemorySegment getCompactSketchMemory(final int k, final int from, final int to) {
+  private static MemorySegment getCompactSketchMemorySegment(final int k, final int from, final int to) {
     final UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
     for (int i=from; i<to; i++) {
       sk1.update(i);
@@ -59,7 +59,7 @@ public class SketchesTest {
     return seg;
   }
 
-  private static MemorySegment getMemoryFromCompactSketch(final CompactSketch csk) {
+  private static MemorySegment getMemorySegmentFromCompactSketch(final CompactSketch csk) {
     final byte[] sk1bytes = csk.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(sk1bytes).asReadOnly();
     return seg;
@@ -76,7 +76,7 @@ public class SketchesTest {
   @Test
   public void checkSketchMethods() {
     final int k = 1024;
-    final MemorySegment seg = getCompactSketchMemory(k, 0, k);
+    final MemorySegment seg = getCompactSketchMemorySegment(k, 0, k);
 
     CompactSketch csk2 = (CompactSketch)heapifySketch(seg);
     assertEquals((int)csk2.getEstimate(), k);
@@ -94,8 +94,8 @@ public class SketchesTest {
   @Test
   public void checkSetOpMethods() {
     final int k = 1024;
-    final MemorySegment seg1 = getCompactSketchMemory(k, 0, k);
-    final MemorySegment seg2 = getCompactSketchMemory(k, k/2, 3*k/2);
+    final MemorySegment seg1 = getCompactSketchMemorySegment(k, 0, k);
+    final MemorySegment seg2 = getCompactSketchMemorySegment(k, k/2, 3*k/2);
 
     final SetOperationBuilder bldr = setOperationBuilder();
     final Union union = bldr.setNominalEntries(2 * k).buildUnion();
@@ -158,7 +158,7 @@ public class SketchesTest {
     final int k = 4096;
     final int u = 4*k;
     final CompactSketch csk = getCompactSketch(k, 0, u);
-    final MemorySegment srcSeg = getMemoryFromCompactSketch(csk);
+    final MemorySegment srcSeg = getMemorySegmentFromCompactSketch(csk);
     final double est = Sketches.getEstimate(srcSeg);
     assertEquals(est, u, 0.05*u);
     final double rse = 1.0/Math.sqrt(k);
@@ -171,7 +171,7 @@ public class SketchesTest {
     assertFalse(empty);
 
     final CompactSketch csk2 = getCompactSketch(k, 0, 0);
-    final MemorySegment emptySegV3 = getMemoryFromCompactSketch(csk2);
+    final MemorySegment emptySegV3 = getMemorySegmentFromCompactSketch(csk2);
     assertEquals(Sketches.getRetainedEntries(emptySegV3), 0);
     assertEquals(Sketches.getThetaLong(emptySegV3), Long.MAX_VALUE);
     final MemorySegment emptySegV1 = convertSerVer3toSerVer1(csk2);

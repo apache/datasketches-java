@@ -26,7 +26,7 @@ import java.lang.foreign.MemorySegment;
 /**
  * @author Lee Rhodes
  */
-final class MemoryHashIterator implements HashIterator {
+final class MemorySegmentHashIterator implements HashIterator {
   private MemorySegment seg;
   private int arrLongs;
   private long thetaLong;
@@ -34,7 +34,7 @@ final class MemoryHashIterator implements HashIterator {
   private int index;
   private long hash;
 
-  MemoryHashIterator(final MemorySegment srcSeg, final int arrLongs, final long thetaLong) {
+  MemorySegmentHashIterator(final MemorySegment srcSeg, final int arrLongs, final long thetaLong) {
     this.seg = srcSeg;
     this.arrLongs = arrLongs;
     this.thetaLong = thetaLong;

@@ -29,7 +29,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.wholeBytesToHoldBits;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * An off-heap (Direct), compact, compressed, read-only sketch. It is not empty, not a single item and ordered.
@@ -51,7 +51,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
 
   /**
    * Wraps the given MemorySegment, which must be a SerVer 4 compressed CompactSketch image.
-   * Must check the validity of the Memory before calling.
+   * Must check the validity of the MemorySegment before calling.
    * @param srcSeg The source MemorySegment
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
@@ -117,7 +117,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new MemoryCompactCompressedHashIterator(
+    return new MemorySegmentCompactCompressedHashIterator(
       seg_,
       (extractPreLongs(seg_) > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE)
         + extractNumEntriesBytesV4(seg_),

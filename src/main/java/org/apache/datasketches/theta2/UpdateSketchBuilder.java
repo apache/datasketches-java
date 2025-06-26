@@ -30,7 +30,7 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * For building a new UpdateSketch.
@@ -54,22 +54,21 @@ public final class UpdateSketchBuilder {
   /**
    * Constructor for building a new UpdateSketch. The default configuration is
    * <ul>
-   * <li>Nominal Entries: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
-   * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
+   * <li>Nominal Entries: {@value org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
+   * <li>Seed: {@value org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Family: {@link org.apache.datasketches.common.Family#QUICKSELECT}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
-   * For direct sketches, which are targeted for native memory off the Java heap, this value will
+   * For direct sketches, which are targeted for off-heap, this value will
    * be fixed at either {@link ResizeFactor#X1} or {@link ResizeFactor#X2}.</li>
-   * <li>MemoryRequestServer (Direct only):
-   * {@link org.apache.datasketches.memory.DefaultMemoryRequestServer}.</li>
    * </ul>
    * Parameters unique to the concurrent sketches only:
    * <ul>
-   * <li>Number of local Nominal Entries: 4</li>
    * <li>Concurrent NumPoolThreads: 3</li>
+   * <li>Number of local Nominal Entries: 4</li>
    * <li>Concurrent PropagateOrderedCompact: true</li>
    * <li>Concurrent MaxConcurrencyError: 0</li>
+   * <li>Concurrent MaxNumLocalThreads: 1</li>
    * </ul>
    */
   public UpdateSketchBuilder() {
@@ -339,7 +338,7 @@ public final class UpdateSketchBuilder {
           sketch = HeapAlphaSketch.newHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
-          throw new SketchesArgumentException("AlphaSketch cannot be made Direct to Memory.");
+          throw new SketchesArgumentException("AlphaSketch cannot be backed by a MemorySegment.");
         }
         break;
       }
@@ -383,9 +382,9 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
-   * configuration of the Builder and the given destination WritableMemory. If the destination
-   * WritableMemory is null, this defaults to an on-heap concurrent shared UpdateSketch.
+   * Returns a concurrent shared UpdateSketch with the current
+   * configuration of the Builder and the given destination MemorySegment. If the destination
+   * MemorySegment is null, this defaults to an on-heap concurrent shared UpdateSketch.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
    * <ul>
@@ -396,7 +395,7 @@ public final class UpdateSketchBuilder {
    * <p>Key parameters that are in common with other <i>Theta</i> sketches:
    * <ul>
    * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
-   * <li>Destination Writable Memory (if not null, returned sketch is Direct. Default is null.)</li>
+   * <li>Destination MemorySegment (if not null, returned sketch is Direct. Default is null.)</li>
    * </ul>
    *
    * @param dstSeg the given MemorySegment for Direct, otherwise <i>null</i>.

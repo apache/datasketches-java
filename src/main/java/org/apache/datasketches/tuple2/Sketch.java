@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple2;
 
 import static org.apache.datasketches.common.Util.LS;
 
-import org.apache.datasketches.thetacommon.BinomialBoundsN;
+import org.apache.datasketches.thetacommon2.BinomialBoundsN;
 
 /**
  * This is an equivalent to org.apache.datasketches.theta2.Sketch with

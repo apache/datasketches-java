@@ -23,7 +23,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * For building a new ArrayOfDoublesUpdatableSketch

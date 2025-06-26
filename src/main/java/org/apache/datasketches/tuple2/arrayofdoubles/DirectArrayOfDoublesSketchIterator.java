@@ -27,8 +27,8 @@ import java.lang.foreign.MemorySegment;
 /**
  * Iterator over the off-heap, Direct tuple sketch of type ArrayOfDoubles (compact or hash table).
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
 final class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIterator {

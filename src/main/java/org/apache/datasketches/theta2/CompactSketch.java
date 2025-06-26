@@ -46,7 +46,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The parent class of all the CompactSketches. CompactSketches are never created directly.
@@ -82,17 +82,17 @@ public abstract class CompactSketch extends Sketch {
   }
 
   /**
-   * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
+   * Heapify takes a CompactSketch image in a MemorySegment and instantiates an on-heap CompactSketch.
    *
-   * <p>The resulting sketch will not retain any link to the source Memory and all of its data will be
+   * <p>The resulting sketch will not retain any link to the source MemorySegment and all of its data will be
    * copied to the heap CompactSketch.</p>
    *
-   * <p>This method checks if the given expectedSeed was used to create the source Memory image.
+   * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.
    * However, SerialVersion 1 sketch images cannot be checked as they don't have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
    * @param srcSeg an image of a CompactSketch that was created using the given expectedSeed.
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a CompactSketch on the heap.
    */
@@ -115,7 +115,7 @@ public abstract class CompactSketch extends Sketch {
       final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
       final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
       if (enforceSeed && !empty) { PreambleUtil.checkSegmentSeedHash(srcSeg, seed); }
-      return CompactOperations.memoryToCompact(srcSeg, srcOrdered, null);
+      return CompactOperations.segmentToCompact(srcSeg, srcOrdered, null);
     }
     //not SerVer 3, assume compact stored form
     final short seedHash = ThetaUtil.computeSeedHash(seed);
@@ -141,7 +141,7 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
    * <p>This method assumes that the sketch image was created with the correct hash seed, so it is not checked.
    * However, Serial Version 1 sketch images do not have a seedHash field,
@@ -166,7 +166,7 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
    * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.
    * However, SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
@@ -239,7 +239,7 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
    * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source MemorySegment image.
    * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
@@ -265,7 +265,7 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
    * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.
    * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,

@@ -34,8 +34,8 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.theta2.ConcurrentHeapQuickSelectSketchTest.SharedLocal;
-import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.HashOperations;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -54,7 +54,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkHeapifyMemoryEstimating() {
+  public void checkHeapifyMemorySegmentEstimating() {
     int lgK = 9;
     int k = 1 << lgK;
     int u = 2*k;
@@ -74,7 +74,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     UpdateSketch sharedHeap = Sketches.heapifyUpdateSketch(sl.wseg);
     assertEquals(sharedHeap.getClass().getSimpleName(), "HeapQuickSelectSketch");
 
-    checkMemoryDirectProxyMethods(local, shared);
+    checkMemorySegmentDirectProxyMethods(local, shared);
     checkOtherProxyMethods(local, shared);
     checkOtherProxyMethods(local, sharedHeap);
 
@@ -161,7 +161,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkWrapMemoryEst() {
+  public void checkWrapMemorySegmentEst() {
     int lgK = 9;
     int k = 1 << lgK;
     int u = 2*k;
@@ -422,7 +422,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkExactModeMemoryArr() {
+  public void checkExactModeMemorySegmentArr() {
     int lgK = 12;
     int k = 1 << lgK;
     int u = k;
@@ -440,7 +440,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkEstModeMemoryArr() {
+  public void checkEstModeMemorySegmentArr() {
     int lgK = 12;
     int k = 1 << lgK;
     boolean useSeg = true;
@@ -459,7 +459,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkEstModeNativeMemory() {
+  public void checkEstModeNativeMemorySegment() {
     int lgK = 12;
     int k = 1 << lgK;
     boolean useSeg = true;
@@ -477,7 +477,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkConstructReconstructFromMemory() {
+  public void checkConstructReconstructFromMemorySegment() {
     int lgK = 12;
     int k = 1 << lgK;
     boolean useSeg = true;
@@ -514,7 +514,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkNullMemory() {
+  public void checkNullMemorySegment() {
     UpdateSketchBuilder bldr = new UpdateSketchBuilder();
     final UpdateSketch sk = bldr.build();
     for (int i = 0; i < 1000; i++) { sk.update(i); }
@@ -697,7 +697,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     //System.out.println(s); //disable here
   }
 
-  private static void checkMemoryDirectProxyMethods(Sketch local, Sketch shared) {
+  private static void checkMemorySegmentDirectProxyMethods(Sketch local, Sketch shared) {
     assertEquals(
         local.hasMemorySegment(),
         shared.hasMemorySegment());

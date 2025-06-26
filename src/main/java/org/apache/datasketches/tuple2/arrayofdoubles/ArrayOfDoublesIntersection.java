@@ -20,12 +20,13 @@
 package org.apache.datasketches.tuple2.arrayofdoubles;
 
 import static java.lang.Math.min;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.tuple2.Util;
 
 /**
  * Computes the intersection of two or more tuple sketches of type ArrayOfDoubles.
@@ -49,7 +50,7 @@ public abstract class ArrayOfDoublesIntersection {
    * @param seed the hash function update seed.
    */
   ArrayOfDoublesIntersection(final int numValues, final long seed) {
-    seedHash_ = Util.computeSeedHash(seed);
+    seedHash_ = computeSeedHash(seed);
     numValues_ = numValues;
     hashTables_ = null;
     empty_ = false;
@@ -65,7 +66,7 @@ public abstract class ArrayOfDoublesIntersection {
    */
   public void intersect(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
     if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
-    Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
+    checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
     if (tupleSketch.numValues_ != numValues_) {
       throw new SketchesArgumentException(
           "Input tupleSketch cannot have different numValues from the internal numValues.");

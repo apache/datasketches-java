@@ -154,7 +154,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
    * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes
    * read from the MemorySegment
    */
-  public static DeserializeResult<DoubleSummary> fromMemory(final MemorySegment seg) {
+  public static DeserializeResult<DoubleSummary> fromMemorySegment(final MemorySegment seg) {
     return new DeserializeResult<>(new DoubleSummary(seg.get(JAVA_DOUBLE_UNALIGNED, VALUE_INDEX),
         Mode.values()[seg.get(JAVA_BYTE, MODE_BYTE_INDEX)]), SERIALIZED_SIZE_BYTES);
   }

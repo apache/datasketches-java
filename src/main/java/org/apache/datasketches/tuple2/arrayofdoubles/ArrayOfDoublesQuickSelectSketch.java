@@ -24,8 +24,8 @@ import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.QuickSelect;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.QuickSelect;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Top level class for hash table based implementations of tuple sketch of type

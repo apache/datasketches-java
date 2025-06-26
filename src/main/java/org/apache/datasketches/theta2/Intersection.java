@@ -33,7 +33,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The API for intersection operations
@@ -148,7 +148,7 @@ public abstract class Intersection extends SetOperation {
     return Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
   }
 
-  protected static void checkMinSizeMemory(final MemorySegment seg) {
+  protected static void checkMinSizeMemorySegment(final MemorySegment seg) {
     final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << ThetaUtil.MIN_LG_ARR_LONGS);//280
     final long cap = seg.byteSize();
     if (cap < minBytes) {

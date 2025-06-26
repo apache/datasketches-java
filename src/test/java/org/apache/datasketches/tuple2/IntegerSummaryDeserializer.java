@@ -25,7 +25,7 @@ public class IntegerSummaryDeserializer implements SummaryDeserializer<IntegerSu
 
   @Override
   public DeserializeResult<IntegerSummary> heapifySummary(final MemorySegment seg) {
-    return IntegerSummary.fromMemory(seg);
+    return IntegerSummary.fromMemorySegment(seg);
   }
 
 }

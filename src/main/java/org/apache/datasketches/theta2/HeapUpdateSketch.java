@@ -39,7 +39,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.insertThetaLong;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The parent class for Heap Updatable Theta Sketches.

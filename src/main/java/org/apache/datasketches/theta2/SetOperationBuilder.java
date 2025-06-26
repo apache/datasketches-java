@@ -28,7 +28,7 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * For building a new SetOperation.
@@ -45,11 +45,11 @@ public final class SetOperationBuilder {
    * Constructor for building a new SetOperation.  The default configuration is
    * <ul>
    * <li>Max Nominal Entries (max K):
-   *   {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
-   * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
+   *   {@value org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
+   * <li>Seed: {@value org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
    * <li>{@link ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
-   * <li>Memory: null</li>
+   * <li>MemorySegment: null</li>
    * </ul>
    */
   public SetOperationBuilder() {
@@ -168,7 +168,7 @@ public final class SetOperationBuilder {
 
   /**
    * Returns a SetOperation with the current configuration of this Builder, the given Family
-   * and the given destination memory. Note that the destination MemorySegment cannot be used with AnotB.
+   * and the given destination MemorySegment. Note that the destination MemorySegment cannot be used with AnotB.
    * @param family the chosen SetOperation family
    * @param dstSeg The destination MemorySegment.
    * @return a SetOperation
@@ -243,8 +243,8 @@ public final class SetOperationBuilder {
   /**
    * Convenience method, returns a configured SetOperation Intersection with
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-   * and the given destination memory.
-   * @param dstSeg The destination Memory.
+   * and the given destination MemorySegment.
+   * @param dstSeg The destination MemorySegment.
    * @return an Intersection object
    */
   public Intersection buildIntersection(final MemorySegment dstSeg) {

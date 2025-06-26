@@ -26,7 +26,7 @@ import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
-import static org.apache.datasketches.thetacommon.HashOperations.count;
+import static org.apache.datasketches.thetacommon2.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
@@ -37,9 +37,9 @@ import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.QuickSelect;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.HashOperations;
+import org.apache.datasketches.thetacommon2.QuickSelect;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * A generic tuple sketch using the QuickSelect algorithm.
@@ -189,7 +189,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   /*
    * This private constructor is used to protect against "Finalizer attacks".
    * The private static inner class Validate performs validation and deserialization
-   * from the input Memory and may throw exceptions. In order to protect against the attack, we must
+   * from the input MemorySegment and may throw exceptions. In order to protect against the attack, we must
    * perform this validation prior to the constructor's super reaches the Object class.
    * Making QuickSelectSketch final won't work here because UpdatableSketch is a subclass.
    * Using an empty final finalizer() is not recommended and is deprecated as of Java9.
@@ -228,7 +228,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     long validate(
         final MemorySegment seg,
         final SummaryDeserializer<?> deserializer) {
-      Objects.requireNonNull(seg, "SourceMemory must not be null.");
+      Objects.requireNonNull(seg, "Source MemorySegment must not be null.");
       Objects.requireNonNull(deserializer, "Deserializer must not be null.");
       checkBounds(0, 8, seg.byteSize());
 

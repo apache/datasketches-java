@@ -21,7 +21,7 @@ package org.apache.datasketches.theta2;
 
 import static org.apache.datasketches.common.ResizeFactor.X4;
 import static org.apache.datasketches.theta2.Sketch.getMaxUpdateSketchBytes;
-import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
+import static org.apache.datasketches.thetacommon2.HashOperations.minLgHashTableSize;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -34,7 +34,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -232,7 +232,7 @@ public class SetOperationTest {
    */
   @Test
   public void checkDirectUnionExample() {
-    //The first task is to compute how much direct memory we need and set the heap large enough.
+    //The first task is to compute how much off-heap space we need and set the heap large enough.
     //For the first trial, we will set the Union large enough for an exact result for THIS example.
     final int sketchNomEntries = 1 << 14; //16K
     int unionNomEntries = 1 << 15;  //32K
@@ -245,11 +245,11 @@ public class SetOperationTest {
     final byte[] backingArr = new byte[heapLayout[5]];
     final ByteBuffer heapBuf = ByteBuffer.wrap(backingArr).order(ByteOrder.nativeOrder());
 
-    // Attaches a MemorySegment object to the underlying memory of heapBuf.
+    // Attaches a MemorySegment object to the underlying heap space of heapBuf.
     // heapSeg will have a Read/Write view of the complete backing segment of heapBuf (direct or not).
     // Any R/W action from heapSeg will be visible via heapBuf and visa versa.
     //
-    // However, if you had created this WM object directly in raw, off-heap "native" memory
+    // However, if you had created this WM object off-heap
     // you would have the responsibility to close it when you are done.
     // But, since it was allocated via BB, it closes it for you.
     final MemorySegment heapSeg = MemorySegment.ofBuffer(heapBuf);

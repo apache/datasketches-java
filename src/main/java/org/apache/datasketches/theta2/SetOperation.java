@@ -31,7 +31,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 //import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The parent API for all Set Operations

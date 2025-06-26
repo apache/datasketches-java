@@ -28,21 +28,21 @@ import static org.apache.datasketches.theta2.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta2.PreambleUtil.insertCurCount;
 import static org.apache.datasketches.theta2.PreambleUtil.insertLgArrLongs;
 import static org.apache.datasketches.theta2.PreambleUtil.insertThetaLong;
-import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
+import static org.apache.datasketches.thetacommon2.QuickSelect.selectExcludingZeros;
 
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon2.HashOperations;
 
 /**
- * This class performs resize, rebuild and move operations where the input and output are Theta sketch images in MemorySegments. 
- * 
+ * This class performs resize, rebuild and move operations where the input and output are Theta sketch images in MemorySegments.
+ *
  * <p><b>NOTE:</b> These operations copy data from the input MemorySegment into local arrays, perform the required operations on the
  * arrays, and then copies the result to the destination MemorySegment. Attempting to perform these operations directly on the
- * MemorySegments would be slower due to MemorySegment internal checks. Meanwhile, he bulk copies performed by the MemorySegments are 
+ * MemorySegments would be slower due to MemorySegment internal checks. Meanwhile, he bulk copies performed by the MemorySegments are
  * vectorized at the machine level and are quite fast. Measurements reveal that this is a good tradeoff.</p>
- * 
+ *
  * @author Lee Rhodes
  */
 final class Rebuilder {
@@ -87,7 +87,7 @@ final class Rebuilder {
    * Moves me (the entire updatable sketch) to a new larger MemorySegment location and rebuilds the hash table.
    * This assumes a MemorySegment preamble of standard form with the correct value of thetaLong.
    * Afterwards, the caller must update the local MemorySegment reference, lgArrLongs
-   * and hashTableThreshold from the dstMemory and free the source MemorySegment.
+   * and hashTableThreshold from the destination MemorySegment and free the source MemorySegment.
    *
    * @param srcSeg the source MemorySegment
    * @param preambleLongs size of preamble in longs
@@ -124,7 +124,7 @@ final class Rebuilder {
    * Resizes existing hash array into a larger one within a single MemorySegment, assuming enough space.
    * This assumes a preamble of standard form with the correct value of thetaLong.
    * The lgArrLongs will change.
-   * Afterwards, the caller must update the caller's local copies of lgArrLongs and hashTableThreshold 
+   * Afterwards, the caller must update the caller's local copies of lgArrLongs and hashTableThreshold
    * from the returned MemorySegment.
    *
    * @param seg the source and destination MemorySegment
@@ -137,21 +137,21 @@ final class Rebuilder {
 
     //Preamble stays in place
     final int preBytes = preambleLongs << 3;
-    
+
     //Bulk copy source to on-heap buffer
     final int srcHTLen = 1 << srcLgArrLongs; //current value
     final long[] srcHTArr = new long[srcHTLen]; //on-heap src buffer
     //seg.getLongArray(preBytes, srcHTArr, 0, srcHTLen);
     MemorySegment.copy(seg, JAVA_LONG_UNALIGNED, preBytes, srcHTArr, 0, srcHTLen);
-    
+
     //Create destination on-heap buffer
     final int dstHTLen = 1 << tgtLgArrLongs;
     final long[] dstHTArr = new long[dstHTLen]; //on-heap dst buffer
-    
+
     //Rebuild hash table in destination buffer
     HashOperations.hashArrayInsert(srcHTArr, dstHTArr, tgtLgArrLongs, extractThetaLong(seg));
-    
-    //Bulk copy to destination memory
+
+    //Bulk copy to destination segment
     MemorySegment.copy(dstHTArr, 0, seg, JAVA_LONG_UNALIGNED, preBytes, dstHTLen);
     insertLgArrLongs(seg, tgtLgArrLongs); //update in mem
   }
@@ -159,7 +159,7 @@ final class Rebuilder {
   /**
    * Returns the actual log2 Resize Factor that can be used to grow the hash table. This will be
    * an integer value between zero and the given lgRF, inclusive;
-   * @param capBytes the current memory capacity in bytes
+   * @param capBytes the current MemorySegment capacity in bytes
    * @param lgArrLongs the current lg hash table size in longs
    * @param preLongs the current preamble size in longs
    * @param lgRF the configured lg Resize Factor

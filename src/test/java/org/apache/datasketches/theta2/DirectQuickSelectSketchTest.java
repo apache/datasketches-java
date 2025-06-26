@@ -50,8 +50,8 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.HashOperations;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -286,7 +286,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkWrapMemoryEst() {
+  public void checkWrapMemorySegmentEst() {
     int k = 512;
     int u = 2*k; //thus estimating
     try (Arena arena = Arena.ofConfined()) {
@@ -632,7 +632,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkExactModeMemoryArr() {
+  public void checkExactModeMemorySegmentArr() {
     int k = 4096;
     int u = 4096;
     try (Arena arena = Arena.ofConfined()) {
@@ -652,7 +652,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkEstModeMemoryArr() {
+  public void checkEstModeMemorySegmentArr() {
     int k = 4096;
     int u = 2*k;
 
@@ -673,7 +673,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkEstModeNativeMemory() {
+  public void checkEstModeNativeMemorySegment() {
     int k = 4096;
     int u = 2*k;
     int segCapacity = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
@@ -696,7 +696,7 @@ public class DirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkConstructReconstructFromMemory() {
+  public void checkConstructReconstructFromMemorySegment() {
     int k = 4096;
     int u = 2*k;
     try (Arena arena = Arena.ofConfined()) {

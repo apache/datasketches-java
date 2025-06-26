@@ -19,12 +19,14 @@
 
 package org.apache.datasketches.tuple2.arrayofdoubles;
 
+import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
+
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.hash.MurmurHash3;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.apache.datasketches.tuple2.Util;
 
 /**
@@ -216,7 +218,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   @Override
   short getSeedHash() {
-    return Util.computeSeedHash(seed_);
+    return computeSeedHash(seed_);
   }
 
   /**

@@ -30,15 +30,15 @@ import static org.apache.datasketches.theta2.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta2.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta2.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.thetacommon.HashOperations.count;
+import static org.apache.datasketches.thetacommon2.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.BinomialBoundsN;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.BinomialBoundsN;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The top-level class for all theta sketches. This class is never constructed directly.
@@ -74,7 +74,7 @@ public abstract class Sketch implements MemorySegmentStatus {
     if (family == Family.COMPACT) {
       return CompactSketch.heapify(srcSeg);
     }
-    return heapifyUpdateFromMemory(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapifyUpdateFromMemorySegment(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -97,7 +97,7 @@ public abstract class Sketch implements MemorySegmentStatus {
     if (family == Family.COMPACT) {
       return CompactSketch.heapify(srcSeg, expectedSeed);
     }
-    return heapifyUpdateFromMemory(srcSeg, expectedSeed);
+    return heapifyUpdateFromMemorySegment(srcSeg, expectedSeed);
   }
 
   /**
@@ -113,7 +113,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in on-heap equivalent forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
    * <p>For Update Sketches this method checks if the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
@@ -158,7 +158,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in on-heap equivalent forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
    * <p>For Update and Compact Sketches this method checks if the given expectedSeed was used to
    * create the source MemorySegment image.  However, SerialVersion 1 sketches cannot be checked.</p>
@@ -166,7 +166,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @param srcSeg a MemorySegment with an image of a Sketch.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a UpdateSketch backed by the given Memory except as above.
+   * @return a UpdateSketch backed by the given MemorySegment except as above.
    */
   public static Sketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
     final int  preLongs = srcSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -595,10 +595,10 @@ public abstract class Sketch implements MemorySegmentStatus {
   }
 
   /**
-   * Checks Ordered and Compact flags for integrity between sketch and Memory
+   * Checks Ordered and Compact flags for integrity between sketch and a MemorySegment
    * @param sketch the given sketch
    */
-  static final void checkSketchAndMemoryFlags(final Sketch sketch) {
+  static final void checkSketchAndMemorySegmentFlags(final Sketch sketch) {
     final MemorySegment seg = sketch.getMemorySegment();
     if (seg == null) { return; }
     final int flags = PreambleUtil.extractFlags(seg);
@@ -639,7 +639,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Sketch
    */
-  private static final Sketch heapifyUpdateFromMemory(final MemorySegment srcSeg, final long expectedSeed) {
+  private static final Sketch heapifyUpdateFromMemorySegment(final MemorySegment srcSeg, final long expectedSeed) {
     final long cap = srcSeg.byteSize();
     if (cap < 8) {
       throw new SketchesArgumentException(

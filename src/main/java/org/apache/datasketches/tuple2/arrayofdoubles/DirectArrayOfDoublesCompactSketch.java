@@ -24,6 +24,8 @@ import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
@@ -31,13 +33,12 @@ import java.nio.ByteOrder;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
-import org.apache.datasketches.tuple2.Util;
 
 /**
  * Direct Compact Sketch of type ArrayOfDoubles.
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
 final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
@@ -65,7 +66,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch,
       final long thetaLong, final MemorySegment dstSeg) {
     super(sketch.getNumValues());
-    checkIfEnoughMemory(dstSeg, sketch.getRetainedEntries(), sketch.getNumValues());
+    checkMemorySegmentSize(dstSeg, sketch.getRetainedEntries(), sketch.getNumValues());
     seg_ = dstSeg;
     dstSeg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1);
     dstSeg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
@@ -81,7 +82,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
-    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
+    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, computeSeedHash(sketch.getSeed()));
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
     dstSeg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
@@ -108,7 +109,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long thetaLong,
       final boolean isEmpty, final int numValues, final short seedHash, final MemorySegment dstSeg) {
     super(numValues);
-    checkIfEnoughMemory(dstSeg, values.length, numValues);
+    checkMemorySegmentSize(dstSeg, values.length, numValues);
     seg_ = dstSeg;
     dstSeg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1);
     dstSeg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
@@ -182,7 +183,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), computeSeedHash(seed));
     isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
@@ -237,7 +238,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   }
 
   @Override
-  //converts compact Memory array of long[] to compact long[]
+  //converts compact MemorySegment array of long[] to compact long[]
   long[] getKeys() {
     final int count = getRetainedEntries();
     final long[] keys = new long[count];
@@ -275,12 +276,12 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   @Override
   MemorySegment getMemorySegment() { return seg_; }
 
-  private static void checkIfEnoughMemory(final MemorySegment seg, final int numEntries,
+  private static void checkMemorySegmentSize(final MemorySegment seg, final int numEntries,
       final int numValues) {
     final int sizeNeeded =
         ENTRIES_START + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues)) * numEntries);
     if (sizeNeeded > seg.byteSize()) {
-      throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded
+      throw new SketchesArgumentException("Not enough space: need " + sizeNeeded
           + " bytes, got " + seg.byteSize() + " bytes");
     }
   }

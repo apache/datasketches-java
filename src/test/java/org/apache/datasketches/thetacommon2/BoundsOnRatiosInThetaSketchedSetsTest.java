@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.thetacommon;
+package org.apache.datasketches.thetacommon2;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -29,7 +29,7 @@ import org.apache.datasketches.theta2.Sketches;
 import org.apache.datasketches.theta2.UpdateSketch;
 import org.testng.annotations.Test;
 
-public class BoundsOnRatiosInThetaSketchedSets2Test {
+public class BoundsOnRatiosInThetaSketchedSetsTest {
 
   @Test
   public void checkNormalReturns() {
@@ -44,9 +44,9 @@ public class BoundsOnRatiosInThetaSketchedSets2Test {
     inter.intersect(skC);
     final CompactSketch skB = inter.getResult();
 
-    double est = BoundsOnRatiosInThetaSketchedSets2.getEstimateOfBoverA(skA, skB);
-    double lb = BoundsOnRatiosInThetaSketchedSets2.getLowerBoundForBoverA(skA, skB);
-    double ub = BoundsOnRatiosInThetaSketchedSets2.getUpperBoundForBoverA(skA, skB);
+    double est = BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skB);
+    double lb = BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(skA, skB);
+    double ub = BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA(skA, skB);
     assertTrue(ub > est);
     assertTrue(est > lb);
     assertEquals(est, 0.5, .03);
@@ -54,16 +54,16 @@ public class BoundsOnRatiosInThetaSketchedSets2Test {
     println("est: " + est);
     println("lb : " + lb);
     skA.reset(); //skA is now empty
-    est = BoundsOnRatiosInThetaSketchedSets2.getEstimateOfBoverA(skA, skB);
-    lb = BoundsOnRatiosInThetaSketchedSets2.getLowerBoundForBoverA(skA, skB);
-    ub = BoundsOnRatiosInThetaSketchedSets2.getUpperBoundForBoverA(skA, skB);
+    est = BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skB);
+    lb = BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(skA, skB);
+    ub = BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA(skA, skB);
     println("ub : " + ub);
     println("est: " + est);
     println("lb : " + lb);
     skC.reset(); //Now both are empty
-    est = BoundsOnRatiosInThetaSketchedSets2.getEstimateOfBoverA(skA, skC);
-    lb = BoundsOnRatiosInThetaSketchedSets2.getLowerBoundForBoverA(skA, skC);
-    ub = BoundsOnRatiosInThetaSketchedSets2.getUpperBoundForBoverA(skA, skC);
+    est = BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skC);
+    lb = BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(skA, skC);
+    ub = BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA(skA, skC);
     println("ub : " + ub);
     println("est: " + est);
     println("lb : " + lb);
@@ -77,7 +77,7 @@ public class BoundsOnRatiosInThetaSketchedSets2Test {
     final int uC = 10000;
     for (int i = 0; i < uA; i++) { skA.update(i); }
     for (int i = 0; i < uC; i++) { skC.update(i + (uA / 2)); }
-    BoundsOnRatiosInThetaSketchedSets2.getEstimateOfBoverA(skA, skC);
+    BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skC);
   }
 
   @Test

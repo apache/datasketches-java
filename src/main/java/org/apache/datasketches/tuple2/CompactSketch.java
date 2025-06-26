@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple2;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
-import static org.apache.datasketches.thetacommon.HashOperations.count;
+import static org.apache.datasketches.thetacommon2.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;

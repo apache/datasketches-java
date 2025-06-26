@@ -274,7 +274,7 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void notEnoughMemory() {
+  public void memorySegmentNotLargeEnough() {
     new ArrayOfDoublesUpdatableSketchBuilder().
     setNominalEntries(32).build(MemorySegment.ofArray(new byte[1055]));
   }

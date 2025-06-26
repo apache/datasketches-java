@@ -45,7 +45,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -179,7 +179,7 @@ public class HeapQuickSelectSketchTest {
   }
 
   @Test
-  public void checkHeapifyMemoryEstimating() {
+  public void checkHeapifyMemorySegmentEstimating() {
     int k = 512;
     int u = 2*k; //thus estimating
     long seed = ThetaUtil.DEFAULT_UPDATE_SEED;

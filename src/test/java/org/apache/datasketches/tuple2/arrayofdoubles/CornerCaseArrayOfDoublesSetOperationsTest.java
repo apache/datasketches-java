@@ -23,7 +23,7 @@ import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 public class CornerCaseArrayOfDoublesSetOperationsTest {

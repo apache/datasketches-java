@@ -22,8 +22,8 @@ package org.apache.datasketches.tuple2;
 import static java.lang.Math.min;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.QuickSelect;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.QuickSelect;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Compute the union of two or more generic tuple sketches or generic tuple sketches combined with

@@ -24,6 +24,8 @@ import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
@@ -31,9 +33,8 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
-import org.apache.datasketches.tuple2.Util;
 
 /**
  * The on-heap implementation of tuple Compact Sketch of type ArrayOfDoubles.
@@ -62,7 +63,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     super(sketch.getNumValues());
     isEmpty_ = sketch.isEmpty();
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
-    seedHash_ = Util.computeSeedHash(sketch.getSeed());
+    seedHash_ = computeSeedHash(sketch.getSeed());
     final int count = sketch.getRetainedEntries();
     if (count > 0) {
       keys_ = new long[count];
@@ -133,7 +134,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
+    checkSeedHashes(seedHash_, computeSeedHash(seed));
     isEmpty_ = (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
     final boolean hasEntries =

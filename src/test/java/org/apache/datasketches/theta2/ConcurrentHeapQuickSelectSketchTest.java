@@ -34,7 +34,7 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -217,7 +217,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   }
 
   @Test
-  public void checkHeapifyMemoryEstimating() {
+  public void checkHeapifyMemorySegmentEstimating() {
     int lgK = 9;
     int k = 1 << lgK;
     int u = 2*k; //thus estimating

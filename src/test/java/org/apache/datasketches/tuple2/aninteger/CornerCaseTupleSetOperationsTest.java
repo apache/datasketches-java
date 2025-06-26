@@ -25,7 +25,7 @@ import static org.testng.Assert.assertTrue;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.theta2.UpdateSketch;
 import org.apache.datasketches.theta2.UpdateSketchBuilder;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.apache.datasketches.tuple2.AnotB;
 import org.apache.datasketches.tuple2.CompactSketch;
 import org.apache.datasketches.tuple2.Intersection;

@@ -22,11 +22,11 @@ package org.apache.datasketches.theta2;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
-import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets2.getEstimateOfBoverA;
-import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets2.getLowerBoundForBoverA;
-import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets2.getUpperBoundForBoverA;
+import static org.apache.datasketches.thetacommon2.BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA;
+import static org.apache.datasketches.thetacommon2.BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA;
+import static org.apache.datasketches.thetacommon2.BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Jaccard similarity of two Theta Sketches.

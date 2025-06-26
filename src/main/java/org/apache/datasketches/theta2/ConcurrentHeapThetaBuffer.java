@@ -27,7 +27,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon2.HashOperations;
 
 /**
  * This is a theta filtering, bounded size buffer that operates in the context of a single writing

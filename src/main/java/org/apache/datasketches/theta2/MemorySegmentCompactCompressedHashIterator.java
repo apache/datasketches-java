@@ -30,7 +30,7 @@ import org.apache.datasketches.common.Util;
 /*
  * This is to uncompress serial version 4 sketch incrementally
  */
-final class MemoryCompactCompressedHashIterator implements HashIterator, MemorySegmentStatus {
+final class MemorySegmentCompactCompressedHashIterator implements HashIterator, MemorySegmentStatus {
   private MemorySegment seg;
   private int offset;
   private int entryBits;
@@ -43,7 +43,7 @@ final class MemoryCompactCompressedHashIterator implements HashIterator, MemoryS
   private boolean isBlockMode;
   private boolean isFirstUnpack1;
 
-  MemoryCompactCompressedHashIterator(
+  MemorySegmentCompactCompressedHashIterator(
       final MemorySegment srcSeg,
       final int offset,
       final int entryBits,

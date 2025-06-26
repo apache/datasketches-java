@@ -34,7 +34,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * This class brings together the common sketch and set operation creation methods and
@@ -209,7 +209,7 @@ public final class Sketches {
    * Ref: {@link SetOperation#heapify(MemorySegment, long) SetOperation.heapify(MemorySegment, long)}
    * @param srcSeg Ref: {@link SetOperation#heapify(MemorySegment, long) SetOperation.heapify(MemorySegment, long)},
    * {@code srcSeg}
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * Ref: {@link SetOperation#heapify(MemorySegment, long) SetOperation.heapify(MemorySegment, long)},
    * {@code expectedSeed}
    * @return {@link SetOperation SetOperation}
@@ -302,8 +302,7 @@ public final class Sketches {
    * Ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(MemorySegment, long)}
    * @param srcSeg Ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(MemorySegment, long)}, {@code srcSeg}
    * @param expectedSeed the seed used to validate the given MemorySegment image.
-   * Ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(Memory, long)},
-   * {@code expectedSeed}
+   * Ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(MemorySegment, long)}, {@code expectedSeed}
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(final MemorySegment srcSeg, final long expectedSeed) {
@@ -364,7 +363,7 @@ public final class Sketches {
   static void checkIfValidThetaSketch(final MemorySegment srcSeg) {
     final int fam = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
     if (!Sketch.isValidSketchID(fam)) {
-     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: "
+     throw new SketchesArgumentException("Source MemorySegment not a valid Sketch. Family: "
          + Family.idToFamily(fam).toString());
     }
   }

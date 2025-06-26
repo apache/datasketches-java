@@ -38,8 +38,7 @@ import java.nio.ByteBuffer;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -203,7 +202,7 @@ public class UpdateSketchTest {
 
   @SuppressWarnings("unused")
   @Test
-  public void checkCompactOpsMemoryToCompact() {
+  public void checkCompactOpsMemorySegmentToCompact() {
     MemorySegment skwseg, cskwseg1, cskwseg2, cskwseg3;
     CompactSketch csk1, csk2, csk3;
     int lgK = 6;
@@ -217,8 +216,8 @@ public class UpdateSketchTest {
     cskwseg2 = MemorySegment.ofArray(new byte[cbytes]);
     cskwseg3 = MemorySegment.ofArray(new byte[cbytes]);
     csk1 = sk.compact(true, cskwseg1);
-    csk2 = CompactOperations.memoryToCompact(skwseg, true, cskwseg2);
-    csk3 = CompactOperations.memoryToCompact(cskwseg1, true, cskwseg3);
+    csk2 = CompactOperations.segmentToCompact(skwseg, true, cskwseg2);
+    csk3 = CompactOperations.segmentToCompact(cskwseg1, true, cskwseg3);
     assertTrue(equalContents(cskwseg1,cskwseg2));
     assertTrue(equalContents(cskwseg1, cskwseg3));
   }

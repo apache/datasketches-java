@@ -229,7 +229,7 @@ public class CompactSketchTest {
   private static final boolean COMPACT = true;
   private static final boolean EMPTY = true;
   private static final boolean DIRECT = true;
-  private static final boolean MEMORY = true;
+  private static final boolean SEGMENT = true;
   private static final boolean ORDERED = true;
   private static final boolean ESTIMATION = true;
 
@@ -237,12 +237,12 @@ public class CompactSketchTest {
   /**
    * Empty, segment-based Compact sketches are always ordered
    */
-  public void checkEmptyMemoryCompactSketch() {
+  public void checkEmptyMemorySegmentCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
 
     MemorySegment wseg1 = MemorySegment.ofArray(new byte[16]);
     CompactSketch csk1 = sk.compact(false, wseg1); //the first parameter is ignored when empty
-    State state1 = new State("DirectCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, MEMORY, ORDERED, !ESTIMATION);
+    State state1 = new State("DirectCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     MemorySegment wseg2 = MemorySegment.ofArray(new byte[16]);
@@ -260,7 +260,7 @@ public class CompactSketchTest {
     assertFalse(csk1 == csk3);
 
     CompactSketch csk4 = csk1.compact(false, null);
-    State state4 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
+    State state4 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state4.check(csk4);
 
     assertNotEquals(csk1, csk4); //different object because on heap
@@ -277,13 +277,13 @@ public class CompactSketchTest {
   /**
    * Single-Item, segment-based Compact sketches are always ordered:
    */
-  public void checkSingleItemMemoryCompactSketch() {
+  public void checkSingleItemMemorySegmentCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
 
     MemorySegment wseg1 = MemorySegment.ofArray(new byte[16]);
     CompactSketch csk1 = sk.compact(false, wseg1); //the first parameter is ignored when single item
-    State state1 = new State("DirectCompactSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, MEMORY, ORDERED, !ESTIMATION);
+    State state1 = new State("DirectCompactSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     MemorySegment wseg2 = MemorySegment.ofArray(new byte[16]);
@@ -308,7 +308,7 @@ public class CompactSketchTest {
   }
 
   @Test
-  public void checkMultipleItemMemoryCompactSketch() {
+  public void checkMultipleItemMemorySegmentCompactSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     //This sequence is naturally out-of-order by the hash values.
     sk.update(1);
@@ -317,12 +317,12 @@ public class CompactSketchTest {
 
     MemorySegment wseg1 = MemorySegment.ofArray(new byte[50]);
     CompactSketch csk1 = sk.compact(true, wseg1);
-    State state1 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, MEMORY, ORDERED, !ESTIMATION);
+    State state1 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     MemorySegment wseg2 = MemorySegment.ofArray(new byte[50]);
     CompactSketch csk2 = sk.compact(false, wseg2);
-    State state2 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, MEMORY, !ORDERED, !ESTIMATION);
+    State state2 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, SEGMENT, !ORDERED, !ESTIMATION);
     state2.check(csk2);
 
     assertNotEquals(csk1, csk2); //different object because segment is valid
@@ -351,7 +351,7 @@ public class CompactSketchTest {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
 
     CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when empty
-    State state1 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
+    State state1 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     CompactSketch csk2 = sk.compact(false, null); //the first parameter is ignored when empty
@@ -382,7 +382,7 @@ public class CompactSketchTest {
     sk.update(1);
 
     CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when single item
-    State state1 = new State("SingleItemSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
+    State state1 = new State("SingleItemSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     CompactSketch csk2 = sk.compact(false, null); //the first parameter is ignored when single item
@@ -413,11 +413,11 @@ public class CompactSketchTest {
     sk.update(3);
 
     CompactSketch csk1 = sk.compact(true, null); //creates a new object
-    State state1 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !MEMORY, ORDERED, !ESTIMATION);
+    State state1 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     CompactSketch csk2 = sk.compact(false, null); //creates a new object, unordered
-    State state2 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !MEMORY, !ORDERED, !ESTIMATION);
+    State state2 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !SEGMENT, !ORDERED, !ESTIMATION);
     state2.check(csk2);
 
     assertNotEquals(csk1, csk2); //order is different and different objects

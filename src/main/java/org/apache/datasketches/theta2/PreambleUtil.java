@@ -34,7 +34,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 //@formatter:off
 
@@ -227,12 +227,12 @@ final class PreambleUtil {
   }
 
   /**
-   * Returns a human readable string summary of the preamble state of the given Memory.
-   * Note: other than making sure that the given Memory size is large
+   * Returns a human readable string summary of the preamble state of the given MemorySegment.
+   * Note: other than making sure that the given MemorySegment size is large
    * enough for just the preamble, this does not do much value checking of the contents of the
    * preamble as this is primarily a tool for debugging the preamble visually.
    *
-   * @param seg the given Memory.
+   * @param seg the given MemorySegment.
    * @return the summary preamble string.
    */
   static String preambleToString(final MemorySegment seg) {
@@ -498,7 +498,7 @@ final class PreambleUtil {
   }
 
   /**
-   * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
+   * Checks MemorySegment for capacity to hold the preamble and returns the extracted preLongs.
    * @param seg the given MemorySegment
    * @return the extracted prelongs value.
    */
@@ -523,7 +523,7 @@ final class PreambleUtil {
 
   private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap
+        "Possible Corruption: Size of byte array or MemorySegment not large enough: Size: " + cap
         + ", Required: " + required);
   }
 

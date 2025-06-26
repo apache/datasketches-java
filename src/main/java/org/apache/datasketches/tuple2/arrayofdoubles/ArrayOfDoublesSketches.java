@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple2.arrayofdoubles;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Convenient static methods to instantiate tuple sketches of type ArrayOfDoubles.

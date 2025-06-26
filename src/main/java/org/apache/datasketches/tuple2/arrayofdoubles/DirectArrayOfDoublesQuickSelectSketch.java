@@ -25,6 +25,8 @@ import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 import static org.apache.datasketches.common.Util.clear;
 import static org.apache.datasketches.common.Util.clearBits;
 import static org.apache.datasketches.common.Util.setBits;
@@ -36,7 +38,7 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon2.HashOperations;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
 import org.apache.datasketches.tuple2.Util;
 
@@ -78,7 +80,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       final int numValues,
       final long seed,
       final MemorySegment dstSeg) {
-    this(checkMemory(nomEntries, lgResizeFactor, numValues, dstSeg),
+    this(checkMemorySegment(nomEntries, lgResizeFactor, numValues, dstSeg),
     //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
     //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
         nomEntries,
@@ -112,7 +114,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       | (1 << Flags.IS_EMPTY.ordinal())
     ));
     seg_.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues);
-    seg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, Util.computeSeedHash(seed));
+    seg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, computeSeedHash(seed));
     thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
     seg_.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     seg_.set(JAVA_BYTE, LG_NOM_ENTRIES_BYTE, (byte) Integer.numberOfTrailingZeros(nomEntries));
@@ -127,13 +129,13 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     setRebuildThreshold();
   }
 
-  private static final boolean checkMemory(
+  private static final boolean checkMemorySegment(
       final int nomEntries,
       final int lgResizeFactor,
       final int numValues,
       final MemorySegment dstSeg) {
     final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
-    checkIfEnoughMemory(dstSeg, startingCapacity, numValues);
+    checkMemorySegmentSize(dstSeg, startingCapacity, numValues);
     return true;
   }
 
@@ -161,7 +163,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     SerializerDeserializer.validateType(seg_.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
 
-    Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), computeSeedHash(seed));
     keysOffset_ = ENTRIES_START;
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * getCurrentCapacity());
     // to do: make parent take care of its own parts
@@ -186,7 +188,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  //converts Memory hashTable of double[] to compacted double[][]
+  //converts MemorySegment hashTable of double[] to compacted double[][]
   public double[][] getValues() {
     final int count = getRetainedEntries();
     final double[][] values = new double[count][];
@@ -377,11 +379,11 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     return (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_IN_SAMPLING_MODE.ordinal())) != 0;
   }
 
-  // rebuild in the same memory
+  // rebuild in the same MemorySegment
   @Override
   protected void rebuild(final int newCapacity) {
     final int numValues = getNumValues();
-    checkIfEnoughMemory(seg_, newCapacity, numValues);
+    checkMemorySegmentSize(seg_, newCapacity, numValues);
     final int currCapacity = getCurrentCapacity();
     final long[] keys = new long[currCapacity];
     final double[] values = new double[currCapacity * numValues];
@@ -403,17 +405,17 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   @Override
   protected int insertKey(final long key) {
-    return HashOperations.hashInsertOnlyMemory(seg_, lgCurrentCapacity_, key, ENTRIES_START);
+    return HashOperations.hashInsertOnlyMemorySegment(seg_, lgCurrentCapacity_, key, ENTRIES_START);
   }
 
   @Override
   protected int findOrInsertKey(final long key) {
-    return HashOperations.hashSearchOrInsertMemory(seg_, lgCurrentCapacity_, key, ENTRIES_START);
+    return HashOperations.hashSearchOrInsertMemorySegment(seg_, lgCurrentCapacity_, key, ENTRIES_START);
   }
 
   @Override
   protected double[] find(final long key) {
-    final int index = HashOperations.hashSearchMemory(seg_, lgCurrentCapacity_, key, ENTRIES_START);
+    final int index = HashOperations.hashSearchMemorySegment(seg_, lgCurrentCapacity_, key, ENTRIES_START);
     if (index == -1) { return null; }
     final double[] array = new double[numValues_];
     MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, valuesOffset_
@@ -421,11 +423,11 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     return array;
   }
 
-  private static void checkIfEnoughMemory(final MemorySegment seg, final int numEntries, final int numValues) {
+  private static void checkMemorySegmentSize(final MemorySegment seg, final int numEntries, final int numValues) {
     final int sizeNeeded =
         ENTRIES_START + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues)) * numEntries);
     if (sizeNeeded > seg.byteSize()) {
-      throw new SketchesArgumentException("Not enough memory: need "
+      throw new SketchesArgumentException("Not enough space: need "
           + sizeNeeded + " bytes, got " + seg.byteSize() + " bytes");
     }
   }

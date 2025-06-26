@@ -31,7 +31,7 @@ import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class ReadOnlyMemoryTest {
+public class ReadOnlyMemorySegmentTest {
 
   @Test
   public void wrapAndTryUpdatingUpdateSketch() {

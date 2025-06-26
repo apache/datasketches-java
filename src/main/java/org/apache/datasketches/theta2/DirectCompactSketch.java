@@ -22,7 +22,7 @@ package org.apache.datasketches.theta2;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.theta2.CompactOperations.checkIllegalCurCountAndEmpty;
-import static org.apache.datasketches.theta2.CompactOperations.memoryToCompact;
+import static org.apache.datasketches.theta2.CompactOperations.segmentToCompact;
 import static org.apache.datasketches.theta2.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta2.PreambleUtil.extractFlags;
@@ -34,7 +34,7 @@ import static org.apache.datasketches.theta2.SingleItemSketch.otherCheckForSingl
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * An off-heap (Direct), compact, read-only sketch. The internal hash array can be either ordered
@@ -76,7 +76,7 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
-    return memoryToCompact(seg_, dstOrdered, dstSeg);
+    return segmentToCompact(seg_, dstOrdered, dstSeg);
   }
 
   @Override
@@ -132,7 +132,7 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new MemoryHashIterator(seg_, getRetainedEntries(true), getThetaLong());
+    return new MemorySegmentHashIterator(seg_, getRetainedEntries(true), getThetaLong());
   }
 
   @Override

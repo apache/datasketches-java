@@ -158,7 +158,7 @@ final class ForwardCompatibility {
   private static final void validateInputSize(final int reqBytesIn, final int segCap) {
     if (reqBytesIn > segCap) {
       throw new SketchesArgumentException(
-        "Input Memory or byte[] size is too small: Required Bytes: " + reqBytesIn
+        "Input MemorySegment or byte[] size is too small: Required Bytes: " + reqBytesIn
           + ", bytesIn: " + segCap);
     }
   }

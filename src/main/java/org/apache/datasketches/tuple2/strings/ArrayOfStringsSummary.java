@@ -48,7 +48,7 @@ public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     checkNumNodes(stringArr.length);
   }
 
-  //used by fromMemory and in test
+  //used by fromMemorySegment and in test
   /**
    * This reads a MemorySegment that has a layout similar to the C struct:
    * {@snippet :
@@ -154,7 +154,7 @@ public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   //also used in test
   static void checkInBytes(final MemorySegment seg, final int totBytes) {
     if (seg.byteSize() < totBytes) {
-      throw new SketchesArgumentException("Incoming Memory has insufficient capacity.");
+      throw new SketchesArgumentException("Incoming MemorySegment has insufficient capacity.");
     }
   }
 

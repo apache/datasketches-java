@@ -34,7 +34,7 @@ import java.nio.ByteOrder;
 import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 public class UnionImplTest {
@@ -66,7 +66,7 @@ public class UnionImplTest {
   }
 
   @Test
-  public void checkUnorderedAndOrderedMemory() {
+  public void checkUnorderedAndOrderedMemorySegment() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();

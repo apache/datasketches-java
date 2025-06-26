@@ -25,7 +25,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.NUM_ENTRIES_BYTES_BYTE
 import static org.apache.datasketches.theta2.PreambleUtil.PREAMBLE_LONGS_BYTE;
 
 import org.apache.datasketches.common.ByteArrayUtil;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Wrapper around a serialized compact compressed read-only sketch. It is not empty, not a single item.

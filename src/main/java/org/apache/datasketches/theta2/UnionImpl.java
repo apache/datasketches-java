@@ -26,7 +26,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.clearEmpty;
 import static org.apache.datasketches.theta2.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta2.PreambleUtil.extractUnionThetaLong;
 import static org.apache.datasketches.theta2.PreambleUtil.insertUnionThetaLong;
-import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
+import static org.apache.datasketches.thetacommon2.QuickSelect.selectExcludingZeros;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
@@ -34,8 +34,8 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.HashOperations;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Shared code for the HeapUnion and DirectUnion implementations.
@@ -279,7 +279,7 @@ final class UnionImpl extends Union {
       gadget_.hashUpdate(sketchIn.getCache()[0]);
       return;
     }
-    Sketch.checkSketchAndMemoryFlags(sketchIn);
+    Sketch.checkSketchAndMemorySegmentFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
     unionEmpty_ = false;

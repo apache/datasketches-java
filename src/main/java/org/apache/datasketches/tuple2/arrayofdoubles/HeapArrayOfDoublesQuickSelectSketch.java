@@ -27,6 +27,8 @@ import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
+import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
@@ -35,7 +37,7 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon2.HashOperations;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
 import org.apache.datasketches.tuple2.Util;
 
@@ -103,7 +105,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     lgNomEntries_ = seg.get(JAVA_BYTE, LG_NOM_ENTRIES_BYTE);
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
@@ -244,7 +246,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
       | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     seg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
-    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, Util.computeSeedHash(seed_));
+    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, computeSeedHash(seed_));
     seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     seg.set(JAVA_BYTE, LG_NOM_ENTRIES_BYTE, (byte) lgNomEntries_);
     seg.set(JAVA_BYTE, LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(keys_.length));

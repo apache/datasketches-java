@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple2;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * For building a new generic tuple UpdatableSketch

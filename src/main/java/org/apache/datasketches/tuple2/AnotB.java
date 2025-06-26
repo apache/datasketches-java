@@ -21,8 +21,8 @@ package org.apache.datasketches.tuple2;
 
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
-import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
-import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
+import static org.apache.datasketches.thetacommon2.HashOperations.convertToHashTable;
+import static org.apache.datasketches.thetacommon2.HashOperations.hashSearch;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -30,10 +30,10 @@ import java.util.Arrays;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.thetacommon.SetOperationCornerCases;
-import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
-import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.SetOperationCornerCases;
+import org.apache.datasketches.thetacommon2.SetOperationCornerCases.AnotbAction;
+import org.apache.datasketches.thetacommon2.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two generic tuple sketches.

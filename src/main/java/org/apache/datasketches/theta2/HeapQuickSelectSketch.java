@@ -36,14 +36,14 @@ import static org.apache.datasketches.theta2.UpdateReturnState.InsertedCountIncr
 import static org.apache.datasketches.theta2.UpdateReturnState.InsertedCountIncrementedResized;
 import static org.apache.datasketches.theta2.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta2.UpdateReturnState.RejectedOverTheta;
-import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
+import static org.apache.datasketches.thetacommon2.QuickSelect.selectExcludingZeros;
 
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.HashOperations;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * @author Lee Rhodes

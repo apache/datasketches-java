@@ -26,7 +26,7 @@ import org.apache.datasketches.common.SketchesReadOnlyException;
 final class DirectArrayOfDoublesUnionR extends DirectArrayOfDoublesUnion {
 
   /**
-   * Wraps the given Memory.
+   * Wraps the given MemorySegment.
    * @param gadget the ArrayOfDoublesQuickSelectSketch
    * @param seg the destination MemorySegment
    */

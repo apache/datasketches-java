@@ -50,7 +50,7 @@ import java.util.Objects;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The parent class for the  Update Sketch families, such as QuickSelect and Alpha.
@@ -67,7 +67,7 @@ public abstract class UpdateSketch extends Sketch {
   * Wrap takes the writable sketch image in MemorySegment and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
   * been explicitly stored as writable, direct objects can be wrapped. This method assumes the
-  * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
+  * {@link org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcWSeg an image of a writable sketch where the image seed hash matches the default seed hash.
   * It must have a size of at least 24 bytes.
@@ -111,7 +111,7 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Instantiates an on-heap UpdateSketch from a MemorySegment. This method assumes the
-   * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
+   * {@link org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_UPDATE_SEED}.
    * @param srcSeg the given MemorySegment with a sketch image.
    * It must have a size of at least 24 bytes.
    * @return an UpdateSketch
@@ -129,7 +129,7 @@ public abstract class UpdateSketch extends Sketch {
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
-    Objects.requireNonNull(srcSeg, "Source Memory must not be null");
+    Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
     checkBounds(0, 24, srcSeg.byteSize()); //need min 24 bytes
     final Family family = Family.idToFamily(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
     if (family.equals(Family.ALPHA)) {
@@ -415,7 +415,7 @@ public abstract class UpdateSketch extends Sketch {
     //Check lgNomLongs
     if (lgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory lgNomLongs < min required size: "
+          "Possible corruption: Current MemorySegment lgNomLongs < min required size: "
               + lgNomLongs + " < " + ThetaUtil.MIN_LG_NOM_LONGS);
     }
   }
@@ -448,7 +448,7 @@ public abstract class UpdateSketch extends Sketch {
     final int minReqBytes = getSegBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory size < min required size: "
+          "Possible corruption: Current MemorySegment size < min required size: "
               + curCapBytes + " < " + minReqBytes);
     }
     //check Theta, p
@@ -464,12 +464,12 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   /**
-   * This checks to see if the memory RF factor was set correctly as early versions may not
+   * This checks to see if the MemorySegment RF factor was set correctly as early versions may not
    * have set it.
    * @param srcSeg the source MemorySegment
    * @param lgNomLongs the current lgNomLongs
    * @param lgArrLongs the current lgArrLongs
-   * @return true if the the memory RF factor is incorrect and the caller can either
+   * @return true if the the MemorySegment RF factor is incorrect and the caller can either
    * correct it or throw an error.
    */
   static boolean isResizeFactorIncorrect(final MemorySegment srcSeg, final int lgNomLongs,

@@ -45,8 +45,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-//import org.apache.datasketches.theta2.Skectches;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -332,7 +331,7 @@ public class SketchTest {
     DirectCompactSketch dcos = (DirectCompactSketch) sketch.compact(true, cseg);
     assertTrue(isSameResource(dcos.getMemorySegment(),  cseg));
     assertTrue(dcos.isOrdered());
-    //never create 2 sketches with the same memory, so don't do as I do :)
+    //never create 2 sketches with the same MemorySegment, so don't do as I do :)
     DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cseg);
     assertTrue(isSameResource(dcs.getMemorySegment(), cseg));
     assertFalse(dcs.isOrdered());
@@ -353,7 +352,7 @@ public class SketchTest {
     assertEquals(count, k);
   }
 
-  private static MemorySegment createCompactSketchMemory(int k, int u) {
+  private static MemorySegment createCompactSketchMemorySegment(int k, int u) {
     UpdateSketch usk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < u; i++) { usk.update(i); }
     int bytes = Sketch.getMaxCompactSketchBytes(usk.getRetainedEntries(true));
@@ -364,7 +363,7 @@ public class SketchTest {
 
   @Test
   public void checkCompactFlagsOnWrap() {
-    MemorySegment wseg = createCompactSketchMemory(16, 32);
+    MemorySegment wseg = createCompactSketchMemorySegment(16, 32);
     Sketch sk = Sketch.wrap(wseg);
     assertTrue(sk instanceof CompactSketch);
     int flags = PreambleUtil.extractFlags(wseg);
@@ -392,7 +391,7 @@ public class SketchTest {
 
   @Test
   public void checkCompactSizeAndFlagsOnHeapify() {
-    MemorySegment wseg = createCompactSketchMemory(16, 32);
+    MemorySegment wseg = createCompactSketchMemorySegment(16, 32);
     Sketch sk = Sketch.heapify(wseg);
     assertTrue(sk instanceof CompactSketch);
     int flags = PreambleUtil.extractFlags(wseg);

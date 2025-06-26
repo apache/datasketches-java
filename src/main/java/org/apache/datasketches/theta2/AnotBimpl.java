@@ -20,17 +20,17 @@
 package org.apache.datasketches.theta2;
 
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
-import static org.apache.datasketches.thetacommon.HashOperations.checkThetaCorruption;
-import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
-import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
-import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsert;
-import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
+import static org.apache.datasketches.thetacommon2.HashOperations.checkThetaCorruption;
+import static org.apache.datasketches.thetacommon2.HashOperations.continueCondition;
+import static org.apache.datasketches.thetacommon2.HashOperations.hashSearch;
+import static org.apache.datasketches.thetacommon2.HashOperations.hashSearchOrInsert;
+import static org.apache.datasketches.thetacommon2.HashOperations.minLgHashTableSize;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Implements the A-and-not-B operations.

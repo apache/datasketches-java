@@ -37,7 +37,7 @@ import static org.apache.datasketches.theta2.UpdateReturnState.InsertedCountIncr
 import static org.apache.datasketches.theta2.UpdateReturnState.InsertedCountNotIncremented;
 import static org.apache.datasketches.theta2.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta2.UpdateReturnState.RejectedOverTheta;
-import static org.apache.datasketches.thetacommon.HashOperations.STRIDE_MASK;
+import static org.apache.datasketches.thetacommon2.HashOperations.STRIDE_MASK;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Objects;
@@ -45,8 +45,8 @@ import java.util.Objects;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.HashOperations;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * This sketch uses the

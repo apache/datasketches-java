@@ -49,7 +49,7 @@ public class ArrayOfStringsSummaryTest {
       println(s);
     }
 
-    println("\nfromMemory(seg)");
+    println("\nfromMemorySegment(seg)");
     DeserializeResult<ArrayOfStringsSummary> dres = ArrayOfStringsSummaryDeserializer.fromMemorySegment(seg);
     ArrayOfStringsSummary nsum3 = dres.getObject();
     nodesArr = nsum3.getValue();

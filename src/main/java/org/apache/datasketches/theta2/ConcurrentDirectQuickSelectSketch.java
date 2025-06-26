@@ -64,7 +64,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   private volatile long epoch_;
 
   /**
-   * Construct a new sketch instance and initialize the given Memory as its backing store.
+   * Construct a new sketch instance and initialize the given MemorySegment as its backing store.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.

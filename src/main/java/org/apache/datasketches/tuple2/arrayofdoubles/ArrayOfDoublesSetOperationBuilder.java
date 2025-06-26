@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple2.arrayofdoubles;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Builds set operations object for tuple sketches of type ArrayOfDoubles.
@@ -84,7 +84,7 @@ public class ArrayOfDoublesSetOperationBuilder {
 
   /**
    * Creates an instance of ArrayOfDoublesUnion based on the current configuration of the builder.
-   * The new instance is allocated on the heap if the memory is not provided.
+   * The new instance is allocated on the heap.
    * @return an instance of ArrayOfDoublesUnion
    */
   public ArrayOfDoublesUnion buildUnion() {
@@ -104,7 +104,7 @@ public class ArrayOfDoublesSetOperationBuilder {
   /**
    * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the
    * builder.
-   * The new instance is allocated on the heap if the memory is not provided.
+   * The new instance is allocated on the heap.
    * The number of nominal entries is not relevant to this, so it is ignored.
    * @return an instance of ArrayOfDoublesIntersection
    */
@@ -113,9 +113,8 @@ public class ArrayOfDoublesSetOperationBuilder {
   }
 
   /**
-   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the
-   * builder.
-   * The new instance is allocated on the heap if the MemorySegment is not provided.
+   * Creates an instance of ArrayOfDoublesIntersection in the given MemorySegment and based on the
+   * current configuration of the builder.
    * The number of nominal entries is not relevant to this, so it is ignored.
    * @param dstSeg destination MemorySegment to be used by the sketch
    * @return an instance of ArrayOfDoublesIntersection
@@ -126,7 +125,6 @@ public class ArrayOfDoublesSetOperationBuilder {
 
   /**
    * Creates an instance of ArrayOfDoublesAnotB based on the current configuration of the builder.
-   * The memory is not relevant to this, so it is ignored if set.
    * The number of nominal entries is not relevant to this, so it is ignored.
    * @return an instance of ArrayOfDoublesAnotB
    */

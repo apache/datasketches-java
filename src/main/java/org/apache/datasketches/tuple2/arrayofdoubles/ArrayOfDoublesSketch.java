@@ -23,8 +23,8 @@ import static org.apache.datasketches.common.Util.LS;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.thetacommon.BinomialBoundsN;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.BinomialBoundsN;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
 
 /**

@@ -74,7 +74,7 @@ public class IntegerSummary implements UpdatableSummary<Integer> {
    * @return DeserializedResult object, which contains a IntegerSummary object and number of bytes
    * read from the MemorySegment
    */
-  public static DeserializeResult<IntegerSummary> fromMemory(final MemorySegment seg) {
+  public static DeserializeResult<IntegerSummary> fromMemorySegment(final MemorySegment seg) {
     return new DeserializeResult<>(new IntegerSummary(seg.get(JAVA_INT_UNALIGNED, VALUE_INDEX)), SERIALIZED_SIZE_BYTES);
   }
 

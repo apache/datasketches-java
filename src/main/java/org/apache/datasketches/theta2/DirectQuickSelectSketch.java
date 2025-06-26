@@ -62,15 +62,15 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.HashOperations;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * The default Theta Sketch using the QuickSelect algorithm.
  * This subclass implements methods, which affect the state (update, rebuild, reset)
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  *
  * @author Lee Rhodes
@@ -91,11 +91,8 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @param p
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @param rf Currently internally fixed at 2. Unless dstSeg is not configured with a valid
-   * MemoryRequest, in which case the rf is effectively 1, which is no resizing at all and the
-   * dstSeg must be large enough for a full sketch.
+   * @param rf Resize Factor
    * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @param memReqSvr the given MemoryRequestServer
    * @param dstSeg the given MemorySegment object destination. It cannot be null.
    * It will be cleared prior to use.
    * @param unionGadget true if this sketch is implementing the Union gadget function.
@@ -213,7 +210,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
   /**
    * Fast-wrap a sketch around the given source MemorySegment containing sketch data that originated from
-   * this sketch.  This does NO validity checking of the given Memory.
+   * this sketch.  This does NO validity checking of the given MemorySegment.
    * @param srcSeg The given MemorySegment must be in hash table form and not read only.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return instance of this sketch
@@ -279,7 +276,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     //The duplicate test
     final int index =
-        HashOperations.hashSearchOrInsertMemory(wseg_, lgArrLongs, hash, preambleLongs << 3);
+        HashOperations.hashSearchOrInsertMemorySegment(wseg_, lgArrLongs, hash, preambleLongs << 3);
     if (index >= 0) {
       return RejectedDuplicate; //Duplicate, not inserted
     }
@@ -302,15 +299,15 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
         final int actLgRF = actLgResizeFactor(wseg_.byteSize(), lgArrLongs, preambleLongs, lgRF);
         int tgtLgArrLongs = Math.min(lgArrLongs + actLgRF, lgNomLongs + 1);
 
-        if (actLgRF > 0) { //Expand in current Memory
+        if (actLgRF > 0) { //Expand in current MemorySegment
           //lgArrLongs will change; thetaLong, curCount will not
           resize(wseg_, preambleLongs, lgArrLongs, tgtLgArrLongs);
           hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, tgtLgArrLongs);
           return InsertedCountIncrementedResized;
-        } //end of Expand in current memory, exit.
+        } //end of Expand in current MemorySegment, exit.
 
         else {
-          //Request more memory, then resize. lgArrLongs will change; thetaLong, curCount will not
+          //Request more space, then resize. lgArrLongs will change; thetaLong, curCount will not
           final int preBytes = preambleLongs << 3;
           tgtLgArrLongs = Math.min(lgArrLongs + lgRF, lgNomLongs + 1);
           final int tgtArrBytes = 8 << tgtLgArrLongs;
@@ -322,7 +319,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
           hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, tgtLgArrLongs);
           return InsertedCountIncrementedResized;
-        } //end of Request more memory to resize
+        } //end of Request more space to resize
       } //end of resize
     } //end of isOutOfSpace
     return InsertedCountIncremented;

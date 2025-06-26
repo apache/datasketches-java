@@ -26,19 +26,18 @@ import static org.testng.Assert.assertTrue;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
-import org.apache.datasketches.tuple.Util;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("resource")
 public class HeapifyWrapSerVer1and2Test {
-  private static final short defaultSeedHash = Util.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
+  private static final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
 
   @Test
   public void checkHeapifyCompactSketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -68,7 +67,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkHeapifyCompactSketchAssumedDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -98,7 +97,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkHeapifyCompactSketchGivenDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -128,7 +127,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkHeapifyCompactSketchGivenDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -158,7 +157,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkHeapifySketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -188,7 +187,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkHeapifySketchAssumedDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -218,7 +217,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkHeapifySketchGivenDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -248,7 +247,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkHeapifySketchGivenDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
@@ -278,7 +277,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapCompactSketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
@@ -317,7 +316,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapCompactSketchAssumedDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
@@ -356,7 +355,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapCompactSketchGivenDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
@@ -395,7 +394,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapCompactSketchGivenDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
@@ -434,7 +433,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapSketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
@@ -473,7 +472,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapSketchAssumedDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
@@ -512,7 +511,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapSketchGivenDefaultSeed() {
     final int k = 64;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
@@ -551,7 +550,7 @@ public class HeapifyWrapSerVer1and2Test {
   public void checkWrapSketchGivenDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;

@@ -22,7 +22,7 @@ package org.apache.datasketches.theta2;
 import static org.apache.datasketches.common.ByteArrayUtil.getIntLE;
 import static org.apache.datasketches.common.ByteArrayUtil.getLongLE;
 import static org.apache.datasketches.common.ByteArrayUtil.getShortLE;
-import static org.apache.datasketches.theta2.CompactOperations.memoryToCompact;
+import static org.apache.datasketches.theta2.CompactOperations.segmentToCompact;
 import static org.apache.datasketches.theta2.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta2.PreambleUtil.ORDERED_FLAG_MASK;
@@ -34,7 +34,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.THETA_LONG;
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * Wrapper around a serialized compact read-only sketch. It is not empty, not a single item.
@@ -53,7 +53,7 @@ class WrappedCompactSketch extends CompactSketch {
   }
 
   /**
-   * Wraps the given Memory, which must be a SerVer 3 CompactSketch image.
+   * Wraps the given byteArray, which must be a SerVer 3 CompactSketch image.
    * @param bytes representation of serialized compressed compact sketch.
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
@@ -68,7 +68,7 @@ class WrappedCompactSketch extends CompactSketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
-    return memoryToCompact(MemorySegment.ofArray(bytes_), dstOrdered, dstSeg);
+    return segmentToCompact(MemorySegment.ofArray(bytes_), dstOrdered, dstSeg);
   }
 
   @Override

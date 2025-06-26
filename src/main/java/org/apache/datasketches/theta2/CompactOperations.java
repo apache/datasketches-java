@@ -93,7 +93,7 @@ final class CompactOperations {
       flags |= single ? SINGLEITEM_FLAG_MASK : 0;
 
       final MemorySegment seg =
-          loadCompactMemory(hashArrOut, seedHash, curCount, thetaLong, dstWSeg, (byte)flags, preLongs);
+          loadCompactMemorySegment(hashArrOut, seedHash, curCount, thetaLong, dstWSeg, (byte)flags, preLongs);
       return new DirectCompactSketch(seg);
 
     } else { //Heap
@@ -116,7 +116,7 @@ final class CompactOperations {
    * @return a CompactSketch of the correct form.
    */
   @SuppressWarnings("unused")
-  static CompactSketch memoryToCompact(
+  static CompactSketch segmentToCompact(
       final MemorySegment srcSeg,
       final boolean dstOrdered,
       final MemorySegment dstWSeg)
@@ -187,7 +187,7 @@ final class CompactOperations {
 
     //load the destination.
     if (dstWSeg != null) {
-      final MemorySegment tgtSeg = loadCompactMemory(hashArr, srcSeedHash, curCount, thetaLong, dstWSeg,
+      final MemorySegment tgtSeg = loadCompactMemorySegment(hashArr, srcSeedHash, curCount, thetaLong, dstWSeg,
           (byte)flagsOut, srcPreLongs);
       return new DirectCompactSketch(tgtSeg);
     } else { //heap
@@ -215,9 +215,9 @@ final class CompactOperations {
   }
 
   //All arguments must be valid and correct including flags.
-  // Used as helper to create byte arrays as well as loading Memory for direct compact sketches
+  // Used as helper to create byte arrays as well as loading MemorySegment for direct compact sketches
   //Input must be writable, return can be Read Only
-  static final MemorySegment loadCompactMemory(
+  static final MemorySegment loadCompactMemorySegment(
       final long[] compactHashArr,
       final short seedHash,
       final int curCount,
@@ -231,12 +231,12 @@ final class CompactOperations {
     final int outBytes = outLongs << 3;
     final int dstBytes = (int) dstWSeg.byteSize();
     if (outBytes > dstBytes) {
-      throw new SketchesArgumentException("Insufficient Memory: " + dstBytes
+      throw new SketchesArgumentException("Insufficient Space in MemorySegment: " + dstBytes
         + ", Need: " + outBytes);
     }
     final byte famID = (byte) Family.COMPACT.getID();
 
-    //Caution: The following loads directly into Memory without creating a heap byte[] first,
+    //Caution: The following loads directly into a MemorySegment without creating a heap byte[] first,
     // which would act as a pre-clearing, initialization mechanism. So it is important to make sure
     // that all fields are initialized, even those that are not used by the CompactSketch.
     // Otherwise, uninitialized fields could be filled with off-heap garbage, which could cause

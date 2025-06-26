@@ -24,7 +24,7 @@ import static org.apache.datasketches.theta2.CompactOperations.componentsToCompa
 import static org.apache.datasketches.theta2.CompactOperations.computeCompactPreLongs;
 import static org.apache.datasketches.theta2.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta2.CompactOperations.isSingleItem;
-import static org.apache.datasketches.theta2.CompactOperations.loadCompactMemory;
+import static org.apache.datasketches.theta2.CompactOperations.loadCompactMemorySegment;
 import static org.apache.datasketches.theta2.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.ORDERED_FLAG_MASK;
@@ -133,7 +133,7 @@ final class HeapCompactSketch extends CompactSketch {
     return seedHash_;
   }
 
-  //use of Memory is convenient. The byteArray and Memory are loaded simultaneously.
+  //use of a MemorySegment is convenient. The byteArray and MemorySegment are loaded simultaneously.
   @Override
   public byte[] toByteArray() {
     final int bytes = getCurrentBytes();
@@ -145,7 +145,7 @@ final class HeapCompactSketch extends CompactSketch {
     final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK
         | orderedBit | singleItemBit);
     final int preLongs = getCompactPreambleLongs();
-    loadCompactMemory(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
+    loadCompactMemorySegment(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
         dstSeg, flags, preLongs);
     return byteArray;
   }
