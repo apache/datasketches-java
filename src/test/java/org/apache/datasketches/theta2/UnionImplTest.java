@@ -128,10 +128,10 @@ public class UnionImplTest {
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(srcSeg);
     for (int i = 0; i < k; i++) { union.update(i); } //exact
     assertEquals(union.getResult().getEstimate(), k, 0.0);
-    final Union union2 = UnionImpl.fastWrap(srcSeg, seed);
+    final Union union2 = UnionImpl.fastWrapInstance(srcSeg, seed);
     assertEquals(union2.getResult().getEstimate(), k, 0.0);
     final MemorySegment srcSegR = srcSeg;
-    final Union union3 = UnionImpl.fastWrap(srcSegR, seed);
+    final Union union3 = UnionImpl.fastWrapInstance(srcSegR, seed);
     assertEquals(union3.getResult().getEstimate(), k, 0.0);
   }
 

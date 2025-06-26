@@ -106,8 +106,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final int lgNomLongs = srcSeg.get(JAVA_BYTE, LG_NOM_LONGS_BYTE) & 0XFF;
     final int lgArrLongs = srcSeg.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
 
-    final DirectQuickSelectSketchR dqss =
-        new DirectQuickSelectSketchR(seed, srcSeg);
+    final DirectQuickSelectSketchR dqss = new DirectQuickSelectSketchR(seed, srcSeg);
     dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }

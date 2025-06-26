@@ -138,7 +138,7 @@ final class UnionImpl extends Union {
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl fastWrap(final MemorySegment srcSeg, final long expectedSeed) {
+  static UnionImpl fastWrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
     final UpdateSketch gadget = srcSeg.isReadOnly()
         ? DirectQuickSelectSketchR.fastReadOnlyWrap(srcSeg, expectedSeed)

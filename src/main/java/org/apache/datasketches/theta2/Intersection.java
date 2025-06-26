@@ -19,9 +19,11 @@
 
 package org.apache.datasketches.theta2;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.theta2.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta2.PreambleUtil.SER_VER;
+import static org.apache.datasketches.theta2.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta2.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta2.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta2.PreambleUtil.extractFlags;
@@ -134,6 +136,32 @@ public abstract class Intersection extends SetOperation {
    */
   public abstract CompactSketch intersect(Sketch a, Sketch b, boolean dstOrdered,
       MemorySegment dstSeg);
+
+  /**
+   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
+   * @param srcSeg The source MemorySegment image.
+   * @return an Intersection that wraps a source MemorySegment that contains an Intersection image
+   */
+  public static Intersection wrap(final MemorySegment srcSeg) {
+    return wrap(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
+   * @param srcSeg The source MemorySegment image.
+   * @param expectedSeed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return an Intersection that wraps a source MemorySegment that contains an Intersection image
+   */
+  public static Intersection wrap(final MemorySegment srcSeg, final long expectedSeed) {
+    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
+    if (serVer != 3) {
+      throw new SketchesArgumentException("SerVer must be 3: " + serVer);
+    }
+    return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
+  }
 
   // Restricted
 

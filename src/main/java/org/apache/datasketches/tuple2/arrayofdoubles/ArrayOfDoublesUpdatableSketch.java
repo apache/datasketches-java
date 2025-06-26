@@ -61,7 +61,8 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   }
 
   /**
-   * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch
+   * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param seg the given MemorySegment
    * @return an ArrayOfDoublesUpdatableSketch
    */
@@ -70,7 +71,8 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   }
 
   /**
-   * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUpdatableSketch

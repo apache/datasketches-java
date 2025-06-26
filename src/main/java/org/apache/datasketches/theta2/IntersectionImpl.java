@@ -196,8 +196,8 @@ final class IntersectionImpl extends Intersection {
   }
 
   /**
-   * Factory: Wrap an Intersection target around the given source MemorySegment containing
-   * intersection data.
+   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
    * @param srcSeg The source MemorySegment image.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param readOnly True if MemorySegment is to be treated as read only
@@ -218,8 +218,7 @@ final class IntersectionImpl extends Intersection {
   }
 
   @Override
-  public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered,
-     final MemorySegment dstSeg) {
+  public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered, final MemorySegment dstSeg) {
     if (wseg_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
     hardReset();
     intersect(a);

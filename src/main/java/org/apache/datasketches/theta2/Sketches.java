@@ -71,7 +71,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link SetOperation#getMaxAnotBResultBytes(int)}.
+   * Convenience method, ref: {@link SetOperation#getMaxAnotBResultBytes(int)}.
    * Returns the maximum number of bytes for the returned CompactSketch, given the maximum
    * value of nomEntries of the first sketch A of AnotB.
    * @param maxNomEntries the given value
@@ -105,7 +105,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
+   * Convenience method, ref: {@link SetOperation#getMaxIntersectionBytes(int)}
    * @param nomEntries Ref: {@link SetOperation#getMaxIntersectionBytes(int)}, {@code nomEntries}
    * @return Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
    */
@@ -114,7 +114,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link SetOperation#getMaxUnionBytes(int)}
+   * Convenience method, ref: {@link SetOperation#getMaxUnionBytes(int)}
    * @param nomEntries Ref: {@link SetOperation#getMaxUnionBytes(int)}, {@code nomEntries}
    * @return Ref: {@link SetOperation#getMaxUnionBytes(int)}
    */
@@ -123,7 +123,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
+   * Convenience method, ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
    * @param nomEntries Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}, {@code nomEntries}
    * @return Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
    */
@@ -132,7 +132,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#getSerializationVersion(MemorySegment)}
+   * Convenience method, ref: {@link Sketch#getSerializationVersion(MemorySegment)}
    * @param srcSeg Ref: {@link Sketch#getSerializationVersion(MemorySegment)}, {@code srcSeg}
    * @return Ref: {@link Sketch#getSerializationVersion(MemorySegment)}
    */
@@ -157,7 +157,7 @@ public final class Sketches {
   //Heapify Operations
 
   /**
-   * Ref: {@link CompactSketch#heapify(MemorySegment) CompactSketch.heapify(MemorySegment)}
+   * Convenience method, ref: {@link CompactSketch#heapify(MemorySegment) CompactSketch.heapify(MemorySegment)}
    * @param srcSeg Ref: {@link CompactSketch#heapify(MemorySegment) CompactSketch.heapify(MemorySegment)}, {@code srcSeg}
    * @return {@link CompactSketch CompactSketch}
    */
@@ -166,7 +166,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link CompactSketch#heapify(MemorySegment, long) CompactSketch.heapify(MemorySegment, long)}
+   * Convenience method, ref: {@link CompactSketch#heapify(MemorySegment, long) CompactSketch.heapify(MemorySegment, long)}
    * @param srcSeg Ref: {@link CompactSketch#heapify(MemorySegment, long) CompactSketch.heapify(MemorySegment, long)}, {@code srcSeg}
    * @param expectedSeed Ref: {@link CompactSketch#heapify(MemorySegment, long) CompactSketch.heapify(MemorySegment, long)},
    * {@code expectedSeed}
@@ -177,7 +177,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link CompactSketch#wrap(MemorySegment) CompactSketch.wrap(MemorySegment)}
+   * Convenience method, ref: {@link CompactSketch#wrap(MemorySegment) CompactSketch.wrap(MemorySegment)}
    * @param srcSeg Ref: {@link CompactSketch#wrap(MemorySegment) CompactSketch.wrap(MemorySegment)}, {@code srcSeg}
    * @return {@link CompactSketch CompactSketch}
    */
@@ -186,7 +186,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link CompactSketch#wrap(MemorySegment, long) CompactSketch.wrap(MemorySegment, long)}
+   * Convenience method, ref: {@link CompactSketch#wrap(MemorySegment, long) CompactSketch.wrap(MemorySegment, long)}
    * @param srcSeg Ref: {@link CompactSketch#wrap(MemorySegment, long) CompactSketch.wrap(MemorySegment, long)}, {@code srcSeg}
    * @param expectedSeed Ref: {@link CompactSketch#wrap(MemorySegment, long) CompactSketch.wrap(MemorySegment, long)},
    * {@code expectedSeed}
@@ -197,7 +197,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link SetOperation#heapify(MemorySegment) SetOperation.heapify(MemorySegment)}
+   * Convenience method, ref: {@link SetOperation#heapify(MemorySegment) SetOperation.heapify(MemorySegment)}
    * @param srcSeg Ref: {@link SetOperation#heapify(MemorySegment) SetOperation.heapify(MemorySegment)}, {@code srcSeg}
    * @return {@link SetOperation SetOperation}
    */
@@ -206,7 +206,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link SetOperation#heapify(MemorySegment, long) SetOperation.heapify(MemorySegment, long)}
+   * Convenience method, ref: {@link SetOperation#heapify(MemorySegment, long) SetOperation.heapify(MemorySegment, long)}
    * @param srcSeg Ref: {@link SetOperation#heapify(MemorySegment, long) SetOperation.heapify(MemorySegment, long)},
    * {@code srcSeg}
    * @param expectedSeed the seed used to validate the given MemorySegment image.
@@ -219,7 +219,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#heapify(MemorySegment) Sketch.heapify(MemorySegment)}
+   * Convenience method, ref: {@link Sketch#heapify(MemorySegment) Sketch.heapify(MemorySegment)}
    * @param srcSeg Ref: {@link Sketch#heapify(MemorySegment) Sketch.heapify(MemorySegment)}, {@code srcSeg}
    * @return {@link Sketch Sketch}
    */
@@ -228,7 +228,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#heapify(MemorySegment, long) Sketch.heapify(MemorySegment, long)}
+   * Convenience method, ref: {@link Sketch#heapify(MemorySegment, long) Sketch.heapify(MemorySegment, long)}
    * @param srcSeg Ref: {@link Sketch#heapify(MemorySegment, long) Sketch.heapify(MemorySegment, long)}, {@code srcSeg}
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * Ref: {@link Sketch#heapify(MemorySegment, long) Sketch.heapify(MemorySegment, long)}, {@code expectedSeed}
@@ -239,7 +239,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link UpdateSketch#heapify(MemorySegment) UpdateSketch.heapify(MemorySegment)}
+   * Convenience method, ref: {@link UpdateSketch#heapify(MemorySegment) UpdateSketch.heapify(MemorySegment)}
    * @param srcSeg Ref: {@link UpdateSketch#heapify(MemorySegment) UpdateSketch.heapify(MemorySegment)}, {@code srcSeg}
    * @return {@link UpdateSketch UpdateSketch}
    */
@@ -248,7 +248,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link UpdateSketch#heapify(MemorySegment, long) UpdateSketch.heapify(MemorySegment, long)}
+   * Convenience method, ref: {@link UpdateSketch#heapify(MemorySegment, long) UpdateSketch.heapify(MemorySegment, long)}
    * @param srcSeg Ref: {@link UpdateSketch#heapify(MemorySegment, long) UpdateSketch.heapify(MemorySegment, long)},
    *   {@code srcSeg}
    * @param expectedSeed the seed used to validate the given MemorySegment image.
@@ -281,7 +281,7 @@ public final class Sketches {
   //Wrap operations
 
   /**
-   * Convenience method, calls {@link SetOperation#wrap(MemorySegment)} and casts the result to a Intersection
+   * Convenience method, ref: {@link SetOperation#wrap(MemorySegment)}
    * @param srcSeg Ref: {@link SetOperation#wrap(MemorySegment)}, {@code srcSeg}
    * @return a Intersection backed by the given MemorySegment
    */
@@ -290,7 +290,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link SetOperation#wrap(MemorySegment) SetOperation.wrap(MemorySegment)}
+   * Convenience method, ref: {@link SetOperation#wrap(MemorySegment) SetOperation.wrap(MemorySegment)}
    * @param srcSeg Ref: {@link SetOperation#wrap(MemorySegment) SetOperation.wrap(MemorySegment)}, {@code srcSeg}
    * @return {@link SetOperation SetOperation}
    */
@@ -299,7 +299,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(MemorySegment, long)}
+   * Convenience method, ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(MemorySegment, long)}
    * @param srcSeg Ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(MemorySegment, long)}, {@code srcSeg}
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * Ref: {@link SetOperation#wrap(MemorySegment, long) SetOperation.wrap(MemorySegment, long)}, {@code expectedSeed}
@@ -310,7 +310,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#wrap(MemorySegment) Sketch.wrap(MemorySegment)}
+   * Convenience method, ref: {@link Sketch#wrap(MemorySegment) Sketch.wrap(MemorySegment)}
    * @param srcSeg Ref: {@link Sketch#wrap(MemorySegment) Sketch.wrap(MemorySegment)}, {@code srcSeg}
    * @return {@link Sketch Sketch}
    */
@@ -319,7 +319,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link Sketch#wrap(MemorySegment, long) Sketch.wrap(MemorySegment, long)}
+   * Convenience method, ref: {@link Sketch#wrap(MemorySegment, long) Sketch.wrap(MemorySegment, long)}
    * @param srcSeg Ref: {@link Sketch#wrap(MemorySegment, long) Sketch.wrap(MemorySegment, long)}, {@code srcSeg}
    * @param expectedSeed the expectedSeed used to validate the given MemorySegment image.
    * Ref: {@link Sketch#wrap(MemorySegment, long) Sketch.wrap(MemorySegment, long)}, {@code expectedSeed}
@@ -330,7 +330,7 @@ public final class Sketches {
   }
 
   /**
-   * Convenience method, calls {@link SetOperation#wrap(MemorySegment)} and casts the result to a Union
+   * Convenience method, ref: {@link SetOperation#wrap(MemorySegment)} and casts the result to a Union
    * @param srcSeg Ref: {@link SetOperation#wrap(MemorySegment)}, {@code srcSeg}
    * @return a Union backed by the given MemorySegment.
    */
@@ -339,7 +339,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link UpdateSketch#wrap(MemorySegment) UpdateSketch.wrap(MemorySegment)}
+   * Convenience method, ref: {@link UpdateSketch#wrap(MemorySegment) UpdateSketch.wrap(MemorySegment)}
    * @param srcSeg Ref: {@link UpdateSketch#wrap(MemorySegment) UpdateSketch.wrap(MemorySegment)}, {@code srcSeg}
    * @return {@link UpdateSketch UpdateSketch}
    */
@@ -348,7 +348,7 @@ public final class Sketches {
   }
 
   /**
-   * Ref: {@link UpdateSketch#wrap(MemorySegment, long) UpdateSketch.wrap(MemorySegment, long)}
+   * Convenience method, ref: {@link UpdateSketch#wrap(MemorySegment, long) UpdateSketch.wrap(MemorySegment, long)}
    * @param srcSeg Ref: {@link UpdateSketch#wrap(MemorySegment, long) UpdateSketch.wrap(MemorySegment, long)}, {@code srcSeg}
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * Ref: {@link UpdateSketch#wrap(MemorySegment, long) UpdateSketch.wrap(MemorySegment, long)}, {@code expectedSeed}

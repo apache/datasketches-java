@@ -94,7 +94,8 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
-   * Wrap the given MemorySegment as an ArrayOfDoublesSketch
+   * Wrap the given MemorySegment as an ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param seg the given MemorySegment
    * @return an ArrayOfDoublesSketch
    */
@@ -103,7 +104,8 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
-   * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesSketch

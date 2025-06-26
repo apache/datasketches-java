@@ -104,11 +104,10 @@ public abstract class SetOperation implements MemorySegmentStatus {
   /**
    * Wrap takes the SetOperation image in MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
-   * This method assumes the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
    *
-   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
-   * wrapped.</p>
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus wrapped.</p>
    *
    * @param srcSeg an image of a SetOperation where the image seed hash matches the default seed hash.
    * @return a SetOperation backed by the given MemorySegment
@@ -120,9 +119,9 @@ public abstract class SetOperation implements MemorySegmentStatus {
   /**
    * Wrap takes the SetOperation image in MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
    *
-   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
-   * wrapped.</p>
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus wrapped.</p>
    *
    * @param srcSeg an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
    * @param expectedSeed the seed used to validate the given MemorySegment image.

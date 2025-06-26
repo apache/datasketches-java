@@ -61,7 +61,7 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * Heapify the given MemorySegment as an ArrayOfDoublesUnion
+   * Heapify the given MemorySegment as an ArrayOfDoublesUnion.
    * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
@@ -70,7 +70,7 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * Heapify the given MemorySegment and seed as an ArrayOfDoublesUnion
+   * Heapify the given MemorySegment and seed as an ArrayOfDoublesUnion.
    * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
@@ -80,7 +80,8 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * Wrap the given MemorySegment as an ArrayOfDoublesUnion
+   * Wrap the given MemorySegment as an ArrayOfDoublesUnion.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
@@ -89,7 +90,8 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion
+   * Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
@@ -104,7 +106,7 @@ public abstract class ArrayOfDoublesUnion {
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
-   * @param tupleSketch sketch to add to the union
+   * @param tupleSketch sketch to add to the union.
    */
   public void union(final ArrayOfDoublesSketch tupleSketch) {
     if (tupleSketch == null) { return; }

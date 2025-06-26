@@ -67,7 +67,8 @@ public final class ArrayOfDoublesSketches {
   }
 
   /**
-   * Wrap the given MemorySegment as an ArrayOfDoublesSketch
+   * Wrap the given MemorySegment as an ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesSketch
    */
@@ -76,7 +77,8 @@ public final class ArrayOfDoublesSketches {
   }
 
   /**
-   * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesSketch
@@ -86,7 +88,8 @@ public final class ArrayOfDoublesSketches {
   }
 
   /**
-   * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch
+   * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUpdatableSketch
    */
@@ -95,7 +98,8 @@ public final class ArrayOfDoublesSketches {
   }
 
   /**
-   * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUpdatableSketch
@@ -125,6 +129,7 @@ public final class ArrayOfDoublesSketches {
 
   /**
    * Wrap the given MemorySegment as an ArrayOfDoublesUnion
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
@@ -134,6 +139,7 @@ public final class ArrayOfDoublesSketches {
 
   /**
    * Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
