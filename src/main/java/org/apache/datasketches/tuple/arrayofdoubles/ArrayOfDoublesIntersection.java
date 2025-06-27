@@ -24,7 +24,6 @@ import static java.lang.Math.min;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * Computes the intersection of two or more tuple sketches of type ArrayOfDoubles.

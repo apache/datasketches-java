@@ -27,7 +27,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * The base class for unions of tuple sketches of type ArrayOfDoubles.

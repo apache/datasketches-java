@@ -29,7 +29,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * The on-heap implementation of tuple Compact Sketch of type ArrayOfDoubles.

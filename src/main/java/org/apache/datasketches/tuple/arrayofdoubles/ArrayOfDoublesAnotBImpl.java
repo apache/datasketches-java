@@ -35,7 +35,6 @@ import org.apache.datasketches.thetacommon.SetOperationCornerCases;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
 import org.apache.datasketches.thetacommon.ThetaUtil;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two ArrayOfDoublesSketches.

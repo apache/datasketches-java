@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.Util.checkSeedHashes;
+import static org.apache.datasketches.common.Util.computeSeedHash;
+
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
@@ -26,7 +29,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * Direct Compact Sketch of type ArrayOfDoubles.
@@ -178,7 +180,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    org.apache.datasketches.common.Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), org.apache.datasketches.common.Util.computeSeedHash(seed));
+    checkSeedHashes(mem.getShort(SEED_HASH_SHORT), computeSeedHash(seed));
     isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = mem_.getLong(THETA_LONG);
   }

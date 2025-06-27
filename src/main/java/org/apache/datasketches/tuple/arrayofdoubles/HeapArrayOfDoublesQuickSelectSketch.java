@@ -20,6 +20,8 @@
 package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+import static org.apache.datasketches.common.Util.checkSeedHashes;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 
 import java.nio.ByteOrder;
@@ -98,7 +100,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    org.apache.datasketches.common.Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), org.apache.datasketches.common.Util.computeSeedHash(seed));
+    checkSeedHashes(mem.getShort(SEED_HASH_SHORT), computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     lgNomEntries_ = mem.getByte(LG_NOM_ENTRIES_BYTE);
     thetaLong_ = mem.getLong(THETA_LONG);

@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.Util.checkSeedHashes;
+import static org.apache.datasketches.common.Util.computeSeedHash;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -152,7 +155,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
 
-    org.apache.datasketches.common.Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), org.apache.datasketches.common.Util.computeSeedHash(seed));
+    checkSeedHashes(mem.getShort(SEED_HASH_SHORT), computeSeedHash(seed));
     keysOffset_ = ENTRIES_START;
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * getCurrentCapacity());
     // to do: make parent take care of its own parts
