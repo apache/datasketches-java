@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -26,7 +28,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
 
@@ -57,7 +58,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     super(sketch.getNumValues());
     isEmpty_ = sketch.isEmpty();
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
-    seedHash_ = Util.computeSeedHash(sketch.getSeed());
+    seedHash_ = org.apache.datasketches.common.Util.computeSeedHash(sketch.getSeed());
     final int count = sketch.getRetainedEntries();
     if (count > 0) {
       keys_ = new long[count];
@@ -103,7 +104,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   HeapArrayOfDoublesCompactSketch(final Memory mem) {
-    this(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    this(mem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -128,7 +129,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
+    org.apache.datasketches.common.Util.checkSeedHashes(seedHash_, org.apache.datasketches.common.Util.computeSeedHash(seed));
     isEmpty_ = (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = mem.getLong(THETA_LONG);
     final boolean hasEntries =

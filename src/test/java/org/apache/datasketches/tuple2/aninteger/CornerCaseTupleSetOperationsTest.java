@@ -23,9 +23,9 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.theta2.UpdateSketch;
 import org.apache.datasketches.theta2.UpdateSketchBuilder;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.apache.datasketches.tuple2.AnotB;
 import org.apache.datasketches.tuple2.CompactSketch;
 import org.apache.datasketches.tuple2.Intersection;
@@ -625,6 +625,6 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   static long getLongHash(long v) {
-    return (hash(v, ThetaUtil.DEFAULT_UPDATE_SEED)[0]) >>> 1;
+    return (hash(v, Util.DEFAULT_UPDATE_SEED)[0]) >>> 1;
   }
 }

@@ -27,7 +27,6 @@ import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * This class converts current compact sketches into prior SerVer 1 and SerVer 2 format for testing.
@@ -188,7 +187,7 @@ public class BackwardConversions {
    * @return a SerVer2 SetSketch as MemorySegment object.
    */
   public static MemorySegment convertSerVer3toSerVer2(final CompactSketch skV3, final long seed) {
-    final short seedHash = ThetaUtil.computeSeedHash(seed);
+    final short seedHash = Util.computeSeedHash(seed);
     MemorySegment wseg = null;
 
     if (skV3 instanceof EmptyCompactSketch) {

@@ -57,6 +57,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -100,17 +101,17 @@ class IntersectionImpl extends Intersection {
       if (dstMemFlag) { //DstMem: compute & store seedHash, no seedhash checking
         checkMinSizeMemory(wmem);
         maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wmem) : 0; //Only Off Heap
-        seedHash_ = ThetaUtil.computeSeedHash(seed);
+        seedHash_ = Util.computeSeedHash(seed);
         wmem_.putShort(SEED_HASH_SHORT, seedHash_);
       } else { //SrcMem:gets and stores the seedHash, checks mem_seedHash against the seed
         seedHash_ = wmem_.getShort(SEED_HASH_SHORT);
-        ThetaUtil.checkSeedHashes(seedHash_, ThetaUtil.computeSeedHash(seed)); //check for seed hash conflict
+        Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed)); //check for seed hash conflict
         maxLgArrLongs_ = 0;
       }
     } else { //compute & store seedHash
       wmem_ = null;
       maxLgArrLongs_ = 0;
-      seedHash_ = ThetaUtil.computeSeedHash(seed);
+      seedHash_ = Util.computeSeedHash(seed);
     }
   }
 
@@ -237,7 +238,7 @@ class IntersectionImpl extends Intersection {
       resetToEmpty();
       return;
     }
-    ThetaUtil.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     //Set minTheta
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
     empty_ = false;

@@ -29,9 +29,9 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * An off-heap (Direct), compact, read-only sketch. The internal hash array can be either ordered
@@ -65,7 +65,7 @@ class DirectCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static DirectCompactSketch wrapInstance(final Memory srcMem, final short seedHash) {
-    ThetaUtil.checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
+    Util.checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
     return new DirectCompactSketch(srcMem);
   }
 

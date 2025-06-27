@@ -21,10 +21,10 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.apache.datasketches.common.Util.LS;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.BinomialBoundsN;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
@@ -76,7 +76,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch heapify(final Memory mem) {
-    return heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(mem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -99,7 +99,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch wrap(final Memory mem) {
-    return wrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(mem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

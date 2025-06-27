@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
 import static org.apache.datasketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
@@ -26,7 +27,6 @@ import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
-import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
 
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;

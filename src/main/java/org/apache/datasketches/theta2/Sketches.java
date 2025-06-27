@@ -34,7 +34,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /**
  * This class brings together the common sketch and set operation creation methods and
@@ -295,7 +295,7 @@ public final class Sketches {
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(final MemorySegment srcSeg) {
-    return wrapSetOperation(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapSetOperation(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -344,7 +344,7 @@ public final class Sketches {
    * @return {@link UpdateSketch UpdateSketch}
    */
   public static UpdateSketch wrapUpdateSketch(final MemorySegment srcSeg) {
-    return wrapUpdateSketch(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapUpdateSketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

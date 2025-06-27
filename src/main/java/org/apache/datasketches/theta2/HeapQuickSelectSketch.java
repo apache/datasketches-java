@@ -22,6 +22,7 @@ package org.apache.datasketches.theta2;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.theta2.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta2.PreambleUtil.extractFamilyID;
@@ -36,7 +37,6 @@ import static org.apache.datasketches.theta2.UpdateReturnState.InsertedCountIncr
 import static org.apache.datasketches.theta2.UpdateReturnState.InsertedCountIncrementedResized;
 import static org.apache.datasketches.theta2.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta2.UpdateReturnState.RejectedOverTheta;
-import static org.apache.datasketches.thetacommon2.QuickSelect.selectExcludingZeros;
 
 import java.lang.foreign.MemorySegment;
 

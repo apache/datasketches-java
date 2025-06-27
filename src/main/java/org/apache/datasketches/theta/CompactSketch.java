@@ -41,9 +41,9 @@ import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingle
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The parent class of all the CompactSketches. CompactSketches are never created directly.
@@ -76,7 +76,7 @@ public abstract class CompactSketch extends Sketch {
    * @return a CompactSketch on the heap.
    */
   public static CompactSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED, false);
+    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   /**
@@ -117,7 +117,7 @@ public abstract class CompactSketch extends Sketch {
       return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
     }
     //not SerVer 3, assume compact stored form
-    final short seedHash = ThetaUtil.computeSeedHash(seed);
+    final short seedHash = Util.computeSeedHash(seed);
     if (serVer == 1) {
       return ForwardCompatibility.heapify1to3(srcMem, seedHash);
     }
@@ -151,7 +151,7 @@ public abstract class CompactSketch extends Sketch {
    * @return a CompactSketch backed by the given Memory except as above.
    */
   public static CompactSketch wrap(final Memory srcMem) {
-    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED, false);
+    return wrap(srcMem, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   /**
@@ -189,7 +189,7 @@ public abstract class CompactSketch extends Sketch {
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
     }
-    final short seedHash = ThetaUtil.computeSeedHash(seed);
+    final short seedHash = Util.computeSeedHash(seed);
 
     if (serVer == 4) {
       return DirectCompactCompressedSketch.wrapInstance(srcMem,
@@ -252,7 +252,7 @@ public abstract class CompactSketch extends Sketch {
    * @return a CompactSketch backed by the given Memory except as above.
    */
   public static CompactSketch wrap(final byte[] bytes) {
-    return wrap(bytes, ThetaUtil.DEFAULT_UPDATE_SEED, false);
+    return wrap(bytes, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   /**
@@ -290,7 +290,7 @@ public abstract class CompactSketch extends Sketch {
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
     }
-    final short seedHash = ThetaUtil.computeSeedHash(seed);
+    final short seedHash = Util.computeSeedHash(seed);
     if (serVer == 4) {
       return WrappedCompactCompressedSketch.wrapInstance(bytes, seedHash);
     } else if (serVer == 3) {

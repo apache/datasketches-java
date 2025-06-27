@@ -34,7 +34,6 @@ import static org.apache.datasketches.theta2.SingleItemSketch.otherCheckForSingl
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * An off-heap (Direct), compact, read-only sketch. The internal hash array can be either ordered
@@ -68,7 +67,7 @@ class DirectCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static DirectCompactSketch wrapInstance(final MemorySegment srcSeg, final short seedHash) {
-    ThetaUtil.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
+    Util.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
     return new DirectCompactSketch(srcSeg);
   }
 

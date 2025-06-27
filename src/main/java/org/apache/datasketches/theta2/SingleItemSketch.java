@@ -34,7 +34,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /**
  * A CompactSketch that holds only one item hash.
@@ -42,7 +42,7 @@ import org.apache.datasketches.thetacommon2.ThetaUtil;
  * @author Lee Rhodes
  */
 final class SingleItemSketch extends CompactSketch {
-  private static final long DEFAULT_SEED_HASH = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED) & 0xFFFFL;
+  private static final long DEFAULT_SEED_HASH = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED) & 0xFFFFL;
 
   // For backward compatibility, a candidate pre0_ long must have:
   // Flags (byte 5): Ordered, Compact, NOT Empty, Read Only, LittleEndian = 11010 = 0x1A.
@@ -63,7 +63,7 @@ final class SingleItemSketch extends CompactSketch {
 
   //All checking & hashing has been done, given the relevant seed
   SingleItemSketch(final long hash, final long seed) {
-    final long seedHash = ThetaUtil.computeSeedHash(seed) & 0xFFFFL;
+    final long seedHash = Util.computeSeedHash(seed) & 0xFFFFL;
     pre0_ = (seedHash << 48) | PRE0_LO6_SI;
     hash_ = hash;
   }
@@ -83,7 +83,7 @@ final class SingleItemSketch extends CompactSketch {
    * @return a SingleItemSketch
    */ //does not override Sketch
   static SingleItemSketch heapify(final MemorySegment srcSeg, final short expectedSeedHash) {
-    ThetaUtil.checkSeedHashes((short) extractSeedHash(srcSeg), expectedSeedHash);
+    Util.checkSeedHashes((short) extractSeedHash(srcSeg), expectedSeedHash);
     final boolean singleItem = otherCheckForSingleItem(srcSeg);
     if (singleItem) { return new SingleItemSketch(srcSeg.get(JAVA_LONG_UNALIGNED, 8), expectedSeedHash); }
     throw new SketchesArgumentException("Input MemorySegment is not a SingleItemSketch.");
@@ -109,7 +109,7 @@ final class SingleItemSketch extends CompactSketch {
    */
   static SingleItemSketch create(final long datum) {
     final long[] data = { datum };
-    return new SingleItemSketch(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1);
+    return new SingleItemSketch(hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
   /**
@@ -125,7 +125,7 @@ final class SingleItemSketch extends CompactSketch {
   static SingleItemSketch create(final double datum) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
     final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
-    return new SingleItemSketch(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1);
+    return new SingleItemSketch(hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
   /**
@@ -143,7 +143,7 @@ final class SingleItemSketch extends CompactSketch {
   static SingleItemSketch create(final String datum) {
     if ((datum == null) || datum.isEmpty()) { return null; }
     final byte[] data = datum.getBytes(UTF_8);
-    return new SingleItemSketch(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1);
+    return new SingleItemSketch(hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
   /**
@@ -155,7 +155,7 @@ final class SingleItemSketch extends CompactSketch {
    */
   static SingleItemSketch create(final byte[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
-    return new SingleItemSketch(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1);
+    return new SingleItemSketch(hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
   /**
@@ -170,7 +170,7 @@ final class SingleItemSketch extends CompactSketch {
    */
   static SingleItemSketch create(final char[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
-    return new SingleItemSketch(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1);
+    return new SingleItemSketch(hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
   /**
@@ -182,7 +182,7 @@ final class SingleItemSketch extends CompactSketch {
    */
   static SingleItemSketch create(final int[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
-    return new SingleItemSketch(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1);
+    return new SingleItemSketch(hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
   /**
@@ -194,7 +194,7 @@ final class SingleItemSketch extends CompactSketch {
    */
   static SingleItemSketch create(final long[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
-    return new SingleItemSketch(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1);
+    return new SingleItemSketch(hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
 
   //Updates with a user specified seed

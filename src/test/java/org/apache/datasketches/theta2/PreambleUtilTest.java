@@ -58,7 +58,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -130,7 +130,7 @@ public class PreambleUtilTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHashFromSeed() {
     //In the first 64K values 50541 produces a seedHash of 0,
-    ThetaUtil.computeSeedHash(50541);
+    Util.computeSeedHash(50541);
   }
 
   @Test

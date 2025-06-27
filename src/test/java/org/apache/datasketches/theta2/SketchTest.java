@@ -139,7 +139,7 @@ public class SketchTest {
     nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapQuickSelectSketch");
     assertEquals(sk1.getLgNomLongs(), Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES));
-    assertEquals(sk1.getSeed(), ThetaUtil.DEFAULT_UPDATE_SEED);
+    assertEquals(sk1.getSeed(), Util.DEFAULT_UPDATE_SEED);
     assertEquals(sk1.getP(), (float)1.0);
     assertEquals(sk1.getResizeFactor(), ResizeFactor.X8);
   }
@@ -312,7 +312,7 @@ public class SketchTest {
     assertFalse(csk2.hasMemorySegment());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
 
-    MemorySegment v2seg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED);
+    MemorySegment v2seg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
     csk2 = Sketch.wrap(v2seg);
     assertFalse(csk2.isDirect());
     assertFalse(csk2.hasMemorySegment());

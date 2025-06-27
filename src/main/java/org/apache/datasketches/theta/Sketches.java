@@ -29,9 +29,9 @@ import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * This class brings together the common sketch and set operation creation methods and
@@ -302,7 +302,7 @@ public final class Sketches {
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(final Memory srcMem) {
-    return wrapSetOperation(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapSetOperation(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -324,7 +324,7 @@ public final class Sketches {
    * @return {@link SetOperation SetOperation}
    */
   public static SetOperation wrapSetOperation(final WritableMemory srcMem) {
-    return wrapSetOperation(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapSetOperation(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -384,7 +384,7 @@ public final class Sketches {
    * @return {@link UpdateSketch UpdateSketch}
    */
   public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem) {
-    return wrapUpdateSketch(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapUpdateSketch(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

@@ -25,13 +25,13 @@ import static org.apache.datasketches.thetacommon2.HashOperations.continueCondit
 import static org.apache.datasketches.thetacommon2.HashOperations.convertToHashTable;
 import static org.apache.datasketches.thetacommon2.HashOperations.count;
 import static org.apache.datasketches.thetacommon2.HashOperations.hashSearch;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SuppressFBWarnings;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.SetOperationCornerCases;
 import org.apache.datasketches.thetacommon2.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.thetacommon2.SetOperationCornerCases.CornerCase;
@@ -60,7 +60,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
 
   ArrayOfDoublesAnotBImpl(final int numValues, final long seed) {
     numValues_ = numValues;
-    seedHash_ = computeSeedHash(seed);
+    seedHash_ = Util.computeSeedHash(seed);
   }
 
   @Override

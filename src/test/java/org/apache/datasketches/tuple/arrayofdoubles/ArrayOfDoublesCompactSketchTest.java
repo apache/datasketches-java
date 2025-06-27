@@ -21,9 +21,9 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.testng.Assert.assertEquals;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -116,7 +116,7 @@ public class ArrayOfDoublesCompactSketchTest {
     Memory hqsskMem = Memory.wrap(hqssk.toByteArray());
 
     DirectArrayOfDoublesQuickSelectSketchR dqssk =
-        (DirectArrayOfDoublesQuickSelectSketchR)ArrayOfDoublesSketch.wrap(hqsskMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+        (DirectArrayOfDoublesQuickSelectSketchR)ArrayOfDoublesSketch.wrap(hqsskMem, Util.DEFAULT_UPDATE_SEED);
     final double[][] values3 = dqssk.getValues();
     final double[] values1d3 = dqssk.getValuesAsOneDimension();
     final long[] keys3 = dqssk.getKeys();
@@ -127,7 +127,7 @@ public class ArrayOfDoublesCompactSketchTest {
     Memory hcskMem = Memory.wrap(hcsk.toByteArray());
 
     DirectArrayOfDoublesCompactSketch dcsk2 =
-        (DirectArrayOfDoublesCompactSketch)ArrayOfDoublesSketch.wrap(hcskMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+        (DirectArrayOfDoublesCompactSketch)ArrayOfDoublesSketch.wrap(hcskMem, Util.DEFAULT_UPDATE_SEED);
     final double[][] values4 = dqssk.getValues();
     final double[] values1d4 = dqssk.getValuesAsOneDimension();
     final long[] keys4 = dqssk.getKeys();

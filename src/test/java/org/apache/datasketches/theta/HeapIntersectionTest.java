@@ -30,9 +30,9 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -505,7 +505,7 @@ public class HeapIntersectionTest {
 
   @Test
   public void checkFamily() {
-    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(ThetaUtil.DEFAULT_UPDATE_SEED);
+    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(Util.DEFAULT_UPDATE_SEED);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 

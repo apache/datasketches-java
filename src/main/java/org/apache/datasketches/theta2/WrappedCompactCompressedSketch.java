@@ -25,7 +25,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.NUM_ENTRIES_BYTES_BYTE
 import static org.apache.datasketches.theta2.PreambleUtil.PREAMBLE_LONGS_BYTE;
 
 import org.apache.datasketches.common.ByteArrayUtil;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /**
  * Wrapper around a serialized compact compressed read-only sketch. It is not empty, not a single item.
@@ -50,7 +50,7 @@ final class WrappedCompactCompressedSketch extends WrappedCompactSketch {
    * @return this sketch
    */
   static WrappedCompactCompressedSketch wrapInstance(final byte[] bytes, final short seedHash) {
-    ThetaUtil.checkSeedHashes(ByteArrayUtil.getShortLE(bytes, PreambleUtil.SEED_HASH_SHORT), seedHash);
+    Util.checkSeedHashes(ByteArrayUtil.getShortLE(bytes, PreambleUtil.SEED_HASH_SHORT), seedHash);
     return new WrappedCompactCompressedSketch(bytes);
   }
 

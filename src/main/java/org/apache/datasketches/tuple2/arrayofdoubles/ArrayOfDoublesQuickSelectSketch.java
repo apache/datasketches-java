@@ -23,8 +23,8 @@ import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.QuickSelect;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**

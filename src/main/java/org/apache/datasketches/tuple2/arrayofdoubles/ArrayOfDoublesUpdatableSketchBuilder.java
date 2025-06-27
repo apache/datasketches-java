@@ -23,6 +23,7 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
@@ -48,7 +49,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     numValues_ = DEFAULT_NUMBER_OF_VALUES;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
-    seed_ = ThetaUtil.DEFAULT_UPDATE_SEED;
+    seed_ = Util.DEFAULT_UPDATE_SEED;
   }
 
   /**

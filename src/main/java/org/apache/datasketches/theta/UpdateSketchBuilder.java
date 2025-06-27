@@ -28,6 +28,7 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.SuppressFBWarnings;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -57,7 +58,7 @@ public class UpdateSketchBuilder {
    * Constructor for building a new UpdateSketch. The default configuration is
    * <ul>
    * <li>Nominal Entries: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
-   * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
+   * <li>Seed: {@value org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Family: {@link org.apache.datasketches.common.Family#QUICKSELECT}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
@@ -76,7 +77,7 @@ public class UpdateSketchBuilder {
    */
   public UpdateSketchBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
-    bSeed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    bSeed = Util.DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bFam = Family.QUICKSELECT;

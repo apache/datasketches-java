@@ -54,6 +54,6 @@ public class SerializerDeserializerTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHash() {
-    org.apache.datasketches.tuple.Util.computeSeedHash(50541);
+    org.apache.datasketches.common.Util.computeSeedHash(50541);
   }
 }

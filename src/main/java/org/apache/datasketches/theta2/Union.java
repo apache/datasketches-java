@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /**
  * Compute the union of two or more theta sketches.
@@ -46,7 +46,7 @@ public abstract class Union extends SetOperation {
    * @return this class
    */
   public static Union fastWrap(final MemorySegment srcSeg) {
-    return fastWrap(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return fastWrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -74,7 +74,7 @@ public abstract class Union extends SetOperation {
    * @return this class
    */
   public static Union wrap(final MemorySegment srcSeg) {
-    return wrap(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

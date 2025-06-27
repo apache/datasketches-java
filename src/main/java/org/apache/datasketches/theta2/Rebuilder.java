@@ -21,6 +21,7 @@ package org.apache.datasketches.theta2;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
 import static org.apache.datasketches.theta2.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static org.apache.datasketches.theta2.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta2.PreambleUtil.extractLgArrLongs;
@@ -28,7 +29,6 @@ import static org.apache.datasketches.theta2.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta2.PreambleUtil.insertCurCount;
 import static org.apache.datasketches.theta2.PreambleUtil.insertLgArrLongs;
 import static org.apache.datasketches.theta2.PreambleUtil.insertThetaLong;
-import static org.apache.datasketches.thetacommon2.QuickSelect.selectExcludingZeros;
 
 import java.lang.foreign.MemorySegment;
 

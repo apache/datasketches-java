@@ -24,14 +24,13 @@ import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
 
 /**
@@ -82,7 +81,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
-    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, computeSeedHash(sketch.getSeed()));
+    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
     dstSeg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
@@ -183,7 +182,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), computeSeedHash(seed));
+    Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }

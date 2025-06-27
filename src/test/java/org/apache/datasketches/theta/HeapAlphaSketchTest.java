@@ -40,6 +40,7 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -55,7 +56,7 @@ public class HeapAlphaSketchTest {
   public void checkBadSerVer() {
     int k = 512;
     int u = k;
-    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed = Util.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed)
         .setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
@@ -93,7 +94,7 @@ public class HeapAlphaSketchTest {
   public void checkIllegalSketchID_UpdateSketch() {
     int k = 512;
     int u = k;
-    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed = Util.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed)
         .setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
@@ -118,7 +119,7 @@ public class HeapAlphaSketchTest {
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
-    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed2 = Util.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed1)
         .setNominalEntries(k).build();
     byte[] byteArray = usk.toByteArray();
@@ -130,7 +131,7 @@ public class HeapAlphaSketchTest {
   public void checkHeapifyByteArrayExact() {
     int k = 512;
     int u = k;
-    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed = Util.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed)
         .setNominalEntries(k).build();
 
@@ -157,7 +158,7 @@ public class HeapAlphaSketchTest {
   public void checkHeapifyByteArrayEstimating() {
     int k = 4096;
     int u = 2*k;
-    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed = Util.DEFAULT_UPDATE_SEED;
 
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed)
         .setNominalEntries(k).build();
@@ -186,7 +187,7 @@ public class HeapAlphaSketchTest {
   public void checkHeapifyMemoryEstimating() {
     int k = 512;
     int u = 2*k; //thus estimating
-    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed = Util.DEFAULT_UPDATE_SEED;
     //int maxBytes = (k << 4) + (Family.ALPHA.getLowPreLongs());
 
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed)
@@ -204,7 +205,7 @@ public class HeapAlphaSketchTest {
     byte[] byteArray = sk1.toByteArray();
     Memory mem = Memory.wrap(byteArray);
 
-    UpdateSketch sk2 = (UpdateSketch)Sketch.heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    UpdateSketch sk2 = (UpdateSketch)Sketch.heapify(mem, Util.DEFAULT_UPDATE_SEED);
 
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
@@ -608,7 +609,7 @@ public class HeapAlphaSketchTest {
     final long origThetaLong = mem.getLong(THETA_LONG);
     try {
       mem.putLong(THETA_LONG, Long.MAX_VALUE / 2); //Corrupt the theta value
-      HeapAlphaSketch.heapifyInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+      HeapAlphaSketch.heapifyInstance(mem, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -618,7 +619,7 @@ public class HeapAlphaSketchTest {
     WritableMemory mem2 = WritableMemory.writableWrap(byteArray2);
     mem.copyTo(0, mem2, 0, mem2.getCapacity());
     try {
-      HeapAlphaSketch.heapifyInstance(mem2, ThetaUtil.DEFAULT_UPDATE_SEED);
+      HeapAlphaSketch.heapifyInstance(mem2, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -626,7 +627,7 @@ public class HeapAlphaSketchTest {
 
     // force ResizeFactor.X1, and allocated capacity too small
     insertLgResizeFactor(mem, ResizeFactor.X1.lg());
-    UpdateSketch usk = HeapAlphaSketch.heapifyInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    UpdateSketch usk = HeapAlphaSketch.heapifyInstance(mem, Util.DEFAULT_UPDATE_SEED);
     ResizeFactor rf = usk.getResizeFactor();
     assertEquals(rf, ResizeFactor.X2);//ResizeFactor recovered to X2, which always works.
   }
@@ -634,7 +635,7 @@ public class HeapAlphaSketchTest {
   private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
     try {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      HeapAlphaSketch.heapifyInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+      HeapAlphaSketch.heapifyInstance(mem, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected

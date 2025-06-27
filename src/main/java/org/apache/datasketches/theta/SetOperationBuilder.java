@@ -26,6 +26,7 @@ import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -48,7 +49,7 @@ public class SetOperationBuilder {
    * <ul>
    * <li>Max Nominal Entries (max K):
    *   {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
-   * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
+   * <li>Seed: {@value org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}</li>
    * <li>{@link ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Memory: null</li>
@@ -56,7 +57,7 @@ public class SetOperationBuilder {
    */
   public SetOperationBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
-    bSeed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    bSeed = Util.DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bMemReqSvr = new DefaultMemoryRequestServer();

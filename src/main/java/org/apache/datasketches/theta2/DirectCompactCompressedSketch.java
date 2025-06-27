@@ -29,7 +29,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.wholeBytesToHoldBits;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /**
  * An off-heap (Direct), compact, compressed, read-only sketch. It is not empty, not a single item and ordered.
@@ -58,7 +58,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
    * @return this sketch
    */
   static DirectCompactCompressedSketch wrapInstance(final MemorySegment srcSeg, final short seedHash) {
-    ThetaUtil.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
+    Util.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
     return new DirectCompactCompressedSketch(srcSeg);
   }
 

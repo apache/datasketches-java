@@ -35,14 +35,13 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.theta2.ConcurrentHeapQuickSelectSketchTest.SharedLocal;
 import org.apache.datasketches.thetacommon2.HashOperations;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
  * @author eshcar
  */
 public class ConcurrentDirectQuickSelectSketchTest {
-  private static final long SEED = ThetaUtil.DEFAULT_UPDATE_SEED;
+  private static final long SEED = Util.DEFAULT_UPDATE_SEED;
 
   @Test
   public void checkDirectCompactConversion() {
@@ -568,7 +567,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     boolean useSeg = true;
     SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     sl.wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.writableWrap(sl.wseg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(sl.wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -650,14 +649,14 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     sl.wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
     //try to wrap the corrupted seg
-    DirectQuickSelectSketch.writableWrap(sl.wseg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(sl.wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int lgK = 9;
     long seed1 = 1021;
-    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed2 = Util.DEFAULT_UPDATE_SEED;
     boolean useSeg = true;
     SharedLocal sl = new SharedLocal(lgK, lgK, seed1, useSeg, true, 1);
     UpdateSketch shared = sl.shared;
@@ -673,7 +672,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
 
     sl.wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(sl.wseg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    Sketch.heapify(sl.wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = UnsupportedOperationException.class)

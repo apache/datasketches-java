@@ -20,6 +20,7 @@
 package org.apache.datasketches.hash;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.datasketches.common.Util.longToHexBytes;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.nio.ByteBuffer;
@@ -265,37 +266,37 @@ public class MurmurHash3Test {
     println("Bytes");
     byte[] bArr = {1,2,3,4,5,6,7,8,   9,10,11,12,13,14,15,16,  17,18,19,20,21,22,23,24};
     long[] out1 = hash(bArr, 0L);
-    println(org.apache.datasketches.common.Util.longToHexBytes(out1[0]));
-    println(org.apache.datasketches.common.Util.longToHexBytes(out1[1]));
+    println(longToHexBytes(out1[0]));
+    println(longToHexBytes(out1[1]));
 
     println("ByteBuffer");
     ByteBuffer bBuf = ByteBuffer.wrap(bArr);
     out = hash(bBuf, 0L);
     Assert.assertEquals(out, out1);
-    println(org.apache.datasketches.common.Util.longToHexBytes(out1[0]));
-    println(org.apache.datasketches.common.Util.longToHexBytes(out1[1]));
+    println(longToHexBytes(out1[0]));
+    println(longToHexBytes(out1[1]));
 
     println("Chars");
     char[] cArr = {0X0201, 0X0403, 0X0605, 0X0807,   0X0a09, 0X0c0b, 0X0e0d, 0X100f,
         0X1211, 0X1413, 0X1615, 0X1817};
     out = hash(cArr, 0L);
     Assert.assertEquals(out, out1);
-    println(org.apache.datasketches.common.Util.longToHexBytes(out[0]));
-    println(org.apache.datasketches.common.Util.longToHexBytes(out[1]));
+    println(longToHexBytes(out[0]));
+    println(longToHexBytes(out[1]));
 
     println("Ints");
     int[] iArr = {0X04030201, 0X08070605,   0X0c0b0a09, 0X100f0e0d,   0X14131211,   0X18171615};
     out = hash(iArr, 0L);
     Assert.assertEquals(out, out1);
-    println(org.apache.datasketches.common.Util.longToHexBytes(out[0]));
-    println(org.apache.datasketches.common.Util.longToHexBytes(out[1]));
+    println(longToHexBytes(out[0]));
+    println(longToHexBytes(out[1]));
 
     println("Longs");
     long[] lArr = {0X0807060504030201L, 0X100f0e0d0c0b0a09L, 0X1817161514131211L};
     out = hash(lArr, 0L);
     Assert.assertEquals(out, out1);
-    println(org.apache.datasketches.common.Util.longToHexBytes(out[0]));
-    println(org.apache.datasketches.common.Util.longToHexBytes(out[1]));
+    println(longToHexBytes(out[0]));
+    println(longToHexBytes(out[1]));
   }
 
 

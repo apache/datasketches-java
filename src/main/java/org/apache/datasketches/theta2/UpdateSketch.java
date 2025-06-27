@@ -50,6 +50,7 @@ import java.util.Objects;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
@@ -67,14 +68,14 @@ public abstract class UpdateSketch extends Sketch {
   * Wrap takes the writable sketch image in MemorySegment and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
   * been explicitly stored as writable, direct objects can be wrapped. This method assumes the
-  * {@link org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_UPDATE_SEED}.
+  * {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcWSeg an image of a writable sketch where the image seed hash matches the default seed hash.
   * It must have a size of at least 24 bytes.
   * @return an UpdateSketch backed by the given MemorySegment
   */
   public static UpdateSketch wrap(final MemorySegment srcWSeg) {
-    return wrap(srcWSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcWSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -111,13 +112,13 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Instantiates an on-heap UpdateSketch from a MemorySegment. This method assumes the
-   * {@link org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_UPDATE_SEED}.
+   * {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}.
    * @param srcSeg the given MemorySegment with a sketch image.
    * It must have a size of at least 24 bytes.
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final MemorySegment srcSeg) {
-    return heapify(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -441,7 +442,7 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check seed hashes
     final short seedHash = checkSegmentSeedHash(srcSeg, expectedSeed);              //byte 6,7
-    ThetaUtil.checkSeedHashes(seedHash, ThetaUtil.computeSeedHash(expectedSeed));
+    Util.checkSeedHashes(seedHash, Util.computeSeedHash(expectedSeed));
 
     //Check seg capacity, lgArrLongs
     final long curCapBytes = srcSeg.byteSize();

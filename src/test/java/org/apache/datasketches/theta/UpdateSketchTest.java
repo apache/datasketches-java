@@ -35,6 +35,7 @@ import java.nio.ByteBuffer;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -162,7 +163,7 @@ public class UpdateSketchTest {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
     WritableMemory wmem = WritableMemory.writableWrap(sk.compact().toByteArray());
-    UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    UpdateSketch.wrap(wmem, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -172,13 +173,13 @@ public class UpdateSketchTest {
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     try {
       wmem.putByte(SER_VER_BYTE, (byte) 2);
-      UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+      UpdateSketch.wrap(wmem, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
     try {
       wmem.putByte(SER_VER_BYTE, (byte) 3);
       wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);
-      UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+      UpdateSketch.wrap(wmem, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
   }

@@ -19,11 +19,12 @@
 
 package org.apache.datasketches.tuple2;
 
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.hash.MurmurHash3;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.
@@ -136,7 +137,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final byte[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -148,7 +149,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final ByteBuffer buffer, final U value) {
     if (buffer == null || buffer.hasRemaining() == false) { return; }
-    insertOrIgnore(MurmurHash3.hash(buffer, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(buffer, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -160,7 +161,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final int[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -172,7 +173,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final long[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   void insertOrIgnore(final long hash, final U value) {

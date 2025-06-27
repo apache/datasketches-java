@@ -29,6 +29,7 @@ import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableS
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
@@ -50,7 +51,7 @@ final class AnotBimpl extends AnotB {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   AnotBimpl(final long seed) {
-    this(ThetaUtil.computeSeedHash(seed));
+    this(Util.computeSeedHash(seed));
   }
 
   /**
@@ -74,7 +75,7 @@ final class AnotBimpl extends AnotB {
       return;
     }
     //skA is not empty
-    ThetaUtil.checkSeedHashes(seedHash_, skA.getSeedHash());
+    Util.checkSeedHashes(seedHash_, skA.getSeedHash());
 
     //process A
     hashArr_ = getHashArrA(skA);
@@ -87,7 +88,7 @@ final class AnotBimpl extends AnotB {
   public void notB(final Sketch skB) {
     if (empty_ || skB == null || skB.isEmpty()) { return; }
     //local and skB is not empty
-    ThetaUtil.checkSeedHashes(seedHash_, skB.getSeedHash());
+    Util.checkSeedHashes(seedHash_, skB.getSeedHash());
 
     thetaLong_ = Math.min(thetaLong_,  skB.getThetaLong());
 
@@ -123,12 +124,12 @@ final class AnotBimpl extends AnotB {
 
     if (skA.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
     //A is not Empty
-    ThetaUtil.checkSeedHashes(skA.getSeedHash(), seedHash_);
+    Util.checkSeedHashes(skA.getSeedHash(), seedHash_);
 
     if (skB.isEmpty()) {
       return skA.compact(dstOrdered, dstMem);
     }
-    ThetaUtil.checkSeedHashes(skB.getSeedHash(), seedHash_);
+    Util.checkSeedHashes(skB.getSeedHash(), seedHash_);
     //Both skA & skB are not empty
 
     //process A

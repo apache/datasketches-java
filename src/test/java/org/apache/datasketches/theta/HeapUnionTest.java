@@ -31,9 +31,9 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -453,8 +453,8 @@ public class HeapUnionTest {
       usk2.update(i); //2*k + 1024 no overlap
     }
 
-    final Memory v2mem1 = convertSerVer3toSerVer2(usk1.compact(true, null), ThetaUtil.DEFAULT_UPDATE_SEED);
-    final Memory v2mem2 = convertSerVer3toSerVer2(usk2.compact(true, null), ThetaUtil.DEFAULT_UPDATE_SEED);
+    final Memory v2mem1 = convertSerVer3toSerVer2(usk1.compact(true, null), Util.DEFAULT_UPDATE_SEED);
+    final Memory v2mem2 = convertSerVer3toSerVer2(usk2.compact(true, null), Util.DEFAULT_UPDATE_SEED);
 
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
@@ -481,7 +481,7 @@ public class HeapUnionTest {
     CompactSketch cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
 
-    final Memory v2mem1 = convertSerVer3toSerVer2(usk1.compact(true, null), ThetaUtil.DEFAULT_UPDATE_SEED);
+    final Memory v2mem1 = convertSerVer3toSerVer2(usk1.compact(true, null), Util.DEFAULT_UPDATE_SEED);
 
     union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(v2mem1);
@@ -545,7 +545,7 @@ public class HeapUnionTest {
     Union union = SetOperation.builder().buildUnion();
     union.union(v3mem1);
 
-    final Memory v2mem1 = convertSerVer3toSerVer2(usk1c, ThetaUtil.DEFAULT_UPDATE_SEED);
+    final Memory v2mem1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED);
     final WritableMemory v2mem2 = WritableMemory.writableWrap(new byte[16]);
     v2mem1.copyTo(0, v2mem2, 0, 8);
 

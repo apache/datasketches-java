@@ -29,7 +29,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 /**
@@ -93,7 +93,7 @@ public class ForwardCompatibilityTest {
   @Test
   public void checkSerVer2_1PreLong_Empty() {
     CompactSketch csk = EmptyCompactSketch.getInstance();
-    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED).asReadOnly();
+    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
     Sketch sketch = Sketch.heapify(srcSeg);
     assertEquals(sketch.isEmpty(), true);
     assertEquals(sketch.isEstimationMode(), false);
@@ -109,7 +109,7 @@ public class ForwardCompatibilityTest {
     UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
     for (int i = 0; i < 2; i++) { usk.update(i); } //exact mode
     CompactSketch csk = usk.compact(true, null);
-    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED).asReadOnly();
+    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
 
     MemorySegment srcWseg = MemorySegment.ofArray(new byte[16]);
     MemorySegment.copy(srcSeg, 0, srcWseg, 0, 16);
@@ -126,7 +126,7 @@ public class ForwardCompatibilityTest {
     UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
     for (int i = 0; i < 32; i++) { usk.update(i); } //est mode
     CompactSketch csk = usk.compact(true, null);
-    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED).asReadOnly();
+    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
 
     MemorySegment srcWseg = MemorySegment.ofArray(new byte[24]);
     MemorySegment.copy(srcSeg, 0, srcWseg, 0, 24);
@@ -144,7 +144,7 @@ public class ForwardCompatibilityTest {
     UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
     usk.update(1); //exact mode
     CompactSketch csk = usk.compact(true, null);
-    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED).asReadOnly();
+    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
 
     Sketch sketch = Sketch.heapify(srcSeg);
     assertEquals(sketch.isEmpty(), false);
@@ -161,7 +161,7 @@ public class ForwardCompatibilityTest {
     UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
     for (int i = 0; i < 32; i++) { usk.update(i); } //est mode
     CompactSketch csk = usk.compact(true, null);
-    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED).asReadOnly();
+    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
 
     MemorySegment srcWseg = MemorySegment.ofArray(new byte[32]);
     MemorySegment.copy(srcSeg, 0, srcWseg, 0, 32);
@@ -185,7 +185,7 @@ public class ForwardCompatibilityTest {
     UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
     for (int i = 0; i < 32; i++) { usk.update(i); } //est mode
     CompactSketch csk = usk.compact(true, null);
-    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED).asReadOnly();
+    MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
 
     MemorySegment srcWseg = MemorySegment.ofArray(new byte[32]);
     MemorySegment.copy(srcSeg, 0, srcWseg, 0, 32);

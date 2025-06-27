@@ -27,7 +27,7 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 /**
@@ -53,7 +53,7 @@ public class AnotBimplTest {
     assertTrue(aNb.isEmpty());  //only applies to stateful
     assertTrue(aNb.getCache().length == 0); //only applies to stateful
     assertEquals(aNb.getThetaLong(), Long.MAX_VALUE); //only applies to stateful
-    assertEquals(aNb.getSeedHash(), ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED));
+    assertEquals(aNb.getSeedHash(), Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED));
 
     aNb.setA(usk1);
     aNb.notB(usk2);
@@ -308,7 +308,7 @@ public class AnotBimplTest {
   @Test
   public void checkGetFamily() {
     //cheap trick
-    final AnotBimpl anotb = new AnotBimpl(ThetaUtil.DEFAULT_UPDATE_SEED);
+    final AnotBimpl anotb = new AnotBimpl(Util.DEFAULT_UPDATE_SEED);
     assertEquals(anotb.getFamily(), Family.A_NOT_B);
   }
 

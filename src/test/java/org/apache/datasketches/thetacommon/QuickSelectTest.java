@@ -20,9 +20,9 @@
 package org.apache.datasketches.thetacommon;
 
 import static java.lang.String.format;
-import static org.apache.datasketches.thetacommon.QuickSelect.select;
-import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
-import static org.apache.datasketches.thetacommon.QuickSelect.selectIncludingZeros;
+import static org.apache.datasketches.common.QuickSelect.select;
+import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
+import static org.apache.datasketches.common.QuickSelect.selectIncludingZeros;
 
 import java.util.Random;
 

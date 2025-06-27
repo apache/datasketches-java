@@ -21,9 +21,9 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
+import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.QuickSelect;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**

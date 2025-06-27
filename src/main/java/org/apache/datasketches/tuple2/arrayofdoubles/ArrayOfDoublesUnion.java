@@ -21,14 +21,13 @@ package org.apache.datasketches.tuple2.arrayofdoubles;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
 import static java.lang.Math.min;
 
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
 
 /**
@@ -66,7 +65,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion heapify(final MemorySegment srcSeg) {
-    return heapify(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -86,7 +85,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion wrap(final MemorySegment srcSeg) {
-    return wrap(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -110,7 +109,7 @@ public abstract class ArrayOfDoublesUnion {
    */
   public void union(final ArrayOfDoublesSketch tupleSketch) {
     if (tupleSketch == null) { return; }
-    checkSeedHashes(gadget_.getSeedHash(), tupleSketch.getSeedHash());
+    Util.checkSeedHashes(gadget_.getSeedHash(), tupleSketch.getSeedHash());
     if (gadget_.getNumValues() != tupleSketch.getNumValues()) {
       throw new SketchesArgumentException("Incompatible sketches: number of values mismatch "
           + gadget_.getNumValues() + " and " + tupleSketch.getNumValues());

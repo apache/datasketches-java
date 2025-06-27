@@ -25,10 +25,10 @@ import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
+import static org.apache.datasketches.common.Util.checkSeedHashes;
 import static org.apache.datasketches.common.Util.clear;
 import static org.apache.datasketches.common.Util.clearBits;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.setBits;
 
 import java.lang.foreign.MemorySegment;

@@ -50,8 +50,8 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.HashOperations;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -189,14 +189,14 @@ public class DirectQuickSelectSketchTest {
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to wrap the corrupted seg
-    DirectQuickSelectSketch.writableWrap(seg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
-    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed2 = Util.DEFAULT_UPDATE_SEED;
     try (Arena arena = Arena.ofConfined()) {
       MemorySegment wseg = makeNativeMemorySegment(k, arena);
       UpdateSketch usk = UpdateSketch.builder().setSeed(seed1).setNominalEntries(k).build(wseg);
@@ -217,7 +217,7 @@ public class DirectQuickSelectSketchTest {
       MemorySegment wseg = makeNativeMemorySegment(k, arena);
       UpdateSketch.builder().setNominalEntries(k).build(wseg);
       wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-      Sketch.heapify(wseg, ThetaUtil.DEFAULT_UPDATE_SEED);
+      Sketch.heapify(wseg, Util.DEFAULT_UPDATE_SEED);
     } catch (final Exception e) {
       if (e instanceof SketchesArgumentException) {}
       else { throw new RuntimeException(e); }
@@ -769,7 +769,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk2;
     seg1.set(JAVA_BYTE, FAMILY_BYTE, (byte) 3); //corrupt Family by setting to Compact
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, ThetaUtil.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //Pass
@@ -777,7 +777,7 @@ public class DirectQuickSelectSketchTest {
     seg1.set(JAVA_BYTE, FAMILY_BYTE, (byte) 2); //fix Family
     seg1.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1); //corrupt preLongs
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, ThetaUtil.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -785,7 +785,7 @@ public class DirectQuickSelectSketchTest {
     seg1.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 3); //fix preLongs
     seg1.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2); //corrupt serVer
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, ThetaUtil.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -795,7 +795,7 @@ public class DirectQuickSelectSketchTest {
     seg1.set(JAVA_LONG_UNALIGNED, THETA_LONG, Long.MAX_VALUE >>> 1); //corrupt theta and
     seg1.set(JAVA_BYTE, LG_ARR_LONGS_BYTE, (byte) 10); //corrupt lgArrLongs
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, ThetaUtil.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -805,7 +805,7 @@ public class DirectQuickSelectSketchTest {
     byte badFlags = (byte) (BIG_ENDIAN_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK);
     seg1.set(JAVA_BYTE, FLAGS_BYTE, badFlags);
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, ThetaUtil.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -814,7 +814,7 @@ public class DirectQuickSelectSketchTest {
     byte[] arr2 = Arrays.copyOfRange(arr1, 0, bytes-1); //corrupt length
     MemorySegment seg2 = MemorySegment.ofArray(arr2);
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg2, ThetaUtil.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg2, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -833,7 +833,7 @@ public class DirectQuickSelectSketchTest {
     usk.update(0);
 
     insertLgResizeFactor(seg, 0); // corrupt RF: X1
-    UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(seg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
     assertEquals(dqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
 
@@ -862,7 +862,7 @@ public class DirectQuickSelectSketchTest {
     MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) +24]);
     Sketches.updateSketchBuilder().setNominalEntries(k).build(seg);
     seg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.writableWrap(seg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test

@@ -98,7 +98,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    org.apache.datasketches.common.Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), org.apache.datasketches.common.Util.computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     lgNomEntries_ = mem.getByte(LG_NOM_ENTRIES_BYTE);
     thetaLong_ = mem.getLong(THETA_LONG);
@@ -238,7 +238,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
       | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
-    mem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed_));
+    mem.putShort(SEED_HASH_SHORT, org.apache.datasketches.common.Util.computeSeedHash(seed_));
     mem.putLong(THETA_LONG, thetaLong_);
     mem.putByte(LG_NOM_ENTRIES_BYTE, (byte) lgNomEntries_);
     mem.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(keys_.length));

@@ -25,7 +25,7 @@ import static org.apache.datasketches.frequencies.Util.hash;
 
 import java.lang.reflect.Array;
 
-import org.apache.datasketches.thetacommon.QuickSelect;
+import org.apache.datasketches.common.QuickSelect;
 
 /**
  * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a

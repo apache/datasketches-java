@@ -23,7 +23,7 @@ import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 public class CornerCaseArrayOfDoublesSetOperationsTest {
@@ -551,13 +551,13 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
 
     println(LS + "Longs");
     for (long v = 1L; v < 10; v++) {
-      long hash = (hash(v, ThetaUtil.DEFAULT_UPDATE_SEED)[0]) >>> 1;
+      long hash = (hash(v, Util.DEFAULT_UPDATE_SEED)[0]) >>> 1;
       printLong(v, hash);
     }
   }
 
   static long getLongHash(long v) {
-    return (hash(v, ThetaUtil.DEFAULT_UPDATE_SEED)[0]) >>> 1;
+    return (hash(v, Util.DEFAULT_UPDATE_SEED)[0]) >>> 1;
   }
 
   static void printLong(long v, long hash) {

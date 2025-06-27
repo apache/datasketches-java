@@ -103,7 +103,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       | (1 << Flags.IS_EMPTY.ordinal())
     ));
     mem_.putByte(NUM_VALUES_BYTE, (byte) numValues);
-    mem_.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed));
+    mem_.putShort(SEED_HASH_SHORT, org.apache.datasketches.common.Util.computeSeedHash(seed));
     thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
     mem_.putLong(THETA_LONG, thetaLong_);
     mem_.putByte(LG_NOM_ENTRIES_BYTE, (byte) Integer.numberOfTrailingZeros(nomEntries));
@@ -152,7 +152,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
 
-    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    org.apache.datasketches.common.Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), org.apache.datasketches.common.Util.computeSeedHash(seed));
     keysOffset_ = ENTRIES_START;
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * getCurrentCapacity());
     // to do: make parent take care of its own parts

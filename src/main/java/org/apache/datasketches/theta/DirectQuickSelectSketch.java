@@ -56,6 +56,7 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -156,7 +157,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     insertLgArrLongs(dstMem, lgArrLongs);                  //byte 4
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
     insertFlags(dstMem, EMPTY_FLAG_MASK);                  //byte 5
-    insertSeedHash(dstMem, ThetaUtil.computeSeedHash(seed));    //bytes 6,7
+    insertSeedHash(dstMem, Util.computeSeedHash(seed));    //bytes 6,7
     insertCurCount(dstMem, 0);                             //bytes 8-11
     insertP(dstMem, p);                                    //bytes 12-15
     final long thetaLong = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);

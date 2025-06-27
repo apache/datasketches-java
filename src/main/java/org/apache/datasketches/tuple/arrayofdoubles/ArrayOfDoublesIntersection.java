@@ -48,7 +48,7 @@ public abstract class ArrayOfDoublesIntersection {
    * @param seed the hash function update seed.
    */
   ArrayOfDoublesIntersection(final int numValues, final long seed) {
-    seedHash_ = Util.computeSeedHash(seed);
+    seedHash_ = org.apache.datasketches.common.Util.computeSeedHash(seed);
     numValues_ = numValues;
     hashTables_ = null;
     empty_ = false;
@@ -64,7 +64,7 @@ public abstract class ArrayOfDoublesIntersection {
    */
   public void intersect(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
     if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
-    Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
+    org.apache.datasketches.common.Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
     if (tupleSketch.numValues_ != numValues_) {
       throw new SketchesArgumentException(
           "Input tupleSketch cannot have different numValues from the internal numValues.");

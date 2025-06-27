@@ -48,6 +48,7 @@ import java.util.Objects;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -67,7 +68,7 @@ public abstract class UpdateSketch extends Sketch {
   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
   * been explicitly stored as direct objects can be wrapped. This method assumes the
-  * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
+  * {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
   * It must have a size of at least 24 bytes.
@@ -75,7 +76,7 @@ public abstract class UpdateSketch extends Sketch {
   * @return a Sketch backed by the given Memory
   */
   public static UpdateSketch wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -113,13 +114,13 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Instantiates an on-heap UpdateSketch from Memory. This method assumes the
-   * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
+   * {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * It must have a size of at least 24 bytes.
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -428,7 +429,7 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check seed hashes
     final short seedHash = checkMemorySeedHash(srcMem, expectedSeed);              //byte 6,7
-    ThetaUtil.checkSeedHashes(seedHash, ThetaUtil.computeSeedHash(expectedSeed));
+    Util.checkSeedHashes(seedHash, Util.computeSeedHash(expectedSeed));
 
     //Check mem capacity, lgArrLongs
     final long curCapBytes = srcMem.getCapacity();

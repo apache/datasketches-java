@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple2.arrayofdoubles;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /**
  * Builds set operations object for tuple sketches of type ArrayOfDoubles.
@@ -48,7 +48,7 @@ public class ArrayOfDoublesSetOperationBuilder {
   public ArrayOfDoublesSetOperationBuilder() {
     nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
     numValues_ = DEFAULT_NUMBER_OF_VALUES;
-    seed_ = ThetaUtil.DEFAULT_UPDATE_SEED;
+    seed_ = Util.DEFAULT_UPDATE_SEED;
   }
 
   /**

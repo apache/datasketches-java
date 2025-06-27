@@ -30,7 +30,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 //@formatter:off
 
@@ -514,7 +513,7 @@ final class PreambleUtil {
 
   static final short checkMemorySeedHash(final Memory mem, final long seed) {
     final short seedHashMem = (short) extractSeedHash(mem);
-    ThetaUtil.checkSeedHashes(seedHashMem, ThetaUtil.computeSeedHash(seed)); //throws if bad seedHash
+    Util.checkSeedHashes(seedHashMem, Util.computeSeedHash(seed)); //throws if bad seedHash
     return seedHashMem;
   }
 

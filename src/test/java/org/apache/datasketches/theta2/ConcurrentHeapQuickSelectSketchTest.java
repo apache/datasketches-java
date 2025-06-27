@@ -34,7 +34,6 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -123,7 +122,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkHeapifySeedConflict() {
     int lgK = 9;
     long seed = 1021;
-    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed2 = Util.DEFAULT_UPDATE_SEED;
     SharedLocal sl = new SharedLocal(lgK, lgK, seed);
     byte[] byteArray = sl.shared.toByteArray();
     MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
@@ -137,7 +136,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     byte[]  serArr = sl.shared.toByteArray();
     MemorySegment srcSeg = MemorySegment.ofArray(serArr);
     srcSeg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    Sketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -241,7 +240,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     byte[]  serArr = shared.toByteArray();
 
     MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
-    UpdateSketch recoveredShared = UpdateSketch.heapify(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    UpdateSketch recoveredShared = UpdateSketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
 
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
@@ -676,7 +675,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   }
 
   static class SharedLocal {
-    static final long DefaultSeed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    static final long DefaultSeed = Util.DEFAULT_UPDATE_SEED;
     final UpdateSketch shared;
     final ConcurrentSharedThetaSketch sharedIf;
     final UpdateSketch local;

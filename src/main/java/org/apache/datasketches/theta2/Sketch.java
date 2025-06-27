@@ -37,6 +37,7 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.BinomialBoundsN;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
@@ -74,7 +75,7 @@ public abstract class Sketch implements MemorySegmentStatus {
     if (family == Family.COMPACT) {
       return CompactSketch.heapify(srcSeg);
     }
-    return heapifyUpdateFromMemorySegment(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapifyUpdateFromMemorySegment(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -132,7 +133,7 @@ public abstract class Sketch implements MemorySegmentStatus {
     final Family family = Family.idToFamily(familyID);
     if (family == Family.QUICKSELECT) {
       if (serVer == 3 && preLongs == 3) {
-        return DirectQuickSelectSketchR.readOnlyWrap(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+        return DirectQuickSelectSketchR.readOnlyWrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
       } else {
         throw new SketchesArgumentException(
             "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");

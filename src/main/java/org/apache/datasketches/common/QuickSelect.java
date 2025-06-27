@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.thetacommon2;
+package org.apache.datasketches.common;
 
 /**
  * QuickSelect algorithm improved from Sedgewick. Gets the kth order value

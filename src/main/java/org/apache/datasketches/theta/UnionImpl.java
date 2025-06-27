@@ -20,22 +20,22 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.Math.min;
+import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
 import static org.apache.datasketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.clearEmpty;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractUnionThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
-import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
 
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Shared code for the HeapUnion and DirectUnion implementations.
@@ -61,7 +61,7 @@ final class UnionImpl extends Union {
 
   private UnionImpl(final UpdateSketch gadget, final long seed) {
     gadget_ = gadget;
-    expectedSeedHash_ = ThetaUtil.computeSeedHash(seed);
+    expectedSeedHash_ = Util.computeSeedHash(seed);
   }
 
   /**
@@ -307,7 +307,7 @@ final class UnionImpl extends Union {
       return;
     }
     //sketchIn is valid and not empty
-    ThetaUtil.checkSeedHashes(expectedSeedHash_, sketchIn.getSeedHash());
+    Util.checkSeedHashes(expectedSeedHash_, sketchIn.getSeedHash());
     if (sketchIn instanceof SingleItemSketch) {
       gadget_.hashUpdate(sketchIn.getCache()[0]);
       return;

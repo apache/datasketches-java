@@ -39,6 +39,7 @@ import static org.apache.datasketches.theta2.PreambleUtil.insertThetaLong;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
@@ -94,7 +95,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
   @Override
   short getSeedHash() {
-    return ThetaUtil.computeSeedHash(getSeed());
+    return Util.computeSeedHash(getSeed());
   }
 
   //Used by HeapAlphaSketch and HeapQuickSelectSketch / Theta UpdateSketch

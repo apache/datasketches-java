@@ -28,6 +28,7 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
@@ -46,7 +47,7 @@ public final class SetOperationBuilder {
    * <ul>
    * <li>Max Nominal Entries (max K):
    *   {@value org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
-   * <li>Seed: {@value org.apache.datasketches.thetacommon2.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
+   * <li>Seed: {@value org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}</li>
    * <li>{@link ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>MemorySegment: null</li>
@@ -54,7 +55,7 @@ public final class SetOperationBuilder {
    */
   public SetOperationBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
-    bSeed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    bSeed = Util.DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
   }

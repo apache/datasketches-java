@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Convenient static methods to instantiate tuple sketches of type ArrayOfDoubles.
@@ -34,7 +34,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch heapifySketch(final Memory srcMem) {
-    return heapifySketch(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapifySketch(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -53,7 +53,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public static ArrayOfDoublesUpdatableSketch heapifyUpdatableSketch(final Memory srcMem) {
-    return heapifyUpdatableSketch(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapifyUpdatableSketch(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -72,7 +72,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch wrapSketch(final Memory srcMem) {
-    return wrapSketch(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapSketch(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -91,7 +91,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public static ArrayOfDoublesUpdatableSketch wrapUpdatableSketch(final WritableMemory srcMem) {
-    return wrapUpdatableSketch(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapUpdatableSketch(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -110,7 +110,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion heapifyUnion(final Memory srcMem) {
-    return heapifyUnion(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapifyUnion(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -129,7 +129,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion wrapUnion(final Memory srcMem) {
-    return wrapUnion(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapUnion(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -148,7 +148,7 @@ public final class ArrayOfDoublesSketches {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion wrapUnion(final WritableMemory srcMem) {
-    return wrapUnion(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrapUnion(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

@@ -26,9 +26,9 @@ import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+import static org.apache.datasketches.common.Util.checkSeedHashes;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;

@@ -107,17 +107,17 @@ final class IntersectionImpl extends Intersection {
       if (dstSegFlag) { //DstSeg: compute & store seedHash, no seedHash checking
         checkMinSizeMemorySegment(wseg);
         maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wseg) : 0; //Only Off Heap
-        seedHash_ = ThetaUtil.computeSeedHash(seed);
+        seedHash_ = Util.computeSeedHash(seed);
         wseg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
       } else { //SrcSeg:gets and stores the seedHash, checks seg_seedHash against the seed
         seedHash_ = wseg_.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
-        ThetaUtil.checkSeedHashes(seedHash_, ThetaUtil.computeSeedHash(seed)); //check for seed hash conflict
+        Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed)); //check for seed hash conflict
         maxLgArrLongs_ = 0;
       }
     } else { //compute & store seedHash
       wseg_ = null;
       maxLgArrLongs_ = 0;
-      seedHash_ = ThetaUtil.computeSeedHash(seed);
+      seedHash_ = Util.computeSeedHash(seed);
     }
   }
 
@@ -240,7 +240,7 @@ final class IntersectionImpl extends Intersection {
       resetToEmpty();
       return;
     }
-    ThetaUtil.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     //Set minTheta
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
     empty_ = false;

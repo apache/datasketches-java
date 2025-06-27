@@ -34,7 +34,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 //@formatter:off
 
@@ -517,7 +516,7 @@ final class PreambleUtil {
 
   static final short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
     final short seedHashSeg = (short) extractSeedHash(seg);
-    ThetaUtil.checkSeedHashes(seedHashSeg, ThetaUtil.computeSeedHash(seed)); //throws if bad seedHash
+    Util.checkSeedHashes(seedHashSeg, Util.computeSeedHash(seed)); //throws if bad seedHash
     return seedHashSeg;
   }
 

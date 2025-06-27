@@ -33,9 +33,9 @@ import static org.apache.datasketches.theta.PreambleUtil.SEED_HASH_SHORT;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Wrapper around a serialized compact read-only sketch. It is not empty, not a single item.
@@ -61,7 +61,7 @@ class WrappedCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static WrappedCompactSketch wrapInstance(final byte[] bytes, final short seedHash) {
-    ThetaUtil.checkSeedHashes(getShortLE(bytes, SEED_HASH_SHORT), seedHash);
+    Util.checkSeedHashes(getShortLE(bytes, SEED_HASH_SHORT), seedHash);
     return new WrappedCompactSketch(bytes);
   }
 

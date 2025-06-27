@@ -27,9 +27,9 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemoryStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The parent API for all Set Operations
@@ -67,7 +67,7 @@ public abstract class SetOperation implements MemoryStatus {
    * @return a Heap-based SetOperation from the given Memory
    */
   public static SetOperation heapify(final Memory srcMem) {
-    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -115,7 +115,7 @@ public abstract class SetOperation implements MemoryStatus {
    * @return a SetOperation backed by the given Memory
    */
   public static SetOperation wrap(final Memory srcMem) {
-    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -164,7 +164,7 @@ public abstract class SetOperation implements MemoryStatus {
    * @return a SetOperation backed by the given Memory
    */
   public static SetOperation wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

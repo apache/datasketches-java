@@ -30,8 +30,7 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-//import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /**
  * The parent API for all Set Operations
@@ -68,7 +67,7 @@ public abstract class SetOperation implements MemorySegmentStatus {
    * @return a Heap-based SetOperation from the given MemorySegment
    */
   public static SetOperation heapify(final MemorySegment srcSeg) {
-    return heapify(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -113,7 +112,7 @@ public abstract class SetOperation implements MemorySegmentStatus {
    * @return a SetOperation backed by the given MemorySegment
    */
   public static SetOperation wrap(final MemorySegment srcSeg) {
-    return wrap(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

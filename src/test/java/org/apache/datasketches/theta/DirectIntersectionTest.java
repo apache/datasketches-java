@@ -32,9 +32,9 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -661,14 +661,14 @@ public class DirectIntersectionTest {
   public void checkDefaultMinSize() {
     final int k = 32;
     final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(ThetaUtil.DEFAULT_UPDATE_SEED, mem);
+    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, mem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptionMinSize() {
     final int k = 16;
     final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(ThetaUtil.DEFAULT_UPDATE_SEED, mem);
+    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, mem);
   }
 
   @Test
@@ -691,7 +691,7 @@ public class DirectIntersectionTest {
     //cheap trick
     final int k = 16;
     final WritableMemory mem = WritableMemory.writableWrap(new byte[k*16 + PREBYTES]);
-    final IntersectionImpl impl = IntersectionImpl.initNewDirectInstance(ThetaUtil.DEFAULT_UPDATE_SEED, mem);
+    final IntersectionImpl impl = IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, mem);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 
@@ -699,22 +699,22 @@ public class DirectIntersectionTest {
   public void checkExceptions1() {
     final int k = 16;
     final WritableMemory mem = WritableMemory.writableWrap(new byte[k*16 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(ThetaUtil.DEFAULT_UPDATE_SEED, mem);
+    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, mem);
     //corrupt SerVer
     mem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 2);
-    IntersectionImpl.wrapInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED, false);
+    IntersectionImpl.wrapInstance(mem, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions2() {
     final int k = 16;
     final WritableMemory mem = WritableMemory.writableWrap(new byte[k*16 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(ThetaUtil.DEFAULT_UPDATE_SEED, mem);
+    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, mem);
     //mem now has non-empty intersection
     //corrupt empty and CurCount
     mem.setBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
     mem.putInt(PreambleUtil.RETAINED_ENTRIES_INT, 2);
-    IntersectionImpl.wrapInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED, false);
+    IntersectionImpl.wrapInstance(mem, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2

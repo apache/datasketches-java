@@ -76,7 +76,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     dstMem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
-    dstMem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
+    dstMem.putShort(SEED_HASH_SHORT, org.apache.datasketches.common.Util.computeSeedHash(sketch.getSeed()));
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
     dstMem.putLong(THETA_LONG, thetaLong_);
     if (count > 0) {
@@ -178,7 +178,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    org.apache.datasketches.common.Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), org.apache.datasketches.common.Util.computeSeedHash(seed));
     isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = mem_.getLong(THETA_LONG);
   }

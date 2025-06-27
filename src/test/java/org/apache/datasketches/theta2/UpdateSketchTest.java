@@ -38,6 +38,7 @@ import java.nio.ByteBuffer;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -158,7 +159,7 @@ public class UpdateSketchTest {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
     MemorySegment wseg = MemorySegment.ofArray(sk.compact().toByteArray());
-    UpdateSketch.wrap(wseg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    UpdateSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -168,13 +169,13 @@ public class UpdateSketchTest {
     MemorySegment wseg = MemorySegment.ofArray(sk.toByteArray());
     try {
       wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2);
-      UpdateSketch.wrap(wseg, ThetaUtil.DEFAULT_UPDATE_SEED);
+      UpdateSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
     try {
       wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 3);
       wseg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 2);
-      UpdateSketch.wrap(wseg, ThetaUtil.DEFAULT_UPDATE_SEED);
+      UpdateSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
   }

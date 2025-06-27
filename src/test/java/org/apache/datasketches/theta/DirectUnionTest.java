@@ -34,9 +34,9 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -500,8 +500,8 @@ public class DirectUnionTest {
       usk2.update(i); //2*k + 1024 no overlap
     }
 
-    final Memory v2mem1 = convertSerVer3toSerVer2(usk1.compact(true, null), ThetaUtil.DEFAULT_UPDATE_SEED);
-    final Memory v2mem2 = convertSerVer3toSerVer2(usk2.compact(true, null), ThetaUtil.DEFAULT_UPDATE_SEED);
+    final Memory v2mem1 = convertSerVer3toSerVer2(usk1.compact(true, null), Util.DEFAULT_UPDATE_SEED);
+    final Memory v2mem2 = convertSerVer3toSerVer2(usk2.compact(true, null), Util.DEFAULT_UPDATE_SEED);
 
     final WritableMemory uMem = WritableMemory.writableWrap(new byte[getMaxUnionBytes(k)]); //union memory
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -530,7 +530,7 @@ public class DirectUnionTest {
     CompactSketch cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
 
-    final Memory v2mem1 = convertSerVer3toSerVer2(usk1c, ThetaUtil.DEFAULT_UPDATE_SEED);
+    final Memory v2mem1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED);
 
     uMem = WritableMemory.writableWrap(new byte[getMaxUnionBytes(k)]); //union memory
     union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -604,7 +604,7 @@ public class DirectUnionTest {
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
     union.union(v3mem1);
 
-    final Memory v2mem1 = convertSerVer3toSerVer2(usk1c, ThetaUtil.DEFAULT_UPDATE_SEED);
+    final Memory v2mem1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED);
     final WritableMemory v2mem2 = WritableMemory.writableWrap(new byte[16]);
     v2mem1.copyTo(0, v2mem2, 0, 8);
 
@@ -748,7 +748,7 @@ public class DirectUnionTest {
     assertEquals(familyID, Family.UNION.getID());
     assertEquals(preLongs, Family.UNION.getMaxPreLongs());
     PreambleUtil.insertPreLongs(mem, 3); //Corrupt with 3; correct value is 4
-    DirectQuickSelectSketch.writableWrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(mem, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -759,7 +759,7 @@ public class DirectUnionTest {
     println(setOp.toString());
     final WritableMemory mem2 = WritableMemory.writableWrap(new byte[32]); //for just preamble
     mem.copyTo(0, mem2, 0, 32); //too small
-    DirectQuickSelectSketch.writableWrap(mem2, ThetaUtil.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(mem2, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test

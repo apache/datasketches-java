@@ -416,15 +416,15 @@ public class UtilTest {
     byte[] arr = {1,2,3,4,5,6,7,8,9,10,11,12};
 
     long[] out = convertToLongArray(arr, false);
-    String s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[0]), 16);
+    String s = zeroPad(Long.toHexString(out[0]), 16);
     assertEquals(s, "0807060504030201");
-    s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[1]), 16);
+    s = zeroPad(Long.toHexString(out[1]), 16);
     assertEquals(s, "000000000c0b0a09");
 
     out = convertToLongArray(arr, true);
-    s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[0]), 16);
+    s = zeroPad(Long.toHexString(out[0]), 16);
     assertEquals(s, "0102030405060708");
-    s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[1]), 16);
+    s = zeroPad(Long.toHexString(out[1]), 16);
     assertEquals(s, "00000000090a0b0c");
   }
 

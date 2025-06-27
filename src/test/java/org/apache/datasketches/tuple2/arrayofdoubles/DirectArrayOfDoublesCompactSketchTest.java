@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple2.arrayofdoubles;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -68,7 +68,7 @@ public class DirectArrayOfDoublesCompactSketchTest {
     Assert.assertEquals(sketch.getRetainedEntries(), 3);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
-    Assert.assertEquals(sketch.getSeedHash(), ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED));
+    Assert.assertEquals(sketch.getSeedHash(), Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED));
     double[][] values = sketch.getValues();
     Assert.assertEquals(values.length, 3);
     for (double[] array: values) {

@@ -24,8 +24,6 @@ import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.checkSeedHashes;
-import static org.apache.datasketches.thetacommon2.ThetaUtil.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
@@ -33,7 +31,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
 
 /**
@@ -63,7 +61,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     super(sketch.getNumValues());
     isEmpty_ = sketch.isEmpty();
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
-    seedHash_ = computeSeedHash(sketch.getSeed());
+    seedHash_ = Util.computeSeedHash(sketch.getSeed());
     final int count = sketch.getRetainedEntries();
     if (count > 0) {
       keys_ = new long[count];
@@ -109,7 +107,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
    * @param seg the destination segment
    */
   HeapArrayOfDoublesCompactSketch(final MemorySegment seg) {
-    this(seg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    this(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -134,7 +132,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    checkSeedHashes(seedHash_, computeSeedHash(seed));
+    Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
     final boolean hasEntries =

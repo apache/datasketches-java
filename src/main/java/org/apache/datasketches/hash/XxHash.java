@@ -28,6 +28,8 @@ import static org.apache.datasketches.memory.internal.XxHash64.hashInts;
 import static org.apache.datasketches.memory.internal.XxHash64.hashLongs;
 import static org.apache.datasketches.memory.internal.XxHash64.hashShorts;
 
+import org.apache.datasketches.memory.internal.XxHash64;
+
 /**
  * The XxHash is a fast, non-cryptographic, 64-bit hash function that has
  * excellent avalanche and 2-way bit independence properties.
@@ -196,7 +198,7 @@ public final class XxHash {
       final int offsetChars,
       final int lengthChars,
       final long seed) {
-    return org.apache.datasketches.memory.internal.XxHash64.hashString(str, offsetChars, lengthChars, seed);
+    return XxHash64.hashString(str, offsetChars, lengthChars, seed);
   }
 
 }

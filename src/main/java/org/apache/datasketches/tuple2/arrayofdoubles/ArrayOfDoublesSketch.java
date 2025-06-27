@@ -23,8 +23,8 @@ import static org.apache.datasketches.common.Util.LS;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.BinomialBoundsN;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.apache.datasketches.tuple2.SerializerDeserializer;
 
 /**
@@ -76,7 +76,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch heapify(final MemorySegment seg) {
-    return heapify(seg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -100,7 +100,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return an ArrayOfDoublesSketch
    */
   public static ArrayOfDoublesSketch wrap(final MemorySegment seg) {
-    return wrap(seg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

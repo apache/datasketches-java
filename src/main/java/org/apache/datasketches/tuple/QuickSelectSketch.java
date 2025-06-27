@@ -30,11 +30,11 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.QuickSelect;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**

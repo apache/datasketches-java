@@ -19,13 +19,14 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
 
 /**
@@ -46,7 +47,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public static ArrayOfDoublesUpdatableSketch heapify(final Memory mem) {
-    return heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(mem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -65,7 +66,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public static ArrayOfDoublesUpdatableSketch wrap(final WritableMemory mem) {
-    return wrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(mem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -217,7 +218,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   @Override
   short getSeedHash() {
-    return Util.computeSeedHash(seed_);
+    return org.apache.datasketches.common.Util.computeSeedHash(seed_);
   }
 
   /**

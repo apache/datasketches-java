@@ -35,6 +35,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**
@@ -145,7 +146,7 @@ public abstract class Intersection extends SetOperation {
    * @return an Intersection that wraps a source MemorySegment that contains an Intersection image
    */
   public static Intersection wrap(final MemorySegment srcSeg) {
-    return wrap(srcSeg, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

@@ -60,7 +60,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
 
   ArrayOfDoublesAnotBImpl(final int numValues, final long seed) {
     numValues_ = numValues;
-    seedHash_ = Util.computeSeedHash(seed);
+    seedHash_ = org.apache.datasketches.common.Util.computeSeedHash(seed);
   }
 
   @Override

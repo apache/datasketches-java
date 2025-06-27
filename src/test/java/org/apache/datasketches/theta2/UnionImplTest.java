@@ -34,7 +34,6 @@ import java.nio.ByteOrder;
 import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon2.ThetaUtil;
 import org.testng.annotations.Test;
 
 public class UnionImplTest {
@@ -122,7 +121,7 @@ public class UnionImplTest {
   @Test
   public void checkFastWrap() {
     final int k = 16;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final int unionSize = Sketches.getMaxUnionBytes(k);
     final MemorySegment srcSeg = MemorySegment.ofArray(new byte[unionSize]);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(srcSeg);
@@ -159,7 +158,7 @@ public class UnionImplTest {
       sketch.update(i);
     }
     final CompactSketch csk = sketch.compact(true, null);
-    final MemorySegment v2seg = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED);
+    final MemorySegment v2seg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
 
     v2seg.set(JAVA_BYTE, PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
@@ -187,7 +186,7 @@ public class UnionImplTest {
   public void checkVer2EmptyHandling() {
     final int k = 16;
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    final MemorySegment seg = convertSerVer3toSerVer2(sketch.compact(), ThetaUtil.DEFAULT_UPDATE_SEED);
+    final MemorySegment seg = convertSerVer3toSerVer2(sketch.compact(), Util.DEFAULT_UPDATE_SEED);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.union(seg);
   }
@@ -227,7 +226,7 @@ public class UnionImplTest {
     final Union union = Sketches.setOperationBuilder().buildUnion();
     assertTrue(union.isEmpty());
     assertEquals(union.getThetaLong(), Long.MAX_VALUE);
-    assertEquals(union.getSeedHash(), ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED));
+    assertEquals(union.getSeedHash(), Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED));
     assertEquals(union.getRetainedEntries(), 0);
     assertEquals(union.getCache().length, 128); //only applies to stateful
   }

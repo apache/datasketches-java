@@ -42,6 +42,7 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -138,7 +139,7 @@ public class SketchTest {
     nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapQuickSelectSketch");
     assertEquals(sk1.getLgNomLongs(), Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES));
-    assertEquals(sk1.getSeed(), ThetaUtil.DEFAULT_UPDATE_SEED);
+    assertEquals(sk1.getSeed(), Util.DEFAULT_UPDATE_SEED);
     assertEquals(sk1.getP(), (float)1.0);
     assertEquals(sk1.getResizeFactor(), ResizeFactor.X8);
   }
@@ -310,7 +311,7 @@ public class SketchTest {
     assertFalse(csk2.hasMemory());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
 
-    Memory v2mem = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED);
+    Memory v2mem = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
     csk2 = Sketch.wrap(v2mem);
     assertFalse(csk2.isDirect());
     assertFalse(csk2.hasMemory());

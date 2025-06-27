@@ -35,10 +35,10 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon2.HashOperations;
-import org.apache.datasketches.thetacommon2.QuickSelect;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
 /**

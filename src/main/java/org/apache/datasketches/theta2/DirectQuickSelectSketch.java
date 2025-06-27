@@ -62,6 +62,7 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon2.HashOperations;
 import org.apache.datasketches.thetacommon2.ThetaUtil;
 
@@ -152,7 +153,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     insertLgArrLongs(dstSeg, lgArrLongs);                  //byte 4
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
     insertFlags(dstSeg, EMPTY_FLAG_MASK);                  //byte 5
-    insertSeedHash(dstSeg, ThetaUtil.computeSeedHash(seed));    //bytes 6,7
+    insertSeedHash(dstSeg, Util.computeSeedHash(seed));    //bytes 6,7
     insertCurCount(dstSeg, 0);                             //bytes 8-11
     insertP(dstSeg, p);                                    //bytes 12-15
     final long thetaLong = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);

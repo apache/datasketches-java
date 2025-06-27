@@ -25,6 +25,7 @@ import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
@@ -67,6 +68,28 @@ public final class Util {
    * Long.MAX_VALUE as a double.
    */
   public static final double LONG_MAX_VALUE_AS_DOUBLE = Long.MAX_VALUE;
+
+  /**
+   * The seed 9001 used in the sketch update methods is a prime number that
+   * was chosen very early on in experimental testing. Choosing a seed is somewhat arbitrary, and
+   * the author cannot prove that this particular seed is somehow superior to other seeds.  There
+   * was some early Internet discussion that a seed of 0 did not produce as clean avalanche diagrams
+   * as non-zero seeds, but this may have been more related to the MurmurHash2 release, which did
+   * have some issues. As far as the author can determine, MurmurHash3 does not have these problems.
+   *
+   * <p>In order to perform set operations on two sketches it is critical that the same hash
+   * function and seed are identical for both sketches, otherwise the assumed 1:1 relationship
+   * between the original source key value and the hashed bit string would be violated. Once
+   * you have developed a history of stored sketches you are stuck with it.
+   *
+   * <p><b>WARNING:</b> This seed is used internally by library sketches in different
+   * packages and thus must be declared public. However, this seed value must not be used by library
+   * users with the MurmurHash3 function. It should be viewed as existing for exclusive, private
+   * use by the library.
+   *
+   * <p><a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">See Default Update Seed</a>
+   */
+  public static final long DEFAULT_UPDATE_SEED = 9001L;
 
   private Util() {}
 
@@ -943,6 +966,39 @@ public final class Util {
   public static void setBits(final MemorySegment seg, final long offsetBytes, final byte bitMask) {
     final byte b = seg.get(JAVA_BYTE, offsetBytes);
     seg.set(JAVA_BYTE, offsetBytes, (byte)(b | bitMask));
+  }
+
+  /**
+   * Computes and checks the 16-bit seed hash from the given long seed.
+   * The seed hash may not be zero in order to maintain compatibility with older serialized
+   * versions that did not have this concept.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @return the seed hash.
+   */
+  public static short computeSeedHash(final long seed) {
+    final long[] seedArr = {seed};
+    final short seedHash = (short)(hash(seedArr, 0L)[0] & 0xFFFFL);
+    if (seedHash == 0) {
+      throw new SketchesArgumentException(
+          "The given seed: " + seed + " produced a seedHash of zero. "
+              + "You must choose a different seed.");
+    }
+    return seedHash;
+  }
+
+  /**
+   * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
+   * @param seedHashA the seedHash A
+   * @param seedHashB the seedHash B
+   * @return seedHashA if they are equal
+   */
+  public static short checkSeedHashes(final short seedHashA, final short seedHashB) {
+    if (seedHashA != seedHashB) {
+      throw new SketchesArgumentException(
+          "Incompatible Seed Hashes. " + Integer.toHexString(seedHashA & 0XFFFF)
+            + ", " + Integer.toHexString(seedHashB & 0XFFFF));
+    }
+    return seedHashA;
   }
 
 }
