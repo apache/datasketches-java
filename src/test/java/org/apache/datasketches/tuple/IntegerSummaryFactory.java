@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
+import org.apache.datasketches.tuple.SummaryFactory;
+
 /**
  * Factory for IntegerSummary.
  */

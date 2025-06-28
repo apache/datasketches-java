@@ -24,10 +24,17 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.theta.AnotB;
+import org.apache.datasketches.theta.AnotBimpl;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.SetOperation;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -70,16 +77,16 @@ public class AnotBimplTest {
     assertEquals(rsk1.getEstimate(), k/2.0);
 
     final int bytes = rsk1.getCurrentBytes();
-    final WritableMemory wmem = WritableMemory.allocate(bytes);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
 
     aNb.setA(usk1);
     aNb.notB(usk2);
-    rsk1 = aNb.getResult(false, wmem, true); //unordered, reset
+    rsk1 = aNb.getResult(false, wseg, true); //unordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
 
     aNb.setA(usk1);
     aNb.notB(usk2);
-    rsk1 = aNb.getResult(true, wmem, true); //ordered, reset
+    rsk1 = aNb.getResult(true, wseg, true); //ordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
   }
 
@@ -214,12 +221,12 @@ public class AnotBimplTest {
     final UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { cU.update(i); } //third 256
 
-    final int memBytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int segBytes = Sketch.getMaxUpdateSketchBytes(k);
     CompactSketch result1, result2, result3;
 
-    final WritableMemory wmem1 = WritableMemory.allocate(memBytes);
-    final WritableMemory wmem2 = WritableMemory.allocate(memBytes);
-    final WritableMemory wmem3 = WritableMemory.allocate(memBytes);
+    final MemorySegment wseg1 = MemorySegment.ofArray(new byte[segBytes]);
+    final MemorySegment wseg2 = MemorySegment.ofArray(new byte[segBytes]);
+    final MemorySegment wseg3 = MemorySegment.ofArray(new byte[segBytes]);
 
     final AnotB aNb = SetOperation.builder().buildANotB();
 
@@ -227,11 +234,11 @@ public class AnotBimplTest {
 
     aNb.setA(aU);                                     //stateful
 
-    result1 = aNb.aNotB(aU, bU, ordered, wmem1);      //stateless
+    result1 = aNb.aNotB(aU, bU, ordered, wseg1);      //stateless
 
     aNb.notB(bU);                                     //stateful
 
-    result2 = aNb.aNotB(result1, cU, ordered, wmem2); //stateless
+    result2 = aNb.aNotB(result1, cU, ordered, wseg2); //stateless
 
     aNb.notB(cU);                                     //stateful
 
@@ -239,13 +246,13 @@ public class AnotBimplTest {
     println("est: "+est2);
     assertEquals(est2, k/4.0, 0.0);
 
-    result3 = aNb.getResult(ordered, wmem3, true);    //stateful result, then reset
+    result3 = aNb.getResult(ordered, wseg3, true);    //stateful result, then reset
     final double est3 = result3.getEstimate();
     assertEquals(est3, k/4.0, 0.0);
   }
 
   @Test
-  public void checkAnotBnotC_sameMemory() {
+  public void checkAnotBnotC_sameMemorySegment() {
     final int k = 1024;
     final boolean ordered = true;
 
@@ -258,8 +265,8 @@ public class AnotBimplTest {
     final UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { c.update(i); }  //third 256
 
-    final int memBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
-    final WritableMemory mem = WritableMemory.allocate(memBytes);
+    final int segBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
+    final MemorySegment seg = MemorySegment.ofArray(new byte[segBytes]);
 
     CompactSketch result1, result2;
     final AnotB aNb = SetOperation.builder().buildANotB();
@@ -268,15 +275,15 @@ public class AnotBimplTest {
 
     aNb.setA(a);                                    //stateful
 
-    result1 = aNb.aNotB(a, b, ordered, mem);        //stateless
+    result1 = aNb.aNotB(a, b, ordered, seg);        //stateless
 
     aNb.notB(b);                                    //stateful
 
-    result1 = aNb.aNotB(result1, c, ordered, mem);  //stateless
+    result1 = aNb.aNotB(result1, c, ordered, seg);  //stateless
 
     aNb.notB(c);                                    //stateful
 
-    result2 = aNb.getResult(ordered, mem, true);    //stateful result, then reset
+    result2 = aNb.getResult(ordered, seg, true);    //stateful result, then reset
 
     final double est1 = result1.getEstimate();            //check stateless result
     println("est: "+est1);

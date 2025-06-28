@@ -19,12 +19,19 @@
 
 package org.apache.datasketches.tuple;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.tuple.CompactSketch;
+import org.apache.datasketches.tuple.Sketch;
+import org.apache.datasketches.tuple.Sketches;
+import org.apache.datasketches.tuple.TupleSketchIterator;
+import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
-import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
+import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -124,7 +131,7 @@ public class CompactSketchWithDoubleSummaryTest {
     us.update("c", 1.0);
     CompactSketch<DoubleSummary> sketch1 = us.compact();
     Sketch<DoubleSummary> sketch2 =
-        Sketches.heapifySketch(Memory.wrap(sketch1.toByteArray()),
+        Sketches.heapifySketch(MemorySegment.ofArray(sketch1.toByteArray()),
             new DoubleSummaryDeserializer());
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
@@ -158,7 +165,7 @@ public class CompactSketchWithDoubleSummaryTest {
     //TestUtil.writeBytesToFile(bytes, "CompactSketchWithDoubleSummary4K.sk");
 
     Sketch<DoubleSummary> sketch2 =
-        Sketches.heapifySketch(Memory.wrap(bytes), new DoubleSummaryDeserializer());
+        Sketches.heapifySketch(MemorySegment.ofArray(bytes), new DoubleSummaryDeserializer());
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
@@ -180,7 +187,7 @@ public class CompactSketchWithDoubleSummaryTest {
       us.update(i, 1.0);
     }
     CompactSketch<DoubleSummary> sketch1 = us.compact();
-    Sketches.heapifyUpdatableSketch(Memory.wrap(sketch1.toByteArray()),
+    Sketches.heapifyUpdatableSketch(MemorySegment.ofArray(sketch1.toByteArray()),
         new DoubleSummaryDeserializer(),
         new DoubleSummaryFactory(mode));
   }

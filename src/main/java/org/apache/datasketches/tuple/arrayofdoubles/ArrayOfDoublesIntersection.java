@@ -21,9 +21,11 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static java.lang.Math.min;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 
 /**
  * Computes the intersection of two or more tuple sketches of type ArrayOfDoubles.
@@ -47,7 +49,7 @@ public abstract class ArrayOfDoublesIntersection {
    * @param seed the hash function update seed.
    */
   ArrayOfDoublesIntersection(final int numValues, final long seed) {
-    seedHash_ = org.apache.datasketches.common.Util.computeSeedHash(seed);
+    seedHash_ = Util.computeSeedHash(seed);
     numValues_ = numValues;
     hashTables_ = null;
     empty_ = false;
@@ -63,7 +65,7 @@ public abstract class ArrayOfDoublesIntersection {
    */
   public void intersect(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
     if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
-    org.apache.datasketches.common.Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
+    Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
     if (tupleSketch.numValues_ != numValues_) {
       throw new SketchesArgumentException(
           "Input tupleSketch cannot have different numValues from the internal numValues.");
@@ -115,10 +117,10 @@ public abstract class ArrayOfDoublesIntersection {
 
   /**
    * Gets the result of stateful intersections so far.
-   * @param dstMem Memory for the compact sketch (can be null).
+   * @param dstSeg MemorySegment for the compact sketch (can be null).
    * @return Result of the intersections so far as a compact sketch.
    */
-  public ArrayOfDoublesCompactSketch getResult(final WritableMemory dstMem) {
+  public ArrayOfDoublesCompactSketch getResult(final MemorySegment dstSeg) {
     if (firstCall_) {
       throw new SketchesStateException(
           "getResult() with no intervening intersections is not a legal result.");
@@ -149,11 +151,11 @@ public abstract class ArrayOfDoublesIntersection {
       }
     }
 
-    return (dstMem == null)
+    return (dstSeg == null)
         ? new HeapArrayOfDoublesCompactSketch(hashArrOut, valuesArrOut,
             thetaLong_, empty_, numValues_, seedHash_)
         : new DirectArrayOfDoublesCompactSketch(hashArrOut, valuesArrOut,
-            thetaLong_, empty_, numValues_, seedHash_, dstMem);
+            thetaLong_, empty_, numValues_, seedHash_, dstSeg);
   }
 
   /**

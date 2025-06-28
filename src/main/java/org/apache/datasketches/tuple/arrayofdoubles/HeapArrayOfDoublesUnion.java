@@ -19,8 +19,12 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
@@ -47,23 +51,23 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
   /**
    * This is to create an instance given a serialized form and a custom seed
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seg the source MemorySegment
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return a ArrayOfDoublesUnion on the Java heap
    */
-  static ArrayOfDoublesUnion heapifyUnion(final Memory mem, final long seed) {
-    final byte version = mem.getByte(SERIAL_VERSION_BYTE);
+  static ArrayOfDoublesUnion heapifyUnion(final MemorySegment seg, final long seed) {
+    final byte version = seg.get(JAVA_BYTE, SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: "
         + serialVersionUID + ", actual: " + version);
     }
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
+    SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE), seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(seg.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
 
-    final Memory sketchMem = mem.region(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES);
-    final ArrayOfDoublesQuickSelectSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(sketchMem, seed);
-    return new HeapArrayOfDoublesUnion(sketch, mem.getLong(THETA_LONG));
+    final MemorySegment sketchSeg = seg.asSlice(PREAMBLE_SIZE_BYTES, seg.byteSize() - PREAMBLE_SIZE_BYTES);
+    final ArrayOfDoublesQuickSelectSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(sketchSeg, seed);
+    return new HeapArrayOfDoublesUnion(sketch, seg.get(JAVA_LONG_UNALIGNED, THETA_LONG));
   }
 
 }

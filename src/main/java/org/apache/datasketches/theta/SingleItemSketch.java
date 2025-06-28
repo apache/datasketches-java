@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
@@ -29,11 +30,11 @@ import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * A CompactSketch that holds only one item hash.
@@ -75,26 +76,26 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and a seedHash.
-   * Checks the seed hash of the given Memory against the given seedHash.
-   * @param srcMem the Memory to be heapified.
-   * @param expectedSeedHash the given seedHash to be checked against the srcMem seedHash
+   * Creates a SingleItemSketch on the heap given a SingleItemSketch MemorySegment image and a seedHash.
+   * Checks the seed hash of the given MemorySegment against the given seedHash.
+   * @param srcSeg the MemorySegment to be heapified.
+   * @param expectedSeedHash the given seedHash to be checked against the srcSeg seedHash
    * @return a SingleItemSketch
    */ //does not override Sketch
-  static SingleItemSketch heapify(final Memory srcMem, final short expectedSeedHash) {
-    Util.checkSeedHashes((short) extractSeedHash(srcMem), expectedSeedHash);
-    final boolean singleItem = otherCheckForSingleItem(srcMem);
-    if (singleItem) { return new SingleItemSketch(srcMem.getLong(8), expectedSeedHash); }
-    throw new SketchesArgumentException("Input Memory is not a SingleItemSketch.");
+  static SingleItemSketch heapify(final MemorySegment srcSeg, final short expectedSeedHash) {
+    Util.checkSeedHashes((short) extractSeedHash(srcSeg), expectedSeedHash);
+    final boolean singleItem = otherCheckForSingleItem(srcSeg);
+    if (singleItem) { return new SingleItemSketch(srcSeg.get(JAVA_LONG_UNALIGNED, 8), expectedSeedHash); }
+    throw new SketchesArgumentException("Input MemorySegment is not a SingleItemSketch.");
   }
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    if (dstMem == null) { return this; }
+  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+    if (dstSeg == null) { return this; }
     else {
-      dstMem.putLong(0, pre0_);
-      dstMem.putLong(8, hash_);
-      return new DirectCompactSketch(dstMem);
+      dstSeg.set(JAVA_LONG_UNALIGNED, 0, pre0_);
+      dstSeg.set(JAVA_LONG_UNALIGNED, 8, hash_);
+      return new DirectCompactSketch(dstSeg);
     }
   }
 
@@ -379,18 +380,13 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  Memory getMemory() {
-    return null;
-  }
-
-  @Override
   short getSeedHash() {
     return (short) (pre0_ >>> 48);
   }
 
-  static final boolean otherCheckForSingleItem(final Memory mem) {
-    return otherCheckForSingleItem(extractPreLongs(mem), extractSerVer(mem),
-        extractFamilyID(mem), extractFlags(mem) );
+  static final boolean otherCheckForSingleItem(final MemorySegment seg) {
+    return otherCheckForSingleItem(extractPreLongs(seg), extractSerVer(seg),
+        extractFamilyID(seg), extractFlags(seg) );
   }
 
   static final boolean otherCheckForSingleItem(final int preLongs, final int serVer,

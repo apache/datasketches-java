@@ -23,15 +23,14 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.TAB;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -39,13 +38,12 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public class UpdateSketchBuilder {
+public final class UpdateSketchBuilder {
   private int bLgNomLongs;
   private long bSeed;
   private ResizeFactor bRF;
   private Family bFam;
   private float bP;
-  private MemoryRequestServer bMemReqSvr;
 
   //Fields for concurrent theta sketch
   private int bNumPoolThreads;
@@ -62,17 +60,16 @@ public class UpdateSketchBuilder {
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Family: {@link org.apache.datasketches.common.Family#QUICKSELECT}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
-   * For direct sketches, which are targeted for native memory off the Java heap, this value will
+   * For direct sketches, which are targeted for off-heap, this value will
    * be fixed at either {@link ResizeFactor#X1} or {@link ResizeFactor#X2}.</li>
-   * <li>MemoryRequestServer (Direct only):
-   * {@link org.apache.datasketches.memory.DefaultMemoryRequestServer}.</li>
    * </ul>
    * Parameters unique to the concurrent sketches only:
    * <ul>
-   * <li>Number of local Nominal Entries: 4</li>
    * <li>Concurrent NumPoolThreads: 3</li>
+   * <li>Number of local Nominal Entries: 4</li>
    * <li>Concurrent PropagateOrderedCompact: true</li>
    * <li>Concurrent MaxConcurrencyError: 0</li>
+   * <li>Concurrent MaxNumLocalThreads: 1</li>
    * </ul>
    */
   public UpdateSketchBuilder() {
@@ -81,7 +78,6 @@ public class UpdateSketchBuilder {
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bFam = Family.QUICKSELECT;
-    bMemReqSvr = new DefaultMemoryRequestServer();
     // Default values for concurrent sketch
     bNumPoolThreads = ConcurrentPropagationService.NUM_POOL_THREADS;
     bLocalLgNomLongs = 4; //default is smallest legal QS sketch
@@ -251,24 +247,6 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Set the MemoryRequestServer
-   * @param memReqSvr the given MemoryRequestServer
-   * @return this UpdateSketchBuilder
-   */
-  public UpdateSketchBuilder setMemoryRequestServer(final MemoryRequestServer memReqSvr) {
-    bMemReqSvr = memReqSvr;
-    return this;
-  }
-
-  /**
-   * Returns the MemoryRequestServer
-   * @return the MemoryRequestServer
-   */
-  public MemoryRequestServer getMemoryRequestServer() {
-    return bMemReqSvr;
-  }
-
-  /**
    * Sets the number of pool threads used for background propagation in the concurrent sketches.
    * @param numPoolThreads the given number of pool threads
    */
@@ -348,30 +326,30 @@ public class UpdateSketchBuilder {
 
   /**
    * Returns an UpdateSketch with the current configuration of this Builder
-   * with the specified backing destination Memory store.
+   * with the specified backing destination MemorySegment store.
    * Note: this cannot be used with the Alpha Family of sketches.
-   * @param dstMem The destination Memory.
+   * @param dstSeg The destination MemorySegment.
    * @return an UpdateSketch
    */
-  public UpdateSketch build(final WritableMemory dstMem) {
+  public UpdateSketch build(final MemorySegment dstSeg) {
     UpdateSketch sketch = null;
     switch (bFam) {
       case ALPHA: {
-        if (dstMem == null) {
+        if (dstSeg == null) {
           sketch = HeapAlphaSketch.newHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
-          throw new SketchesArgumentException("AlphaSketch cannot be made Direct to Memory.");
+          throw new SketchesArgumentException("AlphaSketch cannot be backed by a MemorySegment.");
         }
         break;
       }
       case QUICKSELECT: {
-        if (dstMem == null) {
+        if (dstSeg == null) {
           sketch =  new HeapQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, false);
         }
         else {
           sketch = new DirectQuickSelectSketch(
-              bLgNomLongs, bSeed, bP, bRF, bMemReqSvr, dstMem, false);
+              bLgNomLongs, bSeed, bP, bRF, dstSeg, false);
         }
         break;
       }
@@ -405,9 +383,9 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
-   * configuration of the Builder and the given destination WritableMemory. If the destination
-   * WritableMemory is null, this defaults to an on-heap concurrent shared UpdateSketch.
+   * Returns a concurrent shared UpdateSketch with the current
+   * configuration of the Builder and the given destination MemorySegment. If the destination
+   * MemorySegment is null, this defaults to an on-heap concurrent shared UpdateSketch.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
    * <ul>
@@ -418,28 +396,28 @@ public class UpdateSketchBuilder {
    * <p>Key parameters that are in common with other <i>Theta</i> sketches:
    * <ul>
    * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
-   * <li>Destination Writable Memory (if not null, returned sketch is Direct. Default is null.)</li>
+   * <li>Destination MemorySegment (if not null, returned sketch is Direct. Default is null.)</li>
    * </ul>
    *
-   * @param dstMem the given WritableMemory for Direct, otherwise <i>null</i>.
+   * @param dstSeg the given MemorySegment for Direct, otherwise <i>null</i>.
    * @return a concurrent UpdateSketch with the current configuration of the Builder
-   * and the given destination WritableMemory.
+   * and the given destination MemorySegment.
    */
   @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
       justification = "Harmless in Builder, fix later")
-  public UpdateSketch buildShared(final WritableMemory dstMem) {
+  public UpdateSketch buildShared(final MemorySegment dstSeg) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
-    if (dstMem == null) {
+    if (dstSeg == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError);
     } else {
-      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError, dstMem);
+      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError, dstSeg);
     }
   }
 
   /**
    * Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
    * configuration of the Builder, the data from the given sketch, and the given destination
-   * WritableMemory. If the destination WritableMemory is null, this defaults to an on-heap
+   * MemorySegment. If the destination MemorySegment is null, this defaults to an on-heap
    * concurrent shared UpdateSketch.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
@@ -451,23 +429,23 @@ public class UpdateSketchBuilder {
    * <p>Key parameters that are in common with other <i>Theta</i> sketches:
    * <ul>
    * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
-   * <li>Destination Writable Memory (if not null, returned sketch is Direct. Default is null.)</li>
+   * <li>Destination MemorySegment (if not null, returned sketch is Direct. Default is null.)</li>
    * </ul>
    *
    * @param sketch a given UpdateSketch from which the data is used to initialize the returned
    * shared sketch.
-   * @param dstMem the given WritableMemory for Direct, otherwise <i>null</i>.
+   * @param dstSeg the given MemorySegment for Direct, otherwise <i>null</i>.
    * @return a concurrent UpdateSketch with the current configuration of the Builder
-   * and the given destination WritableMemory.
+   * and the given destination MemorySegment.
    */
   @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
       justification = "Harmless in Builder, fix later")
-  public UpdateSketch buildSharedFromSketch(final UpdateSketch sketch, final WritableMemory dstMem) {
+  public UpdateSketch buildSharedFromSketch(final UpdateSketch sketch, final MemorySegment dstSeg) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
-    if (dstMem == null) {
+    if (dstSeg == null) {
       return new ConcurrentHeapQuickSelectSketch(sketch, bSeed, bMaxConcurrencyError);
     } else {
-      return new ConcurrentDirectQuickSelectSketch(sketch, bSeed, bMaxConcurrencyError, dstMem);
+      return new ConcurrentDirectQuickSelectSketch(sketch, bSeed, bMaxConcurrencyError, dstSeg);
     }
   }
 
@@ -505,8 +483,6 @@ public class UpdateSketchBuilder {
     sb.append("p:").append(TAB).append(bP).append(LS);
     sb.append("ResizeFactor:").append(TAB).append(bRF).append(LS);
     sb.append("Family:").append(TAB).append(bFam).append(LS);
-    final String mrsStr = bMemReqSvr.getClass().getSimpleName();
-    sb.append("MemoryRequestServer:").append(TAB).append(mrsStr).append(LS);
     sb.append("Propagate Ordered Compact").append(TAB).append(bPropagateOrderedCompact).append(LS);
     sb.append("NumPoolThreads").append(TAB).append(bNumPoolThreads).append(LS);
     sb.append("MaxConcurrencyError").append(TAB).append(bMaxConcurrencyError).append(LS);

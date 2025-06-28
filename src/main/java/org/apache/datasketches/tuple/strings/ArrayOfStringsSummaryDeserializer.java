@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.tuple.strings;
 
-import org.apache.datasketches.memory.Memory;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.tuple.DeserializeResult;
 import org.apache.datasketches.tuple.SummaryDeserializer;
 
@@ -30,18 +33,18 @@ import org.apache.datasketches.tuple.SummaryDeserializer;
 public class ArrayOfStringsSummaryDeserializer implements SummaryDeserializer<ArrayOfStringsSummary> {
 
   @Override
-  public DeserializeResult<ArrayOfStringsSummary> heapifySummary(final Memory mem) {
-    return ArrayOfStringsSummaryDeserializer.fromMemory(mem);
+  public DeserializeResult<ArrayOfStringsSummary> heapifySummary(final MemorySegment seg) {
+    return ArrayOfStringsSummaryDeserializer.fromMemorySegment(seg);
   }
 
   /**
    * Also used in test.
-   * @param mem the given memory
+   * @param seg the given MemorySegment
    * @return the DeserializeResult
    */
-  static DeserializeResult<ArrayOfStringsSummary> fromMemory(final Memory mem) {
-    final ArrayOfStringsSummary nsum = new ArrayOfStringsSummary(mem);
-    final int totBytes = mem.getInt(0);
+  static DeserializeResult<ArrayOfStringsSummary> fromMemorySegment(final MemorySegment seg) {
+    final ArrayOfStringsSummary nsum = new ArrayOfStringsSummary(seg);
+    final int totBytes = seg.get(JAVA_INT_UNALIGNED, 0);
     return new DeserializeResult<>(nsum, totBytes);
   }
 

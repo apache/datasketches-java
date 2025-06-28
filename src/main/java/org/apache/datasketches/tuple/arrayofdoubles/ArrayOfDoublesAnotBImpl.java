@@ -26,15 +26,16 @@ import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTa
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two ArrayOfDoublesSketches.
@@ -59,7 +60,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
 
   ArrayOfDoublesAnotBImpl(final int numValues, final long seed) {
     numValues_ = numValues;
-    seedHash_ = org.apache.datasketches.common.Util.computeSeedHash(seed);
+    seedHash_ = Util.computeSeedHash(seed);
   }
 
   @Override
@@ -153,8 +154,8 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
   }
 
   @Override
-  public ArrayOfDoublesCompactSketch getResult(final WritableMemory dstMem) {
-    return new DirectArrayOfDoublesCompactSketch(keys_, values_, thetaLong_, empty_, numValues_, seedHash_, dstMem);
+  public ArrayOfDoublesCompactSketch getResult(final MemorySegment dstSeg) {
+    return new DirectArrayOfDoublesCompactSketch(keys_, values_, thetaLong_, empty_, numValues_, seedHash_, dstSeg);
   }
 
   private static DataArrays getResultArrays(

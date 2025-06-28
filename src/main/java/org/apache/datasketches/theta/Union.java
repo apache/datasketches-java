@@ -19,11 +19,15 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
+
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 
 /**
  * Compute the union of two or more theta sketches.
@@ -32,6 +36,62 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 public abstract class Union extends SetOperation {
+
+  /**
+   * Wrap a Union object around a Union MemorySegment object containing data.
+   * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * This does NO validity checking of the given MemorySegment.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg The source MemorySegment object.
+   * @return this class
+   */
+  public static Union fastWrap(final MemorySegment srcSeg) {
+    return fastWrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap a Union object around a Union MemorySegment object containing data.
+   * This does NO validity checking of the given MemorySegment.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg The source MemorySegment object.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this class
+   */
+  public static Union fastWrap(final MemorySegment srcSeg, final long expectedSeed) {
+    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
+    if (serVer != 3) {
+      throw new SketchesArgumentException("SerVer must be 3: " + serVer);
+    }
+    return UnionImpl.fastWrapInstance(srcSeg, expectedSeed);
+  }
+
+  /**
+   * Wrap a Union object around a Union MemorySegment object containing data.
+   * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg The source MemorySegment object.
+   * @return this class
+   */
+  public static Union wrap(final MemorySegment srcSeg) {
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap a Union object around a Union MemorySegment object containing data.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg The source MemorySegment object.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return this class
+   */
+  public static Union wrap(final MemorySegment srcSeg, final long expectedSeed) {
+    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
+    if (serVer != 3) {
+      throw new SketchesArgumentException("SerVer must be 3: " + serVer);
+    }
+    return UnionImpl.wrapInstance(srcSeg, expectedSeed);
+  }
 
   /**
    * Returns the number of storage bytes required for this union in its current state.
@@ -67,12 +127,11 @@ public abstract class Union extends SetOperation {
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    *
-   * @param dstMem
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @param dstSeg destination MemorySegment
    *
    * @return the result of this operation as a CompactSketch of the chosen form
    */
-  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+  public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg);
 
   /**
    * Resets this Union. The seed remains intact, everything else reverts back to its virgin state.
@@ -108,11 +167,11 @@ public abstract class Union extends SetOperation {
    * @param sketchA The first argument
    * @param sketchB The second argument
    * @param dstOrdered If true, the returned CompactSketch will be ordered.
-   * @param dstMem If not null, the returned CompactSketch will be placed in this WritableMemory.
+   * @param dstSeg If not null, the returned CompactSketch will be placed in this MemorySegment.
    * @return the result CompactSketch.
    */
   public abstract CompactSketch union(Sketch sketchA, Sketch sketchB, boolean dstOrdered,
-      WritableMemory dstMem);
+      MemorySegment dstSeg);
 
   /**
    * Perform a Union operation with <i>this</i> union and the given on-heap sketch of the Theta Family.
@@ -127,7 +186,7 @@ public abstract class Union extends SetOperation {
   public abstract void union(Sketch sketchIn);
 
   /**
-   * Perform a Union operation with <i>this</i> union and the given Memory image of any sketch of the
+   * Perform a Union operation with <i>this</i> union and the given MemorySegment image of any sketch of the
    * Theta Family. The input image may be from earlier versions of the Theta Compact Sketch,
    * called the SetSketch (circa 2014), which was prior to Open Source and are compact and ordered.
    *
@@ -135,9 +194,9 @@ public abstract class Union extends SetOperation {
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
-   * @param mem Memory image of sketch to be merged
+   * @param seg MemorySegment image of sketch to be merged
    */
-  public abstract void union(Memory mem);
+  public abstract void union(MemorySegment seg);
 
   /**
    * Update <i>this</i> union with the given long data item.

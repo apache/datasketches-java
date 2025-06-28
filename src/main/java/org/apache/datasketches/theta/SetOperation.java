@@ -19,24 +19,25 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.common.MemoryStatus;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The parent API for all Set Operations
  *
  * @author Lee Rhodes
  */
-public abstract class SetOperation implements MemoryStatus {
+public abstract class SetOperation implements MemorySegmentStatus {
   static final int CONST_PREAMBLE_LONGS = 3;
 
   /**
@@ -54,45 +55,43 @@ public abstract class SetOperation implements MemoryStatus {
   }
 
   /**
-   * Heapify takes the SetOperations image in Memory and instantiates an on-heap
+   * Heapify takes the SetOperations image in MemorySegment and instantiates an on-heap
    * SetOperation using the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * The resulting SetOperation will not retain any link to the source Memory.
+   * The resulting SetOperation will not retain any link to the source MemorySegment.
    *
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus
    * heapified.</p>
    *
-   * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a Heap-based SetOperation from the given Memory
+   * @param srcSeg an image of a SetOperation where the image seed hash matches the default seed hash.
+   * @return a Heap-based SetOperation from the given MemorySegment
    */
-  public static SetOperation heapify(final Memory srcMem) {
-    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED);
+  public static SetOperation heapify(final MemorySegment srcSeg) {
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify takes the SetOperation image in Memory and instantiates an on-heap
+   * Heapify takes the SetOperation image in MemorySegment and instantiates an on-heap
    * SetOperation using the given expectedSeed.
-   * The resulting SetOperation will not retain any link to the source Memory.
+   * The resulting SetOperation will not retain any link to the source MemorySegment.
    *
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus
    * heapified.</p>
    *
-   * @param srcMem an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param srcSeg an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a Heap-based SetOperation from the given Memory
+   * @return a Heap-based SetOperation from the given MemorySegment
    */
-  public static SetOperation heapify(final Memory srcMem, final long expectedSeed) {
-    final byte famID = srcMem.getByte(FAMILY_BYTE);
+  public static SetOperation heapify(final MemorySegment srcSeg, final long expectedSeed) {
+    final byte famID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
     final Family family = idToFamily(famID);
     switch (family) {
       case UNION : {
-        return UnionImpl.heapifyInstance(srcMem, expectedSeed);
+        return UnionImpl.heapifyInstance(srcSeg, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.heapifyInstance(srcMem, expectedSeed);
+        return IntersectionImpl.heapifyInstance(srcSeg, expectedSeed);
       }
       default: {
         throw new SketchesArgumentException("SetOperation cannot heapify family: "
@@ -102,101 +101,48 @@ public abstract class SetOperation implements MemoryStatus {
   }
 
   /**
-   * Wrap takes the SetOperation image in Memory and refers to it directly.
+   * Wrap takes the SetOperation image in MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
-   * This method assumes the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
    *
-   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
-   * wrapped.</p>
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus wrapped.</p>
    *
-   * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a SetOperation backed by the given Memory
+   * @param srcSeg an image of a SetOperation where the image seed hash matches the default seed hash.
+   * @return a SetOperation backed by the given MemorySegment
    */
-  public static SetOperation wrap(final Memory srcMem) {
-    return wrap(srcMem, Util.DEFAULT_UPDATE_SEED);
+  public static SetOperation wrap(final MemorySegment srcSeg) {
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap takes the SetOperation image in Memory and refers to it directly.
+   * Wrap takes the SetOperation image in MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
    *
-   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
-   * wrapped.</p>
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus wrapped.</p>
    *
-   * @param srcMem an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param srcSeg an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a SetOperation backed by the given Memory
+   * @return a SetOperation backed by the given MemorySegment
    */
-  public static SetOperation wrap(final Memory srcMem, final long expectedSeed) {
-    final byte famID = srcMem.getByte(FAMILY_BYTE);
+  public static SetOperation wrap(final MemorySegment srcSeg, final long expectedSeed) {
+    final byte famID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
     final Family family = idToFamily(famID);
-    final int serVer = srcMem.getByte(SER_VER_BYTE);
+    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
     switch (family) {
       case UNION : {
-        return UnionImpl.wrapInstance(srcMem, expectedSeed);
+        return UnionImpl.wrapInstance(srcSeg, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.wrapInstance((WritableMemory)srcMem, expectedSeed, true);
+        return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
-    }
-  }
-
-  /**
-   * Wrap takes the SetOperation image in Memory and refers to it directly.
-   * There is no data copying onto the java heap.
-   * This method assumes the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   *
-   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
-   * wrapped.</p>
-   *
-   * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a SetOperation backed by the given Memory
-   */
-  public static SetOperation wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, Util.DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Wrap takes the SetOperation image in Memory and refers to it directly.
-   * There is no data copying onto the java heap.
-   *
-   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
-   * wrapped.</p>
-   *
-   * @param srcMem an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param expectedSeed the seed used to validate the given Memory image.
-   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a SetOperation backed by the given Memory
-   */
-  public static SetOperation wrap(final WritableMemory srcMem, final long expectedSeed) {
-    final byte famID = srcMem.getByte(FAMILY_BYTE);
-    final Family family = idToFamily(famID);
-    final int serVer = srcMem.getByte(SER_VER_BYTE);
-    if (serVer != 3) {
-      throw new SketchesArgumentException("SerVer must be 3: " + serVer);
-    }
-    switch (family) {
-      case UNION : {
-        return UnionImpl.wrapInstance(srcMem, expectedSeed);
-      }
-      case INTERSECTION : {
-        return IntersectionImpl.wrapInstance(srcMem, expectedSeed, false);
-      }
-      default:
-        throw new SketchesArgumentException("SetOperation cannot wrap family: "
-            + family.toString());
     }
   }
 
@@ -252,6 +198,12 @@ public abstract class SetOperation implements MemoryStatus {
   abstract long[] getCache();
 
   /**
+   * Returns the backing MemorySegment object if it exists, otherwise null.
+   * @return the backing MemorySegment object if it exists, otherwise null.
+   */
+  MemorySegment getMemorySegment() { return null; }
+
+  /**
    * Gets the current count of retained entries.
    * This is only useful during stateful operations.
    * Intentionally not made public because behavior will be confusing to end user.
@@ -274,6 +226,12 @@ public abstract class SetOperation implements MemoryStatus {
    */
   abstract long getThetaLong();
 
+  @Override
+  public abstract boolean hasMemorySegment();
+
+  @Override
+  public abstract boolean isDirect();
+
   /**
    * Returns true if this set operator is empty.
    * Only useful during stateful operations.
@@ -281,5 +239,8 @@ public abstract class SetOperation implements MemoryStatus {
    * @return true if this set operator is empty.
    */
   abstract boolean isEmpty();
+
+  @Override
+  public abstract boolean isSameResource(final MemorySegment seg);
 
 }

@@ -17,20 +17,28 @@
  * under the License.
  */
 
-package org.apache.datasketches.theta2;
+package org.apache.datasketches.theta;
+
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
 
 /**
  * @author Lee Rhodes
  */
-final class HeapHashIterator implements HashIterator {
-  private long[] cache;
+final class MemorySegmentHashIterator implements HashIterator {
+  private MemorySegment seg;
+  private int arrLongs;
   private long thetaLong;
+  private long offsetBytes;
   private int index;
   private long hash;
 
-  HeapHashIterator(final long[] cache, final long thetaLong) {
-    this.cache = cache;
+  MemorySegmentHashIterator(final MemorySegment srcSeg, final int arrLongs, final long thetaLong) {
+    this.seg = srcSeg;
+    this.arrLongs = arrLongs;
     this.thetaLong = thetaLong;
+    offsetBytes = PreambleUtil.extractPreLongs(srcSeg) << 3;
     index = -1;
     hash = 0;
   }
@@ -42,8 +50,8 @@ final class HeapHashIterator implements HashIterator {
 
   @Override
   public boolean next() {
-    while (++index < cache.length) {
-      hash = cache[index];
+    while (++index < arrLongs) {
+      hash = seg.get(JAVA_LONG_UNALIGNED, offsetBytes + (index << 3));
       if ((hash != 0) && (hash < thetaLong)) {
         return true;
       }

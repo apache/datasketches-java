@@ -25,10 +25,12 @@ import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
-//import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Union;
+import org.apache.datasketches.tuple.aninteger.IntegerSketch;
+import org.apache.datasketches.tuple.aninteger.IntegerSummary;
+import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
 import org.testng.annotations.Test;
 
 /**

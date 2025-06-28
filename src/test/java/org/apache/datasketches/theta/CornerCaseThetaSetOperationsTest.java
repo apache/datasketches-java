@@ -19,6 +19,14 @@
 
 package org.apache.datasketches.theta;
 
+import org.apache.datasketches.theta.AnotB;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.Intersection;
+import org.apache.datasketches.theta.SetOperation;
+import org.apache.datasketches.theta.SetOperationBuilder;
+import org.apache.datasketches.theta.Union;
+import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.testng.annotations.Test;
 //import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 //import static org.apache.datasketches.hash.MurmurHash3.hash;

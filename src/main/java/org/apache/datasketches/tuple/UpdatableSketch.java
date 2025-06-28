@@ -21,10 +21,10 @@ package org.apache.datasketches.tuple;
 
 import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.hash.MurmurHash3;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.
@@ -64,7 +64,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * This is to create an instance of a sketch given a serialized form
-   * @param srcMem Memory object with data of a serialized UpdatableSketch
+   * @param srcSeg MemorySegment object with data of a serialized UpdatableSketch
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
    * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
@@ -73,10 +73,10 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   @Deprecated
   public UpdatableSketch(
-      final Memory srcMem,
+      final MemorySegment srcSeg,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    super(srcMem, deserializer, summaryFactory);
+    super(srcSeg, deserializer, summaryFactory);
   }
 
   /**

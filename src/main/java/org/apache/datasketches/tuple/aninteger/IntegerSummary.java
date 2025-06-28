@@ -19,8 +19,12 @@
 
 package org.apache.datasketches.tuple.aninteger;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ByteArrayUtil;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.DeserializeResult;
 import org.apache.datasketches.tuple.UpdatableSummary;
 
@@ -146,13 +150,13 @@ public class IntegerSummary implements UpdatableSummary<Integer> {
 
   /**
    * Creates an instance of the IntegerSummary given a serialized representation
-   * @param mem Memory object with serialized IntegerSummary
+   * @param seg MemorySegment object with serialized IntegerSummary
    * @return DeserializedResult object, which contains a IntegerSummary object and number of bytes
-   * read from the Memory
+   * read from the MemorySegment
    */
-  public static DeserializeResult<IntegerSummary> fromMemory(final Memory mem) {
-    return new DeserializeResult<>(new IntegerSummary(mem.getInt(VALUE_INDEX),
-        Mode.values()[mem.getByte(MODE_BYTE_INDEX)]), SERIALIZED_SIZE_BYTES);
+  public static DeserializeResult<IntegerSummary> fromMemorySegment(final MemorySegment seg) {
+    return new DeserializeResult<>(new IntegerSummary(seg.get(JAVA_INT_UNALIGNED, VALUE_INDEX),
+        Mode.values()[seg.get(JAVA_BYTE, MODE_BYTE_INDEX)]), SERIALIZED_SIZE_BYTES);
   }
 
 }

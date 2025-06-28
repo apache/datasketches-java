@@ -19,13 +19,15 @@
 
 package org.apache.datasketches.tuple;
 
+import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdateSketchBuilder;
+import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import static org.apache.datasketches.tuple.JaccardSimilarity.dissimilarityTest;
 import static org.apache.datasketches.tuple.JaccardSimilarity.exactlyEqual;
 import static org.apache.datasketches.tuple.JaccardSimilarity.jaccard;
@@ -450,8 +452,8 @@ public class JaccardSimilarityTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void println(Object o) {
+    //System.out.println(o.toString()); //disable here
   }
 
 }

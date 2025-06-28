@@ -21,8 +21,9 @@ package org.apache.datasketches.tuple.strings;
 
 import static org.apache.datasketches.tuple.Util.stringArrHash;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.UpdatableSketch;
 
 /**
@@ -62,16 +63,16 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
   }
 
   /**
-   * Constructs this sketch from a Memory image, which must be from an ArrayOfStringsSketch, and
+   * Constructs this sketch from a MemorySegment image, which must be from an ArrayOfStringsSketch, and
    * usually with data.
-   * @param mem the given Memory
+   * @param seg the given MemorySegment
    * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
    * This capability will be removed in a future release.
    * Heapifying a CompactSketch is not deprecated.
    */
   @Deprecated
-  public ArrayOfStringsSketch(final Memory mem) {
-    super(mem, new ArrayOfStringsSummaryDeserializer(), new ArrayOfStringsSummaryFactory());
+  public ArrayOfStringsSketch(final MemorySegment seg) {
+    super(seg, new ArrayOfStringsSummaryDeserializer(), new ArrayOfStringsSummaryFactory());
   }
 
   /**

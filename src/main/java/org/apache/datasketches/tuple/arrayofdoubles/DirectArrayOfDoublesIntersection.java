@@ -19,34 +19,34 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * Direct Intersection operation for tuple sketches of type ArrayOfDoubles.
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
 final class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
 
-  private WritableMemory mem_;
+  private MemorySegment seg_;
 
   /**
    * Creates an instance of a DirectArrayOfDoublesIntersection with a custom update seed
    * @param numValues number of double values associated with each key
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param dstSeg the destination MemorySegment
    */
-  DirectArrayOfDoublesIntersection(final int numValues, final long seed, final WritableMemory dstMem) {
+  DirectArrayOfDoublesIntersection(final int numValues, final long seed, final MemorySegment dstSeg) {
     super(numValues, seed);
-    mem_ = dstMem;
+    seg_ = dstSeg;
   }
 
   @Override
   protected ArrayOfDoublesQuickSelectSketch createSketch(final int nomEntries, final int numValues,
       final long seed) {
-    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 0, 1f, numValues, seed, mem_);
+    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 0, 1f, numValues, seed, seg_);
   }
 
 }

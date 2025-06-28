@@ -21,8 +21,15 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCombiner;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesIntersection;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -105,19 +112,19 @@ public class ArrayOfDoublesIntersectionTest {
   @Test
   public void directExactWithEmpty() {
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder()
-        .build(WritableMemory.writableWrap(new byte[1000000]));
+        .build(MemorySegment.ofArray(new byte[1000000]));
     sketch1.update(1, new double[] {1});
     sketch1.update(2, new double[] {1});
     sketch1.update(3, new double[] {1});
 
     final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder()
-        .build(WritableMemory.writableWrap(new byte[1000000]));
+        .build(MemorySegment.ofArray(new byte[1000000]));
 
     final ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().
-        buildIntersection(WritableMemory.writableWrap(new byte[1000000]));
+        buildIntersection(MemorySegment.ofArray(new byte[1000000]));
     intersection.intersect(sketch1, null);
     intersection.intersect(sketch2, null);
-    final ArrayOfDoublesCompactSketch result = intersection.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesCompactSketch result = intersection.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertEquals(result.getEstimate(), 0.0);
@@ -190,22 +197,22 @@ public class ArrayOfDoublesIntersectionTest {
   public void directDisjointEstimationMode() {
     int key = 0;
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().
-        build(WritableMemory.writableWrap(new byte[1000000]));
+        build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().
-        build(WritableMemory.writableWrap(new byte[1000000]));
+        build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
     final ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().
-        buildIntersection(WritableMemory.writableWrap(new byte[1000000]));
+        buildIntersection(MemorySegment.ofArray(new byte[1000000]));
     intersection.intersect(sketch1, combiner);
     intersection.intersect(sketch2, combiner);
-    final ArrayOfDoublesCompactSketch result = intersection.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesCompactSketch result = intersection.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertEquals(result.getEstimate(), 0.0);
@@ -245,21 +252,21 @@ public class ArrayOfDoublesIntersectionTest {
   @Test
   public void directEstimationMode() {
     int key = 0;
-    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    final ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection(MemorySegment.ofArray(new byte[1000000]));
     intersection.intersect(sketch1, combiner);
     intersection.intersect(sketch2, combiner);
-    final ArrayOfDoublesCompactSketch result = intersection.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesCompactSketch result = intersection.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());

@@ -23,6 +23,7 @@ import static org.apache.datasketches.theta.UpdateReturnState.ConcurrentBufferIn
 import static org.apache.datasketches.theta.UpdateReturnState.ConcurrentPropagated;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
+import java.lang.foreign.MemorySegment;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.datasketches.common.ResizeFactor;
@@ -148,8 +149,8 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   }
 
   @Override
-  public boolean hasMemory() {
-    return shared.hasMemory();
+  public boolean hasMemorySegment() {
+    return shared.hasMemorySegment();
   }
 
   @Override
@@ -165,6 +166,11 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   @Override
   public boolean isEstimationMode() {
     return shared.isEstimationMode();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return shared.isSameResource(that);
   }
 
   //End of proxies

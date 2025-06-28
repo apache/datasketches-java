@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-class HeapCompactHashIterator implements HashIterator {
+final class HeapCompactHashIterator implements HashIterator {
   private long[] cache;
   private int index;
 

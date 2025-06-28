@@ -20,6 +20,7 @@
 package org.apache.datasketches.thetacommon;
 
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

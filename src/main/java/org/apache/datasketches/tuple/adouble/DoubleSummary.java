@@ -19,8 +19,12 @@
 
 package org.apache.datasketches.tuple.adouble;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ByteArrayUtil;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.DeserializeResult;
 import org.apache.datasketches.tuple.UpdatableSummary;
 
@@ -146,13 +150,13 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
 
   /**
    * Creates an instance of the DoubleSummary given a serialized representation
-   * @param mem Memory object with serialized DoubleSummary
+   * @param seg MemorySegment object with serialized DoubleSummary
    * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes
-   * read from the Memory
+   * read from the MemorySegment
    */
-  public static DeserializeResult<DoubleSummary> fromMemory(final Memory mem) {
-    return new DeserializeResult<>(new DoubleSummary(mem.getDouble(VALUE_INDEX),
-        Mode.values()[mem.getByte(MODE_BYTE_INDEX)]), SERIALIZED_SIZE_BYTES);
+  public static DeserializeResult<DoubleSummary> fromMemorySegment(final MemorySegment seg) {
+    return new DeserializeResult<>(new DoubleSummary(seg.get(JAVA_DOUBLE_UNALIGNED, VALUE_INDEX),
+        Mode.values()[seg.get(JAVA_BYTE, MODE_BYTE_INDEX)]), SERIALIZED_SIZE_BYTES);
   }
 
 }

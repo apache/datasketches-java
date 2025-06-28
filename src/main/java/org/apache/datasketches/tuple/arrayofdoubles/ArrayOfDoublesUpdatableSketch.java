@@ -19,14 +19,14 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.hash.MurmurHash3;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.Util;
 
 /**
@@ -42,41 +42,43 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   }
 
   /**
-   * Heapify the given Memory as an ArrayOfDoublesUpdatableSketch
-   * @param mem the given Memory
+   * Heapify the given MemorySegment as an ArrayOfDoublesUpdatableSketch
+   * @param seg the given MemorySegment
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch heapify(final Memory mem) {
-    return heapify(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUpdatableSketch heapify(final MemorySegment seg) {
+    return heapify(seg, DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify the given Memory and seed as a ArrayOfDoublesUpdatableSketch
-   * @param mem the given Memory
+   * Heapify the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch
+   * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch heapify(final Memory mem, final long seed) {
-    return new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
+  public static ArrayOfDoublesUpdatableSketch heapify(final MemorySegment seg, final long seed) {
+    return new HeapArrayOfDoublesQuickSelectSketch(seg, seed);
   }
 
   /**
-   * Wrap the given WritableMemory as an ArrayOfDoublesUpdatableSketch
-   * @param mem the given Memory
+   * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param seg the given MemorySegment
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch wrap(final WritableMemory mem) {
-    return wrap(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUpdatableSketch wrap(final MemorySegment seg) {
+    return wrap(seg, DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap the given WritableMemory and seed as a ArrayOfDoublesUpdatableSketch
-   * @param mem the given Memory
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch wrap(final WritableMemory mem, final long seed) {
-    return new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
+  public static ArrayOfDoublesUpdatableSketch wrap(final MemorySegment seg, final long seed) {
+    return new DirectArrayOfDoublesQuickSelectSketch(seg, seed);
   }
 
   /**
@@ -198,16 +200,16 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   }
 
   /**
-   * Gets an off-heap compact representation of the sketch using the given memory
-   * @param dstMem memory for the compact sketch (can be null)
-   * @return compact sketch (off-heap if memory is provided)
+   * Gets an off-heap compact representation of the sketch using the given MemorySegment
+   * @param dstSeg MemorySegment for the compact sketch (can be null)
+   * @return compact sketch (off-heap if MemorySegment is provided)
    */
   @Override
-  public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
-    if (dstMem == null) {
+  public ArrayOfDoublesCompactSketch compact(final MemorySegment dstSeg) {
+    if (dstSeg == null) {
       return new HeapArrayOfDoublesCompactSketch(this);
     }
-    return new DirectArrayOfDoublesCompactSketch(this, dstMem);
+    return new DirectArrayOfDoublesCompactSketch(this, dstSeg);
   }
 
   abstract int getCurrentCapacity();
@@ -218,7 +220,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   @Override
   short getSeedHash() {
-    return org.apache.datasketches.common.Util.computeSeedHash(seed_);
+    return computeSeedHash(seed_);
   }
 
   /**

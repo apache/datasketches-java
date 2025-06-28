@@ -24,6 +24,14 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesAnotB;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCombiner;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesIntersection;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.annotations.Test;
 
 public class CornerCaseArrayOfDoublesSetOperationsTest {

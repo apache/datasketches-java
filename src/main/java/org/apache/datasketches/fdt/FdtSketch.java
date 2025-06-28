@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.fdt;
 
+import java.lang.foreign.MemorySegment;
 import java.util.List;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
 
@@ -59,14 +59,14 @@ public final class FdtSketch extends ArrayOfStringsSketch {
 
   /**
    * Used by deserialization.
-   * @param mem the image of a FdtSketch
+   * @param seg the image of a FdtSketch
    * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
    * This capability will be removed in a future release.
    * Heapifying a CompactSketch is not deprecated.
    */
   @Deprecated
-  FdtSketch(final Memory mem) {
-    super(mem);
+  FdtSketch(final MemorySegment seg) {
+    super(seg);
   }
 
   /**

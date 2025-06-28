@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * Computes a set difference of two tuple sketches of type ArrayOfDoubles
@@ -48,10 +48,10 @@ public abstract class ArrayOfDoublesAnotB {
 
   /**
    * Gets the result of this operation in the form of a ArrayOfDoublesCompactSketch
-   * @param mem memory for the result (can be null)
-   * @return compact sketch representing the result of the operation (off-heap if memory is
+   * @param seg MemorySegment for the result (can be null)
+   * @return compact sketch representing the result of the operation (off-heap if MemorySegment is
    * provided)
    */
-  public abstract ArrayOfDoublesCompactSketch getResult(WritableMemory mem);
+  public abstract ArrayOfDoublesCompactSketch getResult(MemorySegment seg);
 
 }

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.extractEntryBitsV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractNumEntriesBytesV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
@@ -26,57 +27,57 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLongV4;
 import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * An off-heap (Direct), compact, compressed, read-only sketch. It is not empty, not a single item and ordered.
  *
  * <p>This sketch can only be associated with a Serialization Version 4 format binary image.</p>
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
-class DirectCompactCompressedSketch extends DirectCompactSketch {
+final class DirectCompactCompressedSketch extends DirectCompactSketch {
   /**
-   * Construct this sketch with the given memory.
-   * @param mem Read-only Memory object.
+   * Construct this sketch with the given MemorySegment.
+   * @param seg Read-only MemorySegment object.
    */
-  DirectCompactCompressedSketch(final Memory mem) {
-    super(mem);
+  DirectCompactCompressedSketch(final MemorySegment seg) {
+    super(seg);
   }
 
   /**
-   * Wraps the given Memory, which must be a SerVer 4 compressed CompactSketch image.
-   * Must check the validity of the Memory before calling.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Wraps the given MemorySegment, which must be a SerVer 4 compressed CompactSketch image.
+   * Must check the validity of the MemorySegment before calling.
+   * @param srcSeg The source MemorySegment
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
    * @return this sketch
    */
-  static DirectCompactCompressedSketch wrapInstance(final Memory srcMem, final short seedHash) {
-    Util.checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
-    return new DirectCompactCompressedSketch(srcMem);
+  static DirectCompactCompressedSketch wrapInstance(final MemorySegment srcSeg, final short seedHash) {
+    Util.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
+    return new DirectCompactCompressedSketch(srcSeg);
   }
 
   //Sketch Overrides
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    if (dstMem != null) {
-      mem_.copyTo(0, dstMem, 0, getCurrentBytes());
-      return new DirectCompactSketch(dstMem);
+  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+    if (dstSeg != null) {
+      MemorySegment.copy(seg_, 0, dstSeg, 0, getCurrentBytes());
+      return new DirectCompactSketch(dstSeg);
     }
-    return CompactSketch.heapify(mem_);
+    return CompactSketch.heapify(seg_);
   }
 
   @Override
   public int getCurrentBytes() {
-    final int preLongs = extractPreLongs(mem_);
-    final int entryBits = extractEntryBitsV4(mem_);
-    final int numEntriesBytes = extractNumEntriesBytesV4(mem_);
+    final int preLongs = extractPreLongs(seg_);
+    final int entryBits = extractEntryBitsV4(seg_);
+    final int numEntriesBytes = extractNumEntriesBytesV4(seg_);
     return preLongs * Long.BYTES + numEntriesBytes + wholeBytesToHoldBits(getRetainedEntries() * entryBits);
   }
 
@@ -88,20 +89,20 @@ class DirectCompactCompressedSketch extends DirectCompactSketch {
     // number of entries is stored using variable length encoding
     // most significant bytes with all zeros are not stored
     // one byte in the preamble has the number of non-zero bytes used
-    final int preLongs = extractPreLongs(mem_); // if > 1 then the second long has theta
-    final int numEntriesBytes = extractNumEntriesBytesV4(mem_);
+    final int preLongs = extractPreLongs(seg_); // if > 1 then the second long has theta
+    final int numEntriesBytes = extractNumEntriesBytesV4(seg_);
     int offsetBytes = preLongs > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE;
     int numEntries = 0;
     for (int i = 0; i < numEntriesBytes; i++) {
-      numEntries |= Byte.toUnsignedInt(mem_.getByte(offsetBytes++)) << (i << 3);
+      numEntries |= Byte.toUnsignedInt(seg_.get(JAVA_BYTE, offsetBytes++)) << (i << 3);
     }
     return numEntries;
   }
 
   @Override
   public long getThetaLong() {
-    final int preLongs = extractPreLongs(mem_);
-    return (preLongs > 1) ? extractThetaLongV4(mem_) : Long.MAX_VALUE;
+    final int preLongs = extractPreLongs(seg_);
+    return (preLongs > 1) ? extractThetaLongV4(seg_) : Long.MAX_VALUE;
   }
 
   @Override
@@ -116,11 +117,11 @@ class DirectCompactCompressedSketch extends DirectCompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new MemoryCompactCompressedHashIterator(
-      mem_,
-      (extractPreLongs(mem_) > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE)
-        + extractNumEntriesBytesV4(mem_),
-      extractEntryBitsV4(mem_),
+    return new MemorySegmentCompactCompressedHashIterator(
+      seg_,
+      (extractPreLongs(seg_) > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE)
+        + extractNumEntriesBytesV4(seg_),
+      extractEntryBitsV4(seg_),
       getRetainedEntries()
     );
   }

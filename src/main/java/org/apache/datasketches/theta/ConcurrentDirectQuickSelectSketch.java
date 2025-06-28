@@ -19,15 +19,16 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 
+import java.lang.foreign.MemorySegment;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * A concurrent shared sketch that is based on DirectQuickSelectSketch.
@@ -63,18 +64,18 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   private volatile long epoch_;
 
   /**
-   * Construct a new sketch instance and initialize the given Memory as its backing store.
+   * Construct a new sketch instance and initialize the given MemorySegment as its backing store.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @param maxConcurrencyError the max error value including error induced by concurrency.
-   * @param dstMem     the given Memory object destination. It cannot be null.
+   * @param dstSeg     the given MemorySegment object destination. It cannot be null.
    */
   ConcurrentDirectQuickSelectSketch(final int lgNomLongs, final long seed,
-      final double maxConcurrencyError, final WritableMemory dstMem) {
+      final double maxConcurrencyError, final MemorySegment dstSeg) {
     super(lgNomLongs, seed, 1.0F, //p
       ResizeFactor.X1, //rf,
-      null, dstMem, false); //unionGadget
+      dstSeg, false); //unionGadget
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
@@ -86,11 +87,10 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   ConcurrentDirectQuickSelectSketch(final UpdateSketch sketch, final long seed,
-      final double maxConcurrencyError, final WritableMemory dstMem) {
+      final double maxConcurrencyError, final MemorySegment dstSeg) {
     super(sketch.getLgNomLongs(), seed, 1.0F, //p
         ResizeFactor.X1, //rf,
-        null, //mem Req Svr
-        dstMem,
+        dstSeg,
         false); //unionGadget
 
     exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(),
@@ -101,7 +101,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     for (final long hashIn : sketch.getCache()) {
       propagate(hashIn);
     }
-    wmem_.putLong(THETA_LONG, sketch.getThetaLong());
+    wseg_.set(JAVA_LONG_UNALIGNED, THETA_LONG, sketch.getThetaLong());
     updateVolatileTheta();
     updateEstimationSnapshot();
   }

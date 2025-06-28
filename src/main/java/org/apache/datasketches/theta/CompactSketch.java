@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.getShortLE;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
@@ -28,22 +31,22 @@ import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static org.apache.datasketches.theta.PreambleUtil.extractEntryBitsV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractNumEntriesBytesV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.theta.PreambleUtil.extractEntryBitsV4;
-import static org.apache.datasketches.theta.PreambleUtil.extractNumEntriesBytesV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLongV4;
 import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
 import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The parent class of all the CompactSketches. CompactSketches are never created directly.
@@ -61,9 +64,9 @@ import org.apache.datasketches.memory.WritableMemory;
 public abstract class CompactSketch extends Sketch {
 
   /**
-   * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
+   * Heapify takes a CompactSketch image in a MemorySegment and instantiates an on-heap CompactSketch.
    *
-   * <p>The resulting sketch will not retain any link to the source Memory and all of its data will be
+   * <p>The resulting sketch will not retain any link to the source MemorySegment and all of its data will be
    * copied to the heap CompactSketch.</p>
    *
    * <p>This method assumes that the sketch image was created with the correct hash seed, so it is not checked.
@@ -71,65 +74,63 @@ public abstract class CompactSketch extends Sketch {
    * However, Serial Version 1 sketch images do not have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of the DEFAULT_UPDATE_SEED.</p>
    *
-   * @param srcMem an image of a CompactSketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
+   * @param srcSeg an image of a CompactSketch.
    * @return a CompactSketch on the heap.
    */
-  public static CompactSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED, false);
+  public static CompactSketch heapify(final MemorySegment srcSeg) {
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   /**
-   * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
+   * Heapify takes a CompactSketch image in a MemorySegment and instantiates an on-heap CompactSketch.
    *
-   * <p>The resulting sketch will not retain any link to the source Memory and all of its data will be
+   * <p>The resulting sketch will not retain any link to the source MemorySegment and all of its data will be
    * copied to the heap CompactSketch.</p>
    *
-   * <p>This method checks if the given expectedSeed was used to create the source Memory image.
+   * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.
    * However, SerialVersion 1 sketch images cannot be checked as they don't have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
-   * @param srcMem an image of a CompactSketch that was created using the given expectedSeed.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param srcSeg an image of a CompactSketch that was created using the given expectedSeed.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a CompactSketch on the heap.
    */
-  public static CompactSketch heapify(final Memory srcMem, final long expectedSeed) {
-    return heapify(srcMem, expectedSeed, true);
+  public static CompactSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
+    return heapify(srcSeg, expectedSeed, true);
   }
 
-  private static CompactSketch heapify(final Memory srcMem, final long seed, final boolean enforceSeed) {
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
+  private static CompactSketch heapify(final MemorySegment srcSeg, final long seed, final boolean enforceSeed) {
+    final int serVer = extractSerVer(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
     final Family family = idToFamily(familyID);
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
     }
     if (serVer == 4) {
-       return heapifyV4(srcMem, seed, enforceSeed);
+       return heapifyV4(srcSeg, seed, enforceSeed);
     }
     if (serVer == 3) {
-      final int flags = extractFlags(srcMem);
+      final int flags = extractFlags(srcSeg);
       final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
       final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
-      if (enforceSeed && !empty) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
-      return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
+      if (enforceSeed && !empty) { PreambleUtil.checkSegmentSeedHash(srcSeg, seed); }
+      return CompactOperations.segmentToCompact(srcSeg, srcOrdered, null);
     }
     //not SerVer 3, assume compact stored form
     final short seedHash = Util.computeSeedHash(seed);
     if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(srcMem, seedHash);
+      return ForwardCompatibility.heapify1to3(srcSeg, seedHash);
     }
     if (serVer == 2) {
-      return ForwardCompatibility.heapify2to3(srcMem,
-          enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
+      return ForwardCompatibility.heapify2to3(srcSeg,
+          enforceSeed ? seedHash : (short) extractSeedHash(srcSeg));
     }
     throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
   }
 
   /**
-   * Wrap takes the CompactSketch image in given Memory and refers to it directly.
+   * Wrap takes the CompactSketch image in given MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
@@ -140,22 +141,21 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
    * <p>This method assumes that the sketch image was created with the correct hash seed, so it is not checked.
    * However, Serial Version 1 sketch images do not have a seedHash field,
    * so the resulting on-heap CompactSketch will be given the hash of the DEFAULT_UPDATE_SEED.</p>
    *
-   * @param srcMem an image of a Sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
-   * @return a CompactSketch backed by the given Memory except as above.
+   * @param srcSeg an image of a Sketch.
+   * @return a CompactSketch backed by the given MemorySegment except as above.
    */
-  public static CompactSketch wrap(final Memory srcMem) {
-    return wrap(srcMem, Util.DEFAULT_UPDATE_SEED, false);
+  public static CompactSketch wrap(final MemorySegment srcSeg) {
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   /**
-   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * Wrap takes the sketch image in the given MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
@@ -166,25 +166,24 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
-   * <p>This method checks if the given expectedSeed was used to create the source Memory image.
+   * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.
    * However, SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
-   * @param srcMem an image of a Sketch that was created using the given expectedSeed.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param srcSeg an image of a Sketch that was created using the given expectedSeed.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a CompactSketch backed by the given Memory except as above.
+   * @return a CompactSketch backed by the given MemorySegment except as above.
    */
-  public static CompactSketch wrap(final Memory srcMem, final long expectedSeed) {
-    return wrap(srcMem, expectedSeed, true);
+  public static CompactSketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
+    return wrap(srcSeg, expectedSeed, true);
   }
 
-  private static CompactSketch wrap(final Memory srcMem, final long seed, final boolean enforceSeed) {
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
+  private static CompactSketch wrap(final MemorySegment srcSeg, final long seed, final boolean enforceSeed) {
+    final int serVer = extractSerVer(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
     final Family family = Family.idToFamily(familyID);
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
@@ -192,18 +191,18 @@ public abstract class CompactSketch extends Sketch {
     final short seedHash = Util.computeSeedHash(seed);
 
     if (serVer == 4) {
-      return DirectCompactCompressedSketch.wrapInstance(srcMem,
-          enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
+      return DirectCompactCompressedSketch.wrapInstance(srcSeg,
+          enforceSeed ? seedHash : (short) extractSeedHash(srcSeg));
     }
     else if (serVer == 3) {
-      if (PreambleUtil.isEmptyFlag(srcMem)) {
-        return EmptyCompactSketch.getHeapInstance(srcMem);
+      if (PreambleUtil.isEmptyFlag(srcSeg)) {
+        return EmptyCompactSketch.getHeapInstance(srcSeg);
       }
-      if (otherCheckForSingleItem(srcMem)) {
-        return SingleItemSketch.heapify(srcMem, enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
+      if (otherCheckForSingleItem(srcSeg)) {
+        return SingleItemSketch.heapify(srcSeg, enforceSeed ? seedHash : (short) extractSeedHash(srcSeg));
       }
       //not empty & not singleItem
-      final int flags = extractFlags(srcMem);
+      final int flags = extractFlags(srcSeg);
       final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
       if (!compactFlag) {
         throw new SketchesArgumentException(
@@ -214,22 +213,22 @@ public abstract class CompactSketch extends Sketch {
         throw new SketchesArgumentException(
             "Corrupted: COMPACT family sketch image must have Read-Only flag set");
       }
-      return DirectCompactSketch.wrapInstance(srcMem,
-          enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
+      return DirectCompactSketch.wrapInstance(srcSeg,
+          enforceSeed ? seedHash : (short) extractSeedHash(srcSeg));
     } //end of serVer 3
     else if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(srcMem, seedHash);
+      return ForwardCompatibility.heapify1to3(srcSeg, seedHash);
     }
     else if (serVer == 2) {
-      return ForwardCompatibility.heapify2to3(srcMem,
-          enforceSeed ? seedHash : (short) extractSeedHash(srcMem));
+      return ForwardCompatibility.heapify2to3(srcSeg,
+          enforceSeed ? seedHash : (short) extractSeedHash(srcSeg));
     }
     throw new SketchesArgumentException(
         "Corrupted: Serialization Version " + serVer + " not recognized.");
   }
 
   /**
-   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * Wrap takes the sketch image in the given MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
@@ -240,23 +239,22 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
-   * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source Memory image.
+   * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source MemorySegment image.
    * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of DEFAULT_UPDATE_SEED.</p>
    *
    * @param bytes a byte array image of a Sketch that was created using the DEFAULT_UPDATE_SEED.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    *
-   * @return a CompactSketch backed by the given Memory except as above.
+   * @return a CompactSketch backed by the given MemorySegment except as above.
    */
   public static CompactSketch wrap(final byte[] bytes) {
     return wrap(bytes, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   /**
-   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * Wrap takes the sketch image in the given MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
@@ -267,17 +265,16 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
-   * This is actually faster and consumes less overall memory.</p>
+   * This is actually faster and consumes less overall space.</p>
    *
-   * <p>This method checks if the given expectedSeed was used to create the source Memory image.
+   * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.
    * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
    * @param bytes a byte array image of a Sketch that was created using the given expectedSeed.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a CompactSketch backed by the given Memory except as above.
+   * @return a CompactSketch backed by the given MemorySegment except as above.
    */
   public static CompactSketch wrap(final byte[] bytes, final long expectedSeed) {
     return wrap(bytes, expectedSeed, true);
@@ -296,11 +293,11 @@ public abstract class CompactSketch extends Sketch {
     } else if (serVer == 3) {
       final int flags = bytes[FLAGS_BYTE];
       if ((flags & EMPTY_FLAG_MASK) > 0) {
-        return EmptyCompactSketch.getHeapInstance(Memory.wrap(bytes));
+        return EmptyCompactSketch.getHeapInstance(MemorySegment.ofArray(bytes));
       }
       final int preLongs = bytes[PREAMBLE_LONGS_BYTE];
       if (otherCheckForSingleItem(preLongs, serVer, familyId, flags)) {
-        return SingleItemSketch.heapify(Memory.wrap(bytes), enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
+        return SingleItemSketch.heapify(MemorySegment.ofArray(bytes), enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
       }
       //not empty & not singleItem
       final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
@@ -316,9 +313,9 @@ public abstract class CompactSketch extends Sketch {
       return WrappedCompactSketch.wrapInstance(bytes,
           enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
     } else if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(Memory.wrap(bytes), seedHash);
+      return ForwardCompatibility.heapify1to3(MemorySegment.ofArray(bytes), seedHash);
     } else if (serVer == 2) {
-      return ForwardCompatibility.heapify2to3(Memory.wrap(bytes),
+      return ForwardCompatibility.heapify2to3(MemorySegment.ofArray(bytes),
           enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
     }
     throw new SketchesArgumentException(
@@ -328,7 +325,7 @@ public abstract class CompactSketch extends Sketch {
   //Sketch Overrides
 
   @Override
-  public abstract CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem);
+  public abstract CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg);
 
   @Override
   public int getCompactBytes() {
@@ -346,8 +343,23 @@ public abstract class CompactSketch extends Sketch {
   }
 
   @Override
+  public boolean hasMemorySegment() {
+    return (this instanceof DirectCompactSketch &&  ((DirectCompactSketch)this).hasMemorySegment());
+  }
+
+  @Override
   public boolean isCompact() {
     return true;
+  }
+
+  @Override
+  public boolean isDirect() {
+    return (this instanceof DirectCompactSketch && ((DirectCompactSketch)this).isDirect());
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return (this instanceof DirectCompactSketch &&  ((DirectCompactSketch)this).isSameResource(that));
   }
 
   @Override
@@ -390,23 +402,23 @@ public abstract class CompactSketch extends Sketch {
 
     final int sizeBytes = preambleLongs * Long.BYTES + numEntriesBytes + wholeBytesToHoldBits(compressedBits);
     final byte[] bytes = new byte[sizeBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
     int offsetBytes = 0;
-    mem.putByte(offsetBytes++, (byte) preambleLongs);
-    mem.putByte(offsetBytes++, (byte) 4); // to do: add constant
-    mem.putByte(offsetBytes++, (byte) Family.COMPACT.getID());
-    mem.putByte(offsetBytes++, (byte) entryBits);
-    mem.putByte(offsetBytes++, (byte) numEntriesBytes);
-    mem.putByte(offsetBytes++, (byte) (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK));
-    mem.putShort(offsetBytes, getSeedHash());
+    wseg.set(JAVA_BYTE, offsetBytes++, (byte) preambleLongs);
+    wseg.set(JAVA_BYTE, offsetBytes++, (byte) 4); // to do: add constant
+    wseg.set(JAVA_BYTE, offsetBytes++, (byte) Family.COMPACT.getID());
+    wseg.set(JAVA_BYTE, offsetBytes++, (byte) entryBits);
+    wseg.set(JAVA_BYTE, offsetBytes++, (byte) numEntriesBytes);
+    wseg.set(JAVA_BYTE, offsetBytes++, (byte) (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK));
+    wseg.set(JAVA_SHORT_UNALIGNED, offsetBytes, getSeedHash());
     offsetBytes += Short.BYTES;
     if (isEstimationMode()) {
-      mem.putLong(offsetBytes, getThetaLong());
+      wseg.set(JAVA_LONG_UNALIGNED, offsetBytes, getThetaLong());
       offsetBytes += Long.BYTES;
     }
     int numEntries = getRetainedEntries();
     for (int i = 0; i < numEntriesBytes; i++) {
-      mem.putByte(offsetBytes++, (byte) (numEntries & 0xff));
+      wseg.set(JAVA_BYTE, offsetBytes++, (byte) (numEntries & 0xff));
       numEntries >>>= 8;
     }
     long previous = 0;
@@ -434,32 +446,32 @@ public abstract class CompactSketch extends Sketch {
     return bytes;
   }
 
-  private static CompactSketch heapifyV4(final Memory srcMem, final long seed, final boolean enforceSeed) {
-    final int preLongs = extractPreLongs(srcMem);
-    final int entryBits = extractEntryBitsV4(srcMem);
-    final int numEntriesBytes = extractNumEntriesBytesV4(srcMem);
-    final short seedHash = (short) extractSeedHash(srcMem);
-    if (enforceSeed) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
+  private static CompactSketch heapifyV4(final MemorySegment srcSeg, final long seed, final boolean enforceSeed) {
+    final int preLongs = extractPreLongs(srcSeg);
+    final int entryBits = extractEntryBitsV4(srcSeg);
+    final int numEntriesBytes = extractNumEntriesBytesV4(srcSeg);
+    final short seedHash = (short) extractSeedHash(srcSeg);
+    if (enforceSeed) { PreambleUtil.checkSegmentSeedHash(srcSeg, seed); }
     int offsetBytes = 8;
     long theta = Long.MAX_VALUE;
     if (preLongs > 1) {
-      theta = extractThetaLongV4(srcMem);
+      theta = extractThetaLongV4(srcSeg);
       offsetBytes += Long.BYTES;
     }
     int numEntries = 0;
     for (int i = 0; i < numEntriesBytes; i++) {
-      numEntries |= Byte.toUnsignedInt(srcMem.getByte(offsetBytes++)) << (i << 3);
+      numEntries |= Byte.toUnsignedInt(srcSeg.get(JAVA_BYTE, offsetBytes++)) << (i << 3);
     }
     final long[] entries = new long[numEntries];
     final byte[] bytes = new byte[entryBits]; // temporary buffer for unpacking
     int i;
     for (i = 0; i + 7 < numEntries; i += 8) {
-      srcMem.getByteArray(offsetBytes, bytes, 0, entryBits);
+      MemorySegment.copy(srcSeg, JAVA_BYTE, offsetBytes, bytes, 0, entryBits);
       BitPacking.unpackBitsBlock8(entries, i, bytes, 0, entryBits);
       offsetBytes += entryBits;
     }
     if (i < numEntries) {
-      srcMem.getByteArray(offsetBytes, bytes, 0, wholeBytesToHoldBits((numEntries - i) * entryBits));
+      MemorySegment.copy(srcSeg, JAVA_BYTE, offsetBytes, bytes, 0, wholeBytesToHoldBits((numEntries - i) * entryBits));
       int offsetBits = 0;
       offsetBytes = 0;
       for (; i < numEntries; i++) {

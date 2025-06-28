@@ -19,7 +19,8 @@
 
 package org.apache.datasketches.tuple.adouble;
 
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.tuple.DeserializeResult;
 import org.apache.datasketches.tuple.SummaryDeserializer;
 
@@ -30,8 +31,8 @@ import org.apache.datasketches.tuple.SummaryDeserializer;
 public class DoubleSummaryDeserializer implements SummaryDeserializer<DoubleSummary> {
 
   @Override
-  public DeserializeResult<DoubleSummary> heapifySummary(final Memory mem) {
-    return DoubleSummary.fromMemory(mem);
+  public DeserializeResult<DoubleSummary> heapifySummary(final MemorySegment seg) {
+    return DoubleSummary.fromMemorySegment(seg);
   }
 
 }

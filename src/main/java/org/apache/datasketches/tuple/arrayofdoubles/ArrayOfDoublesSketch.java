@@ -21,9 +21,9 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.apache.datasketches.common.Util.LS;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.BinomialBoundsN;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
@@ -71,49 +71,51 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
-   * Heapify the given Memory as an ArrayOfDoublesSketch
-   * @param mem the given Memory
+   * Heapify the given MemorySegment as an ArrayOfDoublesSketch
+   * @param seg the given MemorySegment
    * @return an ArrayOfDoublesSketch
    */
-  public static ArrayOfDoublesSketch heapify(final Memory mem) {
-    return heapify(mem, Util.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesSketch heapify(final MemorySegment seg) {
+    return heapify(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify the given Memory and seed as a ArrayOfDoublesSketch
-   * @param mem the given Memory
+   * Heapify the given MemorySegment and seed as a ArrayOfDoublesSketch
+   * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesSketch
    */
-  public static ArrayOfDoublesSketch heapify(final Memory mem, final long seed) {
-    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+  public static ArrayOfDoublesSketch heapify(final MemorySegment seg, final long seed) {
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(seg);
     if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
-      return new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
+      return new HeapArrayOfDoublesQuickSelectSketch(seg, seed);
     }
-    return new HeapArrayOfDoublesCompactSketch(mem, seed);
+    return new HeapArrayOfDoublesCompactSketch(seg, seed);
   }
 
   /**
-   * Wrap the given Memory as an ArrayOfDoublesSketch
-   * @param mem the given Memory
+   * Wrap the given MemorySegment as an ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param seg the given MemorySegment
    * @return an ArrayOfDoublesSketch
    */
-  public static ArrayOfDoublesSketch wrap(final Memory mem) {
-    return wrap(mem, Util.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesSketch wrap(final MemorySegment seg) {
+    return wrap(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap the given Memory and seed as a ArrayOfDoublesSketch
-   * @param mem the given Memory
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesSketch
    */
-  public static ArrayOfDoublesSketch wrap(final Memory mem, final long seed) {
-    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+  public static ArrayOfDoublesSketch wrap(final MemorySegment seg, final long seed) {
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(seg);
     if (sketchType == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
-      return new DirectArrayOfDoublesQuickSelectSketchR(mem, seed);
+      return new DirectArrayOfDoublesQuickSelectSketchR(seg, seed);
     }
-    return new DirectArrayOfDoublesCompactSketch(mem, seed);
+    return new DirectArrayOfDoublesCompactSketch(seg, seed);
   }
 
   /**
@@ -152,16 +154,16 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
-   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
-   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
+   * Returns true if this sketch's data structure is backed by MemorySegment.
+   * @return true if this sketch's data structure is backed by MemorySegment.
    */
-  public abstract boolean hasMemory();
+  public abstract boolean hasMemorySegment();
 
   /**
-   * Returns the Memory object if it exists, otherwise null.
-   * @return the Memory object if it exists, otherwise null.
+   * Returns the MemorySegment object if it exists, otherwise null.
+   * @return the MemorySegment object if it exists, otherwise null.
    */
-  abstract Memory getMemory();
+  abstract MemorySegment getMemorySegment();
 
   /**
    * <a href="{@docRoot}/resources/dictionary.html#empty">See Empty</a>
@@ -256,10 +258,10 @@ public abstract class ArrayOfDoublesSketch {
 
   /**
    * Returns this sketch in compact form, which is immutable.
-   * @param dstMem the destination WritableMemory
+   * @param dstSeg the destination MemorySegment
    * @return this sketch in compact form, which is immutable.
    */
-  public abstract ArrayOfDoublesCompactSketch compact(WritableMemory dstMem);
+  public abstract ArrayOfDoublesCompactSketch compact(MemorySegment dstSeg);
 
   @Override
   public String toString() {

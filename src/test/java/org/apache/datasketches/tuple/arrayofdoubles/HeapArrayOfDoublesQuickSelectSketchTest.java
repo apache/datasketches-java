@@ -19,9 +19,13 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -186,7 +190,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
 
-    final ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.heapify(WritableMemory.writableWrap(sketch1.toByteArray()));
+    final ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.heapify(MemorySegment.ofArray(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     final double[][] values = sketch2.getValues();
@@ -215,7 +219,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     //for visual testing
     //TestUtil.writeBytesToFile(byteArray, "ArrayOfDoublesQuickSelectSketch4K.data");
 
-    final ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.heapify(Memory.wrap(byteArray));
+    final ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.heapify(MemorySegment.ofArray(byteArray));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -234,7 +238,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     for (int i = 0; i < numberOfUniques; i++) {
       sketch1.update(i, new double[] {1.0});
     }
-    final ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.heapify(Memory.wrap(sketch1.toByteArray()));
+    final ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.heapify(MemorySegment.ofArray(sketch1.toByteArray()));
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);

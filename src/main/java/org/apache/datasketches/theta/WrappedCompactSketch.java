@@ -22,20 +22,19 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.common.ByteArrayUtil.getIntLE;
 import static org.apache.datasketches.common.ByteArrayUtil.getLongLE;
 import static org.apache.datasketches.common.ByteArrayUtil.getShortLE;
-import static org.apache.datasketches.theta.CompactOperations.memoryToCompact;
+import static org.apache.datasketches.theta.CompactOperations.segmentToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
+import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
+import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static org.apache.datasketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Wrapper around a serialized compact read-only sketch. It is not empty, not a single item.
@@ -54,7 +53,7 @@ class WrappedCompactSketch extends CompactSketch {
   }
 
   /**
-   * Wraps the given Memory, which must be a SerVer 3 CompactSketch image.
+   * Wraps the given byteArray, which must be a SerVer 3 CompactSketch image.
    * @param bytes representation of serialized compressed compact sketch.
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
@@ -68,8 +67,8 @@ class WrappedCompactSketch extends CompactSketch {
   //Sketch Overrides
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    return memoryToCompact(Memory.wrap(bytes_), dstOrdered, dstMem);
+  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+    return segmentToCompact(MemorySegment.ofArray(bytes_), dstOrdered, dstSeg);
   }
 
   @Override
@@ -92,16 +91,6 @@ class WrappedCompactSketch extends CompactSketch {
   }
 
   @Override
-  public boolean hasMemory() {
-    return false;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
   public boolean isEmpty() {
     return (bytes_[FLAGS_BYTE] & EMPTY_FLAG_MASK) > 0;
   }
@@ -109,11 +98,6 @@ class WrappedCompactSketch extends CompactSketch {
   @Override
   public boolean isOrdered() {
     return (bytes_[FLAGS_BYTE] & ORDERED_FLAG_MASK) > 0;
-  }
-
-  @Override
-  public boolean isSameResource(final Memory that) {
-    return false;
   }
 
   @Override
@@ -151,11 +135,6 @@ class WrappedCompactSketch extends CompactSketch {
   @Override
   int getCurrentPreambleLongs() {
     return bytes_[PREAMBLE_LONGS_BYTE];
-  }
-
-  @Override
-  Memory getMemory() {
-    return null;
   }
 
   @Override

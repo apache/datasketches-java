@@ -21,10 +21,14 @@ package org.apache.datasketches.tuple.aninteger;
 
 import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
+import org.apache.datasketches.tuple.aninteger.IntegerSketch;
+import org.apache.datasketches.tuple.aninteger.IntegerSummary;
+import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
 import org.testng.annotations.Test;
 
 /**
@@ -44,8 +48,8 @@ public class IntegerSketchTest {
       a1Sk.update(i, 1);
     }
     final double est1 = a1Sk.getEstimate();
-    final Memory mem = Memory.wrap(a1Sk.toByteArray());
-    final IntegerSketch a1Sk2 = new IntegerSketch(mem, a1Mode);
+    final MemorySegment seg = MemorySegment.ofArray(a1Sk.toByteArray());
+    final IntegerSketch a1Sk2 = new IntegerSketch(seg, a1Mode);
     final double est2 = a1Sk2.getEstimate();
     assertEquals(est1, est2);
   }

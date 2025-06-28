@@ -19,21 +19,23 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
+import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -61,7 +63,7 @@ public abstract class Intersection extends SetOperation {
   }
 
   /**
-   * Gets the result of this operation as a CompactSketch in the given dstMem.
+   * Gets the result of this operation as a CompactSketch in the given dstSeg.
    * This does not disturb the underlying data structure of this intersection.
    * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
    * exception will be thrown. This is because a virgin Intersection object represents the
@@ -77,13 +79,12 @@ public abstract class Intersection extends SetOperation {
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    *
-   * @param dstMem
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @param dstSeg the destination MemorySegment.
    *
-   * @return the result of this operation as a CompactSketch stored in the given dstMem,
+   * @return the result of this operation as a CompactSketch stored in the given dstSeg,
    * which can be either on or off-heap..
    */
-  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+  public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg);
 
   /**
    * Returns true if there is a valid intersection result available
@@ -131,32 +132,57 @@ public abstract class Intersection extends SetOperation {
    * @param b The second sketch argument
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
-   * @param dstMem
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @param dstSeg the destination MemorySegment.
    * @return the result as a CompactSketch.
    */
   public abstract CompactSketch intersect(Sketch a, Sketch b, boolean dstOrdered,
-      WritableMemory dstMem);
+      MemorySegment dstSeg);
+
+  /**
+   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
+   * @param srcSeg The source MemorySegment image.
+   * @return an Intersection that wraps a source MemorySegment that contains an Intersection image
+   */
+  public static Intersection wrap(final MemorySegment srcSeg) {
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
+   * @param srcSeg The source MemorySegment image.
+   * @param expectedSeed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return an Intersection that wraps a source MemorySegment that contains an Intersection image
+   */
+  public static Intersection wrap(final MemorySegment srcSeg, final long expectedSeed) {
+    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
+    if (serVer != 3) {
+      throw new SketchesArgumentException("SerVer must be 3: " + serVer);
+    }
+    return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
+  }
 
   // Restricted
 
   /**
-   * Returns the maximum lgArrLongs given the capacity of the Memory.
-   * @param dstMem the given Memory
-   * @return the maximum lgArrLongs given the capacity of the Memory
+   * Returns the maximum lgArrLongs given the capacity of the MemorySegment.
+   * @param dstSeg the given MemorySegment
+   * @return the maximum lgArrLongs given the capacity of the MemorySegment
    */
-  protected static int getMaxLgArrLongs(final Memory dstMem) {
+  protected static int getMaxLgArrLongs(final MemorySegment dstSeg) {
     final int preBytes = CONST_PREAMBLE_LONGS << 3;
-    final long cap = dstMem.getCapacity();
+    final long cap = dstSeg.byteSize();
     return Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
   }
 
-  protected static void checkMinSizeMemory(final Memory mem) {
+  protected static void checkMinSizeMemorySegment(final MemorySegment seg) {
     final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << ThetaUtil.MIN_LG_ARR_LONGS);//280
-    final long cap = mem.getCapacity();
+    final long cap = seg.byteSize();
     if (cap < minBytes) {
       throw new SketchesArgumentException(
-          "Memory must be at least " + minBytes + " bytes. Actual capacity: " + cap);
+          "MemorySegment must be at least " + minBytes + " bytes. Actual capacity: " + cap);
     }
   }
 
@@ -191,19 +217,19 @@ public abstract class Intersection extends SetOperation {
     return cacheOut;
   }
 
-  protected static void memChecks(final Memory srcMem) {
+  protected static void segChecks(final MemorySegment srcSeg) {
     //Get Preamble
     //Note: Intersection does not use lgNomLongs (or k), per se.
     //seedHash loaded and checked in private constructor
-    final int preLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final int famID = extractFamilyID(srcMem);
-    final boolean empty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) > 0;
-    final int curCount = extractCurCount(srcMem);
+    final int preLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final int famID = extractFamilyID(srcSeg);
+    final boolean empty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) > 0;
+    final int curCount = extractCurCount(srcSeg);
     //Checks
     if (preLongs != CONST_PREAMBLE_LONGS) {
       throw new SketchesArgumentException(
-          "Memory PreambleLongs must equal " + CONST_PREAMBLE_LONGS + ": " + preLongs);
+          "MemorySegment PreambleLongs must equal " + CONST_PREAMBLE_LONGS + ": " + preLongs);
     }
     if (serVer != SER_VER) {
       throw new SketchesArgumentException("Serialization Version must equal " + SER_VER);
@@ -212,7 +238,7 @@ public abstract class Intersection extends SetOperation {
     if (empty) {
       if (curCount != 0) {
         throw new SketchesArgumentException(
-            "srcMem empty state inconsistent with curCount: " + empty + "," + curCount);
+            "srcSeg empty state inconsistent with curCount: " + empty + "," + curCount);
       }
       //empty = true AND curCount_ = 0: OK
     } //else empty = false, curCount could be anything

@@ -23,10 +23,16 @@ import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
+import org.apache.datasketches.tuple.CompactSketch;
+import org.apache.datasketches.tuple.Intersection;
+import org.apache.datasketches.tuple.TupleSketchIterator;
+import org.apache.datasketches.tuple.Union;
+import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.aninteger.IntegerSummary;
-import org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode;
 import org.apache.datasketches.tuple.aninteger.IntegerSummaryFactory;
 import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
+import org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode;
 import org.testng.annotations.Test;
 
 /**

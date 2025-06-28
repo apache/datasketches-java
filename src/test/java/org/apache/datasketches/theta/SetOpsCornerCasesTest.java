@@ -21,15 +21,23 @@ package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EMPTY;
 import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EST_HEAP;
-import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EST_MEMORY_UNORDERED;
+import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EST_SEGMENT_UNORDERED;
 import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EXACT;
 import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.NULL;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Random;
 
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.theta.AnotB;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.Intersection;
+import org.apache.datasketches.theta.SetOperation;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.Union;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -87,52 +95,52 @@ public class SetOpsCornerCasesTest {
     int k = 64;
     for (State stateA : State.values()) {
       for (State stateB : State.values()) {
-        if ((stateA == EST_MEMORY_UNORDERED) || (stateB == EST_MEMORY_UNORDERED)) { continue; }
+        if ((stateA == EST_SEGMENT_UNORDERED) || (stateB == EST_SEGMENT_UNORDERED)) { continue; }
         if ((stateA == NULL) || (stateB == NULL)) { continue; }
         cornerCaseChecks(stateA, stateB, k);
-        cornerCaseChecksMemory(stateA, stateB, k);
+        cornerCaseChecksMemorySegment(stateA, stateB, k);
       }
     }
   }
 
 //  @Test
 //  public void checkExactNullSpecificCase() {
-//    cornerCaseChecksMemory(State.EXACT, State.NULL, 64);
+//    cornerCaseChecksMemorySegment(State.EXACT, State.NULL, 64);
 //  }
 
-  private static void cornerCaseChecksMemory(State stateA, State stateB, int k) {
+  private static void cornerCaseChecksMemorySegment(State stateA, State stateB, int k) {
     println("StateA: " + stateA + ", StateB: " + stateB);
     CompactSketch tcskA = generate(stateA, k);
     CompactSketch tcskB = generate(stateB, k);
 
-    WritableMemory wmem = WritableMemory.allocate(SetOperation.getMaxUnionBytes(k));
+    MemorySegment wseg = MemorySegment.ofArray(new byte[SetOperation.getMaxUnionBytes(k)]);
 
     CompactSketch rcskStdU = doStdUnion(tcskA, tcskB, k, null);
     CompactSketch rcskPwU = doPwUnion(tcskA, tcskB, k);
     checkCornerCase(rcskPwU, rcskStdU); //heap, heap
 
-    rcskStdU = doStdUnion(tcskA, tcskB, k, wmem);
-    CompactSketch rcskStdPairU = doStdPairUnion(tcskA, tcskB, k, wmem);
+    rcskStdU = doStdUnion(tcskA, tcskB, k, wseg);
+    CompactSketch rcskStdPairU = doStdPairUnion(tcskA, tcskB, k, wseg);
     checkCornerCase(rcskStdPairU, rcskStdU); //direct, direct
 
-    wmem = WritableMemory.allocate(SetOperation.getMaxIntersectionBytes(k));
+    wseg = MemorySegment.ofArray(new byte[SetOperation.getMaxIntersectionBytes(k)]);
 
     CompactSketch rcskStdI = doStdIntersection(tcskA, tcskB, null);
     CompactSketch rcskPwI = doPwIntersection(tcskA, tcskB);
     checkCornerCase(rcskPwI, rcskStdI); //empty, empty
 
-    rcskStdI = doStdIntersection(tcskA, tcskB, wmem);
-    CompactSketch rcskStdPairI = doStdPairIntersection(tcskA, tcskB, wmem);
+    rcskStdI = doStdIntersection(tcskA, tcskB, wseg);
+    CompactSketch rcskStdPairI = doStdPairIntersection(tcskA, tcskB, wseg);
     checkCornerCase(rcskStdPairI, rcskStdI); //empty, empty //direct, direct???
 
-    wmem = WritableMemory.allocate(SetOperation.getMaxAnotBResultBytes(k));
+    wseg = MemorySegment.ofArray(new byte[SetOperation.getMaxAnotBResultBytes(k)]);
 
     CompactSketch rcskStdAnotB = doStdAnotB(tcskA, tcskB, null);
     CompactSketch rcskPwAnotB = doPwAnotB(tcskA, tcskB);
     checkCornerCase(rcskPwAnotB, rcskStdAnotB); //heap, heap
 
-    rcskStdAnotB = doStdAnotB(tcskA, tcskB, wmem);
-    CompactSketch rcskStdStatefulAnotB = doStdStatefulAnotB(tcskA, tcskB, wmem);
+    rcskStdAnotB = doStdAnotB(tcskA, tcskB, wseg);
+    CompactSketch rcskStdStatefulAnotB = doStdStatefulAnotB(tcskA, tcskB, wseg);
     checkCornerCase(rcskStdStatefulAnotB, rcskStdAnotB); //direct, heap
   }
 
@@ -163,41 +171,41 @@ public class SetOpsCornerCasesTest {
     checkCornerCase(rcskStdStatefulAnotB, rcskStdAnotB);
   }
 
-  private static CompactSketch doStdUnion(Sketch tskA, Sketch tskB, int k, WritableMemory wmem) {
+  private static CompactSketch doStdUnion(Sketch tskA, Sketch tskB, int k, MemorySegment wseg) {
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.union(tskA);
     union.union(tskB);
-    return union.getResult(true, wmem);
+    return union.getResult(true, wseg);
   }
 
-  private static CompactSketch doStdPairUnion(Sketch tskA, Sketch tskB, int k, WritableMemory wmem) {
+  private static CompactSketch doStdPairUnion(Sketch tskA, Sketch tskB, int k, MemorySegment wseg) {
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    return union.union(tskA, tskB, true, wmem);
+    return union.union(tskA, tskB, true, wseg);
   }
 
-  private static CompactSketch doStdIntersection(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+  private static CompactSketch doStdIntersection(Sketch tskA, Sketch tskB, MemorySegment wseg) {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.intersect(tskA);
     inter.intersect(tskB);
-    return inter.getResult(true, wmem);
+    return inter.getResult(true, wseg);
   }
 
-  private static CompactSketch doStdPairIntersection(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+  private static CompactSketch doStdPairIntersection(Sketch tskA, Sketch tskB, MemorySegment wseg) {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    return inter.intersect(tskA, tskB, true, wmem);
+    return inter.intersect(tskA, tskB, true, wseg);
   }
 
-  private static CompactSketch doStdAnotB(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+  private static CompactSketch doStdAnotB(Sketch tskA, Sketch tskB, MemorySegment wseg) {
     AnotB anotb = Sketches.setOperationBuilder().buildANotB();
-    return anotb.aNotB(tskA, tskB, true, wmem);
+    return anotb.aNotB(tskA, tskB, true, wseg);
   }
 
-  private static CompactSketch doStdStatefulAnotB(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+  private static CompactSketch doStdStatefulAnotB(Sketch tskA, Sketch tskB, MemorySegment wseg) {
     AnotB anotb = Sketches.setOperationBuilder().buildANotB();
     anotb.setA(tskA);
     anotb.notB(tskB);
     anotb.getResult(false);
-    return anotb.getResult(true, wmem, true);
+    return anotb.getResult(true, wseg, true);
   }
 
   private static CompactSketch doPwUnion(Sketch tskA, Sketch tskB, int k) {
@@ -245,7 +253,7 @@ public class SetOpsCornerCasesTest {
     CompactSketch skNull = generate(NULL, k);
     CompactSketch skEmpty = generate(EMPTY, k);
     CompactSketch skHeap = generate(EST_HEAP, k);
-    CompactSketch skHeapUO = generate(EST_MEMORY_UNORDERED, k);
+    CompactSketch skHeapUO = generate(EST_SEGMENT_UNORDERED, k);
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(skNull, skHeapUO);
     union.union(skEmpty, skHeapUO);
@@ -375,7 +383,7 @@ public class SetOpsCornerCasesTest {
     assertEquals(csk.getRetainedEntries(true), 0);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
-    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.hasMemorySegment(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.SINGLE, k);
@@ -384,7 +392,7 @@ public class SetOpsCornerCasesTest {
     assertEquals(csk.getRetainedEntries(true), 1);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
-    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.hasMemorySegment(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.EXACT, k);
@@ -393,7 +401,7 @@ public class SetOpsCornerCasesTest {
     assertEquals(csk.getRetainedEntries(true), k);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
-    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.hasMemorySegment(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.EST_HEAP, k);
@@ -402,7 +410,7 @@ public class SetOpsCornerCasesTest {
     assertEquals(csk.getRetainedEntries(true) > k, true);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
-    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.hasMemorySegment(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.THLT1_CNT0_FALSE, k);
@@ -411,7 +419,7 @@ public class SetOpsCornerCasesTest {
     assertEquals(csk.getRetainedEntries(true), 0);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
-    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.hasMemorySegment(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.THEQ1_CNT0_TRUE, k);
@@ -420,20 +428,20 @@ public class SetOpsCornerCasesTest {
     assertEquals(csk.getRetainedEntries(true), 0);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, false);
     assertEquals(csk.isDirect(), false);
-    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.hasMemorySegment(), false);
     assertEquals(csk.isOrdered(), true);
 
-    csk = generate(State.EST_MEMORY_UNORDERED, k);
+    csk = generate(State.EST_SEGMENT_UNORDERED, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), true);
     assertEquals(csk.getRetainedEntries(true) > k, true);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
-    assertEquals(csk.hasMemory(), true);
+    assertEquals(csk.hasMemorySegment(), true);
     assertEquals(csk.isOrdered(), false);
   }
 
-  enum State {NULL, EMPTY, SINGLE, EXACT, EST_HEAP, THLT1_CNT0_FALSE, THEQ1_CNT0_TRUE, EST_MEMORY_UNORDERED}
+  enum State {NULL, EMPTY, SINGLE, EXACT, EST_HEAP, THLT1_CNT0_FALSE, THEQ1_CNT0_TRUE, EST_SEGMENT_UNORDERED}
 
   private static CompactSketch generate(State state, int k) {
     UpdateSketch sk = null;
@@ -483,15 +491,15 @@ public class SetOpsCornerCasesTest {
         csk = sk.compact(true, null); //compact as {Th < 1.0, 0, T}
         break;
       }
-      case EST_MEMORY_UNORDERED : {
+      case EST_SEGMENT_UNORDERED : {
         sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
         for (int i = 0; i < (4 * k); i++) {
           sk.update(i);
         }
         int bytes = Sketch.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
         byte[] byteArr = new byte[bytes];
-        WritableMemory mem = WritableMemory.writableWrap(byteArr);
-        csk = sk.compact(false, mem);
+        MemorySegment wseg = MemorySegment.ofArray(byteArr);
+        csk = sk.compact(false, wseg);
         break;
       }
     }

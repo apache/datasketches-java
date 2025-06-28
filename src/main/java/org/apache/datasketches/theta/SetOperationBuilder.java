@@ -23,13 +23,12 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.TAB;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -37,12 +36,11 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public class SetOperationBuilder {
+public final class SetOperationBuilder {
   private int bLgNomLongs;
   private long bSeed;
   private ResizeFactor bRF;
   private float bP;
-  private MemoryRequestServer bMemReqSvr;
 
   /**
    * Constructor for building a new SetOperation.  The default configuration is
@@ -52,7 +50,7 @@ public class SetOperationBuilder {
    * <li>Seed: {@value org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}</li>
    * <li>{@link ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
-   * <li>Memory: null</li>
+   * <li>MemorySegment: null</li>
    * </ul>
    */
   public SetOperationBuilder() {
@@ -60,7 +58,6 @@ public class SetOperationBuilder {
     bSeed = Util.DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
-    bMemReqSvr = new DefaultMemoryRequestServer();
   }
 
   /**
@@ -162,24 +159,6 @@ public class SetOperationBuilder {
   }
 
   /**
-   * Set the MemoryRequestServer
-   * @param memReqSvr the given MemoryRequestServer
-   * @return this SetOperationBuilder
-   */
-  public SetOperationBuilder setMemoryRequestServer(final MemoryRequestServer memReqSvr) {
-    bMemReqSvr = memReqSvr;
-    return this;
-  }
-
-  /**
-   * Returns the MemoryRequestServer
-   * @return the MemoryRequestServer
-   */
-  public MemoryRequestServer getMemoryRequestServer() {
-    return bMemReqSvr;
-  }
-
-  /**
    * Returns a SetOperation with the current configuration of this Builder and the given Family.
    * @param family the chosen SetOperation family
    * @return a SetOperation
@@ -190,34 +169,34 @@ public class SetOperationBuilder {
 
   /**
    * Returns a SetOperation with the current configuration of this Builder, the given Family
-   * and the given destination memory. Note that the destination memory cannot be used with AnotB.
+   * and the given destination MemorySegment. Note that the destination MemorySegment cannot be used with AnotB.
    * @param family the chosen SetOperation family
-   * @param dstMem The destination Memory.
+   * @param dstSeg The destination MemorySegment.
    * @return a SetOperation
    */
-  public SetOperation build(final Family family, final WritableMemory dstMem) {
+  public SetOperation build(final Family family, final MemorySegment dstSeg) {
     SetOperation setOp = null;
     switch (family) {
       case UNION: {
-        if (dstMem == null) {
+        if (dstSeg == null) {
           setOp = UnionImpl.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
-          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, bMemReqSvr, dstMem);
+          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, dstSeg);
         }
         break;
       }
       case INTERSECTION: {
-        if (dstMem == null) {
+        if (dstSeg == null) {
           setOp = IntersectionImpl.initNewHeapInstance(bSeed);
         }
         else {
-          setOp = IntersectionImpl.initNewDirectInstance(bSeed, dstMem);
+          setOp = IntersectionImpl.initNewDirectInstance(bSeed, dstSeg);
         }
         break;
       }
       case A_NOT_B: {
-        if (dstMem == null) {
+        if (dstSeg == null) {
           setOp = new AnotBimpl(bSeed);
         }
         else {
@@ -245,12 +224,12 @@ public class SetOperationBuilder {
   /**
    * Convenience method, returns a configured SetOperation Union with
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-   * and the given destination memory.
-   * @param dstMem The destination Memory.
+   * and the given destination MemorySegment.
+   * @param dstSeg The destination MemorySegment.
    * @return a Union object
    */
-  public Union buildUnion(final WritableMemory dstMem) {
-    return (Union) build(Family.UNION, dstMem);
+  public Union buildUnion(final MemorySegment dstSeg) {
+    return (Union) build(Family.UNION, dstSeg);
   }
 
   /**
@@ -265,12 +244,12 @@ public class SetOperationBuilder {
   /**
    * Convenience method, returns a configured SetOperation Intersection with
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-   * and the given destination memory.
-   * @param dstMem The destination Memory.
+   * and the given destination MemorySegment.
+   * @param dstSeg The destination MemorySegment.
    * @return an Intersection object
    */
-  public Intersection buildIntersection(final WritableMemory dstMem) {
-    return (Intersection) build(Family.INTERSECTION, dstMem);
+  public Intersection buildIntersection(final MemorySegment dstSeg) {
+    return (Intersection) build(Family.INTERSECTION, dstSeg);
   }
 
   /**
@@ -291,8 +270,6 @@ public class SetOperationBuilder {
     sb.append("Seed:").append(TAB).append(bSeed).append(LS);
     sb.append("p:").append(TAB).append(bP).append(LS);
     sb.append("ResizeFactor:").append(TAB).append(bRF).append(LS);
-    final String mrsStr = bMemReqSvr.getClass().getSimpleName();
-    sb.append("MemoryRequestServer:").append(TAB).append(mrsStr).append(LS);
     return sb.toString();
   }
 

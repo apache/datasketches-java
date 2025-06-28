@@ -17,13 +17,21 @@
  * under the License.
  */
 
-package org.apache.datasketches.theta2;
+package org.apache.datasketches.theta;
+
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
+
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
+import org.apache.datasketches.common.Util;
 
 /*
  * This is to uncompress serial version 4 sketch incrementally
  */
-final class BytesCompactCompressedHashIterator implements HashIterator {
-  private byte[] bytes;
+final class MemorySegmentCompactCompressedHashIterator implements HashIterator, MemorySegmentStatus {
+  private MemorySegment seg;
   private int offset;
   private int entryBits;
   private int numEntries;
@@ -31,15 +39,16 @@ final class BytesCompactCompressedHashIterator implements HashIterator {
   private long previous;
   private int offsetBits;
   private long[] buffer;
+  private byte[] bytes;
   private boolean isBlockMode;
+  private boolean isFirstUnpack1;
 
-  BytesCompactCompressedHashIterator(
-      final byte[] bytes,
+  MemorySegmentCompactCompressedHashIterator(
+      final MemorySegment srcSeg,
       final int offset,
       final int entryBits,
-      final int numEntries
-  ) {
-    this.bytes = bytes;
+      final int numEntries) {
+    this.seg = srcSeg;
     this.offset = offset;
     this.entryBits = entryBits;
     this.numEntries = numEntries;
@@ -47,12 +56,29 @@ final class BytesCompactCompressedHashIterator implements HashIterator {
     previous = 0;
     offsetBits = 0;
     buffer = new long[8];
+    bytes = new byte[entryBits];
     isBlockMode = numEntries >= 8;
+    isFirstUnpack1 = true;
   }
 
   @Override
   public long get() {
     return buffer[index & 7];
+  }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return seg != null && seg.scope().isAlive();
+  }
+
+  @Override
+  public boolean isDirect() {
+    return hasMemorySegment() && seg.isNative();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(seg, that);
   }
 
   @Override
@@ -74,6 +100,11 @@ final class BytesCompactCompressedHashIterator implements HashIterator {
   }
 
   private void unpack1() {
+    if (isFirstUnpack1) {
+      MemorySegment.copy(seg, JAVA_BYTE, offset, bytes, 0, wholeBytesToHoldBits((numEntries - index) * entryBits));
+      offset = 0;
+      isFirstUnpack1 = false;
+    }
     final int i = index & 7;
     BitPacking.unpackBits(buffer, i, entryBits, bytes, offset, offsetBits);
     offset += (offsetBits + entryBits) >>> 3;
@@ -83,7 +114,8 @@ final class BytesCompactCompressedHashIterator implements HashIterator {
   }
 
   private void unpack8() {
-    BitPacking.unpackBitsBlock8(buffer, 0, bytes, offset, entryBits);
+    MemorySegment.copy(seg, JAVA_BYTE, offset, bytes, 0, entryBits);
+    BitPacking.unpackBitsBlock8(buffer, 0, bytes, 0, entryBits);
     offset += entryBits;
     for (int i = 0; i < 8; i++) {
       buffer[i] += previous;

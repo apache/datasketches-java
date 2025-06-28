@@ -19,11 +19,18 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketches;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -58,8 +65,8 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(values[1][0], 3.0);
     Assert.assertEquals(values[2][0], 3.0);
 
-    final WritableMemory wmem = WritableMemory.writableWrap(union.toByteArray());
-    final ArrayOfDoublesUnion wrappedUnion = ArrayOfDoublesSketches.wrapUnion(wmem);
+    final MemorySegment wseg = MemorySegment.ofArray(union.toByteArray());
+    final ArrayOfDoublesUnion wrappedUnion = ArrayOfDoublesSketches.wrapUnion(wseg);
     result = wrappedUnion.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
     values = result.getValues();
@@ -181,7 +188,7 @@ public class ArrayOfDoublesUnionTest {
     union1.union(sketch1);
     union1.union(sketch2);
 
-    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()));
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(union1.toByteArray()));
     ArrayOfDoublesCompactSketch result = union2.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
 
@@ -218,7 +225,7 @@ public class ArrayOfDoublesUnionTest {
     union1.union(sketch1);
     union1.union(sketch2);
 
-    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()), seed);
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(union1.toByteArray()), seed);
     final ArrayOfDoublesCompactSketch result = union2.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   }
@@ -227,25 +234,25 @@ public class ArrayOfDoublesUnionTest {
   public void directSerializeDeserialize() {
     int key = 0;
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(
-        WritableMemory.writableWrap(new byte[1000000]));
+        MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
     final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(
-        WritableMemory.writableWrap(new byte[1000000]));
+        MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
     final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion(
-        WritableMemory.writableWrap(new byte[1000000]));
+        MemorySegment.ofArray(new byte[1000000]));
     union1.union(sketch1);
     union1.union(sketch2);
 
-    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(union1.toByteArray()));
-    ArrayOfDoublesCompactSketch result = union2.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(union1.toByteArray()));
+    ArrayOfDoublesCompactSketch result = union2.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
 
     union2.reset();
@@ -267,39 +274,39 @@ public class ArrayOfDoublesUnionTest {
     final long seed = 1;
     int key = 0;
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed)
-        .build(WritableMemory.writableWrap(new byte[1000000]));
+        .build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
     final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed)
-        .build(WritableMemory.writableWrap(new byte[1000000]));
+        .build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
     final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().setSeed(seed)
-        .buildUnion(WritableMemory.writableWrap(new byte[1000000]));
+        .buildUnion(MemorySegment.ofArray(new byte[1000000]));
     union1.union(sketch1);
     union1.union(sketch2);
 
-    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(union1.toByteArray()), seed);
-    final ArrayOfDoublesCompactSketch result = union2.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(union1.toByteArray()), seed);
+    final ArrayOfDoublesCompactSketch result = union2.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   }
 
   @Test
   public void directExactMode() {
     final ArrayOfDoublesUpdatableSketch sketch1 =
-        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+        new ArrayOfDoublesUpdatableSketchBuilder().build(MemorySegment.ofArray(new byte[1000000]));
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
     final ArrayOfDoublesUpdatableSketch sketch2 =
-        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+        new ArrayOfDoublesUpdatableSketchBuilder().build(MemorySegment.ofArray(new byte[1000000]));
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
@@ -307,10 +314,10 @@ public class ArrayOfDoublesUnionTest {
     sketch2.update(3, new double[] {1.0});
 
     final ArrayOfDoublesUnion union =
-        new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
+        new ArrayOfDoublesSetOperationBuilder().buildUnion(MemorySegment.ofArray(new byte[1000000]));
     union.union(sketch1);
     union.union(sketch2);
-    ArrayOfDoublesCompactSketch result = union.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    ArrayOfDoublesCompactSketch result = union.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 3.0);
     final double[][] values = result.getValues();
     Assert.assertEquals(values[0][0], 3.0);
@@ -331,23 +338,23 @@ public class ArrayOfDoublesUnionTest {
   public void directEstimationMode() {
     int key = 0;
     final ArrayOfDoublesUpdatableSketch sketch1 =
-        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+        new ArrayOfDoublesUpdatableSketchBuilder().build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
     final ArrayOfDoublesUpdatableSketch sketch2 =
-        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+        new ArrayOfDoublesUpdatableSketchBuilder().build(MemorySegment.ofArray(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
     final ArrayOfDoublesUnion union =
-        new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
+        new ArrayOfDoublesSetOperationBuilder().buildUnion(MemorySegment.ofArray(new byte[1000000]));
     union.union(sketch1);
     union.union(sketch2);
-    ArrayOfDoublesCompactSketch result = union.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    ArrayOfDoublesCompactSketch result = union.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
 
     union.reset();
@@ -379,10 +386,10 @@ public class ArrayOfDoublesUnionTest {
     heapUnion.union(sketch1);
 
     final ArrayOfDoublesUnion directUnion =
-        ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(heapUnion.toByteArray()));
-    directUnion.union(sketch2);
+        ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(heapUnion.toByteArray()));
+    directUnion.union(sketch2); //throws
 
-    final ArrayOfDoublesCompactSketch result = directUnion.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    final ArrayOfDoublesCompactSketch result = directUnion.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 3.0);
     final double[][] values = result.getValues();
@@ -408,10 +415,10 @@ public class ArrayOfDoublesUnionTest {
     sketch2.update(3, new double[] {1.0});
 
     final ArrayOfDoublesUnion directUnion =
-        new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.writableWrap(new byte[1000000]));
+        new ArrayOfDoublesSetOperationBuilder().buildUnion(MemorySegment.ofArray(new byte[1000000]));
     directUnion.union(sketch1);
 
-    final ArrayOfDoublesUnion heapUnion = ArrayOfDoublesUnion.heapify(Memory.wrap(directUnion.toByteArray()));
+    final ArrayOfDoublesUnion heapUnion = ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(directUnion.toByteArray()));
     heapUnion.union(sketch2);
 
     final ArrayOfDoublesCompactSketch result = heapUnion.getResult();
@@ -448,8 +455,8 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void directDruidUsageOneSketch() {
-    final WritableMemory mem = WritableMemory.writableWrap(new byte[1_000_000]);
-    new ArrayOfDoublesSetOperationBuilder().buildUnion(mem); // just set up memory to wrap later
+    final MemorySegment seg = MemorySegment.ofArray(new byte[1_000_000]);
+    new ArrayOfDoublesSetOperationBuilder().buildUnion(seg); // just set up MemorySegment to wrap later
 
     final int n = 100_000; // estimation mode
     final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
@@ -458,22 +465,22 @@ public class ArrayOfDoublesUnionTest {
     }
     sketch.trim(); // pretend this is a result from a union
 
-    // as Druid wraps memory
-    WritableMemory mem2 = WritableMemory.writableWrap(new byte[1_000_000]);
-    ArrayOfDoublesCompactSketch dcsk = sketch.compact(mem2);
-    ArrayOfDoublesUnion union = ArrayOfDoublesSketches.wrapUnion(mem); //empty union
+    // as Druid wraps MemorySegment
+    MemorySegment seg2 = MemorySegment.ofArray(new byte[1_000_000]);
+    ArrayOfDoublesCompactSketch dcsk = sketch.compact(seg2);
+    ArrayOfDoublesUnion union = ArrayOfDoublesSketches.wrapUnion(seg); //empty union
     union.union(dcsk);
-    //ArrayOfDoublesSketches.wrapUnion(mem).union(sketch.compact(WritableMemory.writableWrap(new byte[1_000_000])));
+    //ArrayOfDoublesSketches.wrapUnion(seg).union(sketch.compact(MemorySegment.ofArray(new byte[1_000_000])));
 
-    final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
+    final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(seg).getResult();
     Assert.assertEquals(result.getEstimate(), sketch.getEstimate());//expected [98045.91060164096] but found [4096.0]
     Assert.assertEquals(result.isEstimationMode(), sketch.isEstimationMode());
   }
 
   @Test
   public void directDruidUsageTwoSketches() {
-    final WritableMemory mem = WritableMemory.writableWrap(new byte[1000000]);
-    new ArrayOfDoublesSetOperationBuilder().buildUnion(mem); // just set up memory to wrap later
+    final MemorySegment seg = MemorySegment.ofArray(new byte[1000000]);
+    new ArrayOfDoublesSetOperationBuilder().buildUnion(seg); // just set up MemorySegment to wrap later
 
     int key = 0;
 
@@ -482,16 +489,16 @@ public class ArrayOfDoublesUnionTest {
     for (int i = 0; i < n1; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
-    // as Druid wraps memory
-    ArrayOfDoublesSketches.wrapUnion(mem).union(sketch1.compact(WritableMemory.writableWrap(new byte[1000000])));
+    // as Druid wraps MemorySegment
+    ArrayOfDoublesSketches.wrapUnion(seg).union(sketch1.compact(MemorySegment.ofArray(new byte[1000000])));
 
     final int n2 = 1000000; // estimation mode
     final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < n2; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
-    // as Druid wraps memory
-    ArrayOfDoublesSketches.wrapUnion(mem).union(sketch2.compact(WritableMemory.writableWrap(new byte[1000000])));
+    // as Druid wraps MemorySegment
+    ArrayOfDoublesSketches.wrapUnion(seg).union(sketch2.compact(MemorySegment.ofArray(new byte[1000000])));
 
     // build one sketch that must be the same as union
     key = 0; // reset to have the same keys
@@ -502,7 +509,7 @@ public class ArrayOfDoublesUnionTest {
     }
     expected.trim(); // union result is trimmed, so we need to trim this sketch for valid comparison
 
-    final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
+    final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(seg).getResult();
     Assert.assertEquals(result.getEstimate(), expected.getEstimate());
     Assert.assertEquals(result.isEstimationMode(), expected.isEstimationMode());
     Assert.assertEquals(result.getUpperBound(1), expected.getUpperBound(1));

@@ -27,13 +27,17 @@ import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.TestUtil;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.tuple.Sketch;
+import org.apache.datasketches.tuple.Sketches;
+import org.apache.datasketches.tuple.TupleSketchIterator;
+import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
@@ -45,7 +49,7 @@ public class TupleCrossLanguageTest {
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void serialVersion1Compatibility() {
     final byte[] byteArr = TestUtil.getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
-    Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(byteArr), new DoubleSummaryDeserializer());
+    Sketch<DoubleSummary> sketch = Sketches.heapifySketch(MemorySegment.ofArray(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch.getRetainedEntries(), 4096);
@@ -61,7 +65,7 @@ public class TupleCrossLanguageTest {
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void version2Compatibility() {
     final byte[] byteArr = TestUtil.getResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
-    Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(Memory.wrap(byteArr), new IntegerSummaryDeserializer());
+    Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(MemorySegment.ofArray(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
     final int lgK = 12;
@@ -87,7 +91,7 @@ public class TupleCrossLanguageTest {
     for (int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("tuple_int_n" + n + "_cpp.sk"));
       final Sketch<IntegerSummary> sketch =
-          Sketches.heapifySketch(Memory.wrap(bytes), new IntegerSummaryDeserializer());
+          Sketches.heapifySketch(MemorySegment.ofArray(bytes), new IntegerSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertTrue(n > 1000 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
@@ -105,7 +109,9 @@ public class TupleCrossLanguageTest {
     for (int n: nArr) {
       final UpdatableSketch<Integer, IntegerSummary> sk =
           new UpdatableSketchBuilder<>(new IntegerSummaryFactory()).build();
-      for (int i = 0; i < n; i++) sk.update(i, i);
+      for (int i = 0; i < n; i++) {
+        sk.update(i, i);
+      }
       Files.newOutputStream(javaPath.resolve("tuple_int_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }
   }
@@ -113,13 +119,13 @@ public class TupleCrossLanguageTest {
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportHeapifyV0_9_1() throws Exception {
     final byte[] byteArr = TestUtil.getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    ArrayOfDoublesUnion.heapify(Memory.wrap(byteArr));
+    ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(byteArr));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportWrapV0_9_1() throws Exception {
     final byte[] byteArr = TestUtil.getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    ArrayOfDoublesUnion.wrap(WritableMemory.writableWrap(byteArr));
+    ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(byteArr));
   }
 
 }

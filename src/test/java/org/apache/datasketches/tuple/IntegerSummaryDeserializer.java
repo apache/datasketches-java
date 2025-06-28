@@ -19,13 +19,16 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.tuple.DeserializeResult;
+import org.apache.datasketches.tuple.SummaryDeserializer;
 
 public class IntegerSummaryDeserializer implements SummaryDeserializer<IntegerSummary> {
 
   @Override
-  public DeserializeResult<IntegerSummary> heapifySummary(final Memory mem) {
-    return IntegerSummary.fromMemory(mem);
+  public DeserializeResult<IntegerSummary> heapifySummary(final MemorySegment seg) {
+    return IntegerSummary.fromMemorySegment(seg);
   }
 
 }

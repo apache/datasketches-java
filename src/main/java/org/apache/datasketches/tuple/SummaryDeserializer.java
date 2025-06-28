@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * Interface for deserializing user-defined Summary
@@ -29,14 +29,14 @@ public interface SummaryDeserializer<S extends Summary> {
 
   /**
    * This is to create an instance of a Summary given a serialized representation.
-   * The user may assume that the start of the given Memory is the correct place to start
+   * The user may assume that the start of the given MemorySegment is the correct place to start
    * deserializing. However, the user must be able to determine the number of bytes required to
-   * deserialize the summary as the capacity of the given Memory may
+   * deserialize the summary as the capacity of the given MemorySegment may
    * include multiple such summaries and may be much larger than required for a single summary.
-   * @param mem Memory object with serialized representation of a Summary
-   * @return DeserializedResult object, which contains a Summary object and number of bytes read 
-   * from the Memory
+   * @param seg MemorySegment object with serialized representation of a Summary
+   * @return DeserializedResult object, which contains a Summary object and number of bytes read
+   * from the MemorySegment
    */
-  public DeserializeResult<S> heapifySummary(Memory mem);
+  public DeserializeResult<S> heapifySummary(MemorySegment seg);
 
 }

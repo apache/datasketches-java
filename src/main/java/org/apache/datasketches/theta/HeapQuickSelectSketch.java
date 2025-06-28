@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
@@ -37,10 +38,10 @@ import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncre
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
@@ -100,40 +101,39 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   /**
-   * Heapify a sketch from a Memory UpdateSketch or Union object
+   * Heapify a sketch from a MemorySegment UpdateSketch or Union object
    * containing sketch data.
-   * @param srcMem The source Memory object.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg The source MemorySegment object.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
    */
-  static HeapQuickSelectSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final int preambleLongs = extractPreLongs(srcMem);            //byte 0
-    final int lgNomLongs = extractLgNomLongs(srcMem);             //byte 3
-    final int lgArrLongs = extractLgArrLongs(srcMem);             //byte 4
+  static HeapQuickSelectSketch heapifyInstance(final MemorySegment srcSeg, final long seed) {
+    final int preambleLongs = extractPreLongs(srcSeg);            //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcSeg);             //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
-    checkUnionQuickSelectFamily(srcMem, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
+    checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    final float p = extractP(srcMem);                             //bytes 12-15
-    final int memlgRF = extractLgResizeFactor(srcMem);               //byte 0
-    ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
-    final int familyID = extractFamilyID(srcMem);
+    final float p = extractP(srcSeg);                             //bytes 12-15
+    final int seglgRF = extractLgResizeFactor(srcSeg);            //byte 0
+    ResizeFactor segRF = ResizeFactor.getRF(seglgRF);
+    final int familyID = extractFamilyID(srcSeg);
     final Family family = Family.idToFamily(familyID);
 
-    if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
-      memRF = ResizeFactor.X2; //X2 always works.
+    if (isResizeFactorIncorrect(srcSeg, lgNomLongs, lgArrLongs)) {
+      segRF = ResizeFactor.X2; //X2 always works.
     }
 
-    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, memRF,
+    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, segRF,
         preambleLongs, family);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = getHashTableThreshold(lgNomLongs, lgArrLongs);
-    hqss.curCount_ = extractCurCount(srcMem);
-    hqss.thetaLong_ = extractThetaLong(srcMem);
-    hqss.empty_ = PreambleUtil.isEmptyFlag(srcMem);
+    hqss.curCount_ = extractCurCount(srcSeg);
+    hqss.thetaLong_ = extractThetaLong(srcSeg);
+    hqss.empty_ = PreambleUtil.isEmptyFlag(srcSeg);
     hqss.cache_ = new long[1 << lgArrLongs];
-    srcMem.getLongArray(preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs); //read in as hash table
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return hqss;
   }
 
@@ -228,11 +228,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   @Override
   int getLgArrLongs() {
     return lgArrLongs_;
-  }
-
-  @Override
-  WritableMemory getMemory() {
-    return null;
   }
 
   @Override

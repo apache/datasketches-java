@@ -21,16 +21,20 @@ package org.apache.datasketches.tuple.adouble;
 
 import static org.testng.Assert.assertEquals;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.Sketches;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.adouble.DoubleSketch;
+import org.apache.datasketches.tuple.adouble.DoubleSummary;
+import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
+import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -75,8 +79,8 @@ public class AdoubleTest {
       a1Sk.update(key, 1.0);
     }
     final double est1 = a1Sk.getEstimate();
-    final Memory mem = Memory.wrap(a1Sk.toByteArray());
-    final DoubleSketch a1Sk2 = new DoubleSketch(mem, Mode.AlwaysOne);
+    final MemorySegment seg = MemorySegment.ofArray(a1Sk.toByteArray());
+    final DoubleSketch a1Sk2 = new DoubleSketch(seg, Mode.AlwaysOne);
     final double est2 = a1Sk2.getEstimate();
     assertEquals(est1, est2);
   }
@@ -331,7 +335,7 @@ public class AdoubleTest {
     sketch1.update(1, 1.0);
 
     final UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(
-        Memory.wrap(sketch1.toByteArray()),
+        MemorySegment.ofArray(sketch1.toByteArray()),
         new DoubleSummaryDeserializer(), new DoubleSummaryFactory(mode));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
@@ -366,7 +370,7 @@ public class AdoubleTest {
     //TestUtil.writeBytesToFile(bytes, "UpdatableSketchWithDoubleSummary4K.sk");
 
     final Sketch<DoubleSummary> sketch2 =
-        Sketches.heapifySketch(Memory.wrap(bytes), new DoubleSummaryDeserializer());
+        Sketches.heapifySketch(MemorySegment.ofArray(bytes), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -391,7 +395,7 @@ public class AdoubleTest {
       sketch1.update(i, 1.0);
     }
     final Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(
-        Memory.wrap(sketch1.toByteArray()), new DoubleSummaryDeserializer());
+        MemorySegment.ofArray(sketch1.toByteArray()), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);

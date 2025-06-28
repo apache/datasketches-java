@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Convenient static methods to instantiate tuple sketches of type ArrayOfDoubles.
@@ -29,136 +29,123 @@ import org.apache.datasketches.memory.WritableMemory;
 public final class ArrayOfDoublesSketches {
 
   /**
-   * Heapify the given Memory as an ArrayOfDoublesSketch
-   * @param srcMem the given source Memory
+   * Heapify the given MemorySegment as an ArrayOfDoublesSketch
+   * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesSketch
    */
-  public static ArrayOfDoublesSketch heapifySketch(final Memory srcMem) {
-    return heapifySketch(srcMem, Util.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesSketch heapifySketch(final MemorySegment srcSeg) {
+    return heapifySketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify the given Memory and seed as a ArrayOfDoublesSketch
-   * @param srcMem the given source Memory
-   * @param seed the given seed
-   * @return an ArrayOfDoublesSketch
-   */
-  public static ArrayOfDoublesSketch heapifySketch(final Memory srcMem, final long seed) {
-    return ArrayOfDoublesSketch.heapify(srcMem, seed);
-  }
-
-  /**
-   * Heapify the given Memory as an ArrayOfDoublesUpdatableSketch
-   * @param srcMem the given source Memory
-   * @return an ArrayOfDoublesUpdatableSketch
-   */
-  public static ArrayOfDoublesUpdatableSketch heapifyUpdatableSketch(final Memory srcMem) {
-    return heapifyUpdatableSketch(srcMem, Util.DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Heapify the given Memory and seed as a ArrayOfDoublesUpdatableSketch
-   * @param srcMem the given source Memory
-   * @param seed the given seed
-   * @return an ArrayOfDoublesUpdatableSketch
-   */
-  public static ArrayOfDoublesUpdatableSketch heapifyUpdatableSketch(final Memory srcMem, final long seed) {
-    return ArrayOfDoublesUpdatableSketch.heapify(srcMem, seed);
-  }
-
-  /**
-   * Wrap the given Memory as an ArrayOfDoublesSketch
-   * @param srcMem the given source Memory
-   * @return an ArrayOfDoublesSketch
-   */
-  public static ArrayOfDoublesSketch wrapSketch(final Memory srcMem) {
-    return wrapSketch(srcMem, Util.DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Wrap the given Memory and seed as a ArrayOfDoublesSketch
-   * @param srcMem the given source Memory
+   * Heapify the given MemorySegment and seed as a ArrayOfDoublesSketch
+   * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesSketch
    */
-  public static ArrayOfDoublesSketch wrapSketch(final Memory srcMem, final long seed) {
-    return ArrayOfDoublesSketch.wrap(srcMem, seed);
+  public static ArrayOfDoublesSketch heapifySketch(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesSketch.heapify(srcSeg, seed);
   }
 
   /**
-   * Wrap the given WritableMemory as an ArrayOfDoublesUpdatableSketch
-   * @param srcMem the given source Memory
+   * Heapify the given MemorySegment as an ArrayOfDoublesUpdatableSketch
+   * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch wrapUpdatableSketch(final WritableMemory srcMem) {
-    return wrapUpdatableSketch(srcMem, Util.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUpdatableSketch heapifyUpdatableSketch(final MemorySegment srcSeg) {
+    return heapifyUpdatableSketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap the given WritableMemory and seed as a ArrayOfDoublesUpdatableSketch
-   * @param srcMem the given source Memory
+   * Heapify the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch
+   * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public static ArrayOfDoublesUpdatableSketch wrapUpdatableSketch(final WritableMemory srcMem, final long seed) {
-    return ArrayOfDoublesUpdatableSketch.wrap(srcMem, seed);
+  public static ArrayOfDoublesUpdatableSketch heapifyUpdatableSketch(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUpdatableSketch.heapify(srcSeg, seed);
   }
 
   /**
-   * Heapify the given Memory as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Wrap the given MemorySegment as an ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrapSketch(final MemorySegment srcSeg) {
+    return wrapSketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrapSketch(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesSketch.wrap(srcSeg, seed);
+  }
+
+  /**
+   * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch wrapUpdatableSketch(final MemorySegment srcSeg) {
+    return wrapUpdatableSketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch wrapUpdatableSketch(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUpdatableSketch.wrap(srcSeg, seed);
+  }
+
+  /**
+   * Heapify the given MemorySegment as an ArrayOfDoublesUnion
+   * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion heapifyUnion(final Memory srcMem) {
-    return heapifyUnion(srcMem, Util.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUnion heapifyUnion(final MemorySegment srcSeg) {
+    return heapifyUnion(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify the given Memory and seed as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Heapify the given MemorySegment and seed as an ArrayOfDoublesUnion
+   * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion heapifyUnion(final Memory srcMem, final long seed) {
-    return ArrayOfDoublesUnion.heapify(srcMem, seed);
+  public static ArrayOfDoublesUnion heapifyUnion(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUnion.heapify(srcSeg, seed);
   }
 
   /**
-   * Wrap the given Memory as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Wrap the given MemorySegment as an ArrayOfDoublesUnion
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrapUnion(final Memory srcMem) {
-    return wrapUnion(srcMem, Util.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUnion wrapUnion(final MemorySegment srcSeg) {
+    return wrapUnion(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap the given Memory and seed as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrapUnion(final Memory srcMem, final long seed) {
-    return ArrayOfDoublesUnion.wrap(srcMem, seed);
-  }
-
-  /**
-   * Wrap the given Memory as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
-   * @return an ArrayOfDoublesUnion
-   */
-  public static ArrayOfDoublesUnion wrapUnion(final WritableMemory srcMem) {
-    return wrapUnion(srcMem, Util.DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Wrap the given Memory and seed as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
-   * @param seed the given seed
-   * @return an ArrayOfDoublesUnion
-   */
-  public static ArrayOfDoublesUnion wrapUnion(final WritableMemory srcMem, final long seed) {
-    return ArrayOfDoublesUnion.wrap(srcMem, seed);
+  public static ArrayOfDoublesUnion wrapUnion(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUnion.wrap(srcSeg, seed);
   }
 
 }
