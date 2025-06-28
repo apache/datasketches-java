@@ -22,7 +22,7 @@ package org.apache.datasketches.theta;
 /*
  * This is to uncompress serial version 4 sketch incrementally
  */
-class BytesCompactCompressedHashIterator implements HashIterator {
+final class BytesCompactCompressedHashIterator implements HashIterator {
   private byte[] bytes;
   private int offset;
   private int entryBits;

@@ -21,9 +21,17 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesAnotB;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -238,7 +246,7 @@ public class ArrayOfDoublesAnotBTest {
 
     // same operation, but compact sketches and off-heap result
     aNotB.update(sketchA.compact(), sketchB.compact());
-    result = aNotB.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    result = aNotB.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
@@ -278,7 +286,7 @@ public class ArrayOfDoublesAnotBTest {
 
     // same operation, but compact sketches and off-heap result
     aNotB.update(sketchA.compact(), sketchB.compact());
-    result = aNotB.getResult(WritableMemory.writableWrap(new byte[1000000]));
+    result = aNotB.getResult(MemorySegment.ofArray(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), expected, expected * 0.1); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());

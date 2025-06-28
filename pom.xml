@@ -83,10 +83,10 @@ under the License.
   </developers>
 
   <properties>
-    <datasketches-memory.version>6.0.0</datasketches-memory.version>
+    <datasketches-memory.version>6.1.0-SNAPSHOT</datasketches-memory.version>
 
     <!-- Test -->
-    <testng.version>7.10.2</testng.version>
+    <testng.version>7.11.0</testng.version>
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
     <testng.generate-java-files>generate_java_files</testng.generate-java-files>
     <testng.check-cpp-files>check_cpp_files</testng.check-cpp-files>
@@ -94,11 +94,11 @@ under the License.
 
     <!-- System-wide properties -->
     <maven.version>3.6.3</maven.version>
-    <java.version>21</java.version>
-    <jvm-ffm-flag>--enable-preview</jvm-ffm-flag>
+    <java.version>24</java.version>
+    <jvm-arguments></jvm-arguments>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-ffm-flag}</argLine>
+    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-arguments}</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -114,9 +114,9 @@ under the License.
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
-    <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-surefire-failsafe-plugins.version>3.5.2</maven-surefire-failsafe-plugins.version> <!-- for surefire, failsafe and surefire-report -->
+    <!-- for surefire, failsafe and surefire-report: -->
+    <maven-surefire-failsafe-plugins.version>3.5.2</maven-surefire-failsafe-plugins.version>
     <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
     <!-- com.github plugins -->
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
@@ -126,7 +126,7 @@ under the License.
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     <!-- org.jacoco.maven plugins -->
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <!-- org.mojohaus plugins -->
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
     <!-- other -->
@@ -164,7 +164,7 @@ under the License.
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <compilerArgs>
-              <arg>${jvm-ffm-flag}</arg>
+              <arg>${jvm-arguments}</arg>
             </compilerArgs>
           </configuration>
         </plugin>
@@ -190,7 +190,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[21,)</version> <!-- java.version -->
+                    <version>[22,)</version> <!-- java.version -->
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},4.0.0)</version>
@@ -239,7 +239,7 @@ under the License.
             <show>public</show>
             <doclint>all,-missing</doclint>
             <additionalJOptions>
-              <additionalJOption>${jvm-ffm-flag}</additionalJOption>
+              <additionalJOption>${jvm-arguments}</additionalJOption>
             </additionalJOptions>
           </configuration>
           <executions>
@@ -285,7 +285,7 @@ under the License.
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
-            <argLine>${jvm-ffm-flag}</argLine>
+            <argLine>${jvm-arguments}</argLine>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -340,6 +340,7 @@ under the License.
               <exclude>**/*.sk</exclude>
               <exclude>LICENSE</exclude>
               <exclude>NOTICE</exclude>
+              <exclude>**/*.code-workspace</exclude>
             </excludes>
           </configuration>
         </plugin>
@@ -374,6 +375,7 @@ under the License.
             </execution>
             <execution>
               <id>default-report</id>
+              <phase>test</phase>
               <goals>
                 <goal>report</goal>
               </goals>
@@ -668,5 +670,6 @@ under the License.
         </pluginManagement>
       </build>
     </profile>
+
   </profiles>
 </project>

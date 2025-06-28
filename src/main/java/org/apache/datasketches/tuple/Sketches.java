@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * Convenient static methods to instantiate generic tuple sketches.
@@ -37,36 +37,36 @@ public final class Sketches {
   }
 
   /**
-   * Instantiate a Sketch from a given Memory.
+   * Instantiate a Sketch from a given MemorySegment.
    * @param <S> Type of Summary
-   * @param mem Memory object representing a Sketch
+   * @param seg MemorySegment object representing a Sketch
    * @param deserializer instance of SummaryDeserializer
-   * @return Sketch created from its Memory representation
+   * @return Sketch created from its MemorySegment representation
    */
   public static <S extends Summary> Sketch<S> heapifySketch(
-      final Memory mem,
+      final MemorySegment seg,
       final SummaryDeserializer<S> deserializer) {
-    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(seg);
     if (sketchType == SerializerDeserializer.SketchType.QuickSelectSketch) {
-      return new QuickSelectSketch<>(mem, deserializer, null);
+      return new QuickSelectSketch<>(seg, deserializer, null);
     }
-    return new CompactSketch<>(mem, deserializer);
+    return new CompactSketch<>(seg, deserializer);
   }
 
   /**
-   * Instantiate UpdatableSketch from a given Memory
+   * Instantiate UpdatableSketch from a given MemorySegment
    * @param <U> Type of update value
    * @param <S> Type of Summary
-   * @param mem Memory object representing a Sketch
+   * @param seg MemorySegment object representing a Sketch
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
-   * @return Sketch created from its Memory representation
+   * @return Sketch created from its MemorySegment representation
    */
   public static <U, S extends UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(
-      final Memory mem,
+      final MemorySegment seg,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    return new UpdatableSketch<>(mem, deserializer, summaryFactory);
+    return new UpdatableSketch<>(seg, deserializer, summaryFactory);
   }
 
 }

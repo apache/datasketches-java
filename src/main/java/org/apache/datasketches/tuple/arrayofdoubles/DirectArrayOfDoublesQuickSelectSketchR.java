@@ -19,14 +19,14 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 final class DirectArrayOfDoublesQuickSelectSketchR extends DirectArrayOfDoublesQuickSelectSketch {
 
-  DirectArrayOfDoublesQuickSelectSketchR(final Memory mem, final long seed) {
-    super((WritableMemory) mem, seed);
+  DirectArrayOfDoublesQuickSelectSketchR(final MemorySegment seg, final long seed) {
+    super(seg, seed);
   }
 
   @Override

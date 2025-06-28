@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.Util.checkBounds;
@@ -32,24 +33,24 @@ import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegmentSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.getMemBytes;
+import static org.apache.datasketches.theta.PreambleUtil.getSegBytes;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -64,47 +65,45 @@ public abstract class UpdateSketch extends Sketch {
   UpdateSketch() {}
 
   /**
-  * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
+  * Wrap takes the writable sketch image in MemorySegment and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-  * been explicitly stored as direct objects can be wrapped. This method assumes the
-  * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
+  * been explicitly stored as writable, direct objects can be wrapped. This method assumes the
+  * {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-  * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
+  * @param srcWSeg an image of a writable sketch where the image seed hash matches the default seed hash.
   * It must have a size of at least 24 bytes.
-  * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-  * @return a Sketch backed by the given Memory
+  * @return an UpdateSketch backed by the given MemorySegment
   */
-  public static UpdateSketch wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+  public static UpdateSketch wrap(final MemorySegment srcWSeg) {
+    return wrap(srcWSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-  * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
+  * Wrap takes the sketch image in MemorySegment and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-  * been explicitly stored as direct objects can be wrapped.
+  * been explicitly stored as writable direct objects can be wrapped.
   * An attempt to "wrap" earlier version sketches will result in a "heapified", normal
   * Java Heap version of the sketch where all data will be copied to the heap.
-  * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
+  * @param srcWSeg an image of a writable sketch where the image seed hash matches the given seed hash.
   * It must have a size of at least 24 bytes.
-  * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-  * @param expectedSeed the seed used to validate the given Memory image.
+  * @param expectedSeed the seed used to validate the given MemorySegment image.
   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-  * @return a UpdateSketch backed by the given Memory
+  * @return a UpdateSketch backed by the given MemorySegment
   */
-  public static UpdateSketch wrap(final WritableMemory srcMem, final long expectedSeed) {
-    Objects.requireNonNull(srcMem, "Source Memory must not be null");
-    checkBounds(0, 24, srcMem.getCapacity()); //need min 24 bytes
-    final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
-    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+  public static UpdateSketch wrap(final MemorySegment srcWSeg, final long expectedSeed) {
+    Objects.requireNonNull(srcWSeg, "Source MemorySeg e t must not be null");
+    checkBounds(0, 24, srcWSeg.byteSize()); //need min 24 bytes
+    final int  preLongs = srcWSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int serVer = srcWSeg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
+    final int familyID = srcWSeg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
     final Family family = Family.idToFamily(familyID);
     if (family != Family.QUICKSELECT) {
       throw new SketchesArgumentException(
         "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
     }
     if ((serVer == 3) && (preLongs == 3)) {
-      return DirectQuickSelectSketch.writableWrap(srcMem, expectedSeed);
+      return DirectQuickSelectSketch.writableWrap(srcWSeg, expectedSeed);
     } else {
       throw new SketchesArgumentException(
         "Corrupted: An UpdateSketch image must have SerVer = 3 and preLongs = 3");
@@ -112,40 +111,40 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   /**
-   * Instantiates an on-heap UpdateSketch from Memory. This method assumes the
-   * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Instantiates an on-heap UpdateSketch from a MemorySegment. This method assumes the
+   * {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}.
+   * @param srcSeg the given MemorySegment with a sketch image.
    * It must have a size of at least 24 bytes.
    * @return an UpdateSketch
    */
-  public static UpdateSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+  public static UpdateSketch heapify(final MemorySegment srcSeg) {
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Instantiates an on-heap UpdateSketch from Memory.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Instantiates an on-heap UpdateSketch from a MemorySegment.
+   * @param srcSeg the given MemorySegment.
    * It must have a size of at least 24 bytes.
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return an UpdateSketch
    */
-  public static UpdateSketch heapify(final Memory srcMem, final long expectedSeed) {
-    Objects.requireNonNull(srcMem, "Source Memory must not be null");
-    checkBounds(0, 24, srcMem.getCapacity()); //need min 24 bytes
-    final Family family = Family.idToFamily(srcMem.getByte(FAMILY_BYTE));
+  public static UpdateSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
+    Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
+    checkBounds(0, 24, srcSeg.byteSize()); //need min 24 bytes
+    final Family family = Family.idToFamily(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
     if (family.equals(Family.ALPHA)) {
-      return HeapAlphaSketch.heapifyInstance(srcMem, expectedSeed);
+      return HeapAlphaSketch.heapifyInstance(srcSeg, expectedSeed);
     }
-    return HeapQuickSelectSketch.heapifyInstance(srcMem, expectedSeed);
+    return HeapQuickSelectSketch.heapifyInstance(srcSeg, expectedSeed);
   }
 
   //Sketch interface
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
+  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
     return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
-        false, false, dstOrdered, dstMem, getCache());
+        false, false, dstOrdered, dstWSeg, getCache());
   }
 
   @Override
@@ -161,13 +160,28 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   @Override
+  public boolean hasMemorySegment() {
+    return (this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).hasMemorySegment());
+  }
+
+  @Override
   public boolean isCompact() {
     return false;
   }
 
   @Override
+  public boolean isDirect() {
+    return (this instanceof DirectQuickSelectSketchR && ((DirectQuickSelectSketchR)this).isDirect());
+  }
+
+  @Override
   public boolean isOrdered() {
     return false;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return (this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).isSameResource(that));
   }
 
   //UpdateSketch interface
@@ -378,10 +392,10 @@ public abstract class UpdateSketch extends Sketch {
    */
   abstract boolean isOutOfSpace(int numEntries);
 
-  static void checkUnionQuickSelectFamily(final Memory mem, final int preambleLongs,
+  static void checkUnionQuickSelectFamily(final MemorySegment seg, final int preambleLongs,
       final int lgNomLongs) {
     //Check Family
-    final int familyID = extractFamilyID(mem);                       //byte 2
+    final int familyID = extractFamilyID(seg);                       //byte 2
     final Family family = Family.idToFamily(familyID);
     if (family.equals(Family.UNION)) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
@@ -402,45 +416,45 @@ public abstract class UpdateSketch extends Sketch {
     //Check lgNomLongs
     if (lgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory lgNomLongs < min required size: "
+          "Possible corruption: Current MemorySegment lgNomLongs < min required size: "
               + lgNomLongs + " < " + ThetaUtil.MIN_LG_NOM_LONGS);
     }
   }
 
-  static void checkMemIntegrity(final Memory srcMem, final long expectedSeed, final int preambleLongs,
+  static void checkSegIntegrity(final MemorySegment srcSeg, final long expectedSeed, final int preambleLongs,
       final int lgNomLongs, final int lgArrLongs) {
 
     //Check SerVer
-    final int serVer = extractSerVer(srcMem);                           //byte 1
+    final int serVer = extractSerVer(srcSeg);                           //byte 1
     if (serVer != SER_VER) {
       throw new SketchesArgumentException(
           "Possible corruption: Invalid Serialization Version: " + serVer);
     }
 
     //Check flags
-    final int flags = extractFlags(srcMem);                             //byte 5
+    final int flags = extractFlags(srcSeg);                             //byte 5
     final int flagsMask =
         ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
-        "Possible corruption: Input srcMem cannot be: big-endian, compact, ordered, or read-only");
+        "Possible corruption: Input srcSeg cannot be: big-endian, compact, ordered, nor read-only");
     }
 
     //Check seed hashes
-    final short seedHash = checkMemorySeedHash(srcMem, expectedSeed);              //byte 6,7
-    ThetaUtil.checkSeedHashes(seedHash, ThetaUtil.computeSeedHash(expectedSeed));
+    final short seedHash = checkSegmentSeedHash(srcSeg, expectedSeed);              //byte 6,7
+    Util.checkSeedHashes(seedHash, Util.computeSeedHash(expectedSeed));
 
-    //Check mem capacity, lgArrLongs
-    final long curCapBytes = srcMem.getCapacity();
-    final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
+    //Check seg capacity, lgArrLongs
+    final long curCapBytes = srcSeg.byteSize();
+    final int minReqBytes = getSegBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-          "Possible corruption: Current Memory size < min required size: "
+          "Possible corruption: Current MemorySegment size < min required size: "
               + curCapBytes + " < " + minReqBytes);
     }
     //check Theta, p
-    final float p = extractP(srcMem);                                   //bytes 12-15
-    final long thetaLong = extractThetaLong(srcMem);                    //bytes 16-23
+    final float p = extractP(srcSeg);                                   //bytes 12-15
+    final long thetaLong = extractThetaLong(srcSeg);                    //bytes 16-23
     final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     //if (lgArrLongs <= lgNomLongs) the sketch is still resizing, thus theta cannot be < p.
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
@@ -451,19 +465,19 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   /**
-   * This checks to see if the memory RF factor was set correctly as early versions may not
+   * This checks to see if the MemorySegment RF factor was set correctly as early versions may not
    * have set it.
-   * @param srcMem the source memory
+   * @param srcSeg the source MemorySegment
    * @param lgNomLongs the current lgNomLongs
    * @param lgArrLongs the current lgArrLongs
-   * @return true if the the memory RF factor is incorrect and the caller can either
+   * @return true if the the MemorySegment RF factor is incorrect and the caller can either
    * correct it or throw an error.
    */
-  static boolean isResizeFactorIncorrect(final Memory srcMem, final int lgNomLongs,
+  static boolean isResizeFactorIncorrect(final MemorySegment srcSeg, final int lgNomLongs,
       final int lgArrLongs) {
     final int lgT = lgNomLongs + 1;
     final int lgA = lgArrLongs;
-    final int lgR = extractLgResizeFactor(srcMem);
+    final int lgR = extractLgResizeFactor(srcSeg);
     if (lgR == 0) { return lgA != lgT; }
     return !(((lgT - lgA) % lgR) == 0);
   }

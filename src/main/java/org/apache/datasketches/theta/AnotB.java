@@ -19,8 +19,9 @@
 
 package org.apache.datasketches.theta;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two theta sketches.
@@ -132,15 +133,14 @@ public abstract class AnotB extends SetOperation {
    * @param dstOrdered If <i>true</i>, the result will be an ordered {@link CompactSketch}.
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    *
-   * @param dstMem if not <i>null</i> the given Memory will be the target location of the result.
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @param dstSeg if not <i>null</i> the given MemorySegment will be the target location of the result.
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    *
-   * @return the result of this operation as a {@link CompactSketch} in the given dstMem.
+   * @return the result of this operation as a {@link CompactSketch} in the given dstSeg.
    */
-  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem, boolean reset);
+  public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg, boolean reset);
 
   /**
    * Perform A-and-not-B set operation on the two given sketches and return the result as an
@@ -149,7 +149,7 @@ public abstract class AnotB extends SetOperation {
    * <p>This a stateless operation and has no impact on the internal state of this operator.
    * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)},
    * {@link #notB(Sketch)}, {@link #getResult(boolean)}, or
-   * {@link #getResult(boolean, WritableMemory, boolean)} methods.</p>
+   * {@link #getResult(boolean, MemorySegment, boolean)} methods.</p>
    *
    * <p>If either argument is null an exception is thrown.</p>
    *
@@ -177,7 +177,7 @@ public abstract class AnotB extends SetOperation {
    * <p>This a stateless operation and has no impact on the internal state of this operator.
    * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)},
    * {@link #notB(Sketch)}, {@link #getResult(boolean)}, or
-   * {@link #getResult(boolean, WritableMemory, boolean)} methods.</p>
+   * {@link #getResult(boolean, MemorySegment, boolean)} methods.</p>
    *
    * <p>If either argument is null an exception is thrown.</p>
    *
@@ -194,11 +194,10 @@ public abstract class AnotB extends SetOperation {
    * @param skB The incoming sketch for the second argument. It must not be null.
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
-   * @param dstMem
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @param dstSeg the destination MemorySegment
    * @return the result as a CompactSketch.
    */
   public abstract CompactSketch aNotB(Sketch skA, Sketch skB, boolean dstOrdered,
-      WritableMemory dstMem);
+      MemorySegment dstSeg);
 
 }

@@ -19,11 +19,12 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.hash.MurmurHash3;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.
@@ -63,7 +64,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
 
   /**
    * This is to create an instance of a sketch given a serialized form
-   * @param srcMem Memory object with data of a serialized UpdatableSketch
+   * @param srcSeg MemorySegment object with data of a serialized UpdatableSketch
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
    * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
@@ -72,10 +73,10 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   @Deprecated
   public UpdatableSketch(
-      final Memory srcMem,
+      final MemorySegment srcSeg,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    super(srcMem, deserializer, summaryFactory);
+    super(srcSeg, deserializer, summaryFactory);
   }
 
   /**
@@ -136,7 +137,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final byte[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -148,7 +149,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final ByteBuffer buffer, final U value) {
     if (buffer == null || buffer.hasRemaining() == false) { return; }
-    insertOrIgnore(MurmurHash3.hash(buffer, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(buffer, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -160,7 +161,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final int[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -172,7 +173,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final long[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   void insertOrIgnore(final long hash, final U value) {

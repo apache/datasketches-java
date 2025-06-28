@@ -19,8 +19,10 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
-import static org.apache.datasketches.theta.CompactOperations.memoryToCompact;
+import static org.apache.datasketches.theta.CompactOperations.segmentToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
@@ -29,9 +31,9 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.Util;
 
 /**
  * An off-heap (Direct), compact, read-only sketch. The internal hash array can be either ordered
@@ -39,78 +41,78 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * <p>This sketch can only be associated with a Serialization Version 3 format binary image.</p>
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  *
  * @author Lee Rhodes
  */
 class DirectCompactSketch extends CompactSketch {
-  final Memory mem_;
+  final MemorySegment seg_;
 
   /**
-   * Construct this sketch with the given memory.
-   * @param mem Read-only Memory object with the order bit properly set.
+   * Construct this sketch with the given MemorySegment.
+   * @param seg Read-only MemorySegment object with the order bit properly set.
    */
-  DirectCompactSketch(final Memory mem) {
-    mem_ = mem;
+  DirectCompactSketch(final MemorySegment seg) {
+    seg_ = seg;
   }
 
   /**
-   * Wraps the given Memory, which must be a SerVer 3, CompactSketch image.
-   * Must check the validity of the Memory before calling. The order bit must be set properly.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Wraps the given MemorySegment, which must be a SerVer 3, CompactSketch image.
+   * Must check the validity of the MemorySegment before calling. The order bit must be set properly.
+   * @param srcSeg the given MemorySegment
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
    * @return this sketch
    */
-  static DirectCompactSketch wrapInstance(final Memory srcMem, final short seedHash) {
-    ThetaUtil.checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
-    return new DirectCompactSketch(srcMem);
+  static DirectCompactSketch wrapInstance(final MemorySegment srcSeg, final short seedHash) {
+    Util.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
+    return new DirectCompactSketch(srcSeg);
   }
 
   //Sketch Overrides
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    return memoryToCompact(mem_, dstOrdered, dstMem);
+  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+    return segmentToCompact(seg_, dstOrdered, dstSeg);
   }
 
   @Override
   public int getCurrentBytes() {
-    if (otherCheckForSingleItem(mem_)) { return 16; }
-    final int preLongs = extractPreLongs(mem_);
-    final int curCount = (preLongs == 1) ? 0 : extractCurCount(mem_);
+    if (otherCheckForSingleItem(seg_)) { return 16; }
+    final int preLongs = extractPreLongs(seg_);
+    final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
     return (preLongs + curCount) << 3;
   }
 
   @Override
   public int getRetainedEntries(final boolean valid) { //compact is always valid
-    if (otherCheckForSingleItem(mem_)) { return 1; }
-    final int preLongs = extractPreLongs(mem_);
-    final int curCount = (preLongs == 1) ? 0 : extractCurCount(mem_);
+    if (otherCheckForSingleItem(seg_)) { return 1; }
+    final int preLongs = extractPreLongs(seg_);
+    final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
     return curCount;
   }
 
   @Override
   public long getThetaLong() {
-    final int preLongs = extractPreLongs(mem_);
-    return (preLongs > 2) ? extractThetaLong(mem_) : Long.MAX_VALUE;
+    final int preLongs = extractPreLongs(seg_);
+    return (preLongs > 2) ? extractThetaLong(seg_) : Long.MAX_VALUE;
   }
 
   @Override
-  public boolean hasMemory() {
-    return mem_ != null;
+  public boolean hasMemorySegment() {
+    return seg_ != null && seg_.scope().isAlive();
   }
 
   @Override
   public boolean isDirect() {
-    return hasMemory() ? mem_.isDirect() : false;
+    return hasMemorySegment() && seg_.isNative();
   }
 
   @Override
   public boolean isEmpty() {
-    final boolean emptyFlag = PreambleUtil.isEmptyFlag(mem_);
+    final boolean emptyFlag = PreambleUtil.isEmptyFlag(seg_);
     final long thetaLong = getThetaLong();
     final int curCount = getRetainedEntries(true);
     return emptyFlag || ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
@@ -118,17 +120,18 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean isOrdered() {
-    return (extractFlags(mem_) & ORDERED_FLAG_MASK) > 0;
+    return (extractFlags(seg_) & ORDERED_FLAG_MASK) > 0;
   }
 
   @Override
-  public boolean isSameResource(final Memory that) {
-    return hasMemory() ? mem_.isSameResource(that) : false;
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(seg_, that);
+
   }
 
   @Override
   public HashIterator iterator() {
-    return new MemoryHashIterator(mem_, getRetainedEntries(true), getThetaLong());
+    return new MemorySegmentHashIterator(seg_, getRetainedEntries(true), getThetaLong());
   }
 
   @Override
@@ -136,7 +139,7 @@ class DirectCompactSketch extends CompactSketch {
     checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries());
     final int outBytes = getCurrentBytes();
     final byte[] byteArrOut = new byte[outBytes];
-    mem_.getByteArray(0, byteArrOut, 0, outBytes);
+    MemorySegment.copy(seg_, JAVA_BYTE, 0, byteArrOut, 0, outBytes);
     return byteArrOut;
   }
 
@@ -144,12 +147,12 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   long[] getCache() {
-    if (otherCheckForSingleItem(mem_)) { return new long[] { mem_.getLong(8) }; }
-    final int preLongs = extractPreLongs(mem_);
-    final int curCount = (preLongs == 1) ? 0 : extractCurCount(mem_);
+    if (otherCheckForSingleItem(seg_)) { return new long[] { seg_.get(JAVA_LONG_UNALIGNED, 8) }; }
+    final int preLongs = extractPreLongs(seg_);
+    final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
     if (curCount > 0) {
       final long[] cache = new long[curCount];
-      mem_.getLongArray(preLongs << 3, cache, 0, curCount);
+      MemorySegment.copy(seg_, JAVA_LONG_UNALIGNED, preLongs << 3, cache, 0, curCount);
       return cache;
     }
     return new long[0];
@@ -157,21 +160,21 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   int getCompactPreambleLongs() {
-    return extractPreLongs(mem_);
+    return extractPreLongs(seg_);
   }
 
   @Override
   int getCurrentPreambleLongs() {
-    return extractPreLongs(mem_);
+    return extractPreLongs(seg_);
   }
 
   @Override
-  Memory getMemory() {
-    return mem_;
+  MemorySegment getMemorySegment() {
+    return seg_;
   }
 
   @Override
   short getSeedHash() {
-    return (short) extractSeedHash(mem_);
+    return (short) extractSeedHash(seg_);
   }
 }

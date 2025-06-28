@@ -21,6 +21,7 @@ package org.apache.datasketches.fdt;
 
 import static org.testng.Assert.assertEquals;
 
+import org.apache.datasketches.fdt.Group;
 import org.testng.annotations.Test;
 
 /**

@@ -53,7 +53,7 @@ public interface PartitioningFeature<T> {
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
    */
-  default GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(int numEquallySizedParts) {
+  default GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(final int numEquallySizedParts) {
     return getPartitionBoundariesFromNumParts(numEquallySizedParts, INCLUSIVE);
   }
 
@@ -106,7 +106,7 @@ public interface PartitioningFeature<T> {
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
    */
-  default GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(long nominalPartSizeItems) {
+  default GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(final long nominalPartSizeItems) {
     return getPartitionBoundariesFromPartSize(nominalPartSizeItems, INCLUSIVE);
   }
 

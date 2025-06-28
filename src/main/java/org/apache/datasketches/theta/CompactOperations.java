@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
@@ -43,13 +46,12 @@ import static org.apache.datasketches.theta.PreambleUtil.insertSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -66,10 +68,10 @@ final class CompactOperations {
       final boolean srcCompact,
       final boolean srcOrdered,
       final boolean dstOrdered,
-      final WritableMemory dstMem,
+      final MemorySegment dstWSeg,
       final long[] hashArr) //may not be compacted, ordered or unordered, may be null
   {
-    final boolean direct = dstMem != null;
+    final boolean direct = dstWSeg != null;
     final boolean empty = srcEmpty || ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
     final boolean single = (curCount == 1) && (thetaLong == Long.MAX_VALUE);
     final long[] hashArrOut;
@@ -90,9 +92,9 @@ final class CompactOperations {
       flags |= dstOrderedOut ? ORDERED_FLAG_MASK : 0;
       flags |= single ? SINGLEITEM_FLAG_MASK : 0;
 
-      final Memory mem =
-          loadCompactMemory(hashArrOut, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
-      return new DirectCompactSketch(mem);
+      final MemorySegment seg =
+          loadCompactMemorySegment(hashArrOut, seedHash, curCount, thetaLong, dstWSeg, (byte)flags, preLongs);
+      return new DirectCompactSketch(seg);
 
     } else { //Heap
       if (empty) {
@@ -106,26 +108,26 @@ final class CompactOperations {
   }
 
   /**
-   * Heapify or convert a source Theta Sketch Memory image into a heap or target Memory CompactSketch.
+   * Heapify or convert a source Theta Sketch MemorySegment image into a heap or target MemorySegment CompactSketch.
    * This assumes hashSeed is OK; serVer = 3.
-   * @param srcMem the given input source Memory image
+   * @param srcSeg the given input source MemorySegment image. Can be Read Only.
    * @param dstOrdered the desired ordering of the resulting CompactSketch
-   * @param dstMem Used for the target CompactSketch if it is Memory-based.
+   * @param dstWSeg Used for the target CompactSketch if it is MemorySegment-based. Must be Writable.
    * @return a CompactSketch of the correct form.
    */
   @SuppressWarnings("unused")
-  static CompactSketch memoryToCompact(
-      final Memory srcMem,
+  static CompactSketch segmentToCompact(
+      final MemorySegment srcSeg,
       final boolean dstOrdered,
-      final WritableMemory dstMem)
+      final MemorySegment dstWSeg)
   {
     //extract Pre0 fields and Flags from srcMem
-    final int srcPreLongs = extractPreLongs(srcMem);
-    final int srcSerVer = extractSerVer(srcMem); //not used
-    final int srcFamId = extractFamilyID(srcMem);
-    final int srcLgArrLongs = extractLgArrLongs(srcMem);
-    final int srcFlags = extractFlags(srcMem);
-    final short srcSeedHash = (short) extractSeedHash(srcMem);
+    final int srcPreLongs = extractPreLongs(srcSeg);
+    final int srcSerVer = extractSerVer(srcSeg); //not used
+    final int srcFamId = extractFamilyID(srcSeg);
+    final int srcLgArrLongs = extractLgArrLongs(srcSeg);
+    final int srcFlags = extractFlags(srcSeg);
+    final short srcSeedHash = (short) extractSeedHash(srcSeg);
 
     //srcFlags
     final boolean srcReadOnlyFlag = (srcFlags & READ_ONLY_FLAG_MASK) > 0;
@@ -138,8 +140,8 @@ final class CompactOperations {
         || SingleItemSketch.otherCheckForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
 
     //extract pre1 and pre2 fields
-    final int curCount = single ? 1 : (srcPreLongs > 1) ? extractCurCount(srcMem) : 0;
-    final long thetaLong = (srcPreLongs > 2) ? extractThetaLong(srcMem) : Long.MAX_VALUE;
+    final int curCount = single ? 1 : (srcPreLongs > 1) ? extractCurCount(srcSeg) : 0;
+    final long thetaLong = (srcPreLongs > 2) ? extractThetaLong(srcSeg) : Long.MAX_VALUE;
 
     //do some basic checks ...
     if (srcEmptyFlag)  { assert (curCount == 0) && (thetaLong == Long.MAX_VALUE); }
@@ -150,19 +152,19 @@ final class CompactOperations {
     //Note: for empty and single we always output the ordered form.
     final boolean dstOrderedOut = (srcEmptyFlag || single) ? true : dstOrdered;
     if (srcEmptyFlag) {
-      if (dstMem != null) {
-        dstMem.putByteArray(0, EmptyCompactSketch.EMPTY_COMPACT_SKETCH_ARR, 0, 8);
-        return new DirectCompactSketch(dstMem);
+      if (dstWSeg != null) {
+        MemorySegment.copy(EmptyCompactSketch.EMPTY_COMPACT_SKETCH_ARR, 0, dstWSeg, JAVA_BYTE, 0, 8);
+        return new DirectCompactSketch(dstWSeg);
       } else {
         return EmptyCompactSketch.getInstance();
       }
     }
     if (single) {
-      final long hash = srcMem.getLong(srcPreLongs << 3);
+      final long hash = srcSeg.get(JAVA_LONG_UNALIGNED, srcPreLongs << 3);
       final SingleItemSketch sis = new SingleItemSketch(hash, srcSeedHash);
-      if (dstMem != null) {
-        dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
-        return new DirectCompactSketch(dstMem);
+      if (dstWSeg != null) {
+        MemorySegment.copy(sis.toByteArray(), 0, dstWSeg, JAVA_BYTE, 0, 16);
+        return new DirectCompactSketch(dstWSeg);
       } else { //heap
         return sis;
       }
@@ -172,11 +174,11 @@ final class CompactOperations {
     final long[] hashArr;
     if (srcCompactFlag) {
       hashArr = new long[curCount];
-      srcMem.getLongArray(srcPreLongs << 3, hashArr, 0, curCount);
+      MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, srcPreLongs << 3, hashArr, 0, curCount);
     } else { //update sketch, thus hashTable form
       final int srcCacheLen = 1 << srcLgArrLongs;
       final long[] tempHashArr = new long[srcCacheLen];
-      srcMem.getLongArray(srcPreLongs << 3, tempHashArr, 0, srcCacheLen);
+      MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, srcPreLongs << 3, tempHashArr, 0, srcCacheLen);
       hashArr = compactCache(tempHashArr, curCount, thetaLong, dstOrderedOut);
     }
 
@@ -184,10 +186,10 @@ final class CompactOperations {
                          | ((dstOrderedOut) ? ORDERED_FLAG_MASK : 0);
 
     //load the destination.
-    if (dstMem != null) {
-      final Memory tgtMem = loadCompactMemory(hashArr, srcSeedHash, curCount, thetaLong, dstMem,
+    if (dstWSeg != null) {
+      final MemorySegment tgtSeg = loadCompactMemorySegment(hashArr, srcSeedHash, curCount, thetaLong, dstWSeg,
           (byte)flagsOut, srcPreLongs);
-      return new DirectCompactSketch(tgtMem);
+      return new DirectCompactSketch(tgtSeg);
     } else { //heap
       return new HeapCompactSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong,
           dstOrderedOut);
@@ -213,27 +215,28 @@ final class CompactOperations {
   }
 
   //All arguments must be valid and correct including flags.
-  // Used as helper to create byte arrays as well as loading Memory for direct compact sketches
-  static final Memory loadCompactMemory(
+  // Used as helper to create byte arrays as well as loading MemorySegment for direct compact sketches
+  //Input must be writable, return can be Read Only
+  static final MemorySegment loadCompactMemorySegment(
       final long[] compactHashArr,
       final short seedHash,
       final int curCount,
       final long thetaLong,
-      final WritableMemory dstMem,
+      final MemorySegment dstWSeg,
       final byte flags,
       final int preLongs)
   {
-    assert (dstMem != null) && (compactHashArr != null);
+    assert (dstWSeg != null) && (compactHashArr != null);
     final int outLongs = preLongs + curCount;
     final int outBytes = outLongs << 3;
-    final int dstBytes = (int) dstMem.getCapacity();
+    final int dstBytes = (int) dstWSeg.byteSize();
     if (outBytes > dstBytes) {
-      throw new SketchesArgumentException("Insufficient Memory: " + dstBytes
+      throw new SketchesArgumentException("Insufficient Space in MemorySegment: " + dstBytes
         + ", Need: " + outBytes);
     }
     final byte famID = (byte) Family.COMPACT.getID();
 
-    //Caution: The following loads directly into Memory without creating a heap byte[] first,
+    //Caution: The following loads directly into a MemorySegment without creating a heap byte[] first,
     // which would act as a pre-clearing, initialization mechanism. So it is important to make sure
     // that all fields are initialized, even those that are not used by the CompactSketch.
     // Otherwise, uninitialized fields could be filled with off-heap garbage, which could cause
@@ -241,30 +244,31 @@ final class CompactOperations {
     // As written below, all fields are initialized avoiding an extra copy.
 
     //The first 8 bytes (pre0)
-    insertPreLongs(dstMem, preLongs); //RF not used = 0
-    insertSerVer(dstMem, SER_VER);
-    insertFamilyID(dstMem, famID);
+    insertPreLongs(dstWSeg, preLongs); //RF not used = 0
+    insertSerVer(dstWSeg, SER_VER);
+    insertFamilyID(dstWSeg, famID);
     //The following initializes the lgNomLongs and lgArrLongs to 0.
     //They are not used in CompactSketches.
-    dstMem.putShort(LG_NOM_LONGS_BYTE, (short)0);
-    insertFlags(dstMem, flags);
-    insertSeedHash(dstMem, seedHash);
+    dstWSeg.set(JAVA_SHORT_UNALIGNED, LG_NOM_LONGS_BYTE, (short)0);
+    insertFlags(dstWSeg, flags);
+    insertSeedHash(dstWSeg, seedHash);
 
     if ((preLongs == 1) && (curCount == 1)) { //singleItem, theta = 1.0
-      dstMem.putLong(8, compactHashArr[0]);
-      return dstMem;
+      dstWSeg.set(JAVA_LONG_UNALIGNED, 8, compactHashArr[0]);
+      return dstWSeg;
     }
     if (preLongs > 1) {
-      insertCurCount(dstMem, curCount);
-      insertP(dstMem, (float) 1.0);
+      insertCurCount(dstWSeg, curCount);
+      insertP(dstWSeg, (float) 1.0);
     }
     if (preLongs > 2) {
-      insertThetaLong(dstMem, thetaLong);
+      insertThetaLong(dstWSeg, thetaLong);
     }
     if (curCount > 0) { //theta could be < 1.0.
-      dstMem.putLongArray(preLongs << 3, compactHashArr, 0, curCount);
+      //dstWSeg.putLongArray(preLongs << 3, compactHashArr, 0, curCount);
+      MemorySegment.copy(compactHashArr, 0, dstWSeg, JAVA_LONG_UNALIGNED, preLongs << 3, curCount);
     }
-    return dstMem; //if prelongs == 3 & curCount == 0, theta could be < 1.0.
+    return dstWSeg; //if prelongs == 3 & curCount == 0, theta could be < 1.0. This can be RO
   }
 
   /**

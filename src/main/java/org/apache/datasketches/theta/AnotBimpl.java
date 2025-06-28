@@ -26,10 +26,11 @@ import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsert;
 import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -50,7 +51,7 @@ final class AnotBimpl extends AnotB {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   AnotBimpl(final long seed) {
-    this(ThetaUtil.computeSeedHash(seed));
+    this(Util.computeSeedHash(seed));
   }
 
   /**
@@ -74,7 +75,7 @@ final class AnotBimpl extends AnotB {
       return;
     }
     //skA is not empty
-    ThetaUtil.checkSeedHashes(seedHash_, skA.getSeedHash());
+    Util.checkSeedHashes(seedHash_, skA.getSeedHash());
 
     //process A
     hashArr_ = getHashArrA(skA);
@@ -87,7 +88,7 @@ final class AnotBimpl extends AnotB {
   public void notB(final Sketch skB) {
     if (empty_ || skB == null || skB.isEmpty()) { return; }
     //local and skB is not empty
-    ThetaUtil.checkSeedHashes(seedHash_, skB.getSeedHash());
+    Util.checkSeedHashes(seedHash_, skB.getSeedHash());
 
     thetaLong_ = Math.min(thetaLong_,  skB.getThetaLong());
 
@@ -103,17 +104,17 @@ final class AnotBimpl extends AnotB {
   }
 
   @Override
-  public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem,
+  public CompactSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg,
       final boolean reset) {
     final CompactSketch result = CompactOperations.componentsToCompact(
-      thetaLong_, curCount_, seedHash_, empty_, true, false, dstOrdered, dstMem, hashArr_.clone());
+      thetaLong_, curCount_, seedHash_, empty_, true, false, dstOrdered, dstSeg, hashArr_.clone());
     if (reset) { reset(); }
     return result;
   }
 
   @Override
   public CompactSketch aNotB(final Sketch skA, final Sketch skB, final boolean dstOrdered,
-      final WritableMemory dstMem) {
+      final MemorySegment dstSeg) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
@@ -121,14 +122,14 @@ final class AnotBimpl extends AnotB {
 
     final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
 
-    if (skA.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
+    if (skA.isEmpty()) { return skA.compact(dstOrdered, dstSeg); }
     //A is not Empty
-    ThetaUtil.checkSeedHashes(skA.getSeedHash(), seedHash_);
+    Util.checkSeedHashes(skA.getSeedHash(), seedHash_);
 
     if (skB.isEmpty()) {
-      return skA.compact(dstOrdered, dstMem);
+      return skA.compact(dstOrdered, dstSeg);
     }
-    ThetaUtil.checkSeedHashes(skB.getSeedHash(), seedHash_);
+    Util.checkSeedHashes(skB.getSeedHash(), seedHash_);
     //Both skA & skB are not empty
 
     //process A
@@ -141,7 +142,7 @@ final class AnotBimpl extends AnotB {
     final boolean empty = countOut == 0 && minThetaLong == Long.MAX_VALUE;
 
     final CompactSketch result = CompactOperations.componentsToCompact(
-          minThetaLong, countOut, seedHash_, empty, true, false, dstOrdered, dstMem, hashArrOut);
+          minThetaLong, countOut, seedHash_, empty, true, false, dstOrdered, dstSeg, hashArrOut);
     return result;
   }
 
@@ -232,6 +233,15 @@ final class AnotBimpl extends AnotB {
   long getThetaLong() {
     return thetaLong_;
   }
+
+  @Override
+  public boolean hasMemorySegment() { return false; }
+
+  @Override
+  public boolean isDirect() { return false; }
+
+  @Override
+  public boolean isSameResource( final MemorySegment that) { return false; }
 
   @Override
   boolean isEmpty() {

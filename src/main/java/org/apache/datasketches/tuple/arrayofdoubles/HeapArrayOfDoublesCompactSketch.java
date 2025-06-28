@@ -19,16 +19,20 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple.SerializerDeserializer;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * The on-heap implementation of tuple Compact Sketch of type ArrayOfDoubles.
@@ -100,57 +104,57 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
 
   /**
    * This is to create an instance given a serialized form
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seg the destination segment
    */
-  HeapArrayOfDoublesCompactSketch(final Memory mem) {
-    this(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+  HeapArrayOfDoublesCompactSketch(final MemorySegment seg) {
+    this(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
    * This is to create an instance given a serialized form
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seg the source MemorySegment
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesCompactSketch(final Memory mem, final long seed) {
-    super(mem.getByte(NUM_VALUES_BYTE));
-    seedHash_ = mem.getShort(SEED_HASH_SHORT);
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE),
-        mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
+  HeapArrayOfDoublesCompactSketch(final MemorySegment seg, final long seed) {
+    super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE));
+    seedHash_ = seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
+    SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),
+        seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(seg.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
-    final byte version = mem.getByte(SERIAL_VERSION_BYTE);
+    final byte version = seg.get(JAVA_BYTE, SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException(
           "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     }
     final boolean isBigEndian =
-        (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
+        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
     Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
-    isEmpty_ = (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    thetaLong_ = mem.getLong(THETA_LONG);
+    isEmpty_ = (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
+    thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
     final boolean hasEntries =
-        (mem.getByte(FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
+        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
     if (hasEntries) {
-      final int count = mem.getInt(RETAINED_ENTRIES_INT);
+      final int count = seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
       keys_ = new long[count];
       values_ = new double[count * numValues_];
-      mem.getLongArray(ENTRIES_START, keys_, 0, count);
-      mem.getDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values_, 0, values_.length);
+      MemorySegment.copy(seg, JAVA_LONG_UNALIGNED, ENTRIES_START, keys_, 0, count);
+      MemorySegment.copy(seg, JAVA_DOUBLE_UNALIGNED, ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values_, 0, values_.length);
     }
   }
 
   @Override
-  public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
-   if (dstMem == null) {
+  public ArrayOfDoublesCompactSketch compact(final MemorySegment dstSeg) {
+   if (dstSeg == null) {
       return new
           HeapArrayOfDoublesCompactSketch(keys_.clone(), values_.clone(), thetaLong_, isEmpty_, numValues_, seedHash_);
     } else {
       final byte[] byteArr = this.toByteArray();
-      dstMem.putByteArray(0, byteArr, 0, byteArr.length);
-      return new DirectArrayOfDoublesCompactSketch(dstMem);
+      MemorySegment.copy(byteArr, 0, dstSeg, JAVA_BYTE, 0, byteArr.length);
+      return new DirectArrayOfDoublesCompactSketch(dstSeg);
     }
   }
 
@@ -164,25 +168,24 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     final int count = getRetainedEntries();
     final int sizeBytes = getCurrentBytes();
     final byte[] bytes = new byte[sizeBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
-    mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
-    mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem.putByte(SKETCH_TYPE_BYTE,
-        (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1);
+    seg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
+    seg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    seg.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
-    mem.putByte(FLAGS_BYTE, (byte) (
+    seg.set(JAVA_BYTE, FLAGS_BYTE, (byte) (
       ((isBigEndian ? 1 : 0) << Flags.IS_BIG_ENDIAN.ordinal())
       | ((isEmpty() ? 1 : 0) << Flags.IS_EMPTY.ordinal())
       | ((count > 0 ? 1 : 0) << Flags.HAS_ENTRIES.ordinal())
     ));
-    mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
-    mem.putShort(SEED_HASH_SHORT, seedHash_);
-    mem.putLong(THETA_LONG, thetaLong_);
+    seg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
+    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
+    seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
-      mem.putInt(RETAINED_ENTRIES_INT, count);
-      mem.putLongArray(ENTRIES_START, keys_, 0, count);
-      mem.putDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values_, 0, values_.length);
+      seg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, count);
+      MemorySegment.copy(keys_, 0, seg, JAVA_LONG_UNALIGNED, ENTRIES_START, count);
+      MemorySegment.copy(values_, 0, seg, JAVA_DOUBLE_UNALIGNED, ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values_.length);
     }
     return bytes;
   }
@@ -222,8 +225,8 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
   }
 
   @Override
-  public boolean hasMemory() { return false; }
+  public boolean hasMemorySegment() { return false; }
 
   @Override
-  Memory getMemory() { return null; }
+  MemorySegment getMemorySegment() { return null; }
 }

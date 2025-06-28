@@ -23,10 +23,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.util.List;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.fdt.FdtSketch;
+import org.apache.datasketches.fdt.Group;
+import org.apache.datasketches.fdt.PostProcessor;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
 import org.testng.annotations.Test;
@@ -59,8 +62,8 @@ public class FdtSketchTest {
     //serialize
     final byte[] byteArr = sketch.toByteArray();
     //deserialize
-    Memory mem = Memory.wrap(byteArr);
-    FdtSketch sketch2 = new FdtSketch(mem);
+    MemorySegment seg = MemorySegment.ofArray(byteArr);
+    FdtSketch sketch2 = new FdtSketch(seg);
 
     //check output
     final TupleSketchIterator<ArrayOfStringsSummary> it2 = sketch2.iterator();

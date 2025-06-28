@@ -19,8 +19,9 @@
 
 package org.apache.datasketches.tuple.adouble;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.UpdatableSketch;
 
 /**
@@ -59,17 +60,17 @@ public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {
   }
 
   /**
-   * Constructs this sketch from a Memory image, which must be from an DoubleSketch, and
+   * Constructs this sketch from a MemorySegment image, which must be from an DoubleSketch, and
    * usually with data.
-   * @param mem the given Memory
+   * @param seg the given MemorySegment
    * @param mode The DoubleSummary mode to be used
    * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
    * This capability will be removed in a future release.
    * Heapifying a CompactSketch is not deprecated.
    */
   @Deprecated
-  public DoubleSketch(final Memory mem, final DoubleSummary.Mode mode) {
-    super(mem, new DoubleSummaryDeserializer(), new DoubleSummaryFactory(mode));
+  public DoubleSketch(final MemorySegment seg, final DoubleSummary.Mode mode) {
+    super(seg, new DoubleSummaryDeserializer(), new DoubleSummaryFactory(mode));
   }
 
   @Override

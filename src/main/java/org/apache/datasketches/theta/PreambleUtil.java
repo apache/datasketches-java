@@ -19,18 +19,21 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 //@formatter:off
 
@@ -198,14 +201,13 @@ final class PreambleUtil {
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
   /**
-   * Computes the number of bytes required for a non-full sized sketch in hash-table form.
-   * This can be used to compute current storage size for heap sketches, or current off-heap memory
-   * required for off-heap (direct) sketches. This does not apply for compact sketches.
+   * Computes the number of bytes required for an updatable sketch using a hash-table cache.
+   * This does not apply for compact sketches.
    * @param lgArrLongs log2(current hash-table size)
    * @param preambleLongs current preamble size
    * @return the size in bytes
    */
-  static final int getMemBytes(final int lgArrLongs, final int preambleLongs) {
+  static final int getSegBytes(final int lgArrLongs, final int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }
 
@@ -219,31 +221,31 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   static String preambleToString(final byte[] byteArr) {
-    final Memory mem = Memory.wrap(byteArr);
-    return preambleToString(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return preambleToString(seg);
   }
 
   /**
-   * Returns a human readable string summary of the preamble state of the given Memory.
-   * Note: other than making sure that the given Memory size is large
+   * Returns a human readable string summary of the preamble state of the given MemorySegment.
+   * Note: other than making sure that the given MemorySegment size is large
    * enough for just the preamble, this does not do much value checking of the contents of the
    * preamble as this is primarily a tool for debugging the preamble visually.
    *
-   * @param mem the given Memory.
+   * @param seg the given MemorySegment.
    * @return the summary preamble string.
    */
-  static String preambleToString(final Memory mem) {
-    final int preLongs = getAndCheckPreLongs(mem);
-    final int rfId = extractLgResizeFactor(mem);
+  static String preambleToString(final MemorySegment seg) {
+    final int preLongs = getAndCheckPreLongs(seg);
+    final int rfId = extractLgResizeFactor(seg);
     final ResizeFactor rf = ResizeFactor.getRF(rfId);
-    final int serVer = extractSerVer(mem);
-    final int familyId = extractFamilyID(mem);
+    final int serVer = extractSerVer(seg);
+    final int familyId = extractFamilyID(seg);
     final Family family = Family.idToFamily(familyId);
-    final int lgNomLongs = extractLgNomLongs(mem);
-    final int lgArrLongs = extractLgArrLongs(mem);
+    final int lgNomLongs = extractLgNomLongs(seg);
+    final int lgArrLongs = extractLgArrLongs(seg);
 
     //Flags
-    final int flags = extractFlags(mem);
+    final int flags = extractFlags(seg);
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
     final String nativeOrder = ByteOrder.nativeOrder().toString();
@@ -254,7 +256,7 @@ final class PreambleUtil {
     final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
     final boolean singleItem = (flags & SINGLEITEM_FLAG_MASK) > 0; //!empty && (preLongs == 1);
 
-    final int seedHash = extractSeedHash(mem);
+    final int seedHash = extractSeedHash(seg);
 
     //assumes preLongs == 1; empty or singleItem
     int curCount = singleItem ? 1 : 0;
@@ -263,20 +265,20 @@ final class PreambleUtil {
     long thetaULong = thetaLong;      //preLongs 1, 2 or 3
 
     if (preLongs == 2) { //exact (non-estimating) CompactSketch
-      curCount = extractCurCount(mem);
-      p = extractP(mem);
+      curCount = extractCurCount(seg);
+      p = extractP(seg);
     }
     else if (preLongs == 3) { //Update Sketch
-      curCount = extractCurCount(mem);
-      p = extractP(mem);
-      thetaLong = extractThetaLong(mem);
+      curCount = extractCurCount(seg);
+      p = extractP(seg);
+      thetaLong = extractThetaLong(seg);
       thetaULong = thetaLong;
     }
     else if (preLongs == 4) { //Union
-      curCount = extractCurCount(mem);
-      p = extractP(mem);
-      thetaLong = extractThetaLong(mem);
-      thetaULong = extractUnionThetaLong(mem);
+      curCount = extractCurCount(seg);
+      p = extractP(seg);
+      thetaLong = extractThetaLong(seg);
+      thetaULong = extractUnionThetaLong(seg);
     }
     //else the same as an empty sketch or singleItem
 
@@ -340,171 +342,171 @@ final class PreambleUtil {
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
     sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
     sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + curCount) * 8).append(LS);
-    sb.append(  "TOTAL Capacity Bytes          : ").append(mem.getCapacity()).append(LS);
+    sb.append(  "TOTAL Capacity Bytes          : ").append(seg.byteSize()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
 
   //@formatter:on
 
-  static int extractPreLongs(final Memory mem) {
-    return mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+  static int extractPreLongs(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
   }
 
-  static int extractLgResizeFactor(final Memory mem) {
-    return (mem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
+  static int extractLgResizeFactor(final MemorySegment seg) {
+    return (seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
   }
 
-  static int extractLgResizeRatioV1(final Memory mem) {
-    return mem.getByte(LG_RESIZE_RATIO_BYTE_V1) & 0X3;
+  static int extractLgResizeRatioV1(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, LG_RESIZE_RATIO_BYTE_V1) & 0X3;
   }
 
-  static int extractSerVer(final Memory mem) {
-    return mem.getByte(SER_VER_BYTE) & 0XFF;
+  static int extractSerVer(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
   }
 
-  static int extractFamilyID(final Memory mem) {
-    return mem.getByte(FAMILY_BYTE) & 0XFF;
+  static int extractFamilyID(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
   }
 
-  static int extractLgNomLongs(final Memory mem) {
-    return mem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;
+  static int extractLgNomLongs(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, LG_NOM_LONGS_BYTE) & 0XFF;
   }
 
-  static int extractLgArrLongs(final Memory mem) {
-    return mem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
+  static int extractLgArrLongs(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
   }
 
-  static int extractFlags(final Memory mem) {
-    return mem.getByte(FLAGS_BYTE) & 0XFF;
+  static int extractFlags(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FLAGS_BYTE) & 0XFF;
   }
 
-  static int extractFlagsV1(final Memory mem) {
-    return mem.getByte(FLAGS_BYTE_V1) & 0XFF;
+  static int extractFlagsV1(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FLAGS_BYTE_V1) & 0XFF;
   }
 
-  static int extractSeedHash(final Memory mem) {
-    return mem.getShort(SEED_HASH_SHORT) & 0XFFFF;
+  static int extractSeedHash(final MemorySegment seg) {
+    return seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT) & 0XFFFF;
   }
 
-  static int extractCurCount(final Memory mem) {
-    return mem.getInt(RETAINED_ENTRIES_INT);
+  static int extractCurCount(final MemorySegment seg) {
+    return seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
   }
 
-  static float extractP(final Memory mem) {
-    return mem.getFloat(P_FLOAT);
+  static float extractP(final MemorySegment seg) {
+    return seg.get(JAVA_FLOAT_UNALIGNED, P_FLOAT);
   }
 
-  static long extractThetaLong(final Memory mem) {
-    return mem.getLong(THETA_LONG);
+  static long extractThetaLong(final MemorySegment seg) {
+    return seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
-  static long extractUnionThetaLong(final Memory mem) {
-    return mem.getLong(UNION_THETA_LONG);
+  static long extractUnionThetaLong(final MemorySegment seg) {
+    return seg.get(JAVA_LONG_UNALIGNED, UNION_THETA_LONG);
   }
 
-  static int extractEntryBitsV4(final Memory mem) {
-    return mem.getByte(ENTRY_BITS_BYTE_V4) & 0XFF;
+  static int extractEntryBitsV4(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, ENTRY_BITS_BYTE_V4) & 0XFF;
   }
 
-  static int extractNumEntriesBytesV4(final Memory mem) {
-    return mem.getByte(NUM_ENTRIES_BYTES_BYTE_V4) & 0XFF;
+  static int extractNumEntriesBytesV4(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, NUM_ENTRIES_BYTES_BYTE_V4) & 0XFF;
   }
 
-  static long extractThetaLongV4(final Memory mem) {
-    return mem.getLong(THETA_LONG_V4);
+  static long extractThetaLongV4(final MemorySegment seg) {
+    return seg.get(JAVA_LONG_UNALIGNED, THETA_LONG_V4);
   }
 
   /**
    * Sets PreLongs in the low 6 bits and sets LgRF in the upper 2 bits = 0.
-   * @param wmem the target WritableMemory
+   * @param seg the target MemorySegment
    * @param preLongs the given number of preamble longs
    */
-  static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
-    wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) (preLongs & 0X3F));
+  static void insertPreLongs(final MemorySegment seg, final int preLongs) {
+    seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) (preLongs & 0X3F));
   }
 
   /**
    * Sets the top 2 lgRF bits and does not affect the lower 6 bits (PreLongs).
    * To work properly, this should be called after insertPreLongs().
-   * @param wmem the target WritableMemory
+   * @param seg the target MemorySegment
    * @param rf the given lgRF bits
    */
-  static void insertLgResizeFactor(final WritableMemory wmem, final int rf) {
-    final int curByte = wmem.getByte(PREAMBLE_LONGS_BYTE) & 0xFF;
+  static void insertLgResizeFactor(final MemorySegment seg, final int rf) {
+    final int curByte = seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0xFF;
     final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits
     final int mask = 3;
     final byte newByte = (byte) (((rf & mask) << shift) | (~(mask << shift) & curByte));
-    wmem.putByte(PREAMBLE_LONGS_BYTE, newByte);
+    seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, newByte);
   }
 
-  static void insertSerVer(final WritableMemory wmem, final int serVer) {
-    wmem.putByte(SER_VER_BYTE, (byte) serVer);
+  static void insertSerVer(final MemorySegment seg, final int serVer) {
+    seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) serVer);
   }
 
-  static void insertFamilyID(final WritableMemory wmem, final int famId) {
-    wmem.putByte(FAMILY_BYTE, (byte) famId);
+  static void insertFamilyID(final MemorySegment seg, final int famId) {
+    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) famId);
   }
 
-  static void insertLgNomLongs(final WritableMemory wmem, final int lgNomLongs) {
-    wmem.putByte(LG_NOM_LONGS_BYTE, (byte) lgNomLongs);
+  static void insertLgNomLongs(final MemorySegment seg, final int lgNomLongs) {
+    seg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) lgNomLongs);
   }
 
-  static void insertLgArrLongs(final WritableMemory wmem, final int lgArrLongs) {
-    wmem.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs);
+  static void insertLgArrLongs(final MemorySegment seg, final int lgArrLongs) {
+    seg.set(JAVA_BYTE, LG_ARR_LONGS_BYTE, (byte) lgArrLongs);
   }
 
-  static void insertFlags(final WritableMemory wmem, final int flags) {
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+  static void insertFlags(final MemorySegment seg, final int flags) {
+    seg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static void insertSeedHash(final WritableMemory wmem, final int seedHash) {
-    wmem.putShort(SEED_HASH_SHORT, (short) seedHash);
+  static void insertSeedHash(final MemorySegment seg, final int seedHash) {
+    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, (short) seedHash);
   }
 
-  static void insertCurCount(final WritableMemory wmem, final int curCount) {
-    wmem.putInt(RETAINED_ENTRIES_INT, curCount);
+  static void insertCurCount(final MemorySegment seg, final int curCount) {
+    seg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, curCount);
   }
 
-  static void insertP(final WritableMemory wmem, final float p) {
-    wmem.putFloat(P_FLOAT, p);
+  static void insertP(final MemorySegment seg, final float p) {
+    seg.set(JAVA_FLOAT_UNALIGNED, P_FLOAT, p);
   }
 
-  static void insertThetaLong(final WritableMemory wmem, final long thetaLong) {
-    wmem.putLong(THETA_LONG, thetaLong);
+  static void insertThetaLong(final MemorySegment seg, final long thetaLong) {
+    seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong);
   }
 
-  static void insertUnionThetaLong(final WritableMemory wmem, final long unionThetaLong) {
-    wmem.putLong(UNION_THETA_LONG, unionThetaLong);
+  static void insertUnionThetaLong(final MemorySegment seg, final long unionThetaLong) {
+    seg.set(JAVA_LONG_UNALIGNED, UNION_THETA_LONG, unionThetaLong);
   }
 
-  static void setEmpty(final WritableMemory wmem) {
-    int flags = wmem.getByte(FLAGS_BYTE) & 0XFF;
+  static void setEmpty(final MemorySegment seg) {
+    int flags = seg.get(JAVA_BYTE, FLAGS_BYTE) & 0XFF;
     flags |= EMPTY_FLAG_MASK;
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+    seg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static void clearEmpty(final WritableMemory wmem) {
-    int flags = wmem.getByte(FLAGS_BYTE) & 0XFF;
+  static void clearEmpty(final MemorySegment seg) {
+    int flags = seg.get(JAVA_BYTE, FLAGS_BYTE) & 0XFF;
     flags &= ~EMPTY_FLAG_MASK;
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+    seg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean isEmptyFlag(final Memory mem) {
-    return ((extractFlags(mem) & EMPTY_FLAG_MASK) > 0);
+  static boolean isEmptyFlag(final MemorySegment seg) {
+    return ((extractFlags(seg) & EMPTY_FLAG_MASK) > 0);
   }
 
   /**
-   * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
-   * @param mem the given Memory
+   * Checks MemorySegment for capacity to hold the preamble and returns the extracted preLongs.
+   * @param seg the given MemorySegment
    * @return the extracted prelongs value.
    */
-  static int getAndCheckPreLongs(final Memory mem) {
-    final long cap = mem.getCapacity();
+  static int getAndCheckPreLongs(final MemorySegment seg) {
+    final long cap = seg.byteSize();
     if (cap < 8) {
       throwNotBigEnough(cap, 8);
     }
-    final int preLongs = extractPreLongs(mem);
+    final int preLongs = extractPreLongs(seg);
     final int required = Math.max(preLongs << 3, 8);
     if (cap < required) {
       throwNotBigEnough(cap, required);
@@ -512,15 +514,15 @@ final class PreambleUtil {
     return preLongs;
   }
 
-  static final short checkMemorySeedHash(final Memory mem, final long seed) {
-    final short seedHashMem = (short) extractSeedHash(mem);
-    ThetaUtil.checkSeedHashes(seedHashMem, ThetaUtil.computeSeedHash(seed)); //throws if bad seedHash
-    return seedHashMem;
+  static final short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
+    final short seedHashSeg = (short) extractSeedHash(seg);
+    Util.checkSeedHashes(seedHashSeg, Util.computeSeedHash(seed)); //throws if bad seedHash
+    return seedHashSeg;
   }
 
   private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap
+        "Possible Corruption: Size of byte array or MemorySegment not large enough: Size: " + cap
         + ", Required: " + required);
   }
 

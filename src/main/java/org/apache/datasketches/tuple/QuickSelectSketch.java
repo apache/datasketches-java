@@ -19,22 +19,26 @@
 
 package org.apache.datasketches.tuple;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.QuickSelect;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -167,7 +171,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   /**
    * This is to create an instance of a QuickSelectSketch given a serialized form
-   * @param mem Memory object with serialized QuickSelectSketch
+   * @param seg MemorySegment object with serialized QuickSelectSketch
    * @param deserializer the SummaryDeserializer
    * @param summaryFactory the SummaryFactory
    * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
@@ -176,26 +180,26 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    */
   @Deprecated
   QuickSelectSketch(
-      final Memory mem,
+      final MemorySegment seg,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    this(new Validate<>(), mem, deserializer, summaryFactory);
+    this(new Validate<>(), seg, deserializer, summaryFactory);
   }
 
   /*
    * This private constructor is used to protect against "Finalizer attacks".
    * The private static inner class Validate performs validation and deserialization
-   * from the input Memory and may throw exceptions. In order to protect against the attack, we must
+   * from the input MemorySegment and may throw exceptions. In order to protect against the attack, we must
    * perform this validation prior to the constructor's super reaches the Object class.
    * Making QuickSelectSketch final won't work here because UpdatableSketch is a subclass.
    * Using an empty final finalizer() is not recommended and is deprecated as of Java9.
    */
   private QuickSelectSketch(
       final Validate<S> val,
-      final Memory mem,
+      final MemorySegment seg,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    super(val.validate(mem, deserializer), val.myEmpty, summaryFactory);
+    super(val.validate(seg, deserializer), val.myEmpty, summaryFactory);
     nomEntries_ = val.myNomEntries;
     lgResizeFactor_ = val.myLgResizeFactor;
     samplingProbability_ = val.mySamplingProbability;
@@ -222,43 +226,43 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
     @SuppressWarnings("unchecked")
     long validate(
-        final Memory mem,
+        final MemorySegment seg,
         final SummaryDeserializer<?> deserializer) {
-      Objects.requireNonNull(mem, "SourceMemory must not be null.");
+      Objects.requireNonNull(seg, "Source MemorySegment must not be null.");
       Objects.requireNonNull(deserializer, "Deserializer must not be null.");
-      checkBounds(0, 8, mem.getCapacity());
+      checkBounds(0, 8, seg.byteSize());
 
       int offset = 0;
-      final byte preambleLongs = mem.getByte(offset++); //byte 0 PreLongs
-      final byte version = mem.getByte(offset++);       //byte 1 SerVer
-      final byte familyId = mem.getByte(offset++);      //byte 2 FamID
+      final byte preambleLongs = seg.get(JAVA_BYTE, offset++); //byte 0 PreLongs
+      final byte version = seg.get(JAVA_BYTE, offset++);       //byte 1 SerVer
+      final byte familyId = seg.get(JAVA_BYTE, offset++);      //byte 2 FamID
       SerializerDeserializer.validateFamily(familyId, preambleLongs);
       if (version > serialVersionUID) {
         throw new SketchesArgumentException(
             "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: "
                 + version);
       }
-      SerializerDeserializer.validateType(mem.getByte(offset++), //byte 3
+      SerializerDeserializer.validateType(seg.get(JAVA_BYTE, offset++), //byte 3
           SerializerDeserializer.SketchType.QuickSelectSketch);
-      final byte flags = mem.getByte(offset++); //byte 4
+      final byte flags = seg.get(JAVA_BYTE, offset++); //byte 4
       final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
       if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
         throw new SketchesArgumentException("Endian byte order mismatch");
       }
-      myNomEntries = 1 << mem.getByte(offset++); //byte 5
-      myLgCurrentCapacity = mem.getByte(offset++); //byte 6
-      myLgResizeFactor = mem.getByte(offset++); //byte 7
+      myNomEntries = 1 << seg.get(JAVA_BYTE, offset++); //byte 5
+      myLgCurrentCapacity = seg.get(JAVA_BYTE, offset++); //byte 6
+      myLgResizeFactor = seg.get(JAVA_BYTE, offset++); //byte 7
 
-      checkBounds(0, preambleLongs * 8L, mem.getCapacity());
+      checkBounds(0, preambleLongs * 8L, seg.byteSize());
       final boolean isInSamplingMode = (flags & 1 << Flags.IS_IN_SAMPLING_MODE.ordinal()) > 0;
-      mySamplingProbability = isInSamplingMode ? mem.getFloat(offset) : 1f; //bytes 8 - 11
+      mySamplingProbability = isInSamplingMode ? seg.get(JAVA_FLOAT_UNALIGNED, offset) : 1f; //bytes 8 - 11
       if (isInSamplingMode) {
         offset += Float.BYTES;
       }
 
       final boolean isThetaIncluded = (flags & 1 << Flags.IS_THETA_INCLUDED.ordinal()) > 0;
       if (isThetaIncluded) {
-        myThetaLong = mem.getLong(offset);
+        myThetaLong = seg.get(JAVA_LONG_UNALIGNED, offset);
         offset += Long.BYTES;
       } else {
         myThetaLong = (long) (Long.MAX_VALUE * (double) mySamplingProbability);
@@ -267,16 +271,16 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       int count = 0;
       final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
       if (hasEntries) {
-        count = mem.getInt(offset);
+        count = seg.get(JAVA_INT_UNALIGNED, offset);
         offset += Integer.BYTES;
       }
       final int currentCapacity = 1 << myLgCurrentCapacity;
       myHashTable = new long[currentCapacity];
       for (int i = 0; i < count; i++) {
-        final long hash = mem.getLong(offset);
+        final long hash = seg.get(JAVA_LONG_UNALIGNED, offset);
         offset += Long.BYTES;
-        final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
-        final DeserializeResult<?> summaryResult = deserializer.heapifySummary(memRegion);
+        final MemorySegment segRegion = seg.asSlice(offset, seg.byteSize() - offset);
+        final DeserializeResult<?> summaryResult = deserializer.heapifySummary(segRegion);
         final S summary = (S) summaryResult.getObject();
         offset += summaryResult.getSize();
         //in-place equivalent to insert(hash, summary):

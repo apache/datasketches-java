@@ -19,15 +19,18 @@
 
 package org.apache.datasketches.tuple;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * CompactSketches are never created directly. They are created as a result of
@@ -69,24 +72,24 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
   /**
    * This is to create an instance of a CompactSketch given a serialized form
    *
-   * @param mem Memory object with serialized CompactSketch
+   * @param seg MemorySegment object with serialized CompactSketch
    * @param deserializer the SummaryDeserializer
    */
-  CompactSketch(final Memory mem, final SummaryDeserializer<S> deserializer) {
+  CompactSketch(final MemorySegment seg, final SummaryDeserializer<S> deserializer) {
     super(Long.MAX_VALUE, true, null);
     int offset = 0;
-    final byte preambleLongs = mem.getByte(offset++);
-    final byte version = mem.getByte(offset++);
-    final byte familyId = mem.getByte(offset++);
+    final byte preambleLongs = seg.get(JAVA_BYTE, offset++);
+    final byte version = seg.get(JAVA_BYTE, offset++);
+    final byte familyId = seg.get(JAVA_BYTE, offset++);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
     if (version > serialVersionUID) {
       throw new SketchesArgumentException(
           "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: " + version);
     }
     SerializerDeserializer
-      .validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
+      .validateType(seg.get(JAVA_BYTE, offset++), SerializerDeserializer.SketchType.CompactSketch);
     if (version <= serialVersionUIDLegacy) { // legacy serial format
-      final byte flags = mem.getByte(offset++);
+      final byte flags = seg.get(JAVA_BYTE, offset++);
       final boolean isBigEndian = (flags & 1 << FlagsLegacy.IS_BIG_ENDIAN.ordinal()) > 0;
       if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
         throw new SketchesArgumentException("Byte order mismatch");
@@ -94,7 +97,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
       empty_ = (flags & 1 << FlagsLegacy.IS_EMPTY.ordinal()) > 0;
       final boolean isThetaIncluded = (flags & 1 << FlagsLegacy.IS_THETA_INCLUDED.ordinal()) > 0;
       if (isThetaIncluded) {
-        thetaLong_ = mem.getLong(offset);
+        thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, offset);
         offset += Long.BYTES;
       } else {
         thetaLong_ = Long.MAX_VALUE;
@@ -103,9 +106,9 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
       if (hasEntries) {
         int classNameLength = 0;
         if (version == serialVersionWithSummaryClassNameUID) {
-          classNameLength = mem.getByte(offset++);
+          classNameLength = seg.get(JAVA_BYTE, offset++);
         }
-        final int count = mem.getInt(offset);
+        final int count = seg.get(JAVA_INT_UNALIGNED, offset);
         offset += Integer.BYTES;
         if (version == serialVersionWithSummaryClassNameUID) {
           offset += classNameLength;
@@ -113,11 +116,11 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
         hashArr_ = new long[count];
 
         for (int i = 0; i < count; i++) {
-          hashArr_[i] = mem.getLong(offset);
+          hashArr_[i] = seg.get(JAVA_LONG_UNALIGNED, offset);
           offset += Long.BYTES;
         }
         for (int i = 0; i < count; i++) {
-          offset += readSummary(mem, offset, i, count, deserializer);
+          offset += readSummary(seg, offset, i, count, deserializer);
         }
       } else {
         hashArr_ = new long[0];
@@ -125,7 +128,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
       }
     } else { // current serial format
       offset++; //skip unused byte
-      final byte flags = mem.getByte(offset++);
+      final byte flags = seg.get(JAVA_BYTE, offset++);
       offset += 2; //skip 2 unused bytes
       empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
       thetaLong_ = Long.MAX_VALUE;
@@ -134,11 +137,11 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
         if (preambleLongs == 1) {
           count = 1;
         } else {
-          count = mem.getInt(offset);
+          count = seg.get(JAVA_INT_UNALIGNED, offset);
           offset += Integer.BYTES;
           offset += 4; // unused
           if (preambleLongs > 2) {
-            thetaLong_ = mem.getLong(offset);
+            thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, offset);
             offset += Long.BYTES;
           }
         }
@@ -146,18 +149,18 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
       hashArr_ = new long[count];
 
       for (int i = 0; i < count; i++) {
-        hashArr_[i] = mem.getLong(offset);
+        hashArr_[i] = seg.get(JAVA_LONG_UNALIGNED, offset);
         offset += Long.BYTES;
-        offset += readSummary(mem, offset, i, count, deserializer);
+        offset += readSummary(seg, offset, i, count, deserializer);
       }
     }
   }
 
   @SuppressWarnings({"unchecked"})
-  private int readSummary(final Memory mem, final int offset, final int i, final int count,
+  private int readSummary(final MemorySegment seg, final int offset, final int i, final int count,
       final SummaryDeserializer<S> deserializer) {
-    final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
-    final DeserializeResult<S> result = deserializer.heapifySummary(memRegion);
+    final MemorySegment segRegion = seg.asSlice(offset, seg.byteSize() - offset);
+    final DeserializeResult<S> result = deserializer.heapifySummary(segRegion);
     final S summary = result.getObject();
     final Class<S> summaryType = (Class<S>) result.getObject().getClass();
     if (summaryArr_ == null) {

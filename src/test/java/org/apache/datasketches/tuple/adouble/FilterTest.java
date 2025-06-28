@@ -26,6 +26,8 @@ import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.Sketches;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.adouble.DoubleSummary;
+import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;

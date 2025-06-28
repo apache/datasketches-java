@@ -19,9 +19,12 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Singleton empty CompactSketch.
@@ -46,14 +49,14 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   //This should be a heapify
-  static synchronized EmptyCompactSketch getHeapInstance(final Memory srcMem) {
-    final long pre0 = srcMem.getLong(0);
+  static synchronized EmptyCompactSketch getHeapInstance(final MemorySegment srcSeg) {
+    final long pre0 = srcSeg.get(JAVA_LONG_UNALIGNED, 0);
     if (testCandidatePre0(pre0)) {
       return EMPTY_COMPACT_SKETCH;
     }
     final long maskedPre0 = pre0 & EMPTY_SKETCH_MASK;
-    throw new SketchesArgumentException("Input Memory does not match required Preamble. "
-        + "Memory Pre0: " + Long.toHexString(maskedPre0)
+    throw new SketchesArgumentException("Input MemorySegment does not match required Preamble. "
+        + "MemorySegment Pre0: " + Long.toHexString(maskedPre0)
         + ", required Pre0: " + Long.toHexString(EMPTY_SKETCH_TEST));
   }
 
@@ -61,10 +64,11 @@ final class EmptyCompactSketch extends CompactSketch {
   // This returns with ordered flag = true independent of dstOrdered.
   // This is required for fast detection.
   // The hashSeed is ignored and set == 0.
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
-    if (wmem == null) { return EmptyCompactSketch.getInstance(); }
-    wmem.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
-    return new DirectCompactSketch(wmem);
+  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
+    if (dstWSeg == null) { return EmptyCompactSketch.getInstance(); }
+    //dstWSeg.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
+    MemorySegment.copy(EMPTY_COMPACT_SKETCH_ARR, 0, dstWSeg, JAVA_BYTE, 0, 8);
+    return new DirectCompactSketch(dstWSeg);
   }
 
   //static
@@ -129,11 +133,6 @@ final class EmptyCompactSketch extends CompactSketch {
   @Override
   int getCurrentPreambleLongs() {
     return 1;
-  }
-
-  @Override
-  Memory getMemory() {
-    return null;
   }
 
   @Override

@@ -19,8 +19,9 @@
 
 package org.apache.datasketches.tuple.aninteger;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.UpdatableSketch;
 
 /**
@@ -59,17 +60,17 @@ public class IntegerSketch extends UpdatableSketch<Integer, IntegerSummary> {
   }
 
   /**
-   * Constructs this sketch from a Memory image, which must be from an IntegerSketch, and
+   * Constructs this sketch from a MemorySegment image, which must be from an IntegerSketch, and
    * usually with data.
-   * @param mem the given Memory
+   * @param seg the given MemorySegment
    * @param mode The IntegerSummary mode to be used
    * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
    * This capability will be removed in a future release.
    * Heapifying a CompactSketch is not deprecated.
    */
   @Deprecated
-  public IntegerSketch(final Memory mem, final IntegerSummary.Mode mode) {
-    super(mem, new IntegerSummaryDeserializer(), new IntegerSummaryFactory(mode));
+  public IntegerSketch(final MemorySegment seg, final IntegerSummary.Mode mode) {
+    super(seg, new IntegerSummaryDeserializer(), new IntegerSummaryFactory(mode));
   }
 
   @Override

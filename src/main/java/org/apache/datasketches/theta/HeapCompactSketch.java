@@ -24,22 +24,21 @@ import static org.apache.datasketches.theta.CompactOperations.componentsToCompac
 import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
 import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta.CompactOperations.isSingleItem;
-import static org.apache.datasketches.theta.CompactOperations.loadCompactMemory;
+import static org.apache.datasketches.theta.CompactOperations.loadCompactMemorySegment;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * Parent class of the Heap Compact Sketches.
  *
  * @author Lee Rhodes
  */
-class HeapCompactSketch extends CompactSketch {
+final class HeapCompactSketch extends CompactSketch {
   private final long thetaLong_; //computed
   private final int curCount_;
   private final int preLongs_; //computed
@@ -76,10 +75,10 @@ class HeapCompactSketch extends CompactSketch {
   //Sketch
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    if (dstMem == null && (dstOrdered == false || this.ordered_ == dstOrdered)) { return this; }
+  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+    if (dstSeg == null && (dstOrdered == false || this.ordered_ == dstOrdered)) { return this; }
     return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
-        true, ordered_, dstOrdered, dstMem, getCache().clone());
+        true, ordered_, dstOrdered, dstSeg, getCache().clone());
   }
 
   @Override
@@ -130,29 +129,24 @@ class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  Memory getMemory() {
-    return null;
-  }
-
-  @Override
   short getSeedHash() {
     return seedHash_;
   }
 
-  //use of Memory is convenient. The byteArray and Memory are loaded simultaneously.
+  //use of a MemorySegment is convenient. The byteArray and MemorySegment are loaded simultaneously.
   @Override
   public byte[] toByteArray() {
     final int bytes = getCurrentBytes();
     final byte[] byteArray = new byte[bytes];
-    final WritableMemory dstMem = WritableMemory.writableWrap(byteArray);
+    final MemorySegment dstSeg = MemorySegment.ofArray(byteArray);
     final int emptyBit = isEmpty() ? EMPTY_FLAG_MASK : 0;
     final int orderedBit = ordered_ ? ORDERED_FLAG_MASK : 0;
     final int singleItemBit = singleItem_ ? SINGLEITEM_FLAG_MASK : 0;
     final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK
         | orderedBit | singleItemBit);
     final int preLongs = getCompactPreambleLongs();
-    loadCompactMemory(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
-        dstMem, flags, preLongs);
+    loadCompactMemorySegment(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
+        dstSeg, flags, preLongs);
     return byteArray;
   }
 

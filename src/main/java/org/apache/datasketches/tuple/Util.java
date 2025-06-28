@@ -21,13 +21,11 @@ package org.apache.datasketches.tuple;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
-import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.memory.XxHash.hashCharArr;
-import static org.apache.datasketches.memory.XxHash.hashString;
+import static org.apache.datasketches.hash.XxHash.hashCharArr;
+import static org.apache.datasketches.hash.XxHash.hashString;
 
 import java.lang.reflect.Array;
 
-import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -56,36 +54,6 @@ public final class Util {
   public static final byte[] stringToByteArray(final String value) {
     if ((value == null) || value.isEmpty()) { return null; }
     return value.getBytes(UTF_8);
-  }
-
-  /**
-   * Computes and checks the 16-bit seed hash from the given long seed.
-   * The seed hash may not be zero in order to maintain compatibility with older serialized
-   * versions that did not have this concept.
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
-   * @return the seed hash.
-   */
-  public static short computeSeedHash(final long seed) {
-    final long[] seedArr = {seed};
-    final short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
-    if (seedHash == 0) {
-      throw new SketchesArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. "
-              + "You must choose a different seed.");
-    }
-    return seedHash;
-  }
-
-  /**
-   * Checks the two given seed hashes. If they are not equal, this method throws an Exception.
-   * @param seedHashA given seed hash A
-   * @param seedHashB given seed hash B
-   */
-  public static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
-    if (seedHashA != seedHashB) {
-      throw new SketchesArgumentException("Incompatible Seed Hashes. " + seedHashA + ", "
-          + seedHashB);
-    }
   }
 
   /**

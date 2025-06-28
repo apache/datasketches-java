@@ -22,6 +22,7 @@ package org.apache.datasketches.theta;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.BitPacking;
 import org.testng.annotations.Test;
 
 public class BitPackingTest {

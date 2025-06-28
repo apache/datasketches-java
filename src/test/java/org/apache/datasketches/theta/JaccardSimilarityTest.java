@@ -24,6 +24,8 @@ import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.theta.JaccardSimilarity;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**

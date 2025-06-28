@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
 import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
 import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
@@ -37,20 +41,21 @@ import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The default Theta Sketch using the QuickSelect algorithm.
  * This is the read-only implementation with non-functional methods, which affect the state.
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  *
  * @author Lee Rhodes
@@ -60,50 +65,48 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   final long seed_; //provided, kept only on heap, never serialized.
   int hashTableThreshold_; //computed, kept only on heap, never serialized.
-  WritableMemory wmem_; //A WritableMemory for child class, but no write methods here
+  MemorySegment wseg_; //A MemorySegment for child class, but no write methods here
 
   //only called by DirectQuickSelectSketch and below
-  DirectQuickSelectSketchR(final long seed, final WritableMemory wmem) {
+  DirectQuickSelectSketchR(final long seed, final MemorySegment wseg) {
     seed_ = seed;
-    wmem_ = wmem;
+    wseg_ = wseg;
   }
 
   /**
-   * Wrap a sketch around the given source Memory containing sketch data that originated from
+   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from
    * this sketch.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * The given Memory object must be in hash table form and not read only.
+   * @param srcSeg the source MemorySegment.
+   * The given MemorySegment object must be in hash table form and not read only.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return instance of this sketch
    */
-  static DirectQuickSelectSketchR readOnlyWrap(final Memory srcMem, final long seed) {
-    final int preambleLongs = extractPreLongs(srcMem);                  //byte 0
-    final int lgNomLongs = extractLgNomLongs(srcMem);                   //byte 3
-    final int lgArrLongs = extractLgArrLongs(srcMem);                   //byte 4
+  static DirectQuickSelectSketchR readOnlyWrap(final MemorySegment srcSeg, final long seed) {
+    final int preambleLongs = extractPreLongs(srcSeg);                  //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 
-    UpdateSketch.checkUnionQuickSelectFamily(srcMem, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    UpdateSketch.checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
+    checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final DirectQuickSelectSketchR dqssr =
-        new DirectQuickSelectSketchR(seed, (WritableMemory) srcMem);
+        new DirectQuickSelectSketchR(seed, srcSeg);
     dqssr.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqssr;
   }
 
   /**
-   * Fast-wrap a sketch around the given source Memory containing sketch data that originated from
-   * this sketch.  This does NO validity checking of the given Memory.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * The given Memory object must be in hash table form and not read only.
+   * Fast-wrap a sketch around the given source MemorySegment containing sketch data that originated from
+   * this sketch.  This does NO validity checking of the given MemorySegment.
+   * @param srcSeg The given MemorySegment object must be in hash table form and not read only.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return instance of this sketch
    */
-  static DirectQuickSelectSketchR fastReadOnlyWrap(final Memory srcMem, final long seed) {
-    final int lgNomLongs = srcMem.getByte(LG_NOM_LONGS_BYTE) & 0XFF;
-    final int lgArrLongs = srcMem.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
+  static DirectQuickSelectSketchR fastReadOnlyWrap(final MemorySegment srcSeg, final long seed) {
+    final int lgNomLongs = srcSeg.get(JAVA_BYTE, LG_NOM_LONGS_BYTE) & 0XFF;
+    final int lgArrLongs = srcSeg.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
 
-    final DirectQuickSelectSketchR dqss =
-        new DirectQuickSelectSketchR(seed, (WritableMemory) srcMem);
+    final DirectQuickSelectSketchR dqss = new DirectQuickSelectSketchR(seed, srcSeg);
     dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
@@ -113,70 +116,70 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   @Override
   public int getCurrentBytes() {
     //not compact
-    final byte lgArrLongs = wmem_.getByte(LG_ARR_LONGS_BYTE);
-    final int preLongs = wmem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final byte lgArrLongs = wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE);
+    final int preLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
     final int lengthBytes = (preLongs + (1 << lgArrLongs)) << 3;
     return lengthBytes;
   }
 
   @Override
   public double getEstimate() {
-    final int curCount = extractCurCount(wmem_);
-    final long thetaLong = extractThetaLong(wmem_);
+    final int curCount = extractCurCount(wseg_);
+    final long thetaLong = extractThetaLong(wseg_);
     return Sketch.estimate(thetaLong, curCount);
   }
 
   @Override
   public Family getFamily() {
-    final int familyID = wmem_.getByte(FAMILY_BYTE) & 0XFF;
+    final int familyID = wseg_.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
     return Family.idToFamily(familyID);
   }
 
   @Override
   public int getRetainedEntries(final boolean valid) { //always valid
-    return wmem_.getInt(RETAINED_ENTRIES_INT);
+    return wseg_.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
   }
 
   @Override
   public long getThetaLong() {
-    return isEmpty() ? Long.MAX_VALUE : wmem_.getLong(THETA_LONG);
+    return isEmpty() ? Long.MAX_VALUE : wseg_.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
   @Override
-  public boolean hasMemory() {
-    return wmem_ != null;
+  public boolean hasMemorySegment() {
+    return wseg_ != null && wseg_.scope().isAlive();
   }
 
   @Override
   public boolean isDirect() {
-    return hasMemory() ? wmem_.isDirect() : false;
+    return hasMemorySegment() && wseg_.isNative();
   }
 
   @Override
   public boolean isEmpty() {
-    return PreambleUtil.isEmptyFlag(wmem_);
+    return PreambleUtil.isEmptyFlag(wseg_);
   }
 
   @Override
-  public boolean isSameResource(final Memory that) {
-    return hasMemory() ? wmem_.isSameResource(that) : false;
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(wseg_, that);
   }
 
   @Override
   public HashIterator iterator() {
-    return new MemoryHashIterator(wmem_, 1 << getLgArrLongs(), getThetaLong());
+    return new MemorySegmentHashIterator(wseg_, 1 << getLgArrLongs(), getThetaLong());
   }
 
   @Override
-  public byte[] toByteArray() { //MY_FAMILY is stored in wmem_
-    checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wmem_));
+  public byte[] toByteArray() { //MY_FAMILY is stored in wseg_
+    checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wseg_));
     final int lengthBytes = getCurrentBytes();
     final byte[] byteArray = new byte[lengthBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
-    wmem_.copyTo(0, mem, 0, lengthBytes);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
+    MemorySegment.copy(wseg_, 0, seg, 0, lengthBytes);
     final long thetaLong =
-        correctThetaOnCompact(isEmpty(), extractCurCount(wmem_), extractThetaLong(wmem_));
-    insertThetaLong(wmem_, thetaLong);
+        correctThetaOnCompact(isEmpty(), extractCurCount(wseg_), extractThetaLong(wseg_));
+    insertThetaLong(wseg_, thetaLong);
     return byteArray;
   }
 
@@ -184,12 +187,12 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public final int getLgNomLongs() {
-    return PreambleUtil.extractLgNomLongs(wmem_);
+    return PreambleUtil.extractLgNomLongs(wseg_);
   }
 
   @Override
   float getP() {
-    return wmem_.getFloat(P_FLOAT);
+    return wseg_.get(JAVA_FLOAT_UNALIGNED, P_FLOAT);
   }
 
   @Override
@@ -216,11 +219,10 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   long[] getCache() {
-    final long lgArrLongs = wmem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
-    final int preambleLongs = wmem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final long lgArrLongs = wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
+    final int preambleLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
     final long[] cacheArr = new long[1 << lgArrLongs];
-    final WritableMemory mem = WritableMemory.writableWrap(cacheArr);
-    wmem_.copyTo(preambleLongs << 3, mem, 0, 8 << lgArrLongs);
+    MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, preambleLongs << 3, cacheArr, 0, 1 << lgArrLongs);
     return cacheArr;
   }
 
@@ -231,17 +233,17 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   int getCurrentPreambleLongs() {
-    return PreambleUtil.extractPreLongs(wmem_);
+    return PreambleUtil.extractPreLongs(wseg_);
   }
 
   @Override
-  WritableMemory getMemory() {
-    return wmem_;
+  MemorySegment getMemorySegment() {
+    return wseg_;
   }
 
   @Override
   short getSeedHash() {
-    return (short) PreambleUtil.extractSeedHash(wmem_);
+    return (short) PreambleUtil.extractSeedHash(wseg_);
   }
 
   @Override
@@ -256,11 +258,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   int getLgArrLongs() {
-    return wmem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
+    return wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
   }
 
   int getLgRF() { //only Direct needs this
-    return (wmem_.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
+    return (wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
   }
 
   @Override

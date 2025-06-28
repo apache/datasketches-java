@@ -19,7 +19,9 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.datasketches.common.Util.equalContents;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgArrLongs;
@@ -30,14 +32,18 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.CompactOperations;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -136,10 +142,6 @@ public class UpdateSketchTest {
     bldr.setNominalEntries(k);
     assertEquals(bldr.getLgNominalEntries(), lgK);
 
-    MemoryRequestServer mrs = new DefaultMemoryRequestServer();
-    bldr.setMemoryRequestServer(mrs);
-    assertEquals(bldr.getMemoryRequestServer(), mrs);
-
     println(bldr.toString());
   }
 
@@ -161,40 +163,40 @@ public class UpdateSketchTest {
   public void checkIncompatibleFamily() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
-    WritableMemory wmem = WritableMemory.writableWrap(sk.compact().toByteArray());
-    UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    MemorySegment wseg = MemorySegment.ofArray(sk.compact().toByteArray());
+    UpdateSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
   public void checkCorruption() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
-    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
+    MemorySegment wseg = MemorySegment.ofArray(sk.toByteArray());
     try {
-      wmem.putByte(SER_VER_BYTE, (byte) 2);
-      UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+      wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2);
+      UpdateSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
     try {
-      wmem.putByte(SER_VER_BYTE, (byte) 3);
-      wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);
-      UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+      wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 3);
+      wseg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 2);
+      UpdateSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
   }
 
   @Test
   public void checkIsResizeFactorIncorrect() {
-    WritableMemory wmem = WritableMemory.allocate(8);
-    insertLgNomLongs(wmem, 26);
+    MemorySegment wseg = MemorySegment.ofArray(new byte[8]);
+    insertLgNomLongs(wseg, 26);
     for (int lgK = 4; lgK <= 26; lgK++) {
-      insertLgNomLongs(wmem, lgK);
+      insertLgNomLongs(wseg, lgK);
       int lgT = lgK + 1;
       for (int lgA = 5; lgA <= lgT; lgA++) {
-        insertLgArrLongs(wmem, lgA);
+        insertLgArrLongs(wseg, lgA);
         for (int lgR = 0; lgR <= 3; lgR++) {
-          insertLgResizeFactor(wmem, lgR);
-          boolean lgRbad = isResizeFactorIncorrect(wmem, lgK, lgA);
+          insertLgResizeFactor(wseg, lgR);
+          boolean lgRbad = isResizeFactorIncorrect(wseg, lgK, lgA);
           boolean rf123 = (lgR > 0) && !(((lgT - lgA) % lgR) == 0);
           boolean rf0 = (lgR == 0) && (lgA != lgT);
           assertTrue((lgRbad == rf0) || (lgRbad == rf123));
@@ -206,8 +208,8 @@ public class UpdateSketchTest {
 
   @SuppressWarnings("unused")
   @Test
-  public void checkCompactOpsMemoryToCompact() {
-    WritableMemory skwmem, cskwmem1, cskwmem2, cskwmem3;
+  public void checkCompactOpsMemorySegmentToCompact() {
+    MemorySegment skwseg, cskwseg1, cskwseg2, cskwseg3;
     CompactSketch csk1, csk2, csk3;
     int lgK = 6;
     UpdateSketch sk = Sketches.updateSketchBuilder().setLogNominalEntries(lgK).build();
@@ -215,15 +217,15 @@ public class UpdateSketchTest {
     for (int i = 2; i < n; i++) { sk.update(i); }
     int cbytes = sk.getCompactBytes();
     byte[] byteArr = sk.toByteArray();
-    skwmem = WritableMemory.writableWrap(byteArr);
-    cskwmem1 = WritableMemory.allocate(cbytes);
-    cskwmem2 = WritableMemory.allocate(cbytes);
-    cskwmem3 = WritableMemory.allocate(cbytes);
-    csk1 = sk.compact(true, cskwmem1);
-    csk2 = CompactOperations.memoryToCompact(skwmem, true, cskwmem2);
-    csk3 = CompactOperations.memoryToCompact(cskwmem1, true, cskwmem3);
-    assertTrue(cskwmem1.equalTo(cskwmem2));
-    assertTrue(cskwmem1.equalTo(cskwmem3));
+    skwseg = MemorySegment.ofArray(byteArr);
+    cskwseg1 = MemorySegment.ofArray(new byte[cbytes]);
+    cskwseg2 = MemorySegment.ofArray(new byte[cbytes]);
+    cskwseg3 = MemorySegment.ofArray(new byte[cbytes]);
+    csk1 = sk.compact(true, cskwseg1);
+    csk2 = CompactOperations.segmentToCompact(skwseg, true, cskwseg2);
+    csk3 = CompactOperations.segmentToCompact(cskwseg1, true, cskwseg3);
+    assertTrue(equalContents(cskwseg1,cskwseg2));
+    assertTrue(equalContents(cskwseg1, cskwseg3));
   }
 
   @Test

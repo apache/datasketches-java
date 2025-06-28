@@ -19,15 +19,16 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.Math.min;
+
+import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple.SerializerDeserializer;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * The base class for unions of tuple sketches of type ArrayOfDoubles.
@@ -59,60 +60,43 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * Heapify the given Memory as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Heapify the given MemorySegment as an ArrayOfDoublesUnion.
+   * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion heapify(final Memory srcMem) {
-    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUnion heapify(final MemorySegment srcSeg) {
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify the given Memory and seed as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Heapify the given MemorySegment and seed as an ArrayOfDoublesUnion.
+   * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion heapify(final Memory srcMem, final long seed) {
-    return HeapArrayOfDoublesUnion.heapifyUnion(srcMem, seed);
+  public static ArrayOfDoublesUnion heapify(final MemorySegment srcSeg, final long seed) {
+    return HeapArrayOfDoublesUnion.heapifyUnion(srcSeg, seed);
   }
 
   /**
-   * Wrap the given Memory as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Wrap the given MemorySegment as an ArrayOfDoublesUnion.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrap(final Memory srcMem) {
-    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUnion wrap(final MemorySegment srcSeg) {
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap the given Memory and seed as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
+   * Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion.
+   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrap(final Memory srcMem, final long seed) {
-    return DirectArrayOfDoublesUnion.wrapUnion((WritableMemory) srcMem, seed, false);
-  }
-
-  /**
-   * Wrap the given WritableMemory as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
-   * @return an ArrayOfDoublesUnion
-   */
-  public static ArrayOfDoublesUnion wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Wrap the given WritableMemory and seed as an ArrayOfDoublesUnion
-   * @param srcMem the given source Memory
-   * @param seed the given seed
-   * @return an ArrayOfDoublesUnion
-   */
-  public static ArrayOfDoublesUnion wrap(final WritableMemory srcMem, final long seed) {
-    return DirectArrayOfDoublesUnion.wrapUnion(srcMem, seed, true);
+  public static ArrayOfDoublesUnion wrap(final MemorySegment srcSeg, final long seed) {
+    return DirectArrayOfDoublesUnion.wrapUnion(srcSeg, seed, !srcSeg.isReadOnly());
   }
 
   /**
@@ -121,7 +105,7 @@ public abstract class ArrayOfDoublesUnion {
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
-   * @param tupleSketch sketch to add to the union
+   * @param tupleSketch sketch to add to the union.
    */
   public void union(final ArrayOfDoublesSketch tupleSketch) {
     if (tupleSketch == null) { return; }
@@ -151,18 +135,18 @@ public abstract class ArrayOfDoublesUnion {
 
   /**
    * Returns the resulting union in the form of a compact sketch
-   * @param dstMem memory for the result (can be null)
-   * @return compact sketch representing the union (off-heap if memory is provided)
+   * @param dstSeg MemorySegment for the result (can be null)
+   * @return compact sketch representing the union (off-heap if MemorySegment is provided)
    */
-  public ArrayOfDoublesCompactSketch getResult(final WritableMemory dstMem) {
+  public ArrayOfDoublesCompactSketch getResult(final MemorySegment dstSeg) {
     long unionThetaLong = unionThetaLong_;
     if (gadget_.getRetainedEntries() > gadget_.getNominalEntries()) {
       unionThetaLong = Math.min(unionThetaLong, gadget_.getNewThetaLong());
     }
-    if (dstMem == null) {
+    if (dstSeg == null) {
       return new HeapArrayOfDoublesCompactSketch(gadget_, unionThetaLong);
     }
-    return new DirectArrayOfDoublesCompactSketch(gadget_, unionThetaLong, dstMem);
+    return new DirectArrayOfDoublesCompactSketch(gadget_, unionThetaLong, dstSeg);
   }
 
   /**
@@ -195,14 +179,14 @@ public abstract class ArrayOfDoublesUnion {
   public byte[] toByteArray() {
     final int sizeBytes = PREAMBLE_SIZE_BYTES + gadget_.getSerializedSizeBytes();
     final byte[] byteArray = new byte[sizeBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
-    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
-    mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
-    mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
+    seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
+    seg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
+    seg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    seg.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
     //byte 4-7 automatically zero
-    mem.putLong(THETA_LONG, unionThetaLong_);
-    gadget_.serializeInto(mem.writableRegion(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES));
+    seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, unionThetaLong_);
+    gadget_.serializeInto(seg.asSlice(PREAMBLE_SIZE_BYTES, seg.byteSize() - PREAMBLE_SIZE_BYTES));
     return byteArray;
   }
 

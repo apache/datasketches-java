@@ -26,7 +26,7 @@ import static org.apache.datasketches.common.ResizeFactor.X1;
 import static org.apache.datasketches.common.ResizeFactor.X2;
 import static org.apache.datasketches.common.ResizeFactor.X4;
 import static org.apache.datasketches.common.ResizeFactor.X8;
-import static org.apache.datasketches.common.Util.*;
+import static org.apache.datasketches.common.Util.isSameResource;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
@@ -34,16 +34,25 @@ import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.Sketch.getMaxCompactSketchBytes;
+import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.DirectCompactSketch;
+import org.apache.datasketches.theta.PreambleUtil;
+import org.apache.datasketches.theta.SetOperation;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.Union;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -138,7 +147,7 @@ public class SketchTest {
     nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapQuickSelectSketch");
     assertEquals(sk1.getLgNomLongs(), Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES));
-    assertEquals(sk1.getSeed(), ThetaUtil.DEFAULT_UPDATE_SEED);
+    assertEquals(sk1.getSeed(), Util.DEFAULT_UPDATE_SEED);
     assertEquals(sk1.getP(), (float)1.0);
     assertEquals(sk1.getResizeFactor(), ResizeFactor.X8);
   }
@@ -181,8 +190,8 @@ public class SketchTest {
   public void checkWrapBadFamily() {
     UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.ALPHA).setNominalEntries(1024).build();
     byte[] byteArr = sketch.toByteArray();
-    Memory srcMem = Memory.wrap(byteArr);
-    Sketch.wrap(srcMem);
+    MemorySegment srcSeg = MemorySegment.ofArray(byteArr);
+    Sketch.wrap(srcSeg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -195,12 +204,12 @@ public class SketchTest {
   public void checkSerVer() {
     UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(1024).build();
     byte[] sketchArray = sketch.toByteArray();
-    Memory mem = Memory.wrap(sketchArray);
-    int serVer = Sketch.getSerializationVersion(mem);
+    MemorySegment seg = MemorySegment.ofArray(sketchArray);
+    int serVer = Sketch.getSerializationVersion(seg);
     assertEquals(serVer, 3);
-    WritableMemory wmem = WritableMemory.writableWrap(sketchArray);
-    UpdateSketch sk2 = UpdateSketch.wrap(wmem);
-    serVer = sk2.getSerializationVersion(wmem);
+    MemorySegment wseg = MemorySegment.ofArray(sketchArray);
+    UpdateSketch sk2 = UpdateSketch.wrap(wseg);
+    serVer = sk2.getSerializationVersion(wseg);
     assertEquals(serVer, 3);
   }
 
@@ -209,10 +218,10 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
-    mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.heapify(mem);
+    Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    Sketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -220,10 +229,10 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
-    mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.heapify(mem);
+    Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    Sketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -232,11 +241,11 @@ public class SketchTest {
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    WritableMemory mem = WritableMemory.writableWrap(byteArray);
-    sketch1.compact(false, mem);
+    MemorySegment seg = MemorySegment.ofArray(byteArray);
+    sketch1.compact(false, seg);
     //corrupt:
-    mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.heapify(mem);
+    Util.clearBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    Sketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -244,9 +253,9 @@ public class SketchTest {
     int k = 512;
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     byte[] byteArray = union.toByteArray();
-    Memory mem = Memory.wrap(byteArray);
+    MemorySegment seg = MemorySegment.ofArray(byteArray);
     //Improper use
-    Sketch.heapify(mem);
+    Sketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -254,10 +263,10 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
-    mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.wrap(mem);
+    Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    Sketch.wrap(seg);
 
   }
 
@@ -266,10 +275,10 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
-    mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.wrap(mem);
+    Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    Sketch.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -278,11 +287,11 @@ public class SketchTest {
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    WritableMemory mem = WritableMemory.writableWrap(byteArray);
-    sketch1.compact(false, mem);
+    MemorySegment seg = MemorySegment.ofArray(byteArray);
+    sketch1.compact(false, seg);
     //corrupt:
-    mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.wrap(mem);
+    Util.clearBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
+    Sketch.wrap(seg);
   }
 
   @Test
@@ -297,45 +306,46 @@ public class SketchTest {
   public void checkWrapToHeapifyConversion1() {
     int k = 512;
     UpdateSketch sketch1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) {
+    for (int i = 0; i < k; i++) {
       sketch1.update(i);
     }
     double uest1 = sketch1.getEstimate();
 
     CompactSketch csk = sketch1.compact();
+    assertEquals(csk.getEstimate(), uest1);
 
-    Memory v1mem = convertSerVer3toSerVer1(csk);
-    Sketch csk2 = Sketch.wrap(v1mem);
+    MemorySegment v1seg = convertSerVer3toSerVer1(csk);
+    Sketch csk2 = Sketch.wrap(v1seg); //fails
     assertFalse(csk2.isDirect());
-    assertFalse(csk2.hasMemory());
+    assertFalse(csk2.hasMemorySegment());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
 
-    Memory v2mem = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED);
-    csk2 = Sketch.wrap(v2mem);
+    MemorySegment v2seg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
+    csk2 = Sketch.wrap(v2seg);
     assertFalse(csk2.isDirect());
-    assertFalse(csk2.hasMemory());
+    assertFalse(csk2.hasMemorySegment());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
   }
 
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    WritableMemory mem = WritableMemory.writableWrap(new byte[(k*16) + 24]);
-    WritableMemory cmem = WritableMemory.writableWrap(new byte[32]);
-    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
+    MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) + 24]); //280
+    MemorySegment cseg = MemorySegment.ofArray(new byte[32]);
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(seg);
     sketch.update(1);
     sketch.update(2);
-    assertTrue(sketch.isSameResource(mem));
-    DirectCompactSketch dcos = (DirectCompactSketch) sketch.compact(true, cmem);
-    assertTrue(dcos.isSameResource(cmem));
+    assertTrue(sketch.isSameResource(seg));
+    DirectCompactSketch dcos = (DirectCompactSketch) sketch.compact(true, cseg);
+    assertTrue(isSameResource(dcos.getMemorySegment(),  cseg));
     assertTrue(dcos.isOrdered());
-    //never create 2 sketches with the same memory, so don't do as I do :)
-    DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cmem);
-    assertTrue(dcs.isSameResource(cmem));
+    //never create 2 sketches with the same MemorySegment, so don't do as I do :)
+    DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cseg);
+    assertTrue(isSameResource(dcs.getMemorySegment(), cseg));
     assertFalse(dcs.isOrdered());
 
     Sketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    assertFalse(sk.isSameResource(mem));
+    assertFalse(isSameResource(sk.getMemorySegment(),seg));
   }
 
   @Test
@@ -350,62 +360,62 @@ public class SketchTest {
     assertEquals(count, k);
   }
 
-  private static WritableMemory createCompactSketchMemory(int k, int u) {
+  private static MemorySegment createCompactSketchMemorySegment(int k, int u) {
     UpdateSketch usk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < u; i++) { usk.update(i); }
     int bytes = Sketch.getMaxCompactSketchBytes(usk.getRetainedEntries(true));
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    usk.compact(true, wmem);
-    return wmem;
+    MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    usk.compact(true, wseg);
+    return wseg;
   }
 
   @Test
   public void checkCompactFlagsOnWrap() {
-    WritableMemory wmem = createCompactSketchMemory(16, 32);
-    Sketch sk = Sketch.wrap(wmem);
+    MemorySegment wseg = createCompactSketchMemorySegment(16, 32);
+    Sketch sk = Sketch.wrap(wseg);
     assertTrue(sk instanceof CompactSketch);
-    int flags = PreambleUtil.extractFlags(wmem);
+    int flags = PreambleUtil.extractFlags(wseg);
 
     int flagsNoCompact = flags & ~COMPACT_FLAG_MASK;
-    PreambleUtil.insertFlags(wmem, flagsNoCompact);
+    PreambleUtil.insertFlags(wseg, flagsNoCompact);
     try {
-      sk = Sketch.wrap(wmem);
+      sk = Sketch.wrap(wseg);
       fail();
     } catch (SketchesArgumentException e) { }
 
     int flagsNoReadOnly = flags & ~READ_ONLY_FLAG_MASK;
-    PreambleUtil.insertFlags(wmem, flagsNoReadOnly);
+    PreambleUtil.insertFlags(wseg, flagsNoReadOnly);
     try {
-      sk = Sketch.wrap(wmem);
+      sk = Sketch.wrap(wseg);
       fail();
     } catch (SketchesArgumentException e) { }
-    PreambleUtil.insertFlags(wmem, flags); //repair to original
-    PreambleUtil.insertSerVer(wmem, 5);
+    PreambleUtil.insertFlags(wseg, flags); //repair to original
+    PreambleUtil.insertSerVer(wseg, 5);
     try {
-      sk = Sketch.wrap(wmem);
+      sk = Sketch.wrap(wseg);
       fail();
     } catch (SketchesArgumentException e) { }
   }
 
   @Test
   public void checkCompactSizeAndFlagsOnHeapify() {
-    WritableMemory wmem = createCompactSketchMemory(16, 32);
-    Sketch sk = Sketch.heapify(wmem);
+    MemorySegment wseg = createCompactSketchMemorySegment(16, 32);
+    Sketch sk = Sketch.heapify(wseg);
     assertTrue(sk instanceof CompactSketch);
-    int flags = PreambleUtil.extractFlags(wmem);
+    int flags = PreambleUtil.extractFlags(wseg);
 
     int flagsNoCompact = flags & ~READ_ONLY_FLAG_MASK;
-    PreambleUtil.insertFlags(wmem, flagsNoCompact);
+    PreambleUtil.insertFlags(wseg, flagsNoCompact);
     try {
-      sk = Sketch.heapify(wmem);
+      sk = Sketch.heapify(wseg);
       fail();
     } catch (SketchesArgumentException e) { }
 
-    wmem = WritableMemory.allocate(7);
-    PreambleUtil.insertSerVer(wmem, 3);
-    //PreambleUtil.insertFamilyID(wmem, 3);
+    wseg = MemorySegment.ofArray(new byte[7]);
+    PreambleUtil.insertSerVer(wseg, 3);
+    //PreambleUtil.insertFamilyID(wseg, 3);
     try {
-      sk = Sketch.heapify(wmem);
+      sk = Sketch.heapify(wseg);
       fail();
     } catch (SketchesArgumentException e) { }
   }

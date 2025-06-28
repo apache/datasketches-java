@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -26,17 +28,26 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.AnotB;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.DirectCompactSketch;
+import org.apache.datasketches.theta.Intersection;
+import org.apache.datasketches.theta.SingleItemSketch;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.Union;
+import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
 public class SingleItemSketchTest {
-  final static short DEFAULT_SEED_HASH = (short) (ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED) & 0XFFFFL);
+  final static short DEFAULT_SEED_HASH = (short) (Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED) & 0XFFFFL);
 
   @Test
   public void check1() {
@@ -79,7 +90,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void check2() {
-    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    long seed = Util.DEFAULT_UPDATE_SEED;
     Union union = Sketches.setOperationBuilder().buildUnion();
     union.union(SingleItemSketch.create(1, seed));
     union.union(SingleItemSketch.create(1.0, seed));
@@ -126,7 +137,7 @@ public class SingleItemSketchTest {
     assertEquals(sis.getRetainedEntries(true), 1);
     assertEquals(sis.getUpperBound(1), 1.0);
     assertFalse(sis.isDirect());
-    assertFalse(sis.hasMemory());
+    assertFalse(sis.hasMemorySegment());
     assertFalse(sis.isEmpty());
     assertTrue(sis.isOrdered());
   }
@@ -135,7 +146,7 @@ public class SingleItemSketchTest {
   public void checkLessThanThetaLong() {
     for (int i = 0; i < 10; i++) {
       long[] data = { i };
-      long h = hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1;
+      long h = hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1;
       SingleItemSketch sis = SingleItemSketch.create(i);
       long halfMax = Long.MAX_VALUE >> 1;
       int count = sis.getCountLessThanThetaLong(halfMax);
@@ -147,12 +158,12 @@ public class SingleItemSketchTest {
   public void checkSerDe() {
     SingleItemSketch sis = SingleItemSketch.create(1);
     byte[] byteArr = sis.toByteArray();
-    Memory mem = Memory.wrap(byteArr);
-    final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
-    SingleItemSketch sis2 = SingleItemSketch.heapify(mem, defaultSeedHash);
+    MemorySegment seg = MemorySegment.ofArray(byteArr);
+    final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
+    SingleItemSketch sis2 = SingleItemSketch.heapify(seg,  defaultSeedHash);
     assertEquals(sis2.getEstimate(), 1.0);
 
-    SingleItemSketch sis3 = SingleItemSketch.heapify(mem, defaultSeedHash);
+    SingleItemSketch sis3 = SingleItemSketch.heapify(seg , defaultSeedHash);
     assertEquals(sis3.getEstimate(), 1.0);
 
     Union union = Sketches.setOperationBuilder().buildUnion();
@@ -167,7 +178,7 @@ public class SingleItemSketchTest {
   @Test
   public void checkRestricted() {
     SingleItemSketch sis = SingleItemSketch.create(1);
-    assertNull(sis.getMemory());
+    assertNull(sis.getMemorySegment());
     assertEquals(sis.getCompactPreambleLongs(), 1);
   }
 
@@ -175,8 +186,8 @@ public class SingleItemSketchTest {
   public void unionWrapped() {
     Sketch sketch = SingleItemSketch.create(1);
     Union union = Sketches.setOperationBuilder().buildUnion();
-    Memory mem = Memory.wrap(sketch.toByteArray());
-    union.union(mem);
+    MemorySegment seg  = MemorySegment.ofArray(sketch.toByteArray());
+    union.union(seg );
     assertEquals(union.getResult().getEstimate(), 1, 0);
   }
 
@@ -195,8 +206,8 @@ public class SingleItemSketchTest {
 
     //Off-heap
     bytes = Sketches.getMaxUpdateSketchBytes(32);
-    WritableMemory wmem = WritableMemory.writableWrap(new byte[bytes]);
-    sk1= Sketches.updateSketchBuilder().setNominalEntries(32).build(wmem);
+    MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
+    sk1= Sketches.updateSketchBuilder().setNominalEntries(32).build(wseg );
     sk1.update(1);
     csk = sk1.compact(true, null);
     assertTrue(csk instanceof SingleItemSketch);
@@ -204,10 +215,10 @@ public class SingleItemSketchTest {
     assertTrue(csk instanceof SingleItemSketch);
 
     bytes = Sketches.getMaxCompactSketchBytes(1);
-    wmem = WritableMemory.writableWrap(new byte[bytes]);
-    csk = sk1.compact(true, wmem);
+    wseg  = MemorySegment.ofArray(new byte[bytes]);
+    csk = sk1.compact(true, wseg );
     assertTrue(csk.isOrdered());
-    csk = sk1.compact(false, wmem);
+    csk = sk1.compact(false, wseg );
     assertTrue(csk.isOrdered());
   }
 
@@ -230,8 +241,8 @@ public class SingleItemSketchTest {
 
     //Intersection off-heap
     bytes = Sketches.getMaxIntersectionBytes(32);
-    WritableMemory wmem = WritableMemory.writableWrap(new byte[bytes]);
-    inter = Sketches.setOperationBuilder().buildIntersection(wmem);
+    MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
+    inter = Sketches.setOperationBuilder().buildIntersection(wseg );
     inter.intersect(sk1);
     inter.intersect(sk2);
     csk = inter.getResult(true, null);
@@ -258,8 +269,8 @@ public class SingleItemSketchTest {
 
     //Union off-heap
     bytes = Sketches.getMaxUnionBytes(32);
-    WritableMemory wmem = WritableMemory.writableWrap(new byte[bytes]);
-    union = Sketches.setOperationBuilder().buildUnion(wmem);
+    MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
+    union = Sketches.setOperationBuilder().buildUnion(wseg );
     union.union(sk1);
     union.union(sk2);
     csk = union.getResult(true, null);
@@ -294,24 +305,24 @@ public class SingleItemSketchTest {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.intersect(sk1);
     inter.intersect(sk2);
-    WritableMemory wmem = WritableMemory.writableWrap(new byte[16]);
-    CompactSketch csk = inter.getResult(false, wmem);
+    MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
+    CompactSketch csk = inter.getResult(false, wseg );
     assertTrue(csk.isOrdered());
-    Sketch csk2 = Sketches.heapifySketch(wmem);
+    Sketch csk2 = Sketches.heapifySketch(wseg );
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));
   }
 
   @Test
   public void checkSingleItemBadFlags() {
-    final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
+    final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
     UpdateSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
-    WritableMemory wmem = WritableMemory.allocate(16);
-    sk1.compact(true, wmem);
-    wmem.putByte(5, (byte) 0); //corrupt flags to zero
+    MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
+    sk1.compact(true, wseg );
+    wseg .set(JAVA_BYTE, 5, (byte) 0); //corrupt flags to zero
     try {
-      SingleItemSketch.heapify(wmem, defaultSeedHash); //fails due to corrupted flags bytes
+      SingleItemSketch.heapify(wseg , defaultSeedHash); //fails due to corrupted flags bytes
       fail();
     } catch (SketchesArgumentException e) { }
   }
@@ -334,7 +345,7 @@ public class SingleItemSketchTest {
     assertTrue(csk instanceof SingleItemSketch);
     CompactSketch csk2 = csk.compact();
     assertEquals(csk, csk2);
-    CompactSketch csk3 = csk.compact(true, WritableMemory.allocate(16));
+    CompactSketch csk3 = csk.compact(true, MemorySegment.ofArray(new byte[16]));
     assertTrue(csk3 instanceof DirectCompactSketch);
     assertEquals(csk2.getCurrentPreambleLongs(), 1);
     assertEquals(csk3.getCurrentPreambleLongs(), 1);
@@ -345,20 +356,20 @@ public class SingleItemSketchTest {
   static final long SiSkPre0WoutSiFlag = 0x93cc1a0000030301L;
   static final long Hash = 0x05a186bdcb7df915L;
 
-  static Memory siSkWithSiFlag24Bytes() {
+  static MemorySegment siSkWithSiFlag24Bytes() {
     int cap = 24; //8 extra bytes
-    WritableMemory wmem = WritableMemory.allocate(cap);
-    wmem.putLong(0, SiSkPre0WithSiFlag);
-    wmem.putLong(8, Hash);
-    return wmem;
+    MemorySegment wseg  = MemorySegment.ofArray(new byte[cap]);
+    wseg .set(JAVA_LONG_UNALIGNED, 0, SiSkPre0WithSiFlag);
+    wseg .set(JAVA_LONG_UNALIGNED, 8, Hash);
+    return wseg ;
   }
 
-  static Memory siSkWoutSiFlag24Bytes() {
+  static MemorySegment siSkWoutSiFlag24Bytes() {
     int cap = 24; //8 extra bytes
-    WritableMemory wmem = WritableMemory.allocate(cap);
-    wmem.putLong(0, SiSkPre0WoutSiFlag);
-    wmem.putLong(8, Hash);
-    return wmem;
+    MemorySegment wseg  = MemorySegment.ofArray(new byte[cap]);
+    wseg .set(JAVA_LONG_UNALIGNED, 0, SiSkPre0WoutSiFlag);
+    wseg .set(JAVA_LONG_UNALIGNED, 8, Hash);
+    return wseg;
   }
 
   @Test

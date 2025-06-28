@@ -27,7 +27,7 @@ import static org.apache.datasketches.cpc.Flavor.SPARSE;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
 
 /*
  * The merging logic is somewhat involved, so it will be summarized here.
@@ -102,7 +102,7 @@ public class CpcUnion {
    * Construct this unioning object with the default LgK and the default update seed.
    */
   public CpcUnion() {
-    this(CpcSketch.DEFAULT_LG_K, ThetaUtil.DEFAULT_UPDATE_SEED);
+    this(CpcSketch.DEFAULT_LG_K, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -110,7 +110,7 @@ public class CpcUnion {
    * @param lgK The given log2 of K.
    */
   public CpcUnion(final int lgK) {
-    this(lgK, ThetaUtil.DEFAULT_UPDATE_SEED);
+    this(lgK, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**

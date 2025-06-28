@@ -24,8 +24,8 @@ import static org.apache.datasketches.common.Util.exactLog2OfInt;
 import static org.apache.datasketches.common.Util.INVERSE_GOLDEN;
 import static org.apache.datasketches.frequencies.Util.hash;
 
+import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.QuickSelect;
 
 /**
  * Implements a linear-probing based hash map of (key, value) pairs and is distinguished by a

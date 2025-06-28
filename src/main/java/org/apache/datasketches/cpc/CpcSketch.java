@@ -34,9 +34,9 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * This is a unique-counting sketch that implements the
@@ -89,7 +89,7 @@ public final class CpcSketch {
    * Constructor with default log_base2 of k
    */
   public CpcSketch() {
-    this(DEFAULT_LG_K, ThetaUtil.DEFAULT_UPDATE_SEED);
+    this(DEFAULT_LG_K, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -97,7 +97,7 @@ public final class CpcSketch {
    * @param lgK the given log_base2 of k
    */
   public CpcSketch(final int lgK) {
-    this(lgK, ThetaUtil.DEFAULT_UPDATE_SEED);
+    this(lgK, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -233,7 +233,7 @@ public final class CpcSketch {
    * @return the given Memory as a CpcSketch on the Java heap.
    */
   public static CpcSketch heapify(final Memory mem) {
-    return heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(mem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -242,7 +242,7 @@ public final class CpcSketch {
    * @return the given byte array as a CpcSketch on the Java heap.
    */
   public static CpcSketch heapify(final byte[] byteArray) {
-    return heapify(byteArray, ThetaUtil.DEFAULT_UPDATE_SEED);
+    return heapify(byteArray, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -662,7 +662,7 @@ public final class CpcSketch {
 
   //also used in test
   static CpcSketch uncompress(final CompressedState source, final long seed) {
-    ThetaUtil.checkSeedHashes(ThetaUtil.computeSeedHash(seed), source.seedHash);
+    Util.checkSeedHashes(Util.computeSeedHash(seed), source.seedHash);
     final CpcSketch sketch = new CpcSketch(source.lgK, seed);
     sketch.numCoupons = source.numCoupons;
     sketch.windowOffset = source.getWindowOffset();
@@ -723,7 +723,7 @@ public final class CpcSketch {
    */
   public String toString(final boolean detail) {
     final int numPairs = (pairTable == null) ? 0 : pairTable.getNumPairs();
-    final int seedHash = Short.toUnsignedInt(ThetaUtil.computeSeedHash(seed));
+    final int seedHash = Short.toUnsignedInt(Util.computeSeedHash(seed));
     final double errConst = mergeFlag ? log(2) : sqrt(log(2) / 2.0);
     final double rse = errConst / Math.sqrt(1 << lgK);
     final StringBuilder sb = new StringBuilder();

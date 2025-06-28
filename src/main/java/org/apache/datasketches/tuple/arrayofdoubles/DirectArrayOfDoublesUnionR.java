@@ -19,18 +19,19 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.memory.WritableMemory;
 
 final class DirectArrayOfDoublesUnionR extends DirectArrayOfDoublesUnion {
 
   /**
-   * Wraps the given Memory.
+   * Wraps the given MemorySegment.
    * @param gadget the ArrayOfDoublesQuickSelectSketch
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seg the destination MemorySegment
    */
-  DirectArrayOfDoublesUnionR(final ArrayOfDoublesQuickSelectSketch gadget, final WritableMemory mem) {
-    super(gadget, mem);
+  DirectArrayOfDoublesUnionR(final ArrayOfDoublesQuickSelectSketch gadget, final MemorySegment seg) {
+    super(gadget, seg);
   }
 
   @Override

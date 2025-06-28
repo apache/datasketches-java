@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -27,12 +29,18 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.Intersection;
+import org.apache.datasketches.theta.IntersectionImpl;
+import org.apache.datasketches.theta.SetOperation;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.Union;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -72,16 +80,16 @@ public class HeapIntersectionTest {
 
     final int bytes = rsk1.getCompactBytes();
     final byte[] byteArray = new byte[bytes];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
 
-    rsk1 = inter.getResult(!ordered, mem);
+    rsk1 = inter.getResult(!ordered, seg);
     assertEquals(rsk1.getEstimate(), 0.0);
 
     //executed twice to fully exercise the internal state machine
-    rsk1 = inter.getResult(ordered, mem);
+    rsk1 = inter.getResult(ordered, seg);
     assertEquals(rsk1.getEstimate(), 0.0);
 
-    assertFalse(inter.isSameResource(mem));
+    assertFalse(inter.isSameResource(seg));
   }
 
   @Test
@@ -114,12 +122,12 @@ public class HeapIntersectionTest {
 
     final int bytes = rsk1.getCompactBytes();
     final byte[] byteArray = new byte[bytes];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
 
-    rsk1 = inter.getResult(!ordered, mem); //executed twice to fully exercise the internal state machine
+    rsk1 = inter.getResult(!ordered, seg); //executed twice to fully exercise the internal state machine
     assertEquals(rsk1.getEstimate(), k);
 
-    rsk1 = inter.getResult(ordered, mem);
+    rsk1 = inter.getResult(ordered, seg);
     assertEquals(rsk1.getEstimate(), k);
   }
 
@@ -352,18 +360,18 @@ public class HeapIntersectionTest {
     assertEquals(inter1est, cSk1Est, 0.0);
     println("Inter1Est: " + inter1est);
 
-    //Put the intersection into memory
+    //Put the intersection into segment
     final byte[] byteArray = inter.toByteArray();
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //Heapify
-    final Intersection inter2 = (Intersection) SetOperation.heapify(mem);
+    final Intersection inter2 = (Intersection) SetOperation.heapify(seg);
     final CompactSketch heapifiedSk = inter2.getResult(false, null);
     final double heapifiedEst = heapifiedSk.getEstimate();
     assertEquals(heapifiedEst, cSk1Est, 0.0);
     println("HeapifiedEst: "+heapifiedEst);
 
     //Wrap
-    final Intersection inter3 = Sketches.wrapIntersection(mem);
+    final Intersection inter3 = Sketches.wrapIntersection(seg);
     final CompactSketch wrappedSk = inter3.getResult(false, null);
     final double wrappedEst = wrappedSk.getEstimate();
     assertEquals(wrappedEst, cSk1Est, 0.0);
@@ -371,7 +379,7 @@ public class HeapIntersectionTest {
 
     inter.reset();
     inter2.reset();
-    inter3.reset();
+    inter3.reset(); //??
   }
 
 
@@ -393,8 +401,8 @@ public class HeapIntersectionTest {
     UpdateSketch sk1;
 
     inter1 = SetOperation.builder().buildIntersection(); //virgin heap
-    Memory srcMem = Memory.wrap(inter1.toByteArray());
-    inter2 = (Intersection) SetOperation.heapify(srcMem); //virgin heap, independent of inter1
+    MemorySegment srcSeg = MemorySegment.ofArray(inter1.toByteArray()).asReadOnly();
+    inter2 = (Intersection) SetOperation.heapify(srcSeg); //virgin heap, independent of inter1
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
 
@@ -411,8 +419,8 @@ public class HeapIntersectionTest {
     assertFalse(inter2.hasResult());
 
     //test the path via toByteArray, heapify, now in a different state
-    srcMem = Memory.wrap(inter1.toByteArray());
-    inter2 = (Intersection) SetOperation.heapify(srcMem); //inter2 identical to inter1
+    srcSeg = MemorySegment.ofArray(inter1.toByteArray()).asReadOnly();
+    inter2 = (Intersection) SetOperation.heapify(srcSeg); //inter2 identical to inter1
     assertFalse(inter2.isEmpty());
     assertTrue(inter2.hasResult());
 
@@ -426,20 +434,20 @@ public class HeapIntersectionTest {
   public void checkBadPreambleLongs() {
     final Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     final byte[] byteArray = inter1.toByteArray();
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
-    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2); //RF not used = 0
-    SetOperation.heapify(mem);
+    seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 2); //RF not used = 0
+    SetOperation.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     final byte[] byteArray = inter1.toByteArray();
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
-    mem.putByte(SER_VER_BYTE, (byte) 2);
-    SetOperation.heapify(mem);
+    seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2);
+    SetOperation.heapify(seg);
   }
 
   @Test(expectedExceptions = ClassCastException.class)
@@ -447,10 +455,10 @@ public class HeapIntersectionTest {
     final int k = 32;
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     final byte[] byteArray = union.toByteArray();
-    final Memory mem = Memory.wrap(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
     @SuppressWarnings("unused")
     final
-    Intersection inter1 = (Intersection) SetOperation.heapify(mem); //bad cast
+    Intersection inter1 = (Intersection) SetOperation.heapify(seg); //bad cast
     //println(inter1.toString());
   }
 
@@ -460,10 +468,10 @@ public class HeapIntersectionTest {
     final UpdateSketch sk = Sketches.updateSketchBuilder().build();
     inter1.intersect(sk); //initializes to a true empty intersection.
     final byte[] byteArray = inter1.toByteArray();
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
-    mem.putInt(RETAINED_ENTRIES_INT, 1);
-    SetOperation.heapify(mem);
+    seg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, 1);
+    SetOperation.heapify(seg);
   }
 
   @Test
@@ -505,7 +513,7 @@ public class HeapIntersectionTest {
 
   @Test
   public void checkFamily() {
-    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(ThetaUtil.DEFAULT_UPDATE_SEED);
+    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(Util.DEFAULT_UPDATE_SEED);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 

@@ -24,43 +24,44 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
-import org.apache.datasketches.tuple.Util;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("resource")
 public class HeapifyWrapSerVer1and2Test {
-  private static final short defaultSeedHash = Util.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
+  private static final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
 
   @Test
   public void checkHeapifyCompactSketchAssumedDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = Sketches.heapifyCompactSketch(cskMem);
+    cskResult = Sketches.heapifyCompactSketch(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = Sketches.heapifyCompactSketch(sv2cskMem);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv2cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = Sketches.heapifyCompactSketch(sv1cskMem);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv1cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -74,23 +75,23 @@ public class HeapifyWrapSerVer1and2Test {
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = Sketches.heapifyCompactSketch(cskMem);
+    cskResult = Sketches.heapifyCompactSketch(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = Sketches.heapifyCompactSketch(sv2cskMem);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv2cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = Sketches.heapifyCompactSketch(sv1cskMem);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv1cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), defaultSeedHash);
   }
@@ -98,29 +99,29 @@ public class HeapifyWrapSerVer1and2Test {
   @Test
   public void checkHeapifyCompactSketchGivenDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = Sketches.heapifyCompactSketch(cskMem, seed);
+    cskResult = Sketches.heapifyCompactSketch(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = Sketches.heapifyCompactSketch(sv2cskMem, seed);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv2cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = Sketches.heapifyCompactSketch(sv1cskMem, seed);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv1cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -134,23 +135,23 @@ public class HeapifyWrapSerVer1and2Test {
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = Sketches.heapifyCompactSketch(cskMem, seed);
+    cskResult = Sketches.heapifyCompactSketch(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = Sketches.heapifyCompactSketch(sv2cskMem, seed);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv2cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = Sketches.heapifyCompactSketch(sv1cskMem, seed);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = Sketches.heapifyCompactSketch(sv1cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -158,29 +159,29 @@ public class HeapifyWrapSerVer1and2Test {
   @Test
   public void checkHeapifySketchAssumedDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = (CompactSketch) Sketches.heapifySketch(cskMem);
+    cskResult = (CompactSketch) Sketches.heapifySketch(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -194,23 +195,23 @@ public class HeapifyWrapSerVer1and2Test {
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = (CompactSketch) Sketches.heapifySketch(cskMem);
+    cskResult = (CompactSketch) Sketches.heapifySketch(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), defaultSeedHash);
   }
@@ -218,29 +219,29 @@ public class HeapifyWrapSerVer1and2Test {
   @Test
   public void checkHeapifySketchGivenDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = (CompactSketch) Sketches.heapifySketch(cskMem, seed);
+    cskResult = (CompactSketch) Sketches.heapifySketch(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem, seed);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem, seed);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -254,23 +255,23 @@ public class HeapifyWrapSerVer1and2Test {
     for (int i = 0; i < k; i++) { usk.update(i); }
 
     CompactSketch csk = usk.compact();
-    Memory cskMem = Memory.wrap(csk.toByteArray());
+    MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
     //SerialVersion3 test
-    cskResult = (CompactSketch) Sketches.heapifySketch(cskMem, seed);
+    cskResult = (CompactSketch) Sketches.heapifySketch(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion2 test
-    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(csk, seed);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem, seed);
+    MemorySegment sv2cskSeg = BackwardConversions.convertSerVer3toSerVer2(csk, seed).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
 
     //SerialVersion1 test
-    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(csk);
-    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem, seed);
+    MemorySegment sv1cskSeg = BackwardConversions.convertSerVer3toSerVer1(csk).asReadOnly();
+    cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -278,38 +279,40 @@ public class HeapifyWrapSerVer1and2Test {
   @Test
   public void checkWrapCompactSketchAssumedDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
-
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
   @Test
@@ -320,68 +323,74 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), defaultSeedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), defaultSeedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
   @Test
   public void checkWrapCompactSketchGivenDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
   @Test
@@ -392,68 +401,74 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = Sketches.wrapCompactSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = Sketches.wrapCompactSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
   @Test
   public void checkWrapSketchAssumedDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
   @Test
@@ -464,68 +479,74 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), defaultSeedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), defaultSeedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
   @Test
   public void checkWrapSketchGivenDefaultSeed() {
     final int k = 64;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
   @Test
@@ -536,39 +557,42 @@ public class HeapifyWrapSerVer1and2Test {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
     CompactSketch cskResult;
-    WritableMemory offHeap;
+    MemorySegment offHeap;
     CompactSketch csk = usk.compact();
 
     //SerialVersion3 test
-    offHeap = putOffHeap(Memory.wrap(csk.toByteArray()), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertTrue(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertTrue(cskResult.isDirect());
+    }
 
     //SerialVersion2 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer2(csk, seed), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
 
     //SerialVersion1 test
-    offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), Arena.ofConfined());
-    cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-    assertFalse(cskResult.isDirect());
-    if (offHeap.isAlive()) { offHeap.getArena().close(); }
+    try(Arena arena = Arena.ofConfined()) {
+      offHeap = putOffHeap(BackwardConversions.convertSerVer3toSerVer1(csk), arena);
+      cskResult = (CompactSketch) Sketches.wrapSketch(offHeap, seed);
+      assertEquals(cskResult.getEstimate(), usk.getEstimate());
+      assertEquals(cskResult.getSeedHash(), seedHash);
+      assertFalse(cskResult.isDirect());
+    }
   }
 
-  private static WritableMemory putOffHeap(Memory heapMem, Arena arena) {
-    final long cap = heapMem.getCapacity();
-    WritableMemory wmem = WritableMemory.allocateDirect(cap, arena);
-    heapMem.copyTo(0, wmem, 0, cap);
-    return wmem;
+  private static MemorySegment putOffHeap(MemorySegment heapSeg, Arena arena) {
+    final long cap = heapSeg.byteSize();
+    MemorySegment wseg = arena.allocate(cap);
+    MemorySegment.copy(heapSeg, 0, wseg, 0, cap);
+    return wseg;
   }
 
   @Test

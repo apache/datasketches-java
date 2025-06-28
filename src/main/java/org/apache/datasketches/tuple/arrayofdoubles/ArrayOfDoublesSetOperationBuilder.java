@@ -19,8 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.Util;
 
 /**
  * Builds set operations object for tuple sketches of type ArrayOfDoubles.
@@ -47,7 +48,7 @@ public class ArrayOfDoublesSetOperationBuilder {
   public ArrayOfDoublesSetOperationBuilder() {
     nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
     numValues_ = DEFAULT_NUMBER_OF_VALUES;
-    seed_ = ThetaUtil.DEFAULT_UPDATE_SEED;
+    seed_ = Util.DEFAULT_UPDATE_SEED;
   }
 
   /**
@@ -83,7 +84,7 @@ public class ArrayOfDoublesSetOperationBuilder {
 
   /**
    * Creates an instance of ArrayOfDoublesUnion based on the current configuration of the builder.
-   * The new instance is allocated on the heap if the memory is not provided.
+   * The new instance is allocated on the heap.
    * @return an instance of ArrayOfDoublesUnion
    */
   public ArrayOfDoublesUnion buildUnion() {
@@ -92,18 +93,18 @@ public class ArrayOfDoublesSetOperationBuilder {
 
   /**
    * Creates an instance of ArrayOfDoublesUnion based on the current configuration of the builder
-   * and the given destination memory.
-   * @param dstMem destination memory to be used by the sketch
+   * and the given destination MemorySegment.
+   * @param dstSeg destination MemorySegment to be used by the sketch
    * @return an instance of ArrayOfDoublesUnion
    */
-  public ArrayOfDoublesUnion buildUnion(final WritableMemory dstMem) {
-    return new DirectArrayOfDoublesUnion(nomEntries_, numValues_, seed_, dstMem);
+  public ArrayOfDoublesUnion buildUnion(final MemorySegment dstSeg) {
+    return new DirectArrayOfDoublesUnion(nomEntries_, numValues_, seed_, dstSeg);
   }
 
   /**
    * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the
    * builder.
-   * The new instance is allocated on the heap if the memory is not provided.
+   * The new instance is allocated on the heap.
    * The number of nominal entries is not relevant to this, so it is ignored.
    * @return an instance of ArrayOfDoublesIntersection
    */
@@ -112,20 +113,18 @@ public class ArrayOfDoublesSetOperationBuilder {
   }
 
   /**
-   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the
-   * builder.
-   * The new instance is allocated on the heap if the memory is not provided.
+   * Creates an instance of ArrayOfDoublesIntersection in the given MemorySegment and based on the
+   * current configuration of the builder.
    * The number of nominal entries is not relevant to this, so it is ignored.
-   * @param dstMem destination memory to be used by the sketch
+   * @param dstSeg destination MemorySegment to be used by the sketch
    * @return an instance of ArrayOfDoublesIntersection
    */
-  public ArrayOfDoublesIntersection buildIntersection(final WritableMemory dstMem) {
-    return new DirectArrayOfDoublesIntersection(numValues_, seed_, dstMem);
+  public ArrayOfDoublesIntersection buildIntersection(final MemorySegment dstSeg) {
+    return new DirectArrayOfDoublesIntersection(numValues_, seed_, dstSeg);
   }
 
   /**
    * Creates an instance of ArrayOfDoublesAnotB based on the current configuration of the builder.
-   * The memory is not relevant to this, so it is ignored if set.
    * The number of nominal entries is not relevant to this, so it is ignored.
    * @return an instance of ArrayOfDoublesAnotB
    */

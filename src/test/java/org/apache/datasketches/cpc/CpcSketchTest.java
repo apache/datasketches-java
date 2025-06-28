@@ -29,8 +29,8 @@ import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -189,10 +189,10 @@ public class CpcSketchTest {
   @Test
   public void checkHeapify() {
     int lgK = 10;
-    CpcSketch sk = new CpcSketch(lgK, ThetaUtil.DEFAULT_UPDATE_SEED);
+    CpcSketch sk = new CpcSketch(lgK, Util.DEFAULT_UPDATE_SEED);
     assertTrue(sk.isEmpty());
     byte[] byteArray = sk.toByteArray();
-    CpcSketch sk2 = CpcSketch.heapify(byteArray, ThetaUtil.DEFAULT_UPDATE_SEED);
+    CpcSketch sk2 = CpcSketch.heapify(byteArray, Util.DEFAULT_UPDATE_SEED);
     assertTrue(specialEquals(sk2, sk, false, false));
   }
 
@@ -210,7 +210,7 @@ public class CpcSketchTest {
   @Test
   public void checkRowColUpdate() {
     int lgK = 10;
-    CpcSketch sk = new CpcSketch(lgK, ThetaUtil.DEFAULT_UPDATE_SEED);
+    CpcSketch sk = new CpcSketch(lgK, Util.DEFAULT_UPDATE_SEED);
     sk.rowColUpdate(0);
     assertEquals(sk.getFlavor(), Flavor.SPARSE);
   }

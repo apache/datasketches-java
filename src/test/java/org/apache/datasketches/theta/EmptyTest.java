@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
@@ -26,8 +27,18 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.theta.AnotB;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.DirectCompactSketch;
+import org.apache.datasketches.theta.EmptyCompactSketch;
+import org.apache.datasketches.theta.Intersection;
+import org.apache.datasketches.theta.SetOperation;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.Union;
+import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 
@@ -112,24 +123,24 @@ public class EmptyTest {
   public void checkBackwardCompatibility1() {
     final int k = 16;
     final int bytes = Sketches.getMaxUnionBytes(k); //288
-    final Union union = SetOperation.builder().buildUnion(WritableMemory.allocate(bytes));
-    final Memory mem = badEmptySk();
-    final Sketch wsk = Sketches.wrapSketch(mem);
-    union.union(wsk); //union has memory
+    final Union union = SetOperation.builder().buildUnion(MemorySegment.ofArray(new byte[bytes]));
+    final MemorySegment seg = badEmptySk();
+    final Sketch wsk = Sketches.wrapSketch(seg);
+    union.union(wsk); //union has segment
   }
 
   @Test
   public void checkBackwardCompatibility2() {
     final Union union = SetOperation.builder().setNominalEntries(16).buildUnion();
-    final Memory mem = badEmptySk();
-    final Sketch wsk = Sketches.wrapSketch(mem);
+    final MemorySegment seg = badEmptySk();
+    final Sketch wsk = Sketches.wrapSketch(seg);
     union.union(wsk); //heap union
   }
 
   @Test
   public void checkBackwardCompatibility3() {
-    final Memory mem = badEmptySk();
-    Sketches.heapifySketch(mem);
+    final MemorySegment seg = badEmptySk();
+    Sketches.heapifySketch(seg);
   }
 
   @Test
@@ -139,14 +150,14 @@ public class EmptyTest {
     assertTrue(csk instanceof EmptyCompactSketch);
     final CompactSketch csk2 = csk.compact();
     assertTrue(csk2 instanceof EmptyCompactSketch);
-    final CompactSketch csk3 = csk.compact(true, WritableMemory.allocate(8));
+    final CompactSketch csk3 = csk.compact(true, MemorySegment.ofArray(new byte[8]));
     assertTrue(csk3 instanceof DirectCompactSketch);
     assertEquals(csk2.getCurrentPreambleLongs(), 1);
   }
 
 
   //SerVer 2 had an empty sketch where preLongs = 1, but empty bit was not set.
-  private static Memory badEmptySk() {
+  private static MemorySegment badEmptySk() {
     final long preLongs = 1;
     final long serVer = 2;
     final long family = 3; //compact
@@ -154,9 +165,9 @@ public class EmptyTest {
     final long seedHash = 0x93CC;
     final long badEmptySk = seedHash << 48 | flags << 40
         | family << 16 | serVer << 8 | preLongs;
-    final WritableMemory wmem =  WritableMemory.allocate(8);
-    wmem.putLong(0, badEmptySk);
-    return wmem;
+    final MemorySegment wseg =  MemorySegment.ofArray(new byte[8]);
+    wseg.set(JAVA_LONG_UNALIGNED, 0, badEmptySk);
+    return wseg;
   }
 
   /**

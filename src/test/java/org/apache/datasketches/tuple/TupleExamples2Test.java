@@ -23,10 +23,16 @@ package org.apache.datasketches.tuple;
 
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
+import org.apache.datasketches.tuple.CompactSketch;
+import org.apache.datasketches.tuple.Intersection;
+import org.apache.datasketches.tuple.TupleSketchIterator;
+import org.apache.datasketches.tuple.Union;
+import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
-import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
+import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.annotations.Test;
 
   /**

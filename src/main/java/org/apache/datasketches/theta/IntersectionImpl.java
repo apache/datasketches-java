@@ -20,6 +20,13 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.Math.min;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+import static org.apache.datasketches.common.Util.clearBits;
+import static org.apache.datasketches.common.Util.setBits;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -47,36 +54,36 @@ import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.setEmpty;
 import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
 import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
-import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnlyMemory;
+import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnlyMemorySegment;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Intersection operation for Theta Sketches.
  *
- * <p>This implementation uses data either on-heap or off-heap in a given Memory
+ * <p>This implementation uses data either on-heap or off-heap in a given MemorySegment
  * that is owned and managed by the caller.
- * The off-heap Memory, which if managed properly, will greatly reduce the need for
+ * The off-heap MemorySegment, which if managed properly, will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class IntersectionImpl extends Intersection {
+final class IntersectionImpl extends Intersection {
   protected final short seedHash_;
   protected final boolean readOnly_; //True if this sketch is to be treated as read only
-  protected final WritableMemory wmem_;
-  protected final int maxLgArrLongs_; //only used with WritableMemory, not serialized
+  protected final MemorySegment wseg_;
+  protected final int maxLgArrLongs_; //only used with MemorySegment, not serialized
 
   //Note: Intersection does not use lgNomLongs or k, per se.
   protected int lgArrLongs_; //current size of hash table
@@ -87,30 +94,30 @@ class IntersectionImpl extends Intersection {
 
   /**
    * Constructor: Sets the class finals and computes, sets and checks the seedHash.
-   * @param wmem Can be either a Source(e.g. wrap) or Destination (new Direct) WritableMemory.
+   * @param wseg Can be either a Source(e.g. wrap) or Destination (new offHeap) MemorySegment.
    * @param seed Used to validate incoming sketch arguments.
-   * @param dstMemFlag The given memory is a Destination (new Direct) WritableMemory.
-   * @param readOnly True if memory is to be treated as read only.
+   * @param dstSegFlag The given MemorySegment is a Destination (new offHeap) MemorySegment.
+   * @param readOnly True if MemorySegment is to be treated as read only.
    */
-  protected IntersectionImpl(final WritableMemory wmem, final long seed, final boolean dstMemFlag,
+  protected IntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstSegFlag,
       final boolean readOnly) {
     readOnly_ = readOnly;
-    if (wmem != null) {
-      wmem_ = wmem;
-      if (dstMemFlag) { //DstMem: compute & store seedHash, no seedhash checking
-        checkMinSizeMemory(wmem);
-        maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wmem) : 0; //Only Off Heap
-        seedHash_ = ThetaUtil.computeSeedHash(seed);
-        wmem_.putShort(SEED_HASH_SHORT, seedHash_);
-      } else { //SrcMem:gets and stores the seedHash, checks mem_seedHash against the seed
-        seedHash_ = wmem_.getShort(SEED_HASH_SHORT);
-        ThetaUtil.checkSeedHashes(seedHash_, ThetaUtil.computeSeedHash(seed)); //check for seed hash conflict
+    if (wseg != null) {
+      wseg_ = wseg;
+      if (dstSegFlag) { //DstSeg: compute & store seedHash, no seedHash checking
+        checkMinSizeMemorySegment(wseg);
+        maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wseg) : 0; //Only Off Heap
+        seedHash_ = Util.computeSeedHash(seed);
+        wseg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
+      } else { //SrcSeg:gets and stores the seedHash, checks seg_seedHash against the seed
+        seedHash_ = wseg_.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
+        Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed)); //check for seed hash conflict
         maxLgArrLongs_ = 0;
       }
     } else { //compute & store seedHash
-      wmem_ = null;
+      wseg_ = null;
       maxLgArrLongs_ = 0;
-      seedHash_ = ThetaUtil.computeSeedHash(seed);
+      seedHash_ = Util.computeSeedHash(seed);
     }
   }
 
@@ -122,105 +129,101 @@ class IntersectionImpl extends Intersection {
    * @return a new IntersectionImpl on the Java heap
    */
   static IntersectionImpl initNewHeapInstance(final long seed) {
-    final boolean dstMemFlag = false;
+    final boolean dstSegFlag = false;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstMemFlag, readOnly);
+    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstSegFlag, readOnly);
     impl.hardReset();
     return impl;
   }
 
   /**
-   * Factory: Construct a new Intersection target direct to the given destination Memory.
+   * Factory: Construct a new Intersection target direct to the given destination MemorySegment.
    * Called by SetOperationBuilder, test.
    *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
-   * @param dstMem destination Memory
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param dstSeg destination MemorySegment
    * @return a new IntersectionImpl that may be off-heap
    */
-  static IntersectionImpl initNewDirectInstance(final long seed, final WritableMemory dstMem) {
+  static IntersectionImpl initNewDirectInstance(final long seed, final MemorySegment dstSeg) {
     //Load Preamble
     //Pre0
-    dstMem.clear(0, CONST_PREAMBLE_LONGS << 3);
-    insertPreLongs(dstMem, CONST_PREAMBLE_LONGS); //RF not used = 0
-    insertSerVer(dstMem, SER_VER);
-    insertFamilyID(dstMem, Family.INTERSECTION.getID());
+    dstSeg.asSlice(0, CONST_PREAMBLE_LONGS << 3).fill((byte)0);
+    insertPreLongs(dstSeg, CONST_PREAMBLE_LONGS); //RF not used = 0
+    insertSerVer(dstSeg, SER_VER);
+    insertFamilyID(dstSeg, Family.INTERSECTION.getID());
     //lgNomLongs not used by Intersection
     //lgArrLongs set by hardReset
     //flags are already 0: bigEndian = readOnly = compact = ordered = empty = false;
     //seedHash loaded and checked in IntersectionImpl constructor
     //Pre1
     //CurCount set by hardReset
-    insertP(dstMem, (float) 1.0); //not used by intersection
+    insertP(dstSeg, (float) 1.0); //not used by intersection
     //Pre2
     //thetaLong set by hardReset
 
     //Initialize
-    final boolean dstMemFlag = true;
+    final boolean dstSegFlag = true;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(dstMem, seed, dstMemFlag, readOnly);
+    final IntersectionImpl impl = new IntersectionImpl(dstSeg, seed, dstSegFlag, readOnly);
     impl.hardReset();
     return impl;
   }
 
   /**
-   * Factory: Heapify an intersection target from a Memory image containing data.
-   * @param srcMem The source Memory object.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Factory: Heapify an intersection target from a MemorySegment image containing data.
+   * @param srcSeg The source MemorySegment object.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return a IntersectionImpl instance on the Java heap
    */
-  static IntersectionImpl heapifyInstance(final Memory srcMem, final long seed) {
-    final boolean dstMemFlag = false;
+  static IntersectionImpl heapifyInstance(final MemorySegment srcSeg, final long seed) {
+    final boolean dstSegFlag = false;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstMemFlag, readOnly);
-    memChecks(srcMem);
+    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstSegFlag, readOnly);
+    segChecks(srcSeg);
 
     //Initialize
-    impl.lgArrLongs_ = extractLgArrLongs(srcMem);
-    impl.curCount_ = extractCurCount(srcMem);
-    impl.thetaLong_ = extractThetaLong(srcMem);
-    impl.empty_ = (extractFlags(srcMem) & EMPTY_FLAG_MASK) > 0;
+    impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
+    impl.curCount_ = extractCurCount(srcSeg);
+    impl.thetaLong_ = extractThetaLong(srcSeg);
+    impl.empty_ = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) > 0;
     if (!impl.empty_) {
       if (impl.curCount_ > 0) {
         impl.hashTable_ = new long[1 << impl.lgArrLongs_];
-        srcMem.getLongArray(CONST_PREAMBLE_LONGS << 3, impl.hashTable_, 0, 1 << impl.lgArrLongs_);
+        MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, impl.hashTable_, 0, 1 << impl.lgArrLongs_);
       }
     }
     return impl;
   }
 
   /**
-   * Factory: Wrap an Intersection target around the given source WritableMemory containing
-   * intersection data.
-   * @param srcMem The source WritableMemory image.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * If the given source MemorySegment is read-only, the returned object will also be read-only.
+   * @param srcSeg The source MemorySegment image.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @param readOnly True if memory is to be treated as read only
-   * @return a IntersectionImpl that wraps a source WritableMemory that contains an Intersection image
+   * @param readOnly True if MemorySegment is to be treated as read only
+   * @return a IntersectionImpl that wraps a source MemorySegment that contains an Intersection image
    */
   static IntersectionImpl wrapInstance(
-      final WritableMemory srcMem,
+      final MemorySegment srcSeg,
       final long seed,
       final boolean readOnly) {
-    final boolean dstMemFlag = false;
-    final IntersectionImpl impl = new IntersectionImpl(srcMem, seed, dstMemFlag, readOnly);
-    memChecks(srcMem);
-    impl.lgArrLongs_ = extractLgArrLongs(srcMem);
-    impl.curCount_ = extractCurCount(srcMem);
-    impl.thetaLong_ = extractThetaLong(srcMem);
-    impl.empty_ = (extractFlags(srcMem) & EMPTY_FLAG_MASK) > 0;
+    final boolean dstSegFlag = false;
+    final IntersectionImpl impl = new IntersectionImpl(srcSeg, seed, dstSegFlag, readOnly);
+    segChecks(srcSeg);
+    impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
+    impl.curCount_ = extractCurCount(srcSeg);
+    impl.thetaLong_ = extractThetaLong(srcSeg);
+    impl.empty_ = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) > 0;
     return impl;
   }
 
   @Override
-  public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered,
-     final WritableMemory dstMem) {
-    if (wmem_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
+  public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered, final MemorySegment dstSeg) {
+    if (wseg_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
     hardReset();
     intersect(a);
     intersect(b);
-    final CompactSketch csk = getResult(dstOrdered, dstMem);
+    final CompactSketch csk = getResult(dstOrdered, dstSeg);
     hardReset();
     return csk;
   }
@@ -230,20 +233,20 @@ class IntersectionImpl extends Intersection {
     if (sketchIn == null) {
       throw new SketchesArgumentException("Intersection argument must not be null.");
     }
-    if (wmem_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
+    if (wseg_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
     if (empty_ || sketchIn.isEmpty()) { //empty rule
       //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make our local empty.
       resetToEmpty();
       return;
     }
-    ThetaUtil.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     //Set minTheta
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
     empty_ = false;
-    if (wmem_ != null) {
-      insertThetaLong(wmem_, thetaLong_);
-      clearEmpty(wmem_); //false
+    if (wseg_ != null) {
+      insertThetaLong(wseg_, thetaLong_);
+      clearEmpty(wseg_); //false
     }
 
     // The truth table for the following state machine. MinTheta is set above.
@@ -261,8 +264,8 @@ class IntersectionImpl extends Intersection {
     //states 1,2,3,6
     if (curCount_ == 0 || sketchInEntries == 0) {
       curCount_ = 0;
-      if (wmem_ != null) { insertCurCount(wmem_, 0); }
-      hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
+      if (wseg_ != null) { insertCurCount(wseg_, 0); }
+      hashTable_ = null; //No need for a HT. Don't bother clearing seg if valid
     } //end of states 1,2,3,6
 
     // state 5
@@ -272,17 +275,17 @@ class IntersectionImpl extends Intersection {
       final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
       lgArrLongs_ = requiredLgArrLongs;
 
-      if (wmem_ != null) { //Off heap, check if current dstMem is large enough
-        insertCurCount(wmem_, curCount_);
-        insertLgArrLongs(wmem_, lgArrLongs_);
+      if (wseg_ != null) { //Off heap, check if current dstSeg is large enough
+        insertCurCount(wseg_, curCount_);
+        insertLgArrLongs(wseg_, lgArrLongs_);
         if (requiredLgArrLongs <= maxLgArrLongs_) {
-          wmem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
+          wseg_.asSlice(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_).fill((byte)0);
         }
-        else { //not enough space in dstMem
+        else { //not enough space in dstSeg
           final int requiredBytes = (8 << requiredLgArrLongs) + 24;
           final int givenBytes = (8 << priorLgArrLongs) + 24;
           throw new SketchesArgumentException(
-              "Insufficient internal Memory space: " + requiredBytes + " > " + givenBytes);
+              "Insufficient internal MemorySegment space: " + requiredBytes + " > " + givenBytes);
         }
       }
       else { //On the heap, allocate a HT
@@ -303,7 +306,10 @@ class IntersectionImpl extends Intersection {
   }
 
   @Override
-  public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
+  MemorySegment getMemorySegment() { return wseg_; }
+
+  @Override
+  public CompactSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg) {
     if (curCount_ < 0) {
       throw new SketchesStateException(
           "Calling getResult() with no intervening intersections would represent the infinite set, "
@@ -314,17 +320,17 @@ class IntersectionImpl extends Intersection {
     if (curCount_ == 0) {
       compactCache = new long[0];
       srcCompact = true;
-      srcOrdered = false; //hashTable, even tho empty
+      srcOrdered = false; //hashTable, even though empty
       return CompactOperations.componentsToCompact(
           thetaLong_, curCount_, seedHash_, empty_, srcCompact, srcOrdered, dstOrdered,
-          dstMem, compactCache);
+          dstSeg, compactCache);
     }
     //else curCount > 0
     final long[] hashTable;
-    if (wmem_ != null) {
+    if (wseg_ != null) {
       final int htLen = 1 << lgArrLongs_;
       hashTable = new long[htLen];
-      wmem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+      MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     } else {
       hashTable = hashTable_;
     }
@@ -333,27 +339,27 @@ class IntersectionImpl extends Intersection {
     srcOrdered = dstOrdered;
     return CompactOperations.componentsToCompact(
         thetaLong_, curCount_, seedHash_, empty_, srcCompact, srcOrdered, dstOrdered,
-        dstMem, compactCache);
+        dstSeg, compactCache);
   }
 
   @Override
-  public boolean hasMemory() {
-    return wmem_ != null;
+  public boolean hasMemorySegment() {
+    return wseg_ != null && wseg_.scope().isAlive();
   }
 
   @Override
   public boolean hasResult() {
-    return hasMemory() ? wmem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
+    return hasMemorySegment() ? wseg_.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
   }
 
   @Override
   public boolean isDirect() {
-    return hasMemory() ? wmem_.isDirect() : false;
+    return hasMemorySegment() && wseg_.isNative();
   }
 
   @Override
-  public boolean isSameResource(final Memory that) {
-    return hasMemory() ? wmem_.isSameResource(that) : false;
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(wseg_, that);
   }
 
   @Override
@@ -366,28 +372,28 @@ class IntersectionImpl extends Intersection {
     final int preBytes = CONST_PREAMBLE_LONGS << 3;
     final int dataBytes = curCount_ > 0 ? 8 << lgArrLongs_ : 0;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
-    if (wmem_ != null) {
-      wmem_.getByteArray(0, byteArrOut, 0, preBytes + dataBytes);
+    if (wseg_ != null) {
+      MemorySegment.copy(wseg_, JAVA_BYTE, 0, byteArrOut, 0, preBytes + dataBytes);
     }
     else {
-      final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
+      final MemorySegment segOut = MemorySegment.ofArray(byteArrOut);
 
       //preamble
-      memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
-      memOut.putByte(SER_VER_BYTE, (byte) SER_VER);
-      memOut.putByte(FAMILY_BYTE, (byte) Family.INTERSECTION.getID());
-      memOut.putByte(LG_NOM_LONGS_BYTE, (byte) 0); //not used
-      memOut.putByte(LG_ARR_LONGS_BYTE, (byte) lgArrLongs_);
-      if (empty_) { memOut.setBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); }
-      else { memOut.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); }
-      memOut.putShort(SEED_HASH_SHORT, seedHash_);
-      memOut.putInt(RETAINED_ENTRIES_INT, curCount_);
-      memOut.putFloat(P_FLOAT, (float) 1.0);
-      memOut.putLong(THETA_LONG, thetaLong_);
+      segOut.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0
+      segOut.set(JAVA_BYTE, SER_VER_BYTE, (byte) SER_VER);
+      segOut.set(JAVA_BYTE, FAMILY_BYTE, (byte) Family.INTERSECTION.getID());
+      segOut.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 0); //not used
+      segOut.set(JAVA_BYTE, LG_ARR_LONGS_BYTE, (byte) lgArrLongs_);
+      if (empty_) { setBits(segOut, FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); }
+      else { clearBits(segOut, FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); }
+      segOut.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
+      segOut.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, curCount_);
+      segOut.set(JAVA_FLOAT_UNALIGNED, P_FLOAT, (float) 1.0);
+      segOut.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
 
       //data
       if (curCount_ > 0) {
-        memOut.putLongArray(preBytes, hashTable_, 0, 1 << lgArrLongs_);
+        MemorySegment.copy(hashTable_, 0, segOut, JAVA_LONG_UNALIGNED, preBytes, 1 << lgArrLongs_);
       }
     }
     return byteArrOut;
@@ -411,13 +417,13 @@ class IntersectionImpl extends Intersection {
 
   @Override
   long[] getCache() {
-    if (wmem_ == null) {
+    if (wseg_ == null) {
       return hashTable_ != null ? hashTable_ : new long[0];
     }
-    //Direct
+    //offHeap
     final int arrLongs = 1 << lgArrLongs_;
     final long[] outArr = new long[arrLongs];
-    wmem_.getLongArray(CONST_PREAMBLE_LONGS << 3, outArr, 0, arrLongs);
+    MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, outArr, 0, arrLongs);
     return outArr;
   }
 
@@ -435,10 +441,10 @@ class IntersectionImpl extends Intersection {
     // curCount and input data are nonzero, match against HT
     assert curCount_ > 0 && !empty_;
     final long[] hashTable;
-    if (wmem_ != null) {
+    if (wseg_ != null) {
       final int htLen = 1 << lgArrLongs_;
       hashTable = new long[htLen];
-      wmem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+      MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     } else {
       hashTable = hashTable_;
     }
@@ -462,10 +468,10 @@ class IntersectionImpl extends Intersection {
     //reduce effective array size to minimum
     curCount_ = matchSetCount;
     lgArrLongs_ = minLgHashTableSize(matchSetCount, ThetaUtil.REBUILD_THRESHOLD);
-    if (wmem_ != null) {
-      insertCurCount(wmem_, matchSetCount);
-      insertLgArrLongs(wmem_, lgArrLongs_);
-      wmem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear for rebuild
+    if (wseg_ != null) {
+      insertCurCount(wseg_, matchSetCount);
+      insertLgArrLongs(wseg_, lgArrLongs_);
+      wseg_.asSlice(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_).fill((byte)0); //clear for rebuild
     } else {
       Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild
     }
@@ -482,14 +488,14 @@ class IntersectionImpl extends Intersection {
   private void moveDataToTgt(final long[] arr, final int count) {
     final int arrLongsIn = arr.length;
     int tmpCnt = 0;
-    if (wmem_ != null) { //Off Heap puts directly into mem
+    if (wseg_ != null) { //Off Heap puts directly into mem
       final int preBytes = CONST_PREAMBLE_LONGS << 3;
       final int lgArrLongs = lgArrLongs_;
       final long thetaLong = thetaLong_;
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = arr[i];
         if (continueCondition(thetaLong, hashIn)) { continue; }
-        hashInsertOnlyMemory(wmem_, lgArrLongs, hashIn, preBytes);
+        hashInsertOnlyMemorySegment(wseg_, lgArrLongs, hashIn, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough
@@ -506,7 +512,7 @@ class IntersectionImpl extends Intersection {
   private void moveDataToTgt(final Sketch sketch) {
     final int count = sketch.getRetainedEntries();
     int tmpCnt = 0;
-    if (wmem_ != null) { //Off Heap puts directly into mem
+    if (wseg_ != null) { //Off Heap puts directly into mem
       final int preBytes = CONST_PREAMBLE_LONGS << 3;
       final int lgArrLongs = lgArrLongs_;
       final long thetaLong = thetaLong_;
@@ -514,7 +520,7 @@ class IntersectionImpl extends Intersection {
       while (it.next()) {
         final long hash = it.get();
         if (continueCondition(thetaLong, hash)) { continue; }
-        hashInsertOnlyMemory(wmem_, lgArrLongs, hash, preBytes);
+        hashInsertOnlyMemorySegment(wseg_, lgArrLongs, hash, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough
@@ -531,9 +537,9 @@ class IntersectionImpl extends Intersection {
 
   private void hardReset() {
     resetCommon();
-    if (wmem_ != null) {
-      insertCurCount(wmem_, -1); //Universal Set
-      clearEmpty(wmem_); //false
+    if (wseg_ != null) {
+      insertCurCount(wseg_, -1); //Universal Set
+      clearEmpty(wseg_); //false
     }
     curCount_ = -1; //Universal Set
     empty_ = false;
@@ -541,20 +547,20 @@ class IntersectionImpl extends Intersection {
 
   private void resetToEmpty() {
     resetCommon();
-    if (wmem_ != null) {
-      insertCurCount(wmem_, 0);
-      setEmpty(wmem_); //true
+    if (wseg_ != null) {
+      insertCurCount(wseg_, 0);
+      setEmpty(wseg_); //true
     }
     curCount_ = 0;
     empty_ = true;
   }
 
   private void resetCommon() {
-    if (wmem_ != null) {
+    if (wseg_ != null) {
       if (readOnly_) { throw new SketchesReadOnlyException(); }
-      wmem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << ThetaUtil.MIN_LG_ARR_LONGS);
-      insertLgArrLongs(wmem_, ThetaUtil.MIN_LG_ARR_LONGS);
-      insertThetaLong(wmem_, Long.MAX_VALUE);
+      wseg_.asSlice(CONST_PREAMBLE_LONGS << 3, 8 << ThetaUtil.MIN_LG_ARR_LONGS).fill((byte)0);
+      insertLgArrLongs(wseg_, ThetaUtil.MIN_LG_ARR_LONGS);
+      insertThetaLong(wseg_, Long.MAX_VALUE);
     }
     lgArrLongs_ = ThetaUtil.MIN_LG_ARR_LONGS;
     thetaLong_ = Long.MAX_VALUE;

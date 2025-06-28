@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.theta;
 
+import java.lang.foreign.MemorySegment;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.datasketches.common.MemoryStatus;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.MemorySegmentStatus;
 
 /**
  * An internal interface to define the API of a concurrent shared theta sketch.
@@ -31,12 +31,12 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author eshcar
  */
-interface ConcurrentSharedThetaSketch extends MemoryStatus {
+interface ConcurrentSharedThetaSketch extends MemorySegmentStatus {
 
   long NOT_SINGLE_HASH = -1L;
   double MIN_ERROR = 0.0000001;
 
-  static long computeExactLimit(long k, double error) {
+  static long computeExactLimit(final long k, final double error) {
     return 2 * Math.min(k, (long) Math.ceil(1.0 / Math.pow(Math.max(error,MIN_ERROR), 2.0)));
   }
 
@@ -150,7 +150,7 @@ interface ConcurrentSharedThetaSketch extends MemoryStatus {
 
   CompactSketch compact();
 
-  CompactSketch compact(boolean ordered, WritableMemory wmem);
+  CompactSketch compact(boolean ordered, MemorySegment wseg);
 
   UpdateSketch rebuild();
 

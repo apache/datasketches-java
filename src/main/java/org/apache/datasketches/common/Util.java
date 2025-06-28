@@ -24,8 +24,10 @@ import static java.lang.Math.floor;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
-import static java.util.Arrays.fill;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static org.apache.datasketches.hash.MurmurHash3.hash;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 
 /**
@@ -66,6 +68,28 @@ public final class Util {
    * Long.MAX_VALUE as a double.
    */
   public static final double LONG_MAX_VALUE_AS_DOUBLE = Long.MAX_VALUE;
+
+  /**
+   * The seed 9001 used in the sketch update methods is a prime number that
+   * was chosen very early on in experimental testing. Choosing a seed is somewhat arbitrary, and
+   * the author cannot prove that this particular seed is somehow superior to other seeds.  There
+   * was some early Internet discussion that a seed of 0 did not produce as clean avalanche diagrams
+   * as non-zero seeds, but this may have been more related to the MurmurHash2 release, which did
+   * have some issues. As far as the author can determine, MurmurHash3 does not have these problems.
+   *
+   * <p>In order to perform set operations on two sketches it is critical that the same hash
+   * function and seed are identical for both sketches, otherwise the assumed 1:1 relationship
+   * between the original source key value and the hashed bit string would be violated. Once
+   * you have developed a history of stored sketches you are stuck with it.
+   *
+   * <p><b>WARNING:</b> This seed is used internally by library sketches in different
+   * packages and thus must be declared public. However, this seed value must not be used by library
+   * users with the MurmurHash3 function. It should be viewed as existing for exclusive, private
+   * use by the library.
+   *
+   * <p><a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">See Default Update Seed</a>
+   */
+  public static final long DEFAULT_UPDATE_SEED = 9001L;
 
   private Util() {}
 
@@ -257,7 +281,7 @@ public final class Util {
     final int sLen = s.length();
     if (sLen < fieldLength) {
       final char[] cArr = new char[fieldLength - sLen];
-      fill(cArr, padChar);
+      java.util.Arrays.fill(cArr, padChar);
       final String addstr = String.valueOf(cArr);
       return (postpend) ? s.concat(addstr) : addstr.concat(s);
     }
@@ -796,6 +820,185 @@ public final class Util {
    */
   public static <T> boolean le(final Object item1, final Object item2, final Comparator<? super T> c) {
     return c.compare((T)item1, (T)item2) <= 0;
+  }
+
+  //MemorySegment related
+
+  /**
+   * Clears all bytes of this MemorySegment to zero.
+   * @param seg the given MemorySegment
+   */
+  public static void clear(final MemorySegment seg) {
+    seg.fill((byte)0);
+  }
+
+  /**
+   * Clears a portion of this MemorySegment to zero.
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this MemorySegment start
+   * @param lengthBytes the length in bytes
+   */
+  public static void clear(final MemorySegment seg, final long offsetBytes, final long lengthBytes) {
+    final MemorySegment slice = seg.asSlice(offsetBytes, lengthBytes);
+    slice.fill((byte)0);
+  }
+
+  /**
+   * Clears the bits defined by the bitMask
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this Memory start.
+   * @param bitMask the bits set to one will be cleared
+   */
+  public static void clearBits(final MemorySegment seg, final long offsetBytes, final byte bitMask) {
+    final byte b = seg.get(JAVA_BYTE, offsetBytes);
+    seg.set(JAVA_BYTE, offsetBytes, (byte)(b & ~bitMask));
+  }
+
+  /**
+   * Returns true if both segments have the same contents and the same length.
+   * @param seg1 the given MemorySegment #1
+   * @param seg2 the given MemorySegment #2
+   * @return true if both segments have the same contents and the same length.
+   */
+  public static boolean equalContents(final MemorySegment seg1, final MemorySegment seg2) {
+    if (seg1.byteSize() != seg2.byteSize()) { return false; }
+    return equalContents(seg1, 0, seg2, 0, seg1.byteSize());
+  }
+
+  /**
+   * Returns true if both segments have the same content for the specified region.
+   * @param seg1 the given MemorySegment #1
+   * @param seg1offsetBytes the starting offset for MemorySegment #1 in bytes.
+   * @param seg2 the given MemorySegment #2
+   * @param seg2offsetBytes the starting offset for MemorySegment #2 in bytes.
+   * @param lengthBytes the length of the region to be compared, in bytes.
+   * @return true, if both segments have the content for the specified region.
+   */
+  public static boolean equalContents(
+      final MemorySegment seg1,
+      final long seg1offsetBytes,
+      final MemorySegment seg2,
+      final long seg2offsetBytes,
+      final long lengthBytes) {
+    if (seg1.equals(seg2) && (seg1.byteSize() == seg2.byteSize())) { return true; } //identical segments
+    final long seg1EndOff = seg1offsetBytes + lengthBytes;
+    final long seg2EndOff = seg2offsetBytes + lengthBytes;
+    return MemorySegment.mismatch(seg1, seg1offsetBytes, seg1EndOff, seg2, seg2offsetBytes, seg2EndOff) == -1;
+  }
+
+  /**
+   * Fills a portion of this Memory region to the given byte value.
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this Memory start
+   * @param lengthBytes the length in bytes
+   * @param value the given byte value
+   */
+  public static void fill(final MemorySegment seg, final long offsetBytes, final long lengthBytes, final byte value) {
+    final MemorySegment slice = seg.asSlice(offsetBytes, lengthBytes);
+    slice.fill(value);
+  }
+
+  /**
+   * Returns true if the two given MemorySegments refer to the same backing resource,
+   * which is either an off-heap memory location and size, or the same on-heap array object.
+   *
+   * <p>If both segment are off-heap, they both must have the same starting address and the same size.</p>
+   *
+   * <p>For on-heap segments, both segments must be based on or derived from the same array object and neither segment
+   * can be read-only.</p>
+   *
+   * <p>Returns false if either argument is null;</p>
+   *
+   * @param seg1 The first given MemorySegment
+   * @param seg2 The second given MemorySegment
+   * @return true if both MemorySegments are determined to be the same backing memory.
+   */
+  public static boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
+    if ((seg1 == null) || (seg2 == null)) { return false; }
+    if (!seg1.scope().isAlive() || !seg2.scope().isAlive()) {
+      throw new IllegalArgumentException("Both arguments must be alive.");
+    }
+    final boolean seg1Native = seg1.isNative();
+    final boolean seg2Native = seg2.isNative();
+    if (seg1Native ^ seg2Native) { return false; }
+    if (seg1Native && seg2Native) { //both off heap
+      return (seg1.address() == seg2.address()) && (seg1.byteSize() == seg2.byteSize());
+    }
+    //both on heap
+    if (seg1.isReadOnly() || seg2.isReadOnly()) {
+      throw new IllegalArgumentException("Cannot determine 'isSameBackingMemory(..)' on heap if either MemorySegment is Read-only.");
+    }
+    return (seg1.heapBase().orElse(null) == seg2.heapBase().orElse(null));
+  }
+
+  /**
+   * Request a new heap MemorySegment with the given capacityBytes and either 8-byte aligned or one byte aligned.
+   *
+   * <p>If <i>aligned</i> is true, the returned MemorySegment will be constructed from a <i>long[]</i> array,
+   * and, as a result, it will have a memory alignment of 8 bytes.
+   * If the requested capacity is not exactly divisible by eight, the returned size
+   * will be rolled up to the next multiple of eight bytes.</p>
+   *
+   * <p>If <i>aligned</i> is false, the returned MemorySegment will be constructed from a <i>byte[]</i> array,
+   * and have a memory alignment of 1 byte.
+   *
+   * @param capacityBytes The new capacity being requested. It must not be negative and cannot exceed Integer.MAX_VALUE.
+   * @param aligned if true, the new heap segment will have an alignment of 8 bytes, otherwise the alignment will be 1 byte.
+   * @return a new MemorySegment with the requested capacity and alignment.
+   */
+  public static MemorySegment alignedHeapSegment(final int capacityBytes, final boolean aligned) {
+    if (aligned) {
+      final int lenLongs = capacityBytes >>> 3;
+      final long[] array = ((capacityBytes & 0x7) == 0)
+          ? new long[lenLongs]
+          : new long[lenLongs + 1];
+      return MemorySegment.ofArray(array);
+    }
+    return MemorySegment.ofArray(new byte[capacityBytes]);
+  }
+
+  /**
+   * Sets the bits defined by the bitMask
+   * @param seg the given MemorySegment
+   * @param offsetBytes offset bytes relative to this MemorySegment start
+   * @param bitMask the bits set to one will be set
+   */
+  public static void setBits(final MemorySegment seg, final long offsetBytes, final byte bitMask) {
+    final byte b = seg.get(JAVA_BYTE, offsetBytes);
+    seg.set(JAVA_BYTE, offsetBytes, (byte)(b | bitMask));
+  }
+
+  /**
+   * Computes and checks the 16-bit seed hash from the given long seed.
+   * The seed hash may not be zero in order to maintain compatibility with older serialized
+   * versions that did not have this concept.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @return the seed hash.
+   */
+  public static short computeSeedHash(final long seed) {
+    final long[] seedArr = {seed};
+    final short seedHash = (short)(hash(seedArr, 0L)[0] & 0xFFFFL);
+    if (seedHash == 0) {
+      throw new SketchesArgumentException(
+          "The given seed: " + seed + " produced a seedHash of zero. "
+              + "You must choose a different seed.");
+    }
+    return seedHash;
+  }
+
+  /**
+   * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
+   * @param seedHashA the seedHash A
+   * @param seedHashB the seedHash B
+   * @return seedHashA if they are equal
+   */
+  public static short checkSeedHashes(final short seedHashA, final short seedHashB) {
+    if (seedHashA != seedHashB) {
+      throw new SketchesArgumentException(
+          "Incompatible Seed Hashes. " + Integer.toHexString(seedHashA & 0XFFFF)
+            + ", " + Integer.toHexString(seedHashB & 0XFFFF));
+    }
+    return seedHashA;
   }
 
 }

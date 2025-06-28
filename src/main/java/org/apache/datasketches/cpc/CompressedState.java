@@ -47,9 +47,9 @@ import static org.apache.datasketches.cpc.PreambleUtil.putSparseHybridHip;
 import static org.apache.datasketches.cpc.PreambleUtil.putSparseHybridMerged;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * @author Lee Rhodes
@@ -82,7 +82,7 @@ final class CompressedState {
   }
 
   static CompressedState compress(final CpcSketch source) {
-    final short seedHash = ThetaUtil.computeSeedHash(source.seed);
+    final short seedHash = Util.computeSeedHash(source.seed);
     final CompressedState target = new CompressedState(source.lgK, seedHash);
     target.fiCol = source.fiCol;
     target.mergeFlag = source.mergeFlag;

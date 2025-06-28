@@ -22,6 +22,7 @@ package org.apache.datasketches.theta;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
@@ -38,13 +39,12 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 import static org.apache.datasketches.thetacommon.HashOperations.STRIDE_MASK;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
@@ -113,44 +113,43 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   /**
-   * Heapify a sketch from a Memory object containing sketch data.
-   * @param srcMem The source Memory object.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Heapify a sketch from a MemorySegment object containing sketch data.
+   * @param srcSeg The source MemorySegment object.
    * It must have a size of at least 24 bytes.
-   * @param expectedSeed the seed used to validate the given Memory image.
+   * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
    */
-  static HeapAlphaSketch heapifyInstance(final Memory srcMem, final long expectedSeed) {
-    Objects.requireNonNull(srcMem, "Source Memory must not be null");
-    checkBounds(0, 24, srcMem.getCapacity());
-    final int preambleLongs = extractPreLongs(srcMem);            //byte 0
-    final int lgNomLongs = extractLgNomLongs(srcMem);             //byte 3
-    final int lgArrLongs = extractLgArrLongs(srcMem);             //byte 4
+  static HeapAlphaSketch heapifyInstance(final MemorySegment srcSeg, final long expectedSeed) {
+    Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
+    checkBounds(0, 24, srcSeg.byteSize());
+    final int preambleLongs = extractPreLongs(srcSeg);            //byte 0
+    final int lgNomLongs = extractLgNomLongs(srcSeg);             //byte 3
+    final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
-    checkAlphaFamily(srcMem, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, expectedSeed, preambleLongs, lgNomLongs, lgArrLongs);
+    checkAlphaFamily(srcSeg, preambleLongs, lgNomLongs);
+    checkSegIntegrity(srcSeg, expectedSeed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    final float p = extractP(srcMem);                             //bytes 12-15
-    final int memlgRF = extractLgResizeFactor(srcMem);            //byte 0
-    ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
+    final float p = extractP(srcSeg);                             //bytes 12-15
+    final int seglgRF = extractLgResizeFactor(srcSeg);            //byte 0
+    ResizeFactor segRF = ResizeFactor.getRF(seglgRF);
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
     final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * LONG_MAX_VALUE_AS_DOUBLE);
 
-    if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
-      memRF = ResizeFactor.X2; //X2 always works.
+    if (isResizeFactorIncorrect(srcSeg, lgNomLongs, lgArrLongs)) {
+      segRF = ResizeFactor.X2; //X2 always works.
     }
 
-    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, expectedSeed, p, memRF, alpha, split1);
+    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, expectedSeed, p, segRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
-    has.curCount_ = extractCurCount(srcMem);
-    has.thetaLong_ = extractThetaLong(srcMem);
-    has.empty_ = PreambleUtil.isEmptyFlag(srcMem);
+    has.curCount_ = extractCurCount(srcSeg);
+    has.thetaLong_ = extractThetaLong(srcSeg);
+    has.empty_ = PreambleUtil.isEmptyFlag(srcSeg);
     has.cache_ = new long[1 << lgArrLongs];
-    srcMem.getLongArray(preambleLongs << 3, has.cache_, 0, 1 << lgArrLongs); //read in as hash table
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, preambleLongs << 3, has.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return has;
   }
 
@@ -292,11 +291,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   int getCurrentPreambleLongs() {
     return Family.ALPHA.getMinPreLongs();
-  }
-
-  @Override
-  WritableMemory getMemory() {
-    return null;
   }
 
   @Override
@@ -576,9 +570,9 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 
-  static void checkAlphaFamily(final Memory mem, final int preambleLongs, final int lgNomLongs) {
+  static void checkAlphaFamily(final MemorySegment seg, final int preambleLongs, final int lgNomLongs) {
     //Check Family
-    final int familyID = extractFamilyID(mem);                       //byte 2
+    final int familyID = extractFamilyID(seg);                       //byte 2
     final Family family = Family.idToFamily(familyID);
     if (family.equals(Family.ALPHA)) {
       if (preambleLongs != Family.ALPHA.getMinPreLongs()) {

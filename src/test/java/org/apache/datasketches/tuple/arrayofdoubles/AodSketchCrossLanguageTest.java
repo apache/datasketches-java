@@ -27,10 +27,14 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -44,7 +48,9 @@ public class AodSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final ArrayOfDoublesUpdatableSketch sk = new ArrayOfDoublesUpdatableSketchBuilder().build();
-      for (int i = 0; i < n; i++) sk.update(i, new double[] {i});
+      for (int i = 0; i < n; i++) {
+        sk.update(i, new double[] {i});
+      }
       Files.newOutputStream(javaPath.resolve("aod_1_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }
   }
@@ -54,7 +60,9 @@ public class AodSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final ArrayOfDoublesUpdatableSketch sk = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(3).build();
-      for (int i = 0; i < n; i++) sk.update(i, new double[] {i, i, i});
+      for (int i = 0; i < n; i++) {
+        sk.update(i, new double[] {i, i, i});
+      }
       Files.newOutputStream(javaPath.resolve("aod_3_n" + n + "_java.sk")).write(sk.compact().toByteArray());
     }
   }
@@ -74,7 +82,7 @@ public class AodSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("aod_1_n" + n + "_cpp.sk"));
-      final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(Memory.wrap(bytes));
+      final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertEquals(sketch.getNumValues(), 1);
@@ -90,7 +98,7 @@ public class AodSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("aod_3_n" + n + "_cpp.sk"));
-      final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(Memory.wrap(bytes));
+      final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertEquals(sketch.getNumValues(), 3);
@@ -106,7 +114,7 @@ public class AodSketchCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppOneValueNonEmptyNoEntries() throws IOException {
     final byte[] bytes = Files.readAllBytes(cppPath.resolve("aod_1_non_empty_no_entries_cpp.sk"));
-    final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(Memory.wrap(bytes));
+    final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(MemorySegment.ofArray(bytes));
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
   }

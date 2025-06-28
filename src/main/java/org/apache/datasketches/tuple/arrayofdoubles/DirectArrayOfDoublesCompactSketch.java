@@ -19,35 +19,40 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple.SerializerDeserializer;
-import org.apache.datasketches.tuple.Util;
 
 /**
  * Direct Compact Sketch of type ArrayOfDoubles.
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
 final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   // this value exists only on heap, never serialized
-  private Memory mem_;
+  private MemorySegment seg_;
 
   /**
    * Converts the given UpdatableArrayOfDoublesSketch to this compact form.
    * @param sketch the given UpdatableArrayOfDoublesSketch
-   * @param dstMem the given destination Memory.
+   * @param dstSeg the given destination MemorySegment.
    */
   DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch,
-      final WritableMemory dstMem) {
-    this(sketch, sketch.getThetaLong(), dstMem);
+      final MemorySegment dstSeg) {
+    this(sketch, sketch.getThetaLong(), dstSeg);
   }
 
   /**
@@ -55,30 +60,30 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
    * trimming if necessary according to given theta
    * @param sketch the given UpdatableArrayOfDoublesSketch
    * @param thetaLong new value of thetaLong
-   * @param dstMem the given destination Memory.
+   * @param dstSeg the given destination MemorySegment.
    */
   DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch,
-      final long thetaLong, final WritableMemory dstMem) {
+      final long thetaLong, final MemorySegment dstSeg) {
     super(sketch.getNumValues());
-    checkIfEnoughMemory(dstMem, sketch.getRetainedEntries(), sketch.getNumValues());
-    mem_ = dstMem;
-    dstMem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
-    dstMem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
-    dstMem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    dstMem.putByte(SKETCH_TYPE_BYTE, (byte)
+    checkMemorySegmentSize(dstSeg, sketch.getRetainedEntries(), sketch.getNumValues());
+    seg_ = dstSeg;
+    dstSeg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1);
+    dstSeg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
+    dstSeg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    dstSeg.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte)
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     isEmpty_ = sketch.isEmpty();
     final int count = sketch.getRetainedEntries();
-    dstMem.putByte(FLAGS_BYTE, (byte) (
+    dstSeg.set(JAVA_BYTE, FLAGS_BYTE, (byte) (
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
       | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
-    dstMem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
-    dstMem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
+    dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
+    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
-    dstMem.putLong(THETA_LONG, thetaLong_);
+    dstSeg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
       int keyOffset = ENTRIES_START;
       int valuesOffset = keyOffset + (SIZE_OF_KEY_BYTES * sketch.getRetainedEntries());
@@ -86,14 +91,14 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       int actualCount = 0;
       while (it.next()) {
         if (it.getKey() < thetaLong_) {
-          dstMem.putLong(keyOffset, it.getKey());
-          dstMem.putDoubleArray(valuesOffset, it.getValues(), 0, numValues_);
+          dstSeg.set(JAVA_LONG_UNALIGNED, keyOffset, it.getKey());
+          MemorySegment.copy(it.getValues(), 0, dstSeg, JAVA_DOUBLE_UNALIGNED, valuesOffset, numValues_);
           keyOffset += SIZE_OF_KEY_BYTES;
           valuesOffset += SIZE_OF_VALUE_BYTES * numValues_;
           actualCount++;
         }
       }
-      dstMem.putInt(RETAINED_ENTRIES_INT, actualCount);
+      dstSeg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, actualCount);
     }
   }
 
@@ -101,109 +106,108 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
    * Creates an instance from components
    */
   DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long thetaLong,
-      final boolean isEmpty, final int numValues, final short seedHash, final WritableMemory dstMem) {
+      final boolean isEmpty, final int numValues, final short seedHash, final MemorySegment dstSeg) {
     super(numValues);
-    checkIfEnoughMemory(dstMem, values.length, numValues);
-    mem_ = dstMem;
-    dstMem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
-    dstMem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
-    dstMem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    dstMem.putByte(SKETCH_TYPE_BYTE, (byte)
+    checkMemorySegmentSize(dstSeg, values.length, numValues);
+    seg_ = dstSeg;
+    dstSeg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1);
+    dstSeg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
+    dstSeg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    dstSeg.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte)
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     isEmpty_ = isEmpty;
     final int count = keys.length;
-    dstMem.putByte(FLAGS_BYTE, (byte) (
+    dstSeg.set(JAVA_BYTE, FLAGS_BYTE, (byte) (
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
       | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
-    dstMem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
-    dstMem.putShort(SEED_HASH_SHORT, seedHash);
+    dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
+    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash);
     thetaLong_ = thetaLong;
-    dstMem.putLong(THETA_LONG, thetaLong_);
+    dstSeg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
-      dstMem.putInt(RETAINED_ENTRIES_INT, count);
-      dstMem.putLongArray(ENTRIES_START, keys, 0, count);
-      dstMem.putDoubleArray(
-          ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values, 0, values.length);
+      dstSeg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, count);
+      MemorySegment.copy(keys, 0, dstSeg, JAVA_LONG_UNALIGNED, ENTRIES_START, count);
+      MemorySegment.copy(values, 0, dstSeg, JAVA_DOUBLE_UNALIGNED, ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values.length);
     }
   }
 
   /**
-   * Wraps the given Memory.
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Wraps the given MemorySegment.
+   * @param seg the given MemorySegment
    */
-  DirectArrayOfDoublesCompactSketch(final Memory mem) {
-    super(mem.getByte(NUM_VALUES_BYTE));
-    mem_ = mem;
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE),
-        mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE),
+  DirectArrayOfDoublesCompactSketch(final MemorySegment seg) {
+    super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE));
+    seg_ = seg;
+    SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),
+        seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(seg_.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
-    final byte version = mem_.getByte(SERIAL_VERSION_BYTE);
+    final byte version = seg_.get(JAVA_BYTE, SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
     }
     final boolean isBigEndian =
-        (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
+        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
 
-    isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    thetaLong_ = mem_.getLong(THETA_LONG);
+    isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
+    thetaLong_ = seg_.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
   /**
-   * Wraps the given Memory.
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * Wraps the given MemorySegment.
+   * @param seg the given MemorySegment.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  DirectArrayOfDoublesCompactSketch(final Memory mem, final long seed) {
-    super(mem.getByte(NUM_VALUES_BYTE));
-    mem_ = mem;
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE),
-        mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem_.getByte(SKETCH_TYPE_BYTE),
+  DirectArrayOfDoublesCompactSketch(final MemorySegment seg, final long seed) {
+    super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE));
+    seg_ = seg;
+    SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),
+        seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(seg_.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch);
-    final byte version = mem_.getByte(SERIAL_VERSION_BYTE);
+    final byte version = seg_.get(JAVA_BYTE, SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
     }
     final boolean isBigEndian =
-        (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
+        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
-    isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    thetaLong_ = mem_.getLong(THETA_LONG);
+    Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
+    thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
   @Override
-  public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
-    if (dstMem == null) {
+  public ArrayOfDoublesCompactSketch compact(final MemorySegment dstSeg) {
+    if (dstSeg == null) {
       return new
           HeapArrayOfDoublesCompactSketch(getKeys(), getValuesAsOneDimension(), thetaLong_, isEmpty_, numValues_,
               getSeedHash());
     } else {
-      mem_.copyTo(0, dstMem, 0, mem_.getCapacity());
-      return new DirectArrayOfDoublesCompactSketch(dstMem);
+      MemorySegment.copy(seg_, 0, dstSeg, 0, seg_.byteSize());
+      return new DirectArrayOfDoublesCompactSketch(dstSeg);
     }
   }
 
   @Override
   public int getRetainedEntries() {
     final boolean hasEntries =
-        (mem_.getByte(FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
-    return (hasEntries ? mem_.getInt(RETAINED_ENTRIES_INT) : 0);
+        (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
+    return (hasEntries ? seg_.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT) : 0);
   }
 
   @Override
-  //converts compact Memory array of double[] to compact double[][]
+  //converts compact MemorySegment array of double[] to compact double[][]
   public double[][] getValues() {
     final int count = getRetainedEntries();
     final double[][] values = new double[count][];
@@ -211,7 +215,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       int valuesOffset = ENTRIES_START + (SIZE_OF_KEY_BYTES * count);
       for (int i = 0; i < count; i++) {
         final double[] array = new double[numValues_];
-        mem_.getDoubleArray(valuesOffset, array, 0, numValues_);
+        MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, valuesOffset, array, 0, numValues_);
         values[i] = array;
         valuesOffset += SIZE_OF_VALUE_BYTES * numValues_;
       }
@@ -220,26 +224,26 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   }
 
   @Override
-  //converts compact Memory array of double[] to compact double[]
+  //converts compact MemorySegment array of double[] to compact double[]
   double[] getValuesAsOneDimension() {
     final int count = getRetainedEntries();
     final int numDoubles = count * numValues_;
     final double[] values = new double[numDoubles];
     if (count > 0) {
       final int valuesOffset = ENTRIES_START + (SIZE_OF_KEY_BYTES * count);
-      mem_.getDoubleArray(valuesOffset, values, 0, numDoubles);
+      MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, valuesOffset, values, 0, numDoubles);
     }
     return values;
   }
 
   @Override
-  //converts compact Memory array of long[] to compact long[]
+  //converts compact MemorySegment array of long[] to compact long[]
   long[] getKeys() {
     final int count = getRetainedEntries();
     final long[] keys = new long[count];
     if (count > 0) {
       for (int i = 0; i < count; i++) {
-        mem_.getLongArray(ENTRIES_START, keys, 0, count);
+        MemorySegment.copy(seg_, JAVA_LONG_UNALIGNED, ENTRIES_START, keys, 0, count);
       }
     }
     return keys;
@@ -249,35 +253,35 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   public byte[] toByteArray() {
     final int sizeBytes = getCurrentBytes();
     final byte[] byteArray = new byte[sizeBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
-    mem_.copyTo(0, mem, 0, sizeBytes);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
+    MemorySegment.copy(seg_, 0, seg, 0, sizeBytes);
     return byteArray;
   }
 
   @Override
   public ArrayOfDoublesSketchIterator iterator() {
     return new DirectArrayOfDoublesSketchIterator(
-        mem_, ENTRIES_START, getRetainedEntries(), numValues_);
+        seg_, ENTRIES_START, getRetainedEntries(), numValues_);
   }
 
   @Override
   short getSeedHash() {
-    return mem_.getShort(SEED_HASH_SHORT);
+    return seg_.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
   }
 
   @Override
-  public boolean hasMemory() { return true; }
+  public boolean hasMemorySegment() { return true; }
 
   @Override
-  Memory getMemory() { return mem_; }
+  MemorySegment getMemorySegment() { return seg_; }
 
-  private static void checkIfEnoughMemory(final Memory mem, final int numEntries,
+  private static void checkMemorySegmentSize(final MemorySegment seg, final int numEntries,
       final int numValues) {
     final int sizeNeeded =
         ENTRIES_START + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues)) * numEntries);
-    if (sizeNeeded > mem.getCapacity()) {
-      throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded
-          + " bytes, got " + mem.getCapacity() + " bytes");
+    if (sizeNeeded > seg.byteSize()) {
+      throw new SketchesArgumentException("Not enough space: need " + sizeNeeded
+          + " bytes, got " + seg.byteSize() + " bytes");
     }
   }
 

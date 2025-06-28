@@ -22,13 +22,14 @@ package org.apache.datasketches.thetacommon;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
+import org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets;
+import org.apache.datasketches.tuple.Intersection;
 import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
-import org.apache.datasketches.tuple.Intersection;
 import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertEquals;

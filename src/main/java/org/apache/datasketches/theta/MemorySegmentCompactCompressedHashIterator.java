@@ -19,15 +19,19 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
 
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
+import org.apache.datasketches.common.Util;
 
 /*
  * This is to uncompress serial version 4 sketch incrementally
  */
-class MemoryCompactCompressedHashIterator implements HashIterator {
-  private Memory mem;
+final class MemorySegmentCompactCompressedHashIterator implements HashIterator, MemorySegmentStatus {
+  private MemorySegment seg;
   private int offset;
   private int entryBits;
   private int numEntries;
@@ -39,13 +43,12 @@ class MemoryCompactCompressedHashIterator implements HashIterator {
   private boolean isBlockMode;
   private boolean isFirstUnpack1;
 
-  MemoryCompactCompressedHashIterator(
-      final Memory mem,
+  MemorySegmentCompactCompressedHashIterator(
+      final MemorySegment srcSeg,
       final int offset,
       final int entryBits,
-      final int numEntries
-  ) {
-    this.mem = mem;
+      final int numEntries) {
+    this.seg = srcSeg;
     this.offset = offset;
     this.entryBits = entryBits;
     this.numEntries = numEntries;
@@ -61,6 +64,21 @@ class MemoryCompactCompressedHashIterator implements HashIterator {
   @Override
   public long get() {
     return buffer[index & 7];
+  }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return seg != null && seg.scope().isAlive();
+  }
+
+  @Override
+  public boolean isDirect() {
+    return hasMemorySegment() && seg.isNative();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return hasMemorySegment() && Util.isSameResource(seg, that);
   }
 
   @Override
@@ -83,7 +101,7 @@ class MemoryCompactCompressedHashIterator implements HashIterator {
 
   private void unpack1() {
     if (isFirstUnpack1) {
-      mem.getByteArray(offset, bytes, 0, wholeBytesToHoldBits((numEntries - index) * entryBits));
+      MemorySegment.copy(seg, JAVA_BYTE, offset, bytes, 0, wholeBytesToHoldBits((numEntries - index) * entryBits));
       offset = 0;
       isFirstUnpack1 = false;
     }
@@ -96,7 +114,7 @@ class MemoryCompactCompressedHashIterator implements HashIterator {
   }
 
   private void unpack8() {
-    mem.getByteArray(offset, bytes, 0, entryBits);
+    MemorySegment.copy(seg, JAVA_BYTE, offset, bytes, 0, entryBits);
     BitPacking.unpackBitsBlock8(buffer, 0, bytes, 0, entryBits);
     offset += entryBits;
     for (int i = 0; i < 8; i++) {

@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.common.Util.isSameResource;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.testng.Assert.assertEquals;
@@ -28,11 +31,19 @@ import static org.testng.Assert.assertTrue;
 import java.lang.foreign.Arena;
 import java.nio.ByteOrder;
 
+import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.PreambleUtil;
+import org.apache.datasketches.theta.SetOperation;
+import org.apache.datasketches.theta.SetOperationBuilder;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.Union;
+import org.apache.datasketches.theta.UnionImpl;
+import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.testng.annotations.Test;
 
 public class UnionImplTest {
@@ -48,12 +59,12 @@ public class UnionImplTest {
   @Test
   public void checkUpdateWithSketch() {
     final int k = 16;
-    final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);
-    final WritableMemory mem2 = WritableMemory.writableWrap(new byte[k*8 + 24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + 24]);
+    final MemorySegment seg2 = MemorySegment.ofArray(new byte[k*8 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { sketch.update(i); }
-    final CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
-    final CompactSketch sketchInDirectUnord = sketch.compact(false, mem2);
+    final CompactSketch sketchInDirectOrd = sketch.compact(true, seg);
+    final CompactSketch sketchInDirectUnord = sketch.compact(false, seg2);
     final CompactSketch sketchInHeap = sketch.compact(true, null);
 
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
@@ -64,17 +75,17 @@ public class UnionImplTest {
   }
 
   @Test
-  public void checkUnorderedAndOrderedMemory() {
+  public void checkUnorderedAndOrderedMemorySegment() {
     final int k = 16;
-    final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < k; i++) { sketch.update(i); }
-    final CompactSketch sketchInDirectOrd = sketch.compact(false, mem);
+    final CompactSketch sketchInDirectOrd = sketch.compact(false, seg);
     assertFalse(sketchInDirectOrd.isOrdered());
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.union(sketchInDirectOrd);
     final double est1 = union.getResult().getEstimate();
-    sketch.compact(true, mem); //change the order as a side effect
+    sketch.compact(true, seg); //change the order as a side effect
     assertTrue(sketchInDirectOrd.isOrdered());
     union.union(sketchInDirectOrd);
     final double est2 = union.getResult().getEstimate();
@@ -83,25 +94,25 @@ public class UnionImplTest {
   }
 
   @Test
-  public void checkUpdateWithMem() {
+  public void checkUpdateWithSeg() {
     final int k = 16;
-    final WritableMemory skMem = WritableMemory.writableWrap(new byte[2*k*8 + 24]);
-    final WritableMemory dirOrdCskMem = WritableMemory.writableWrap(new byte[k*8 + 24]);
-    final WritableMemory dirUnordCskMem = WritableMemory.writableWrap(new byte[k*8 + 24]);
-    final UpdateSketch udSketch = UpdateSketch.builder().setNominalEntries(k).build(skMem);
+    final MemorySegment skSeg = MemorySegment.ofArray(new byte[2*k*8 + 24]);
+    final MemorySegment dirOrdCskSeg = MemorySegment.ofArray(new byte[k*8 + 24]);
+    final MemorySegment dirUnordCskSeg = MemorySegment.ofArray(new byte[k*8 + 24]);
+    final UpdateSketch udSketch = UpdateSketch.builder().setNominalEntries(k).build(skSeg);
     for (int i = 0; i < k; i++) { udSketch.update(i); } //exact
-    udSketch.compact(true, dirOrdCskMem);
-    udSketch.compact(false, dirUnordCskMem);
+    udSketch.compact(true, dirOrdCskSeg);
+    udSketch.compact(false, dirUnordCskSeg);
 
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    union.union(skMem);
-    union.union(dirOrdCskMem);
-    union.union(dirUnordCskMem);
+    union.union(skSeg);
+    union.union(dirOrdCskSeg);
+    union.union(dirUnordCskSeg);
     assertEquals(union.getResult().getEstimate(), k, 0.0);
   }
 
   @Test
-  public void checkUpdateWithMemV4Exact() {
+  public void checkUpdateWithSegV4Exact() {
     int n = 1000;
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     for (int i = 0; i < n; i++) {
@@ -113,40 +124,40 @@ public class UnionImplTest {
     byte[] bytes = cs.toByteArrayCompressed();
 
     final Union union = Sketches.setOperationBuilder().buildUnion();
-    union.union(Memory.wrap(bytes));
+    union.union(MemorySegment.ofArray(bytes));
     assertEquals(union.getResult().getEstimate(), n, 0.0);
   }
 
   @Test
   public void checkFastWrap() {
     final int k = 16;
-    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
     final int unionSize = Sketches.getMaxUnionBytes(k);
-    final WritableMemory srcMem = WritableMemory.writableWrap(new byte[unionSize]);
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(srcMem);
+    final MemorySegment srcSeg = MemorySegment.ofArray(new byte[unionSize]);
+    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(srcSeg);
     for (int i = 0; i < k; i++) { union.update(i); } //exact
     assertEquals(union.getResult().getEstimate(), k, 0.0);
-    final Union union2 = UnionImpl.fastWrap(srcMem, seed);
+    final Union union2 = UnionImpl.fastWrapInstance(srcSeg, seed);
     assertEquals(union2.getResult().getEstimate(), k, 0.0);
-    final Memory srcMemR = srcMem;
-    final Union union3 = UnionImpl.fastWrap(srcMemR, seed);
+    final MemorySegment srcSegR = srcSeg;
+    final Union union3 = UnionImpl.fastWrapInstance(srcSegR, seed);
     assertEquals(union3.getResult().getEstimate(), k, 0.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptFamilyException() {
     final int k = 16;
-    final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sketch.update(i);
     }
-    sketch.compact(true, mem);
+    sketch.compact(true, seg);
 
-    mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
+    seg.set(JAVA_BYTE, PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    union.union(mem);
+    union.union(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -157,12 +168,12 @@ public class UnionImplTest {
       sketch.update(i);
     }
     final CompactSketch csk = sketch.compact(true, null);
-    final WritableMemory v2mem = (WritableMemory) convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED);
+    final MemorySegment v2seg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
 
-    v2mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
+    v2seg.set(JAVA_BYTE, PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    union.union(v2mem);
+    union.union(v2seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -173,21 +184,21 @@ public class UnionImplTest {
       sketch.update(i);
     }
     final CompactSketch csk = sketch.compact(true, null);
-    final WritableMemory v1mem = (WritableMemory) convertSerVer3toSerVer1(csk);
+    final MemorySegment v1seg = convertSerVer3toSerVer1(csk);
 
-    v1mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
+    v1seg.set(JAVA_BYTE, PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    union.union(v1mem);
+    union.union(v1seg);
   }
 
   @Test
   public void checkVer2EmptyHandling() {
     final int k = 16;
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    final Memory mem = convertSerVer3toSerVer2(sketch.compact(), ThetaUtil.DEFAULT_UPDATE_SEED);
+    final MemorySegment seg = convertSerVer3toSerVer2(sketch.compact(), Util.DEFAULT_UPDATE_SEED);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    union.union(mem);
+    union.union(seg);
   }
 
   @Test
@@ -195,24 +206,28 @@ public class UnionImplTest {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    final Arena arena = Arena.ofConfined();
-    final WritableMemory wmem = WritableMemory.allocateDirect(bytes / 2, arena);
-    final WritableMemory wmemA = wmem;
-    final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
-    assertTrue(sketch.isSameResource(wmem));
+    MemorySegment skWseg, uWseg;
+    try (Arena arena = Arena.ofConfined()) {
+      skWseg = arena.allocate(bytes / 2);
+      final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(skWseg);
+      assertTrue(sketch.isSameResource(skWseg)); //of course
 
-    final WritableMemory wmem2 = WritableMemory.allocateDirect(bytes / 2, arena);
-    final WritableMemory wmemB = wmem2;
-    final Union union = SetOperation.builder().buildUnion(wmem2);
-    assertTrue(union.isSameResource(wmem2));
+      uWseg = arena.allocate(bytes / 2); //independent of sketch, way too small, forces overflow
+      final Union union = SetOperation.builder().buildUnion(uWseg); //off-heap union
+      assertTrue(union.isSameResource(uWseg)); //of course
 
-    for (int i = 0; i < u; i++) { union.update(i); }
-    assertFalse(union.isSameResource(wmem));
+      for (int i = 0; i < u; i++) { union.update(i); } //populate first union
+      assertFalse(union.isSameResource(skWseg)); //of course
+      assertFalse(union.isSameResource(uWseg)); //moved
 
-    final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
-    assertFalse(union2.isSameResource(wmem2));  //obviously not
-    assertFalse(wmemB.isAlive()); //closed when DirectQuickSelectSketch expanded into heap.
-    assertFalse(wmemA.isAlive()); //closed as part of the same Arena
+      final MemorySegment uWsegHeap = MemorySegment.ofArray(new byte[bytes / 2]);
+      final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
+      assertFalse(isSameResource(uWseg, uWsegHeap));  //obviously not
+      assertFalse(isSameResource(uWsegHeap, union.getMemorySegment())); //tgt moved
+    }
+    assertFalse(skWseg.scope().isAlive()); //closed as part of the same Arena
+    assertFalse(uWseg.scope().isAlive()); //closed as part of the same Arena
+
 
   }
 
@@ -221,7 +236,7 @@ public class UnionImplTest {
     final Union union = Sketches.setOperationBuilder().buildUnion();
     assertTrue(union.isEmpty());
     assertEquals(union.getThetaLong(), Long.MAX_VALUE);
-    assertEquals(union.getSeedHash(), ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED));
+    assertEquals(union.getSeedHash(), Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED));
     assertEquals(union.getRetainedEntries(), 0);
     assertEquals(union.getCache().length, 128); //only applies to stateful
   }
@@ -236,9 +251,9 @@ public class UnionImplTest {
 
     final int bytes = Sketches.getCompactSketchMaxBytes(lgK);
     try (Arena arena = Arena.ofConfined()) {
-        WritableMemory wmem = WritableMemory.allocateDirect(bytes, arena);
+        MemorySegment wseg = arena.allocate(bytes);
 
-      final CompactSketch csk = sk.compact(true, wmem); //ordered, direct
+      final CompactSketch csk = sk.compact(true, wseg); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();
       union.union(csk);
       final double est2 = union.getResult().getEstimate();
@@ -252,10 +267,10 @@ public class UnionImplTest {
   public void checkCompactFlagCorruption() {
     final int k = 1 << 12;
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);
-    final WritableMemory wmem1 = WritableMemory.allocate(bytes);
-    final UpdateSketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem1);
+    final MemorySegment wseg1 = MemorySegment.ofArray(new byte[bytes]);
+    final UpdateSketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build(wseg1);
     for (int i = 0; i < k; i++) { sk.update(i); }
-    sk.compact(true, wmem1); //corrupt the wmem1 to be a compact sketch
+    sk.compact(true, wseg1); //corrupt the wseg1 to be a compact sketch
 
     final Union union = SetOperation.builder().buildUnion();
     union.union(sk); //update the union with the UpdateSketch object
@@ -285,13 +300,13 @@ public class UnionImplTest {
     assertEquals(csk.getEstimate(), 2.0);
     //println(csk.toString(true, true, 1, true));
 
-    final Memory[] memArr = new Memory[num];
+    final MemorySegment[] segArr = new MemorySegment[num];
     for (int i = 0; i < num; i++) {
-      memArr[i] = Memory.wrap(skArr[i].compact().toByteArray());
+      segArr[i] = MemorySegment.ofArray(skArr[i].compact().toByteArray());
     }
     union = new SetOperationBuilder().buildUnion();
     for (int i = 0; i < num; i++) {
-      union.union(memArr[i]);
+      union.union(segArr[i]);
     }
 
     csk = union.getResult();

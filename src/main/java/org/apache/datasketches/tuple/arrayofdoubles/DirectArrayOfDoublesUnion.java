@@ -19,73 +19,74 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
  * Direct Union operation for tuple sketches of type ArrayOfDoubles.
  *
- * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
- * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
+ * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  */
 class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
 
-  final WritableMemory mem_;
+  final MemorySegment seg_;
 
   /**
    * Creates an instance of DirectArrayOfDoublesUnion
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
-   * given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than given value.
    * @param numValues Number of double values to keep for each key.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @param dstMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param dstSeg the destination MemorySegment
    */
   DirectArrayOfDoublesUnion(final int nomEntries, final int numValues, final long seed,
-      final WritableMemory dstMem) {
+      final MemorySegment dstSeg) {
     super(new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed,
-        dstMem.writableRegion(PREAMBLE_SIZE_BYTES, dstMem.getCapacity() - PREAMBLE_SIZE_BYTES)));
-    mem_ = dstMem;
-    mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
-    mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
-    mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
-    mem_.putLong(THETA_LONG, gadget_.getThetaLong());
+        dstSeg.asSlice(PREAMBLE_SIZE_BYTES, dstSeg.byteSize() - PREAMBLE_SIZE_BYTES)));
+    seg_ = dstSeg;
+    seg_.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
+    seg_.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
+    seg_.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    seg_.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
+    seg_.set(JAVA_LONG_UNALIGNED, THETA_LONG, gadget_.getThetaLong());
   }
 
   //Called from wrapUnion below and extended by DirectArrayOfDoublesUnionR
-  DirectArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch gadget, final WritableMemory mem) {
+  DirectArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch gadget, final MemorySegment seg) {
     super(gadget);
-    mem_ = mem;
-    unionThetaLong_ = mem.getLong(THETA_LONG);
+    seg_ = seg;
+    unionThetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
   @Override
   void setUnionThetaLong(final long thetaLong) {
     super.setUnionThetaLong(thetaLong);
-    mem_.putLong(THETA_LONG, thetaLong);
+    seg_.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong);
   }
 
-  static ArrayOfDoublesUnion wrapUnion(final WritableMemory mem, final long seed, final boolean isWritable) {
-    final byte version = mem.getByte(ArrayOfDoublesUnion.SERIAL_VERSION_BYTE);
+  static ArrayOfDoublesUnion wrapUnion(final MemorySegment seg, final long seed, final boolean isWritable) {
+    final byte version = seg.get(JAVA_BYTE, ArrayOfDoublesUnion.SERIAL_VERSION_BYTE);
     if (version != ArrayOfDoublesUnion.serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: "
         + serialVersionUID + ", actual: " + version);
     }
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
+    SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE), seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(seg.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
 
     if (isWritable) {
-      final WritableMemory sketchMem = mem.writableRegion(PREAMBLE_SIZE_BYTES,
-          mem.getCapacity() - PREAMBLE_SIZE_BYTES);
-      return new DirectArrayOfDoublesUnion(new DirectArrayOfDoublesQuickSelectSketch(sketchMem, seed), mem);
+      final MemorySegment sketchSeg = seg.asSlice(PREAMBLE_SIZE_BYTES, seg.byteSize() - PREAMBLE_SIZE_BYTES);
+      return new DirectArrayOfDoublesUnion(new DirectArrayOfDoublesQuickSelectSketch(sketchSeg, seed), seg);
     }
-    final Memory sketchMem = mem.region(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES);
-    return new DirectArrayOfDoublesUnionR(new DirectArrayOfDoublesQuickSelectSketchR(sketchMem, seed), mem);
+    final MemorySegment sketchSeg = seg.asSlice(PREAMBLE_SIZE_BYTES, seg.byteSize() - PREAMBLE_SIZE_BYTES);
+    return new DirectArrayOfDoublesUnionR(new DirectArrayOfDoublesQuickSelectSketchR(sketchSeg, seed), seg);
   }
 
 }

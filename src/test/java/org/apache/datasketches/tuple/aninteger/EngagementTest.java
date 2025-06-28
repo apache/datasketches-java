@@ -28,6 +28,9 @@ import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Union;
+import org.apache.datasketches.tuple.aninteger.IntegerSketch;
+import org.apache.datasketches.tuple.aninteger.IntegerSummary;
+import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
 import org.testng.annotations.Test;
 
 /**

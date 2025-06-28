@@ -19,9 +19,12 @@
 
 package org.apache.datasketches.tuple;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Multipurpose serializer-deserializer for a collection of sketches defined by the enum.
@@ -77,12 +80,12 @@ public final class SerializerDeserializer {
   }
 
   /**
-   * Gets the sketch type byte from the given Memory image
-   * @param mem the given Memory image
+   * Gets the sketch type byte from the given MemorySegment image
+   * @param seg the given MemorySegment image
    * @return the SketchType
    */
-  public static SketchType getSketchType(final Memory mem) {
-    final byte sketchTypeByte = mem.getByte(TYPE_BYTE_OFFSET);
+  public static SketchType getSketchType(final MemorySegment seg) {
+    final byte sketchTypeByte = seg.get(JAVA_BYTE, TYPE_BYTE_OFFSET);
     return getSketchType(sketchTypeByte);
   }
 

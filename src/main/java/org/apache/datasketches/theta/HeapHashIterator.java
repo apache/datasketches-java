@@ -22,7 +22,7 @@ package org.apache.datasketches.theta;
 /**
  * @author Lee Rhodes
  */
-class HeapHashIterator implements HashIterator {
+final class HeapHashIterator implements HashIterator {
   private long[] cache;
   private long thetaLong;
   private int index;

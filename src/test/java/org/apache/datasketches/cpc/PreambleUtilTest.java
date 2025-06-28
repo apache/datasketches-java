@@ -54,17 +54,17 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.cpc.PreambleUtil.HiField;
 
 /**
  * @author Lee Rhodes
  */
 public class PreambleUtilTest {
-  static final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED) ;
+  static final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED) ;
 
   private static void checkFirst8(WritableMemory wmem, Format format, int lgK, int fiCol) {
     assertEquals(getFormat(wmem), format);

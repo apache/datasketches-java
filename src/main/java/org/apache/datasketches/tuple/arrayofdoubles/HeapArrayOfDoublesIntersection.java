@@ -35,8 +35,7 @@ final class HeapArrayOfDoublesIntersection extends ArrayOfDoublesIntersection {
   }
 
   @Override
-  protected ArrayOfDoublesQuickSelectSketch createSketch(final int nomEntries, final int numValues, 
-      final long seed) {
+  protected ArrayOfDoublesQuickSelectSketch createSketch(final int nomEntries, final int numValues, final long seed) {
     return new HeapArrayOfDoublesQuickSelectSketch(nomEntries, 0, 1f, numValues, seed);
   }
 

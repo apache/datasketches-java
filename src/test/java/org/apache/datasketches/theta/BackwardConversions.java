@@ -19,10 +19,17 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.EmptyCompactSketch;
+import org.apache.datasketches.theta.SingleItemSketch;
 
 /**
  * This class converts current compact sketches into prior SerVer 1 and SerVer 2 format for testing.
@@ -32,7 +39,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 public class BackwardConversions {
 
   /**
-   * Converts a SerVer3 ordered, heap CompactSketch to a SerVer1 ordered, SetSketch in Memory.
+   * Converts a SerVer3 ordered, heap CompactSketch to a SerVer1 ordered, SetSketch in MemorySegment.
    * This is exclusively for testing purposes.
    *
    * <p>V1 dates from roughly Aug 2014 to about May 2015.
@@ -75,36 +82,37 @@ public class BackwardConversions {
    * </ul>
    *
    * @param skV3 a SerVer3, ordered CompactSketch
-   * @return a SerVer1 SetSketch as Memory object.
+   * @return a SerVer1 SetSketch as MemorySegment object.
    */
-  public static Memory convertSerVer3toSerVer1(final CompactSketch skV3) {
+  public static MemorySegment convertSerVer3toSerVer1(final CompactSketch skV3) {
     //Check input sketch
-    final boolean validIn = skV3.isCompact() && skV3.isOrdered() && !skV3.hasMemory();
+    final boolean validIn = skV3.isCompact() && skV3.isOrdered() && !skV3.hasMemorySegment();
     if (!validIn) {
       throw new SketchesArgumentException("Invalid input sketch.");
     }
 
-    //Build V1 SetSketch in memory
+    //Build V1 SetSketch in MemorySegment
     final int curCount = skV3.getRetainedEntries(true);
-    final WritableMemory wmem = WritableMemory.allocate((3 + curCount) << 3);
+    final int bytes = (3 + curCount) << 3;
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);//Util.newHeapSegment(bytes);
     //Pre0
-    wmem.putByte(0, (byte) 3); //preLongs
-    wmem.putByte(1, (byte) 1); //SerVer
-    wmem.putByte(2, (byte) 3); //Compact (SetSketch)
-    wmem.putByte(6, (byte) 2); //Flags ReadOnly, LittleEndian
+    wseg.set(JAVA_BYTE, 0, (byte) 3); //preLongs
+    wseg.set(JAVA_BYTE, 1, (byte) 1); //SerVer
+    wseg.set(JAVA_BYTE, 2, (byte) 3); //Compact (SetSketch)
+    wseg.set(JAVA_BYTE, 6, (byte) 2); //Flags ReadOnly, LittleEndian
     //Pre1
-    wmem.putInt(8, curCount);
+    wseg.set(JAVA_INT_UNALIGNED, 8, curCount);
     //Pre2
-    wmem.putLong(16, skV3.getThetaLong());
+    wseg.set(JAVA_LONG_UNALIGNED, 16, skV3.getThetaLong());
     //Data
     if (curCount > 0) {
-      wmem.putLongArray(24, skV3.getCache(), 0, curCount);
+      MemorySegment.copy(skV3.getCache(), 0, wseg, JAVA_LONG_UNALIGNED, 24, curCount);
     }
-    return wmem;
+    return wseg;
   }
 
   /**
-   * Converts a SerVer3 ordered, heap CompactSketch to a SerVer2 ordered, SetSketch in Memory.
+   * Converts a SerVer3 ordered, heap CompactSketch to a SerVer2 ordered, SetSketch in MemorySegment.
    * This is exclusively for testing purposes.
    *
    * <p>V2 is short-lived and dates from roughly Mid May 2015 to about June 1st, 2015.
@@ -179,54 +187,54 @@ public class BackwardConversions {
    *
    * @param skV3 a SerVer3, ordered CompactSketch
    * @param seed used for checking the seed hash (if one exists).
-   * @return a SerVer2 SetSketch as Memory object.
+   * @return a SerVer2 SetSketch as MemorySegment object.
    */
-  public static Memory convertSerVer3toSerVer2(final CompactSketch skV3, final long seed) {
-    final short seedHash = ThetaUtil.computeSeedHash(seed);
-    WritableMemory wmem = null;
+  public static MemorySegment convertSerVer3toSerVer2(final CompactSketch skV3, final long seed) {
+    final short seedHash = Util.computeSeedHash(seed);
+    MemorySegment wseg = null;
 
     if (skV3 instanceof EmptyCompactSketch) {
-      wmem = WritableMemory.allocate(8);
-      wmem.putByte(0, (byte) 1); //preLongs
-      wmem.putByte(1, (byte) 2); //SerVer
-      wmem.putByte(2, (byte) 3); //SetSketch
+      wseg = MemorySegment.ofArray(new long[1]);
+      wseg.set(JAVA_BYTE, 0, (byte) 1); //preLongs
+      wseg.set(JAVA_BYTE, 1, (byte) 2); //SerVer
+      wseg.set(JAVA_BYTE, 2, (byte) 3); //SetSketch
       final byte flags = (byte) 0xE;  //NoRebuild, Empty, ReadOnly, LE
-      wmem.putByte(5, flags);
-      wmem.putShort(6, seedHash);
-      return wmem;
+      wseg.set(JAVA_BYTE, 5, flags);
+      wseg.set(JAVA_SHORT_UNALIGNED, 6, seedHash);
+      return wseg;
     }
     if (skV3 instanceof SingleItemSketch) {
       final SingleItemSketch sis = (SingleItemSketch) skV3;
-      wmem = WritableMemory.allocate(24);
-      wmem.putByte(0, (byte) 2); //preLongs
-      wmem.putByte(1, (byte) 2); //SerVer
-      wmem.putByte(2, (byte) 3); //SetSketch
+      wseg = MemorySegment.ofArray(new long[3]);
+      wseg.set(JAVA_BYTE, 0, (byte) 2); //preLongs
+      wseg.set(JAVA_BYTE, 1, (byte) 2); //SerVer
+      wseg.set(JAVA_BYTE, 2, (byte) 3); //SetSketch
       final byte flags = (byte) 0xA;  //NoRebuild, notEmpty, ReadOnly, LE
-      wmem.putByte(5, flags);
-      wmem.putShort(6, seedHash);
-      wmem.putInt(8, 1);
+      wseg.set(JAVA_BYTE, 5, flags);
+      wseg.set(JAVA_SHORT_UNALIGNED, 6, seedHash);
+      wseg.set(JAVA_INT_UNALIGNED, 8, 1);
       final long[] arr = sis.getCache();
-      wmem.putLong(16,  arr[0]);
-      return wmem;
+      wseg.set(JAVA_LONG_UNALIGNED, 16,  arr[0]);
+      return wseg;
     }
     //General CompactSketch
     final int preLongs = skV3.getCompactPreambleLongs();
     final int entries = skV3.getRetainedEntries(true);
     final boolean unordered = !(skV3.isOrdered());
     final byte flags = (byte) (0xA | (unordered ? 16 : 0)); //Unordered, NoRebuild, notEmpty, ReadOnly, LE
-    wmem = WritableMemory.allocate((preLongs + entries) << 3);
-    wmem.putByte(0, (byte) preLongs); //preLongs
-    wmem.putByte(1, (byte) 2); //SerVer
-    wmem.putByte(2, (byte) 3); //SetSketch
+    wseg = MemorySegment.ofArray(new byte[(preLongs + entries) << 3]);
+    wseg.set(JAVA_BYTE, 0, (byte) preLongs); //preLongs
+    wseg.set(JAVA_BYTE, 1, (byte) 2); //SerVer
+    wseg.set(JAVA_BYTE, 2, (byte) 3); //SetSketch
 
-    wmem.putByte(5, flags);
-    wmem.putShort(6, seedHash);
-    wmem.putInt(8, entries);
+    wseg.set(JAVA_BYTE, 5, flags);
+    wseg.set(JAVA_SHORT_UNALIGNED, 6, seedHash);
+    wseg.set(JAVA_INT_UNALIGNED, 8, entries);
     if (preLongs == 3) {
-      wmem.putLong(16, skV3.getThetaLong());
+      wseg.set(JAVA_LONG_UNALIGNED, 16, skV3.getThetaLong());
     }
     final long[] arr = skV3.getCache();
-    wmem.putLongArray(preLongs * 8L, arr, 0, entries);
-    return wmem;
+    MemorySegment.copy(arr, 0, wseg, JAVA_LONG_UNALIGNED, preLongs << 3, entries);
+    return wseg;
   }
 }

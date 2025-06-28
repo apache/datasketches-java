@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.theta.ConcurrentHeapQuickSelectSketchTest.waitForBgPropagationToComplete;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
@@ -27,37 +28,46 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.ConcurrentDirectQuickSelectSketch;
+import org.apache.datasketches.theta.ConcurrentHeapThetaBuffer;
+import org.apache.datasketches.theta.ConcurrentSharedThetaSketch;
+import org.apache.datasketches.theta.DirectQuickSelectSketch;
+import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.theta.ConcurrentHeapQuickSelectSketchTest.SharedLocal;
 import org.apache.datasketches.thetacommon.HashOperations;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
  * @author eshcar
  */
 public class ConcurrentDirectQuickSelectSketchTest {
-  private static final long SEED = ThetaUtil.DEFAULT_UPDATE_SEED;
+  private static final long SEED = Util.DEFAULT_UPDATE_SEED;
 
   @Test
   public void checkDirectCompactConversion() {
     int lgK = 9;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     assertTrue(sl.shared instanceof ConcurrentDirectQuickSelectSketch);
     assertTrue(sl.shared.compact().isCompact());
   }
 
   @Test
-  public void checkHeapifyMemoryEstimating() {
+  public void checkHeapifyMemorySegmentEstimating() {
     int lgK = 9;
     int k = 1 << lgK;
     int u = 2*k;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
 
     UpdateSketch shared = sl.shared; //off-heap
     UpdateSketch local = sl.local;
@@ -69,10 +79,10 @@ public class ConcurrentDirectQuickSelectSketchTest {
     assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
 
     //This sharedHeap is not linked to the concurrent local buffer
-    UpdateSketch sharedHeap = Sketches.heapifyUpdateSketch(sl.wmem);
+    UpdateSketch sharedHeap = Sketches.heapifyUpdateSketch(sl.wseg);
     assertEquals(sharedHeap.getClass().getSimpleName(), "HeapQuickSelectSketch");
 
-    checkMemoryDirectProxyMethods(local, shared);
+    checkMemorySegmentDirectProxyMethods(local, shared);
     checkOtherProxyMethods(local, shared);
     checkOtherProxyMethods(local, sharedHeap);
 
@@ -90,8 +100,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
   public void checkHeapifyByteArrayExact() {
     int lgK = 9;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -99,13 +109,13 @@ public class ConcurrentDirectQuickSelectSketchTest {
     waitForBgPropagationToComplete(shared);
 
     byte[]  serArr = shared.toByteArray();
-    Memory srcMem = Memory.wrap(serArr);
-    Sketch recoveredShared = Sketch.heapify(srcMem);
+    MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
+    Sketch recoveredShared = Sketch.heapify(srcSeg);
 
     //reconstruct to Native/Direct
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);
-    final WritableMemory wmem = WritableMemory.allocate(bytes);
-    shared = sl.bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wmem);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    shared = sl.bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wseg);
     UpdateSketch local2 = sl.bldr.buildLocal(shared);
 
     assertEquals(local2.getEstimate(), k, 0.0);
@@ -127,8 +137,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int k = 1 << lgK;
     int u = 2*k;
 
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -141,13 +151,13 @@ public class ConcurrentDirectQuickSelectSketchTest {
     assertEquals(local.isEstimationMode(), true);
 
     byte[]  serArr = shared.toByteArray();
-    Memory srcMem = Memory.wrap(serArr);
-    Sketch recoveredShared = Sketch.heapify(srcMem);
+    MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
+    Sketch recoveredShared = Sketch.heapify(srcSeg);
 
     //reconstruct to Native/Direct
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);
-    final WritableMemory wmem = WritableMemory.allocate(bytes);
-    shared = sl.bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wmem);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    shared = sl.bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wseg);
     UpdateSketch local2 = sl.bldr.buildLocal(shared);
 
     assertEquals(local2.getEstimate(), uskEst);
@@ -159,14 +169,14 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkWrapMemoryEst() {
+  public void checkWrapMemorySegmentEst() {
     int lgK = 9;
     int k = 1 << lgK;
     int u = 2*k;
     //boolean estimating = (u > k);
 
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -178,7 +188,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     double sk1ub  = local.getUpperBound(2);
     assertTrue(local.isEstimationMode());
 
-    Sketch local2 = Sketch.wrap(sl.wmem);
+    Sketch local2 = Sketch.wrap(sl.wseg);
 
     assertEquals(local2.getEstimate(), sk1est);
     assertEquals(local2.getLowerBound(2), sk1lb);
@@ -193,14 +203,14 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int k = 1 << lgK;
     int u = 4*k;
     //boolean estimating = (u > k);
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
     assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
     assertFalse(local.isDirect());
-    assertTrue(local.hasMemory());
+    assertTrue(local.hasMemorySegment());
 
     for (int i=0; i<u; i++) { local.update(i); }
     waitForBgPropagationToComplete(shared);
@@ -233,10 +243,10 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     int bytes = shared.getCompactBytes();
     assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
-    byte[] memArr2 = new byte[bytes];
-    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);
+    byte[] segArr2 = new byte[bytes];
+    MemorySegment seg2 = MemorySegment.ofArray(segArr2);
 
-    csk = shared.compact(false,  mem2);
+    csk = shared.compact(false,  seg2);
     assertEquals(csk.getEstimate(), localEst);
     assertEquals(csk.getLowerBound(2), localLB);
     assertEquals(csk.getUpperBound(2), localUB);
@@ -244,8 +254,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
     assertTrue(csk.isEstimationMode());
     assertEquals(csk.getClass().getSimpleName(), "DirectCompactSketch");
 
-    mem2.clear();
-    csk = shared.compact(true, mem2);
+    Util.clear(seg2);
+    csk = shared.compact(true, seg2);
     assertEquals(csk.getEstimate(), localEst);
     assertEquals(csk.getLowerBound(2), localLB);
     assertEquals(csk.getUpperBound(2), localUB);
@@ -258,8 +268,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
   @Test
   public void checkDQStoCompactEmptyForms() {
     int lgK = 9;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -273,17 +283,17 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     int bytes = local.getCompactBytes(); //compact form
     assertEquals(bytes, 8);
-    byte[] memArr2 = new byte[bytes];
-    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);
+    byte[] segArr2 = new byte[bytes];
+    MemorySegment seg2 = MemorySegment.ofArray(segArr2);
 
-    CompactSketch csk2 = shared.compact(false,  mem2);
+    CompactSketch csk2 = shared.compact(false,  seg2);
     assertEquals(csk2.getEstimate(), localEst);
     assertEquals(csk2.getLowerBound(2), localLB);
     assertEquals(csk2.getUpperBound(2), localUB);
     assertTrue(csk2.isEmpty());
     assertFalse(csk2.isEstimationMode());
     assertTrue(csk2.isOrdered());
-    CompactSketch csk3 = shared.compact(true, mem2);
+    CompactSketch csk3 = shared.compact(true, seg2);
     csk3.toString(false, true, 0, false);
     csk3.toString();
     assertEquals(csk3.getEstimate(), localEst);
@@ -298,8 +308,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
   public void checkEstMode() {
     int lgK = 12;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -315,8 +325,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
   public void checkErrorBounds() {
     int lgK = 9;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -350,8 +360,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int lgK = 9;
     int k = 1 << lgK;
     int u = 2*k;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -370,8 +380,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int lgK = 9;
     int k = 1 << lgK;
     int u = 4*k;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -396,8 +406,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
   public void checkResetAndStartingSubMultiple() {
     int lgK = 9;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -420,12 +430,12 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkExactModeMemoryArr() {
+  public void checkExactModeMemorySegmentArr() {
     int lgK = 12;
     int k = 1 << lgK;
     int u = k;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
     assertTrue(local.isEmpty());
@@ -438,11 +448,11 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkEstModeMemoryArr() {
+  public void checkEstModeMemorySegmentArr() {
     int lgK = 12;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
     assertTrue(local.isEmpty());
@@ -457,11 +467,11 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkEstModeNativeMemory() {
+  public void checkEstModeNativeMemorySegment() {
     int lgK = 12;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
     assertTrue(local.isEmpty());
@@ -475,11 +485,11 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkConstructReconstructFromMemory() {
+  public void checkConstructReconstructFromMemorySegment() {
     int lgK = 12;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
 
@@ -498,13 +508,13 @@ public class ConcurrentDirectQuickSelectSketchTest {
     double est2;
 
     serArr = shared.toByteArray();
-    WritableMemory mem = WritableMemory.writableWrap(serArr);
-    UpdateSketch recoveredShared = Sketches.wrapUpdateSketch(mem);
+    MemorySegment seg = MemorySegment.ofArray(serArr);
+    UpdateSketch recoveredShared = Sketches.wrapUpdateSketch(seg);
 
     //reconstruct to Native/Direct
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);
-    final WritableMemory wmem = WritableMemory.allocate(bytes);
-    shared = sl.bldr.buildSharedFromSketch(recoveredShared, wmem);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    shared = sl.bldr.buildSharedFromSketch(recoveredShared, wseg);
     UpdateSketch local2 = sl.bldr.buildLocal(shared);
     est2 = local2.getEstimate();
 
@@ -512,22 +522,22 @@ public class ConcurrentDirectQuickSelectSketchTest {
   }
 
   @Test
-  public void checkNullMemory() {
+  public void checkNullMemorySegment() {
     UpdateSketchBuilder bldr = new UpdateSketchBuilder();
     final UpdateSketch sk = bldr.build();
     for (int i = 0; i < 1000; i++) { sk.update(i); }
     final UpdateSketch shared = bldr.buildSharedFromSketch(sk, null);
     assertEquals(shared.getRetainedEntries(true), 1000);
-    assertFalse(shared.hasMemory());
+    assertFalse(shared.hasMemorySegment());
   }
 
   //checks Alex's bug where lgArrLongs > lgNomLongs +1.
   @Test
-  public void checkResizeInBigMem() {
+  public void checkResizeInBigSeg() {
     int lgK = 14;
     int u = 1 << 20;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, SEED, useMem, true, 8); //mem is 8X larger than needed
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, SEED, useSeg, true, 8); //seg is 8X larger than needed
     UpdateSketch local = sl.local;
 
     for (int i = 0; i < u; i++) { local.update(i); }
@@ -536,37 +546,37 @@ public class ConcurrentDirectQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int lgK = 3;
-    boolean useMem = true;
-    new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    new SharedLocal(lgK, lgK, useSeg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkConstructorMemTooSmall() {
+  public void checkConstructorSegTooSmall() {
     int lgK = 4;
     int k = 1 << lgK;
-    WritableMemory wmem = WritableMemory.allocate(k/2);
+    MemorySegment wseg = MemorySegment.ofArray(new byte[k/2]);
     UpdateSketchBuilder bldr = new UpdateSketchBuilder();
     bldr.setLogNominalEntries(lgK);
-    bldr.buildShared(wmem);
+    bldr.buildShared(wseg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyIllegalFamilyID_heapify() {
     int lgK = 9;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
-    sl.wmem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Family ID byte
-    //try to heapify the corrupted mem
-    Sketch.heapify(sl.wmem); //catch in Sketch.constructHeapSketch
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
+    sl.wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Family ID byte
+    //try to heapify the corrupted seg
+    Sketch.heapify(sl.wseg); //catch in Sketch.constructHeapSketch
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadLgNomLongs() {
     int lgK = 4;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
-    sl.wmem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.writableWrap(sl.wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
+    sl.wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
+    DirectQuickSelectSketch.writableWrap(sl.wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -574,8 +584,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int lgK = 4;
     int k = 1 << lgK;
     int u = 10*k;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
     assertTrue(local.isEmpty());
@@ -612,8 +622,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
   public void checkBadSerVer() {
     int lgK = 9;
     int k = 1 << lgK;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     UpdateSketch local = sl.local;
     assertTrue(local.isEmpty());
@@ -625,60 +635,60 @@ public class ConcurrentDirectQuickSelectSketchTest {
     assertEquals(local.getEstimate(), k, 0.0);
     assertEquals(shared.getRetainedEntries(false), k);
 
-    sl.wmem.putByte(SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
-    Sketch.wrap(sl.wmem);
+    sl.wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
+    Sketch.wrap(sl.wseg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapIllegalFamilyID_wrap() {
     int lgK = 9;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
 
-    sl.wmem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
-    //try to wrap the corrupted mem
-    Sketch.wrap(sl.wmem); //catch in Sketch.constructDirectSketch
+    sl.wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
+    //try to wrap the corrupted seg
+    Sketch.wrap(sl.wseg); //catch in Sketch.constructDirectSketch
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapIllegalFamilyID_direct() {
     int lgK = 9;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
 
-    sl.wmem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
-    //try to wrap the corrupted mem
-    DirectQuickSelectSketch.writableWrap(sl.wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    sl.wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
+    //try to wrap the corrupted seg
+    DirectQuickSelectSketch.writableWrap(sl.wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int lgK = 9;
     long seed1 = 1021;
-    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, seed1, useMem, true, 1);
+    long seed2 = Util.DEFAULT_UPDATE_SEED;
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, seed1, useSeg, true, 1);
     UpdateSketch shared = sl.shared;
 
-    Memory srcMem = Memory.wrap(shared.toByteArray());
-    Sketch.heapify(srcMem, seed2);
+    MemorySegment srcSeg = MemorySegment.ofArray(shared.toByteArray()).asReadOnly();
+    Sketch.heapify(srcSeg, seed2);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptLgNomLongs() {
     int lgK = 4;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
 
-    sl.wmem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(sl.wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
+    sl.wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
+    Sketch.heapify(sl.wseg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = UnsupportedOperationException.class)
   public void checkIllegalHashUpdate() {
     int lgK = 4;
-    boolean useMem = true;
-    SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
+    boolean useSeg = true;
+    SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     UpdateSketch shared = sl.shared;
     shared.hashUpdate(1);
   }
@@ -695,12 +705,14 @@ public class ConcurrentDirectQuickSelectSketchTest {
     //System.out.println(s); //disable here
   }
 
-  private static void checkMemoryDirectProxyMethods(Sketch local, Sketch shared) {
-    assertEquals(local.hasMemory(), shared.hasMemory());
+  private static void checkMemorySegmentDirectProxyMethods(Sketch local, Sketch shared) {
+    assertEquals(
+        local.hasMemorySegment(),
+        shared.hasMemorySegment());
     assertEquals(local.isDirect(), shared.isDirect());
   }
 
-  //Does not check hasMemory(), isDirect()
+  //Does not check hasMemorySegment(), isDirect()
   private static void checkOtherProxyMethods(Sketch local, Sketch shared) {
     assertEquals(local.getCompactBytes(), shared.getCompactBytes());
     assertEquals(local.getCurrentBytes(), shared.getCurrentBytes());

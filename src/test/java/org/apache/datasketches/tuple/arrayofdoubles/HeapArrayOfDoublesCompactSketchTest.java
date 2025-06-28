@@ -19,9 +19,15 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketches;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
+import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -80,7 +86,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
     us.update("c", new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
     ArrayOfDoublesSketch sketch2 =
-        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
+        ArrayOfDoublesSketches.heapifySketch(MemorySegment.ofArray(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 3.0);
@@ -102,14 +108,14 @@ public class HeapArrayOfDoublesCompactSketchTest {
     for (int i = 0; i < 8192; i++) {
       us.update(i, new double[] {1.0});
     }
-    WritableMemory wmem = WritableMemory.writableWrap(us.toByteArray());
-    ArrayOfDoublesUpdatableSketch wrappedUS = ArrayOfDoublesSketches.wrapUpdatableSketch(wmem);
+    MemorySegment wseg = MemorySegment.ofArray(us.toByteArray());
+    ArrayOfDoublesUpdatableSketch wrappedUS = ArrayOfDoublesSketches.wrapUpdatableSketch(wseg);
     Assert.assertFalse(wrappedUS.isEmpty());
     Assert.assertTrue(wrappedUS.isEstimationMode());
     Assert.assertEquals(wrappedUS.getEstimate(), us.getEstimate());
     Assert.assertEquals(wrappedUS.getThetaLong(), us.getThetaLong());
 
-    ArrayOfDoublesUpdatableSketch heapUS = ArrayOfDoublesSketches.heapifyUpdatableSketch(wmem);
+    ArrayOfDoublesUpdatableSketch heapUS = ArrayOfDoublesSketches.heapifyUpdatableSketch(wseg);
     Assert.assertFalse(heapUS.isEmpty());
     Assert.assertTrue(heapUS.isEstimationMode());
     Assert.assertEquals(heapUS.getEstimate(), us.getEstimate());
@@ -117,7 +123,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
 
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
     ArrayOfDoublesSketch sketch2 =
-        ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()));
+        ArrayOfDoublesSketches.heapifySketch(MemorySegment.ofArray(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
@@ -131,7 +137,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
       us.update(i, new double[] {1.0});
     }
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    Memory mem = Memory.wrap(sketch1.toByteArray());
-    ArrayOfDoublesSketches.heapifySketch(mem, 123);
+    MemorySegment seg = MemorySegment.ofArray(sketch1.toByteArray());
+    ArrayOfDoublesSketches.heapifySketch(seg, 123);
   }
 }

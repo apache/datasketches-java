@@ -22,12 +22,16 @@ package org.apache.datasketches.tuple.strings;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Union;
+import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
+import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
+import org.apache.datasketches.tuple.strings.ArrayOfStringsSummarySetOperations;
 import org.testng.annotations.Test;
 
 /**
@@ -48,8 +52,8 @@ public class ArrayOfStringsSketchTest {
     sketch1.update(strArrArr[0], strArrArr[0]); //insert duplicate
     printSummaries(sketch1.iterator());
     byte[] array = sketch1.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(array);
-    ArrayOfStringsSketch sketch2 = new ArrayOfStringsSketch(wmem);
+    MemorySegment wseg = MemorySegment.ofArray(array);
+    ArrayOfStringsSketch sketch2 = new ArrayOfStringsSketch(wseg);
     printSummaries(sketch2.iterator());
     checkSummaries(sketch2, sketch2);
 

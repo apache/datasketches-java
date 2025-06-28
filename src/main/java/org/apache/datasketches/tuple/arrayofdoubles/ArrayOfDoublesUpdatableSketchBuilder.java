@@ -19,9 +19,11 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -47,7 +49,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     numValues_ = DEFAULT_NUMBER_OF_VALUES;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
-    seed_ = ThetaUtil.DEFAULT_UPDATE_SEED;
+    seed_ = Util.DEFAULT_UPDATE_SEED;
   }
 
   /**
@@ -119,12 +121,12 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
 
   /**
    * Returns an ArrayOfDoublesUpdatableSketch with the current configuration of this Builder.
-   * @param dstMem instance of Memory to be used by the sketch
+   * @param dstSeg instance of MemorySegment to be used by the sketch
    * @return an ArrayOfDoublesUpdatableSketch
    */
-  public ArrayOfDoublesUpdatableSketch build(final WritableMemory dstMem) {
+  public ArrayOfDoublesUpdatableSketch build(final MemorySegment dstSeg) {
     return new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(),
-        samplingProbability_, numValues_, seed_, dstMem);
+        samplingProbability_, numValues_, seed_, dstSeg);
   }
 
 }

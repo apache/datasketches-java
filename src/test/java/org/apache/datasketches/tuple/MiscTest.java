@@ -23,9 +23,12 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.Util;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
-import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
+import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.annotations.Test;
 
 /**

@@ -27,6 +27,7 @@ import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.Intersection;
 import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets;
 import org.testng.annotations.Test;
 
 public class BoundsOnRatiosInThetaSketchedSetsTest {

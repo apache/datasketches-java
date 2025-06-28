@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.theta;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
 import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
@@ -35,8 +36,10 @@ import static org.apache.datasketches.theta.PreambleUtil.insertSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -92,7 +95,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
   @Override
   short getSeedHash() {
-    return ThetaUtil.computeSeedHash(getSeed());
+    return Util.computeSeedHash(getSeed());
   }
 
   //Used by HeapAlphaSketch and HeapQuickSelectSketch / Theta UpdateSketch
@@ -102,33 +105,35 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final int preBytes = (preLongs << 3) & 0X3F; //24 bytes
     final int dataBytes = getCurrentDataLongs() << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
-    final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
+
+    final MemorySegment segOut = MemorySegment.ofArray(byteArrOut);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
     final int lgRf = getResizeFactor().lg() & 0x3;
-    insertPreLongs(memOut, preLongs);          //byte 0 low  6 bits
-    insertLgResizeFactor(memOut, lgRf);        //byte 0 high 2 bits
-    insertSerVer(memOut, SER_VER);             //byte 1
-    insertFamilyID(memOut, familyID);          //byte 2
-    insertLgNomLongs(memOut, getLgNomLongs()); //byte 3
-    insertLgArrLongs(memOut, getLgArrLongs()); //byte 4
-    insertSeedHash(memOut, getSeedHash());     //bytes 6 & 7
+    insertPreLongs(segOut, preLongs);          //byte 0 low  6 bits
+    insertLgResizeFactor(segOut, lgRf);        //byte 0 high 2 bits
+    insertSerVer(segOut, SER_VER);             //byte 1
+    insertFamilyID(segOut, familyID);          //byte 2
+    insertLgNomLongs(segOut, getLgNomLongs()); //byte 3
+    insertLgArrLongs(segOut, getLgArrLongs()); //byte 4
+    insertSeedHash(segOut, getSeedHash());     //bytes 6 & 7
 
-    insertCurCount(memOut, this.getRetainedEntries(true));
-    insertP(memOut, getP());
+    insertCurCount(segOut, this.getRetainedEntries(true));
+    insertP(segOut, getP());
     final long thetaLong =
         correctThetaOnCompact(isEmpty(), getRetainedEntries(true), getThetaLong());
-    insertThetaLong(memOut, thetaLong);
+    insertThetaLong(segOut, thetaLong);
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0
     final byte flags = isEmpty() ? (byte) EMPTY_FLAG_MASK : 0;
-    insertFlags(memOut, flags);
+    insertFlags(segOut, flags);
 
     //Data
     final int arrLongs = 1 << getLgArrLongs();
     final long[] cache = getCache();
-    memOut.putLongArray(preBytes, cache, 0, arrLongs); //load byteArrOut
+    //segOut.putLongArray(preBytes, cache, 0, arrLongs); //load byteArrOut
 
+    MemorySegment.copy(cache, 0, segOut, JAVA_LONG_UNALIGNED, preBytes, arrLongs);
     return byteArrOut;
   }
 

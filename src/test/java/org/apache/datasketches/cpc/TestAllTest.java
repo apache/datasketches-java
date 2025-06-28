@@ -25,7 +25,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
-import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 /**
@@ -89,7 +89,7 @@ public class TestAllTest {
 
     CompressedState state = CompressedState.compress(srcSketch);
     ps.println(CompressedState.toString(state, true));
-    CpcSketch uncSketch = CpcSketch.uncompress(state, ThetaUtil.DEFAULT_UPDATE_SEED);
+    CpcSketch uncSketch = CpcSketch.uncompress(state, Util.DEFAULT_UPDATE_SEED);
     ps.println(uncSketch.toString(true));
   }
 

@@ -21,9 +21,10 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.thetacommon.QuickSelect;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -85,7 +86,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   abstract int getSerializedSizeBytes();
 
-  abstract void serializeInto(WritableMemory mem);
+  abstract void serializeInto(MemorySegment seg);
 
   @Override
   public void trim() {

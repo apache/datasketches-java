@@ -25,19 +25,20 @@ import static org.apache.datasketches.thetacommon.HashOperations.checkThetaCorru
 import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
 import static org.apache.datasketches.thetacommon.HashOperations.hashArrayInsert;
 import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
-import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnlyMemory;
+import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnlyMemorySegment;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
-import static org.apache.datasketches.thetacommon.HashOperations.hashSearchMemory;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearchMemorySegment;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsert;
-import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsertMemory;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsertMemorySegment;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class HashOperationsTest {
@@ -105,20 +106,20 @@ public class HashOperationsTest {
   }
 
   @Test
-  public void testHashInsertOnlyMemoryNoStride() {
+  public void testHashInsertOnlyMemorySegmentNoStride() {
     final long[] table = new long[32];
-    final WritableMemory mem = WritableMemory.writableWrap(table);
-    final int index = hashInsertOnlyMemory(mem, 5, 1, 0);
+    final MemorySegment seg = MemorySegment.ofArray(table);
+    final int index = hashInsertOnlyMemorySegment(seg, 5, 1, 0);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
   }
 
   @Test
-  public void testHashInsertOnlyMemoryWithStride() {
+  public void testHashInsertOnlyMemorySegmentWithStride() {
     final long[] table = new long[32];
     table[1] = 1;
-    final WritableMemory mem = WritableMemory.writableWrap(table);
-    final int index = hashInsertOnlyMemory(mem, 5, 1, 0);
+    final MemorySegment seg = MemorySegment.ofArray(table);
+    final int index = hashInsertOnlyMemorySegment(seg, 5, 1, 0);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);
   }
@@ -152,24 +153,24 @@ public class HashOperationsTest {
   @Test
   public void checkFullDirectTableCatchesInfiniteLoop() {
     final long[] table = new long[32];
-    final WritableMemory mem = WritableMemory.writableWrap(table);
+    final MemorySegment seg = MemorySegment.ofArray(table);
     for (int i = 1; i <= 32; ++i) {
-      hashInsertOnlyMemory(mem, 5, i, 0);
+      hashInsertOnlyMemorySegment(seg, 5, i, 0);
     }
 
     // table full; search returns not found, others throw exception
-    final int retVal = hashSearchMemory(mem, 5, 33, 0);
+    final int retVal = hashSearchMemorySegment(seg, 5, 33, 0);
     assertEquals(retVal, -1);
 
     try {
-      hashInsertOnlyMemory(mem, 5, 33, 0);
+      hashInsertOnlyMemorySegment(seg, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
-      hashSearchOrInsertMemory(mem, 5, 33, 0);
+      hashSearchOrInsertMemorySegment(seg, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -179,22 +180,22 @@ public class HashOperationsTest {
   @Test
   public void checkFullFastDirectTableCatchesInfiniteLoop() {
     final long[] table = new long[32];
-    final WritableMemory wmem = WritableMemory.writableWrap(table);
+    final MemorySegment wseg = MemorySegment.ofArray(table);
 
     for (int i = 1; i <= 32; ++i) {
-      hashInsertOnlyMemory(wmem, 5, i, 0);
+      hashInsertOnlyMemorySegment(wseg, 5, i, 0);
     }
 
     // table full; throws exception
     try {
-      hashInsertOnlyMemory(wmem, 5, 33, 0);
+      hashInsertOnlyMemorySegment(wseg, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
-      hashSearchOrInsertMemory(wmem, 5, 33, 0);
+      hashSearchOrInsertMemorySegment(wseg, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected

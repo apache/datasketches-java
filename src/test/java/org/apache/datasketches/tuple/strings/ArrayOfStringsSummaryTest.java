@@ -23,10 +23,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
+
 import org.testng.annotations.Test;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.DeserializeResult;
+import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
+import org.apache.datasketches.tuple.strings.ArrayOfStringsSummaryDeserializer;
 
 /**
  * @author Lee Rhodes
@@ -41,15 +44,15 @@ public class ArrayOfStringsSummaryTest {
     assertTrue(copy.equals(nsum));
     byte[] out = nsum.toByteArray();
 
-    Memory mem = Memory.wrap(out);
-    ArrayOfStringsSummary nsum2 = new ArrayOfStringsSummary(mem);
+    MemorySegment seg = MemorySegment.ofArray(out);
+    ArrayOfStringsSummary nsum2 = new ArrayOfStringsSummary(seg);
     String[] nodesArr = nsum2.getValue();
     for (String s : nodesArr) {
       println(s);
     }
 
-    println("\nfromMemory(mem)");
-    DeserializeResult<ArrayOfStringsSummary> dres = ArrayOfStringsSummaryDeserializer.fromMemory(mem);
+    println("\nfromMemorySegment(seg)");
+    DeserializeResult<ArrayOfStringsSummary> dres = ArrayOfStringsSummaryDeserializer.fromMemorySegment(seg);
     ArrayOfStringsSummary nsum3 = dres.getObject();
     nodesArr = nsum3.getValue();
     for (String s : nodesArr) {
@@ -64,8 +67,8 @@ public class ArrayOfStringsSummaryTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInBytes() {
-    Memory mem = Memory.wrap(new byte[100]);
-    ArrayOfStringsSummary.checkInBytes(mem, 200);
+    MemorySegment seg = MemorySegment.ofArray(new byte[100]);
+    ArrayOfStringsSummary.checkInBytes(seg, 200);
   }
 
   @SuppressWarnings("unlikely-arg-type")

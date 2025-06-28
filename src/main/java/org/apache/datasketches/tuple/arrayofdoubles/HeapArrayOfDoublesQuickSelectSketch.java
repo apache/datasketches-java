@@ -19,17 +19,24 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+import static org.apache.datasketches.common.Util.checkSeedHashes;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
@@ -79,40 +86,41 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
 
   /**
    * This is to create an instance given a serialized form
-   * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seg the source MemorySegment
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  HeapArrayOfDoublesQuickSelectSketch(final Memory mem, final long seed) {
-    super(mem.getByte(NUM_VALUES_BYTE), seed);
-    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE),
-        mem.getByte(PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
+  HeapArrayOfDoublesQuickSelectSketch(final MemorySegment seg, final long seed) {
+    super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE), seed);
+    SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),
+        seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(seg.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch);
-    final byte version = mem.getByte(SERIAL_VERSION_BYTE);
+    final byte version = seg.get(JAVA_BYTE, SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: "
         + serialVersionUID + ", actual: " + version);
     }
-    final byte flags = mem.getByte(FLAGS_BYTE);
+    final byte flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
     final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-    lgNomEntries_ = mem.getByte(LG_NOM_ENTRIES_BYTE);
-    thetaLong_ = mem.getLong(THETA_LONG);
-    final int currentCapacity = 1 << mem.getByte(LG_CUR_CAPACITY_BYTE);
-    lgResizeFactor_ = mem.getByte(LG_RESIZE_FACTOR_BYTE);
-    samplingProbability_ = mem.getFloat(SAMPLING_P_FLOAT);
+    lgNomEntries_ = seg.get(JAVA_BYTE, LG_NOM_ENTRIES_BYTE);
+    thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
+    final int currentCapacity = 1 << seg.get(JAVA_BYTE, LG_CUR_CAPACITY_BYTE);
+    lgResizeFactor_ = seg.get(JAVA_BYTE, LG_RESIZE_FACTOR_BYTE);
+    samplingProbability_ = seg.get(JAVA_FLOAT_UNALIGNED, SAMPLING_P_FLOAT);
     keys_ = new long[currentCapacity];
     values_ = new double[currentCapacity * numValues_];
     final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
-    count_ = hasEntries ? mem.getInt(RETAINED_ENTRIES_INT) : 0;
+    count_ = hasEntries ? seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT) : 0;
     if (count_ > 0) {
-      mem.getLongArray(ENTRIES_START, keys_, 0, currentCapacity);
-      mem.getDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * currentCapacity), values_, 0,
-          currentCapacity * numValues_);
+      MemorySegment.copy(seg, JAVA_LONG_UNALIGNED, ENTRIES_START, keys_, 0, currentCapacity);
+      final long off = ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * currentCapacity);
+      MemorySegment.copy(seg, JAVA_DOUBLE_UNALIGNED, off, values_, 0, currentCapacity * numValues_);
+
     }
     setRebuildThreshold();
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(currentCapacity);
@@ -191,8 +199,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   @Override
   public byte[] toByteArray() {
     final byte[] byteArray = new byte[getSerializedSizeBytes()];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
-    serializeInto(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
+    serializeInto(seg);
     return byteArray;
   }
 
@@ -224,38 +232,39 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   //      ||                            Values Array doubles * values[] Length                    |
 
   @Override
-  void serializeInto(final WritableMemory mem) {
-    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);
-    mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
-    mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
-    mem.putByte(SKETCH_TYPE_BYTE,
+  void serializeInto(final MemorySegment seg) {
+    seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1);
+    seg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
+    seg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    seg.set(JAVA_BYTE, SKETCH_TYPE_BYTE,
         (byte) SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
     final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
-    mem.putByte(FLAGS_BYTE, (byte)(
+    seg.set(JAVA_BYTE, FLAGS_BYTE, (byte)(
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
       | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
       | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
-    mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
-    mem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed_));
-    mem.putLong(THETA_LONG, thetaLong_);
-    mem.putByte(LG_NOM_ENTRIES_BYTE, (byte) lgNomEntries_);
-    mem.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(keys_.length));
-    mem.putByte(LG_RESIZE_FACTOR_BYTE, (byte) lgResizeFactor_);
-    mem.putFloat(SAMPLING_P_FLOAT, samplingProbability_);
-    mem.putInt(RETAINED_ENTRIES_INT, count_);
+    seg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
+    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, computeSeedHash(seed_));
+    seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
+    seg.set(JAVA_BYTE, LG_NOM_ENTRIES_BYTE, (byte) lgNomEntries_);
+    seg.set(JAVA_BYTE, LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(keys_.length));
+    seg.set(JAVA_BYTE, LG_RESIZE_FACTOR_BYTE, (byte) lgResizeFactor_);
+    seg.set(JAVA_FLOAT_UNALIGNED, SAMPLING_P_FLOAT, samplingProbability_);
+    seg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, count_);
     if (count_ > 0) {
-      mem.putLongArray(ENTRIES_START, keys_, 0, keys_.length);
-      mem.putDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * keys_.length), values_, 0, values_.length);
+      MemorySegment.copy(keys_, 0, seg, JAVA_LONG_UNALIGNED, ENTRIES_START, keys_.length);
+      final long off = ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * keys_.length);
+      MemorySegment.copy(values_, 0, seg, JAVA_DOUBLE_UNALIGNED, off, values_.length);
     }
   }
 
   @Override
-  public boolean hasMemory() { return false; }
+  public boolean hasMemorySegment() { return false; }
 
   @Override
-  Memory getMemory() { return null; }
+  MemorySegment getMemorySegment() { return null; }
 
   @Override
   public void reset() {

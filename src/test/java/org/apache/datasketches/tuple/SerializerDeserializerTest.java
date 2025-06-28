@@ -19,9 +19,13 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.common.Util.computeSeedHash;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -31,21 +35,15 @@ public class SerializerDeserializerTest {
   public void validSketchType() {
     byte[] bytes = new byte[4];
     bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal();
-    Assert.assertEquals(SerializerDeserializer.getSketchType(Memory.wrap(bytes)), SerializerDeserializer.SketchType.CompactSketch);
+    Assert.assertEquals(SerializerDeserializer.getSketchType(MemorySegment.ofArray(bytes)), SerializerDeserializer.SketchType.CompactSketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidSketchType() {
     byte[] bytes = new byte[4];
     bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = 33;
-    SerializerDeserializer.getSketchType(Memory.wrap(bytes));
+    SerializerDeserializer.getSketchType(MemorySegment.ofArray(bytes));
   }
-
-//  @Test(expectedExceptions = SketchesArgumentException.class)
-//  public void deserializeFromMemoryUsupportedClass() {
-//    Memory mem = null;
-//    SerializerDeserializer.deserializeFromMemory(mem, 0, "bogus");
-//  }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void validateFamilyNotTuple() {
@@ -59,6 +57,6 @@ public class SerializerDeserializerTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHash() {
-    org.apache.datasketches.tuple.Util.computeSeedHash(50541);
+    computeSeedHash(50541);
   }
 }
