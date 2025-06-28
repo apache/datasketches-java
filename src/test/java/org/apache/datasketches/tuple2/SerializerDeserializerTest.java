@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple2;
 
+import static org.apache.datasketches.common.Util.computeSeedHash;
+
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
@@ -54,6 +56,6 @@ public class SerializerDeserializerTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSeedHash() {
-    org.apache.datasketches.common.Util.computeSeedHash(50541);
+    computeSeedHash(50541);
   }
 }
