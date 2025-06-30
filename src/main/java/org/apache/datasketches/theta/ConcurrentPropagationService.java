@@ -41,7 +41,6 @@ final class ConcurrentPropagationService {
   }
 
   //Factory: Get the singleton
-  @SuppressFBWarnings(value = "SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA", justification = "Fix later")
   private static ConcurrentPropagationService getInstance() {
     if (instance == null) {
       synchronized (ConcurrentPropagationService.class) {
