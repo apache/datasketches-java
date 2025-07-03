@@ -44,10 +44,10 @@ import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -118,8 +118,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     //not compact
     final byte lgArrLongs = wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE);
     final int preLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int lengthBytes = (preLongs + (1 << lgArrLongs)) << 3;
-    return lengthBytes;
+    return (preLongs + (1 << lgArrLongs)) << 3;
   }
 
   @Override
@@ -147,11 +146,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return wseg_ != null && wseg_.scope().isAlive();
+    return (wseg_ != null) && wseg_.scope().isAlive();
   }
 
   @Override
-  public boolean isDirect() {
+  public boolean isOffHeap() {
     return hasMemorySegment() && wseg_.isNative();
   }
 
@@ -162,7 +161,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return hasMemorySegment() && Util.isSameResource(wseg_, that);
+    return hasMemorySegment() && MemorySegmentStatus.isSameResource(wseg_, that);
   }
 
   @Override

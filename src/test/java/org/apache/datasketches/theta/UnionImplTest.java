@@ -21,7 +21,6 @@ package org.apache.datasketches.theta;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
-import static org.apache.datasketches.common.Util.isSameResource;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.testng.Assert.assertEquals;
@@ -32,6 +31,8 @@ import java.lang.foreign.Arena;
 import java.nio.ByteOrder;
 
 import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.theta.CompactSketch;
@@ -222,8 +223,8 @@ public class UnionImplTest {
 
       final MemorySegment uWsegHeap = MemorySegment.ofArray(new byte[bytes / 2]);
       final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
-      assertFalse(isSameResource(uWseg, uWsegHeap));  //obviously not
-      assertFalse(isSameResource(uWsegHeap, union.getMemorySegment())); //tgt moved
+      assertFalse(MemorySegmentStatus.isSameResource(uWseg, uWsegHeap));  //obviously not
+      assertFalse(MemorySegmentStatus.isSameResource(uWsegHeap, union.getMemorySegment())); //tgt moved
     }
     assertFalse(skWseg.scope().isAlive()); //closed as part of the same Arena
     assertFalse(uWseg.scope().isAlive()); //closed as part of the same Arena

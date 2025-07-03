@@ -154,8 +154,8 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   }
 
   @Override
-  public boolean isDirect() {
-    return shared.isDirect();
+  public boolean isOffHeap() {
+    return shared.isOffHeap();
   }
 
   @Override

@@ -62,6 +62,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -186,12 +187,10 @@ final class IntersectionImpl extends Intersection {
     impl.curCount_ = extractCurCount(srcSeg);
     impl.thetaLong_ = extractThetaLong(srcSeg);
     impl.empty_ = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) > 0;
-    if (!impl.empty_) {
-      if (impl.curCount_ > 0) {
+    if (!impl.empty_ && (impl.curCount_ > 0)) {
         impl.hashTable_ = new long[1 << impl.lgArrLongs_];
         MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, CONST_PREAMBLE_LONGS << 3, impl.hashTable_, 0, 1 << impl.lgArrLongs_);
       }
-    }
     return impl;
   }
 
@@ -219,7 +218,7 @@ final class IntersectionImpl extends Intersection {
 
   @Override
   public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered, final MemorySegment dstSeg) {
-    if (wseg_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
+    if ((wseg_ != null) && readOnly_) { throw new SketchesReadOnlyException(); }
     hardReset();
     intersect(a);
     intersect(b);
@@ -233,7 +232,7 @@ final class IntersectionImpl extends Intersection {
     if (sketchIn == null) {
       throw new SketchesArgumentException("Intersection argument must not be null.");
     }
-    if (wseg_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
+    if ((wseg_ != null) && readOnly_) { throw new SketchesReadOnlyException(); }
     if (empty_ || sketchIn.isEmpty()) { //empty rule
       //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make our local empty.
@@ -262,14 +261,14 @@ final class IntersectionImpl extends Intersection {
     final int sketchInEntries = sketchIn.getRetainedEntries(true);
 
     //states 1,2,3,6
-    if (curCount_ == 0 || sketchInEntries == 0) {
+    if ((curCount_ == 0) || (sketchInEntries == 0)) {
       curCount_ = 0;
       if (wseg_ != null) { insertCurCount(wseg_, 0); }
       hashTable_ = null; //No need for a HT. Don't bother clearing seg if valid
     } //end of states 1,2,3,6
 
     // state 5
-    else if (curCount_ < 0 && sketchInEntries > 0) {
+    else if ((curCount_ < 0) && (sketchInEntries > 0)) {
       curCount_ = sketchIn.getRetainedEntries(true);
       final int requiredLgArrLongs = minLgHashTableSize(curCount_, ThetaUtil.REBUILD_THRESHOLD);
       final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
@@ -295,7 +294,7 @@ final class IntersectionImpl extends Intersection {
     } //end of state 5
 
     //state 7
-    else if (curCount_ > 0 && sketchInEntries > 0) {
+    else if ((curCount_ > 0) && (sketchInEntries > 0)) {
       //Sets resulting hashTable, curCount and adjusts lgArrLongs
       performIntersect(sketchIn);
     } //end of state 7
@@ -344,7 +343,7 @@ final class IntersectionImpl extends Intersection {
 
   @Override
   public boolean hasMemorySegment() {
-    return wseg_ != null && wseg_.scope().isAlive();
+    return (wseg_ != null) && wseg_.scope().isAlive();
   }
 
   @Override
@@ -353,13 +352,13 @@ final class IntersectionImpl extends Intersection {
   }
 
   @Override
-  public boolean isDirect() {
+  public boolean isOffHeap() {
     return hasMemorySegment() && wseg_.isNative();
   }
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return hasMemorySegment() && Util.isSameResource(wseg_, that);
+    return hasMemorySegment() && MemorySegmentStatus.isSameResource(wseg_, that);
   }
 
   @Override
@@ -439,7 +438,7 @@ final class IntersectionImpl extends Intersection {
 
   private void performIntersect(final Sketch sketchIn) {
     // curCount and input data are nonzero, match against HT
-    assert curCount_ > 0 && !empty_;
+    assert (curCount_ > 0) && !empty_;
     final long[] hashTable;
     if (wseg_ != null) {
       final int htLen = 1 << lgArrLongs_;
@@ -461,9 +460,7 @@ final class IntersectionImpl extends Intersection {
         if (foundIdx != -1) {
           matchSet[matchSetCount++] = hashIn;
         }
-      } else {
-        if (isOrdered) { break; } // early stop
-      }
+      } else if (isOrdered) { break; } // early stop
     }
     //reduce effective array size to minimum
     curCount_ = matchSetCount;
@@ -478,11 +475,9 @@ final class IntersectionImpl extends Intersection {
 
     if (curCount_ > 0) {
       moveDataToTgt(matchSet, matchSetCount); //move matchSet to target
-    } else {
-      if (thetaLong_ == Long.MAX_VALUE) {
+    } else if (thetaLong_ == Long.MAX_VALUE) {
         empty_ = true;
       }
-    }
   }
 
   private void moveDataToTgt(final long[] arr, final int count) {

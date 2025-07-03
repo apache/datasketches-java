@@ -58,15 +58,15 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 public class HeapQuickSelectSketchTest {
-  private Family fam_ = QUICKSELECT;
+  private final Family fam_ = QUICKSELECT;
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
-    int k = 512;
-    int u = k;
-    long seed = Util.DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
-    HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
+    final int k = 512;
+    final int u = k;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
+    final HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
 
@@ -78,8 +78,8 @@ public class HeapQuickSelectSketchTest {
     assertEquals(usk.getEstimate(), u, 0.0);
     assertEquals(sk1.getRetainedEntries(false), u);
 
-    byte[] byteArray = usk.toByteArray();
-    MemorySegment seg = MemorySegment.ofArray(byteArray);
+    final byte[] byteArray = usk.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
 
     Sketch.heapify(seg, seed);
@@ -87,11 +87,11 @@ public class HeapQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSketchID_UpdateSketch() {
-    int k = 512;
-    int u = k;
-    long seed = Util.DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
-    HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
+    final int k = 512;
+    final int u = k;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
+    final HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
     for (int i = 0; i< u; i++) {
@@ -101,8 +101,8 @@ public class HeapQuickSelectSketchTest {
     assertFalse(usk.isEmpty());
     assertEquals(usk.getEstimate(), u, 0.0);
     assertEquals(sk1.getRetainedEntries(false), u);
-    byte[] byteArray = usk.toByteArray();
-    MemorySegment seg = MemorySegment.ofArray(byteArray);
+    final byte[] byteArray = usk.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to heapify the corrupted seg
@@ -111,40 +111,40 @@ public class HeapQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
-    int k = 512;
-    long seed1 = 1021;
-    long seed2 = Util.DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed1).setNominalEntries(k).build();
-    byte[] byteArray = usk.toByteArray();
-    MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
+    final int k = 512;
+    final long seed1 = 1021;
+    final long seed2 = Util.DEFAULT_UPDATE_SEED;
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed1).setNominalEntries(k).build();
+    final byte[] byteArray = usk.toByteArray();
+    final MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
     Sketch.heapify(srcSeg, seed2);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyCorruptLgNomLongs() {
-    UpdateSketch usk = UpdateSketch.builder().setNominalEntries(16).build();
-    MemorySegment srcSeg = MemorySegment.ofArray(usk.toByteArray());
+    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(16).build();
+    final MemorySegment srcSeg = MemorySegment.ofArray(usk.toByteArray());
     srcSeg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
     Sketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
   public void checkHeapifyByteArrayExact() {
-    int k = 512;
-    int u = k;
-    long seed = Util.DEFAULT_UPDATE_SEED;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
+    final int k = 512;
+    final int u = k;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) {
       usk.update(i);
     }
 
-    int bytes = usk.getCurrentBytes();
-    byte[] byteArray = usk.toByteArray();
+    final int bytes = usk.getCurrentBytes();
+    final byte[] byteArray = usk.toByteArray();
     assertEquals(bytes, byteArray.length);
 
-    MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    UpdateSketch usk2 = Sketches.heapifyUpdateSketch(srcSeg, seed);
+    final MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
+    final UpdateSketch usk2 = Sketches.heapifyUpdateSketch(srcSeg, seed);
     assertEquals(usk2.getEstimate(), u, 0.0);
     assertEquals(usk2.getLowerBound(2), u, 0.0);
     assertEquals(usk2.getUpperBound(2), u, 0.0);
@@ -157,24 +157,24 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkHeapifyByteArrayEstimating() {
-    int k = 4096;
-    int u = 2*k;
-    long seed = Util.DEFAULT_UPDATE_SEED;
+    final int k = 4096;
+    final int u = 2*k;
+    final long seed = Util.DEFAULT_UPDATE_SEED;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) {
       usk.update(i);
     }
 
-    double uskEst = usk.getEstimate();
-    double uskLB  = usk.getLowerBound(2);
-    double uskUB  = usk.getUpperBound(2);
+    final double uskEst = usk.getEstimate();
+    final double uskLB  = usk.getLowerBound(2);
+    final double uskUB  = usk.getUpperBound(2);
     assertEquals(usk.isEstimationMode(), true);
-    byte[] byteArray = usk.toByteArray();
+    final byte[] byteArray = usk.toByteArray();
 
-    MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    UpdateSketch usk2 = UpdateSketch.heapify(srcSeg, seed);
+    final MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
+    final UpdateSketch usk2 = UpdateSketch.heapify(srcSeg, seed);
     assertEquals(usk2.getEstimate(), uskEst);
     assertEquals(usk2.getLowerBound(2), uskLB);
     assertEquals(usk2.getUpperBound(2), uskUB);
@@ -186,24 +186,24 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkHeapifyMemorySegmentEstimating() {
-    int k = 512;
-    int u = 2*k; //thus estimating
-    long seed = Util.DEFAULT_UPDATE_SEED;
-    UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
+    final int k = 512;
+    final int u = 2*k; //thus estimating
+    final long seed = Util.DEFAULT_UPDATE_SEED;
+    final UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) {
       sk1.update(i);
     }
 
-    double sk1est = sk1.getEstimate();
-    double sk1lb  = sk1.getLowerBound(2);
-    double sk1ub  = sk1.getUpperBound(2);
+    final double sk1est = sk1.getEstimate();
+    final double sk1lb  = sk1.getLowerBound(2);
+    final double sk1ub  = sk1.getUpperBound(2);
     assertTrue(sk1.isEstimationMode());
 
-    byte[] byteArray = sk1.toByteArray();
-    MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
+    final byte[] byteArray = sk1.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
 
-    UpdateSketch sk2 = UpdateSketch.heapify(seg, Util.DEFAULT_UPDATE_SEED);
+    final UpdateSketch sk2 = UpdateSketch.heapify(seg, Util.DEFAULT_UPDATE_SEED);
 
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
@@ -215,17 +215,17 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkHQStoCompactForms() {
-    int k = 512;
-    int u = 4*k; //thus estimating
+    final int k = 512;
+    final int u = 4*k; //thus estimating
 
     //boolean compact = false;
-    int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
+    final int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
-    HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
+    final HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     assertEquals(usk.getClass().getSimpleName(), "HeapQuickSelectSketch");
-    assertFalse(usk.isDirect());
+    assertFalse(usk.isOffHeap());
     assertFalse(usk.hasMemorySegment());
     assertFalse(usk.isCompact());
     assertFalse(usk.isOrdered());
@@ -237,11 +237,11 @@ public class HeapQuickSelectSketchTest {
     sk1.rebuild(); //forces size back to k
 
     //get baseline values
-    double uskEst = usk.getEstimate();
-    double uskLB  = usk.getLowerBound(2);
-    double uskUB  = usk.getUpperBound(2);
-    int uskBytes = usk.getCurrentBytes();    //size stored as UpdateSketch
-    int uskCompBytes = usk.getCompactBytes(); //size stored as CompactSketch
+    final double uskEst = usk.getEstimate();
+    final double uskLB  = usk.getLowerBound(2);
+    final double uskUB  = usk.getUpperBound(2);
+    final int uskBytes = usk.getCurrentBytes();    //size stored as UpdateSketch
+    final int uskCompBytes = usk.getCompactBytes(); //size stored as CompactSketch
     assertEquals(uskBytes, maxBytes);
     assertTrue(usk.isEstimationMode());
 
@@ -267,8 +267,8 @@ public class HeapQuickSelectSketchTest {
     assertEquals(comp2.getCompactBytes(), uskCompBytes);
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
-    byte[] segArr = new byte[uskCompBytes];
-    MemorySegment seg = MemorySegment.ofArray(segArr);  //allocate seg for compact form
+    final byte[] segArr = new byte[uskCompBytes];
+    final MemorySegment seg = MemorySegment.ofArray(segArr);  //allocate seg for compact form
 
     comp3 = usk.compact(false,  seg);  //load the seg2
 
@@ -295,28 +295,28 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkHQStoCompactEmptyForms() {
-    int k = 512;
+    final int k = 512;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X2).setNominalEntries(k).build();
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X2).setNominalEntries(k).build();
     println("lgArr: "+ usk.getLgArrLongs());
 
     //empty
     println(usk.toString(false, true, 0, false));
-    boolean estimating = false;
+    final boolean estimating = false;
     assertEquals(usk.getClass().getSimpleName(), "HeapQuickSelectSketch");
-    double uskEst = usk.getEstimate();
-    double uskLB  = usk.getLowerBound(2);
-    double uskUB  = usk.getUpperBound(2);
-    int currentUSBytes = usk.getCurrentBytes();
+    final double uskEst = usk.getEstimate();
+    final double uskLB  = usk.getLowerBound(2);
+    final double uskUB  = usk.getUpperBound(2);
+    final int currentUSBytes = usk.getCurrentBytes();
     assertEquals(currentUSBytes, (32*8) + 24);  // clumsy, but a function of RF and TCF
-    int compBytes = usk.getCompactBytes(); //compact form
+    final int compBytes = usk.getCompactBytes(); //compact form
     assertEquals(compBytes, 8);
     assertEquals(usk.isEstimationMode(), estimating);
 
-    byte[] arr2 = new byte[compBytes];
-    MemorySegment seg = MemorySegment.ofArray(arr2);
+    final byte[] arr2 = new byte[compBytes];
+    final MemorySegment seg = MemorySegment.ofArray(arr2);
 
-    CompactSketch csk2 = usk.compact(false,  seg);
+    final CompactSketch csk2 = usk.compact(false,  seg);
     assertEquals(csk2.getEstimate(), uskEst);
     assertEquals(csk2.getLowerBound(2), uskLB);
     assertEquals(csk2.getUpperBound(2), uskUB);
@@ -324,7 +324,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(csk2.isEstimationMode(), estimating);
     assertEquals(csk2.getClass().getSimpleName(), "DirectCompactSketch");
 
-    CompactSketch csk3 = usk.compact(true, seg);
+    final CompactSketch csk3 = usk.compact(true, seg);
     println(csk3.toString(false, true, 0, false));
     println(csk3.toString());
     assertEquals(csk3.getEstimate(), uskEst);
@@ -337,11 +337,11 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkExactMode() {
-    int k = 4096;
-    int u = 4096;
+    final int k = 4096;
+    final int u = 4096;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
-    HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
+    final HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
 
@@ -355,10 +355,10 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkEstMode() {
-    int k = 4096;
-    int u = 2*k;
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X4).setNominalEntries(k).build();
-    HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
+    final int k = 4096;
+    final int u = 2*k;
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X4).setNominalEntries(k).build();
+    final HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
 
@@ -371,35 +371,35 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkSamplingMode() {
-    int k = 4096;
-    int u = k;
-    float p = (float)0.5;
+    final int k = 4096;
+    final int u = k;
+    final float p = (float)0.5;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setP(p).setNominalEntries(k).build();
-    HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setP(p).setNominalEntries(k).build();
+    final HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     for (int i = 0; i < u; i++ ) {
       usk.update(i);
     }
 
-    double p2 = sk1.getP();
-    double theta = sk1.getTheta();
+    final double p2 = sk1.getP();
+    final double theta = sk1.getTheta();
     assertTrue(theta <= p2);
 
-    double est = usk.getEstimate();
-    double kdbl = k;
+    final double est = usk.getEstimate();
+    final double kdbl = k;
     assertEquals(kdbl, est, kdbl*.05);
-    double ub = usk.getUpperBound(1);
+    final double ub = usk.getUpperBound(1);
     assertTrue(ub > est);
-    double lb = usk.getLowerBound(1);
+    final double lb = usk.getLowerBound(1);
     assertTrue(lb < est);
   }
 
   @Test
   public void checkErrorBounds() {
-    int k = 512;
+    final int k = 512;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X1).setNominalEntries(k).build();
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X1).setNominalEntries(k).build();
 
     //Exact mode
     for (int i = 0; i < k; i++ ) {
@@ -413,7 +413,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(est, lb, 0.0);
 
     //Est mode
-    int u = 10*k;
+    final int u = 10*k;
     for (int i = k; i < u; i++ ) {
       usk.update(i);
       usk.update(i); //test duplicate rejection
@@ -429,9 +429,9 @@ public class HeapQuickSelectSketchTest {
   @Test
   public void checkEmptyAndP() {
     //virgin, p = 1.0
-    int k = 1024;
+    final int k = 1024;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
     HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -440,48 +440,48 @@ public class HeapQuickSelectSketchTest {
     assertFalse(usk.isEmpty());
 
     //virgin, p = .001
-    UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setP((float)0.001).setNominalEntries(k).build();
+    final UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setP((float)0.001).setNominalEntries(k).build();
     sk1 = (HeapQuickSelectSketch)usk2;
     assertTrue(usk2.isEmpty());
     usk2.update(1); //will be rejected
     assertEquals(sk1.getRetainedEntries(true), 0);
     assertFalse(usk2.isEmpty());
-    double est = usk2.getEstimate();
+    final double est = usk2.getEstimate();
     //println("Est: "+est);
     assertEquals(est, 0.0, 0.0); //because curCount = 0
-    double ub = usk2.getUpperBound(2); //huge because theta is tiny!
+    final double ub = usk2.getUpperBound(2); //huge because theta is tiny!
     //println("UB: "+ub);
     assertTrue(ub > 0.0);
-    double lb = usk2.getLowerBound(2);
+    final double lb = usk2.getLowerBound(2);
     assertTrue(lb <= est);
     //println("LB: "+lb);
   }
 
   @Test
   public void checkUpperAndLowerBounds() {
-    int k = 512;
-    int u = 2*k;
+    final int k = 512;
+    final int u = 2*k;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X2).setNominalEntries(k).build();
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X2).setNominalEntries(k).build();
 
     for (int i = 0; i < u; i++ ) {
       usk.update(i);
     }
 
-    double est = usk.getEstimate();
-    double ub = usk.getUpperBound(1);
-    double lb = usk.getLowerBound(1);
+    final double est = usk.getEstimate();
+    final double ub = usk.getUpperBound(1);
+    final double lb = usk.getLowerBound(1);
     assertTrue(ub > est);
     assertTrue(lb < est);
   }
 
   @Test
   public void checkRebuild() {
-    int k = 16;
-    int u = 4*k;
+    final int k = 16;
+    final int u = 4*k;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
-    HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
+    final HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
 
@@ -503,10 +503,10 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkResetAndStartingSubMultiple() {
-    int k = 1024;
-    int u = 4*k;
+    final int k = 1024;
+    final int u = 4*k;
 
-    UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X8).setNominalEntries(k).build();
+    final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X8).setNominalEntries(k).build();
     HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -521,7 +521,7 @@ public class HeapQuickSelectSketchTest {
     int subMul = ThetaUtil.startingSubMultiple(11, rf.lg(), 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
 
-    UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X1).setNominalEntries(k).build();
+    final UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X1).setNominalEntries(k).build();
     sk1 = (HeapQuickSelectSketch)usk2;
 
     for (int i=0; i<u; i++) {
@@ -540,29 +540,29 @@ public class HeapQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
-    int k = 512;
-    UpdateSketch qs = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
+    final int k = 512;
+    final UpdateSketch qs = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     qs.hashUpdate(-1L);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMinReqBytes() {
-    int k = 16;
-    UpdateSketch s1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final int k = 16;
+    final UpdateSketch s1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < (4 * k); i++) { s1.update(i); }
-    byte[] byteArray = s1.toByteArray();
-    byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24);
-    MemorySegment seg = MemorySegment.ofArray(badBytes);
+    final byte[] byteArray = s1.toByteArray();
+    final byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24);
+    final MemorySegment seg = MemorySegment.ofArray(badBytes);
     Sketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkThetaAndLgArrLongs() {
-    int k = 16;
-    UpdateSketch s1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final int k = 16;
+    final UpdateSketch s1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < k; i++) { s1.update(i); }
-    byte[] badArray = s1.toByteArray();
-    MemorySegment seg = MemorySegment.ofArray(badArray);
+    final byte[] badArray = s1.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(badArray);
     PreambleUtil.insertLgArrLongs(seg, 4);
     PreambleUtil.insertThetaLong(seg, Long.MAX_VALUE / 2);
     Sketch.heapify(seg);
@@ -570,18 +570,18 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkFamily() {
-    UpdateSketch sketch = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sketch = Sketches.updateSketchBuilder().build();
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
   }
 
   @Test
   public void checkSegSerDeExceptions() {
-    int k = 1024;
-    UpdateSketch sk1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
+    final int k = 1024;
+    final UpdateSketch sk1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     sk1.update(1L); //forces preLongs to 3
-    byte[] bytearray1 = sk1.toByteArray();
-    MemorySegment seg = MemorySegment.ofArray(bytearray1);
-    long pre0 = seg.get(JAVA_LONG_UNALIGNED, 0);
+    final byte[] bytearray1 = sk1.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(bytearray1);
+    final long pre0 = seg.get(JAVA_LONG_UNALIGNED, 0);
 
     tryBadSeg(seg, PREAMBLE_LONGS_BYTE, 2); //Corrupt PreLongs
     seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
@@ -603,32 +603,32 @@ public class HeapQuickSelectSketchTest {
       seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, Long.MAX_VALUE / 2); //Corrupt the theta value
       HeapQuickSelectSketch.heapifyInstance(seg, Util.DEFAULT_UPDATE_SEED);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
     seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, origThetaLong); //restore theta
-    byte[] byteArray2 = new byte[bytearray1.length -1];
-    MemorySegment seg2 = MemorySegment.ofArray(byteArray2);
+    final byte[] byteArray2 = new byte[bytearray1.length -1];
+    final MemorySegment seg2 = MemorySegment.ofArray(byteArray2);
     MemorySegment.copy(seg, 0, seg2, 0, seg2.byteSize());
     try {
       HeapQuickSelectSketch.heapifyInstance(seg2, Util.DEFAULT_UPDATE_SEED);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
 
     // force ResizeFactor.X1, but allocated capacity too small
     insertLgResizeFactor(seg, ResizeFactor.X1.lg());
-    UpdateSketch hqss = HeapQuickSelectSketch.heapifyInstance(seg, Util.DEFAULT_UPDATE_SEED);
+    final UpdateSketch hqss = HeapQuickSelectSketch.heapifyInstance(seg, Util.DEFAULT_UPDATE_SEED);
     assertEquals(hqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
 
-  private static void tryBadSeg(MemorySegment seg, int byteOffset, int byteValue) {
+  private static void tryBadSeg(final MemorySegment seg, final int byteOffset, final int byteValue) {
     try {
       seg.set(JAVA_BYTE, byteOffset, (byte) byteValue); //Corrupt
       HeapQuickSelectSketch.heapifyInstance(seg, Util.DEFAULT_UPDATE_SEED);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
   }
@@ -641,7 +641,7 @@ public class HeapQuickSelectSketchTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 
