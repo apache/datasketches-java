@@ -76,7 +76,7 @@ final class HeapCompactSketch extends CompactSketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
-    if (dstSeg == null && (dstOrdered == false || this.ordered_ == dstOrdered)) { return this; }
+    if ((dstSeg == null) && (!dstOrdered || (ordered_ == dstOrdered))) { return this; }
     return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
         true, ordered_, dstOrdered, dstSeg, getCache().clone());
   }
@@ -142,11 +142,9 @@ final class HeapCompactSketch extends CompactSketch {
     final int emptyBit = isEmpty() ? EMPTY_FLAG_MASK : 0;
     final int orderedBit = ordered_ ? ORDERED_FLAG_MASK : 0;
     final int singleItemBit = singleItem_ ? SINGLEITEM_FLAG_MASK : 0;
-    final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK
-        | orderedBit | singleItemBit);
+    final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | orderedBit | singleItemBit);
     final int preLongs = getCompactPreambleLongs();
-    loadCompactMemorySegment(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
-        dstSeg, flags, preLongs);
+    loadCompactMemorySegment(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(), dstSeg, flags, preLongs);
     return byteArray;
   }
 
