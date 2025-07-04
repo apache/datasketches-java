@@ -29,7 +29,7 @@ import java.lang.foreign.MemorySegment;
  *
  * @author Lee Rhodes
  */
-class IntMemorySegmentPairIterator extends PairIterator {
+final class IntMemorySegmentPairIterator extends PairIterator {
   private final MemorySegment seg;
   private final long offsetBytes;
   private final int arrLen;
@@ -42,7 +42,7 @@ class IntMemorySegmentPairIterator extends PairIterator {
       final MemorySegment seg, final long offsetBytes, final int arrayLength, final int lgConfigK) {
     this.seg = seg;
     this.offsetBytes = offsetBytes;
-    this.arrLen = arrayLength;
+    arrLen = arrayLength;
     slotMask = (1 << lgConfigK) - 1;
     index = -1;
   }

@@ -53,10 +53,10 @@ import org.apache.datasketches.common.SketchesStateException;
 /**
  * @author Lee Rhodes
  */
-class ToByteArrayImpl {
+final class ToByteArrayImpl {
 
   // To byte array used by the heap HLL modes.
-  static final byte[] toHllByteArray(final AbstractHllArray impl, final boolean compact) {
+  static byte[] toHllByteArray(final AbstractHllArray impl, final boolean compact) {
     int auxBytes = 0;
     if (impl.tgtHllType == TgtHllType.HLL_4) {
       final AuxHashMap auxHashMap = impl.getAuxHashMap();
@@ -75,7 +75,7 @@ class ToByteArrayImpl {
     return byteArr;
   }
 
-  private static final void insertHll(final AbstractHllArray impl, final MemorySegment wseg,
+  private static void insertHll(final AbstractHllArray impl, final MemorySegment wseg,
       final boolean compact) {
     insertCommonHll(impl, wseg, compact);
     final byte[] hllByteArr = ((HllArray)impl).hllByteArr;
@@ -87,7 +87,7 @@ class ToByteArrayImpl {
     }
   }
 
-  private static final void insertCommonHll(final AbstractHllArray srcImpl,
+  private static void insertCommonHll(final AbstractHllArray srcImpl,
       final MemorySegment tgtWseg, final boolean compact) {
     insertPreInts(tgtWseg, srcImpl.getPreInts());
     insertSerVer(tgtWseg);
@@ -106,7 +106,7 @@ class ToByteArrayImpl {
     insertRebuildCurMinNumKxQFlag(tgtWseg, srcImpl.isRebuildCurMinNumKxQFlag());
   }
 
-  private static final void insertAux(final AbstractHllArray srcImpl, final MemorySegment tgtWseg,
+  private static void insertAux(final AbstractHllArray srcImpl, final MemorySegment tgtWseg,
       final boolean tgtCompact) {
     final AuxHashMap auxHashMap = srcImpl.getAuxHashMap();
     final int auxCount = auxHashMap.getAuxCount();
@@ -128,7 +128,7 @@ class ToByteArrayImpl {
   }
 
   //To byte array for coupons
-  static final byte[] toCouponByteArray(final AbstractCoupons impl, final boolean dstCompact) {
+  static byte[] toCouponByteArray(final AbstractCoupons impl, final boolean dstCompact) {
     final int srcCouponCount = impl.getCouponCount();
     final int srcLgCouponArrInts = impl.getLgCouponArrInts();
     final int srcCouponArrInts = 1 << srcLgCouponArrInts;
@@ -221,7 +221,7 @@ class ToByteArrayImpl {
     return byteArrOut;
   }
 
-  private static final void copyCommonListAndSet(final AbstractCoupons impl,
+  private static void copyCommonListAndSet(final AbstractCoupons impl,
       final MemorySegment wseg) {
     insertPreInts(wseg, impl.getPreInts());
     insertSerVer(wseg);

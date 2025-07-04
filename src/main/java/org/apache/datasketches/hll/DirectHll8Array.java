@@ -33,7 +33,7 @@ import org.apache.datasketches.common.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class DirectHll8Array extends DirectHllArray {
+final class DirectHll8Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll8Array(final int lgConfigK, final MemorySegment wseg) {
@@ -71,8 +71,7 @@ class DirectHll8Array extends DirectHllArray {
     throw new SketchesStateException("Improper access.");
   }
 
-  @Override
-  final int getSlotValue(final int slotNo) {
+  @Override int getSlotValue(final int slotNo) {
     return seg.get(JAVA_BYTE, HLL_BYTE_ARR_START + slotNo) & VAL_MASK_6;
   }
 
@@ -88,7 +87,7 @@ class DirectHll8Array extends DirectHllArray {
 
   @Override
   //Used by Union when source is not HLL8
-  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+ void updateSlotNoKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       wseg.set(JAVA_BYTE, HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));
@@ -98,7 +97,7 @@ class DirectHll8Array extends DirectHllArray {
   @Override
   //Used by this couponUpdate()
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
-  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+ void updateSlotWithKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       wseg.set(JAVA_BYTE, HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));

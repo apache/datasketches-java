@@ -89,9 +89,7 @@ abstract class HllSketchImpl {
 
   abstract boolean isEmpty();
 
-  boolean hasMemorySegment() {
-    return (this instanceof final DirectCouponList dcl && (dcl.seg.scope().isAlive()));
-  }
+  abstract boolean hasMemorySegment();
 
   abstract boolean isOffHeap();
 
