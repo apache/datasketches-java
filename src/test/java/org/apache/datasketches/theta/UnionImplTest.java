@@ -60,8 +60,8 @@ public class UnionImplTest {
   @Test
   public void checkUpdateWithSketch() {
     final int k = 16;
-    final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + 24]);
-    final MemorySegment seg2 = MemorySegment.ofArray(new byte[k*8 + 24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[(k*8) + 24]);
+    final MemorySegment seg2 = MemorySegment.ofArray(new byte[(k*8) + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { sketch.update(i); }
     final CompactSketch sketchInDirectOrd = sketch.compact(true, seg);
@@ -78,7 +78,7 @@ public class UnionImplTest {
   @Test
   public void checkUnorderedAndOrderedMemorySegment() {
     final int k = 16;
-    final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + 24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[(k*8) + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < k; i++) { sketch.update(i); }
     final CompactSketch sketchInDirectOrd = sketch.compact(false, seg);
@@ -97,9 +97,9 @@ public class UnionImplTest {
   @Test
   public void checkUpdateWithSeg() {
     final int k = 16;
-    final MemorySegment skSeg = MemorySegment.ofArray(new byte[2*k*8 + 24]);
-    final MemorySegment dirOrdCskSeg = MemorySegment.ofArray(new byte[k*8 + 24]);
-    final MemorySegment dirUnordCskSeg = MemorySegment.ofArray(new byte[k*8 + 24]);
+    final MemorySegment skSeg = MemorySegment.ofArray(new byte[(2*k*8) + 24]);
+    final MemorySegment dirOrdCskSeg = MemorySegment.ofArray(new byte[(k*8) + 24]);
+    final MemorySegment dirUnordCskSeg = MemorySegment.ofArray(new byte[(k*8) + 24]);
     final UpdateSketch udSketch = UpdateSketch.builder().setNominalEntries(k).build(skSeg);
     for (int i = 0; i < k; i++) { udSketch.update(i); } //exact
     udSketch.compact(true, dirOrdCskSeg);
@@ -114,15 +114,15 @@ public class UnionImplTest {
 
   @Test
   public void checkUpdateWithSegV4Exact() {
-    int n = 1000;
-    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final int n = 1000;
+    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
     for (int i = 0; i < n; i++) {
       sk.update(i);
     }
-    CompactSketch cs = sk.compact();
+    final CompactSketch cs = sk.compact();
     assertFalse(cs.isEstimationMode());
 
-    byte[] bytes = cs.toByteArrayCompressed();
+    final byte[] bytes = cs.toByteArrayCompressed();
 
     final Union union = Sketches.setOperationBuilder().buildUnion();
     union.union(MemorySegment.ofArray(bytes));
@@ -148,7 +148,7 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptFamilyException() {
     final int k = 16;
-    final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + 24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[(k*8) + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sketch.update(i);
@@ -209,27 +209,36 @@ public class UnionImplTest {
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
     MemorySegment skWseg, uWseg;
     try (Arena arena = Arena.ofConfined()) {
-      skWseg = arena.allocate(bytes / 2);
+      skWseg = arena.allocate(bytes / 2); //we never populate the sketch so this size is not relevant
       final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(skWseg);
-      assertTrue(sketch.isSameResource(skWseg)); //of course
+      //The sketch has not changed, so the sketch's internal segment is what we gave it.
+      assertTrue(sketch.isSameResource(skWseg));
 
-      uWseg = arena.allocate(bytes / 2); //independent of sketch, way too small, forces overflow
+      //We now do the same with an independent Union
+      uWseg = arena.allocate(bytes / 2); // way too small, this will forces overflow
       final Union union = SetOperation.builder().buildUnion(uWseg); //off-heap union
-      assertTrue(union.isSameResource(uWseg)); //of course
+      assertTrue(union.isSameResource(uWseg)); //Union has not changed
 
       for (int i = 0; i < u; i++) { union.update(i); } //populate first union
-      assertFalse(union.isSameResource(skWseg)); //of course
-      assertFalse(union.isSameResource(uWseg)); //moved
+      assertFalse(union.isSameResource(skWseg)); //Sketch and Union segments are totally distinct
+      //Here the union's segment overflowed and moved to the heap,
+      // thus, its reference to its segment is not the one we gave it!
+      assertFalse(union.isSameResource(uWseg)); //moved.
 
+      //Here we create a 2nd Union with a heap segment
       final MemorySegment uWsegHeap = MemorySegment.ofArray(new byte[bytes / 2]);
       final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
+      //As before, this establishes that the empty union2 has the same segment that we gave it.
+      assertTrue(union2.isSameResource(uWsegHeap)); //But Copilot complained, so here it is!
+
+      //These two asserts are calling the Interface static method directly and establish
+      // what should be obvious, that these are all different segments.
       assertFalse(MemorySegmentStatus.isSameResource(uWseg, uWsegHeap));  //obviously not
       assertFalse(MemorySegmentStatus.isSameResource(uWsegHeap, union.getMemorySegment())); //tgt moved
-    }
+    } //the off-heap segments will be closed here
     assertFalse(skWseg.scope().isAlive()); //closed as part of the same Arena
     assertFalse(uWseg.scope().isAlive()); //closed as part of the same Arena
-
-
+    //we don't need to close the heap segment.
   }
 
   @Test
@@ -252,7 +261,7 @@ public class UnionImplTest {
 
     final int bytes = Sketches.getCompactSketchMaxBytes(lgK);
     try (Arena arena = Arena.ofConfined()) {
-        MemorySegment wseg = arena.allocate(bytes);
+        final MemorySegment wseg = arena.allocate(bytes);
 
       final CompactSketch csk = sk.compact(true, wseg); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();
@@ -286,9 +295,9 @@ public class UnionImplTest {
     for (int i = 0; i < num; i++) {
       skArr[i] = new UpdateSketchBuilder().build();
     }
-    for (int i = 0; i < num/2; i++) {
+    for (int i = 0; i < (num/2); i++) {
       skArr[i].update(i);
-      skArr[i + num/2].update(i);
+      skArr[i + (num/2)].update(i);
       skArr[i].update(i + num);
     }
 

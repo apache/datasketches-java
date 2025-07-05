@@ -82,10 +82,7 @@ public interface MemorySegmentStatus {
       return (seg1.address() == seg2.address()) && (seg1.byteSize() == seg2.byteSize());
     }
     //both on heap
-    if (seg1.isReadOnly() || seg2.isReadOnly()) {
-      throw new IllegalArgumentException("Cannot determine 'isSameBackingMemory(..)' on heap if either MemorySegment is Read-only.");
-    }
-    return (seg1.heapBase().orElse(null) == seg2.heapBase().orElse(null));
+    return seg1 == seg2;
   }
 
 }
