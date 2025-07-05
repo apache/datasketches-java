@@ -22,9 +22,14 @@ package org.apache.datasketches.hll;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.hll.BaseHllSketch;
+import org.apache.datasketches.hll.HllSketch;
+import org.apache.datasketches.hll.PreambleUtil;
+import org.apache.datasketches.hll.TgtHllType;
+import org.apache.datasketches.hll.Union;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 import java.nio.ByteBuffer;
 
@@ -36,27 +41,27 @@ public class BaseHllSketchTest {
 
   @Test
   public void checkUpdateTypes() {
-    HllSketch sk = new HllSketch(10);
-    byte[] byteArr = null;
+    final HllSketch sk = new HllSketch(10);
+    final byte[] byteArr = null;
     sk.update(byteArr);
     sk.update(new byte[] {});
     sk.update(new byte[] {0, 1, 2, 3});
-    ByteBuffer byteBuf = null;
+    final ByteBuffer byteBuf = null;
     sk.update(byteBuf);
     sk.update(ByteBuffer.wrap(new byte[] {}));
     sk.update(ByteBuffer.wrap(new byte[] {0, 1, 2, 3}));
-    char[] charArr = null;
+    final char[] charArr = null;
     sk.update(charArr);
     sk.update(new char[] {});
     sk.update(new char[] {0, 1, 2, 3});
     sk.update(1.0);
     sk.update(-0.0);
-    int[] intArr = null;
+    final int[] intArr = null;
     sk.update(intArr);
     sk.update(new int[] {});
     sk.update(new int[] {0, 1, 2, 3});
     sk.update(1234L);
-    long[] longArr = null;
+    final long[] longArr = null;
     sk.update(longArr);
     sk.update(new long[] {});
     sk.update(new long[] {0, 1, 2, 3});
@@ -66,27 +71,27 @@ public class BaseHllSketchTest {
     sk.update(s);
     sk.update("1234");
 
-    Union u = new Union(10);
-    byte[] byteArr1 = null;
+    final Union u = new Union(10);
+    final byte[] byteArr1 = null;
     u.update(byteArr1);
     u.update(new byte[] {});
     u.update(new byte[] {0, 1, 2, 3});
-    ByteBuffer byteBuf1 = null;
+    final ByteBuffer byteBuf1 = null;
     u.update(byteBuf1);
     u.update(ByteBuffer.wrap(new byte[] {}));
     u.update(ByteBuffer.wrap(new byte[] {0, 1, 2, 3}));
-    char[] charArr1 = null;
+    final char[] charArr1 = null;
     u.update(charArr1);
     u.update(new char[] {});
     u.update(new char[] {0, 1, 2, 3});
     u.update(1.0);
     u.update(-0.0);
-    int[] intArr1 = null;
+    final int[] intArr1 = null;
     u.update(intArr1);
     u.update(new int[] {});
     u.update(new int[] {0, 1, 2, 3});
     u.update(1234L);
-    long[] longArr1 = null;
+    final long[] longArr1 = null;
     u.update(longArr1);
     u.update(new long[] {});
     u.update(new long[] {0, 1, 2, 3});
@@ -99,12 +104,12 @@ public class BaseHllSketchTest {
 
   @Test
   public void misc() {
-    HllSketch sk = new HllSketch(10, TgtHllType.HLL_4);
+    final HllSketch sk = new HllSketch(10, TgtHllType.HLL_4);
     assertTrue(sk.isEstimationMode());
     sk.reset();
     assertEquals(BaseHllSketch.getSerializationVersion(), PreambleUtil.SER_VER);
-    WritableMemory wmem = WritableMemory.writableWrap(sk.toCompactByteArray());
-    assertEquals(BaseHllSketch.getSerializationVersion(wmem), PreambleUtil.SER_VER);
+    final MemorySegment wseg = MemorySegment.ofArray(sk.toCompactByteArray());
+    assertEquals(BaseHllSketch.getSerializationVersion(wseg), PreambleUtil.SER_VER);
   }
 
   @Test
@@ -115,7 +120,7 @@ public class BaseHllSketchTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 }

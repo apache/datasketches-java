@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
@@ -28,9 +29,9 @@ import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This performs union operations for all HllSketches. This union operator can be configured to be
@@ -90,19 +91,19 @@ public class Union extends BaseHllSketch {
 
   /**
    * Construct this Union operator with a given maximum log-base-2 of <i>K</i> and the given
-   * WritableMemory as the destination for this Union. This WritableMemory is usually configured
-   * for off-heap memory. What remains on the java heap is a thin wrapper object that reads and
-   * writes to the given WritableMemory.
+   * MemorySegment as the destination for this Union. This MemorySegment is usually configured
+   * for off-heap MemorySegment. What remains on the java heap is a thin wrapper object that reads and
+   * writes to the given MemorySegment.
    *
-   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
+   * <p>The given <i>dstSeg</i> is checked for the required capacity as determined by
    * {@link HllSketch#getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param lgMaxK the desired maximum log-base-2 of <i>K</i>.  This value must be
    * between 4 and 21 inclusively.
-   * @param dstWmem the destination writable memory for the sketch.
+   * @param dstWseg the destination writable MemorySegment for the sketch.
    */
-  public Union(final int lgMaxK, final WritableMemory dstWmem) {
+  public Union(final int lgMaxK, final MemorySegment dstWseg) {
     this.lgMaxK = HllUtil.checkLgK(lgMaxK);
-    gadget = new HllSketch(lgMaxK, HLL_8, dstWmem);
+    gadget = new HllSketch(lgMaxK, HLL_8, dstWseg);
   }
 
   //used only by writableWrap
@@ -117,41 +118,41 @@ public class Union extends BaseHllSketch {
    * @return a union operator populated with the given byte array image of an HllSketch.
    */
   public static final Union heapify(final byte[] byteArray) {
-    return heapify(Memory.wrap(byteArray));
+    return heapify(MemorySegment.ofArray(byteArray));
   }
 
   /**
-   * Construct a union operator populated with the given Memory image of an HllSketch.
-   * @param mem the given Memory
-   * @return a union operator populated with the given Memory image of an HllSketch.
+   * Construct a union operator populated with the given MemorySegment image of an HllSketch.
+   * @param seg the given MemorySegment
+   * @return a union operator populated with the given MemorySegment image of an HllSketch.
    */
-  public static final Union heapify(final Memory mem) {
-    final int lgK = HllUtil.checkLgK(mem.getByte(PreambleUtil.LG_K_BYTE));
-    final HllSketch sk = HllSketch.heapify(mem, false); //allows non-finalized image
+  public static final Union heapify(final MemorySegment seg) {
+    final int lgK = HllUtil.checkLgK(seg.get(JAVA_BYTE, PreambleUtil.LG_K_BYTE));
+    final HllSketch sk = HllSketch.heapify(seg, false); //allows non-finalized image
     final Union union = new Union(lgK);
     union.update(sk);
     return union;
   }
 
   /**
-   * Wraps the given WritableMemory, which must be a image of a valid updatable HLL_8 sketch,
+   * Wraps the given MemorySegment, which must be a image of a valid updatable HLL_8 sketch,
    * and may have data. What remains on the java heap is a
-   * thin wrapper object that reads and writes to the given WritableMemory, which, depending on
-   * how the user configures the WritableMemory, may actually reside on the Java heap or off-heap.
+   * thin wrapper object that reads and writes to the given MemorySegment, which, depending on
+   * how the user configures the MemorySegment, may actually reside on the Java heap or off-heap.
    *
-   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
+   * <p>The given <i>dstSeg</i> is checked for the required capacity as determined by
    * {@link HllSketch#getMaxUpdatableSerializationBytes(int, TgtHllType)}, and for the correct type.
-   * @param srcWmem an writable image of a valid sketch with data.
-   * @return a Union operator where the sketch data is in the given dstMem.
+   * @param srcWseg an writable image of a valid sketch with data.
+   * @return a Union operator where the sketch data is in the given dstSeg.
    */
-  public static final Union writableWrap(final WritableMemory srcWmem) {
-    final TgtHllType tgtHllType = extractTgtHllType(srcWmem);
+  public static final Union writableWrap(final MemorySegment srcWseg) {
+    final TgtHllType tgtHllType = extractTgtHllType(srcWseg);
     if (tgtHllType != TgtHllType.HLL_8) {
       throw new SketchesArgumentException(
           "Union can only wrap writable HLL_8 sketches that were the Gadget of a Union.");
     }
     //allows writableWrap of non-finalized image
-    return new Union(HllSketch.writableWrap(srcWmem, false));
+    return new Union(HllSketch.writableWrap(srcWseg, false));
   }
 
   @Override
@@ -248,8 +249,8 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public boolean isMemory() {
-    return gadget.isMemory();
+  public boolean hasMemorySegment() {
+    return gadget.hasMemorySegment();
   }
 
   @Override
@@ -263,8 +264,8 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
-    return gadget.isSameResource(mem);
+  public boolean isSameResource(final MemorySegment seg) {
+    return gadget.isSameResource(seg);
   }
 
   boolean isRebuildCurMinNumKxQFlag() {
@@ -365,12 +366,12 @@ public class Union extends BaseHllSketch {
 
     final int srcLgK = source.getLgConfigK();
     final int gadgetLgK = gadget.getLgConfigK();
-    final boolean srcIsMem = source.isMemory();
-    final boolean gdtIsMem = gadget.isMemory();
+    final boolean srcHasSeg = source.hasMemorySegment();
+    final boolean gdtHasSeg = gadget.hasMemorySegment();
     final boolean gdtEmpty = gadget.isEmpty();
 
     if (srcMode == CurMode.SET ) {
-      if (gdtEmpty && (srcLgK == gadgetLgK) && (!srcIsMem) && (!gdtIsMem)) {
+      if (gdtEmpty && (srcLgK == gadgetLgK) && (!srcHasSeg) && (!gdtHasSeg)) {
         gadget.hllSketchImpl = source.copyAs(HLL_8).hllSketchImpl;
         return gadget.hllSketchImpl;
       }
@@ -379,7 +380,7 @@ public class Union extends BaseHllSketch {
     }
 
     //Hereafter, the source is in HLL mode.
-    final int bit0 = gdtIsMem ? 1 : 0;
+    final int bit0 = gdtHasSeg ? 1 : 0;
     final int bits1_2 = (gdtEmpty ? 3 : gadget.getCurMode().ordinal()) << 1;
     final int bit3 = (srcLgK < gadgetLgK) ? 8 : 0;
     final int bit4 = (srcLgK > lgMaxK) ? 16 : 0;
@@ -406,49 +407,49 @@ public class Union extends BaseHllSketch {
         break;
       }
 
-      case 1: //src <= max, src >= gdt, gdtLIST, gdtMemory
-      case 9: //src <= max, src <  gdt, gdtLIST, gdtMemory
-      case 3: //src <= max, src >= gdt, gdtSET,  gdtMemory
-      case 11://src <= max, src <  gdt, gdtSET,  gdtMemory
-      { //Action: copy src, reverse merge w/autofold, use gdt memory, ooof=src
+      case 1: //src <= max, src >= gdt, gdtLIST, gdtMemorySegment
+      case 9: //src <= max, src <  gdt, gdtLIST, gdtMemorySegment
+      case 3: //src <= max, src >= gdt, gdtSET,  gdtMemorySegment
+      case 11://src <= max, src <  gdt, gdtSET,  gdtMemorySegment
+      { //Action: copy src, reverse merge w/autofold, use gdt MemorySegment, ooof=src
         final HllSketch srcHll8Heap = source.copyAs(HLL_8);
-        gadget.mergeTo(srcHll8Heap);  //merge gdt(Hll8,mem,list/set) -> src(Hll8,heap,hll)
-        hllSketchImpl = useGadgetMemory(gadget, srcHll8Heap, false).hllSketchImpl;
+        gadget.mergeTo(srcHll8Heap);  //merge gdt(Hll8,seg,list/set) -> src(Hll8,heap,hll)
+        hllSketchImpl = useGadgetMemorySegment(gadget, srcHll8Heap, false).hllSketchImpl;
         break;
       }
-      case 17://src >  max, src >= gdt, gdtList, gdtMemory
-      case 19://src >  max, src >= gdt, gdtSet,  gdtMemory
-      { //Action: downsample src to MaxLgK, reverse merge w/autofold, use gdt memory, ooof=src
+      case 17://src >  max, src >= gdt, gdtList, gdtMemorySegment
+      case 19://src >  max, src >= gdt, gdtSet,  gdtMemorySegment
+      { //Action: downsample src to MaxLgK, reverse merge w/autofold, use gdt MemorySegment, ooof=src
         final HllSketch srcHll8Heap = downsample(source, lgMaxK);
-        gadget.mergeTo(srcHll8Heap); //merge gdt(Hll8,mem,list/set) -> src(Hll8,heap,hll), autofold
-        hllSketchImpl = useGadgetMemory(gadget, srcHll8Heap, false).hllSketchImpl;
+        gadget.mergeTo(srcHll8Heap); //merge gdt(Hll8,seg,list/set) -> src(Hll8,heap,hll), autofold
+        hllSketchImpl = useGadgetMemorySegment(gadget, srcHll8Heap, false).hllSketchImpl;
         break;
       }
 
       case 4: //src <= max, src >= gdt, gdtHLL, gdtHeap
       case 20://src >  max, src >= gdt, gdtHLL, gdtHeap
-      case 5: //src <= max, src >= gdt, gdtHLL, gdtMemory
-      case 21://src >  max, src >= gdt, gdtHLL, gdtMemory
+      case 5: //src <= max, src >= gdt, gdtHLL, gdtMemorySegment
+      case 21://src >  max, src >= gdt, gdtHLL, gdtMemorySegment
       { //Action: forward HLL merge w/autofold, ooof=True
-        //merge src(Hll4,6,8,heap/mem,Mode=HLL) -> gdt(Hll8,heap,Mode=HLL)
-        mergeHlltoHLLmode(source, gadget, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
+        //merge src(Hll4,6,8,heap/seg,Mode=HLL) -> gdt(Hll8,heap,Mode=HLL)
+        mergeHlltoHLLmode(source, gadget, srcLgK, gadgetLgK, srcHasSeg, gdtHasSeg);
         hllSketchImpl = gadget.putOutOfOrderFlag(true).hllSketchImpl;
         break;
       }
       case 12://src <= max, src <  gdt, gdtHLL, gdtHeap
       { //Action: downsample gdt to srcLgK, forward HLL merge w/autofold, ooof=True
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK);
-        //merge src(Hll4,6,8;heap/mem,Mode=HLL) -> gdt(Hll8,heap,hll)
-        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, false);
+        //merge src(Hll4,6,8;heap/seg,Mode=HLL) -> gdt(Hll8,heap,hll)
+        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcHasSeg, false);
         hllSketchImpl = gdtHll8Heap.putOutOfOrderFlag(true).hllSketchImpl;
         break;
       }
-      case 13://src <= max, src < gdt, gdtHLL, gdtMemory
-      { //Action: downsample gdt to srcLgK, forward HLL merge w/autofold, use gdt memory, ooof=True
+      case 13://src <= max, src < gdt, gdtHLL, gdtMemorySegment
+      { //Action: downsample gdt to srcLgK, forward HLL merge w/autofold, use gdt MemorySegment, ooof=True
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK);
-        //merge src(Hll4,6,8;heap/mem;Mode=HLL) -> gdt(Hll8,heap,Mode=HLL)
-        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, false);
-        hllSketchImpl = useGadgetMemory(gadget, gdtHll8Heap, true).hllSketchImpl;
+        //merge src(Hll4,6,8;heap/seg;Mode=HLL) -> gdt(Hll8,heap,Mode=HLL)
+        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcHasSeg, false);
+        hllSketchImpl = useGadgetMemorySegment(gadget, gdtHll8Heap, true).hllSketchImpl;
         break;
       }
 
@@ -466,17 +467,17 @@ public class Union extends BaseHllSketch {
         break;
       }
 
-      case 7: //src <= max, src >= gdt, gdtEmpty, gdtMemory
-      case 15://src <= max, src <  gdt, gdtEmpty, gdtMemory
-      { //Action: copy src, use gdt memory, ooof=src
+      case 7: //src <= max, src >= gdt, gdtEmpty, gdtMemorySegment
+      case 15://src <= max, src <  gdt, gdtEmpty, gdtMemorySegment
+      { //Action: copy src, use gdt MemorySegment, ooof=src
         final HllSketch srcHll8Heap = source.copyAs(HLL_8);
-        hllSketchImpl = useGadgetMemory(gadget, srcHll8Heap, false).hllSketchImpl;
+        hllSketchImpl = useGadgetMemorySegment(gadget, srcHll8Heap, false).hllSketchImpl;
         break;
       }
-      case 23://src >  max, src >= gdt, gdtEmpty, gdtMemory, replace mem, downsample src, ooof=src
-      { //Action: downsample src to lgMaxK, use gdt memory, ooof=src
+      case 23://src >  max, src >= gdt, gdtEmpty, gdtMemorySegment, replace seg, downsample src, ooof=src
+      { //Action: downsample src to lgMaxK, use gdt MemorySegment, ooof=src
         final HllSketch srcHll8Heap = downsample(source, lgMaxK);
-        hllSketchImpl = useGadgetMemory(gadget, srcHll8Heap, false).hllSketchImpl;
+        hllSketchImpl = useGadgetMemorySegment(gadget, srcHll8Heap, false).hllSketchImpl;
         break;
       }
       default: return gadget.hllSketchImpl; //not possible
@@ -484,19 +485,19 @@ public class Union extends BaseHllSketch {
     return hllSketchImpl;
   }
 
-  private static final HllSketch useGadgetMemory(
+  private static final HllSketch useGadgetMemorySegment(
       final HllSketch gadget, final HllSketch hll8Heap, final boolean setOooFlag) {
-    final WritableMemory wmem = gadget.getWritableMemory();    //use the gdt wmem
+    final MemorySegment wseg = gadget.getMemorySegment();    //use the gdt wseg
     final byte[] byteArr = hll8Heap.toUpdatableByteArray();    //serialize srcCopy
-    wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, 0, byteArr.length); //replace old data with new
     return (setOooFlag)
-        ? HllSketch.writableWrap(wmem, false).putOutOfOrderFlag(true) //wrap, set oooflag, return
-        : HllSketch.writableWrap(wmem, false);                        //wrap & return
+        ? HllSketch.writableWrap(wseg, false).putOutOfOrderFlag(true) //wrap, set oooflag, return
+        : HllSketch.writableWrap(wseg, false);                        //wrap & return
   }
 
   private static final void mergeHlltoHLLmode(final HllSketch src, final HllSketch tgt,
-      final int srcLgK, final int tgtLgK, final boolean srcIsMem, final boolean tgtIsMem) {
-      final int sw = (tgtIsMem ? 1 : 0) | (srcIsMem ? 2 : 0)
+      final int srcLgK, final int tgtLgK, final boolean srcHasSeg, final boolean tgtHasSeg) {
+      final int sw = (tgtHasSeg ? 1 : 0) | (srcHasSeg ? 2 : 0)
           | ((srcLgK > tgtLgK) ? 4 : 0) | ((src.getTgtHllType() != HLL_8) ? 8 : 0);
       final int srcK = 1 << srcLgK;
 
@@ -511,33 +512,33 @@ public class Union extends BaseHllSketch {
           }
           break;
         }
-        case 1: { //HLL_8, srcLgK=tgtLgK, src=heap, tgt=mem
+        case 1: { //HLL_8, srcLgK=tgtLgK, src=heap, tgt=seg
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
-          final WritableMemory tgtMem = tgt.getWritableMemory();
+          final MemorySegment tgtSeg = tgt.getMemorySegment();
           for (int i = 0; i < srcK; i++) {
             final byte srcV = srcArr[i];
-            final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + i);
-            tgtMem.putByte(HLL_BYTE_ARR_START + i, (byte) Math.max(srcV, tgtV));
+            final byte tgtV = tgtSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i);
+            tgtSeg.set(JAVA_BYTE, HLL_BYTE_ARR_START + i, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
-        case 2: { //HLL_8, srcLgK=tgtLgK, src=mem,  tgt=heap
-          final Memory srcMem = src.getMemory();
+        case 2: { //HLL_8, srcLgK=tgtLgK, src=seg,  tgt=heap
+          final MemorySegment srcSeg = src.getMemorySegment();
           final byte[] tgtArr = ((Hll8Array) tgt.hllSketchImpl).hllByteArr;
           for (int i = 0; i < srcK; i++) {
-            final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
+            final byte srcV = srcSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i);
             final byte tgtV = tgtArr[i];
             tgtArr[i] = (byte) Math.max(srcV, tgtV);
           }
           break;
         }
-        case 3: { //HLL_8, srcLgK=tgtLgK, src=mem,  tgt=mem
-          final Memory srcMem = src.getMemory();
-          final WritableMemory tgtMem = tgt.getWritableMemory();
+        case 3: { //HLL_8, srcLgK=tgtLgK, src=seg,  tgt=seg
+          final MemorySegment srcSeg = src.getMemorySegment();
+          final MemorySegment tgtSeg = tgt.getMemorySegment();
           for (int i = 0; i < srcK; i++) {
-            final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
-            final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + i);
-            tgtMem.putByte(HLL_BYTE_ARR_START + i, (byte) Math.max(srcV, tgtV));
+            final byte srcV = srcSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i);
+            final byte tgtV = tgtSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i);
+            tgtSeg.set(JAVA_BYTE, HLL_BYTE_ARR_START + i, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
@@ -553,45 +554,45 @@ public class Union extends BaseHllSketch {
           }
           break;
         }
-        case 5: { //HLL_8, srcLgK>tgtLgK, src=heap, tgt=mem
+        case 5: { //HLL_8, srcLgK>tgtLgK, src=heap, tgt=seg
           final int tgtKmask = (1 << tgtLgK) - 1;
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
-          final WritableMemory tgtMem = tgt.getWritableMemory();
+          final MemorySegment tgtSeg = tgt.getMemorySegment();
           for (int i = 0; i < srcK; i++) {
             final byte srcV = srcArr[i];
             final int j = i & tgtKmask;
-            final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + j);
-            tgtMem.putByte(HLL_BYTE_ARR_START + j, (byte) Math.max(srcV, tgtV));
+            final byte tgtV = tgtSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + j);
+            tgtSeg.set(JAVA_BYTE, HLL_BYTE_ARR_START + j, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
-        case 6: { //HLL_8, srcLgK>tgtLgK, src=mem,  tgt=heap
+        case 6: { //HLL_8, srcLgK>tgtLgK, src=seg,  tgt=heap
           final int tgtKmask = (1 << tgtLgK) - 1;
-          final Memory srcMem = src.getMemory();
+          final MemorySegment srcSeg = src.getMemorySegment();
           final byte[] tgtArr = ((Hll8Array) tgt.hllSketchImpl).hllByteArr;
           for (int i = 0; i < srcK; i++) {
-            final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
+            final byte srcV = srcSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i);
             final int j = i & tgtKmask;
             final byte tgtV = tgtArr[j];
             tgtArr[j] = (byte) Math.max(srcV, tgtV);
           }
           break;
         }
-        case 7: { //HLL_8, srcLgK>tgtLgK, src=mem,  tgt=mem
+        case 7: { //HLL_8, srcLgK>tgtLgK, src=seg,  tgt=seg
           final int tgtKmask = (1 << tgtLgK) - 1;
-          final Memory srcMem = src.getMemory();
-          final WritableMemory tgtMem = tgt.getWritableMemory();
+          final MemorySegment srcSeg = src.getMemorySegment();
+          final MemorySegment tgtSeg = tgt.getMemorySegment();
           for (int i = 0; i < srcK; i++) {
-            final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
+            final byte srcV = srcSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i);
             final int j = i & tgtKmask;
-            final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + j);
-            tgtMem.putByte(HLL_BYTE_ARR_START + j, (byte) Math.max(srcV, tgtV));
+            final byte tgtV = tgtSeg.get(JAVA_BYTE, HLL_BYTE_ARR_START + j);
+            tgtSeg.set(JAVA_BYTE, HLL_BYTE_ARR_START + j, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
         case 8: case 9:
         {
-          //!HLL_8, srcLgK=tgtLgK, src=heap, tgt=heap/mem
+          //!HLL_8, srcLgK=tgtLgK, src=heap, tgt=heap/seg
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
           if (src.getTgtHllType() == HLL_4) {
             final Hll4Array src4 = (Hll4Array) src.hllSketchImpl;
@@ -632,7 +633,7 @@ public class Union extends BaseHllSketch {
         }
         case 10: case 11:
         {
-          //!HLL_8, srcLgK=tgtLgK, src=mem, tgt=heap/mem
+          //!HLL_8, srcLgK=tgtLgK, src=seg, tgt=heap/seg
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
           if (src.getTgtHllType() == HLL_4) {
             final DirectHll4Array src4 = (DirectHll4Array) src.hllSketchImpl;
@@ -641,7 +642,7 @@ public class Union extends BaseHllSketch {
             int i = 0;
             int j = 0;
             while (j < srcK) {
-              final byte b = src4.mem.getByte(HLL_BYTE_ARR_START + i++);
+              final byte b = src4.seg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i++);
               int value = Byte.toUnsignedInt(b) & loNibbleMask;
               tgtAbsHllArr.updateSlotNoKxQ(j, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
               j++;
@@ -654,9 +655,9 @@ public class Union extends BaseHllSketch {
             int i = 0;
             int offset = HLL_BYTE_ARR_START;
             while (i < srcK) {
-              final byte b1 = src6.mem.getByte(offset++);
-              final byte b2 = src6.mem.getByte(offset++);
-              final byte b3 = src6.mem.getByte(offset++);
+              final byte b1 = src6.seg.get(JAVA_BYTE, offset++);
+              final byte b2 = src6.seg.get(JAVA_BYTE, offset++);
+              final byte b3 = src6.seg.get(JAVA_BYTE, offset++);
               int value = Byte.toUnsignedInt(b1) & 0x3f;
               tgtAbsHllArr.updateSlotNoKxQ(i++, value);
               value = Byte.toUnsignedInt(b1) >>> 6;
@@ -673,7 +674,7 @@ public class Union extends BaseHllSketch {
         }
         case 12: case 13:
         {
-          //!HLL_8, srcLgK>tgtLgK, src=heap, tgt=heap/mem
+          //!HLL_8, srcLgK>tgtLgK, src=heap, tgt=heap/seg
           final int tgtKmask = (1 << tgtLgK) - 1;
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
           if (src.getTgtHllType() == HLL_4) {
@@ -717,7 +718,7 @@ public class Union extends BaseHllSketch {
         }
         case 14: case 15:
         {
-          //!HLL_8, srcLgK>tgtLgK, src=mem, tgt=heap/mem
+          //!HLL_8, srcLgK>tgtLgK, src=seg, tgt=heap/seg
           final int tgtKmask = (1 << tgtLgK) - 1;
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
           if (src.getTgtHllType() == HLL_4) {
@@ -727,7 +728,7 @@ public class Union extends BaseHllSketch {
             int i = 0;
             int j = 0;
             while (j < srcK) {
-              final byte b = src4.mem.getByte(HLL_BYTE_ARR_START + i++);
+              final byte b = src4.seg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i++);
               int value = Byte.toUnsignedInt(b) & loNibbleMask;
               tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN
                   ? auxHashMap.mustFindValueFor(j) : value + curMin);
@@ -742,9 +743,9 @@ public class Union extends BaseHllSketch {
             int i = 0;
             int offset = HLL_BYTE_ARR_START;
             while (i < srcK) {
-              final byte b1 = src6.mem.getByte(offset++);
-              final byte b2 = src6.mem.getByte(offset++);
-              final byte b3 = src6.mem.getByte(offset++);
+              final byte b1 = src6.seg.get(JAVA_BYTE, offset++);
+              final byte b2 = src6.seg.get(JAVA_BYTE, offset++);
+              final byte b3 = src6.seg.get(JAVA_BYTE, offset++);
               int value = Byte.toUnsignedInt(b1) & 0x3f;
               tgtAbsHllArr.updateSlotNoKxQ(i++ & tgtKmask, value);
               value = Byte.toUnsignedInt(b1) >>> 6;

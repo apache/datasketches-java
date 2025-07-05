@@ -29,8 +29,9 @@ import static org.apache.datasketches.hll.PreambleUtil.extractAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Uses 4 bits per slot in a packed byte array.
@@ -55,18 +56,18 @@ final class Hll4Array extends HllArray {
     super(that);
   }
 
-  static final Hll4Array heapify(final Memory mem) {
-    final int lgConfigK = extractLgK(mem);
+  static Hll4Array heapify(final MemorySegment seg) {
+    final int lgConfigK = extractLgK(seg);
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
-    HllArray.extractCommonHll(mem, hll4Array);
+    HllArray.extractCommonHll(seg, hll4Array);
 
     //load AuxHashMap
     final int auxStart = hll4Array.auxStart;
-    final int auxCount = extractAuxCount(mem);
-    final boolean compact = extractCompactFlag(mem);
+    final int auxCount = extractAuxCount(seg);
+    final boolean compact = extractCompactFlag(seg);
     HeapAuxHashMap auxHashMap = null;
     if (auxCount > 0) {
-      auxHashMap = HeapAuxHashMap.heapify(mem, auxStart, lgConfigK, auxCount, compact);
+      auxHashMap = HeapAuxHashMap.heapify(seg, auxStart, lgConfigK, auxCount, compact);
     }
     hll4Array.putAuxHashMap(auxHashMap, false);
     return hll4Array;
@@ -164,6 +165,16 @@ final class Hll4Array extends HllArray {
     int value() {
      return getSlotValue(index);
     }
+  }
+
+  @Override
+  MemorySegment getMemorySegment() {
+    return null;
+  }
+
+  @Override
+  boolean isSameResource(final MemorySegment seg) {
+    return false;
   }
 
 }

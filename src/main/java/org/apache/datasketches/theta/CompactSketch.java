@@ -344,7 +344,7 @@ public abstract class CompactSketch extends Sketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return (this instanceof DirectCompactSketch &&  ((DirectCompactSketch)this).hasMemorySegment());
+    return ((this instanceof DirectCompactSketch) &&  ((DirectCompactSketch)this).hasMemorySegment());
   }
 
   @Override
@@ -353,13 +353,13 @@ public abstract class CompactSketch extends Sketch {
   }
 
   @Override
-  public boolean isDirect() {
-    return (this instanceof DirectCompactSketch && ((DirectCompactSketch)this).isDirect());
+  public boolean isOffHeap() {
+    return ((this instanceof DirectCompactSketch) && ((DirectCompactSketch)this).isOffHeap());
   }
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return (this instanceof DirectCompactSketch &&  ((DirectCompactSketch)this).isSameResource(that));
+    return ((this instanceof DirectCompactSketch) &&  ((DirectCompactSketch)this).isSameResource(that));
   }
 
   @Override
@@ -372,7 +372,7 @@ public abstract class CompactSketch extends Sketch {
    * @return the sketch as a compressed byte array
    */
   public byte[] toByteArrayCompressed() {
-    if (!isOrdered() || getRetainedEntries() == 0 || (getRetainedEntries() == 1 && !isEstimationMode())) {
+    if (!isOrdered() || (getRetainedEntries() == 0) || ((getRetainedEntries() == 1) && !isEstimationMode())) {
       return toByteArray();
     }
     return toByteArrayV4();
@@ -400,7 +400,7 @@ public abstract class CompactSketch extends Sketch {
     // store num_entries as whole bytes since whole-byte blocks will follow (most probably)
     final int numEntriesBytes = wholeBytesToHoldBits(32 - Integer.numberOfLeadingZeros(getRetainedEntries()));
 
-    final int sizeBytes = preambleLongs * Long.BYTES + numEntriesBytes + wholeBytesToHoldBits(compressedBits);
+    final int sizeBytes = (preambleLongs * Long.BYTES) + numEntriesBytes + wholeBytesToHoldBits(compressedBits);
     final byte[] bytes = new byte[sizeBytes];
     final MemorySegment wseg = MemorySegment.ofArray(bytes);
     int offsetBytes = 0;
@@ -425,7 +425,7 @@ public abstract class CompactSketch extends Sketch {
     final long[] deltas = new long[8];
     final HashIterator it = iterator();
     int i;
-    for (i = 0; i + 7 < getRetainedEntries(); i += 8) {
+    for (i = 0; (i + 7) < getRetainedEntries(); i += 8) {
       for (int j = 0; j < 8; j++) {
         it.next();
         deltas[j] = it.get() - previous;
@@ -465,7 +465,7 @@ public abstract class CompactSketch extends Sketch {
     final long[] entries = new long[numEntries];
     final byte[] bytes = new byte[entryBits]; // temporary buffer for unpacking
     int i;
-    for (i = 0; i + 7 < numEntries; i += 8) {
+    for (i = 0; (i + 7) < numEntries; i += 8) {
       MemorySegment.copy(srcSeg, JAVA_BYTE, offsetBytes, bytes, 0, entryBits);
       BitPacking.unpackBitsBlock8(entries, i, bytes, 0, entryBits);
       offsetBytes += entryBits;

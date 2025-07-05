@@ -51,7 +51,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void check1() {
-    Union union = Sketches.setOperationBuilder().buildUnion();
+    final Union union = Sketches.setOperationBuilder().buildUnion();
     union.union(SingleItemSketch.create(1));
     union.union(SingleItemSketch.create(1.0));
     union.union(SingleItemSketch.create(0.0));
@@ -63,35 +63,35 @@ public class SingleItemSketchTest {
 
     union.union(SingleItemSketch.create(-0.0)); //duplicate
 
-    double est = union.getResult().getEstimate();
+    final double est = union.getResult().getEstimate();
     println(""+est);
     assertEquals(est, 8.0, 0.0);
 
     assertNull(SingleItemSketch.create(""));
-    String str = null;
+    final String str = null;
     assertNull(SingleItemSketch.create(str));//returns null
 
     assertNull(SingleItemSketch.create(new byte[0]));//returns null
-    byte[] byteArr = null;
+    final byte[] byteArr = null;
     assertNull(SingleItemSketch.create(byteArr));//returns null
 
     assertNull(SingleItemSketch.create(new char[0]));//returns null
-    char[] charArr = null;
+    final char[] charArr = null;
     assertNull(SingleItemSketch.create(charArr));//returns null
 
     assertNull(SingleItemSketch.create(new int[0]));//returns null
-    int[] intArr = null;
+    final int[] intArr = null;
     assertNull(SingleItemSketch.create(intArr));//returns null
 
     assertNull(SingleItemSketch.create(new long[0]));//returns null
-    long[] longArr = null;
+    final long[] longArr = null;
     assertNull(SingleItemSketch.create(longArr));//returns null
   }
 
   @Test
   public void check2() {
-    long seed = Util.DEFAULT_UPDATE_SEED;
-    Union union = Sketches.setOperationBuilder().buildUnion();
+    final long seed = Util.DEFAULT_UPDATE_SEED;
+    final Union union = Sketches.setOperationBuilder().buildUnion();
     union.union(SingleItemSketch.create(1, seed));
     union.union(SingleItemSketch.create(1.0, seed));
     union.union(SingleItemSketch.create(0.0, seed));
@@ -103,40 +103,40 @@ public class SingleItemSketchTest {
 
     union.union(SingleItemSketch.create(-0.0, seed)); //duplicate
 
-    double est = union.getResult().getEstimate();
+    final double est = union.getResult().getEstimate();
     println(""+est);
     assertEquals(est, 8.0, 0.0);
 
     assertNull(SingleItemSketch.create("", seed));
-    String str = null;
+    final String str = null;
     assertNull(SingleItemSketch.create(str, seed));//returns null
 
     assertNull(SingleItemSketch.create(new byte[0], seed));//returns null
-    byte[] byteArr = null;
+    final byte[] byteArr = null;
     assertNull(SingleItemSketch.create(byteArr, seed));//returns null
 
     assertNull(SingleItemSketch.create(new char[0], seed));//returns null
-    char[] charArr = null;
+    final char[] charArr = null;
     assertNull(SingleItemSketch.create(charArr, seed));//returns null
 
     assertNull(SingleItemSketch.create(new int[0], seed));//returns null
-    int[] intArr = null;
+    final int[] intArr = null;
     assertNull(SingleItemSketch.create(intArr, seed));//returns null
 
     assertNull(SingleItemSketch.create(new long[0], seed));//returns null
-    long[] longArr = null;
+    final long[] longArr = null;
     assertNull(SingleItemSketch.create(longArr, seed));//returns null
   }
 
   @Test
   public void checkSketchInterface() {
-    SingleItemSketch sis = SingleItemSketch.create(1);
+    final SingleItemSketch sis = SingleItemSketch.create(1);
     assertEquals(sis.getCompactBytes(), 16);
     assertEquals(sis.getEstimate(), 1.0);
     assertEquals(sis.getLowerBound(1), 1.0);
     assertEquals(sis.getRetainedEntries(true), 1);
     assertEquals(sis.getUpperBound(1), 1.0);
-    assertFalse(sis.isDirect());
+    assertFalse(sis.isOffHeap());
     assertFalse(sis.hasMemorySegment());
     assertFalse(sis.isEmpty());
     assertTrue(sis.isOrdered());
@@ -145,48 +145,48 @@ public class SingleItemSketchTest {
   @Test
   public void checkLessThanThetaLong() {
     for (int i = 0; i < 10; i++) {
-      long[] data = { i };
-      long h = hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1;
-      SingleItemSketch sis = SingleItemSketch.create(i);
-      long halfMax = Long.MAX_VALUE >> 1;
-      int count = sis.getCountLessThanThetaLong(halfMax);
+      final long[] data = { i };
+      final long h = hash(data, Util.DEFAULT_UPDATE_SEED)[0] >>> 1;
+      final SingleItemSketch sis = SingleItemSketch.create(i);
+      final long halfMax = Long.MAX_VALUE >> 1;
+      final int count = sis.getCountLessThanThetaLong(halfMax);
       assertEquals(count, (h < halfMax) ? 1 : 0);
     }
   }
 
   @Test
   public void checkSerDe() {
-    SingleItemSketch sis = SingleItemSketch.create(1);
-    byte[] byteArr = sis.toByteArray();
-    MemorySegment seg = MemorySegment.ofArray(byteArr);
+    final SingleItemSketch sis = SingleItemSketch.create(1);
+    final byte[] byteArr = sis.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
     final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
-    SingleItemSketch sis2 = SingleItemSketch.heapify(seg,  defaultSeedHash);
+    final SingleItemSketch sis2 = SingleItemSketch.heapify(seg,  defaultSeedHash);
     assertEquals(sis2.getEstimate(), 1.0);
 
-    SingleItemSketch sis3 = SingleItemSketch.heapify(seg , defaultSeedHash);
+    final SingleItemSketch sis3 = SingleItemSketch.heapify(seg , defaultSeedHash);
     assertEquals(sis3.getEstimate(), 1.0);
 
-    Union union = Sketches.setOperationBuilder().buildUnion();
+    final Union union = Sketches.setOperationBuilder().buildUnion();
     union.union(sis);
     union.union(sis2);
     union.union(sis3);
-    CompactSketch csk = union.getResult();
+    final CompactSketch csk = union.getResult();
     assertTrue(csk instanceof SingleItemSketch);
     assertEquals(union.getResult().getEstimate(), 1.0);
   }
 
   @Test
   public void checkRestricted() {
-    SingleItemSketch sis = SingleItemSketch.create(1);
+    final SingleItemSketch sis = SingleItemSketch.create(1);
     assertNull(sis.getMemorySegment());
     assertEquals(sis.getCompactPreambleLongs(), 1);
   }
 
   @Test
   public void unionWrapped() {
-    Sketch sketch = SingleItemSketch.create(1);
-    Union union = Sketches.setOperationBuilder().buildUnion();
-    MemorySegment seg  = MemorySegment.ofArray(sketch.toByteArray());
+    final Sketch sketch = SingleItemSketch.create(1);
+    final Union union = Sketches.setOperationBuilder().buildUnion();
+    final MemorySegment seg  = MemorySegment.ofArray(sketch.toByteArray());
     union.union(seg );
     assertEquals(union.getResult().getEstimate(), 1, 0);
   }
@@ -241,7 +241,7 @@ public class SingleItemSketchTest {
 
     //Intersection off-heap
     bytes = Sketches.getMaxIntersectionBytes(32);
-    MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
+    final MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
     inter = Sketches.setOperationBuilder().buildIntersection(wseg );
     inter.intersect(sk1);
     inter.intersect(sk2);
@@ -269,7 +269,7 @@ public class SingleItemSketchTest {
 
     //Union off-heap
     bytes = Sketches.getMaxUnionBytes(32);
-    MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
+    final MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
     union = Sketches.setOperationBuilder().buildUnion(wseg );
     union.union(sk1);
     union.union(sk2);
@@ -288,7 +288,7 @@ public class SingleItemSketchTest {
     sk2 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
     sk1.update(1);
     sk2.update(2);
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
     aNotB.setA(sk1);
     aNotB.notB(sk2);
     csk = aNotB.getResult(true, null, true);
@@ -298,17 +298,17 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkHeapifyInstance() {
-    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdateSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
-    UpdateSketch sk2 = new UpdateSketchBuilder().build();
+    final UpdateSketch sk2 = new UpdateSketchBuilder().build();
     sk2.update(1);
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.intersect(sk1);
     inter.intersect(sk2);
-    MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
-    CompactSketch csk = inter.getResult(false, wseg );
+    final MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
+    final CompactSketch csk = inter.getResult(false, wseg );
     assertTrue(csk.isOrdered());
-    Sketch csk2 = Sketches.heapifySketch(wseg );
+    final Sketch csk2 = Sketches.heapifySketch(wseg );
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));
   }
@@ -316,15 +316,15 @@ public class SingleItemSketchTest {
   @Test
   public void checkSingleItemBadFlags() {
     final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
-    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdateSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
-    MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
+    final MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
     sk1.compact(true, wseg );
     wseg .set(JAVA_BYTE, 5, (byte) 0); //corrupt flags to zero
     try {
       SingleItemSketch.heapify(wseg , defaultSeedHash); //fails due to corrupted flags bytes
       fail();
-    } catch (SketchesArgumentException e) { }
+    } catch (final SketchesArgumentException e) { }
   }
 
   @Test
@@ -339,13 +339,13 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkSingleItemCompact() {
-    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdateSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
-    CompactSketch csk = sk1.compact();
+    final CompactSketch csk = sk1.compact();
     assertTrue(csk instanceof SingleItemSketch);
-    CompactSketch csk2 = csk.compact();
+    final CompactSketch csk2 = csk.compact();
     assertEquals(csk, csk2);
-    CompactSketch csk3 = csk.compact(true, MemorySegment.ofArray(new byte[16]));
+    final CompactSketch csk3 = csk.compact(true, MemorySegment.ofArray(new byte[16]));
     assertTrue(csk3 instanceof DirectCompactSketch);
     assertEquals(csk2.getCurrentPreambleLongs(), 1);
     assertEquals(csk3.getCurrentPreambleLongs(), 1);
@@ -357,16 +357,16 @@ public class SingleItemSketchTest {
   static final long Hash = 0x05a186bdcb7df915L;
 
   static MemorySegment siSkWithSiFlag24Bytes() {
-    int cap = 24; //8 extra bytes
-    MemorySegment wseg  = MemorySegment.ofArray(new byte[cap]);
+    final int cap = 24; //8 extra bytes
+    final MemorySegment wseg  = MemorySegment.ofArray(new byte[cap]);
     wseg .set(JAVA_LONG_UNALIGNED, 0, SiSkPre0WithSiFlag);
     wseg .set(JAVA_LONG_UNALIGNED, 8, Hash);
     return wseg ;
   }
 
   static MemorySegment siSkWoutSiFlag24Bytes() {
-    int cap = 24; //8 extra bytes
-    MemorySegment wseg  = MemorySegment.ofArray(new byte[cap]);
+    final int cap = 24; //8 extra bytes
+    final MemorySegment wseg  = MemorySegment.ofArray(new byte[cap]);
     wseg .set(JAVA_LONG_UNALIGNED, 0, SiSkPre0WoutSiFlag);
     wseg .set(JAVA_LONG_UNALIGNED, 8, Hash);
     return wseg;
@@ -380,7 +380,7 @@ public class SingleItemSketchTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

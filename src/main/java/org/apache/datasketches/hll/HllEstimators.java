@@ -25,7 +25,7 @@ import static org.apache.datasketches.hll.HllUtil.MIN_LOG_K;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class HllEstimators {
+final class HllEstimators {
 
   //HLL UPPER AND LOWER BOUNDS
 
@@ -43,7 +43,7 @@ class HllEstimators {
    * the very small values <= k where curMin = 0 still apply.
    */
 
-  static final double hllLowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
+  static double hllLowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
     final int lgConfigK = absHllArr.lgConfigK;
     final int configK = 1 << lgConfigK;
     final double numNonZeros =
@@ -54,7 +54,7 @@ class HllEstimators {
     return Math.max(estimate / (1.0 + relErr), numNonZeros);
   }
 
-  static final double hllUpperBound(final AbstractHllArray absHllArr, final int numStdDev) {
+  static double hllUpperBound(final AbstractHllArray absHllArr, final int numStdDev) {
     final int lgConfigK = absHllArr.lgConfigK;
     final double estimate = absHllArr.getEstimate();
     final boolean oooFlag = absHllArr.isOutOfOrder();
@@ -71,7 +71,7 @@ class HllEstimators {
    * @return the composite estimate
    */
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
-  static final double hllCompositeEstimate(final AbstractHllArray absHllArr) {
+  static double hllCompositeEstimate(final AbstractHllArray absHllArr) {
     final int lgConfigK = absHllArr.getLgConfigK();
     final double rawEst = getHllRawEstimate(lgConfigK, absHllArr.getKxQ0() + absHllArr.getKxQ1());
 
@@ -127,7 +127,7 @@ class HllEstimators {
    * @return the very low range estimate
    */
   //In C: again-two-registers.c hhb_get_improved_linear_counting_estimate L1274
-  private static final double getHllBitMapEstimate(
+  private static double getHllBitMapEstimate(
       final int lgConfigK, final int curMin, final int numAtCurMin) {
     final int configK = 1 << lgConfigK;
     final int numUnhitBuckets =  (curMin == 0) ? numAtCurMin : 0;
@@ -143,15 +143,14 @@ class HllEstimators {
 
   //In C: again-two-registers.c hhb_get_raw_estimate L1167
   //This algorithm is from Flajolet's, et al, 2007 HLL paper, Fig 3.
-  private static final double getHllRawEstimate(final int lgConfigK, final double kxqSum) {
+  private static double getHllRawEstimate(final int lgConfigK, final double kxqSum) {
     final int configK = 1 << lgConfigK;
     final double correctionFactor;
     if (lgConfigK == 4) { correctionFactor = 0.673; }
     else if (lgConfigK == 5) { correctionFactor = 0.697; }
     else if (lgConfigK == 6) { correctionFactor = 0.709; }
     else { correctionFactor = 0.7213 / (1.0 + (1.079 / configK)); }
-    final double hyperEst = (correctionFactor * configK * configK) / kxqSum;
-    return hyperEst;
+    return (correctionFactor * configK * configK) / kxqSum;
   }
 
 }

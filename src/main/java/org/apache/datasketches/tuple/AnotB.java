@@ -67,7 +67,6 @@ import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
  *
  * @author Lee Rhodes
  */
-@SuppressFBWarnings(value = "DP_DO_INSIDE_DO_PRIVILEGED", justification = "Defer fix")
 public final class AnotB<S extends Summary> {
   private boolean empty_ = true;
   private long thetaLong_ = Long.MAX_VALUE;

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hll.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.hll.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.hll.PreambleUtil.SER_VER_BYTE;
@@ -31,9 +32,13 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.hll.CurMode;
+import org.apache.datasketches.hll.HllSketch;
+import org.apache.datasketches.hll.PreambleUtil;
+import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**
@@ -43,141 +48,141 @@ public class PreambleUtilTest {
 
   //@Test
   public void preambleToString() { // Check Visually
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(8, TgtHllType.HLL_4);
-    byte[] byteArr1 = new byte[bytes];
-    WritableMemory wmem1 = WritableMemory.writableWrap(byteArr1);
-    HllSketch sk = new HllSketch(8, TgtHllType.HLL_4, wmem1);
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(8, TgtHllType.HLL_4);
+    final byte[] byteArr1 = new byte[bytes];
+    final MemorySegment wseg1 = MemorySegment.ofArray(byteArr1);
+    final HllSketch sk = new HllSketch(8, TgtHllType.HLL_4, wseg1);
     byte[] byteArr2 = sk.toCompactByteArray();
-    WritableMemory wmem2 = WritableMemory.writableWrap(byteArr2);
+    MemorySegment wseg2 = MemorySegment.ofArray(byteArr2);
 
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertTrue(sk.isEmpty());
     String s = HllSketch.toString(byteArr2); //empty sketch output
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
-    println("Serialization Bytes: " + wmem2.getCapacity());
+    println("LgArr: " + PreambleUtil.extractLgArr(wseg2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wseg2));
+    println("Serialization Bytes: " + wseg2.byteSize());
 
     for (int i = 0; i < 7; i++) { sk.update(i); }
     byteArr2 = sk.toCompactByteArray();
-    wmem2 = WritableMemory.writableWrap(byteArr2);
+    wseg2 = MemorySegment.ofArray(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertFalse(sk.isEmpty());
     s = HllSketch.toString(byteArr2);
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
-    println("Serialization Bytes: " + wmem2.getCapacity());
+    println("LgArr: " + PreambleUtil.extractLgArr(wseg2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wseg2));
+    println("Serialization Bytes: " + wseg2.byteSize());
 
     for (int i = 7; i < 24; i++) { sk.update(i); }
     byteArr2 = sk.toCompactByteArray();
-    wmem2 = WritableMemory.writableWrap(byteArr2);
+    wseg2 = MemorySegment.ofArray(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.SET);
     s = HllSketch.toString(byteArr2);
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
-    println("Serialization Bytes: " + wmem2.getCapacity());
+    println("LgArr: " + PreambleUtil.extractLgArr(wseg2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wseg2));
+    println("Serialization Bytes: " + wseg2.byteSize());
 
     sk.update(24);
     byteArr2 = sk.toCompactByteArray();
-    wmem2 = WritableMemory.writableWrap(byteArr2);
+    wseg2 = MemorySegment.ofArray(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.HLL);
-    s = HllSketch.toString(Memory.wrap(byteArr2));
+    s = HllSketch.toString(MemorySegment.ofArray(byteArr2));
     println(s);
-    println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
-    println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
-    println("Serialization Bytes: " + wmem2.getCapacity());
+    println("LgArr: " + PreambleUtil.extractLgArr(wseg2));
+    println("Empty: " + PreambleUtil.extractEmptyFlag(wseg2));
+    println("Serialization Bytes: " + wseg2.byteSize());
   }
 
   @Test
   public void checkCompactFlag() {
-    HllSketch sk = new HllSketch(7);
-    byte[] memObj = sk.toCompactByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(memObj);
-    boolean compact = PreambleUtil.extractCompactFlag(wmem);
+    final HllSketch sk = new HllSketch(7);
+    final byte[] segObj = sk.toCompactByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(segObj);
+    boolean compact = PreambleUtil.extractCompactFlag(wseg);
     assertTrue(compact);
 
-    PreambleUtil.insertCompactFlag(wmem, false);
-    compact = PreambleUtil.extractCompactFlag(wmem);
+    PreambleUtil.insertCompactFlag(wseg, false);
+    compact = PreambleUtil.extractCompactFlag(wseg);
     assertFalse(compact);
   }
 
   @SuppressWarnings("unused")
   @Test
   public void checkCorruptMemoryInput() {
-    HllSketch sk = new HllSketch(12);
-    byte[] memObj = sk.toCompactByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(memObj);
+    final HllSketch sk = new HllSketch(12);
+    byte[] segObj = sk.toCompactByteArray();
+    MemorySegment wseg = MemorySegment.ofArray(segObj);
     HllSketch bad;
 
     //checkFamily
     try {
-      wmem.putByte(FAMILY_BYTE, (byte) 0); //corrupt, should be 7
-      bad = HllSketch.heapify(wmem);
+      wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt, should be 7
+      bad = HllSketch.heapify(wseg);
       fail();
-    } catch (SketchesArgumentException e) { /* OK */ }
-    insertFamilyId(wmem); //corrected
+    } catch (final SketchesArgumentException e) { /* OK */ }
+    insertFamilyId(wseg); //corrected
 
     //check SerVer
     try {
-      wmem.putByte(SER_VER_BYTE, (byte) 0); //corrupt, should be 1
-      bad = HllSketch.heapify(wmem);
+      wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt, should be 1
+      bad = HllSketch.heapify(wseg);
       fail();
-    } catch (SketchesArgumentException e) { /* OK */ }
-    insertSerVer(wmem); //corrected
+    } catch (final SketchesArgumentException e) { /* OK */ }
+    insertSerVer(wseg); //corrected
 
     //check bad PreInts
     try {
-      insertPreInts(wmem, 0); //corrupt, should be 2
-      bad = HllSketch.heapify(wmem);
+      insertPreInts(wseg, 0); //corrupt, should be 2
+      bad = HllSketch.heapify(wseg);
       fail();
-    } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(wmem, 2); //corrected
+    } catch (final SketchesArgumentException e) { /* OK */ }
+    insertPreInts(wseg, 2); //corrected
 
     //check wrong PreInts and LIST
     try {
-      insertPreInts(wmem, 3); //corrupt, should be 2
-      bad = HllSketch.heapify(wmem);
+      insertPreInts(wseg, 3); //corrupt, should be 2
+      bad = HllSketch.heapify(wseg);
       fail();
-    } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(wmem, 2); //corrected
+    } catch (final SketchesArgumentException e) { /* OK */ }
+    insertPreInts(wseg, 2); //corrected
 
     //move to Set mode
     for (int i = 1; i <= 15; i++) { sk.update(i); }
-    memObj = sk.toCompactByteArray();
-    wmem = WritableMemory.writableWrap(memObj);
+    segObj = sk.toCompactByteArray();
+    wseg = MemorySegment.ofArray(segObj);
 
     //check wrong PreInts and SET
     try {
-      insertPreInts(wmem, 2); //corrupt, should be 3
-      bad = HllSketch.heapify(wmem);
+      insertPreInts(wseg, 2); //corrupt, should be 3
+      bad = HllSketch.heapify(wseg);
       fail();
-    } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(wmem, 3); //corrected
+    } catch (final SketchesArgumentException e) { /* OK */ }
+    insertPreInts(wseg, 3); //corrected
 
     //move to HLL mode
     for (int i = 15; i <= 1000; i++) { sk.update(i); }
-    memObj = sk.toCompactByteArray();
-    wmem = WritableMemory.writableWrap(memObj);
+    segObj = sk.toCompactByteArray();
+    wseg = MemorySegment.ofArray(segObj);
 
     //check wrong PreInts and HLL
     try {
-      insertPreInts(wmem, 2); //corrupt, should be 10
-      bad = HllSketch.heapify(wmem);
+      insertPreInts(wseg, 2); //corrupt, should be 10
+      bad = HllSketch.heapify(wseg);
       fail();
-    } catch (SketchesArgumentException e) { /* OK */ }
-    insertPreInts(wmem, 10); //corrected
+    } catch (final SketchesArgumentException e) { /* OK */ }
+    insertPreInts(wseg, 10); //corrected
   }
 
   @SuppressWarnings("unused")
   @Test
   public void checkExtractFlags() {
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    Object memObj = wmem.getArray();
-    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
-    int flags = extractFlags(wmem);
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final Object segObj = wseg.toArray(JAVA_BYTE);
+    final HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wseg);
+    final int flags = extractFlags(wseg);
     assertEquals(flags, EMPTY_FLAG_MASK);
   }
 
@@ -189,7 +194,7 @@ public class PreambleUtilTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

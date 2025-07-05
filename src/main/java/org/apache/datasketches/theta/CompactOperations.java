@@ -196,17 +196,14 @@ final class CompactOperations {
     }
   }
 
-  private static final void checkFamilyAndFlags(
+  private static void checkFamilyAndFlags(
       final int srcFamId,
       final boolean srcCompactFlag,
       final boolean srcReadOnlyFlag) {
     final Family srcFamily = Family.idToFamily(srcFamId);
     if (srcCompactFlag) {
       if ((srcFamily == Family.COMPACT) && srcReadOnlyFlag) { return; }
-    } else {
-      if (srcFamily == Family.ALPHA) { return; }
-      if (srcFamily == Family.QUICKSELECT) { return; }
-    }
+    } else if ((srcFamily == Family.ALPHA) || (srcFamily == Family.QUICKSELECT)) { return; }
     throw new SketchesArgumentException(
         "Possible Corruption: Family does not match flags: Family: "
             + srcFamily.toString()
@@ -217,7 +214,7 @@ final class CompactOperations {
   //All arguments must be valid and correct including flags.
   // Used as helper to create byte arrays as well as loading MemorySegment for direct compact sketches
   //Input must be writable, return can be Read Only
-  static final MemorySegment loadCompactMemorySegment(
+  static MemorySegment loadCompactMemorySegment(
       final long[] compactHashArr,
       final short seedHash,
       final int curCount,
@@ -236,12 +233,9 @@ final class CompactOperations {
     }
     final byte famID = (byte) Family.COMPACT.getID();
 
-    //Caution: The following loads directly into a MemorySegment without creating a heap byte[] first,
-    // which would act as a pre-clearing, initialization mechanism. So it is important to make sure
-    // that all fields are initialized, even those that are not used by the CompactSketch.
-    // Otherwise, uninitialized fields could be filled with off-heap garbage, which could cause
-    // other problems downstream if those fields are not filtered out first.
-    // As written below, all fields are initialized avoiding an extra copy.
+    //It is important to make sure that all byte fields are initialized, even those that are not used by the CompactSketch.
+    // Otherwise, uninitialized fields could could cause other problems downstream.
+    // As written below, all fields are initialized.
 
     //The first 8 bytes (pre0)
     insertPreLongs(dstWSeg, preLongs); //RF not used = 0
@@ -265,10 +259,9 @@ final class CompactOperations {
       insertThetaLong(dstWSeg, thetaLong);
     }
     if (curCount > 0) { //theta could be < 1.0.
-      //dstWSeg.putLongArray(preLongs << 3, compactHashArr, 0, curCount);
       MemorySegment.copy(compactHashArr, 0, dstWSeg, JAVA_LONG_UNALIGNED, preLongs << 3, curCount);
     }
-    return dstWSeg; //if prelongs == 3 & curCount == 0, theta could be < 1.0. This can be RO
+    return dstWSeg; //if prelongs == 3 & curCount == 0, theta could be < 1.0. This can be read-only
   }
 
   /**
@@ -283,7 +276,7 @@ final class CompactOperations {
    * @param dstOrdered true if output array must be sorted
    * @return the compacted array.
    */
-  static final long[] compactCache(final long[] srcCache, final int curCount,
+  static long[] compactCache(final long[] srcCache, final int curCount,
       final long thetaLong, final boolean dstOrdered) {
     if (curCount == 0) {
       return new long[0];
@@ -341,7 +334,7 @@ final class CompactOperations {
    * @param thetaLong the given thetaLong
    * @return thetaLong
    */
-  static final long correctThetaOnCompact(final boolean empty, final int curCount,
+  static long correctThetaOnCompact(final boolean empty, final int curCount,
       final long thetaLong) { //handles #4 above
     return (empty && (curCount == 0)) ? Long.MAX_VALUE : thetaLong;
   }
@@ -353,7 +346,7 @@ final class CompactOperations {
    * @param empty the given empty state
    * @param curCount the given current count
    */ //This handles #2 and #6 above
-  static final void checkIllegalCurCountAndEmpty(final boolean empty, final int curCount) {
+  static void checkIllegalCurCountAndEmpty(final boolean empty, final int curCount) {
     if (empty && (curCount != 0)) { //this handles #2 and #6 above
       throw new SketchesStateException("Illegal State: Empty=true and Current Count != 0.");
     }
@@ -368,7 +361,7 @@ final class CompactOperations {
    * @param thetaLong the current thetaLong
    * @return the number of preamble longs
    */
-  static final int computeCompactPreLongs(final boolean empty, final int curCount,
+  static int computeCompactPreLongs(final boolean empty, final int curCount,
       final long thetaLong) {
     return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : (curCount > 1) ? 2 : 1;
   }
@@ -380,7 +373,7 @@ final class CompactOperations {
    * @param thetaLong the given thetaLong
    * @return true if notEmpty, curCount = 1 and theta = 1.0;
    */
-  static final boolean isSingleItem(final boolean empty, final int curCount,
+  static boolean isSingleItem(final boolean empty, final int curCount,
       final long thetaLong) {
     return !empty && (curCount == 1) && (thetaLong == Long.MAX_VALUE);
   }

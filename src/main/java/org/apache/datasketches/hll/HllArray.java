@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.extractCurMin;
@@ -32,8 +33,7 @@ import static org.apache.datasketches.hll.PreambleUtil.extractRebuildCurMinNumKx
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * @author Lee Rhodes
@@ -137,7 +137,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  Memory getMemory() {
+  MemorySegment getMemorySegment() {
     return null;
   }
 
@@ -152,11 +152,6 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  WritableMemory getWritableMemory() {
-    return null;
-  }
-
-  @Override
   boolean isCompact() {
     return false;
   }
@@ -167,7 +162,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  boolean isMemory() {
+  boolean hasMemorySegment() {
     return false;
   }
 
@@ -182,7 +177,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  boolean isSameResource(final Memory mem) {
+  boolean isSameResource(final MemorySegment seg) {
     return false;
   }
 
@@ -251,18 +246,18 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   //used by heapify by all Heap HLL
-  static final void extractCommonHll(final Memory srcMem, final HllArray hllArray) {
-    hllArray.putOutOfOrder(extractOooFlag(srcMem));
-    hllArray.putEmptyFlag(extractEmptyFlag(srcMem));
-    hllArray.putCurMin(extractCurMin(srcMem));
-    hllArray.putHipAccum(extractHipAccum(srcMem));
-    hllArray.putKxQ0(extractKxQ0(srcMem));
-    hllArray.putKxQ1(extractKxQ1(srcMem));
-    hllArray.putNumAtCurMin(extractNumAtCurMin(srcMem));
-    hllArray.putRebuildCurMinNumKxQFlag(extractRebuildCurMinNumKxQFlag(srcMem));
+  static final void extractCommonHll(final MemorySegment srcSeg, final HllArray hllArray) {
+    hllArray.putOutOfOrder(extractOooFlag(srcSeg));
+    hllArray.putEmptyFlag(extractEmptyFlag(srcSeg));
+    hllArray.putCurMin(extractCurMin(srcSeg));
+    hllArray.putHipAccum(extractHipAccum(srcSeg));
+    hllArray.putKxQ0(extractKxQ0(srcSeg));
+    hllArray.putKxQ1(extractKxQ1(srcSeg));
+    hllArray.putNumAtCurMin(extractNumAtCurMin(srcSeg));
+    hllArray.putRebuildCurMinNumKxQFlag(extractRebuildCurMinNumKxQFlag(srcSeg));
 
     //load Hll array
-    srcMem.getByteArray(HLL_BYTE_ARR_START, hllArray.hllByteArr, 0, hllArray.hllByteArr.length);
+    MemorySegment.copy(srcSeg, JAVA_BYTE, HLL_BYTE_ARR_START, hllArray.hllByteArr, 0, hllArray.hllByteArr.length);
   }
 
 }

@@ -25,14 +25,15 @@ import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Uses 6 bits per slot in a packed byte array.
  * @author Lee Rhodes
  */
-class Hll6Array extends HllArray {
+final class Hll6Array extends HllArray {
 
   /**
    * Standard constructor for new instance
@@ -51,10 +52,10 @@ class Hll6Array extends HllArray {
     super(that);
   }
 
-  static final Hll6Array heapify(final Memory mem) {
-    final int lgConfigK = extractLgK(mem);
+  static Hll6Array heapify(final MemorySegment seg) {
+    final int lgConfigK = extractLgK(seg);
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
-    HllArray.extractCommonHll(mem, hll6Array);
+    HllArray.extractCommonHll(seg, hll6Array);
     return hll6Array;
   }
 
@@ -77,8 +78,7 @@ class Hll6Array extends HllArray {
     throw new SketchesStateException("Improper access.");
   }
 
-  @Override
-  final int getSlotValue(final int slotNo) {
+  @Override int getSlotValue(final int slotNo) {
     return get6Bit(hllByteArr, 0, slotNo);
   }
 
@@ -94,14 +94,14 @@ class Hll6Array extends HllArray {
 
   @Override
   //Would be used by Union, but not used because the gadget is always HLL8 type
-  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+ void updateSlotNoKxQ(final int slotNo, final int newValue) {
     throw new SketchesStateException("Improper access.");
   }
 
   @Override
   //Used by this couponUpdate()
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
-  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+ void updateSlotWithKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       put6Bit(hllByteArr, 0, slotNo, newValue);
@@ -114,7 +114,7 @@ class Hll6Array extends HllArray {
   }
 
   //on-heap
-  private static final void put6Bit(final byte[] arr, final int offsetBytes, final int slotNo,
+  private static void put6Bit(final byte[] arr, final int offsetBytes, final int slotNo,
       final int newValue) {
     final int startBit = slotNo * 6;
     final int shift = startBit & 0X7;
@@ -126,7 +126,7 @@ class Hll6Array extends HllArray {
   }
 
   //on-heap
-  private static final int get6Bit(final byte[] arr, final int offsetBytes, final int slotNo) {
+  private static int get6Bit(final byte[] arr, final int offsetBytes, final int slotNo) {
     final int startBit = slotNo * 6;
     final int shift = startBit & 0X7;
     final int byteIdx = (startBit >>> 3) + offsetBytes;

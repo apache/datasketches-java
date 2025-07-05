@@ -24,7 +24,13 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.hll.AbstractCoupons;
+import org.apache.datasketches.hll.CurMode;
+import org.apache.datasketches.hll.HllSketch;
+import org.apache.datasketches.hll.PairIterator;
+import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**
@@ -38,15 +44,15 @@ public class CouponListTest {
     checkIterator(true, 4, 7);
   }
 
-  private static void checkIterator(boolean direct, int lgK, int n) {
-    TgtHllType tgtHllType = TgtHllType.HLL_4;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = (direct) ? new HllSketch(lgK, tgtHllType, wmem) : new HllSketch(lgK, tgtHllType);
+  private static void checkIterator(final boolean direct, final int lgK, final int n) {
+    final TgtHllType tgtHllType = TgtHllType.HLL_4;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = (direct) ? new HllSketch(lgK, tgtHllType, wseg) : new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) { sk.update(i); }
-    String store = direct ? "Memory" : "Heap";
+    final String store = direct ? "MemorySegment" : "Heap";
     println("CurMode: " + sk.getCurMode().toString() + "; Store: " + store);
-    PairIterator itr = sk.iterator();
+    final PairIterator itr = sk.iterator();
     println(itr.getHeader());
     while (itr.nextAll()) {
       assertTrue(itr.getSlot() < (1 << lgK));
@@ -60,12 +66,12 @@ public class CouponListTest {
     checkDuplicatesAndMisc(true);
   }
 
-  private static void checkDuplicatesAndMisc(boolean direct) {
-    int lgConfigK = 8;
-    TgtHllType tgtHllType = TgtHllType.HLL_4;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = (direct) ? new HllSketch(lgConfigK, tgtHllType, wmem) : new HllSketch(8);
+  private static void checkDuplicatesAndMisc(final boolean direct) {
+    final int lgConfigK = 8;
+    final TgtHllType tgtHllType = TgtHllType.HLL_4;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = (direct) ? new HllSketch(lgConfigK, tgtHllType, wseg) : new HllSketch(8);
 
     for (int i = 1; i <= 7; i++) {
       sk.update(i);
@@ -77,11 +83,9 @@ public class CouponListTest {
     sk.hllSketchImpl.putEmptyFlag(false); //dummy
     sk.hllSketchImpl.putRebuildCurMinNumKxQFlag(false); //dummy
     if (direct) {
-      assertNotNull(sk.getWritableMemory());
-      assertNotNull(sk.getMemory());
+      assertNotNull(sk.getMemorySegment());
     } else {
-      assertNull(sk.getWritableMemory());
-      assertNull(sk.getMemory());
+      assertNull(sk.getMemorySegment());
     }
 
     sk.update(8);
@@ -90,11 +94,9 @@ public class CouponListTest {
     assertEquals(sk.getCompositeEstimate(), 8.0, 8 * .01);
     assertEquals(sk.getHipEstimate(), 8.0, 8 * .01);
     if (direct) {
-      assertNotNull(sk.getWritableMemory());
-      assertNotNull(sk.getMemory());
+      assertNotNull(sk.getMemorySegment());
     } else {
-      assertNull(sk.getWritableMemory());
-      assertNull(sk.getMemory());
+      assertNull(sk.getMemorySegment());
     }
 
     for (int i = 9; i <= 25; i++) {
@@ -104,11 +106,10 @@ public class CouponListTest {
     assertEquals(sk.getCurMode(), CurMode.HLL);
     assertEquals(sk.getCompositeEstimate(), 25.0, 25 * .1);
     if (direct) {
-      assertNotNull(sk.getWritableMemory());
-      assertNotNull(sk.getMemory());
+      assertNotNull(sk.getMemorySegment());
     } else {
-      assertNull(sk.getWritableMemory());
-      assertNull(sk.getMemory());
+      assertNull(sk.getMemorySegment());
+
     }
   }
 
@@ -118,14 +119,14 @@ public class CouponListTest {
     toByteArrayHeapify(21);
   }
 
-  private static void toByteArrayHeapify(int lgK) {
-    HllSketch sk1 = new HllSketch(lgK);
+  private static void toByteArrayHeapify(final int lgK) {
+    final HllSketch sk1 = new HllSketch(lgK);
 
-    int u = (lgK < 8) ? 7 : ((1 << (lgK - 3))/4) * 3;
+    final int u = (lgK < 8) ? 7 : ((1 << (lgK - 3))/4) * 3;
     for (int i = 0; i < u; i++) {
       sk1.update(i);
     }
-    double est1 = sk1.getEstimate();
+    final double est1 = sk1.getEstimate();
     assertEquals(est1, u, u * 100.0E-6);
     //println("Original\n" + sk1.toString());
 
@@ -145,9 +146,9 @@ public class CouponListTest {
 
   @Test
   public void checkGetMemory() {
-    HllSketch sk1 = new HllSketch(4);
-    AbstractCoupons absCoup = (AbstractCoupons) sk1.hllSketchImpl;
-    assertNull(absCoup.getMemory());
+    final HllSketch sk1 = new HllSketch(4);
+    final AbstractCoupons absCoup = (AbstractCoupons) sk1.hllSketchImpl;
+    assertNull(absCoup.getMemorySegment());
   }
 
   @Test
@@ -158,7 +159,7 @@ public class CouponListTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 }

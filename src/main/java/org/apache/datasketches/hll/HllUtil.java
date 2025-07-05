@@ -30,10 +30,11 @@ import static org.apache.datasketches.hll.PreambleUtil.extractFamilyId;
 import static org.apache.datasketches.hll.PreambleUtil.extractPreInts;
 import static org.apache.datasketches.hll.PreambleUtil.extractSerVer;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * @author Lee Rhodes
@@ -67,40 +68,40 @@ final class HllUtil {
    * Log2 table sizes for exceptions based on lgK from 0 to 26.
    * However, only lgK from 4 to 21 are used.
    */
-  static final int[] LG_AUX_ARR_INTS = new int[] {
+  static final int[] LG_AUX_ARR_INTS = {
     0, 2, 2, 2, 2, 2, 2, 3, 3, 3,   //0 - 9
     4, 4, 5, 5, 6, 7, 8, 9, 10, 11, //10 - 19
     12, 13, 14, 15, 16, 17, 18      //20 - 26
   };
 
   //Checks
-  static final int checkLgK(final int lgK) {
+  static int checkLgK(final int lgK) {
     if ((lgK >= MIN_LOG_K) && (lgK <= MAX_LOG_K)) { return lgK; }
     throw new SketchesArgumentException(
       "Log K must be between 4 and 21, inclusive: " + lgK);
   }
 
-  static void checkMemSize(final long minBytes, final long capBytes) {
+  static void checkSegSize(final long minBytes, final long capBytes) {
     if (capBytes < minBytes) {
       throw new SketchesArgumentException(
           "Given WritableMemory is not large enough: " + capBytes);
     }
   }
 
-  static final void checkNumStdDev(final int numStdDev) {
+  static void checkNumStdDev(final int numStdDev) {
     if ((numStdDev < 1) || (numStdDev > 3)) {
       throw new SketchesArgumentException(
           "NumStdDev may not be less than 1 or greater than 3.");
     }
   }
 
-  static CurMode checkPreamble(final Memory mem) {
-    checkBounds(0, 8, mem.getCapacity()); //need min 8 bytes
-    final int preInts = extractPreInts(mem);
-    checkBounds(0, (long)preInts * Integer.BYTES, mem.getCapacity());
-    final int serVer = extractSerVer(mem);
-    final int famId = extractFamilyId(mem);
-    final CurMode curMode = extractCurMode(mem);
+  static CurMode checkPreamble(final MemorySegment seg) {
+    checkBounds(0, 8, seg.byteSize()); //need min 8 bytes
+    final int preInts = extractPreInts(seg);
+    checkBounds(0, (long)preInts * Integer.BYTES, seg.byteSize());
+    final int serVer = extractSerVer(seg);
+    final int famId = extractFamilyId(seg);
+    final CurMode curMode = extractCurMode(seg);
     if (
       (famId != Family.HLL.getID())
       || (serVer != 1)
@@ -110,13 +111,13 @@ final class HllUtil {
       || ((curMode == CurMode.HLL) && (preInts != HLL_PREINTS))
     ) {
       throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
-          + PreambleUtil.toString(mem));
+          + PreambleUtil.toString(seg));
     }
     return curMode;
   }
 
   //Exceptions
-  static final void noWriteAccess() {
+  static void noWriteAccess() {
     throw new SketchesReadOnlyException(
         "This sketch is compact or does not have write access to the underlying resource.");
   }
@@ -132,11 +133,11 @@ final class HllUtil {
     return (value << KEY_BITS_26) | (slotNo & KEY_MASK_26);
   }
 
-  static final int getPairLow26(final int coupon) {
+  static int getPairLow26(final int coupon) {
     return coupon & KEY_MASK_26;
   }
 
-  static final int getPairValue(final int coupon) {
+  static int getPairValue(final int coupon) {
     return coupon >>> KEY_BITS_26;
   }
 

@@ -166,8 +166,7 @@ public abstract class SetOperation implements MemorySegmentStatus {
    */
   public static int getMaxIntersectionBytes(final int nomEntries) {
     final int nomEnt = ceilingPowerOf2(nomEntries);
-    final int bytes = (nomEnt << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
-    return bytes;
+    return (nomEnt << 4) + (Family.INTERSECTION.getMaxPreLongs() << 3);
   }
 
   /**
@@ -226,12 +225,6 @@ public abstract class SetOperation implements MemorySegmentStatus {
    */
   abstract long getThetaLong();
 
-  @Override
-  public abstract boolean hasMemorySegment();
-
-  @Override
-  public abstract boolean isDirect();
-
   /**
    * Returns true if this set operator is empty.
    * Only useful during stateful operations.
@@ -239,8 +232,5 @@ public abstract class SetOperation implements MemorySegmentStatus {
    * @return true if this set operator is empty.
    */
   abstract boolean isEmpty();
-
-  @Override
-  public abstract boolean isSameResource(final MemorySegment seg);
 
 }

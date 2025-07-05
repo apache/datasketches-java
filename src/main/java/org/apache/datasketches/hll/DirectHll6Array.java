@@ -19,13 +19,14 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -33,23 +34,23 @@ import org.apache.datasketches.memory.WritableMemory;
 final class DirectHll6Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
-  DirectHll6Array(final int lgConfigK, final WritableMemory wmem) {
-    super(lgConfigK, TgtHllType.HLL_6, wmem);
+  DirectHll6Array(final int lgConfigK, final MemorySegment wseg) {
+    super(lgConfigK, TgtHllType.HLL_6, wseg);
   }
 
-  //Called by HllSketch.wrap(Memory)
-  DirectHll6Array(final int lgConfigK, final Memory mem) {
-    super(lgConfigK, TgtHllType.HLL_6, mem);
+  //Called by HllSketch.wrap(MemorySegment)
+  DirectHll6Array(final int lgConfigK, final MemorySegment seg, final boolean readOnly) {
+    super(lgConfigK, TgtHllType.HLL_6, seg, true);
   }
 
   @Override
   HllSketchImpl copy() {
-    return Hll6Array.heapify(mem);
+    return Hll6Array.heapify(seg);
   }
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    if (wmem == null) { noWriteAccess(); }
+    if (wseg == null) { noWriteAccess(); }
     final int newValue = HllUtil.getPairValue(coupon);
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getPairLow26(coupon) & configKmask;
@@ -67,9 +68,8 @@ final class DirectHll6Array extends DirectHllArray {
     throw new SketchesStateException("Improper access.");
   }
 
-  @Override
-  final int getSlotValue(final int slotNo) {
-    return get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
+  @Override int getSlotValue(final int slotNo) {
+    return get6Bit(seg, HLL_BYTE_ARR_START, slotNo);
   }
 
   @Override
@@ -84,17 +84,17 @@ final class DirectHll6Array extends DirectHllArray {
 
   @Override
   //Would be used by Union, but not used because the gadget is always HLL8 type
-  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+ void updateSlotNoKxQ(final int slotNo, final int newValue) {
     throw new SketchesStateException("Improper access.");
   }
 
   @Override
   //Used by this couponUpdate()
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
-  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+ void updateSlotWithKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
-      put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+      put6Bit(wseg, HLL_BYTE_ARR_START, slotNo, newValue);
       hipAndKxQIncrementalUpdate(this, oldValue, newValue);
       if (oldValue == 0) {
         decNumAtCurMin(); //overloaded as num zeros
@@ -104,23 +104,23 @@ final class DirectHll6Array extends DirectHllArray {
   }
 
   //off-heap / direct
-  private static final void put6Bit(final WritableMemory wmem, final int offsetBytes, final int slotNo,
+  private static void put6Bit(final MemorySegment wseg, final int offsetBytes, final int slotNo,
       final int newValue) {
     final int startBit = slotNo * 6;
     final int shift = startBit & 0X7;
     final int byteIdx = (startBit >>> 3) + offsetBytes;
     final int valShifted = (newValue & 0X3F) << shift;
-    final int curMasked = wmem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
+    final int curMasked = wseg.get(JAVA_SHORT_UNALIGNED, byteIdx) & (~(VAL_MASK_6 << shift));
     final short insert = (short) (curMasked | valShifted);
-    wmem.putShort(byteIdx, insert);
+    wseg.set(JAVA_SHORT_UNALIGNED, byteIdx, insert);
   }
 
   //off-heap / direct
-  private static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
+  private static int get6Bit(final MemorySegment seg, final int offsetBytes, final int slotNo) {
     final int startBit = slotNo * 6;
     final int shift = startBit & 0X7;
     final int byteIdx = (startBit >>> 3) + offsetBytes;
-    return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
+    return (byte) ((seg.get(JAVA_SHORT_UNALIGNED, byteIdx) >>> shift) & 0X3F);
   }
 
   //ITERATOR
@@ -136,7 +136,7 @@ final class DirectHll6Array extends DirectHllArray {
     @Override
     int value() {
       bitOffset += 6;
-      final int tmp = mem.getShort(HLL_BYTE_ARR_START + (bitOffset / 8));
+      final int tmp = seg.get(JAVA_SHORT_UNALIGNED, HLL_BYTE_ARR_START + (bitOffset / 8));
       final int shift = (bitOffset % 8) & 0X7;
       return (tmp >>> shift) & VAL_MASK_6;
     }

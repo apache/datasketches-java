@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
@@ -26,10 +27,11 @@ import static org.apache.datasketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Although this class is package-private, it provides a single place to define and document
@@ -37,7 +39,7 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-abstract class BaseHllSketch {
+abstract class BaseHllSketch implements MemorySegmentStatus {
 
   abstract void couponUpdate(int coupon);
 
@@ -101,12 +103,12 @@ abstract class BaseHllSketch {
   }
 
   /**
-   * Returns the current serialization version of the given Memory.
-   * @param mem the given Memory containing a serialized HllSketch image.
+   * Returns the current serialization version of the given MemorySegment.
+   * @param seg the given MemorySegment containing a serialized HllSketch image.
    * @return the current serialization version.
    */
-  public static final int getSerializationVersion(final Memory mem) {
-    return mem.getByte(PreambleUtil.SER_VER_BYTE) & 0XFF;
+  public static final int getSerializationVersion(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, PreambleUtil.SER_VER_BYTE) & 0XFF;
   }
 
   /**
@@ -155,8 +157,8 @@ abstract class BaseHllSketch {
   public abstract boolean isEmpty();
 
   /**
-   * Returns true if the backing memory of this sketch is in compact form.
-   * @return true if the backing memory of this sketch is in compact form.
+   * Returns true if the backing MemorySegment of this sketch is in compact form.
+   * @return true if the backing MemorySegment of this sketch is in compact form.
    */
   public abstract boolean isCompact();
 
@@ -169,15 +171,17 @@ abstract class BaseHllSketch {
   }
 
   /**
-   * Returns true if this sketch was created using Memory.
-   * @return true if this sketch was created using Memory.
+   * Returns true if this sketch was created using MemorySegment.
+   * @return true if this sketch was created using MemorySegment.
    */
-  public abstract boolean isMemory();
+  @Override
+  public abstract boolean hasMemorySegment();
 
   /**
-   * Returns true if the backing memory for this sketch is off-heap.
-   * @return true if the backing memory for this sketch is off-heap.
+   * Returns true if the backing MemorySegment for this sketch is off-heap.
+   * @return true if the backing MemorySegment for this sketch is off-heap.
    */
+  @Override
   public abstract boolean isOffHeap();
 
   /**
@@ -188,24 +192,25 @@ abstract class BaseHllSketch {
   abstract boolean isOutOfOrder();
 
   /**
-   * Returns true if the given Memory refers to the same underlying resource as this sketch.
+   * Returns true if the given MemorySegment refers to the same underlying resource as this sketch.
    * The capacities must be the same.  If <i>this</i> is a region,
    * the region offset must also be the same.
    *
    * <p>This is only relevant for HLL_4 sketches that have been configured for off-heap
-   * using WritableMemory or Memory.  For on-heap sketches or unions this will return false.
+   * using MemorySegment.  For on-heap sketches or unions this will return false.
    *
-   * <p>It is rare, but possible, the the off-heap memory that has been allocated to an HLL_4
+   * <p>It is rare, but possible, the the off-heap MemorySegment that has been allocated to an HLL_4
    * sketch may not be large enough. If this should happen, the sketch makes a request for more
-   * memory from the owner of the resource and then moves itself to this new location. This all
+   * space from the owner of the resource and then moves itself to this new location. This all
    * happens transparently to the user. This method provides a means for the user to
    * inquire of the sketch if it has, in fact, moved itself.
    *
-   * @param mem the given Memory
-   * @return true if the given Memory refers to the same underlying resource as this sketch or
+   * @param seg the given MemorySegment
+   * @return true if the given MemorySegment refers to the same underlying resource as this sketch or
    * union.
    */
-  public abstract boolean isSameResource(Memory mem);
+  @Override
+  public abstract boolean isSameResource(MemorySegment seg);
 
   /**
    * Resets to empty, but does not change the configured values of lgConfigK and tgtHllType.
@@ -224,12 +229,12 @@ abstract class BaseHllSketch {
    *     //...
    *     union = Union.heapify(arr); //initializes the union using data from the array.
    *     //OR, if used in an off-heap environment:
-   *     union = Union.heapify(Memory.wrap(arr)); //same as above, except from Memory object.
+   *     union = Union.heapify(MemorySegment.ofArray(arr)); //same as above, except from MemorySegment object.
    *
    *     //To recover an updatable heap sketch:
    *     sk2 = HllSketch.heapify(arr);
    *     //OR, if used in an off-heap environment:
-   *     sk2 = HllSketch.heapify(Memory.wrap(arr));
+   *     sk2 = HllSketch.heapify(MemorySegment.ofArray(arr));
    * }</pre>
    *
    * <p>The sketch "wrapping" operation skips actual deserialization thus is quite fast. However,
@@ -245,17 +250,17 @@ abstract class BaseHllSketch {
   /**
    * Serializes this sketch as a byte array in an updatable form. The updatable form is larger than
    * the compact form. The use of this form is primarily in environments that support updating
-   * sketches in off-heap memory. If the sketch is constructed using HLL_8, sketch updating and
-   * union updating operations can actually occur in WritableMemory, which can be off-heap:
+   * sketches in off-heap MemorySegment. If the sketch is constructed using HLL_8, sketch updating and
+   * union updating operations can actually occur in MemorySegment, which can be off-heap:
    * <pre>{@code
    *     Union union; HllSketch sk;
    *     int lgK = 12;
    *     sk = new HllSketch(lgK, TgtHllType.HLL_8) //must be 8
    *     for (int i = 0; i < (2 << lgK); i++) { sk.update(i); }
    *     byte[] arr = sk.toUpdatableByteArray();
-   *     WritableMemory wmem = WritableMemory.wrap(arr);
+   *     MemorySegment wseg = MemorySegment.wrap(arr);
    *     //...
-   *     union = Union.writableWrap(wmem); //no deserialization!
+   *     union = Union.writableWrap(wseg); //no deserialization!
    * }</pre>
    * @return this sketch as an updatable byte array.
    */

@@ -30,7 +30,6 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.kll.KllDirectFloatsSketch.KllDirectCompactFloatsSketch;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -528,7 +527,6 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   // SORTED VIEW
 
   @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public FloatsSketchSortedView getSortedView() {
     refreshSortedView();
     return floatsSV;

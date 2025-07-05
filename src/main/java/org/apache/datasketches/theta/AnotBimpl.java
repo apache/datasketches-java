@@ -42,7 +42,7 @@ final class AnotBimpl extends AnotB {
   private final short seedHash_;
   private boolean empty_;
   private long thetaLong_;
-  private long[] hashArr_ = new long[0]; //compact array w curCount_ entries
+  private long[] hashArr_ = {}; //compact array w curCount_ entries
   private int curCount_;
 
   /**
@@ -86,7 +86,7 @@ final class AnotBimpl extends AnotB {
 
   @Override
   public void notB(final Sketch skB) {
-    if (empty_ || skB == null || skB.isEmpty()) { return; }
+    if (empty_ || (skB == null) || skB.isEmpty()) { return; }
     //local and skB is not empty
     Util.checkSeedHashes(seedHash_, skB.getSeedHash());
 
@@ -95,7 +95,7 @@ final class AnotBimpl extends AnotB {
     //process B
     hashArr_ = getResultHashArr(thetaLong_, curCount_, hashArr_, skB);
     curCount_ = hashArr_.length;
-    empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
+    empty_ = (curCount_ == 0) && (thetaLong_ == Long.MAX_VALUE);
   }
 
   @Override
@@ -115,7 +115,7 @@ final class AnotBimpl extends AnotB {
   @Override
   public CompactSketch aNotB(final Sketch skA, final Sketch skB, final boolean dstOrdered,
       final MemorySegment dstSeg) {
-    if (skA == null || skB == null) {
+    if ((skA == null) || (skB == null)) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
     //Both skA & skB are not null
@@ -139,11 +139,10 @@ final class AnotBimpl extends AnotB {
     //process B
     final long[] hashArrOut = getResultHashArr(minThetaLong, countA, hashArrA, skB); //out is clone
     final int countOut = hashArrOut.length;
-    final boolean empty = countOut == 0 && minThetaLong == Long.MAX_VALUE;
+    final boolean empty = (countOut == 0) && (minThetaLong == Long.MAX_VALUE);
 
-    final CompactSketch result = CompactOperations.componentsToCompact(
+    return CompactOperations.componentsToCompact(
           minThetaLong, countOut, seedHash_, empty, true, false, dstOrdered, dstSeg, hashArrOut);
-    return result;
   }
 
   @Override
@@ -156,8 +155,7 @@ final class AnotBimpl extends AnotB {
   private static long[] getHashArrA(final Sketch skA) { //returns a new array
     //Get skA cache as array
     final CompactSketch cskA = skA.compact(false, null); //sorting not required
-    final long[] hashArrA = cskA.getCache().clone();
-    return hashArrA;
+    return cskA.getCache().clone();
   }
 
   private static long[] getResultHashArr( //returns a new array
@@ -182,7 +180,7 @@ final class AnotBimpl extends AnotB {
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];
-      if (hash != 0 && hash < minThetaLong) { //only allows hashes of A < minTheta
+      if ((hash != 0) && (hash < minThetaLong)) { //only allows hashes of A < minTheta
         final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
@@ -238,7 +236,7 @@ final class AnotBimpl extends AnotB {
   public boolean hasMemorySegment() { return false; }
 
   @Override
-  public boolean isDirect() { return false; }
+  public boolean isOffHeap() { return false; }
 
   @Override
   public boolean isSameResource( final MemorySegment that) { return false; }

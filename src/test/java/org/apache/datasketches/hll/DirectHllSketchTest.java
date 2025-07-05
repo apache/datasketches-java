@@ -23,12 +23,17 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.util.HashSet;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.hll.AbstractHllArray;
+import org.apache.datasketches.hll.CurMode;
+import org.apache.datasketches.hll.HllSketch;
+import org.apache.datasketches.hll.IntMemorySegmentPairIterator;
+import org.apache.datasketches.hll.PairIterator;
+import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**
@@ -45,47 +50,47 @@ public class DirectHllSketchTest {
     noWriteAccess(TgtHllType.HLL_8, 25);
   }
 
-  private static void noWriteAccess(TgtHllType tgtHllType, int n) {
-    int lgConfigK = 8;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(lgConfigK, tgtHllType, wmem);
+  private static void noWriteAccess(final TgtHllType tgtHllType, final int n) {
+    final int lgConfigK = 8;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(lgConfigK, tgtHllType, wseg);
 
     for (int i = 0; i < n; i++) { sk.update(i); }
 
-    HllSketch sk2 = HllSketch.wrap(wmem);
+    final HllSketch sk2 = HllSketch.wrap(wseg);
     try {
       sk2.update(1);
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final SketchesReadOnlyException e) {
       //expected
     }
   }
 
   @Test
   public void checkCompactToUpdatable() {
-    int lgConfigK = 15;
-    int n = 1 << 20;
-    TgtHllType type = TgtHllType.HLL_4;
+    final int lgConfigK = 15;
+    final int n = 1 << 20;
+    final TgtHllType type = TgtHllType.HLL_4;
 
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, type);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, type);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     //create first direct updatable sketch
-    HllSketch sk = new HllSketch(lgConfigK, type, wmem);
+    final HllSketch sk = new HllSketch(lgConfigK, type, wseg);
     for (int i = 0; i < n; i++) { sk.update(i); }
     //Create compact byte arr
-    byte[] cByteArr = sk.toCompactByteArray(); //16496 = (auxStart)16424 + 72
-    Memory cmem = Memory.wrap(cByteArr);
+    final byte[] cByteArr = sk.toCompactByteArray(); //16496 = (auxStart)16424 + 72
+    final MemorySegment cseg = MemorySegment.ofArray(cByteArr);
     //Create updatable byte arr
-    byte[] uByteArr = sk.toUpdatableByteArray(); //16936 = (auxStart)16424 + 512
+    final byte[] uByteArr = sk.toUpdatableByteArray(); //16936 = (auxStart)16424 + 512
     //get auxStart and auxArrInts for updatable
-    AbstractHllArray absArr = (AbstractHllArray)sk.hllSketchImpl;
-    int auxStart = absArr.auxStart;
-    int auxArrInts = 1 << absArr.getAuxHashMap().getLgAuxArrInts();
+    final AbstractHllArray absArr = (AbstractHllArray)sk.hllSketchImpl;
+    final int auxStart = absArr.auxStart;
+    final int auxArrInts = 1 << absArr.getAuxHashMap().getLgAuxArrInts();
     //hash set to check result
-    HashSet<Integer> set = new HashSet<>();
+    final HashSet<Integer> set = new HashSet<>();
     //create HashSet of values
-    PairIterator itr = new IntMemoryPairIterator(uByteArr, auxStart, auxArrInts, lgConfigK);
+    final PairIterator itr = new IntMemorySegmentPairIterator(uByteArr, auxStart, auxArrInts, lgConfigK);
     //println(itr.getHeader());
     int validCount = 0;
     while (itr.nextValid()) {
@@ -95,14 +100,14 @@ public class DirectHllSketchTest {
     }
 
     //Wrap the compact image as read-only
-    HllSketch sk2 = HllSketch.wrap(cmem); //cmem is 16496
+    final HllSketch sk2 = HllSketch.wrap(cseg); //cseg is 16496
     //serialize it to updatable image
-    byte[] uByteArr2 = sk2.toUpdatableByteArray();
-    PairIterator itr2 = new IntMemoryPairIterator(uByteArr2, auxStart, auxArrInts, lgConfigK);
+    final byte[] uByteArr2 = sk2.toUpdatableByteArray();
+    final PairIterator itr2 = new IntMemorySegmentPairIterator(uByteArr2, auxStart, auxArrInts, lgConfigK);
     //println(itr2.getHeader());
     int validCount2 = 0;
     while (itr2.nextValid()) {
-      boolean exists = set.contains(itr2.getPair());
+      final boolean exists = set.contains(itr2.getPair());
       if (exists) { validCount2++; }
       //println(itr2.getString());
     }
@@ -111,50 +116,50 @@ public class DirectHllSketchTest {
 
   @Test
   public void checkPutKxQ1_Misc() {
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wseg);
     for (int i = 0; i < 8; i++) { sk.update(i); }
     assertTrue(sk.getCurMode() == CurMode.HLL);
-    AbstractHllArray absArr = (AbstractHllArray)sk.hllSketchImpl;
+    final AbstractHllArray absArr = (AbstractHllArray)sk.hllSketchImpl;
     absArr.putKxQ1(1.0);
     assertEquals(absArr.getKxQ1(), 1.0);
     absArr.putKxQ1(0.0);
 
-    Memory mem = wmem;
-    HllSketch sk2 = HllSketch.wrap(mem);
+    final MemorySegment seg = wseg;
+    final HllSketch sk2 = HllSketch.wrap(seg);
     try {
       sk2.reset();
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
   }
 
   @Test
   public void checkToCompactByteArr() {
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wseg);
     for (int i = 0; i < 8; i++) { sk.update(i); }
-    byte[] compByteArr = sk.toCompactByteArray();
-    Memory compMem = Memory.wrap(compByteArr);
-    HllSketch sk2 = HllSketch.wrap(compMem);
-    byte[] compByteArr2 = sk2.toCompactByteArray();
+    final byte[] compByteArr = sk.toCompactByteArray();
+    final MemorySegment compSeg = MemorySegment.ofArray(compByteArr);
+    final HllSketch sk2 = HllSketch.wrap(compSeg);
+    final byte[] compByteArr2 = sk2.toCompactByteArray();
     assertEquals(compByteArr2, compByteArr);
   }
 
   @Test
   public void checkToUpdatableByteArr() {
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wmem);
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wseg);
     for (int i = 0; i < 8; i++) { sk.update(i); }
-    byte[] udByteArr = sk.toUpdatableByteArray();
-    byte[] compByteArr = sk.toCompactByteArray();
-    Memory compMem = Memory.wrap(compByteArr);
-    HllSketch sk2 = HllSketch.wrap(compMem);
-    byte[] udByteArr2 = sk2.toUpdatableByteArray();
+    final byte[] udByteArr = sk.toUpdatableByteArray();
+    final byte[] compByteArr = sk.toCompactByteArray();
+    final MemorySegment compSeg = MemorySegment.ofArray(compByteArr);
+    final HllSketch sk2 = HllSketch.wrap(compSeg);
+    final byte[] udByteArr2 = sk2.toUpdatableByteArray();
     assertEquals(udByteArr2, udByteArr);
   }
 
@@ -166,7 +171,7 @@ public class DirectHllSketchTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

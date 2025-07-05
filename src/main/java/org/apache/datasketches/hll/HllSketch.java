@@ -21,6 +21,7 @@ package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.checkBounds;
+import static org.apache.datasketches.common.Util.clear;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
@@ -30,11 +31,10 @@ import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Objects;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The HllSketch is actually a collection of compact implementations of Phillipe Flajolet’s HyperLogLog (HLL)
@@ -46,7 +46,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * For large counts, HLL sketches can be 2 to 8 times smaller for the same accuracy than the DataSketches Theta
  * Sketches when serialized, but the Theta sketches can do set intersections and differences while HLL and CPC cannot.
  * The CPC sketch and HLL share similar use cases, but the CPC sketch is about 30 to 40% smaller than the HLL sketch
- * when serialized and larger than the HLL when active in memory.  Choose your weapons!</p>
+ * when serialized and larger than the HLL when active in a MemorySegment.  Choose your weapons!</p>
  *
  * <p>A new HLL sketch is created with a simple constructor:</p>
  * <pre>{@code
@@ -148,24 +148,24 @@ public class HllSketch extends BaseHllSketch {
 
   /**
    * Constructs a new sketch with the type of HLL sketch to configure and the given
-   * WritableMemory as the destination for the sketch. This WritableMemory is usually configured
-   * for off-heap memory. What remains on the java heap is a thin wrapper object that reads and
-   * writes to the given WritableMemory.
+   * MemorySegment as the destination for the sketch. This MemorySegment is usually configured
+   * for off-heap MemorySegment. What remains on the java heap is a thin wrapper object that reads and
+   * writes to the given MemorySegment.
    *
-   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
+   * <p>The given <i>dstSeg</i> is checked for the required capacity as determined by
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    * @param tgtHllType the desired HLL type.
-   * @param dstMem the destination memory for the sketch.
+   * @param dstSeg the destination MemorySegment for the sketch.
    */
-  public HllSketch(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory dstMem) {
-    Objects.requireNonNull(dstMem, "Destination Memory must not be null");
+  public HllSketch(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment dstSeg) {
+    Objects.requireNonNull(dstSeg, "Destination MemorySegment must not be null");
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    final long capBytes = dstMem.getCapacity();
-    HllUtil.checkMemSize(minBytes, capBytes);
-    dstMem.clear(0, minBytes);
-    hllSketchImpl = DirectCouponList.newInstance(lgConfigK, tgtHllType, dstMem);
+    final long capBytes = dstSeg.byteSize();
+    HllUtil.checkSegSize(minBytes, capBytes);
+    clear(dstSeg, 0, minBytes);
+    hllSketchImpl = DirectCouponList.newInstance(lgConfigK, tgtHllType, dstSeg);
   }
 
   /**
@@ -191,128 +191,129 @@ public class HllSketch extends BaseHllSketch {
    * @return an HllSketch on the java heap.
    */
   public static final HllSketch heapify(final byte[] byteArray) {
-    return heapify(Memory.wrap(byteArray));
+    return heapify(MemorySegment.ofArray(byteArray));
   }
 
   /**
-   * Heapify the given Memory, which must be a valid HllSketch image and may have data.
-   * @param srcMem the given Memory, which is read-only.
+   * Heapify the given MemorySegment, which must be a valid HllSketch image and may have data.
+   * @param srcSeg the given MemorySegment, which is read-only.
    * @return an HllSketch on the java heap.
    */
-  public static final HllSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, true);
+  public static final HllSketch heapify(final MemorySegment srcSeg) {
+    return heapify(srcSeg, true);
   }
 
   //used by union and above
-  static final HllSketch heapify(final Memory srcMem, final boolean checkRebuild) {
-    Objects.requireNonNull(srcMem, "Source Memory must not be null");
-    checkBounds(0, 8, srcMem.getCapacity()); //need min 8 bytes
-    final CurMode curMode = checkPreamble(srcMem);
+  static final HllSketch heapify(final MemorySegment srcSeg, final boolean checkRebuild) {
+    Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
+    checkBounds(0, 8, srcSeg.byteSize()); //need min 8 bytes
+    final CurMode curMode = checkPreamble(srcSeg);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
-      final TgtHllType tgtHllType = extractTgtHllType(srcMem);
+      final TgtHllType tgtHllType = extractTgtHllType(srcSeg);
       if (tgtHllType == TgtHllType.HLL_4) {
-        heapSketch = new HllSketch(Hll4Array.heapify(srcMem));
+        heapSketch = new HllSketch(Hll4Array.heapify(srcSeg));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        heapSketch = new HllSketch(Hll6Array.heapify(srcMem));
+        heapSketch = new HllSketch(Hll6Array.heapify(srcSeg));
       } else { //Hll_8
-        heapSketch = new HllSketch(Hll8Array.heapify(srcMem));
+        heapSketch = new HllSketch(Hll8Array.heapify(srcSeg));
         if (checkRebuild) {
           Union.checkRebuildCurMinNumKxQ(heapSketch);
         }
       }
     } else if (curMode == CurMode.LIST) {
-      heapSketch = new HllSketch(CouponList.heapifyList(srcMem));
+      heapSketch = new HllSketch(CouponList.heapifyList(srcSeg));
     } else {
-      heapSketch = new HllSketch(CouponHashSet.heapifySet(srcMem));
+      heapSketch = new HllSketch(CouponHashSet.heapifySet(srcSeg));
     }
     return heapSketch;
   }
 
   /**
-   * Wraps the given WritableMemory, which must be a image of a valid updatable sketch,
+   * Wraps the given MemorySegment, which must be a image of a valid updatable sketch,
    * and may have data. What remains on the java heap is a
-   * thin wrapper object that reads and writes to the given WritableMemory, which, depending on
-   * how the user configures the WritableMemory, may actually reside on the Java heap or off-heap.
+   * thin wrapper object that reads and writes to the given MemorySegment, which, depending on
+   * how the user configures the MemorySegment, may actually reside on the Java heap or off-heap.
    *
-   * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
+   * <p>The given <i>dstSeg</i> is checked for the required capacity as determined by
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
-   * @param srcWmem an writable image of a valid source sketch with data.
-   * @return an HllSketch where the sketch data is in the given dstMem.
+   * @param srcWseg an writable image of a valid source sketch with data.
+   * @return an HllSketch where the sketch data is in the given dstSeg.
    */
-  public static final HllSketch writableWrap(final WritableMemory srcWmem) {
-    return writableWrap(srcWmem, true);
+  public static final HllSketch writableWrap(final MemorySegment srcWseg) {
+    if (srcWseg.isReadOnly()) { return wrap(srcWseg); }
+    return writableWrap(srcWseg, true);
   }
 
   //used by union and above
-  static final HllSketch writableWrap( final WritableMemory srcWmem, final boolean checkRebuild) {
-    Objects.requireNonNull(srcWmem, "Source Memory must not be null");
-    checkBounds(0, 8, srcWmem.getCapacity()); //need min 8 bytes
-    if (extractCompactFlag(srcWmem)) {
+  static final HllSketch writableWrap( final MemorySegment srcWseg, final boolean checkRebuild) {
+    Objects.requireNonNull(srcWseg, "Source MemorySegment must not be null");
+    checkBounds(0, 8, srcWseg.byteSize()); //need min 8 bytes
+    if (extractCompactFlag(srcWseg)) {
       throw new SketchesArgumentException(
           "Cannot perform a writableWrap of a writable sketch image that is in compact form. "
           + "Compact sketches are by definition immutable.");
     }
-    final int lgConfigK = extractLgK(srcWmem);
-    final TgtHllType tgtHllType = extractTgtHllType(srcWmem);
+    final int lgConfigK = extractLgK(srcWseg);
+    final TgtHllType tgtHllType = extractTgtHllType(srcWseg);
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    final long capBytes = srcWmem.getCapacity();
-    HllUtil.checkMemSize(minBytes, capBytes);
-    final CurMode curMode = checkPreamble(srcWmem);
+    final long capBytes = srcWseg.byteSize();
+    HllUtil.checkSegSize(minBytes, capBytes);
+    final CurMode curMode = checkPreamble(srcWseg);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
       if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, srcWmem));
+        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, srcWseg));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcWmem));
+        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcWseg));
       } else { //Hll_8
-        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcWmem));
+        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcWseg));
         if (checkRebuild) { //union only uses HLL_8, we allow non-finalized from a union call.
           Union.checkRebuildCurMinNumKxQ(directSketch);
         }
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
-          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, srcWmem));
+          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, srcWseg));
     } else { //SET
       directSketch =
-          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, srcWmem));
+          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, srcWseg));
     }
     return directSketch;
   }
 
   /**
-   * Wraps the given read-only Memory that must be a image of a valid sketch,
+   * Wraps the given read-only MemorySegment that must be a image of a valid sketch,
    * which may be in compact or updatable form, and should have data. Any attempt to update the
-   * given source Memory will throw an exception.
-   * @param srcMem a read-only image of a valid source sketch.
-   * @return an HllSketch, where the read-only data of the sketch is in the given srcMem.
+   * given source MemorySegment will throw an exception.
+   * @param srcSeg a read-only image of a valid source sketch.
+   * @return an HllSketch, where the read-only data of the sketch is in the given srcSeg.
    *
    */
-  public static final HllSketch wrap(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Source Memory must not be null");
-    checkBounds(0, 8, srcMem.getCapacity()); //need min 8 bytes
-    final int lgConfigK = extractLgK(srcMem);
-    final TgtHllType tgtHllType = extractTgtHllType(srcMem);
+  public static final HllSketch wrap(final MemorySegment srcSeg) { //read only
+    Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
+    checkBounds(0, 8, srcSeg.byteSize()); //need min 8 bytes
+    final int lgConfigK = extractLgK(srcSeg);
+    final TgtHllType tgtHllType = extractTgtHllType(srcSeg);
 
-    final CurMode curMode = checkPreamble(srcMem);
+    final CurMode curMode = checkPreamble(srcSeg);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
       if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, srcMem));
+        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, srcSeg, true));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcMem));
+        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcSeg, true));
       } else { //Hll_8
-        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcMem));
-        //rebuild if srcMem came from a union and was not finalized, rather than throw exception.
+        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcSeg, true));
+        //rebuild if srcSeg came from a union and was not finalized, rather than throw exception.
         Union.checkRebuildCurMinNumKxQ(directSketch);
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
-          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, srcMem));
+          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, srcSeg, true));
     } else { //SET
       directSketch =
-          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, srcMem));
+          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, srcSeg, true));
     }
     return directSketch;
   }
@@ -389,8 +390,8 @@ public class HllSketch extends BaseHllSketch {
     return HLL_BYTE_ARR_START + arrBytes;
   }
 
-  Memory getMemory() {
-    return hllSketchImpl.getMemory();
+  MemorySegment getMemorySegment() {
+    return hllSketchImpl.getMemorySegment();
   }
 
   @Override
@@ -401,10 +402,6 @@ public class HllSketch extends BaseHllSketch {
   @Override
   public int getUpdatableSerializationBytes() {
     return hllSketchImpl.getUpdatableSerializationBytes();
-  }
-
-  WritableMemory getWritableMemory() {
-    return hllSketchImpl.getWritableMemory();
   }
 
   @Override
@@ -423,8 +420,8 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public boolean isMemory() {
-    return hllSketchImpl.isMemory();
+  public boolean hasMemorySegment() {
+    return hllSketchImpl.hasMemorySegment();
   }
 
   @Override
@@ -438,8 +435,8 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  public boolean isSameResource(final Memory mem) {
-    return hllSketchImpl.isSameResource(mem);
+  public boolean isSameResource(final MemorySegment seg) {
+    return hllSketchImpl.isSameResource(seg);
   }
 
   void mergeTo(final HllSketch that) {
@@ -475,7 +472,7 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
       sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
       sb.append("  Current Mode   : ").append(getCurMode()).append(LS);
-      sb.append("  Memory         : ").append(isMemory()).append(LS);
+      sb.append("  MemorySegment  : ").append(hasMemorySegment()).append(LS);
       sb.append("  LB             : ").append(getLowerBound(1)).append(LS);
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
@@ -507,8 +504,7 @@ public class HllSketch extends BaseHllSketch {
         }
       }
     }
-    if (auxDetail) {
-      if ((getCurMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4)) {
+    if (auxDetail && ((getCurMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4))) {
         final AbstractHllArray absHll = (AbstractHllArray) hllSketchImpl;
         final PairIterator auxItr = absHll.getAuxIterator();
         if (auxItr != null) {
@@ -525,7 +521,6 @@ public class HllSketch extends BaseHllSketch {
           }
         }
       }
-    }
     return sb.toString();
   }
 
@@ -539,12 +534,12 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of an HllSketch.
-   * @param mem the given Memory object
-   * @return a human readable string of the preamble of a Memory image of an HllSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of an HllSketch.
+   * @param seg the given MemorySegment object
+   * @return a human readable string of the preamble of a MemorySegment image of an HllSketch.
    */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.toString(mem);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.toString(seg);
   }
 
   //restricted methods

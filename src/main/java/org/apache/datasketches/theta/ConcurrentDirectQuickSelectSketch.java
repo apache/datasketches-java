@@ -252,14 +252,16 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   /**
    * Advances the epoch while there is no background propagation
    * This ensures a propagation invoked before the reset cannot affect the sketch after the reset
-   * is completed. Ignore VO_VOLATILE_INCREMENT findbugs warning, it is False Positive.
+   * is completed. Ignore AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE and AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE 
+   * SpotBugs warnings, they are False Positive.
    */
-  @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT", justification = "Likely False Positive, Fix Later")
+
+  @SuppressFBWarnings(value = {"AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE", "VO_VOLATILE_INCREMENT"}, 
+      justification = "Likely False Positive, Fix Later")
   private void advanceEpoch() {
     awaitBgPropagationTermination();
     startEagerPropagation();
     ConcurrentPropagationService.resetExecutorService(Thread.currentThread().threadId());
-    //no inspection NonAtomicOperationOnVolatileField
     // this increment of a volatile field is done within the scope of the propagation
     // synchronization and hence is done by a single thread.
     epoch_++;

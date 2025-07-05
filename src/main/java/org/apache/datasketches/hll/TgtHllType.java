@@ -28,7 +28,7 @@ package org.apache.datasketches.hll;
  * Thus, given the same value of <i>lgConfigK</i> and the same input, all three HLL target types
  * will produce identical estimates and have identical error distributions.</p>
  *
- * <p>The memory (and also the serialization) of the sketch during this early warmup phase starts
+ * <p>The memory usage and the serialization size of the sketch during this early warmup phase starts
  * out very small (8 bytes, when empty) and then grows in increments of 4 bytes as required
  * until the full HLL array is allocated.  This transition point occurs at about 10% of K for
  * sketches where lgConfigK is &gt; 8.</p>

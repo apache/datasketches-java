@@ -226,8 +226,8 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public boolean isDirect() {
-    return gadget_.isDirect();
+  public boolean isOffHeap() {
+    return gadget_.isOffHeap();
   }
 
   @Override
@@ -269,7 +269,7 @@ final class UnionImpl extends Union {
   public void union(final Sketch sketchIn) {
     //UNION Empty Rule: AND the empty states.
 
-    if (sketchIn == null || sketchIn.isEmpty()) {
+    if ((sketchIn == null) || sketchIn.isEmpty()) {
       //null and empty is interpreted as (Theta = 1.0, count = 0, empty = T).  Nothing changes
       return;
     }
@@ -287,11 +287,9 @@ final class UnionImpl extends Union {
     final HashIterator it = sketchIn.iterator();
     while (it.next()) {
       final long hash = it.get();
-      if (hash < unionThetaLong_ && hash < gadget_.getThetaLong()) {
+      if ((hash < unionThetaLong_) && (hash < gadget_.getThetaLong())) {
         gadget_.hashUpdate(hash); // backdoor update, hash function is bypassed
-      } else {
-        if (isOrdered) { break; }
-      }
+      } else if (isOrdered) { break; }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
     if (gadget_.hasMemorySegment()) {

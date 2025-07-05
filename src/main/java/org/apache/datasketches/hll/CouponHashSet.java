@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.LG_INIT_SET_SIZE;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_DENOM;
@@ -35,8 +36,9 @@ import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * @author Lee Rhodes
@@ -72,29 +74,29 @@ final class CouponHashSet extends CouponList {
   }
 
   //will also accept List, but results in a Set
-  static final CouponHashSet heapifySet(final Memory mem) {
-    final int lgConfigK = extractLgK(mem);
-    final TgtHllType tgtHllType = extractTgtHllType(mem);
+  static CouponHashSet heapifySet(final MemorySegment seg) {
+    final int lgConfigK = extractLgK(seg);
+    final TgtHllType tgtHllType = extractTgtHllType(seg);
 
-    final CurMode curMode = extractCurMode(mem);
-    final int memArrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
+    final CurMode curMode = extractCurMode(seg);
+    final int segArrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
-    final boolean memIsCompact = extractCompactFlag(mem);
-    final int couponCount = extractHashSetCount(mem);
-    int lgCouponArrInts = extractLgArr(mem);
+    final boolean segIsCompact = extractCompactFlag(seg);
+    final int couponCount = extractHashSetCount(seg);
+    int lgCouponArrInts = extractLgArr(seg);
     if (lgCouponArrInts < LG_INIT_SET_SIZE) {
-      lgCouponArrInts = computeLgArr(mem, couponCount, lgConfigK);
+      lgCouponArrInts = computeLgArr(seg, couponCount, lgConfigK);
     }
-    if (memIsCompact) {
+    if (segIsCompact) {
       for (int i = 0; i < couponCount; i++) {
-        set.couponUpdate(extractInt(mem, memArrStart + (i << 2)));
+        set.couponUpdate(extractInt(seg, segArrStart + (i << 2)));
       }
     } else { //updatable
       set.couponCount = couponCount;
       set.lgCouponArrInts = lgCouponArrInts;
       final int couponArrInts = 1 << lgCouponArrInts;
       set.couponIntArr = new int[couponArrInts];
-      mem.getIntArray(HASH_SET_INT_ARR_START, set.couponIntArr, 0, couponArrInts);
+      MemorySegment.copy(seg, JAVA_INT_UNALIGNED, HASH_SET_INT_ARR_START, set.couponIntArr, 0, couponArrInts);
     }
     return set;
   }
@@ -124,7 +126,7 @@ final class CouponHashSet extends CouponList {
   }
 
   @Override
-  int getMemDataStart() {
+  int getSegDataStart() {
     return HASH_SET_INT_ARR_START;
   }
 
@@ -143,7 +145,7 @@ final class CouponHashSet extends CouponList {
     return false;
   }
 
-  private static final int[] growHashSet(final int[] coupIntArr, final int tgtLgCoupArrSize) {
+  private static int[] growHashSet(final int[] coupIntArr, final int tgtLgCoupArrSize) {
     final int[] tgtCouponIntArr = new int[1 << tgtLgCoupArrSize]; //create tgt
     final int len = coupIntArr.length;
     for (int i = 0; i < len; i++) { //scan input arr for non-zero values

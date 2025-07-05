@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
@@ -33,9 +34,9 @@ import static org.apache.datasketches.hll.PreambleUtil.insertCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertInt;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -43,22 +44,22 @@ import org.apache.datasketches.memory.WritableMemory;
 final class DirectHll4Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
-  DirectHll4Array(final int lgConfigK, final WritableMemory wmem) {
-    super(lgConfigK, TgtHllType.HLL_4, wmem);
-    if (extractAuxCount(mem) > 0) {
+  DirectHll4Array(final int lgConfigK, final MemorySegment wseg) {
+    super(lgConfigK, TgtHllType.HLL_4, wseg);
+    if (extractAuxCount(seg) > 0) {
       putAuxHashMap(new DirectAuxHashMap(this, false), false);
     }
   }
 
-  //Called by HllSketch.wrap(Memory)
-  DirectHll4Array(final int lgConfigK, final Memory mem) {
-    super(lgConfigK, TgtHllType.HLL_4, mem);
-    final int auxCount = extractAuxCount(mem);
+  //Called by HllSketch.wrap(MemorySegment)
+  DirectHll4Array(final int lgConfigK, final MemorySegment seg, final boolean readOnly) {
+    super(lgConfigK, TgtHllType.HLL_4, seg, true);
+    final int auxCount = extractAuxCount(seg);
     if (auxCount > 0) {
-      final boolean compact = extractCompactFlag(mem);
+      final boolean compact = extractCompactFlag(seg);
       final AuxHashMap auxHashMap;
       if (compact) {
-        auxHashMap = HeapAuxHashMap.heapify(mem, auxStart, lgConfigK, auxCount, compact);
+        auxHashMap = HeapAuxHashMap.heapify(seg, auxStart, lgConfigK, auxCount, compact);
       } else {
         auxHashMap =  new DirectAuxHashMap(this, false); //not compact
       }
@@ -68,12 +69,12 @@ final class DirectHll4Array extends DirectHllArray {
 
   @Override
   HllSketchImpl copy() {
-    return Hll4Array.heapify(mem);
+    return Hll4Array.heapify(seg);
   }
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    if (wmem == null) { noWriteAccess(); }
+    if (wseg == null) { noWriteAccess(); }
     final int newValue = coupon >>> KEY_BITS_26;
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = coupon & configKmask;
@@ -89,7 +90,7 @@ final class DirectHll4Array extends DirectHllArray {
   @Override
   int getNibble(final int slotNo) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
-    int theByte = mem.getByte(offset);
+    int theByte = seg.get(JAVA_BYTE, offset);
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
@@ -127,11 +128,11 @@ final class DirectHll4Array extends DirectHllArray {
   @Override
   void putNibble(final int slotNo, final int nibValue) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
-    final int oldValue = mem.getByte(offset);
+    final int oldValue = seg.get(JAVA_BYTE, offset);
     final byte value = ((slotNo & 1) == 0) //even?
         ? (byte) ((oldValue & hiNibbleMask) | (nibValue & loNibbleMask)) //set low nibble
         : (byte) ((oldValue & loNibbleMask) | ((nibValue << 4) & hiNibbleMask)); //set high nibble
-    wmem.putByte(offset, value);
+    wseg.set(JAVA_BYTE, offset, value);
   }
 
   @Override
@@ -149,44 +150,45 @@ final class DirectHll4Array extends DirectHllArray {
 
   @Override
   byte[] toCompactByteArray() {
-    final boolean srcMemIsCompact = extractCompactFlag(mem);
+    final boolean srcSegIsCompact = extractCompactFlag(seg);
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.writableWrap(byteArr);
-    if (srcMemIsCompact) { //mem is already consistent with result
-      mem.copyTo(0, memOut, 0, totBytes);
+    final MemorySegment segOut = MemorySegment.ofArray(byteArr);
+    if (srcSegIsCompact) { //seg is already consistent with result
+      MemorySegment.copy(seg, 0, segOut, 0, totBytes);
       return byteArr;
     }
     //everything but the aux array is consistent
-    mem.copyTo(0, memOut, 0, auxStart);
+    MemorySegment.copy(seg, 0, segOut, 0, auxStart);
     if (auxHashMap != null) {
       final int auxCount = auxHashMap.getAuxCount();
-      insertAuxCount(memOut, auxCount);
-      insertLgArr(memOut, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
+      insertAuxCount(segOut, auxCount);
+      insertLgArr(segOut, auxHashMap.getLgAuxArrInts()); //only used for direct HLL
       final PairIterator itr = auxHashMap.getIterator();
       int cnt = 0;
-      while (itr.nextValid()) { //works whether src has compact memory or not
-        insertInt(memOut, auxStart + (cnt++ << 2), itr.getPair());
+      while (itr.nextValid()) { //works whether src has compact MemorySegment or not
+        insertInt(segOut, auxStart + (cnt++ << 2), itr.getPair());
       }
       assert cnt == auxCount;
     }
-    insertCompactFlag(memOut, true);
+    insertCompactFlag(segOut, true);
     return byteArr;
   }
 
   @Override
   byte[] toUpdatableByteArray() {
-    final boolean memIsCompact = extractCompactFlag(mem);
+    final boolean segIsCompact = extractCompactFlag(seg);
     final int totBytes = getUpdatableSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.writableWrap(byteArr);
+    final MemorySegment segOut = MemorySegment.ofArray(byteArr);
 
-    if (!memIsCompact) { //both mem and target are updatable
-      mem.copyTo(0, memOut, 0, totBytes);
+    if (!segIsCompact) { //both seg and target are updatable
+      MemorySegment.copy(seg, 0, segOut, 0, totBytes);
+
       return byteArr;
     }
-    //mem is compact, need to handle auxArr. Easiest way:
-    final HllSketch heapSk = HllSketch.heapify(mem);
+    //seg is compact, need to handle auxArr. Easiest way:
+    final HllSketch heapSk = HllSketch.heapify(seg);
     return heapSk.toUpdatableByteArray();
   }
 

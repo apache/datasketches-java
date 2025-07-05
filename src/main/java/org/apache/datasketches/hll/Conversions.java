@@ -29,9 +29,9 @@ import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
  *
  * @author Lee Rhodes
  */
-class Conversions {
+final class Conversions {
 
-  static final Hll4Array convertToHll4(final AbstractHllArray srcAbsHllArr) {
+  static Hll4Array convertToHll4(final AbstractHllArray srcAbsHllArr) {
     final int lgConfigK = srcAbsHllArr.getLgConfigK();
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
     hll4Array.putOutOfOrder(srcAbsHllArr.isOutOfOrder());
@@ -79,7 +79,7 @@ class Conversions {
    * @param absHllArr an instance of AbstractHllArray
    * @return pair values representing numAtCurMin and curMin
    */
-  static final int curMinAndNum(final AbstractHllArray absHllArr) {
+  static int curMinAndNum(final AbstractHllArray absHllArr) {
     int curMin = 64;
     int numAtCurMin = 0;
     final PairIterator itr = absHllArr.iterator();
@@ -96,7 +96,7 @@ class Conversions {
     return HllUtil.pair(numAtCurMin, curMin);
   }
 
-  static final Hll6Array convertToHll6(final AbstractHllArray srcAbsHllArr) {
+  static Hll6Array convertToHll6(final AbstractHllArray srcAbsHllArr) {
     final int lgConfigK = srcAbsHllArr.lgConfigK;
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
     hll6Array.putOutOfOrder(srcAbsHllArr.isOutOfOrder());
@@ -114,7 +114,7 @@ class Conversions {
     return hll6Array;
   }
 
-  static final Hll8Array convertToHll8(final AbstractHllArray srcAbsHllArr) {
+  static Hll8Array convertToHll8(final AbstractHllArray srcAbsHllArr) {
     final int lgConfigK = srcAbsHllArr.lgConfigK;
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
     hll8Array.putOutOfOrder(srcAbsHllArr.isOutOfOrder());

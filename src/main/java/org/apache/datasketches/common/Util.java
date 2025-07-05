@@ -101,10 +101,10 @@ public final class Util {
    * @return an int extracted from a Little-Endian byte array.
    */
   public static int bytesToInt(final byte[] arr) {
-    return arr[3] << 24
-          | (arr[2] & 0xff) << 16
-          | (arr[1] & 0xff) <<  8
-          | arr[0] & 0xff;
+    return (arr[3] << 24)
+          | ((arr[2] & 0xff) << 16)
+          | ((arr[1] & 0xff) <<  8)
+          | (arr[0] & 0xff);
   }
 
   /**
@@ -113,14 +113,14 @@ public final class Util {
    * @return a long extracted from a Little-Endian byte array.
    */
   public static long bytesToLong(final byte[] arr) {
-    return (long)arr[7] << 56
-          | ((long)arr[6] & 0xff) << 48
-          | ((long)arr[5] & 0xff) << 40
-          | ((long)arr[4] & 0xff) << 32
-          | ((long)arr[3] & 0xff) << 24
-          | ((long)arr[2] & 0xff) << 16
-          | ((long)arr[1] & 0xff) <<  8
-          | (long)arr[0] & 0xff;
+    return ((long)arr[7] << 56)
+          | (((long)arr[6] & 0xff) << 48)
+          | (((long)arr[5] & 0xff) << 40)
+          | (((long)arr[4] & 0xff) << 32)
+          | (((long)arr[3] & 0xff) << 24)
+          | (((long)arr[2] & 0xff) << 16)
+          | (((long)arr[1] & 0xff) <<  8)
+          | ((long)arr[0] & 0xff);
   }
 
   /**
@@ -159,7 +159,7 @@ public final class Util {
 
   static long[] convertToLongArray(final byte[] byteArr, final boolean littleEndian) {
     final int len = byteArr.length;
-    final long[] longArr = new long[len / 8 + (len % 8 != 0 ? 1 : 0)];
+    final long[] longArr = new long[(len / 8) + ((len % 8) != 0 ? 1 : 0)];
     int off = 0;
     int longArrIdx = 0;
     while (off < len) {
@@ -191,7 +191,7 @@ public final class Util {
     final long mask = 0XFFL;
     final StringBuilder sb = new StringBuilder();
     for (int i = 8; i-- > 0; ) {
-      final String s = Long.toHexString(v >>> i * 8 & mask);
+      final String s = Long.toHexString((v >>> (i * 8)) & mask);
       sb.append(zeroPad(s, 2)).append(" ");
     }
     return sb.toString();
@@ -211,7 +211,7 @@ public final class Util {
     final int mask = signed ? 0XFFFFFFFF : 0XFF;
     final int arrLen = arr.length;
     if (littleEndian) {
-      for (int i = 0; i < arrLen - 1; i++) {
+      for (int i = 0; i < (arrLen - 1); i++) {
         sb.append(arr[i] & mask).append(sep);
       }
       sb.append(arr[arrLen - 1] & mask);
@@ -231,8 +231,8 @@ public final class Util {
    */
   public static String nanoSecToString(final long nS) {
     final long rem_nS = (long)(nS % 1000.0);
-    final long rem_uS = (long)(nS / 1000.0 % 1000.0);
-    final long rem_mS = (long)(nS / 1000000.0 % 1000.0);
+    final long rem_uS = (long)((nS / 1000.0) % 1000.0);
+    final long rem_mS = (long)((nS / 1000000.0) % 1000.0);
     final long sec    = (long)(nS / 1000000000.0);
     final String nSstr = zeroPad(Long.toString(rem_nS), 3);
     final String uSstr = zeroPad(Long.toString(rem_uS), 3);
@@ -247,8 +247,8 @@ public final class Util {
    */
   public static String milliSecToString(final long mS) {
     final long rem_mS = (long)(mS % 1000.0);
-    final long rem_sec = (long)(mS / 1000.0 % 60.0);
-    final long rem_min = (long)(mS / 60000.0 % 60.0);
+    final long rem_sec = (long)((mS / 1000.0) % 60.0);
+    final long rem_min = (long)((mS / 60000.0) % 60.0);
     final long hr  =     (long)(mS / 3600000.0);
     final String mSstr = zeroPad(Long.toString(rem_mS), 3);
     final String secStr = zeroPad(Long.toString(rem_sec), 2);
@@ -296,7 +296,7 @@ public final class Util {
    * @param argName This name will be part of the error message if the check fails.
    */
   public static void checkIfMultipleOf8AndGT0(final long v, final String argName) {
-    if ((v & 0X7L) == 0L && v > 0L) {
+    if (((v & 0X7L) == 0L) && (v > 0L)) {
       return;
     }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
@@ -309,7 +309,7 @@ public final class Util {
    * @return true if v is a multiple of 8 and greater than zero
    */
   public static boolean isMultipleOf8AndGT0(final long v) {
-    return (v & 0X7L) == 0L && v > 0L;
+    return ((v & 0X7L) == 0L) && (v > 0L);
   }
 
   //Powers of 2 or powers of base related
@@ -356,7 +356,7 @@ public final class Util {
   public static int ceilingPowerOf2(final int n) {
     if (n <= 1) { return 1; }
     final int topIntPwrOf2 = 1 << 30;
-    return n >= topIntPwrOf2 ? topIntPwrOf2 : Integer.highestOneBit(n - 1 << 1);
+    return n >= topIntPwrOf2 ? topIntPwrOf2 : Integer.highestOneBit((n - 1) << 1);
   }
 
   /**
@@ -377,7 +377,7 @@ public final class Util {
   public static long ceilingPowerOf2(final long n) {
     if (n <= 1L) { return 1L; }
     final long topIntPwrOf2 = 1L << 62;
-    return n >= topIntPwrOf2 ? topIntPwrOf2 : Long.highestOneBit(n - 1L << 1);
+    return n >= topIntPwrOf2 ? topIntPwrOf2 : Long.highestOneBit((n - 1L) << 1);
   }
 
   /**
@@ -430,8 +430,8 @@ public final class Util {
    * @return  the inverse integer power of 2: 1/(2^e) = 2^(-e)
    */
   public static double invPow2(final int e) {
-    assert (e | 1024 - e - 1) >= 0 : "e cannot be negative or greater than 1023: " + e;
-    return Double.longBitsToDouble(1023L - e << 52);
+    assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
+    return Double.longBitsToDouble((1023L - e) << 52);
   }
 
   /**
@@ -695,7 +695,7 @@ public final class Util {
    * @param argName Used in the thrown exception.
    */
   public static void checkProbability(final double p, final String argName) {
-    if (p >= 0.0 && p <= 1.0) {
+    if ((p >= 0.0) && (p <= 1.0)) {
       return;
     }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
@@ -711,7 +711,7 @@ public final class Util {
    * @return true if n1 &gt; n2.
    */
   public static boolean isLessThanUnsigned(final long n1, final long n2) {
-    return n1 < n2 ^ n1 < 0 != n2 < 0;
+    return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
   }
 
   /**
@@ -741,7 +741,7 @@ public final class Util {
    * bit is at position zero.
    * @return a one if the bit at bitPos is a one, otherwise zero.
    */
-  public static final int bitAt(final long number, final int bitPos) {
+  public static int bitAt(final long number, final int bitPos) {
     return (number & (1L << bitPos)) > 0 ? 1 : 0;
   }
 
@@ -751,7 +751,7 @@ public final class Util {
    * @return the number of decimal digits of the number n
    */
   public static int numDigits(long n) {
-    if (n % 10 == 0) { n++; }
+    if ((n % 10) == 0) { n++; }
     return (int) ceil(log(n) / log(10));
   }
 
@@ -896,39 +896,6 @@ public final class Util {
   public static void fill(final MemorySegment seg, final long offsetBytes, final long lengthBytes, final byte value) {
     final MemorySegment slice = seg.asSlice(offsetBytes, lengthBytes);
     slice.fill(value);
-  }
-
-  /**
-   * Returns true if the two given MemorySegments refer to the same backing resource,
-   * which is either an off-heap memory location and size, or the same on-heap array object.
-   *
-   * <p>If both segment are off-heap, they both must have the same starting address and the same size.</p>
-   *
-   * <p>For on-heap segments, both segments must be based on or derived from the same array object and neither segment
-   * can be read-only.</p>
-   *
-   * <p>Returns false if either argument is null;</p>
-   *
-   * @param seg1 The first given MemorySegment
-   * @param seg2 The second given MemorySegment
-   * @return true if both MemorySegments are determined to be the same backing memory.
-   */
-  public static boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
-    if ((seg1 == null) || (seg2 == null)) { return false; }
-    if (!seg1.scope().isAlive() || !seg2.scope().isAlive()) {
-      throw new IllegalArgumentException("Both arguments must be alive.");
-    }
-    final boolean seg1Native = seg1.isNative();
-    final boolean seg2Native = seg2.isNative();
-    if (seg1Native ^ seg2Native) { return false; }
-    if (seg1Native && seg2Native) { //both off heap
-      return (seg1.address() == seg2.address()) && (seg1.byteSize() == seg2.byteSize());
-    }
-    //both on heap
-    if (seg1.isReadOnly() || seg2.isReadOnly()) {
-      throw new IllegalArgumentException("Cannot determine 'isSameBackingMemory(..)' on heap if either MemorySegment is Read-only.");
-    }
-    return (seg1.heapBase().orElse(null) == seg2.heapBase().orElse(null));
   }
 
   /**

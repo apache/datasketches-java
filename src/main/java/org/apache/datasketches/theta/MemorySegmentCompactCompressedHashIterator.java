@@ -25,21 +25,20 @@ import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.MemorySegmentStatus;
-import org.apache.datasketches.common.Util;
 
 /*
  * This is to uncompress serial version 4 sketch incrementally
  */
 final class MemorySegmentCompactCompressedHashIterator implements HashIterator, MemorySegmentStatus {
-  private MemorySegment seg;
+  private final MemorySegment seg;
   private int offset;
-  private int entryBits;
-  private int numEntries;
+  private final int entryBits;
+  private final int numEntries;
   private int index;
   private long previous;
   private int offsetBits;
-  private long[] buffer;
-  private byte[] bytes;
+  private final long[] buffer;
+  private final byte[] bytes;
   private boolean isBlockMode;
   private boolean isFirstUnpack1;
 
@@ -48,7 +47,7 @@ final class MemorySegmentCompactCompressedHashIterator implements HashIterator, 
       final int offset,
       final int entryBits,
       final int numEntries) {
-    this.seg = srcSeg;
+    seg = srcSeg;
     this.offset = offset;
     this.entryBits = entryBits;
     this.numEntries = numEntries;
@@ -68,17 +67,17 @@ final class MemorySegmentCompactCompressedHashIterator implements HashIterator, 
 
   @Override
   public boolean hasMemorySegment() {
-    return seg != null && seg.scope().isAlive();
+    return (seg != null) && seg.scope().isAlive();
   }
 
   @Override
-  public boolean isDirect() {
+  public boolean isOffHeap() {
     return hasMemorySegment() && seg.isNative();
   }
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return hasMemorySegment() && Util.isSameResource(seg, that);
+    return hasMemorySegment() && MemorySegmentStatus.isSameResource(seg, that);
   }
 
   @Override
@@ -86,7 +85,7 @@ final class MemorySegmentCompactCompressedHashIterator implements HashIterator, 
     if (++index == numEntries) { return false; }
     if (isBlockMode) {
       if ((index & 7) == 0) {
-        if (numEntries - index >= 8) {
+        if ((numEntries - index) >= 8) {
           unpack8();
         } else {
           isBlockMode = false;

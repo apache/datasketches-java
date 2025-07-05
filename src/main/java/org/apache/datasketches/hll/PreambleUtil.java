@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
@@ -28,11 +31,10 @@ import static org.apache.datasketches.hll.HllUtil.LG_INIT_SET_SIZE;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_DENOM;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_NUMER;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 //@formatter:off
 /**
@@ -152,18 +154,18 @@ final class PreambleUtil {
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
   static String toString(final byte[] byteArr) {
-    final Memory mem = Memory.wrap(byteArr);
-    return toString(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return toString(seg);
   }
 
-  static String toString(final Memory mem) {
+  static String toString(final MemorySegment seg) {
     //First 8 bytes
-    final int preInts = mem.getByte(PREAMBLE_INTS_BYTE);
-    final int serVer = mem.getByte(SER_VER_BYTE);
-    final Family family = Family.idToFamily(mem.getByte(FAMILY_BYTE));
-    final int lgK = mem.getByte(LG_K_BYTE);
-    final int lgArr = mem.getByte(LG_ARR_BYTE);
-    final int flags = mem.getByte(FLAGS_BYTE);
+    final int preInts = seg.get(JAVA_BYTE, PREAMBLE_INTS_BYTE);
+    final int serVer = seg.get(JAVA_BYTE, SER_VER_BYTE);
+    final Family family = Family.idToFamily(seg.get(JAVA_BYTE, FAMILY_BYTE));
+    final int lgK = seg.get(JAVA_BYTE, LG_K_BYTE);
+    final int lgArr = seg.get(JAVA_BYTE, LG_ARR_BYTE);
+    final int flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
     //Flags
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
@@ -174,9 +176,9 @@ final class PreambleUtil {
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean rebuildKxQ = (flags & REBUILD_CURMIN_NUM_KXQ_MASK) > 0;
 
-    final int hllCurMin = mem.getByte(HLL_CUR_MIN_BYTE);
+    final int hllCurMin = seg.get(JAVA_BYTE, HLL_CUR_MIN_BYTE);
     final int listCount = hllCurMin;
-    final int modeByte = mem.getByte(MODE_BYTE);
+    final int modeByte = seg.get(JAVA_BYTE, MODE_BYTE);
     final CurMode curMode = CurMode.fromOrdinal(modeByte & 3);
     final TgtHllType tgtHllType = TgtHllType.fromOrdinal((modeByte >>> 2) & 3);
 
@@ -188,14 +190,14 @@ final class PreambleUtil {
     int exceptionCount = 0;
 
     if (curMode == CurMode.SET) {
-      hashSetCount = mem.getInt(HASH_SET_COUNT_INT);
+      hashSetCount = seg.get(JAVA_INT_UNALIGNED, HASH_SET_COUNT_INT);
     }
     else if (curMode == CurMode.HLL) {
-      hipAccum = mem.getDouble(HIP_ACCUM_DOUBLE);
-      kxq0 = mem.getDouble(KXQ0_DOUBLE);
-      kxq1 = mem.getDouble(KXQ1_DOUBLE);
-      curMinCount = mem.getInt(CUR_MIN_COUNT_INT);
-      exceptionCount = mem.getInt(AUX_COUNT_INT);
+      hipAccum = seg.get(JAVA_DOUBLE_UNALIGNED, HIP_ACCUM_DOUBLE);
+      kxq0 = seg.get(JAVA_DOUBLE_UNALIGNED, KXQ0_DOUBLE);
+      kxq1 = seg.get(JAVA_DOUBLE_UNALIGNED, KXQ1_DOUBLE);
+      curMinCount = seg.get(JAVA_INT_UNALIGNED, CUR_MIN_COUNT_INT);
+      exceptionCount = seg.get(JAVA_INT_UNALIGNED, AUX_COUNT_INT);
     }
 
     final StringBuilder sb = new StringBuilder();
@@ -251,213 +253,213 @@ final class PreambleUtil {
   }
   //@formatter:on
 
-  static int extractPreInts(final Memory mem) {
-    return mem.getByte(PREAMBLE_INTS_BYTE) & 0X3F;
+  static int extractPreInts(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, PREAMBLE_INTS_BYTE) & 0X3F;
   }
 
-  static void insertPreInts(final WritableMemory wmem, final int preInts) {
-    wmem.putByte(PREAMBLE_INTS_BYTE, (byte) (preInts & 0X3F));
+  static void insertPreInts(final MemorySegment wseg, final int preInts) {
+    wseg.set(JAVA_BYTE, PREAMBLE_INTS_BYTE, (byte) (preInts & 0X3F));
   }
 
-  static int extractSerVer(final Memory mem) {
-    return mem.getByte(SER_VER_BYTE) & 0XFF;
+  static int extractSerVer(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
   }
 
-  static void insertSerVer(final WritableMemory wmem) {
-    wmem.putByte(SER_VER_BYTE, (byte) SER_VER);
+  static void insertSerVer(final MemorySegment wseg) {
+    wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) SER_VER);
   }
 
-  static int extractFamilyId(final Memory mem) {
-    return mem.getByte(FAMILY_BYTE) & 0XFF;
+  static int extractFamilyId(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
   }
 
-  static void insertFamilyId(final WritableMemory wmem) {
-    wmem.putByte(FAMILY_BYTE, (byte) FAMILY_ID);
+  static void insertFamilyId(final MemorySegment wseg) {
+    wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) FAMILY_ID);
   }
 
-  static int extractLgK(final Memory mem) {
-    return mem.getByte(LG_K_BYTE) & 0XFF;
+  static int extractLgK(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, LG_K_BYTE) & 0XFF;
   }
 
-  static void insertLgK(final WritableMemory wmem, final int lgK) {
-    wmem.putByte(LG_K_BYTE, (byte) lgK);
+  static void insertLgK(final MemorySegment wseg, final int lgK) {
+    wseg.set(JAVA_BYTE, LG_K_BYTE, (byte) lgK);
   }
 
-  static int extractLgArr(final Memory mem) {
-    final int lgArr = mem.getByte(LG_ARR_BYTE) & 0XFF;
+  static int extractLgArr(final MemorySegment seg) {
+    final int lgArr = seg.get(JAVA_BYTE, LG_ARR_BYTE) & 0XFF;
     return lgArr;
   }
 
-  static void insertLgArr(final WritableMemory wmem, final int lgArr) {
-    wmem.putByte(LG_ARR_BYTE, (byte) lgArr);
+  static void insertLgArr(final MemorySegment wseg, final int lgArr) {
+    wseg.set(JAVA_BYTE, LG_ARR_BYTE, (byte) lgArr);
   }
 
-  static int extractListCount(final Memory mem) {
-    return mem.getByte(LIST_COUNT_BYTE) & 0XFF;
+  static int extractListCount(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, LIST_COUNT_BYTE) & 0XFF;
   }
 
-  static void insertListCount(final WritableMemory wmem, final int listCnt) {
-    wmem.putByte(LIST_COUNT_BYTE, (byte) listCnt);
+  static void insertListCount(final MemorySegment wseg, final int listCnt) {
+    wseg.set(JAVA_BYTE, LIST_COUNT_BYTE, (byte) listCnt);
   }
 
-  static int extractCurMin(final Memory mem) {
-    return mem.getByte(HLL_CUR_MIN_BYTE) & 0XFF;
+  static int extractCurMin(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, HLL_CUR_MIN_BYTE) & 0XFF;
   }
 
-  static void insertCurMin(final WritableMemory wmem, final int curMin) {
-    wmem.putByte(HLL_CUR_MIN_BYTE, (byte) curMin);
+  static void insertCurMin(final MemorySegment wseg, final int curMin) {
+    wseg.set(JAVA_BYTE, HLL_CUR_MIN_BYTE, (byte) curMin);
   }
 
-  static double extractHipAccum(final Memory mem) {
-    return mem.getDouble(HIP_ACCUM_DOUBLE);
+  static double extractHipAccum(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, HIP_ACCUM_DOUBLE);
   }
 
-  static void insertHipAccum(final WritableMemory wmem, final double hipAccum) {
-    wmem.putDouble(HIP_ACCUM_DOUBLE, hipAccum);
+  static void insertHipAccum(final MemorySegment wseg, final double hipAccum) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, HIP_ACCUM_DOUBLE, hipAccum);
   }
 
-  static double extractKxQ0(final Memory mem) {
-    return mem.getDouble(KXQ0_DOUBLE);
+  static double extractKxQ0(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, KXQ0_DOUBLE);
   }
 
-  static void insertKxQ0(final WritableMemory wmem, final double kxq0) {
-    wmem.putDouble(KXQ0_DOUBLE, kxq0);
+  static void insertKxQ0(final MemorySegment wseg, final double kxq0) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, KXQ0_DOUBLE, kxq0);
   }
 
-  static double extractKxQ1(final Memory mem) {
-    return mem.getDouble(KXQ1_DOUBLE);
+  static double extractKxQ1(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, KXQ1_DOUBLE);
   }
 
-  static void insertKxQ1(final WritableMemory wmem, final double kxq1) {
-    wmem.putDouble(KXQ1_DOUBLE, kxq1);
+  static void insertKxQ1(final MemorySegment wseg, final double kxq1) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, KXQ1_DOUBLE, kxq1);
   }
 
-  static int extractHashSetCount(final Memory mem) {
-    return mem.getInt(HASH_SET_COUNT_INT);
+  static int extractHashSetCount(final MemorySegment seg) {
+    return seg.get(JAVA_INT_UNALIGNED, HASH_SET_COUNT_INT);
   }
 
-  static void insertHashSetCount(final WritableMemory wmem, final int hashSetCnt) {
-    wmem.putInt(HASH_SET_COUNT_INT, hashSetCnt);
+  static void insertHashSetCount(final MemorySegment wseg, final int hashSetCnt) {
+    wseg.set(JAVA_INT_UNALIGNED, HASH_SET_COUNT_INT, hashSetCnt);
   }
 
-  static int extractNumAtCurMin(final Memory mem) {
-    return mem.getInt(CUR_MIN_COUNT_INT);
+  static int extractNumAtCurMin(final MemorySegment seg) {
+    return seg.get(JAVA_INT_UNALIGNED, CUR_MIN_COUNT_INT);
   }
 
-  static void insertNumAtCurMin(final WritableMemory wmem, final int numAtCurMin) {
-    wmem.putInt(CUR_MIN_COUNT_INT, numAtCurMin);
+  static void insertNumAtCurMin(final MemorySegment wseg, final int numAtCurMin) {
+    wseg.set(JAVA_INT_UNALIGNED, CUR_MIN_COUNT_INT, numAtCurMin);
   }
 
-  static int extractAuxCount(final Memory mem) {
-    return mem.getInt(AUX_COUNT_INT);
+  static int extractAuxCount(final MemorySegment seg) {
+    return seg.get(JAVA_INT_UNALIGNED, AUX_COUNT_INT);
   }
 
-  static void insertAuxCount(final WritableMemory wmem, final int auxCount) {
-    wmem.putInt(AUX_COUNT_INT, auxCount);
+  static void insertAuxCount(final MemorySegment wseg, final int auxCount) {
+    wseg.set(JAVA_INT_UNALIGNED, AUX_COUNT_INT, auxCount);
   }
 
   //Mode bits
-  static void insertCurMode(final WritableMemory wmem, final CurMode curMode) {
+  static void insertCurMode(final MemorySegment wseg, final CurMode curMode) {
     final int curModeId = curMode.ordinal();
-    int mode = wmem.getByte(MODE_BYTE)  & ~CUR_MODE_MASK; //strip bits 0, 1
+    int mode = wseg.get(JAVA_BYTE, MODE_BYTE)  & ~CUR_MODE_MASK; //strip bits 0, 1
     mode |= (curModeId & CUR_MODE_MASK);
-    wmem.putByte(MODE_BYTE, (byte) mode);
+    wseg.set(JAVA_BYTE, MODE_BYTE, (byte) mode);
   }
 
-  static CurMode extractCurMode(final Memory mem) {
-    final int curModeId = mem.getByte(MODE_BYTE) & CUR_MODE_MASK;
+  static CurMode extractCurMode(final MemorySegment seg) {
+    final int curModeId = seg.get(JAVA_BYTE, MODE_BYTE) & CUR_MODE_MASK;
     return CurMode.fromOrdinal(curModeId);
   }
 
-  static void insertTgtHllType(final WritableMemory wmem, final TgtHllType tgtHllType) {
+  static void insertTgtHllType(final MemorySegment wseg, final TgtHllType tgtHllType) {
     final int typeId = tgtHllType.ordinal();
-    int mode = wmem.getByte(MODE_BYTE) & ~TGT_HLL_TYPE_MASK; //strip bits 2, 3
+    int mode = wseg.get(JAVA_BYTE, MODE_BYTE) & ~TGT_HLL_TYPE_MASK; //strip bits 2, 3
     mode |= (typeId << 2) & TGT_HLL_TYPE_MASK;
-    wmem.putByte(MODE_BYTE, (byte) mode);
+    wseg.set(JAVA_BYTE, MODE_BYTE, (byte) mode);
   }
 
-  static TgtHllType extractTgtHllType(final Memory mem) {
-    final int typeId = mem.getByte(MODE_BYTE) & TGT_HLL_TYPE_MASK;
+  static TgtHllType extractTgtHllType(final MemorySegment seg) {
+    final int typeId = seg.get(JAVA_BYTE, MODE_BYTE) & TGT_HLL_TYPE_MASK;
     return TgtHllType.fromOrdinal(typeId >>> 2);
   }
 
-  static void insertModes(final WritableMemory wmem, final TgtHllType tgtHllType,
+  static void insertModes(final MemorySegment wseg, final TgtHllType tgtHllType,
       final CurMode curMode) {
     final int curModeId = curMode.ordinal() & 3;
     final int typeId = (tgtHllType.ordinal() & 3) << 2;
     final int mode = typeId | curModeId;
-    wmem.putByte(MODE_BYTE, (byte) mode);
+    wseg.set(JAVA_BYTE, MODE_BYTE, (byte) mode);
   }
 
   //Flags
-  static void insertEmptyFlag(final WritableMemory wmem, final boolean empty) {
-    int flags = wmem.getByte(FLAGS_BYTE);
+  static void insertEmptyFlag(final MemorySegment wseg, final boolean empty) {
+    int flags = wseg.get(JAVA_BYTE, FLAGS_BYTE);
     if (empty) { flags |= EMPTY_FLAG_MASK; }
     else { flags &= ~EMPTY_FLAG_MASK; }
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+    wseg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractEmptyFlag(final Memory mem) {
-    final int flags = mem.getByte(FLAGS_BYTE);
+  static boolean extractEmptyFlag(final MemorySegment seg) {
+    final int flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
     return (flags & EMPTY_FLAG_MASK) > 0;
   }
 
-  static void insertCompactFlag(final WritableMemory wmem, final boolean compact) {
-    int flags = wmem.getByte(FLAGS_BYTE);
+  static void insertCompactFlag(final MemorySegment wseg, final boolean compact) {
+    int flags = wseg.get(JAVA_BYTE, FLAGS_BYTE);
     if (compact) { flags |= COMPACT_FLAG_MASK; }
     else { flags &= ~COMPACT_FLAG_MASK; }
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+    wseg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractCompactFlag(final Memory mem) {
-    final int flags = mem.getByte(FLAGS_BYTE);
+  static boolean extractCompactFlag(final MemorySegment seg) {
+    final int flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
     return (flags & COMPACT_FLAG_MASK) > 0;
   }
 
-  static void insertOooFlag(final WritableMemory wmem, final boolean oooFlag) {
-    int flags = wmem.getByte(FLAGS_BYTE);
+  static void insertOooFlag(final MemorySegment wseg, final boolean oooFlag) {
+    int flags = wseg.get(JAVA_BYTE, FLAGS_BYTE);
     if (oooFlag) { flags |= OUT_OF_ORDER_FLAG_MASK; }
     else { flags &= ~OUT_OF_ORDER_FLAG_MASK; }
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+    wseg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractOooFlag(final Memory mem) {
-    final int flags = mem.getByte(FLAGS_BYTE);
+  static boolean extractOooFlag(final MemorySegment seg) {
+    final int flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
     return (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
   }
 
-  static void insertRebuildCurMinNumKxQFlag(final WritableMemory wmem, final boolean rebuild) {
-    int flags = wmem.getByte(FLAGS_BYTE);
+  static void insertRebuildCurMinNumKxQFlag(final MemorySegment wseg, final boolean rebuild) {
+    int flags = wseg.get(JAVA_BYTE, FLAGS_BYTE);
     if (rebuild) { flags |= REBUILD_CURMIN_NUM_KXQ_MASK; }
     else { flags &= ~REBUILD_CURMIN_NUM_KXQ_MASK; }
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+    wseg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean extractRebuildCurMinNumKxQFlag(final Memory mem) {
-    final int flags = mem.getByte(FLAGS_BYTE);
+  static boolean extractRebuildCurMinNumKxQFlag(final MemorySegment seg) {
+    final int flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
     return (flags & REBUILD_CURMIN_NUM_KXQ_MASK) > 0;
   }
 
-  static void insertFlags(final WritableMemory wmem, final int flags) {
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+  static void insertFlags(final MemorySegment wseg, final int flags) {
+    wseg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static int extractFlags(final Memory mem) {
-    return mem.getByte(FLAGS_BYTE) & 0XFF;
+  static int extractFlags(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FLAGS_BYTE) & 0XFF;
   }
 
   //Other
-  static int extractInt(final Memory mem, final long byteOffset) {
-    return mem.getInt(byteOffset);
+  static int extractInt(final MemorySegment seg, final long byteOffset) {
+    return seg.get(JAVA_INT_UNALIGNED, byteOffset);
   }
 
-  static void insertInt(final WritableMemory wmem, final long byteOffset, final int value) {
-    wmem.putInt(byteOffset, value);
+  static void insertInt(final MemorySegment wseg, final long byteOffset, final int value) {
+    wseg.set(JAVA_INT_UNALIGNED, byteOffset, value);
   }
 
-  static int computeLgArr(final Memory mem, final int count, final int lgConfigK) {
+  static int computeLgArr(final MemorySegment seg, final int count, final int lgConfigK) {
     //value is missing, recompute
-    final CurMode curMode = extractCurMode(mem);
+    final CurMode curMode = extractCurMode(seg);
     if (curMode == CurMode.LIST) { return HllUtil.LG_INIT_LIST_SIZE; }
     int ceilPwr2 = ceilingPowerOf2(count);
     if ((RESIZE_DENOM * count) > (RESIZE_NUMER * ceilPwr2)) { ceilPwr2 <<= 1; }
