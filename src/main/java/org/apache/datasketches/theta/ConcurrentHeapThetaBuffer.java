@@ -59,7 +59,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   // A flag indicating whether the shared sketch is in shared mode and requires eager propagation
   // Initially this is true. Once it is set to false (estimation mode) it never flips back.
-  private boolean isExactMode;
+  private volatile boolean isExactMode;
 
   // A flag to indicate if we expect the propagated data to be ordered
   private final boolean propagateOrderedCompact;
@@ -154,8 +154,8 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   }
 
   @Override
-  public boolean isDirect() {
-    return shared.isDirect();
+  public boolean isOffHeap() {
+    return shared.isOffHeap();
   }
 
   @Override

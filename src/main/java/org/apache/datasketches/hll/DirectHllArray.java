@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static org.apache.datasketches.common.Util.clear;
 import static org.apache.datasketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static org.apache.datasketches.hll.PreambleUtil.HIP_ACCUM_DOUBLE;
 import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
@@ -45,97 +49,98 @@ import static org.apache.datasketches.hll.PreambleUtil.insertNumAtCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.insertOooFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertRebuildCurMinNumKxQFlag;
 
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  */
 abstract class DirectHllArray extends AbstractHllArray {
-  WritableMemory wmem;
-  Memory mem;
-  Object memObj;
+  MemorySegment wseg; //used for writable direct
+  MemorySegment seg;  //used for compact, read-only direct
+  Object segObj;      //used temporarily for byte-array
   final boolean compact;
 
-  private static int checkMemCompactFlag(final WritableMemory wmem, final int lgConfigK) {
-    assert !extractCompactFlag(wmem);
+  private static int checkSegCompactFlag(final MemorySegment wseg, final int lgConfigK) {
+    assert !extractCompactFlag(wseg);
     return lgConfigK;
   }
 
-  //Memory must be already initialized and may have data
-  DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory wmem) {
-    super(checkMemCompactFlag(wmem, lgConfigK), tgtHllType, CurMode.HLL);
-    this.wmem = wmem;
-    mem = wmem;
-    memObj = wmem.getArray();
-    compact = extractCompactFlag(mem);
-    insertEmptyFlag(wmem, false);
+  //Memory must be already initialized and may have data. Writable, must not be Compact.
+  DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment wseg) {
+    super(checkSegCompactFlag(wseg, lgConfigK), tgtHllType, CurMode.HLL);
+    this.wseg = wseg;
+    seg = wseg;
+    segObj = wseg.toArray(JAVA_BYTE);
+    compact = extractCompactFlag(seg);
+    insertEmptyFlag(wseg, false);
   }
 
-  //Memory must already be initialized and should have data
-  DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final Memory mem) {
+  //Memory must already be initialized and should have data. Read-only. May be Compact or not
+  DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment seg, final boolean readOnly) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
-    wmem = null;
-    this.mem = mem;
-    memObj = ((WritableMemory) mem).getArray();
-    compact = extractCompactFlag(mem);
+    wseg = null;
+    this.seg = seg;
+    segObj = seg.toArray(JAVA_BYTE);
+    compact = extractCompactFlag(seg);
   }
 
   //only called by DirectAuxHashMap
-  final void updateMemory(final WritableMemory newWmem) {
-    wmem = newWmem;
-    mem = newWmem;
-    memObj = wmem.getArray();
+  final void updateMemorySegment(final MemorySegment newWseg) {
+    wseg = newWseg;
+    seg = newWseg;
+    segObj = wseg.toArray(JAVA_BYTE);
   }
 
   @Override
   void addToHipAccum(final double delta) {
-    checkReadOnly(wmem);
-    final double hipAccum = mem.getDouble(HIP_ACCUM_DOUBLE);
-    wmem.putDouble(HIP_ACCUM_DOUBLE, hipAccum + delta);
+    checkReadOnly(wseg);
+    final double hipAccum = seg.get(JAVA_DOUBLE_UNALIGNED, HIP_ACCUM_DOUBLE);
+    wseg.set(JAVA_DOUBLE_UNALIGNED, HIP_ACCUM_DOUBLE, hipAccum + delta);
   }
 
   @Override
   void decNumAtCurMin() {
-    checkReadOnly(wmem);
-    int numAtCurMin = mem.getInt(CUR_MIN_COUNT_INT);
-    wmem.putInt(CUR_MIN_COUNT_INT, --numAtCurMin);
+    checkReadOnly(wseg);
+    int numAtCurMin = seg.get(JAVA_INT_UNALIGNED, CUR_MIN_COUNT_INT);
+    wseg.set(JAVA_INT_UNALIGNED, CUR_MIN_COUNT_INT, --numAtCurMin);
   }
 
   @Override
   int getCurMin() {
-    return extractCurMin(mem);
+    return extractCurMin(seg);
   }
 
   @Override
   CurMode getCurMode() {
-    return extractCurMode(mem);
+    return extractCurMode(seg);
   }
 
   @Override
   double getHipAccum() {
-    return extractHipAccum(mem);
+    return extractHipAccum(seg);
   }
 
   @Override
   double getKxQ0() {
-    return extractKxQ0(mem);
+    return extractKxQ0(seg);
   }
 
   @Override
   double getKxQ1() {
-    return extractKxQ1(mem);
+    return extractKxQ1(seg);
   }
 
   @Override
   int getLgConfigK() {
-    return extractLgK(mem);
+    return extractLgK(seg);
   }
 
   @Override
-  Memory getMemory() {
-    return mem;
+  MemorySegment getMemorySegment() {
+    return seg;
   }
 
   @Override
@@ -145,17 +150,12 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   int getNumAtCurMin() {
-    return extractNumAtCurMin(mem);
+    return extractNumAtCurMin(seg);
   }
 
   @Override
   TgtHllType getTgtHllType() {
-    return extractTgtHllType(mem);
-  }
-
-  @Override
-  WritableMemory getWritableMemory() {
-    return wmem;
+    return extractTgtHllType(seg);
   }
 
   @Override
@@ -165,32 +165,32 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   boolean isEmpty() {
-    return extractEmptyFlag(mem);
+    return extractEmptyFlag(seg);
   }
 
   @Override
-  boolean isMemory() {
-    return true;
+  boolean hasMemorySegment() {
+    return seg.scope().isAlive();
   }
 
   @Override
   boolean isOffHeap() {
-    return mem.isDirect();
+    return seg.isNative();
   }
 
   @Override
   boolean isOutOfOrder() {
-    return extractOooFlag(mem);
+    return extractOooFlag(seg);
   }
 
   @Override
-  boolean isSameResource(final Memory mem) {
-    return this.mem.isSameResource(mem);
+  boolean isSameResource(final MemorySegment seg) {
+    return MemorySegmentStatus.isSameResource(this.seg, seg);
   }
 
   @Override
   boolean isRebuildCurMinNumKxQFlag() {
-    return extractRebuildCurMinNumKxQFlag(mem);
+    return extractRebuildCurMinNumKxQFlag(seg);
   }
 
   @Override
@@ -200,9 +200,9 @@ abstract class DirectHllArray extends AbstractHllArray {
         this.auxHashMap = auxHashMap; //heap and compact
       } else { //heap and not compact
         final int[] auxArr = auxHashMap.getAuxIntArr();
-        wmem.putIntArray(auxStart, auxArr, 0, auxArr.length);
-        insertLgArr(wmem, auxHashMap.getLgAuxArrInts());
-        insertAuxCount(wmem, auxHashMap.getAuxCount());
+        MemorySegment.copy(auxArr, 0, wseg, JAVA_INT_UNALIGNED, auxStart, auxArr.length);
+        insertLgArr(wseg, auxHashMap.getLgAuxArrInts());
+        insertAuxCount(wseg, auxHashMap.getAuxCount());
         this.auxHashMap = new DirectAuxHashMap(this, false);
       }
     } else { //DirectAuxHashMap
@@ -213,51 +213,51 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   void putCurMin(final int curMin) {
-    checkReadOnly(wmem);
-    insertCurMin(wmem, curMin);
+    checkReadOnly(wseg);
+    insertCurMin(wseg, curMin);
   }
 
   @Override
   void putEmptyFlag(final boolean empty) {
-    checkReadOnly(wmem);
-    insertEmptyFlag(wmem, empty);
+    checkReadOnly(wseg);
+    insertEmptyFlag(wseg, empty);
   }
 
   @Override
   void putHipAccum(final double hipAccum) {
-    checkReadOnly(wmem);
-    insertHipAccum(wmem, hipAccum);
+    checkReadOnly(wseg);
+    insertHipAccum(wseg, hipAccum);
   }
 
   @Override
   void putKxQ0(final double kxq0) {
-    checkReadOnly(wmem);
-    insertKxQ0(wmem, kxq0);
+    checkReadOnly(wseg);
+    insertKxQ0(wseg, kxq0);
   }
 
   @Override //called very very very rarely
   void putKxQ1(final double kxq1) {
-    checkReadOnly(wmem);
-    insertKxQ1(wmem, kxq1);
+    checkReadOnly(wseg);
+    insertKxQ1(wseg, kxq1);
   }
 
   @Override
   void putNumAtCurMin(final int numAtCurMin) {
-    checkReadOnly(wmem);
-    insertNumAtCurMin(wmem, numAtCurMin);
+    checkReadOnly(wseg);
+    insertNumAtCurMin(wseg, numAtCurMin);
   }
 
   @Override //not used on the direct side
   void putOutOfOrder(final boolean oooFlag) {
     if (oooFlag) { putHipAccum(0); }
-    checkReadOnly(wmem);
-    insertOooFlag(wmem, oooFlag);
+    checkReadOnly(wseg);
+    insertOooFlag(wseg, oooFlag);
   }
 
   @Override
   void putRebuildCurMinNumKxQFlag(final boolean rebuild) {
-    checkReadOnly(wmem);
-    insertRebuildCurMinNumKxQFlag(wmem, rebuild);
+    checkReadOnly(wseg);
+    insertRebuildCurMinNumKxQFlag(wseg, rebuild);
   }
 
   @Override //used by HLL6 and HLL8, overridden by HLL4
@@ -269,23 +269,23 @@ abstract class DirectHllArray extends AbstractHllArray {
   byte[] toUpdatableByteArray() {
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.writableWrap(byteArr);
-    mem.copyTo(0, memOut, 0, totBytes);
-    insertCompactFlag(memOut, false);
+    final MemorySegment segOut = MemorySegment.ofArray(byteArr);
+    MemorySegment.copy(seg, 0, segOut, 0, totBytes);
+    insertCompactFlag(segOut, false);
     return byteArr;
   }
 
   @Override
   HllSketchImpl reset() {
-    checkReadOnly(wmem);
-    insertEmptyFlag(wmem, true);
+    checkReadOnly(wseg);
+    insertEmptyFlag(wseg, true);
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    wmem.clear(0, bytes);
-    return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
+    clear(wseg, 0, bytes);
+    return DirectCouponList.newInstance(lgConfigK, tgtHllType, wseg);
   }
 
-  private static final void checkReadOnly(final WritableMemory wmem) {
-    if (wmem == null) {
+  private static final void checkReadOnly(final MemorySegment wseg) {
+    if (wseg == null) {
       throw new SketchesArgumentException("Cannot modify a read-only sketch");
     }
   }

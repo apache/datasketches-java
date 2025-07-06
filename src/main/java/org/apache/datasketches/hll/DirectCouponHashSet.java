@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static org.apache.datasketches.common.Util.clear;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_DENOM;
@@ -34,11 +37,11 @@ import static org.apache.datasketches.hll.PreambleUtil.insertHashSetCount;
 import static org.apache.datasketches.hll.PreambleUtil.insertInt;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -46,40 +49,39 @@ import org.apache.datasketches.memory.WritableMemory;
 final class DirectCouponHashSet extends DirectCouponList {
 
   //Constructs this sketch with data.
-  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType,
-      final WritableMemory wmem) {
-    super(lgConfigK, tgtHllType, CurMode.SET, wmem);
-    assert wmem.getByte(LG_K_BYTE) > 7;
+  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment wseg) {
+    super(lgConfigK, tgtHllType, CurMode.SET, wseg);
+    assert wseg.get(JAVA_BYTE, LG_K_BYTE) > 7;
   }
 
   //Constructs this sketch with read-only data, may be compact.
-  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType,
-      final Memory mem) {
-    super(lgConfigK, tgtHllType, CurMode.SET, mem);
-    assert mem.getByte(LG_K_BYTE) > 7;
+  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment seg,
+      final boolean readOnly) {
+    super(lgConfigK, tgtHllType, CurMode.SET, seg, true);
+    assert seg.get(JAVA_BYTE, LG_K_BYTE) > 7;
   }
 
   @Override //returns on-heap Set
   CouponHashSet copy() {
-    return CouponHashSet.heapifySet(mem);
+    return CouponHashSet.heapifySet(seg);
   }
 
   @Override //returns on-heap Set
   CouponHashSet copyAs(final TgtHllType tgtHllType) {
-    final CouponHashSet clist = CouponHashSet.heapifySet(mem);
+    final CouponHashSet clist = CouponHashSet.heapifySet(seg);
     return new CouponHashSet(clist, tgtHllType);
   }
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    if (wmem == null) { noWriteAccess(); }
+    if (wseg == null) { noWriteAccess(); }
     //avoid array copy
-    final int index = find(mem, getLgCouponArrInts(), coupon);
+    final int index = find(seg, getLgCouponArrInts(), coupon);
     if (index >= 0) {
       return this; //found duplicate, ignore
     }
-    insertInt(wmem, HASH_SET_INT_ARR_START + (~index << 2), coupon);
-    insertHashSetCount(wmem, getCouponCount() + 1);
+    insertInt(wseg, HASH_SET_INT_ARR_START + (~index << 2), coupon);
+    insertHashSetCount(wseg, getCouponCount() + 1);
     final boolean promote = checkGrowOrPromote();
     if (!promote) { return this; }
     return promoteListOrSetToHll(this);
@@ -87,11 +89,11 @@ final class DirectCouponHashSet extends DirectCouponList {
 
   @Override
   int getCouponCount() {
-    return extractHashSetCount(mem);
+    return extractHashSetCount(seg);
   }
 
   @Override
-  int getMemDataStart() {
+  int getSegDataStart() {
     return HASH_SET_INT_ARR_START;
   }
 
@@ -106,20 +108,20 @@ final class DirectCouponHashSet extends DirectCouponList {
       if (lgCouponArrInts == (getLgConfigK() - 3)) {
         return true; // promote
       }
-      insertLgArr(wmem, ++lgCouponArrInts);
-      growHashSet(wmem, lgCouponArrInts);
+      insertLgArr(wseg, ++lgCouponArrInts);
+      growHashSet(wseg, lgCouponArrInts);
     }
     return false;
   }
 
-  //This could fail if the user has undersized the given WritableMemory
-  //  and not used the public methods for sizing the Memory.  See exception.
-  private static final void growHashSet(final WritableMemory wmem, final int tgtLgCouponArrSize) {
+  //This could fail if the user has undersized the given MemorySegment
+  //  and not used the public methods for sizing the MemorySegment.  See exception.
+  private static void growHashSet(final MemorySegment wseg, final int tgtLgCouponArrSize) {
     final int tgtArrSize = 1 << tgtLgCouponArrSize;
     final int[] tgtCouponIntArr = new int[tgtArrSize];
-    final int oldLen = 1 << extractLgArr(wmem);
+    final int oldLen = 1 << extractLgArr(wseg);
     for (int i = 0; i < oldLen; i++) {
-      final int fetched = extractInt(wmem, HASH_SET_INT_ARR_START + (i << 2));
+      final int fetched = extractInt(wseg, HASH_SET_INT_ARR_START + (i << 2));
       if (fetched != EMPTY) {
         final int idx = find(tgtCouponIntArr, tgtLgCouponArrSize, fetched);
         if (idx < 0) { //found EMPTY
@@ -129,27 +131,27 @@ final class DirectCouponHashSet extends DirectCouponList {
         throw new SketchesStateException("Error: found duplicate.");
       }
     }
-    wmem.clear(HASH_SET_INT_ARR_START, tgtArrSize << 2);
-    try { wmem.putIntArray(HASH_SET_INT_ARR_START, tgtCouponIntArr, 0, tgtArrSize); }
+    clear(wseg, HASH_SET_INT_ARR_START, tgtArrSize << 2);
+    try {  MemorySegment.copy(tgtCouponIntArr, 0, wseg, JAVA_INT_UNALIGNED, HASH_SET_INT_ARR_START, tgtArrSize); }
     catch (final IndexOutOfBoundsException e) {
       throw new SketchesException(
-          "The WritableMemory is undersized. Use the public methods for properly sizing Memory.", e);
+          "The MemorySegment is undersized. Use the public methods for properly sizing MemorySegment.", e);
     }
   }
 
-  //Searches the Coupon hash table (embedded in Memory) for an empty slot
+  //Searches the Coupon hash table (embedded in MemorySegment) for an empty slot
   // or a duplicate depending on the context.
   //If entire entry is empty, returns one's complement of index = found empty.
   //If entry equals given coupon, returns its index = found duplicate coupon
   //Continues searching
   //If the probe comes back to original index, throws an exception.
-  private static final int find(final Memory mem, final int lgArr,
+  private static int find(final MemorySegment seg, final int lgArr,
       final int coupon) {
     final int arrMask = (1 << lgArr) - 1;
     int probe = coupon & arrMask;
     final int loopIndex = probe;
     do {
-      final int couponAtIndex = extractInt(mem, HASH_SET_INT_ARR_START + (probe << 2));
+      final int couponAtIndex = extractInt(seg, HASH_SET_INT_ARR_START + (probe << 2));
       if (couponAtIndex == EMPTY) { return ~probe; } //empty
       else if (coupon == couponAtIndex) { return probe; } //duplicate
       final int stride = ((coupon & KEY_MASK_26) >>> lgArr) | 1;

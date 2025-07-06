@@ -33,6 +33,7 @@ import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingle
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.Util;
 
 /**
@@ -90,8 +91,7 @@ class DirectCompactSketch extends CompactSketch {
   public int getRetainedEntries(final boolean valid) { //compact is always valid
     if (otherCheckForSingleItem(seg_)) { return 1; }
     final int preLongs = extractPreLongs(seg_);
-    final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
-    return curCount;
+    return (preLongs == 1) ? 0 : extractCurCount(seg_);
   }
 
   @Override
@@ -102,11 +102,11 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return seg_ != null && seg_.scope().isAlive();
+    return (seg_ != null) && seg_.scope().isAlive();
   }
 
   @Override
-  public boolean isDirect() {
+  public boolean isOffHeap() {
     return hasMemorySegment() && seg_.isNative();
   }
 
@@ -125,7 +125,7 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return hasMemorySegment() && Util.isSameResource(seg_, that);
+    return hasMemorySegment() && MemorySegmentStatus.isSameResource(seg_, that);
 
   }
 

@@ -161,7 +161,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return (this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).hasMemorySegment());
+    return ((this instanceof DirectQuickSelectSketchR) &&  ((DirectQuickSelectSketchR)this).hasMemorySegment());
   }
 
   @Override
@@ -170,8 +170,8 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   @Override
-  public boolean isDirect() {
-    return (this instanceof DirectQuickSelectSketchR && ((DirectQuickSelectSketchR)this).isDirect());
+  public boolean isOffHeap() {
+    return ((this instanceof DirectQuickSelectSketchR) && ((DirectQuickSelectSketchR)this).isOffHeap());
   }
 
   @Override
@@ -181,7 +181,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return (this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).isSameResource(that));
+    return (this instanceof final DirectQuickSelectSketchR dqssr) && dqssr.isSameResource(that);
   }
 
   //UpdateSketch interface
@@ -299,7 +299,7 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final ByteBuffer buffer) {
-    if (buffer == null || buffer.hasRemaining() == false) {
+    if ((buffer == null) || !buffer.hasRemaining()) {
       return RejectedNullOrEmpty;
     }
     return hashUpdate(hash(buffer, getSeed())[0] >>> 1);
@@ -479,7 +479,7 @@ public abstract class UpdateSketch extends Sketch {
     final int lgA = lgArrLongs;
     final int lgR = extractLgResizeFactor(srcSeg);
     if (lgR == 0) { return lgA != lgT; }
-    return !(((lgT - lgA) % lgR) == 0);
+    return (((lgT - lgA) % lgR) != 0);
   }
 
 }

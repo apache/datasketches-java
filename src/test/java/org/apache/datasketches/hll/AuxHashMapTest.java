@@ -24,6 +24,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.hll.HeapAuxHashMap;
+import org.apache.datasketches.hll.PairIterator;
 import org.testng.annotations.Test;
 
 /**
@@ -54,7 +56,7 @@ public class AuxHashMapTest {
   @Test
   public void checkGrowSpace() {
     HeapAuxHashMap map = new HeapAuxHashMap(3, 7);
-    assertFalse(map.isMemory());
+    assertFalse(map.hasMemorySegment());
     assertFalse(map.isOffHeap());
     assertEquals(map.getLgAuxArrInts(), 3);
     for (int i = 1; i <= 7; i++) {

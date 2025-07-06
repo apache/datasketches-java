@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hll.PreambleUtil.LG_ARR_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -26,9 +27,12 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.hll.AbstractCoupons;
+import org.apache.datasketches.hll.CurMode;
+import org.apache.datasketches.hll.HllSketch;
+import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**
@@ -62,17 +66,17 @@ public class DirectCouponListTest {
     promotions(4, 25, TgtHllType.HLL_4, false, CurMode.HLL);
   }
 
-  private static void promotions(int lgConfigK, int n, TgtHllType tgtHllType, boolean compact,
-      CurMode tgtMode) {
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+  private static void promotions(final int lgConfigK, final int n, final TgtHllType tgtHllType, final boolean compact,
+      final CurMode tgtMode) {
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
 
     //println("DIRECT");
     byte[] barr1;
-    WritableMemory wmem;
+    MemorySegment wseg;
     try (Arena arena = Arena.ofConfined()) {
-      wmem = WritableMemory.allocateDirect(bytes, arena);
-      hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
+      wseg = arena.allocate(bytes);
+      hllSketch = new HllSketch(lgConfigK, tgtHllType, wseg);
       assertTrue(hllSketch.isEmpty());
 
       for (int i = 0; i < n; i++) {
@@ -81,9 +85,9 @@ public class DirectCouponListTest {
       //println(hllSketch.toString(true, true, false, false));
       assertFalse(hllSketch.isEmpty());
       assertEquals(hllSketch.getCurMode(), tgtMode);
-      assertTrue(hllSketch.isMemory());
+      assertTrue(hllSketch.hasMemorySegment());
       assertTrue(hllSketch.isOffHeap());
-      assertTrue(hllSketch.isSameResource(wmem));
+      assertTrue(hllSketch.isSameResource(wseg));
 
       //convert direct sketch to byte[]
       barr1 = (compact) ? hllSketch.toCompactByteArray() : hllSketch.toUpdatableByteArray();
@@ -95,30 +99,30 @@ public class DirectCouponListTest {
     }
 
     //println("HEAP");
-    HllSketch hllSketch2 = new HllSketch(lgConfigK, tgtHllType);
+    final HllSketch hllSketch2 = new HllSketch(lgConfigK, tgtHllType);
     for (int i = 0; i < n; i++) {
       hllSketch2.update(i);
     }
     //println(hllSketch2.toString(true, true, false, false));
     //println(PreambleUtil.toString(barr2));
     assertEquals(hllSketch2.getCurMode(), tgtMode);
-    assertFalse(hllSketch2.isMemory());
+    assertFalse(hllSketch2.hasMemorySegment());
     assertFalse(hllSketch2.isOffHeap());
-    assertFalse(hllSketch2.isSameResource(wmem));
-    byte[] barr2 = (compact) ? hllSketch2.toCompactByteArray() : hllSketch2.toUpdatableByteArray();
+    assertFalse(hllSketch2.isSameResource(wseg));
+    final byte[] barr2 = (compact) ? hllSketch2.toCompactByteArray() : hllSketch2.toUpdatableByteArray();
     assertEquals(barr1.length, barr2.length, barr1.length + ", " + barr2.length);
     //printDiffs(barr1, barr2);
     assertEquals(barr1, barr2);
   }
 
   @SuppressWarnings("unused") //only used when above printlns are enabled.
-  private static void printDiffs(byte[] arr1, byte[] arr2) {
-    int len1 = arr1.length;
-    int len2 = arr2.length;
-    int minLen = Math.min(len1,  len2);
+  private static void printDiffs(final byte[] arr1, final byte[] arr2) {
+    final int len1 = arr1.length;
+    final int len2 = arr2.length;
+    final int minLen = Math.min(len1,  len2);
     for (int i = 0; i < minLen; i++) {
-      int v1 = arr1[i] & 0XFF;
-      int v2 = arr2[i] & 0XFF;
+      final int v1 = arr1[i] & 0XFF;
+      final int v2 = arr2[i] & 0XFF;
       if (v1 == v2) { continue; }
       println(i + ", " + v1 + ", " + v2);
     }
@@ -126,22 +130,22 @@ public class DirectCouponListTest {
 
   @Test
   public void checkCouponToByteArray() {
-    int lgK = 8;
-    TgtHllType type = TgtHllType.HLL_8;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(lgK, type, wmem);
+    final int lgK = 8;
+    final TgtHllType type = TgtHllType.HLL_8;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(lgK, type, wseg);
     int i;
     for (i = 0; i < 7; i++) { sk.update(i); } //LIST
 
-    //toCompactMemArr from compact mem
+    //toCompactSeg Arr from compact seg
     byte[] compactByteArr = sk.toCompactByteArray();
-    Memory compactMem = Memory.wrap(compactByteArr);
-    HllSketch skCompact = HllSketch.wrap(compactMem);
+    MemorySegment compactSeg = MemorySegment.ofArray(compactByteArr);
+    HllSketch skCompact = HllSketch.wrap(compactSeg);
     byte[] compactByteArr2 = skCompact.toCompactByteArray();
     assertEquals(compactByteArr2, compactByteArr);
 
-    //now check to UpdatableByteArr from compact mem
+    //now check to UpdatableByteArr from compact seg
     byte[] updatableByteArr = sk.toUpdatableByteArray();
     byte[] updatableByteArr2 = skCompact.toUpdatableByteArray();
     assertEquals(updatableByteArr2.length, updatableByteArr.length);
@@ -149,14 +153,14 @@ public class DirectCouponListTest {
 
 
     sk.update(i); //SET
-    //toCompactMemArr from compact mem
+    //toCompactSeg Arr from compact seg
     compactByteArr = sk.toCompactByteArray();
-    compactMem = Memory.wrap(compactByteArr);
-    skCompact = HllSketch.wrap(compactMem);
+    compactSeg = MemorySegment.ofArray(compactByteArr);
+    skCompact = HllSketch.wrap(compactSeg);
     compactByteArr2 = skCompact.toCompactByteArray();
     assertEquals(compactByteArr2, compactByteArr);
 
-    //now check to UpdatableByteArr from compact mem
+    //now check to UpdatableByteArr from compact seg
     updatableByteArr = sk.toUpdatableByteArray();
     updatableByteArr2 = skCompact.toUpdatableByteArray();
     assertEquals(updatableByteArr2.length, updatableByteArr.length);
@@ -165,22 +169,22 @@ public class DirectCouponListTest {
 
   @Test
   public void checkDirectGetCouponIntArr() {
-    int lgK = 8;
-    TgtHllType type = TgtHllType.HLL_8;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(lgK, type, wmem);
-    AbstractCoupons absCoup = (AbstractCoupons)sk.hllSketchImpl;
+    final int lgK = 8;
+    final TgtHllType type = TgtHllType.HLL_8;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(lgK, type, wseg);
+    final AbstractCoupons absCoup = (AbstractCoupons)sk.hllSketchImpl;
     assertNull(absCoup.getCouponIntArr());
   }
 
   @Test
   public void checkBasicGetLgCouponArrInts() {
-    int lgK = 8;
-    TgtHllType type = TgtHllType.HLL_8;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(lgK, type, wmem);
+    final int lgK = 8;
+    final TgtHllType type = TgtHllType.HLL_8;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(lgK, type, wseg);
     for (int i = 0; i < 7; i++) { sk.update(i); }
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 3);
@@ -190,34 +194,34 @@ public class DirectCouponListTest {
 
     sk.reset();
     for (int i = 0; i < 7; i++) { sk.update(i); }
-    byte lgArr = wmem.getByte(LG_ARR_BYTE);
-    wmem.putByte(LG_ARR_BYTE, (byte) 0); //corrupt to 0
+    final byte lgArr = wseg.get(JAVA_BYTE, LG_ARR_BYTE);
+    wseg.set(JAVA_BYTE, LG_ARR_BYTE, (byte) 0); //corrupt to 0
     assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 3);
-    wmem.putByte(LG_ARR_BYTE, lgArr); //put correct value back
+    wseg.set(JAVA_BYTE, LG_ARR_BYTE, lgArr); //put correct value back
     sk.update(7);
     assertEquals(sk.getCurMode(), CurMode.SET);
     assertEquals(sk.hllSketchImpl.curMode, CurMode.SET);
-    wmem.putByte(LG_ARR_BYTE, (byte) 0); //corrupt to 0 again
+    wseg.set(JAVA_BYTE, LG_ARR_BYTE, (byte) 0); //corrupt to 0 again
     assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 5);
   }
 
   @Test
   public void checkHeapifyGetLgCouponArrInts() {
-    int lgK = 8;
-    TgtHllType type = TgtHllType.HLL_8;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(lgK, type, wmem);
+    final int lgK = 8;
+    final TgtHllType type = TgtHllType.HLL_8;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(lgK, type, wseg);
     for (int i = 0; i < 8; i++) { sk.update(i); }
     assertEquals(sk.getCurMode(), CurMode.SET);
-    double est1 = sk.getEstimate();
+    final double est1 = sk.getEstimate();
 
-    wmem.putByte(LG_ARR_BYTE, (byte) 0); //corrupt to 0
-    HllSketch sk2 = HllSketch.heapify(wmem);
-    double est2 = sk2.getEstimate();
+    wseg.set(JAVA_BYTE, LG_ARR_BYTE, (byte) 0); //corrupt to 0
+    final HllSketch sk2 = HllSketch.heapify(wseg);
+    final double est2 = sk2.getEstimate();
     assertEquals(est2, est1, 0.0);
     //println(sk2.toString(true, true, true, true));
-    //println(PreambleUtil.toString(wmem));
+    //println(PreambleUtil.toString(wseg));
   }
 
   @Test
@@ -228,7 +232,7 @@ public class DirectCouponListTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

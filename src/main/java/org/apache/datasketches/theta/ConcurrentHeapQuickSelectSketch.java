@@ -249,15 +249,15 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * This ensures a propagation invoked before the reset cannot affect the sketch after the reset
    * is completed.
    */
-  @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT", justification = "Likely False Positive, Fix Later")
+  @SuppressFBWarnings(value = {"VO_VOLATILE_INCREMENT", "AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE"},
+      justification = "Likely False Positive, Fix Later")
   private void advanceEpoch() {
     awaitBgPropagationTermination();
     startEagerPropagation();
     ConcurrentPropagationService.resetExecutorService(Thread.currentThread().threadId());
-    //no inspection NonAtomicOperationOnVolatileField
     // this increment of a volatile field is done within the scope of the propagation
     // synchronization and hence is done by a single thread
-    // Ignore a FindBugs warning
+    // Ignore the SpotBugs warnings
     epoch_++;
     endPropagation(null, true);
     initBgPropagationService();

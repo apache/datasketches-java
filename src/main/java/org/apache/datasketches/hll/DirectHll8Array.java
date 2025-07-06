@@ -19,39 +19,40 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Uses 8 bits per slot in a byte array.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class DirectHll8Array extends DirectHllArray {
+final class DirectHll8Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
-  DirectHll8Array(final int lgConfigK, final WritableMemory wmem) {
-    super(lgConfigK, TgtHllType.HLL_8, wmem);
+  DirectHll8Array(final int lgConfigK, final MemorySegment wseg) {
+    super(lgConfigK, TgtHllType.HLL_8, wseg);
   }
 
-  //Called by HllSketch.wrap(Memory)
-  DirectHll8Array(final int lgConfigK, final Memory mem) {
-    super(lgConfigK, TgtHllType.HLL_8, mem);
+  //Called by HllSketch.wrap(MemorySegment)
+  DirectHll8Array(final int lgConfigK, final MemorySegment seg, final boolean readOnly) {
+    super(lgConfigK, TgtHllType.HLL_8, seg, true);
   }
 
   @Override
   HllSketchImpl copy() {
-    return Hll8Array.heapify(mem);
+    return Hll8Array.heapify(seg);
   }
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    if (wmem == null) { noWriteAccess(); }
+    if (wseg == null) { noWriteAccess(); }
     final int newValue = HllUtil.getPairValue(coupon);
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getPairLow26(coupon) & configKmask;
@@ -70,9 +71,8 @@ class DirectHll8Array extends DirectHllArray {
     throw new SketchesStateException("Improper access.");
   }
 
-  @Override
-  final int getSlotValue(final int slotNo) {
-    return mem.getByte(HLL_BYTE_ARR_START + slotNo) & VAL_MASK_6;
+  @Override int getSlotValue(final int slotNo) {
+    return seg.get(JAVA_BYTE, HLL_BYTE_ARR_START + slotNo) & VAL_MASK_6;
   }
 
   @Override
@@ -87,20 +87,20 @@ class DirectHll8Array extends DirectHllArray {
 
   @Override
   //Used by Union when source is not HLL8
-  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+ void updateSlotNoKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
-      wmem.putByte(HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));
+      wseg.set(JAVA_BYTE, HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));
     }
   }
 
   @Override
   //Used by this couponUpdate()
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
-  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+ void updateSlotWithKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
-      wmem.putByte(HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));
+      wseg.set(JAVA_BYTE, HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));
       hipAndKxQIncrementalUpdate(this, oldValue, newValue);
       if (oldValue == 0) {
         decNumAtCurMin();
@@ -119,7 +119,7 @@ class DirectHll8Array extends DirectHllArray {
 
     @Override
     int value() {
-      final int tmp = mem.getByte(HLL_BYTE_ARR_START + index);
+      final int tmp = seg.get(JAVA_BYTE, HLL_BYTE_ARR_START + index);
       return tmp & VAL_MASK_6;
     }
   }

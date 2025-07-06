@@ -24,14 +24,15 @@ import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Uses 8 bits per slot in a byte array.
  * @author Lee Rhodes
  */
-class Hll8Array extends HllArray {
+final class Hll8Array extends HllArray {
 
   /**
    * Standard constructor for new instance
@@ -50,10 +51,10 @@ class Hll8Array extends HllArray {
     super(that);
   }
 
-  static final Hll8Array heapify(final Memory mem) {
-    final int lgConfigK = extractLgK(mem);
+  static Hll8Array heapify(final MemorySegment seg) {
+    final int lgConfigK = extractLgK(seg);
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
-    HllArray.extractCommonHll(mem, hll8Array);
+    HllArray.extractCommonHll(seg, hll8Array);
     return hll8Array;
   }
 
@@ -76,8 +77,7 @@ class Hll8Array extends HllArray {
     throw new SketchesStateException("Improper access.");
   }
 
-  @Override
-  final int getSlotValue(final int slotNo) {
+  @Override int getSlotValue(final int slotNo) {
     return hllByteArr[slotNo] & VAL_MASK_6;
   }
 
@@ -93,7 +93,7 @@ class Hll8Array extends HllArray {
 
   @Override
   //Used by Union when source is not HLL8
-  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+ void updateSlotNoKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     hllByteArr[slotNo] = (byte) Math.max(newValue, oldValue);
   }
@@ -101,7 +101,7 @@ class Hll8Array extends HllArray {
   @Override
   //Used by this couponUpdate()
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
-  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+ void updateSlotWithKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);

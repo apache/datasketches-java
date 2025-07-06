@@ -93,7 +93,7 @@ abstract class AbstractCoupons extends HllSketchImpl {
 
   @Override
   int getUpdatableSerializationBytes() {
-    return getMemDataStart() + (4 << getLgCouponArrInts());
+    return getSegDataStart() + (4 << getLgCouponArrInts());
   }
 
   @Override

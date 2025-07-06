@@ -20,6 +20,7 @@
 package org.apache.datasketches.common;
 
 import java.lang.foreign.MemorySegment;
+import java.util.Optional;
 
 /**
  * Methods for inquiring the status of a backing MemorySegment.
@@ -37,22 +38,41 @@ public interface MemorySegmentStatus {
    * Returns true if this object's internal data is backed by an off-heap (direct or native)) MemorySegment.
    * @return true if this object's internal data is backed by an off-heap (direct or native)) MemorySegment.
    */
-  boolean isDirect();
+  boolean isOffHeap();
 
   /**
-   * Returns true if the backing MemorySegment of this object refers to the same MemorySegment of <i>that</i>.
-   * They can either have the same off-heap memory location and size, or refer to the same on-heap array object.
+   * Returns true if an internally referenced MemorySegment has the same backing resource as <i>that</i>,
+   * or equivalently, if their two memory regions overlap.  This applies to both on-heap and off-heap MemorySegments.
    *
-   * <p>If both segment are off-heap, they both must have the same starting address and the same size.</p>
+   * <p>This returns false if either segment is <i>null</i> or not alive.</p>
    *
-   * <p>For on-heap segments, both segments must be based on or derived from the same array object and neither segment
-   * can be read-only.</p>
-   *
-   * <p>Returns false if either argument is null;</p>
+   * <p><b>Note:</b> If both segments are on-heap and not read-only, it can be determined if they were derived from
+   * the same backing memory (array).  However, this is not always possible off-heap. Because of this asymmetry, this definition
+   * of "isSameResource" is confined to the existence of an overlap.</p>
    *
    * @param that The given MemorySegment.
-   * @return true if the backing MemorySegment of this object hierarchy refers to the same MemorySegment of <i>that</i>.
+   * @return true if an internally referenced MemorySegment has the same backing resource as <i>that</i>.
    */
   boolean isSameResource(final MemorySegment that);
+
+  /**
+   * Returns true if the two given MemorySegments have to the same backing resource, or equivalently,
+   * if the two memory regions overlap.  This applies to both on-heap and off-heap MemorySegments.
+   *
+   * <p>This returns false if either segment is <i>null</i> or not alive.</p>
+   *
+   * <p><b>Note:</b> If both segments are on-heap and not read-only, it can be determined if they were derived from
+   * the same backing memory (array).  However, this is not always possible off-heap. Because of this asymmetry, this definition
+   * of "isSameResource" is confined to the existence of an overlap.</p>
+   *
+   * @param seg1 The first given MemorySegment
+   * @param seg2 The second given MemorySegment
+   * @return true if the two given MemorySegments have to the same backing resource.
+   */
+  static boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
+    if ((seg1 == null) || (seg2 == null) || !seg1.scope().isAlive() || !seg2.scope().isAlive()) { return false; }
+    final Optional<MemorySegment> opt = seg1.asOverlappingSlice(seg2);
+    return opt.isPresent();
+  }
 
 }

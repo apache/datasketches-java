@@ -25,9 +25,10 @@ import static org.apache.datasketches.hll.HllUtil.RESIZE_NUMER;
 import static org.apache.datasketches.hll.PreambleUtil.extractInt;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * @author Lee Rhodes
@@ -61,14 +62,14 @@ final class HeapAuxHashMap implements AuxHashMap {
     auxIntArr = that.auxIntArr.clone();
   }
 
-  static final HeapAuxHashMap heapify(final Memory mem, final long offset, final int lgConfigK,
+  static HeapAuxHashMap heapify(final MemorySegment seg, final long offset, final int lgConfigK,
       final int auxCount, final boolean srcCompact) {
     final int lgAuxArrInts;
     final HeapAuxHashMap auxMap;
     if (srcCompact) { //early versions did not use LgArr byte field
-      lgAuxArrInts = PreambleUtil.computeLgArr(mem, auxCount, lgConfigK);
+      lgAuxArrInts = PreambleUtil.computeLgArr(seg, auxCount, lgConfigK);
     } else { //updatable
-      lgAuxArrInts = extractLgArr(mem);
+      lgAuxArrInts = extractLgArr(seg);
     }
     auxMap = new HeapAuxHashMap(lgAuxArrInts, lgConfigK);
 
@@ -76,7 +77,7 @@ final class HeapAuxHashMap implements AuxHashMap {
 
     if (srcCompact) {
       for (int i = 0; i < auxCount; i++) {
-        final int pair = extractInt(mem, offset + (i << 2));
+        final int pair = extractInt(seg, offset + (i << 2));
         final int slotNo = HllUtil.getPairLow26(pair) & configKmask;
         final int value = HllUtil.getPairValue(pair);
         auxMap.mustAdd(slotNo, value); //increments count
@@ -84,7 +85,7 @@ final class HeapAuxHashMap implements AuxHashMap {
     } else { //updatable
       final int auxArrInts = 1 << lgAuxArrInts;
       for (int i = 0; i < auxArrInts; i++) {
-        final int pair = extractInt(mem, offset + (i << 2));
+        final int pair = extractInt(seg, offset + (i << 2));
         if (pair == EMPTY) { continue; }
         final int slotNo = HllUtil.getPairLow26(pair) & configKmask;
         final int value = HllUtil.getPairValue(pair);
@@ -130,12 +131,17 @@ final class HeapAuxHashMap implements AuxHashMap {
   }
 
   @Override
-  public boolean isMemory() {
+  public boolean hasMemorySegment() {
     return false;
   }
 
   @Override
   public boolean isOffHeap() {
+    return false;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment seg) {
     return false;
   }
 
@@ -181,7 +187,7 @@ final class HeapAuxHashMap implements AuxHashMap {
   //If entry contains given slotNo, returns its index = found slotNo.
   //Continues searching.
   //If the probe comes back to original index, throws an exception.
-  private static final int find(final int[] auxArr, final int lgAuxArrInts, final int lgConfigK,
+  private static int find(final int[] auxArr, final int lgAuxArrInts, final int lgConfigK,
       final int slotNo) {
     assert lgAuxArrInts < lgConfigK;
     final int auxArrMask = (1 << lgAuxArrInts) - 1;

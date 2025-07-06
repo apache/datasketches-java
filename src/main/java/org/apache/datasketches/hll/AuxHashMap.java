@@ -19,12 +19,15 @@
 
 package org.apache.datasketches.hll;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.MemorySegmentStatus;
 
 /**
  * @author Lee Rhodes
  */
-interface AuxHashMap {
+interface AuxHashMap extends MemorySegmentStatus {
 
   AuxHashMap copy();
 
@@ -40,9 +43,14 @@ interface AuxHashMap {
 
   int getUpdatableSizeBytes();
 
-  boolean isMemory();
+  @Override
+  boolean hasMemorySegment();
 
+  @Override
   boolean isOffHeap();
+
+  @Override
+  boolean isSameResource(MemorySegment seg);
 
   /**
    * Adds the slotNo and value to the aux array.

@@ -29,10 +29,11 @@ import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.hll.HllSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -44,13 +45,19 @@ public class HllSketchCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final HllSketch hll4 = new HllSketch(HllSketch.DEFAULT_LG_K, HLL_4);
       final HllSketch hll6 = new HllSketch(HllSketch.DEFAULT_LG_K, HLL_6);
       final HllSketch hll8 = new HllSketch(HllSketch.DEFAULT_LG_K, HLL_8);
-      for (int i = 0; i < n; i++) hll4.update(i);
-      for (int i = 0; i < n; i++) hll6.update(i);
-      for (int i = 0; i < n; i++) hll8.update(i);
+      for (int i = 0; i < n; i++) {
+        hll4.update(i);
+      }
+      for (int i = 0; i < n; i++) {
+        hll6.update(i);
+      }
+      for (int i = 0; i < n; i++) {
+        hll8.update(i);
+      }
       Files.newOutputStream(javaPath.resolve("hll4_n" + n + "_java.sk")).write(hll4.toCompactByteArray());
       Files.newOutputStream(javaPath.resolve("hll6_n" + n + "_java.sk")).write(hll6.toCompactByteArray());
       Files.newOutputStream(javaPath.resolve("hll8_n" + n + "_java.sk")).write(hll8.toCompactByteArray());
@@ -60,9 +67,9 @@ public class HllSketchCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void hll4() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll4_n" + n + "_cpp.sk"));
-      final HllSketch sketch = HllSketch.heapify(Memory.wrap(bytes));
+      final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getLgConfigK(), 12);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.02);
@@ -72,9 +79,9 @@ public class HllSketchCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void hll6() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll6_n" + n + "_cpp.sk"));
-      final HllSketch sketch = HllSketch.heapify(Memory.wrap(bytes));
+      final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getLgConfigK(), 12);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.02);
@@ -84,9 +91,9 @@ public class HllSketchCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void hll8() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll8_n" + n + "_cpp.sk"));
-      final HllSketch sketch = HllSketch.heapify(Memory.wrap(bytes));
+      final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getLgConfigK(), 12);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.02);

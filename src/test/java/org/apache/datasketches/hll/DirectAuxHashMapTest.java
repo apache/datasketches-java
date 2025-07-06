@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -27,11 +28,20 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.HashMap;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.hll.AbstractHllArray;
+import org.apache.datasketches.hll.AuxHashMap;
+import org.apache.datasketches.hll.DirectAuxHashMap;
+import org.apache.datasketches.hll.DirectHllArray;
+import org.apache.datasketches.hll.HeapAuxHashMap;
+import org.apache.datasketches.hll.HllArray;
+import org.apache.datasketches.hll.HllSketch;
+import org.apache.datasketches.hll.HllUtil;
+import org.apache.datasketches.hll.PairIterator;
+import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**
@@ -41,14 +51,15 @@ public class DirectAuxHashMapTest {
 
   @Test
   public void checkGrow() {
-    int lgConfigK = 4;
-    TgtHllType tgtHllType = TgtHllType.HLL_4;
-    int n = 8; //put lgConfigK == 4 into HLL mode
-    long bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final int lgConfigK = 4;
+    final TgtHllType tgtHllType = TgtHllType.HLL_4;
+    final int n = 8; //put lgConfigK == 4 into HLL mode
+    final long bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
-    WritableMemory wmem = WritableMemory.allocateDirect(bytes, Arena.ofConfined());
+    final Arena arena = Arena.ofConfined();
+    final MemorySegment wseg = arena.allocate(bytes);
 
-    hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
+    hllSketch = new HllSketch(lgConfigK, tgtHllType, wseg);
     for (int i = 0; i < n; i++) {
       hllSketch.update(i);
     }
@@ -58,23 +69,23 @@ public class DirectAuxHashMapTest {
     println(hllSketch.toString(true, true, true, true));
     DirectHllArray dha = (DirectHllArray) hllSketch.hllSketchImpl;
     assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 2);
-    assertTrue(hllSketch.isMemory());
+    assertTrue(hllSketch.hasMemorySegment());
     assertTrue(hllSketch.isOffHeap());
-    assertTrue(hllSketch.isSameResource(wmem));
+    assertTrue(hllSketch.isSameResource(wseg));
 
     //Check heapify
     byte[] byteArray = hllSketch.toCompactByteArray();
     HllSketch hllSketch2 = HllSketch.heapify(byteArray);
-    HllArray ha = (HllArray) hllSketch2.hllSketchImpl;
+    final HllArray ha = (HllArray) hllSketch2.hllSketchImpl;
     assertEquals(ha.getAuxHashMap().getLgAuxArrInts(), 2);
     assertEquals(ha.getAuxHashMap().getAuxCount(), 3);
 
     //Check wrap
     byteArray = hllSketch.toUpdatableByteArray();
-    WritableMemory wmem2 = WritableMemory.writableWrap(byteArray);
-    hllSketch2 = HllSketch.writableWrap(wmem2);
+    final MemorySegment wseg2 = MemorySegment.ofArray(byteArray);
+    hllSketch2 = HllSketch.writableWrap(wseg2);
     println(hllSketch2.toString(true, true, true, true));
-    DirectHllArray dha2 = (DirectHllArray) hllSketch2.hllSketchImpl;
+    final DirectHllArray dha2 = (DirectHllArray) hllSketch2.hllSketchImpl;
     assertEquals(dha2.getAuxHashMap().getLgAuxArrInts(), 2);
     assertEquals(dha2.getAuxHashMap().getAuxCount(), 3);
 
@@ -84,37 +95,38 @@ public class DirectAuxHashMapTest {
     dha = (DirectHllArray) hllSketch.hllSketchImpl;
     assertEquals(dha.getAuxHashMap().getLgAuxArrInts(), 3);
     assertEquals(dha.getAuxHashMap().getAuxCount(), 4);
-    assertTrue(hllSketch.isMemory());
+    assertTrue(hllSketch.hasMemorySegment());
     assertFalse(hllSketch.isOffHeap());
-    assertFalse(hllSketch.isSameResource(wmem));
-    assertFalse(wmem.isAlive());
+    assertFalse(hllSketch.isSameResource(wseg));
+    arena.close();
+    assertFalse(wseg.scope().isAlive());
   }
 
   @Test
   public void checkDiffToByteArr() {
-    int lgK = 12; //this combination should create an Aux with ~18 exceptions
-    int lgU = 19;
-    TgtHllType type = TgtHllType.HLL_4;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
-    byte[] memByteArr = new byte[bytes];
-    WritableMemory wmem = WritableMemory.writableWrap(memByteArr);
-    HllSketch heapSk = new HllSketch(lgK, type);
-    HllSketch dirSk = new HllSketch(lgK, type, wmem);
+    final int lgK = 12; //this combination should create an Aux with ~18 exceptions
+    final int lgU = 19;
+    final TgtHllType type = TgtHllType.HLL_4;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    final byte[] segByteArr = new byte[bytes];
+    final MemorySegment wseg = MemorySegment.ofArray(segByteArr);
+    final HllSketch heapSk = new HllSketch(lgK, type);
+    final HllSketch dirSk = new HllSketch(lgK, type, wseg);
     for (int i = 0; i < (1 << lgU); i++) {
       heapSk.update(i);
       dirSk.update(i); //problem starts here.
     }
-    AbstractHllArray heapHllArr = (AbstractHllArray) heapSk.hllSketchImpl;
-    AbstractHllArray dirHllArr = (AbstractHllArray) dirSk.hllSketchImpl;
+    final AbstractHllArray heapHllArr = (AbstractHllArray) heapSk.hllSketchImpl;
+    final AbstractHllArray dirHllArr = (AbstractHllArray) dirSk.hllSketchImpl;
     assert dirHllArr instanceof DirectHllArray;
-    AuxHashMap heapAux = heapHllArr.getAuxHashMap();
+    final AuxHashMap heapAux = heapHllArr.getAuxHashMap();
     assert heapAux instanceof HeapAuxHashMap;
-    AuxHashMap dirAux = dirHllArr.getAuxHashMap();
-    assert dirAux instanceof DirectAuxHashMap; //TOOD FAILS!
+    final AuxHashMap dirAux = dirHllArr.getAuxHashMap();
+    assert dirAux instanceof DirectAuxHashMap;
     println("HeapAuxCount: " + heapAux.getAuxCount());
     println("DirAuxCount: " + dirAux.getAuxCount());
-    int heapCurMin = heapHllArr.getCurMin();
-    int dirCurMin = dirHllArr.getCurMin();
+    final int heapCurMin = heapHllArr.getCurMin();
+    final int dirCurMin = dirHllArr.getCurMin();
     println("HeapCurMin: " + heapCurMin);
     println("DirCurMin: " + dirCurMin);
 
@@ -151,22 +163,22 @@ public class DirectAuxHashMapTest {
       }
     }
 
-    byte[] heapImg = heapSk.toUpdatableByteArray();
-    Memory heapImgMem = Memory.wrap(heapImg);
-    byte[] dirImg = dirSk.toUpdatableByteArray();
-    Memory dirImgMem = Memory.wrap(dirImg);
+    final byte[] heapImg = heapSk.toUpdatableByteArray();
+    final MemorySegment heapImgSeg = MemorySegment.ofArray(heapImg);
+    final byte[] dirImg = dirSk.toUpdatableByteArray();
+    final MemorySegment dirImgSeg = MemorySegment.ofArray(dirImg);
 
     println("heapLen: " + heapImg.length + ", dirLen: " + dirImg.length
-        + ", memObjLen: "+memByteArr.length);
-    int auxStart = 40 + (1 << (lgK -1));
+        + ", segObjLen: "+segByteArr.length);
+    final int auxStart = 40 + (1 << (lgK -1));
     println("AuxStart: " + auxStart);
 
 
-    println(String.format("%14s%14s%14s", "dir wmem", "heap to b[]", "direct to b[]"));
+    println(String.format("%14s%14s%14s", "dir wseg", "heap to b[]", "direct to b[]"));
     for (int i = auxStart; i < heapImg.length; i += 4) {
       println(String.format("%14d%14d%14d",
-          wmem.getInt(i), heapImgMem.getInt(i), dirImgMem.getInt(i)));
-      assert memByteArr[i] == heapImg[i];
+          wseg.get(JAVA_INT_UNALIGNED, i), heapImgSeg.get(JAVA_INT_UNALIGNED, i), dirImgSeg.get(JAVA_INT_UNALIGNED, i)));
+      assert segByteArr[i] == heapImg[i];
       assert heapImg[i] == dirImg[i] : "i: " + i;
     }
     assertEquals(heapImg, dirImg);
@@ -180,39 +192,38 @@ public class DirectAuxHashMapTest {
     initSketchAndMap(false, false); //heap, updatable
   }
 
-  static void initSketchAndMap(boolean direct, boolean compact) {
-    int lgK = 15; //this combination should create an Aux with ~18 exceptions
-    int lgU = 20;
+  static void initSketchAndMap(final boolean direct, final boolean compact) {
+    final int lgK = 15; //this combination should create an Aux with ~18 exceptions
+    final int lgU = 20;
     println("HLL_4, lgK: " + lgK + ", lgU: " + lgU);
-    HashMap<Integer, Integer> map = new HashMap<>();
+    final HashMap<Integer, Integer> map = new HashMap<>();
 
     //create sketch
     HllSketch sketch;
     if (direct) {
-      int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
-      WritableMemory wmem = WritableMemory.allocate(bytes);
-      sketch = new HllSketch(lgK, TgtHllType.HLL_4, wmem);
+      final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
+      final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+      sketch = new HllSketch(lgK, TgtHllType.HLL_4, wseg);
     } else {
       sketch = new HllSketch(lgK, TgtHllType.HLL_4);
     }
     for (int i = 0; i < (1 << lgU); i++) { sketch.update(i); }
 
     //check Ser Bytes
-    assertEquals(sketch.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1))
-        + (4 << LG_AUX_ARR_INTS[lgK]) );
+    assertEquals(sketch.getUpdatableSerializationBytes(), 40 + (1 << (lgK - 1)) + (4 << LG_AUX_ARR_INTS[lgK]) );
 
     //extract the auxHashMap entries into a HashMap for easy checking
     //extract direct aux iterator
-    AbstractHllArray absDirectHllArr = (AbstractHllArray) sketch.hllSketchImpl;
+    final AbstractHllArray absDirectHllArr = (AbstractHllArray) sketch.hllSketchImpl;
 
     //the auxHashMap must exist for this test
-    AuxHashMap auxMap = absDirectHllArr.getAuxHashMap();
-    int auxCount = auxMap.getAuxCount();
+    final AuxHashMap auxMap = absDirectHllArr.getAuxHashMap();
+    final int auxCount = auxMap.getAuxCount();
     assertEquals(auxMap.getCompactSizeBytes(), auxCount << 2);
-    int auxArrInts = 1 << auxMap.getLgAuxArrInts();
+    final int auxArrInts = 1 << auxMap.getLgAuxArrInts();
     assertEquals(auxMap.getUpdatableSizeBytes(), auxArrInts << 2);
 
-    PairIterator itr = absDirectHllArr.getAuxIterator();
+    final PairIterator itr = absDirectHllArr.getAuxIterator();
 
     println("Source Aux Array.");
     println(itr.getHeader());
@@ -220,15 +231,15 @@ public class DirectAuxHashMapTest {
       map.put(itr.getSlot(), itr.getValue());  //create the aux reference map
       println(itr.getString());
     }
-    double est = sketch.getEstimate();
+    final double est = sketch.getEstimate();
     println("\nHLL Array of original sketch: should match Source Aux Array.");
     checkHllArr(sketch, map); //check HLL arr consistencies
 
     //serialize the direct sk as compact
-    byte[] byteArr = (compact) ? sketch.toCompactByteArray() : sketch.toUpdatableByteArray();
+    final byte[] byteArr = (compact) ? sketch.toCompactByteArray() : sketch.toUpdatableByteArray();
 
     //Heapify the byteArr image & check estimate
-    HllSketch heapSk = HllSketch.heapify(Memory.wrap(byteArr));
+    final HllSketch heapSk = HllSketch.heapify(MemorySegment.ofArray(byteArr));
     assertEquals(heapSk.getEstimate(), est, 0.0);
     println("\nAux Array of heapified serialized sketch.");
     checkAux(heapSk, map); //check Aux consistencies
@@ -236,7 +247,7 @@ public class DirectAuxHashMapTest {
     checkHllArr(heapSk, map); //check HLL arr consistencies
 
     //Wrap the image as read-only & check estimate
-    HllSketch wrapSk = HllSketch.wrap(Memory.wrap(byteArr));
+    final HllSketch wrapSk = HllSketch.wrap(MemorySegment.ofArray(byteArr));
     assertEquals(wrapSk.getEstimate(), est, 0.0);
     println("\nAux Array of wrapped RO serialized sketch.");
     checkAux(wrapSk, map);
@@ -247,12 +258,12 @@ public class DirectAuxHashMapTest {
   }
 
   //check HLL array consistencies with the map
-  static void checkHllArr(HllSketch sk, HashMap<Integer,Integer> map) {
+  static void checkHllArr(final HllSketch sk, final HashMap<Integer,Integer> map) {
     //extract aux iterator, which must exist for this test
-    AbstractHllArray absHllArr = (AbstractHllArray) sk.hllSketchImpl;
-    int curMin = absHllArr.getCurMin();
+    final AbstractHllArray absHllArr = (AbstractHllArray) sk.hllSketchImpl;
+    final int curMin = absHllArr.getCurMin();
     //println("CurMin: " + curMin);
-    PairIterator hllArrItr = sk.iterator();
+    final PairIterator hllArrItr = sk.iterator();
     println(hllArrItr.getHeader());
     while (hllArrItr.nextValid()) {
       final int hllArrVal = hllArrItr.getValue();
@@ -265,16 +276,16 @@ public class DirectAuxHashMapTest {
   }
 
   //Check Aux consistencies to the map
-  static void checkAux(HllSketch sk, HashMap<Integer,Integer> map) {
-    AbstractHllArray absHllArr = (AbstractHllArray) sk.hllSketchImpl;
+  static void checkAux(final HllSketch sk, final HashMap<Integer,Integer> map) {
+    final AbstractHllArray absHllArr = (AbstractHllArray) sk.hllSketchImpl;
     //extract aux iterator, which must exist for this test
-    PairIterator heapAuxItr = absHllArr.getAuxIterator();
+    final PairIterator heapAuxItr = absHllArr.getAuxIterator();
     println(heapAuxItr.getHeader());
     while (heapAuxItr.nextValid()) {
       final int afterVal = heapAuxItr.getValue();
       if (afterVal > 14) {
         println(heapAuxItr.getString());
-        int auxSlot = heapAuxItr.getSlot();
+        final int auxSlot = heapAuxItr.getSlot();
         assert map.containsKey(auxSlot);
         final int beforeVal = map.get(heapAuxItr.getSlot());
         assertEquals(afterVal, beforeVal);
@@ -284,22 +295,22 @@ public class DirectAuxHashMapTest {
 
   @Test
   public void checkDirectReadOnlyCompactAux() {
-    int lgK = 15; //this combination should create an Aux with ~18 exceptions
-    int lgU = 20;
-    HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4);
+    final int lgK = 15; //this combination should create an Aux with ~18 exceptions
+    final int lgU = 20;
+    final HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4);
     for (int i = 0; i < (1 << lgU); i++) { sk.update(i); }
 
   }
 
   @Test
   public void checkMustReplace() {
-    int lgK = 7;
-    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
-    WritableMemory wmem = WritableMemory.allocate(bytes);
-    HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4, wmem);
+    final int lgK = 7;
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_4);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
+    final HllSketch sk = new HllSketch(lgK, TgtHllType.HLL_4, wseg);
     for (int i = 0; i < 25; i++) { sk.update(i); }
-    DirectHllArray dHllArr = (DirectHllArray) sk.hllSketchImpl;
-    AuxHashMap map = dHllArr.getNewAuxHashMap();
+    final DirectHllArray dHllArr = (DirectHllArray) sk.hllSketchImpl;
+    final AuxHashMap map = dHllArr.getNewAuxHashMap();
     map.mustAdd(100, 5);
     int val = map.mustFindValueFor(100);
     assertEquals(val, 5);
@@ -308,7 +319,7 @@ public class DirectAuxHashMapTest {
     val = map.mustFindValueFor(100);
     assertEquals(val, 10);
 
-    assertTrue(map.isMemory());
+    assertTrue(map.hasMemorySegment());
     assertFalse(map.isOffHeap());
     assertNull(map.copy());
     assertNull(map.getAuxIntArr());
@@ -316,21 +327,21 @@ public class DirectAuxHashMapTest {
     try {
       map.mustAdd(100, 12);
       fail();
-    } catch (SketchesStateException e) {
+    } catch (final SketchesStateException e) {
       //expected
     }
 
     try {
       map.mustFindValueFor(101);
       fail();
-    } catch (SketchesStateException e) {
+    } catch (final SketchesStateException e) {
       //expected
     }
 
     try {
       map.mustReplace(101, 5);
       fail();
-    } catch (SketchesStateException e) {
+    } catch (final SketchesStateException e) {
       //expected
     }
   }
@@ -339,7 +350,7 @@ public class DirectAuxHashMapTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

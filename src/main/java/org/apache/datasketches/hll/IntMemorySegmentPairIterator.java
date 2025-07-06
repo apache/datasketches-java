@@ -19,17 +19,18 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * Iterates within a given Memory extracting integer pairs.
  *
  * @author Lee Rhodes
  */
-class IntMemoryPairIterator extends PairIterator {
-  private final Memory mem;
+final class IntMemorySegmentPairIterator extends PairIterator {
+  private final MemorySegment seg;
   private final long offsetBytes;
   private final int arrLen;
   private final int slotMask;
@@ -37,18 +38,18 @@ class IntMemoryPairIterator extends PairIterator {
   private int pair;
 
   //Used by DirectAuxHashMap, DirectCouponList
-  IntMemoryPairIterator(
-      final Memory mem, final long offsetBytes, final int arrayLength, final int lgConfigK) {
-    this.mem = mem;
+  IntMemorySegmentPairIterator(
+      final MemorySegment seg, final long offsetBytes, final int arrayLength, final int lgConfigK) {
+    this.seg = seg;
     this.offsetBytes = offsetBytes;
-    this.arrLen = arrayLength;
+    arrLen = arrayLength;
     slotMask = (1 << lgConfigK) - 1;
     index = -1;
   }
 
-  IntMemoryPairIterator(final byte[] byteArr, final long offsetBytes, final int lengthPairs,
+  IntMemorySegmentPairIterator(final byte[] byteArr, final long offsetBytes, final int lengthPairs,
       final int lgConfigK) {
-    this(Memory.wrap(byteArr), offsetBytes, lengthPairs, lgConfigK);
+    this(MemorySegment.ofArray(byteArr), offsetBytes, lengthPairs, lgConfigK);
   }
 
   @Override
@@ -98,7 +99,7 @@ class IntMemoryPairIterator extends PairIterator {
   }
 
   int pair() {
-    return mem.getInt(offsetBytes + (index << 2));
+    return seg.get(JAVA_INT_UNALIGNED, offsetBytes + (index << 2));
   }
 
 }

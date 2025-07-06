@@ -39,23 +39,23 @@ public class TablesTest {
     try {
       usingXAndYTables(xArr, yArr, -1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
     try {
       usingXAndYTables(xArr, yArr, 11000000.0);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
   }
 
   @Test
   public void checkCornerCases() {
-    int len = xArr.length;
-    double x = xArr[len - 1];
-    double y = usingXAndYTables(xArr, yArr, x);
-    double yExp = yArr[len - 1];
+    final int len = xArr.length;
+    final double x = xArr[len - 1];
+    final double y = usingXAndYTables(xArr, yArr, x);
+    final double yExp = yArr[len - 1];
     assertEquals(y, yExp, 0.0);
   }
 
@@ -67,7 +67,7 @@ public class TablesTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

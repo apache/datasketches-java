@@ -145,7 +145,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
   }
 
   @Override
-  int getMemDataStart() {
+  int getSegDataStart() {
     return HLL_BYTE_ARR_START;
   }
 

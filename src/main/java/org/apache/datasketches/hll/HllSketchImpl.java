@@ -19,8 +19,7 @@
 
 package org.apache.datasketches.hll;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * The Abstract HllSketch implementation
@@ -72,9 +71,9 @@ abstract class HllSketchImpl {
 
   abstract double getLowerBound(int numStdDev);
 
-  abstract int getMemDataStart();
+  abstract int getSegDataStart();
 
-  abstract Memory getMemory();
+  abstract MemorySegment getMemorySegment();
 
   abstract int getPreInts();
 
@@ -86,13 +85,11 @@ abstract class HllSketchImpl {
 
   abstract double getUpperBound(int numStdDev);
 
-  abstract WritableMemory getWritableMemory();
-
   abstract boolean isCompact();
 
   abstract boolean isEmpty();
 
-  abstract boolean isMemory();
+  abstract boolean hasMemorySegment();
 
   abstract boolean isOffHeap();
 
@@ -100,7 +97,7 @@ abstract class HllSketchImpl {
 
   abstract boolean isRebuildCurMinNumKxQFlag();
 
-  abstract boolean isSameResource(Memory mem);
+  abstract boolean isSameResource(MemorySegment seg);
 
   abstract PairIterator iterator();
 

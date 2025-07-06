@@ -29,12 +29,12 @@ import org.apache.datasketches.common.SketchesStateException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class Hll4Update {
+final class Hll4Update {
 
   //Uses lgConfigK, curMin, numAtCurMin, auxMap
   //Only called by Hll4Array and DirectHll4Array
   //In C: two-registers.c Line 836 in "hhb_abstract_set_slot_if_new_value_bigger" non-sparse
-  static final void internalHll4Update(final AbstractHllArray host, final int slotNo,
+  static void internalHll4Update(final AbstractHllArray host, final int slotNo,
       final int newValue) {
     assert ((0 <= slotNo) && (slotNo < (1 << host.getLgConfigK())));
 
@@ -120,7 +120,7 @@ class Hll4Update {
   //Entering this routine assumes that all slots have valid nibbles > 0 and <= 15.
   //An AuxHashMap must exist if any values in the current hllByteArray are already 15.
   //In C: again-two-registers.c Lines 710 "hhb_shift_to_bigger_curmin"
-  private static final void shiftToBiggerCurMin(final AbstractHllArray host) {
+  private static void shiftToBiggerCurMin(final AbstractHllArray host) {
     final int oldCurMin = host.getCurMin();
     final int newCurMin = oldCurMin + 1;
     final int lgConfigK = host.getLgConfigK();

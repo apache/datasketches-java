@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static org.apache.datasketches.hll.HllUtil.LG_INIT_SET_SIZE;
@@ -28,9 +29,9 @@ import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractListCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -86,13 +87,13 @@ class CouponList extends AbstractCoupons {
     couponIntArr = that.couponIntArr.clone();
   }
 
-  static final CouponList heapifyList(final Memory mem) {
-    final int lgConfigK = extractLgK(mem);
-    final TgtHllType tgtHllType = extractTgtHllType(mem);
+  static final CouponList heapifyList(final MemorySegment seg) {
+    final int lgConfigK = extractLgK(seg);
+    final TgtHllType tgtHllType = extractTgtHllType(seg);
 
     final CouponList list = new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
-    final int couponCount = extractListCount(mem);
-    mem.getIntArray(LIST_INT_ARR_START, list.couponIntArr, 0, couponCount);
+    final int couponCount = extractListCount(seg);
+    MemorySegment.copy(seg, JAVA_INT_UNALIGNED, LIST_INT_ARR_START, list.couponIntArr, 0, couponCount);
     list.couponCount = couponCount;
     return list;
   }
@@ -134,7 +135,7 @@ class CouponList extends AbstractCoupons {
 
   @Override
   int getCompactSerializationBytes() {
-    return getMemDataStart() + (couponCount << 2);
+    return getSegDataStart() + (couponCount << 2);
   }
 
   @Override
@@ -153,12 +154,12 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  int getMemDataStart() {
+  int getSegDataStart() {
     return LIST_INT_ARR_START;
   }
 
   @Override
-  Memory getMemory() {
+  MemorySegment getMemorySegment() {
     return null;
   }
 
@@ -168,17 +169,12 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  WritableMemory getWritableMemory() {
-    return null;
-  }
-
-  @Override
   boolean isCompact() {
     return false;
   }
 
   @Override
-  boolean isMemory() {
+  boolean hasMemorySegment() {
     return false;
   }
 
@@ -188,7 +184,7 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  boolean isSameResource(final Memory mem) {
+  boolean isSameResource(final MemorySegment seg) {
     return false;
   }
 

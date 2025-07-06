@@ -30,7 +30,6 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.kll.KllDirectLongsSketch.KllDirectCompactLongsSketch;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -528,7 +527,6 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   // SORTED VIEW
 
   @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public LongsSketchSortedView getSortedView() {
     refreshSortedView();
     return longsSV;

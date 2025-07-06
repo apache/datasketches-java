@@ -21,7 +21,10 @@ package org.apache.datasketches.hll;
 
 import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.hll.HllSketch;
+import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 public class SizeAndModeTransitions {
@@ -31,21 +34,21 @@ public class SizeAndModeTransitions {
 
   @Test
   public void checkHLL8Heap() {
-    TgtHllType tgtHllType = TgtHllType.HLL_8;
-    boolean direct = false;
-    int lgK = 10;
-    int N = 97;
+    final TgtHllType tgtHllType = TgtHllType.HLL_8;
+    final boolean offHeap = false;
+    final int lgK = 10;
+    final int N = 97;
     printf(hfmt, (Object[]) hdr);
-    int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
-    WritableMemory wmem = null;;
+    final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
+    MemorySegment wseg = null;
     HllSketch sk;
-    if (direct) {
-      wmem = WritableMemory.allocate(maxBytes);
-      sk = new HllSketch(lgK, tgtHllType, wmem);
+    if (offHeap) {
+      wseg = MemorySegment.ofArray(new byte[maxBytes]);
+      sk = new HllSketch(lgK, tgtHllType, wseg);
     } else {
       sk = new HllSketch(lgK, tgtHllType);
     }
-    String store = direct ? "Memory" : "Heap";
+    final String store = offHeap ? "MemorySegment" : "Heap";
     for (int i = 1; i <= N; i++) {
       sk.update(i);
       if (i == 7)  { checkAtN(sk, tgtHllType, store, lgK, i, "LIST",  36,   40, 1064); }
@@ -60,16 +63,16 @@ public class SizeAndModeTransitions {
     println("");
   }
 
-  private static void checkAtN(HllSketch sk, TgtHllType tgtHllType, String store, int lgK, int n, String trueMode,
-      int cmpTrueBytes, int updTrueBytes, int maxTrueBytes) {
-    int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
-    String type = tgtHllType.toString();
-    int cmpBytes = sk.getCompactSerializationBytes();
-    int updBytes = sk.getUpdatableSerializationBytes();
-    byte[] actCBytes = sk.toCompactByteArray();
-    byte[] actUBytes = sk.toUpdatableByteArray();
-    String mode = sk.getCurMode().toString();
-    double est = sk.getEstimate();
+  private static void checkAtN(final HllSketch sk, final TgtHllType tgtHllType, final String store, final int lgK, final int n, final String trueMode,
+      final int cmpTrueBytes, final int updTrueBytes, final int maxTrueBytes) {
+    final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
+    final String type = tgtHllType.toString();
+    final int cmpBytes = sk.getCompactSerializationBytes();
+    final int updBytes = sk.getUpdatableSerializationBytes();
+    final byte[] actCBytes = sk.toCompactByteArray();
+    final byte[] actUBytes = sk.toUpdatableByteArray();
+    final String mode = sk.getCurMode().toString();
+    final double est = sk.getEstimate();
     printf(dfmt, type, store, lgK, n, mode,  actCBytes.length, cmpBytes, actUBytes.length, updBytes, maxBytes, est);
     assertEquals(mode, trueMode);
     assertEquals(cmpBytes, actCBytes.length);
@@ -87,7 +90,7 @@ public class SizeAndModeTransitions {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 
@@ -95,7 +98,7 @@ public class SizeAndModeTransitions {
    * @param fmt format
    * @param args arguments
    */
-  static void printf(String fmt, Object...args) {
+  static void printf(final String fmt, final Object...args) {
     //System.out.printf(fmt, args); //disable here
   }
 
