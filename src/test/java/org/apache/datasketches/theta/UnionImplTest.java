@@ -227,9 +227,9 @@ public class UnionImplTest {
 
       //Here we create a 2nd Union with a heap segment
       final MemorySegment uWsegHeap = MemorySegment.ofArray(new byte[bytes / 2]);
-      final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
+      final Union union2 = SetOperation.builder().buildUnion(uWsegHeap); //union with on-heap segment
       //As before, this establishes that the empty union2 has the same segment that we gave it.
-      assertTrue(union2.isSameResource(uWsegHeap)); //But Copilot complained, so here it is!
+      assertTrue(union2.isSameResource(uWsegHeap)); //Copilot complained this was absent, so here it is!
 
       //These two asserts are calling the Interface static method directly and establish
       // what should be obvious, that these are all different segments.

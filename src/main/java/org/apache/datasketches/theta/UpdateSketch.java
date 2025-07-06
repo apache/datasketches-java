@@ -181,7 +181,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return ((this instanceof DirectQuickSelectSketchR) &&  ((DirectQuickSelectSketchR)this).isSameResource(that));
+    return (this instanceof final DirectQuickSelectSketchR dqssr) && dqssr.isSameResource(that);
   }
 
   //UpdateSketch interface

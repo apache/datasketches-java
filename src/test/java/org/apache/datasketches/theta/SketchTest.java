@@ -337,7 +337,7 @@ public class SketchTest {
     sketch.update(2);
     assertTrue(sketch.isSameResource(seg));
     final DirectCompactSketch dcos = (DirectCompactSketch) sketch.compact(true, cseg);
-    assertTrue(MemorySegmentStatus.isSameResource(dcos.getMemorySegment(),  cseg));
+    assertTrue(MemorySegmentStatus.isSameResource(dcos.getMemorySegment(), cseg));
     assertTrue(dcos.isOrdered());
     //never create 2 sketches with the same MemorySegment, so don't do as I do :)
     final DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cseg);
