@@ -33,22 +33,27 @@ public class SizeAndModeTransitions {
   static String[] hdr = {"Type", "Store", "LgK", "N", "Mode", "ActCBytes", "CmpBytes", "ActUBytes", "UpdBytes", "MaxBytes", "Estimate"};
 
   @Test
-  public void checkHLL8Heap() {
+  public void checkHLL8with_withoutSeg() {
+    checkHLL8Heap(true);
+    checkHLL8Heap(false);
+  }
+
+  private void checkHLL8Heap(final boolean withSeg) {
     final TgtHllType tgtHllType = TgtHllType.HLL_8;
-    final boolean offHeap = false;
     final int lgK = 10;
     final int N = 97;
     printf(hfmt, (Object[]) hdr);
-    final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
+
     MemorySegment wseg = null;
     HllSketch sk;
-    if (offHeap) {
+    if (withSeg) {
+      final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, tgtHllType);
       wseg = MemorySegment.ofArray(new byte[maxBytes]);
       sk = new HllSketch(lgK, tgtHllType, wseg);
     } else {
-      sk = new HllSketch(lgK, tgtHllType);
+      sk = new HllSketch(lgK, tgtHllType); //without segment
     }
-    final String store = offHeap ? "MemorySegment" : "Heap";
+    final String store = withSeg ? "MemorySegment" : "Heap";
     for (int i = 1; i <= N; i++) {
       sk.update(i);
       if (i == 7)  { checkAtN(sk, tgtHllType, store, lgK, i, "LIST",  36,   40, 1064); }

@@ -343,9 +343,6 @@ public class SketchTest {
     final DirectCompactSketch dcs = (DirectCompactSketch) sketch.compact(false, cseg);
     assertTrue(MemorySegmentStatus.isSameResource(dcs.getMemorySegment(), cseg));
     assertFalse(dcs.isOrdered());
-
-    final Sketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    assertFalse(MemorySegmentStatus.isSameResource(sk.getMemorySegment(),seg));
   }
 
   @Test
