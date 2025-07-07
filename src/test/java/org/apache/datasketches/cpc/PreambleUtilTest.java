@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.cpc.PreambleUtil.COMPRESSED_FLAG_MASK;
 import static org.apache.datasketches.cpc.PreambleUtil.SER_VER;
 import static org.apache.datasketches.cpc.PreambleUtil.getDefinedPreInts;
@@ -51,9 +52,9 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -66,135 +67,135 @@ import org.apache.datasketches.cpc.PreambleUtil.HiField;
 public class PreambleUtilTest {
   static final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED) ;
 
-  private static void checkFirst8(WritableMemory wmem, Format format, int lgK, int fiCol) {
-    assertEquals(getFormat(wmem), format);
-    assertEquals(getPreInts(wmem), getDefinedPreInts(format));
-    assertEquals(getSerVer(wmem), SER_VER);
-    assertEquals(getFamily(wmem), Family.CPC);
-    assertEquals(getLgK(wmem), lgK);
-    assertEquals(getFiCol(wmem), fiCol);
-    assertEquals(getFlags(wmem), (format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    assertEquals(getSeedHash(wmem), defaultSeedHash);
+  private static void checkFirst8(final MemorySegment wseg, final Format format, final int lgK, final int fiCol) {
+    assertEquals(getFormat(wseg), format);
+    assertEquals(getPreInts(wseg), getDefinedPreInts(format));
+    assertEquals(getSerVer(wseg), SER_VER);
+    assertEquals(getFamily(wseg), Family.CPC);
+    assertEquals(getLgK(wseg), lgK);
+    assertEquals(getFiCol(wseg), fiCol);
+    assertEquals(getFlags(wseg), (format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
+    assertEquals(getSeedHash(wseg), defaultSeedHash);
   }
 
   @Test
-  public void checkNormalPutMemory() {
-    int lgK = 12;
-    double kxp = lgK;
-    double hipAccum = 1005;
-    int fiCol = 1;
-    int[] csvStream = new int[] {1, 2, 3};
-    int numCoupons = csvStream.length;
-    int csvLength = csvStream.length;
-    short seedHash = defaultSeedHash;
-    int[] cwStream = new int[] {4, 5, 6};
-    int cwLength = cwStream.length;
-    int numSv = cwStream.length;
-    int maxInts = 10 + csvLength + cwLength;
-    WritableMemory wmem = WritableMemory.allocate(4 * maxInts);
+  public void checkNormalPutSegment() {
+    final int lgK = 12;
+    final double kxp = lgK;
+    final double hipAccum = 1005;
+    final int fiCol = 1;
+    final int[] csvStream = {1, 2, 3};
+    final int numCoupons = csvStream.length;
+    final int csvLength = csvStream.length;
+    final short seedHash = defaultSeedHash;
+    final int[] cwStream = {4, 5, 6};
+    final int cwLength = cwStream.length;
+    final int numSv = cwStream.length;
+    final int maxInts = 10 + csvLength + cwLength;
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[4 * maxInts]);
 
     Format format;
 
     format = Format.EMPTY_MERGED;
-    putEmptyMerged(wmem, lgK, seedHash);
-    println(CpcSketch.toString((byte[])wmem.getArray(), true));
-    checkFirst8(wmem, format, lgK, (byte) 0);
-    assertFalse(hasHip(wmem));
+    putEmptyMerged(wseg, lgK, seedHash);
+    println(CpcSketch.toString((byte[])wseg.toArray(JAVA_BYTE), true));
+    checkFirst8(wseg, format, lgK, (byte) 0);
+    assertFalse(hasHip(wseg));
 
     format = Format.SPARSE_HYBRID_MERGED;
-    putSparseHybridMerged(wmem, lgK, numCoupons, csvLength, seedHash, csvStream);
-    println(CpcSketch.toString(wmem, true));
-    println(CpcSketch.toString(wmem, false));
-    checkFirst8(wmem, format, lgK, (byte) 0);
-    assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getSvLengthInts(wmem), csvLength);
+    putSparseHybridMerged(wseg, lgK, numCoupons, csvLength, seedHash, csvStream);
+    println(CpcSketch.toString(wseg, true));
+    println(CpcSketch.toString(wseg, false));
+    checkFirst8(wseg, format, lgK, (byte) 0);
+    assertEquals(getNumCoupons(wseg), numCoupons);
+    assertEquals(getSvLengthInts(wseg), csvLength);
 
     format = Format.SPARSE_HYBRID_HIP;
-    putSparseHybridHip(wmem, lgK, numCoupons, csvLength, kxp, hipAccum, seedHash, csvStream);
-    println(CpcSketch.toString(wmem, true));
-    println(CpcSketch.toString(wmem, false));
-    checkFirst8(wmem, format, lgK, (byte) 0);
-    assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getSvLengthInts(wmem), csvLength);
-    assertEquals(getKxP(wmem), kxp);
-    assertEquals(getHipAccum(wmem), hipAccum);
-    assertTrue(hasHip(wmem));
+    putSparseHybridHip(wseg, lgK, numCoupons, csvLength, kxp, hipAccum, seedHash, csvStream);
+    println(CpcSketch.toString(wseg, true));
+    println(CpcSketch.toString(wseg, false));
+    checkFirst8(wseg, format, lgK, (byte) 0);
+    assertEquals(getNumCoupons(wseg), numCoupons);
+    assertEquals(getSvLengthInts(wseg), csvLength);
+    assertEquals(getKxP(wseg), kxp);
+    assertEquals(getHipAccum(wseg), hipAccum);
+    assertTrue(hasHip(wseg));
 
     format = Format.PINNED_SLIDING_MERGED_NOSV;
-    putPinnedSlidingMergedNoSv(wmem, lgK, fiCol, numCoupons, cwLength, seedHash, cwStream);
-    println(CpcSketch.toString(wmem, true));
-    println(CpcSketch.toString(wmem, false));
-    checkFirst8(wmem, format, lgK, fiCol);
-    assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getWLengthInts(wmem), cwLength);
+    putPinnedSlidingMergedNoSv(wseg, lgK, fiCol, numCoupons, cwLength, seedHash, cwStream);
+    println(CpcSketch.toString(wseg, true));
+    println(CpcSketch.toString(wseg, false));
+    checkFirst8(wseg, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wseg), numCoupons);
+    assertEquals(getWLengthInts(wseg), cwLength);
 
     format = Format.PINNED_SLIDING_HIP_NOSV;
-    putPinnedSlidingHipNoSv(wmem, lgK, fiCol, numCoupons, cwLength, kxp, hipAccum, seedHash,
+    putPinnedSlidingHipNoSv(wseg, lgK, fiCol, numCoupons, cwLength, kxp, hipAccum, seedHash,
         cwStream);
-    println(CpcSketch.toString(wmem, true));
-    println(CpcSketch.toString(wmem, false));
-    checkFirst8(wmem, format, lgK, fiCol);
-    assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getWLengthInts(wmem), cwLength);
-    assertEquals(getKxP(wmem), kxp);
-    assertEquals(getHipAccum(wmem), hipAccum);
+    println(CpcSketch.toString(wseg, true));
+    println(CpcSketch.toString(wseg, false));
+    checkFirst8(wseg, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wseg), numCoupons);
+    assertEquals(getWLengthInts(wseg), cwLength);
+    assertEquals(getKxP(wseg), kxp);
+    assertEquals(getHipAccum(wseg), hipAccum);
 
     format = Format.PINNED_SLIDING_MERGED;
-    putPinnedSlidingMerged(wmem, lgK, fiCol, numCoupons, numSv, csvLength, cwLength, seedHash,
+    putPinnedSlidingMerged(wseg, lgK, fiCol, numCoupons, numSv, csvLength, cwLength, seedHash,
         csvStream, cwStream);
-    println(CpcSketch.toString(wmem, true));
-    println(CpcSketch.toString(wmem, false));
-    checkFirst8(wmem, format, lgK, fiCol);
-    assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getNumSv(wmem), numSv);
-    assertEquals(getSvLengthInts(wmem), csvLength);
-    assertEquals(getWLengthInts(wmem), cwLength);
+    println(CpcSketch.toString(wseg, true));
+    println(CpcSketch.toString(wseg, false));
+    checkFirst8(wseg, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wseg), numCoupons);
+    assertEquals(getNumSv(wseg), numSv);
+    assertEquals(getSvLengthInts(wseg), csvLength);
+    assertEquals(getWLengthInts(wseg), cwLength);
 
     format = Format.PINNED_SLIDING_HIP;
-    putPinnedSlidingHip(wmem, lgK, fiCol, numCoupons, numSv, kxp, hipAccum, csvLength, cwLength,
+    putPinnedSlidingHip(wseg, lgK, fiCol, numCoupons, numSv, kxp, hipAccum, csvLength, cwLength,
         seedHash, csvStream, cwStream);
-    println(CpcSketch.toString(wmem, true));
-    println(CpcSketch.toString(wmem, false));
-    checkFirst8(wmem, format, lgK, fiCol);
-    assertEquals(getNumCoupons(wmem), numCoupons);
-    assertEquals(getNumSv(wmem), numSv);
-    assertEquals(getSvLengthInts(wmem), csvLength);
-    assertEquals(getWLengthInts(wmem), cwLength);
-    assertEquals(getKxP(wmem), kxp);
-    assertEquals(getHipAccum(wmem), hipAccum);
+    println(CpcSketch.toString(wseg, true));
+    println(CpcSketch.toString(wseg, false));
+    checkFirst8(wseg, format, lgK, fiCol);
+    assertEquals(getNumCoupons(wseg), numCoupons);
+    assertEquals(getNumSv(wseg), numSv);
+    assertEquals(getSvLengthInts(wseg), csvLength);
+    assertEquals(getWLengthInts(wseg), cwLength);
+    assertEquals(getKxP(wseg), kxp);
+    assertEquals(getHipAccum(wseg), hipAccum);
   }
 
   @Test
   public void checkStreamErrors() {
-    WritableMemory wmem = WritableMemory.allocate(4 * 10);
-    putEmptyMerged(wmem, (byte) 12, defaultSeedHash);
-    try { getSvStreamOffset(wmem); fail(); } catch (SketchesArgumentException e) { }
-    wmem.putByte(5, (byte) (7 << 2));
-    try { getSvStreamOffset(wmem); fail(); } catch (SketchesStateException e) { }
-    wmem.putByte(5, (byte) 0);
-    try { getWStreamOffset(wmem); fail(); } catch (SketchesArgumentException e) { }
-    wmem.putByte(5, (byte) (7 << 2));
-    try { getWStreamOffset(wmem); fail(); } catch (SketchesStateException e) { }
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[4 * 10]);
+    putEmptyMerged(wseg, (byte) 12, defaultSeedHash);
+    try { getSvStreamOffset(wseg); fail(); } catch (final SketchesArgumentException e) { }
+    wseg.set(JAVA_BYTE, 5, (byte) (7 << 2));
+    try { getSvStreamOffset(wseg); fail(); } catch (final SketchesStateException e) { }
+    wseg.set(JAVA_BYTE, 5, (byte) 0);
+    try { getWStreamOffset(wseg); fail(); } catch (final SketchesArgumentException e) { }
+    wseg.set(JAVA_BYTE, 5, (byte) (7 << 2));
+    try { getWStreamOffset(wseg); fail(); } catch (final SketchesStateException e) { }
   }
 
   @Test
   public void checkStreamErrors2() {
-    WritableMemory wmem = WritableMemory.allocate(4 * 10);
-    int[] svStream = { 1 };
-    int[] wStream = { 2 };
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[4 * 10]);
+    final int[] svStream = { 1 };
+    final int[] wStream = { 2 };
     try {
-      putPinnedSlidingMerged(wmem, 4, 0, 1, 1, 1, 0, (short) 0, svStream, wStream);
+      putPinnedSlidingMerged(wseg, 4, 0, 1, 1, 1, 0, (short) 0, svStream, wStream);
       fail();
-    } catch (SketchesStateException e) { }
-    assertTrue(PreambleUtil.isCompressed(wmem));
+    } catch (final SketchesStateException e) { }
+    assertTrue(PreambleUtil.isCompressed(wseg));
   }
 
   @Test
-  public void checkEmptyMemory() {
-    WritableMemory wmem = WritableMemory.allocate(4 * 10);
-    wmem.putByte(2, (byte) 16); //legal Family
-    wmem.putByte(5, (byte) (1 << 2)); //select NONE
-    println(CpcSketch.toString(wmem, false));
+  public void checkEmptySegment() {
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[4 * 10]);
+    wseg.set(JAVA_BYTE, 2, (byte) 16); //legal Family
+    wseg.set(JAVA_BYTE, 5, (byte) (1 << 2)); //select NONE
+    println(CpcSketch.toString(wseg, false));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -214,7 +215,7 @@ public class PreambleUtilTest {
 
   @Test
   public void checkWindowOffset() {
-    long offset = CpcUtil.determineCorrectOffset(4, 54);
+    final long offset = CpcUtil.determineCorrectOffset(4, 54);
     assertEquals(offset, 1L);
   }
 
@@ -247,7 +248,7 @@ public class PreambleUtilTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

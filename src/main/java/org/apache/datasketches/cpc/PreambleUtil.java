@@ -19,20 +19,24 @@
 
 package org.apache.datasketches.cpc;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.checkBounds;
+import static org.apache.datasketches.common.Util.clear;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 //@formatter:off
 /**
@@ -194,59 +198,59 @@ final class PreambleUtil {
     return loField.ordinal();
   }
 
-  static int getPreInts(final Memory mem) {
-    return mem.getByte(getLoFieldOffset(LoField.PRE_INTS)) & 0XFF;
+  static int getPreInts(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, getLoFieldOffset(LoField.PRE_INTS)) & 0XFF;
   }
 
-  static int getSerVer(final Memory mem) {
-    return mem.getByte(getLoFieldOffset(LoField.SER_VERSION)) & 0XFF;
+  static int getSerVer(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, getLoFieldOffset(LoField.SER_VERSION)) & 0XFF;
   }
 
-  static Family getFamily(final Memory mem) {
-    final int fam = mem.getByte(getLoFieldOffset(LoField.FAMILY)) & 0XFF;
+  static Family getFamily(final MemorySegment seg) {
+    final int fam = seg.get(JAVA_BYTE, getLoFieldOffset(LoField.FAMILY)) & 0XFF;
     return Family.idToFamily(fam);
   }
 
-  static int getLgK(final Memory mem) {
-    return mem.getByte(getLoFieldOffset(LoField.LG_K)) & 0XFF;
+  static int getLgK(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, getLoFieldOffset(LoField.LG_K)) & 0XFF;
   }
 
-  static int getFiCol(final Memory mem) {
-    return mem.getByte(getLoFieldOffset(LoField.FI_COL)) & 0XFF;
+  static int getFiCol(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, getLoFieldOffset(LoField.FI_COL)) & 0XFF;
   }
 
-  static int getFlags(final Memory mem) {
-    return mem.getByte(getLoFieldOffset(LoField.FLAGS)) & 0XFF;
+  static int getFlags(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, getLoFieldOffset(LoField.FLAGS)) & 0XFF;
   }
 
-  static short getSeedHash(final Memory mem) {
-    return mem.getShort(getLoFieldOffset(LoField.SEED_HASH));
+  static short getSeedHash(final MemorySegment seg) {
+    return seg.get(JAVA_SHORT_UNALIGNED, getLoFieldOffset(LoField.SEED_HASH));
   }
 
-  static int getFormatOrdinal(final Memory mem) {
-    final int flags = getFlags(mem);
+  static int getFormatOrdinal(final MemorySegment seg) {
+    final int flags = getFlags(seg);
     return (flags >>> 2) & 0x7;
   }
 
-  static Format getFormat(final Memory mem) {
-    final int ordinal = getFormatOrdinal(mem);
+  static Format getFormat(final MemorySegment seg) {
+    final int ordinal = getFormatOrdinal(seg);
     return Format.ordinalToFormat(ordinal);
   }
 
-  static boolean hasHip(final Memory mem) {
-    return (getFlags(mem) & HIP_FLAG_MASK) > 0;
+  static boolean hasHip(final MemorySegment seg) {
+    return (getFlags(seg) & HIP_FLAG_MASK) > 0;
   }
 
-  static final boolean hasSv(final Memory mem) {
-    return (getFlags(mem) & SUP_VAL_FLAG_MASK) > 0;
+  static boolean hasSv(final MemorySegment seg) {
+    return (getFlags(seg) & SUP_VAL_FLAG_MASK) > 0;
   }
 
-  static final boolean hasWindow(final Memory mem) {
-    return (getFlags(mem) & WINDOW_FLAG_MASK) > 0;
+  static boolean hasWindow(final MemorySegment seg) {
+    return (getFlags(seg) & WINDOW_FLAG_MASK) > 0;
   }
 
-  static final boolean isCompressed(final Memory mem) {
-    return (getFlags(mem) & COMPRESSED_FLAG_MASK) > 0;
+  static boolean isCompressed(final MemorySegment seg) {
+    return (getFlags(seg) & COMPRESSED_FLAG_MASK) > 0;
   }
 
   //PREAMBLE HI_FIELD DEFINITIONS
@@ -301,121 +305,121 @@ final class PreambleUtil {
 
   //PREAMBLE HI_FIELD GETS
 
-  static int getNumCoupons(final Memory mem) {
-    final Format format = getFormat(mem);
+  static int getNumCoupons(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField hiField = HiField.NUM_COUPONS;
     final long offset = getHiFieldOffset(format, hiField);
-    return mem.getInt(offset);
+    return seg.get(JAVA_INT_UNALIGNED, offset);
   }
 
-  static int getNumSv(final Memory mem) {
-    final Format format = getFormat(mem);
+  static int getNumSv(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField hiField = HiField.NUM_SV;
     final long offset = getHiFieldOffset(format, hiField);
-    return mem.getInt(offset);
+    return seg.get(JAVA_INT_UNALIGNED, offset);
   }
 
-  static int getSvLengthInts(final Memory mem) {
-    final Format format = getFormat(mem);
+  static int getSvLengthInts(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField hiField = HiField.SV_LENGTH_INTS;
     final long offset = getHiFieldOffset(format, hiField);
-    return mem.getInt(offset);
+    return seg.get(JAVA_INT_UNALIGNED, offset);
   }
 
-  static int getWLengthInts(final Memory mem) {
-    final Format format = getFormat(mem);
+  static int getWLengthInts(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField hiField = HiField.W_LENGTH_INTS;
     final long offset = getHiFieldOffset(format, hiField);
-    return mem.getInt(offset);
+    return seg.get(JAVA_INT_UNALIGNED, offset);
   }
 
-  static double getKxP(final Memory mem) {
-    final Format format = getFormat(mem);
+  static double getKxP(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField hiField = HiField.KXP;
     final long offset = getHiFieldOffset(format, hiField);
-    return mem.getDouble(offset);
+    return seg.get(JAVA_DOUBLE_UNALIGNED, offset);
   }
 
-  static double getHipAccum(final Memory mem) {
-    final Format format = getFormat(mem);
+  static double getHipAccum(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField hiField = HiField.HIP_ACCUM;
     final long offset = getHiFieldOffset(format, hiField);
-    return mem.getDouble(offset);
+    return seg.get(JAVA_DOUBLE_UNALIGNED, offset);
   }
 
-  static long getSvStreamOffset(final Memory mem) {
-    final Format format = getFormat(mem);
+  static long getSvStreamOffset(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField svLenField = HiField.SV_LENGTH_INTS;
-    if (!hasSv(mem)) {
+    if (!hasSv(seg)) {
       fieldError(format, svLenField);
     } else {
-      final long svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0XFFFF_FFFFL;
+      final long svLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0XFFFF_FFFFL;
       if (svLengthInts == 0) {
         throw new SketchesStateException("svLengthInts cannot be zero");
       }
     }
     long wLengthInts = 0;
-    if (hasWindow(mem)) {
-      wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0XFFFF_FFFFL;
+    if (hasWindow(seg)) {
+      wLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0XFFFF_FFFFL;
       if (wLengthInts == 0) {
         throw new SketchesStateException("wLengthInts cannot be zero");
       }
     }
-    return (getPreInts(mem) + wLengthInts) << 2;
+    return (getPreInts(seg) + wLengthInts) << 2;
   }
 
-  static long getWStreamOffset(final Memory mem) {
-    final Format format = getFormat(mem);
+  static long getWStreamOffset(final MemorySegment seg) {
+    final Format format = getFormat(seg);
     final HiField wLenField = HiField.W_LENGTH_INTS;
-    if (!hasWindow(mem))  { fieldError(format, wLenField); }
-    final long wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0XFFFF_FFFFL;
+    if (!hasWindow(seg))  { fieldError(format, wLenField); }
+    final long wLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0XFFFF_FFFFL;
       if (wLengthInts == 0) {
         throw new SketchesStateException("wLengthInts cannot be zero");
       }
-    return getPreInts(mem) << 2;
+    return getPreInts(seg) << 2;
   }
 
-  static int[] getSvStream(final Memory mem) {
-    final long offset = getSvStreamOffset(mem);
-    final int svLengthInts = getSvLengthInts(mem);
+  static int[] getSvStream(final MemorySegment seg) {
+    final long offset = getSvStreamOffset(seg);
+    final int svLengthInts = getSvLengthInts(seg);
     final int[] svStream = new int[svLengthInts];
-    mem.getIntArray(offset, svStream, 0, svLengthInts);
+    MemorySegment.copy(seg, JAVA_INT_UNALIGNED, offset, svStream, 0, svLengthInts);
     return svStream;
   }
 
-  static int[] getWStream(final Memory mem) {
-    final long offset = getWStreamOffset(mem);
-    final int wLength = getWLengthInts(mem);
+  static int[] getWStream(final MemorySegment seg) {
+    final long offset = getWStreamOffset(seg);
+    final int wLength = getWLengthInts(seg);
     final int[] wStream = new int[wLength];
-    mem.getIntArray(offset, wStream, 0, wLength);
+    MemorySegment.copy(seg, JAVA_INT_UNALIGNED, offset, wStream, 0, wLength);
     return wStream;
   }
 
   // PUT INTO MEMORY
 
-  static void putEmptyMerged(final WritableMemory wmem,
+  static void putEmptyMerged(final MemorySegment wseg,
       final int lgK,
       final short seedHash) {
     final Format format = Format.EMPTY_MERGED;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 8);
-    putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 8);
+    putFirst8(wseg, preInts, (byte) lgK, fiCol, flags, seedHash);
   }
 
-  static void putEmptyHip(final WritableMemory wmem,
+  static void putEmptyHip(final MemorySegment wseg,
       final int lgK,
       final short seedHash) {
     final Format format = Format.EMPTY_HIP;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 8);
-    putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 8);
+    putFirst8(wseg, preInts, (byte) lgK, fiCol, flags, seedHash);
   }
 
-  static void putSparseHybridMerged(final WritableMemory wmem,
+  static void putSparseHybridMerged(final MemorySegment wseg,
       final int lgK,
       final int numCoupons, //unsigned
       final int svLengthInts,
@@ -425,15 +429,15 @@ final class PreambleUtil {
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts));
-    putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 4L * (preInts + svLengthInts));
+    putFirst8(wseg, preInts, (byte) lgK, fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
-    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
+    MemorySegment.copy(svStream, 0, wseg, JAVA_INT_UNALIGNED, getSvStreamOffset(wseg), svLengthInts);
   }
 
-  static void putSparseHybridHip(final WritableMemory wmem,
+  static void putSparseHybridHip(final MemorySegment wseg,
       final int lgK,
       final int numCoupons, //unsigned
       final int svLengthInts,
@@ -445,17 +449,17 @@ final class PreambleUtil {
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts));
-    putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 4L * (preInts + svLengthInts));
+    putFirst8(wseg, preInts, (byte) lgK, fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
-    wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
-    wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
+    wseg.set(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.KXP), kxp);
+    wseg.set(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
+    MemorySegment.copy(svStream, 0, wseg, JAVA_INT_UNALIGNED, getSvStreamOffset(wseg), svLengthInts);
   }
 
-  static void putPinnedSlidingMergedNoSv(final WritableMemory wmem,
+  static void putPinnedSlidingMergedNoSv(final MemorySegment wseg,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
@@ -465,15 +469,15 @@ final class PreambleUtil {
     final Format format = Format.PINNED_SLIDING_MERGED_NOSV;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + wLengthInts));
-    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 4L * (preInts + wLengthInts));
+    putFirst8(wseg, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
-    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
+    MemorySegment.copy(wStream, 0, wseg, JAVA_INT_UNALIGNED, getWStreamOffset(wseg), wLengthInts);
   }
 
-  static void putPinnedSlidingHipNoSv(final WritableMemory wmem,
+  static void putPinnedSlidingHipNoSv(final MemorySegment wseg,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
@@ -485,17 +489,17 @@ final class PreambleUtil {
     final Format format = Format.PINNED_SLIDING_HIP_NOSV;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + wLengthInts));
-    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 4L * (preInts + wLengthInts));
+    putFirst8(wseg, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
-    wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
-    wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
+    wseg.set(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.KXP), kxp);
+    wseg.set(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
+    MemorySegment.copy(wStream, 0, wseg, JAVA_INT_UNALIGNED, getWStreamOffset(wseg), wLengthInts);
   }
 
-  static void putPinnedSlidingMerged(final WritableMemory wmem,
+  static void putPinnedSlidingMerged(final MemorySegment wseg,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
@@ -508,18 +512,18 @@ final class PreambleUtil {
     final Format format = Format.PINNED_SLIDING_MERGED;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts + wLengthInts));
-    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 4L * (preInts + svLengthInts + wLengthInts));
+    putFirst8(wseg, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numSv);
-    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
-    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
-    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
-    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_SV), numSv);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
+    MemorySegment.copy(svStream, 0, wseg, JAVA_INT_UNALIGNED, getSvStreamOffset(wseg), svLengthInts);
+    MemorySegment.copy(wStream, 0, wseg, JAVA_INT_UNALIGNED, getWStreamOffset(wseg), wLengthInts);
   }
 
-  static void putPinnedSlidingHip(final WritableMemory wmem,
+  static void putPinnedSlidingHip(final MemorySegment wseg,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
@@ -534,48 +538,48 @@ final class PreambleUtil {
     final Format format = Format.PINNED_SLIDING_HIP;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts + wLengthInts));
-    putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
+    checkCapacity(wseg.byteSize(), 4L * (preInts + svLengthInts + wLengthInts));
+    putFirst8(wseg, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numSv);
-    wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
-    wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
-    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
-    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
-    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_SV), numSv);
+    wseg.set(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.KXP), kxp);
+    wseg.set(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
+    wseg.set(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
+    MemorySegment.copy(svStream, 0, wseg, JAVA_INT_UNALIGNED, getSvStreamOffset(wseg), svLengthInts);
+    MemorySegment.copy(wStream, 0, wseg, JAVA_INT_UNALIGNED, getWStreamOffset(wseg), wLengthInts);
   }
 
-  private static void putFirst8(final WritableMemory wmem, final byte preInts, final byte lgK,
+  private static void putFirst8(final MemorySegment wseg, final byte preInts, final byte lgK,
       final byte fiCol, final byte flags, final short seedHash) {
-    wmem.clear(0L, 4L * preInts);
-    wmem.putByte(getLoFieldOffset(LoField.PRE_INTS), preInts);
-    wmem.putByte(getLoFieldOffset(LoField.SER_VERSION), SER_VER);
-    wmem.putByte(getLoFieldOffset(LoField.FAMILY), (byte) Family.CPC.getID());
-    wmem.putByte(getLoFieldOffset(LoField.LG_K), lgK);
-    wmem.putByte(getLoFieldOffset(LoField.FI_COL), fiCol);
-    wmem.putByte(getLoFieldOffset(LoField.FLAGS), flags);
-    wmem.putShort(getLoFieldOffset(LoField.SEED_HASH), seedHash);
+    clear(wseg, 0L, 4L * preInts);
+    wseg.set(JAVA_BYTE, getLoFieldOffset(LoField.PRE_INTS), preInts);
+    wseg.set(JAVA_BYTE, getLoFieldOffset(LoField.SER_VERSION), SER_VER);
+    wseg.set(JAVA_BYTE, getLoFieldOffset(LoField.FAMILY), (byte) Family.CPC.getID());
+    wseg.set(JAVA_BYTE, getLoFieldOffset(LoField.LG_K), lgK);
+    wseg.set(JAVA_BYTE, getLoFieldOffset(LoField.FI_COL), fiCol);
+    wseg.set(JAVA_BYTE, getLoFieldOffset(LoField.FLAGS), flags);
+    wseg.set(JAVA_SHORT_UNALIGNED, getLoFieldOffset(LoField.SEED_HASH), seedHash);
   }
 
   //TO STRING
 
   static String toString(final byte[] byteArr, final boolean detail) {
-    final Memory mem = Memory.wrap(byteArr);
-    return toString(mem, detail);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return toString(seg, detail);
   }
 
-  static String toString(final Memory mem, final boolean detail) {
-    final long capBytes = mem.getCapacity();
+  static String toString(final MemorySegment seg, final boolean detail) {
+    final long capBytes = seg.byteSize();
     //Lo Fields Preamble, first 7 fields, first 8 bytes
-    final int preInts = mem.getByte(getLoFieldOffset(LoField.PRE_INTS)) & 0xFF;
-    final int serVer = mem.getByte(getLoFieldOffset(LoField.SER_VERSION)) & 0xFF;
-    final Family family = Family.idToFamily(mem.getByte(getLoFieldOffset(LoField.FAMILY)) & 0xFF);
-    final int lgK = mem.getByte(getLoFieldOffset(LoField.LG_K)) & 0xFF;
-    final int fiCol = mem.getByte(getLoFieldOffset(LoField.FI_COL)) & 0xFF;
-    final int flags = mem.getByte(getLoFieldOffset(LoField.FLAGS)) & 0XFF;
-    final int seedHash = mem.getShort(getLoFieldOffset(LoField.SEED_HASH)) & 0XFFFF;
+    final int preInts = seg.get(JAVA_BYTE, getLoFieldOffset(LoField.PRE_INTS)) & 0xFF;
+    final int serVer = seg.get(JAVA_BYTE, getLoFieldOffset(LoField.SER_VERSION)) & 0xFF;
+    final Family family = Family.idToFamily(seg.get(JAVA_BYTE, getLoFieldOffset(LoField.FAMILY)) & 0xFF);
+    final int lgK = seg.get(JAVA_BYTE, getLoFieldOffset(LoField.LG_K)) & 0xFF;
+    final int fiCol = seg.get(JAVA_BYTE, getLoFieldOffset(LoField.FI_COL)) & 0xFF;
+    final int flags = seg.get(JAVA_BYTE, getLoFieldOffset(LoField.FLAGS)) & 0XFF;
+    final int seedHash = seg.get(JAVA_SHORT_UNALIGNED, getLoFieldOffset(LoField.SEED_HASH)) & 0XFFFF;
     final String seedHashStr = Integer.toHexString(seedHash);
 
     //Flags of the Flags byte
@@ -630,11 +634,11 @@ final class PreambleUtil {
         break;
       }
       case SPARSE_HYBRID_MERGED : {
-        numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
+        numCoupons = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
         numSv = numCoupons;
-        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        svStreamStart = getSvStreamOffset(mem);
+        svLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        svStreamStart = getSvStreamOffset(seg);
         reqBytes = svStreamStart + (svLengthInts << 2);
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
@@ -646,14 +650,14 @@ final class PreambleUtil {
         break;
       }
       case SPARSE_HYBRID_HIP : {
-        numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
+        numCoupons = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
         numSv = numCoupons;
-        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        svStreamStart = getSvStreamOffset(mem);
+        svLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        svStreamStart = getSvStreamOffset(seg);
 
-        kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
-        hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
+        kxp = seg.get(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.KXP));
+        hipAccum = seg.get(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.HIP_ACCUM));
         reqBytes = svStreamStart + (svLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
@@ -669,11 +673,11 @@ final class PreambleUtil {
         break;
       }
       case PINNED_SLIDING_MERGED_NOSV : {
-        numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
+        numCoupons = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        wStreamStart = getWStreamOffset(mem);
+        wLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = getWStreamOffset(seg);
         reqBytes = wStreamStart + (wLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
@@ -686,14 +690,14 @@ final class PreambleUtil {
         break;
       }
       case PINNED_SLIDING_HIP_NOSV : {
-        numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
+        numCoupons = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        wStreamStart = getWStreamOffset(mem);
+        wLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = getWStreamOffset(seg);
 
-        kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
-        hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
+        kxp = seg.get(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.KXP));
+        hipAccum = seg.get(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.HIP_ACCUM));
         reqBytes = wStreamStart + (wLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
@@ -709,16 +713,16 @@ final class PreambleUtil {
         break;
       }
       case PINNED_SLIDING_MERGED : {
-        numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
+        numCoupons = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
 
-        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
-        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        numSv = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
+        svLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
 
-        wStreamStart = getWStreamOffset(mem);
-        svStreamStart = getSvStreamOffset(mem);
+        wStreamStart = getWStreamOffset(seg);
+        svStreamStart = getSvStreamOffset(seg);
         reqBytes = svStreamStart + (svLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
@@ -735,18 +739,18 @@ final class PreambleUtil {
         break;
       }
       case PINNED_SLIDING_HIP : {
-        numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
+        numCoupons = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
 
-        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
-        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        wStreamStart = getWStreamOffset(mem);
-        svStreamStart = getSvStreamOffset(mem);
+        numSv = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
+        svLengthInts = seg.get(JAVA_INT_UNALIGNED, getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = getWStreamOffset(seg);
+        svStreamStart = getSvStreamOffset(seg);
 
-        kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
-        hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
+        kxp = seg.get(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.KXP));
+        hipAccum = seg.get(JAVA_DOUBLE_UNALIGNED, getHiFieldOffset(format, HiField.HIP_ACCUM));
         reqBytes = svStreamStart + (svLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
@@ -774,24 +778,24 @@ final class PreambleUtil {
       sb.append(LS).append("### CPC SKETCH IMAGE - DATA").append(LS);
       if (wLengthInts > 0) {
         sb.append(LS).append("Window Stream:").append(LS);
-        listData(mem, wStreamStart, wLengthInts, sb);
+        listData(seg, wStreamStart, wLengthInts, sb);
       }
       if (svLengthInts > 0) {
         sb.append(LS).append("SV Stream:").append(LS);
-        listData(mem, svStreamStart, svLengthInts, sb);
+        listData(seg, svStreamStart, svLengthInts, sb);
       }
     }
     sb.append("### END CPC SKETCH IMAGE").append(LS);
     return sb.toString();
-  } //end toString(mem)
+  } //end toString(seg)
 
-  private static void listData(final Memory mem, final long offsetBytes, final long lengthInts,
+  private static void listData(final MemorySegment seg, final long offsetBytes, final long lengthInts,
       final StringBuilder sb) {
-    final long memCap = mem.getCapacity();
+    final long segCap = seg.byteSize();
     final long expectedCap = offsetBytes + (4L * lengthInts);
-    checkCapacity(memCap, expectedCap);
+    checkCapacity(segCap, expectedCap);
     for (long i = 0; i < lengthInts; i++) {
-      sb.append(String.format(fmt, i, mem.getInt(offsetBytes + (4L * i)))).append(LS);
+      sb.append(String.format(fmt, i, seg.get(JAVA_INT_UNALIGNED, offsetBytes + (4L * i)))).append(LS);
     }
   }
 
@@ -800,26 +804,26 @@ final class PreambleUtil {
         "Operation is illegal: Format = " + format.name() + ", HiField = " + hiField);
   }
 
-  static void checkCapacity(final long memCap, final long expectedCap) {
-    if (memCap < expectedCap) {
+  static void checkCapacity(final long segCap, final long expectedCap) {
+    if (segCap < expectedCap) {
       throw new SketchesArgumentException(
-          "Insufficient Image Bytes = " + memCap + ", Expected = " + expectedCap);
+          "Insufficient Image Bytes = " + segCap + ", Expected = " + expectedCap);
     }
   }
 
   //basic checks of SerVer, Format, preInts, Family, fiCol, lgK.
-  static void checkLoPreamble(final Memory mem) {
-    Objects.requireNonNull(mem, "Source Memory must not be null");
-    checkBounds(0, 8, mem.getCapacity()); //need min 8 bytes
-    rtAssertEquals(getSerVer(mem), SER_VER & 0XFF);
-    final Format fmat = getFormat(mem);
+  static void checkLoPreamble(final MemorySegment seg) {
+    Objects.requireNonNull(seg, "Source MemorySegment must not be null");
+    checkBounds(0, 8, seg.byteSize()); //need min 8 bytes
+    rtAssertEquals(getSerVer(seg), SER_VER & 0XFF);
+    final Format fmat = getFormat(seg);
     final int preIntsDef = getDefinedPreInts(fmat) & 0XFF;
-    rtAssertEquals(getPreInts(mem), preIntsDef);
-    final Family fam = getFamily(mem);
+    rtAssertEquals(getPreInts(seg), preIntsDef);
+    final Family fam = getFamily(seg);
     rtAssert(fam == Family.CPC);
-    final int lgK = getLgK(mem);
+    final int lgK = getLgK(seg);
     rtAssert((lgK >= 4) && (lgK <= 26));
-    final int fiCol = getFiCol(mem);
+    final int fiCol = getFiCol(seg);
     rtAssert((fiCol <= 63) && (fiCol >= 0));
   }
 

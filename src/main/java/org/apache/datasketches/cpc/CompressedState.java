@@ -47,9 +47,9 @@ import static org.apache.datasketches.cpc.PreambleUtil.putSparseHybridHip;
 import static org.apache.datasketches.cpc.PreambleUtil.putSparseHybridMerged;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
@@ -118,121 +118,121 @@ final class CompressedState {
     return 4L * (preInts + csvLengthInts + cwLengthInts);
   }
 
-  static CompressedState importFromMemory(final Memory mem) {
-    checkLoPreamble(mem);
-    rtAssert(isCompressed(mem));
-    final int lgK = getLgK(mem);
-    final short seedHash = getSeedHash(mem);
+  static CompressedState importFromSegment(final MemorySegment seg) {
+    checkLoPreamble(seg);
+    rtAssert(isCompressed(seg));
+    final int lgK = getLgK(seg);
+    final short seedHash = getSeedHash(seg);
     final CompressedState state = new CompressedState(lgK, seedHash);
-    final int fmtOrd = getFormatOrdinal(mem);
+    final int fmtOrd = getFormatOrdinal(seg);
     final Format format = Format.ordinalToFormat(fmtOrd);
-    state.mergeFlag = !((fmtOrd & 1) > 0); //merge flag is complement of HIP
+    state.mergeFlag = ((fmtOrd & 1) <= 0); //merge flag is complement of HIP
     state.csvIsValid = (fmtOrd & 2) > 0;
     state.windowIsValid = (fmtOrd & 4) > 0;
 
     switch (format) {
       case EMPTY_MERGED :
       case EMPTY_HIP : {
-        checkCapacity(mem.getCapacity(), 8L);
+        checkCapacity(seg.byteSize(), 8L);
         break;
       }
       case SPARSE_HYBRID_MERGED : {
         //state.fiCol = getFiCol(mem);
-        state.numCoupons = getNumCoupons(mem);
+        state.numCoupons = getNumCoupons(seg);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
-        state.csvLengthInts = getSvLengthInts(mem);
+        state.csvLengthInts = getSvLengthInts(seg);
         //state.cwLength = getCwLength(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
-        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
         //state.cwStream = getCwStream(mem);
-        state.csvStream = getSvStream(mem);
+        state.csvStream = getSvStream(seg);
         break;
       }
       case SPARSE_HYBRID_HIP : {
         //state.fiCol = getFiCol(mem);
-        state.numCoupons = getNumCoupons(mem);
+        state.numCoupons = getNumCoupons(seg);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
-        state.csvLengthInts = getSvLengthInts(mem);
+        state.csvLengthInts = getSvLengthInts(seg);
         //state.cwLength = getCwLength(mem);
-        state.kxp = getKxP(mem);
-        state.hipEstAccum = getHipAccum(mem);
-        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        state.kxp = getKxP(seg);
+        state.hipEstAccum = getHipAccum(seg);
+        checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
         //state.cwStream = getCwStream(mem);
-        state.csvStream = getSvStream(mem);
+        state.csvStream = getSvStream(seg);
         break;
       }
       case PINNED_SLIDING_MERGED_NOSV : {
-        state.fiCol = getFiCol(mem);
-        state.numCoupons = getNumCoupons(mem);
+        state.fiCol = getFiCol(seg);
+        state.numCoupons = getNumCoupons(seg);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
-        state.cwLengthInts = getWLengthInts(mem);
+        state.cwLengthInts = getWLengthInts(seg);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
-        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
-        state.cwStream = getWStream(mem);
+        checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(seg);
         //state.csvStream = getCsvStream(mem);
         break;
       }
       case PINNED_SLIDING_HIP_NOSV : {
-        state.fiCol = getFiCol(mem);
-        state.numCoupons = getNumCoupons(mem);
+        state.fiCol = getFiCol(seg);
+        state.numCoupons = getNumCoupons(seg);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
-        state.cwLengthInts = getWLengthInts(mem);
-        state.kxp = getKxP(mem);
-        state.hipEstAccum = getHipAccum(mem);
-        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
-        state.cwStream = getWStream(mem);
+        state.cwLengthInts = getWLengthInts(seg);
+        state.kxp = getKxP(seg);
+        state.hipEstAccum = getHipAccum(seg);
+        checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(seg);
         //state.csvStream = getCsvStream(mem);
         break;
       }
       case PINNED_SLIDING_MERGED : {
-        state.fiCol = getFiCol(mem);
-        state.numCoupons = getNumCoupons(mem);
-        state.numCsv = getNumSv(mem);
-        state.csvLengthInts = getSvLengthInts(mem);
-        state.cwLengthInts = getWLengthInts(mem);
+        state.fiCol = getFiCol(seg);
+        state.numCoupons = getNumCoupons(seg);
+        state.numCsv = getNumSv(seg);
+        state.csvLengthInts = getSvLengthInts(seg);
+        state.cwLengthInts = getWLengthInts(seg);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
-        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
-        state.cwStream = getWStream(mem);
-        state.csvStream = getSvStream(mem);
+        checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(seg);
+        state.csvStream = getSvStream(seg);
         break;
       }
       case PINNED_SLIDING_HIP : {
-        state.fiCol = getFiCol(mem);
-        state.numCoupons = getNumCoupons(mem);
-        state.numCsv = getNumSv(mem);
-        state.csvLengthInts = getSvLengthInts(mem);
-        state.cwLengthInts = getWLengthInts(mem);
-        state.kxp = getKxP(mem);
-        state.hipEstAccum = getHipAccum(mem);
-        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
-        state.cwStream = getWStream(mem);
-        state.csvStream = getSvStream(mem);
+        state.fiCol = getFiCol(seg);
+        state.numCoupons = getNumCoupons(seg);
+        state.numCsv = getNumSv(seg);
+        state.csvLengthInts = getSvLengthInts(seg);
+        state.cwLengthInts = getWLengthInts(seg);
+        state.kxp = getKxP(seg);
+        state.hipEstAccum = getHipAccum(seg);
+        checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(seg);
+        state.csvStream = getSvStream(seg);
         break;
       }
     }
-    checkCapacity(mem.getCapacity(),
-        4L * (getPreInts(mem) + state.csvLengthInts + state.cwLengthInts));
+    checkCapacity(seg.byteSize(),
+        4L * (getPreInts(seg) + state.csvLengthInts + state.cwLengthInts));
     return state;
   }
 
-  void exportToMemory(final WritableMemory wmem) {
+  void exportToSegment(final MemorySegment wseg) {
     final Format format = getFormat();
     switch (format) {
       case EMPTY_MERGED : {
-        putEmptyMerged(wmem, lgK, seedHash);
+        putEmptyMerged(wseg, lgK, seedHash);
         break;
       }
       case EMPTY_HIP : {
-        putEmptyHip(wmem, lgK, seedHash);
+        putEmptyHip(wseg, lgK, seedHash);
         break;
       }
       case SPARSE_HYBRID_MERGED : {
-        putSparseHybridMerged(wmem,
+        putSparseHybridMerged(wseg,
             lgK,
             (int) numCoupons, //unsigned
             csvLengthInts,
@@ -241,7 +241,7 @@ final class CompressedState {
         break;
       }
       case SPARSE_HYBRID_HIP : {
-        putSparseHybridHip(wmem,
+        putSparseHybridHip(wseg,
             lgK,
             (int) numCoupons, //unsigned
             csvLengthInts,
@@ -252,7 +252,7 @@ final class CompressedState {
         break;
       }
       case PINNED_SLIDING_MERGED_NOSV : {
-        putPinnedSlidingMergedNoSv(wmem,
+        putPinnedSlidingMergedNoSv(wseg,
             lgK,
             fiCol,
             (int) numCoupons, //unsigned
@@ -262,7 +262,7 @@ final class CompressedState {
         break;
       }
       case PINNED_SLIDING_HIP_NOSV : {
-        putPinnedSlidingHipNoSv(wmem,
+        putPinnedSlidingHipNoSv(wseg,
             lgK,
             fiCol,
             (int) numCoupons, //unsigned
@@ -274,7 +274,7 @@ final class CompressedState {
         break;
       }
       case PINNED_SLIDING_MERGED : {
-        putPinnedSlidingMerged(wmem,
+        putPinnedSlidingMerged(wseg,
             lgK,
             fiCol,
             (int) numCoupons, //unsigned
@@ -287,7 +287,7 @@ final class CompressedState {
         break;
       }
       case PINNED_SLIDING_HIP : {
-        putPinnedSlidingHip(wmem,
+        putPinnedSlidingHip(wseg,
             lgK,
             fiCol,
             (int) numCoupons, //unsigned

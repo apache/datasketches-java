@@ -22,11 +22,11 @@ package org.apache.datasketches.cpc;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.io.PrintStream;
 
 import org.testng.annotations.Test;
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * @author Lee Rhodes
@@ -37,48 +37,48 @@ public class CpcWrapperTest {
   @SuppressWarnings("unused")
   @Test
   public void check() {
-    int lgK = 10;
-    CpcSketch sk1 = new CpcSketch(lgK);
-    CpcSketch sk2 = new CpcSketch(lgK);
-    CpcSketch skD = new CpcSketch(lgK);
-    double dEst = skD.getEstimate();
-    double dlb = skD.getLowerBound(2);
-    double dub = skD.getUpperBound(2);
+    final int lgK = 10;
+    final CpcSketch sk1 = new CpcSketch(lgK);
+    final CpcSketch sk2 = new CpcSketch(lgK);
+    final CpcSketch skD = new CpcSketch(lgK);
+    final double dEst = skD.getEstimate();
+    final double dlb = skD.getLowerBound(2);
+    final double dub = skD.getUpperBound(2);
 
-    int n = 100000;
+    final int n = 100000;
     for (int i = 0; i < n; i++) {
       sk1.update(i);
       sk2.update(i + n);
       skD.update(i);
       skD.update(i + n);
     }
-    byte[] concatArr = skD.toByteArray();
+    final byte[] concatArr = skD.toByteArray();
 
-    CpcUnion union = new CpcUnion(lgK);
-    CpcSketch result = union.getResult();
-    double uEst = result.getEstimate();
-    double ulb = result.getLowerBound(2);
-    double uub = result.getUpperBound(2);
+    final CpcUnion union = new CpcUnion(lgK);
+    final CpcSketch result = union.getResult();
+    final double uEst = result.getEstimate();
+    final double ulb = result.getLowerBound(2);
+    final double uub = result.getUpperBound(2);
     union.update(sk1);
     union.update(sk2);
-    CpcSketch merged = union.getResult();
-    byte[] mergedArr = merged.toByteArray();
+    final CpcSketch merged = union.getResult();
+    final byte[] mergedArr = merged.toByteArray();
 
-    Memory concatMem = Memory.wrap(concatArr);
-    CpcWrapper concatSk = new CpcWrapper(concatMem);
+    final MemorySegment concatSeg = MemorySegment.ofArray(concatArr);
+    final CpcWrapper concatSk = new CpcWrapper(concatSeg);
     assertEquals(concatSk.getLgK(), lgK);
 
     printf("              %12s %12s %12s\n", "Lb", "Est", "Ub");
-    double ccEst = concatSk.getEstimate();
-    double ccLb = concatSk.getLowerBound(2);
-    double ccUb = concatSk.getUpperBound(2);
+    final double ccEst = concatSk.getEstimate();
+    final double ccLb = concatSk.getLowerBound(2);
+    final double ccUb = concatSk.getUpperBound(2);
     printf("Concatenated: %12.0f %12.0f %12.0f\n", ccLb, ccEst, ccUb);
 
-    //Memory mergedMem = Memory.wrap(mergedArr);
-    CpcWrapper mergedSk = new CpcWrapper(mergedArr);
-    double mEst = mergedSk.getEstimate();
-    double mLb = mergedSk.getLowerBound(2);
-    double mUb = mergedSk.getUpperBound(2);
+    //MemorySegment mergedSeg = MemorySegment.ofArray(mergedArr);
+    final CpcWrapper mergedSk = new CpcWrapper(mergedArr);
+    final double mEst = mergedSk.getEstimate();
+    final double mLb = mergedSk.getLowerBound(2);
+    final double mUb = mergedSk.getUpperBound(2);
     printf("Merged:       %12.0f %12.0f %12.0f\n", mLb, mEst, mUb);
     assertEquals(Family.CPC, CpcWrapper.getFamily());
   }
@@ -86,27 +86,27 @@ public class CpcWrapperTest {
   @SuppressWarnings("unused")
   @Test
   public void checkIsCompressed() {
-    CpcSketch sk = new CpcSketch(10);
-    byte[] byteArr = sk.toByteArray();
+    final CpcSketch sk = new CpcSketch(10);
+    final byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
     try {
-      CpcWrapper wrapper = new CpcWrapper(Memory.wrap(byteArr));
+      final CpcWrapper wrapper = new CpcWrapper(MemorySegment.ofArray(byteArr));
       fail();
-    } catch (AssertionError e) {}
+    } catch (final AssertionError e) {}
   }
 
   /**
    * @param format the string to print
    * @param args the arguments
    */
-  static void printf(String format, Object... args) {
+  static void printf(final String format, final Object... args) {
     //ps.printf(format, args); //disable here
   }
 
   /**
    * @param s the string to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //ps.println(s);  //disable here
   }
 
