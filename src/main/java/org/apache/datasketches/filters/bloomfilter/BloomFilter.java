@@ -19,18 +19,20 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.hash.XxHash;
-import org.apache.datasketches.memory.Buffer;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableBuffer;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.hash.XxHash64;
 
 /**
  * A Bloom filter is a data structure that can be used for probabilistic
@@ -56,7 +58,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * <p>This implementation uses xxHash64 and follows the approach in Kirsch and Mitzenmacher,
  * "Less Hashing, Same Performance: Building a Better Bloom Filter," Wiley Interscience, 2008, pp. 187-218.</p>
  */
-public final class BloomFilter {
+public final class BloomFilter implements MemorySegmentStatus {
   /**
    * The maximum size of a bloom filter in bits.
    */
@@ -69,7 +71,7 @@ public final class BloomFilter {
   private final long seed_;            // hash seed
   private final short numHashes_;      // number of hash values
   private final BitArray bitArray_;    // the actual data bits
-  private final WritableMemory wmem_;  // used only for direct mode BitArray
+  private final MemorySegment wseg_;  // used only for direct mode BitArray
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
@@ -83,109 +85,109 @@ public final class BloomFilter {
     seed_ = seed;
     numHashes_ = (short) numHashes;
     bitArray_ = new HeapBitArray(numBits);
-    wmem_ = null;
+    wseg_ = null;
   }
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * and a user-specified seed in the provided WritableMemory
+   * and a user-specified seed in the provided MemorySegment
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
    * @param seed The base hash seed
-   * @param wmem A WritableMemory that will be initialized to hold the filter
+   * @param wseg A MemorySegment that will be initialized to hold the filter
    */
-  BloomFilter(final long numBits, final int numHashes, final long seed, final WritableMemory wmem) {
-    if (wmem.getCapacity() < Family.BLOOMFILTER.getMaxPreLongs()) {
-      throw new SketchesArgumentException("Provided WritableMemory capacity insufficient to initialize BloomFilter");
+  BloomFilter(final long numBits, final int numHashes, final long seed, final MemorySegment wseg) {
+    if (wseg.byteSize() < Family.BLOOMFILTER.getMaxPreLongs()) {
+      throw new SketchesArgumentException("Provided MemorySegment capacity insufficient to initialize BloomFilter");
     }
 
     // we don't resize so initialize with non-empty preLongs value
     // and no empty flag
-    final WritableBuffer wbuf = wmem.asWritableBuffer();
-    wbuf.putByte((byte) Family.BLOOMFILTER.getMaxPreLongs());
-    wbuf.putByte((byte) SER_VER);
-    wbuf.putByte((byte) Family.BLOOMFILTER.getID());
-    wbuf.putByte((byte) 0); // instead of (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0);
-    wbuf.putShort((short) numHashes);
-    wbuf.putShort((short) 0); // unused
-    wbuf.putLong(seed);
+    final PositionalSegment posSeg = PositionalSegment.wrap(wseg);
+    posSeg.setByte((byte) Family.BLOOMFILTER.getMaxPreLongs());
+    posSeg.setByte((byte) SER_VER);
+    posSeg.setByte((byte) Family.BLOOMFILTER.getID());
+    posSeg.setByte((byte) 0); // instead of (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0);
+    posSeg.setShort((short) numHashes);
+    posSeg.setShort((short) 0); // unused
+    posSeg.setLong(seed);
 
     seed_ = seed;
     numHashes_ = (short) numHashes;
-    bitArray_ = DirectBitArray.initialize(numBits, wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET));
-    wmem_ = wmem;
+    bitArray_ = DirectBitArray.initialize(numBits, wseg.asSlice(BIT_ARRAY_OFFSET, wseg.byteSize() - BIT_ARRAY_OFFSET));
+    wseg_ = wseg;
   }
 
   // Constructor used with internalHeapifyOrWrap()
-  BloomFilter(final short numHashes, final long seed, final BitArray bitArray, final WritableMemory wmem) {
+  BloomFilter(final short numHashes, final long seed, final BitArray bitArray, final MemorySegment wseg) {
     seed_ = seed;
     numHashes_ = numHashes;
     bitArray_ = bitArray;
-    wmem_ = wmem;
+    wseg_ = wseg;
   }
 
   /**
-   * Reads a serialized image of a BloomFilter from the provided Memory
-   * @param mem Memory containing a previously serialized BloomFilter
+   * Reads a serialized image of a BloomFilter from the provided MemorySegment
+   * @param seg MemorySegment containing a previously serialized BloomFilter
    * @return a BloomFilter object
    */
-  public static BloomFilter heapify(final Memory mem) {
+  public static BloomFilter heapify(final MemorySegment seg) {
     // casting to writable, but heapify so only reading
-    return internalHeapifyOrWrap((WritableMemory) mem, false, false);
+    return internalHeapifyOrWrap(seg, false, false);
   }
 
   /**
-   * Wraps the given Memory into this filter class.  The class itself only contains a few metadata items and holds
-   * a reference to the Memory object, which contains all the data.
-   * @param mem the given Memory object
+   * Wraps the given MemorySegment into this filter class.  The class itself only contains a few metadata items and holds
+   * a reference to the MemorySegment object, which contains all the data.
+   * @param seg the given MemorySegment object
    * @return the wrapping BloomFilter class.
    */
-  public static BloomFilter wrap(final Memory mem) {
+  public static BloomFilter wrap(final MemorySegment seg) {
     // casting to writable, but tracking that the object is read-only
-    return internalHeapifyOrWrap((WritableMemory) mem, true, false);
+    return internalHeapifyOrWrap(seg, true, false);
   }
 
   /**
-   * Wraps the given WritableMemory into this filter class.  The class itself only contains a few metadata items and holds
-   * a reference to the Memory object, which contains all the data.
-   * @param wmem the given WritableMemory object
+   * Wraps the given MemorySegment into this filter class.  The class itself only contains a few metadata items and holds
+   * a reference to the MemorySegment object, which contains all the data.
+   * @param wseg the given MemorySegment object
    * @return the wrapping BloomFilter class.
    */
-  public static BloomFilter writableWrap(final WritableMemory wmem) {
-    return internalHeapifyOrWrap(wmem, true, true);
+  public static BloomFilter writableWrap(final MemorySegment wseg) {
+    return internalHeapifyOrWrap(wseg, true, true);
   }
 
-  private static BloomFilter internalHeapifyOrWrap(final WritableMemory wmem, final boolean isWrap, final boolean isWritable) {
-    final Buffer buf = wmem.asBuffer();
-    final int preLongs = buf.getByte();
-    final int serVer = buf.getByte();
-    final int familyID = buf.getByte();
-    final int flags = buf.getByte();
+  private static BloomFilter internalHeapifyOrWrap(final MemorySegment wseg, final boolean isWrap, final boolean isWritable) {
+    final PositionalSegment posSeg = PositionalSegment.wrap(wseg);
+    final int preLongs = posSeg.getByte();
+    final int serVer = posSeg.getByte();
+    final int familyID = posSeg.getByte();
+    final int flags = posSeg.getByte();
 
-    checkArgument(preLongs < Family.BLOOMFILTER.getMinPreLongs() || preLongs > Family.BLOOMFILTER.getMaxPreLongs(),
+    checkArgument((preLongs < Family.BLOOMFILTER.getMinPreLongs()) || (preLongs > Family.BLOOMFILTER.getMaxPreLongs()),
       "Possible corruption: Incorrect number of preamble bytes specified in header");
     checkArgument(serVer != SER_VER, "Possible corruption: Unrecognized serialization version: " + serVer);
     checkArgument(familyID != Family.BLOOMFILTER.getID(), "Possible corruption: Incorrect FamilyID for bloom filter. Found: " + familyID);
 
-    final short numHashes = buf.getShort();
-    buf.getShort(); // unused
+    final short numHashes = posSeg.getShort();
+    posSeg.getShort(); // unused
     checkArgument(numHashes < 1, "Possible corruption: Need strictly positive number of hash functions. Found: " + numHashes);
 
-    final long seed = buf.getLong();
+    final long seed = posSeg.getLong();
 
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
 
     final BitArray bitArray;
     if (isWrap) {
       if (isWritable) {
-        bitArray = BitArray.writableWrap(wmem.writableRegion(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+        bitArray = BitArray.writableWrap(wseg.asSlice(BIT_ARRAY_OFFSET, wseg.byteSize() - BIT_ARRAY_OFFSET), isEmpty);
       } else {
-        bitArray = BitArray.wrap(wmem.region(BIT_ARRAY_OFFSET, wmem.getCapacity() - BIT_ARRAY_OFFSET), isEmpty);
+        bitArray = BitArray.wrap(wseg.asSlice(BIT_ARRAY_OFFSET, wseg.byteSize() - BIT_ARRAY_OFFSET), isEmpty);
       }
-      return new BloomFilter(numHashes, seed, bitArray, wmem);
+      return new BloomFilter(numHashes, seed, bitArray, wseg);
     } else { // if heapify
-      bitArray = BitArray.heapify(buf, isEmpty);
+      bitArray = BitArray.heapify(posSeg, isEmpty);
       return new BloomFilter(numHashes, seed, bitArray, null);
     }
   }
@@ -227,28 +229,26 @@ public final class BloomFilter {
    */
   public long getSeed() { return seed_; }
 
-  /**
-   * Returns whether the filter has a backing Memory object
-   * @return true if backed by Memory, otherwise false
-   */
-  public boolean hasMemory() { return wmem_ != null; }
+  @Override
+  public boolean hasMemorySegment() { return wseg_ != null; }
 
   /**
    * Returns whether the filter is in read-only mode. That is possible
-   * only if there is a backing Memory in read-only mode.
+   * only if there is a backing MemorySegment in read-only mode.
    * @return true if read-only, otherwise false
    */
   public boolean isReadOnly() {
-    return wmem_ != null && bitArray_.isReadOnly();
+    return (wseg_ != null) && bitArray_.isReadOnly();
   }
 
-  /**
-   * Returns whether the filter is a direct (off-heap) or on-heap object.
-   * That is possible only if there is a backing Memory.
-   * @return true if using direct memory access, otherwise false
-   */
-  public boolean isDirect() {
-    return wmem_ != null && bitArray_.isDirect();
+  @Override
+  public boolean isOffHeap() {
+    return hasMemorySegment() && bitArray_.isOffHeap();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return MemorySegmentStatus.isSameResource(wseg_, that);
   }
 
   /**
@@ -294,7 +294,7 @@ public final class BloomFilter {
    * @param item an item with which to update the filter
    */
   public void update(final String item) {
-    if (item == null || item.isEmpty()) { return; }
+    if ((item == null) || item.isEmpty()) { return; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
     final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
     final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
@@ -357,13 +357,13 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the data in the provided Memory.
-   * @param mem a Memory object with which to update the filter
+   * Updates the filter with the data in the provided MemorySegment.
+   * @param seg a MemorySegment object with which to update the filter
    */
-  public void update(final Memory mem) {
-    if (mem == null) { return; }
-    final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
-    final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
+  public void update(final MemorySegment seg) {
+    if (seg == null) { return; }
+    final long h0 = XxHash64.hash(seg, 0, seg.byteSize(), seed_);
+    final long h1 = XxHash64.hash(seg, 0, seg.byteSize(), h0);
     updateInternal(h0, h1);
   }
 
@@ -372,7 +372,7 @@ public final class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     for (int i = 1; i <= numHashes_; ++i) {
       // right-shift to ensure non-negative value
-      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
+      final long hashIndex = ((h0 + (i * h1)) >>> 1) % numBits;
       bitArray_.setBit(hashIndex);
     }
   }
@@ -419,7 +419,7 @@ public final class BloomFilter {
    * @return The query result prior to applying the update, or false if item is null
    */
   public boolean queryAndUpdate(final String item) {
-    if (item == null || item.isEmpty()) { return false; }
+    if ((item == null) || item.isEmpty()) { return false; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
     final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
     final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
@@ -491,15 +491,15 @@ public final class BloomFilter {
   }
 
   /**
-   * Updates the filter with the provided Memory and
-   * returns the result from querying that Memory prior to the update.
-   * @param mem an array with which to update the filter
-   * @return The query result prior to applying the update, or false if mem is null
+   * Updates the filter with the provided MemorySegment and
+   * returns the result from querying that MemorySegment prior to the update.
+   * @param seg an array with which to update the filter
+   * @return The query result prior to applying the update, or false if MemorySegment is null
    */
-  public boolean queryAndUpdate(final Memory mem) {
-    if (mem == null) { return false; }
-    final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
-    final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
+  public boolean queryAndUpdate(final MemorySegment seg) {
+    if (seg == null) { return false; }
+    final long h0 = XxHash64.hash(seg, 0, seg.byteSize(), seed_);
+    final long h1 = XxHash64.hash(seg, 0, seg.byteSize(), h0);
     return queryAndUpdateInternal(h0, h1);
   }
 
@@ -508,7 +508,7 @@ public final class BloomFilter {
     final long numBits = bitArray_.getCapacity();
     boolean valueAlreadyExists = true;
     for (int i = 1; i <= numHashes_; ++i) {
-      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
+      final long hashIndex = ((h0 + (i * h1)) >>> 1) % numBits;
       // returns old value of bit
       valueAlreadyExists &= bitArray_.getAndSetBit(hashIndex);
     }
@@ -562,7 +562,7 @@ public final class BloomFilter {
    * @return The result of querying the filter with the given item, or false if item is null
    */
   public boolean query(final String item) {
-    if (item == null || item.isEmpty()) { return false; }
+    if ((item == null) || item.isEmpty()) { return false; }
     final byte[] strBytes = item.getBytes(StandardCharsets.UTF_8);
     final long h0 = XxHash.hashByteArr(strBytes, 0, strBytes.length, seed_);
     final long h1 = XxHash.hashByteArr(strBytes, 0, strBytes.length, h0);
@@ -645,17 +645,17 @@ public final class BloomFilter {
   }
 
   /**
-   * Queries the filter with the provided Memory and returns whether the
+   * Queries the filter with the provided MemorySegment and returns whether the
    * data <em>might</em> have been seen previously. The filter's expected
    * False Positive Probability determines the chances of a true result being
    * a false positive. False negatives are never possible.
-   * @param mem a Memory array with which to query the filter
-   * @return The result of querying the filter with the given Memory, or false if data is null
+   * @param seg a MemorySegment array with which to query the filter
+   * @return The result of querying the filter with the given MemorySegment, or false if data is null
    */
-  public boolean query(final Memory mem) {
-    if (mem == null) { return false; }
-    final long h0 = mem.xxHash64(0, mem.getCapacity(), seed_);
-    final long h1 = mem.xxHash64(0, mem.getCapacity(), h0);
+  public boolean query(final MemorySegment seg) {
+    if (seg == null) { return false; }
+    final long h0 = XxHash64.hash(seg, 0, seg.byteSize(), seed_);
+    final long h1 = XxHash64.hash(seg, 0, seg.byteSize(), h0);
     return queryInternal(h0, h1);
   }
 
@@ -663,7 +663,7 @@ public final class BloomFilter {
   private boolean queryInternal(final long h0, final long h1) {
     final long numBits = bitArray_.getCapacity();
     for (int i = 1; i <= numHashes_; ++i) {
-      final long hashIndex = ((h0 + i * h1) >>> 1) % numBits;
+      final long hashIndex = ((h0 + (i * h1)) >>> 1) % numBits;
       // returns old value of bit
       if (!bitArray_.getBit(hashIndex)) {
         return false;
@@ -714,10 +714,10 @@ public final class BloomFilter {
    * @return True if the filters are compatible, otherwise false
    */
   public boolean isCompatible(final BloomFilter other) {
-    if (other == null
-        || seed_ != other.seed_
-        || numHashes_ != other.numHashes_
-        || bitArray_.getArrayLength() != other.bitArray_.getArrayLength()) {
+    if ((other == null)
+        || (seed_ != other.seed_)
+        || (numHashes_ != other.numHashes_)
+        || (bitArray_.getArrayLength() != other.bitArray_.getArrayLength())) {
           return false;
     }
     return true;
@@ -779,21 +779,24 @@ public final class BloomFilter {
 
     final byte[] bytes = new byte[(int) sizeBytes];
 
-    if (wmem_ == null) {
-      final WritableBuffer wbuf = WritableMemory.writableWrap(bytes).asWritableBuffer();
+    if (wseg_ == null) {
+      final MemorySegment seg = MemorySegment.ofArray(bytes);
+      final PositionalSegment posSeg = PositionalSegment.wrap(seg);
 
       final int numPreLongs = isEmpty() ? Family.BLOOMFILTER.getMinPreLongs() : Family.BLOOMFILTER.getMaxPreLongs();
-      wbuf.putByte((byte) numPreLongs);
-      wbuf.putByte((byte) SER_VER);
-      wbuf.putByte((byte) Family.BLOOMFILTER.getID());
-      wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-      wbuf.putShort(numHashes_);
-      wbuf.putShort((short) 0); // unused
-      wbuf.putLong(seed_);
+      posSeg.setByte((byte) numPreLongs);
+      posSeg.setByte((byte) SER_VER);
+      posSeg.setByte((byte) Family.BLOOMFILTER.getID());
+      posSeg.setByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+      posSeg.setShort(numHashes_);
+      posSeg.setShort((short) 0); // unused
+      posSeg.setLong(seed_);
 
-      ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
+      ((HeapBitArray) bitArray_).writeToSegmentAsStream(posSeg); //option: posSeg.asSlice()
+      System.out.println("HERE");
     } else {
-      wmem_.getByteArray(0, bytes, 0, (int) sizeBytes);
+      MemorySegment.copy(wseg_, JAVA_BYTE, 0, bytes, 0, (int)sizeBytes);
+
       if (isEmpty()) {
         bytes[FLAGS_BYTE] |= EMPTY_FLAG_MASK;
       }
@@ -811,21 +814,22 @@ public final class BloomFilter {
     final long sizeBytes = getSerializedSizeBytes();
 
     final long[] longs = new long[(int) (sizeBytes >> 3)];
-    if (wmem_ == null) {
-      final WritableBuffer wbuf = WritableMemory.writableWrap(longs).asWritableBuffer();
+    if (wseg_ == null) {
+      final MemorySegment wseg = MemorySegment.ofArray(longs);
+      final PositionalSegment posSeg = PositionalSegment.wrap(wseg);
 
       final int numPreLongs = isEmpty() ? Family.BLOOMFILTER.getMinPreLongs() : Family.BLOOMFILTER.getMaxPreLongs();
-      wbuf.putByte((byte) numPreLongs);
-      wbuf.putByte((byte) SER_VER); // to do: add constant
-      wbuf.putByte((byte) Family.BLOOMFILTER.getID());
-      wbuf.putByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
-      wbuf.putShort(numHashes_);
-      wbuf.putShort((short) 0); // unused
-      wbuf.putLong(seed_);
+      posSeg.setByte((byte) numPreLongs);
+      posSeg.setByte((byte) SER_VER); // to do: add constant
+      posSeg.setByte((byte) Family.BLOOMFILTER.getID());
+      posSeg.setByte((byte) (bitArray_.isEmpty() ? EMPTY_FLAG_MASK : 0));
+      posSeg.setShort(numHashes_);
+      posSeg.setShort((short) 0); // unused
+      posSeg.setLong(seed_);
 
-      ((HeapBitArray) bitArray_).writeToBuffer(wbuf);
+      ((HeapBitArray) bitArray_).writeToSegmentAsStream(posSeg); //option: posSeg.asSlice()
     } else {
-      wmem_.getLongArray(0, longs, 0, (int) (sizeBytes >>> 3));
+      MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, 0, longs, 0, (int) (sizeBytes >>> 3));
       if (isEmpty()) {
         longs[0] |= (EMPTY_FLAG_MASK << (FLAGS_BYTE << 3));
       }

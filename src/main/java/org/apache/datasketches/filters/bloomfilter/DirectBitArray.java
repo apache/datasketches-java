@@ -19,27 +19,34 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.common.Util.clear;
+import static org.apache.datasketches.common.Util.setBits;
+
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
 
 final class DirectBitArray extends DirectBitArrayR {
 
-  DirectBitArray(final int dataLength, final long storedNumBitsSet, final WritableMemory wmem) {
-    super(dataLength, 0, wmem); // we'll set numBitsSet_ ourselves so pass 0
+  DirectBitArray(final int dataLength, final long storedNumBitsSet, final MemorySegment wseg) {
+    super(dataLength, 0, wseg); // we'll set numBitsSet_ ourselves so pass 0
 
     // can recompute later if needed
     numBitsSet_ = storedNumBitsSet;
   }
 
-  DirectBitArray(final int dataLength, final WritableMemory wmem) {
-    super(dataLength, 0, wmem);
+  DirectBitArray(final int dataLength, final MemorySegment wseg) {
+    super(dataLength, 0, wseg);
 
-    wmem_.putInt(0, dataLength_);
+    wseg_.set(JAVA_INT_UNALIGNED, 0, dataLength_);
     setNumBitsSet(0);
-    wmem_.clear(DATA_OFFSET, (long) dataLength_ * Long.BYTES);
+    clear(wseg_, DATA_OFFSET, (long) dataLength_ * Long.BYTES);
   }
 
-  static DirectBitArray initialize(final long numBits, final WritableMemory wmem) {
+  static DirectBitArray initialize(final long numBits, final MemorySegment wseg) {
     if (numBits <= 0) {
       throw new SketchesArgumentException("Number of bits must be strictly positive. Found: " + numBits);
     }
@@ -50,19 +57,19 @@ final class DirectBitArray extends DirectBitArrayR {
 
     final int arrayLength = (int) Math.ceil(numBits / 64.0); // we know it'll fit in an int based on above checks
     final long requiredBytes = (2L + arrayLength) * Long.BYTES;
-    if (wmem.getCapacity() < requiredBytes) {
-      throw new SketchesArgumentException("Provided WritableMemory too small for requested array length. "
-        + "Requited: " + requiredBytes + ", provided capcity: " + wmem.getCapacity());
+    if (wseg.byteSize() < requiredBytes) {
+      throw new SketchesArgumentException("Provided MemorySegment too small for requested array length. "
+        + "Requited: " + requiredBytes + ", provided capcity: " + wseg.byteSize());
     }
 
-    return new DirectBitArray(arrayLength, wmem);
+    return new DirectBitArray(arrayLength, wseg);
   }
 
-  static DirectBitArray writableWrap(final WritableMemory mem, final boolean isEmpty) {
-    final int arrayLength = mem.getInt(0);
-    final long storedNumBitsSet = isEmpty ? 0L : mem.getLong(NUM_BITS_OFFSET);
+  static DirectBitArray writableWrap(final MemorySegment seg, final boolean isEmpty) {
+    final int arrayLength = seg.get(JAVA_INT_UNALIGNED, 0);
+    final long storedNumBitsSet = isEmpty ? 0L : seg.get(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET);
 
-    if (arrayLength * (long) Long.SIZE > MAX_BITS) {
+    if ((arrayLength * (long) Long.SIZE) > MAX_BITS) {
       throw new SketchesArgumentException("Possible corruption: Serialized image indicates array beyond maximum filter capacity");
     }
 
@@ -73,11 +80,11 @@ final class DirectBitArray extends DirectBitArrayR {
 
     // required capacity is arrayLength plus room for
     // arrayLength (in longs) and numBitsSet
-    if (storedNumBitsSet != 0 && mem.getCapacity() < arrayLength + 2) {
-      throw new SketchesArgumentException("Memory capacity insufficient for Bloom Filter. Needed: "
-        + (arrayLength + 2) + " , found: " + mem.getCapacity());
+    if ((storedNumBitsSet != 0) && (seg.byteSize() < (arrayLength + 2))) {
+      throw new SketchesArgumentException("MemorySegment capacity is insufficient for Bloom Filter. Needs: "
+        + (arrayLength + 2) + " , found: " + seg.byteSize());
     }
-    return new DirectBitArray(arrayLength, storedNumBitsSet, mem);
+    return new DirectBitArray(arrayLength, storedNumBitsSet, seg);
   }
 
   @Override
@@ -88,7 +95,7 @@ final class DirectBitArray extends DirectBitArrayR {
       for (int i = 0; i < dataLength_; ++i) {
         numBitsSet_ += Long.bitCount(getLong(i));
       }
-      wmem_.putLong(NUM_BITS_OFFSET, numBitsSet_);
+      wseg_.set(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET, numBitsSet_);
     }
 
     return numBitsSet_;
@@ -101,12 +108,12 @@ final class DirectBitArray extends DirectBitArrayR {
 
   @Override
   boolean getBit(final long index) {
-    return (wmem_.getByte(DATA_OFFSET + ((int) index >>> 3)) & (1 << (index & 0x7))) != 0;
+    return (wseg_.get(JAVA_BYTE, DATA_OFFSET + ((int) index >>> 3)) & (1 << (index & 0x7))) != 0;
   }
 
   @Override
   protected long getLong(final int arrayIndex) {
-    return wmem_.getLong(DATA_OFFSET + (arrayIndex << 3));
+    return wseg_.get(JAVA_LONG_UNALIGNED, DATA_OFFSET + (arrayIndex << 3));
   }
 
   @Override
@@ -117,26 +124,26 @@ final class DirectBitArray extends DirectBitArrayR {
   @Override
   void reset() {
     setNumBitsSet(0);
-    wmem_.clear(DATA_OFFSET, (long) dataLength_ * Long.BYTES);
+    clear(wseg_, DATA_OFFSET, (long) dataLength_ * Long.BYTES);
   }
 
   @Override
   void setBit(final long index) {
-    final long memoryOffset = DATA_OFFSET + ((int) index >>> 3);
-    final byte val = wmem_.getByte(memoryOffset);
-    wmem_.setBits(memoryOffset, (byte) (val | (1 << (index & 0x07))));
+    final long segmentOffset = DATA_OFFSET + ((int) index >>> 3);
+    final byte val = wseg_.get(JAVA_BYTE, segmentOffset);
+    setBits(wseg_, segmentOffset, (byte) (val | (1 << (index & 0x07))));
     setNumBitsSet(-1); // mark dirty
   }
 
   @Override
   boolean getAndSetBit(final long index) {
-    final long memoryOffset = DATA_OFFSET + ((int) index >>> 3);
+    final long segmentOffset = DATA_OFFSET + ((int) index >>> 3);
     final byte mask = (byte) (1 << (index & 0x07));
-    final byte val = wmem_.getByte(memoryOffset);
+    final byte val = wseg_.get(JAVA_BYTE, segmentOffset);
     if ((val & mask) != 0) {
       return true; // already seen
     } else {
-      wmem_.setBits(memoryOffset, (byte) (val | mask));
+      setBits(wseg_, segmentOffset, (byte) (val | mask));
       if (!isDirty()) { setNumBitsSet(numBitsSet_ + 1); }
       return false; // new set
     }
@@ -154,7 +161,7 @@ final class DirectBitArray extends DirectBitArrayR {
       numBitsSet_ += Long.bitCount(val);
       setLong(i, val);
     }
-    wmem_.putLong(NUM_BITS_OFFSET, numBitsSet_);
+    wseg_.set(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET, numBitsSet_);
   }
 
   @Override
@@ -169,7 +176,7 @@ final class DirectBitArray extends DirectBitArrayR {
       numBitsSet_ += Long.bitCount(val);
       setLong(i, val);
     }
-    wmem_.putLong(NUM_BITS_OFFSET, numBitsSet_);
+    wseg_.set(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET, numBitsSet_);
   }
 
   @Override
@@ -187,16 +194,16 @@ final class DirectBitArray extends DirectBitArrayR {
       }
       numBitsSet_ = getCapacity() - numBitsSet_;
     }
-    wmem_.putLong(NUM_BITS_OFFSET, numBitsSet_);
+    wseg_.set(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET, numBitsSet_);
   }
 
   @Override
   protected void setLong(final int arrayIndex, final long value) {
-    wmem_.putLong(DATA_OFFSET + (arrayIndex << 3), value);
+    wseg_.set(JAVA_LONG_UNALIGNED, DATA_OFFSET + (arrayIndex << 3), value);
   }
 
-  private final void setNumBitsSet(final long numBitsSet) {
+  private void setNumBitsSet(final long numBitsSet) {
     numBitsSet_ = numBitsSet;
-    wmem_.putLong(NUM_BITS_OFFSET, numBitsSet);
+    wseg_.set(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET, numBitsSet);
   }
 }

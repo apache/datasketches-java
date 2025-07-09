@@ -19,26 +19,38 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_CHAR_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.positional.PositionalSegment;
+import org.apache.datasketches.filters.bloomfilter.BitArray;
+import org.apache.datasketches.filters.bloomfilter.DirectBitArray;
+import org.apache.datasketches.filters.bloomfilter.HeapBitArray;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class DirectBitArrayTest {
 
-  private static WritableMemory bitArrayToWritableMemory(HeapBitArray ba) {
+  private static MemorySegment bitArrayToMemorySegment(final HeapBitArray ba) {
     // assumes we're using small enough an array to test that
     // size can be measured with an int
     final int numBytes = (int) ba.getSerializedSizeBytes();
     final byte[] bytes = new byte[numBytes];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
-    ba.writeToBuffer(wmem.asWritableBuffer());
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
+    ba.writeToSegmentAsStream(PositionalSegment.wrap(wseg));
 
-    return wmem;
+    return wseg;
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -46,25 +58,25 @@ public class DirectBitArrayTest {
     final HeapBitArray hba = new HeapBitArray(119);
     assertTrue(hba.isEmpty());
 
-    final WritableMemory mem = bitArrayToWritableMemory(hba);
-    DirectBitArray.writableWrap(mem, hba.isEmpty());
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
+    DirectBitArray.writableWrap(seg, hba.isEmpty());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void createNegativeSizeBitArrayTest() {
     final byte[] bytes = new byte[32];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
-    wmem.putInt(0, -1); // negative length
-    DirectBitArray.writableWrap(wmem, true);
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
+    wseg.set(JAVA_INT_UNALIGNED, 0, -1); // negative length
+    DirectBitArray.writableWrap(wseg, true);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void tooSmallCapacityTest() {
     final byte[] bytes = new byte[32];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
-    wmem.putInt(0, 1024); // array length in longs
-    wmem.putLong(8, 201); // number of bits set (non-empty)
-    DirectBitArray.writableWrap(wmem, false);
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
+    wseg.set(JAVA_INT_UNALIGNED, 0, 1024); // array length in longs
+    wseg.set(JAVA_LONG_UNALIGNED, 8, 201); // number of bits set (non-empty)
+    DirectBitArray.writableWrap(wseg, false);
   }
 
   // no text of max size because the BitArray allows up to Integer.MAX_VALUE
@@ -72,19 +84,19 @@ public class DirectBitArrayTest {
   @Test
   public void initializeTooSmallTest() {
     final byte[] bytes = new byte[128];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
-    assertThrows(SketchesArgumentException.class, () -> DirectBitArray.initialize(128 * 65, wmem));
-    assertThrows(SketchesArgumentException.class, () -> DirectBitArray.initialize(-5, wmem));
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
+    assertThrows(SketchesArgumentException.class, () -> DirectBitArray.initialize(128 * 65, wseg));
+    assertThrows(SketchesArgumentException.class, () -> DirectBitArray.initialize(-5, wseg));
   }
 
   @Test
   public void basicInitializeOperationsTest() {
     final byte[] bytes = new byte[56];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
 
-    DirectBitArray dba = DirectBitArray.initialize(192, wmem);
+    final DirectBitArray dba = DirectBitArray.initialize(192, wseg);
     assertTrue(dba.isEmpty());
-    assertTrue(dba.hasMemory());
+    assertTrue(dba.hasMemorySegment());
     assertFalse(dba.isReadOnly());
     assertEquals(dba.getNumBitsSet(), 0);
 
@@ -102,7 +114,7 @@ public class DirectBitArrayTest {
 
     dba.reset();
     assertTrue(dba.isEmpty());
-    assertTrue(dba.hasMemory());
+    assertTrue(dba.hasMemorySegment());
     assertFalse(dba.isReadOnly());
     assertEquals(dba.getNumBitsSet(), 0);
   }
@@ -119,15 +131,15 @@ public class DirectBitArrayTest {
     assertTrue(hba.getBit(68));
     assertFalse(hba.isEmpty());
 
-    final WritableMemory mem = bitArrayToWritableMemory(hba);
-    DirectBitArray dba = DirectBitArray.writableWrap(mem, hba.isEmpty());
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
+    final DirectBitArray dba = DirectBitArray.writableWrap(seg, hba.isEmpty());
     assertEquals(dba.getNumBitsSet(), 6);
     assertTrue(dba.getBit(68));
     assertFalse(dba.isEmpty());
     assertFalse(dba.isDirty());
 
-    assertTrue(dba.hasMemory());
-    assertFalse(dba.isDirect());
+    assertTrue(dba.hasMemorySegment());
+    assertFalse(dba.isOffHeap());
     assertFalse(dba.isReadOnly());
 
     assertFalse(dba.getAndSetBit(75));
@@ -150,8 +162,8 @@ public class DirectBitArrayTest {
     assertTrue(hba.getBit(68));
     assertFalse(hba.isEmpty());
 
-    final WritableMemory mem = bitArrayToWritableMemory(hba);
-    DirectBitArray dba = DirectBitArray.writableWrap(mem, hba.isEmpty());
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
+    final DirectBitArray dba = DirectBitArray.writableWrap(seg, hba.isEmpty());
     assertEquals(dba.getNumBitsSet(), 6);
     assertTrue(dba.getBit(68));
     assertFalse(dba.isEmpty());
@@ -165,8 +177,8 @@ public class DirectBitArrayTest {
   public void bitAddresOutOfBoundsNonEmptyTest() {
     final int numBits = 1024;
     final byte[] bytes = new byte[((numBits / 64) + 2) * Long.BYTES];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
-    final DirectBitArray dba = DirectBitArray.initialize(numBits, wmem);
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
+    final DirectBitArray dba = DirectBitArray.initialize(numBits, wseg);
 
     for (int i = 0; i < numBits; i += numBits / 8) {
       dba.getAndSetBit(i);
@@ -184,8 +196,8 @@ public class DirectBitArrayTest {
   public void inversionTest() {
     final int numBits = 1024;
     final byte[] bytes = new byte[((numBits / 64) + 2) * Long.SIZE];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
-    final DirectBitArray dba = DirectBitArray.initialize(numBits, wmem);
+    final MemorySegment wseg = MemorySegment.ofArray(bytes);
+    final DirectBitArray dba = DirectBitArray.initialize(numBits, wseg);
 
     for (int i = 0; i < numBits; i += numBits / 8) {
       dba.getAndSetBit(i);
@@ -209,8 +221,8 @@ public class DirectBitArrayTest {
   public void invalidUnionIntersectionTest() {
     final HeapBitArray hba = new HeapBitArray(128);
     hba.setBit(0);
-    final WritableMemory wmem = bitArrayToWritableMemory(hba);
-    final DirectBitArray dba = DirectBitArray.writableWrap(wmem, false);
+    final MemorySegment wseg = bitArrayToMemorySegment(hba);
+    final DirectBitArray dba = DirectBitArray.writableWrap(wseg, false);
     assertThrows(SketchesArgumentException.class, () -> dba.union(new HeapBitArray(64)));
     assertThrows(SketchesArgumentException.class, () -> dba.intersect(new HeapBitArray(512)));
   }
@@ -219,9 +231,9 @@ public class DirectBitArrayTest {
   public void validUnionAndIntersectionTest() {
     final long numBits = 64;
     final int sizeBytes = (int) BitArray.getSerializedSizeBytes(64);
-    final DirectBitArray ba1 = DirectBitArray.initialize(numBits, WritableMemory.allocate(sizeBytes));
-    final DirectBitArray ba2 = DirectBitArray.initialize(numBits, WritableMemory.allocate(sizeBytes));
-    final DirectBitArray ba3 = DirectBitArray.initialize(numBits, WritableMemory.allocate(sizeBytes));
+    final DirectBitArray ba1 = DirectBitArray.initialize(numBits, MemorySegment.ofArray(new byte[sizeBytes]));
+    final DirectBitArray ba2 = DirectBitArray.initialize(numBits, MemorySegment.ofArray(new byte[sizeBytes]));
+    final DirectBitArray ba3 = DirectBitArray.initialize(numBits, MemorySegment.ofArray(new byte[sizeBytes]));
 
     final int n = 10;
     for (int i = 0; i < n; ++i) {
@@ -237,6 +249,6 @@ public class DirectBitArrayTest {
     assertEquals(ba1.getNumBitsSet(), n / 2);
 
     ba3.union(ba2);
-    assertEquals(ba3.getNumBitsSet(), 3 * n / 2);
+    assertEquals(ba3.getNumBitsSet(), (3 * n) / 2);
   }
 }

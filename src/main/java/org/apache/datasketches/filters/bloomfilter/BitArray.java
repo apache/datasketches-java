@@ -21,10 +21,11 @@ package org.apache.datasketches.filters.bloomfilter;
 
 import static org.apache.datasketches.common.Util.LS;
 
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Buffer;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.positional.PositionalSegment;
 
 /**
   * This class holds an array of bits suitable for use in a Bloom Filter
@@ -32,33 +33,39 @@ import org.apache.datasketches.memory.WritableMemory;
   * <p>Rounds the number of bits up to the smallest multiple of 64 (one long)
   * that is not smaller than the specified number.
   */
-abstract class BitArray {
+abstract class BitArray implements MemorySegmentStatus {
   // MAX_BITS using longs, based on array indices being capped at Integer.MAX_VALUE
   protected static final long MAX_BITS = Integer.MAX_VALUE * (long) Long.SIZE;
 
   protected BitArray() {}
 
-  static BitArray heapify(final Buffer mem, final boolean isEmpty) {
-    return HeapBitArray.heapify(mem, isEmpty);
+  //The position of the PositionalSegment must be the start of the bit array
+  static BitArray heapify(final PositionalSegment posSeg, final boolean isEmpty) {
+    return HeapBitArray.heapify(posSeg, isEmpty);
   }
 
-  static BitArray wrap(final Memory mem, final boolean isEmpty) {
-    return DirectBitArrayR.wrap(mem, isEmpty);
+  static BitArray wrap(final MemorySegment seg, final boolean isEmpty) {
+    return DirectBitArrayR.wrap(seg, isEmpty);
   }
 
-  static BitArray writableWrap(final WritableMemory wmem, final boolean isEmpty) {
-    return DirectBitArray.writableWrap(wmem, isEmpty);
+  static BitArray writableWrap(final MemorySegment wseg, final boolean isEmpty) {
+    return DirectBitArray.writableWrap(wseg, isEmpty);
   }
 
   boolean isEmpty() {
-    return !isDirty() && getNumBitsSet() == 0;
+    return !isDirty() && (getNumBitsSet() == 0);
   }
 
-  abstract boolean hasMemory();
+  @Override
+  public abstract boolean hasMemorySegment();
 
-  abstract boolean isDirect();
+  @Override
+  public abstract boolean isOffHeap();
 
   abstract boolean isReadOnly();
+
+  @Override
+  public abstract boolean isSameResource(MemorySegment that);
 
   abstract boolean getBit(final long index);
 
@@ -127,7 +134,7 @@ abstract class BitArray {
     final StringBuilder sb = new StringBuilder();
     for (int j = 0; j < Long.SIZE; ++j) {
       sb.append((val & (1L << j)) != 0 ? "1" : "0");
-      if (j % 8 == 7) { sb.append(" "); }
+      if ((j % 8) == 7) { sb.append(" "); }
     }
     return sb.toString();
   }

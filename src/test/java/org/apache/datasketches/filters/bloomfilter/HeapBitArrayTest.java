@@ -24,9 +24,11 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.positional.PositionalSegment;
+import org.apache.datasketches.filters.bloomfilter.HeapBitArray;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableBuffer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class HeapBitArrayTest {
@@ -39,8 +41,8 @@ public class HeapBitArrayTest {
     assertEquals(ba.getNumBitsSet(), 0);
     assertTrue(ba.isEmpty());
 
-    assertFalse(ba.hasMemory());
-    assertFalse(ba.isDirect());
+    assertFalse(ba.hasMemorySegment());
+    assertFalse(ba.isOffHeap());
     assertFalse(ba.isReadOnly());
   }
 
@@ -51,7 +53,7 @@ public class HeapBitArrayTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void createTooLargeBitArrayTest() {
-    new HeapBitArray(1L + (long) Integer.MAX_VALUE * Long.SIZE);
+    new HeapBitArray(1L + ((long) Integer.MAX_VALUE * Long.SIZE));
   }
 
   @Test
@@ -143,16 +145,17 @@ public class HeapBitArrayTest {
     assertEquals(ba1.getNumBitsSet(), n / 2);
 
     ba3.union(ba2);
-    assertEquals(ba3.getNumBitsSet(), 3 * n / 2);
+    assertEquals(ba3.getNumBitsSet(), (3 * n) / 2);
   }
 
   @Test
   public void serializeEmptyTest() {
     final HeapBitArray ba = new HeapBitArray(64);
-    final WritableBuffer wbuf = WritableMemory.allocate((int) ba.getSerializedSizeBytes()).asWritableBuffer();
-    ba.writeToBuffer(wbuf);
-    wbuf.resetPosition();
-    final HeapBitArray newBA = HeapBitArray.heapify(wbuf, true);
+    final byte[] arr = new byte[(int) ba.getSerializedSizeBytes()];
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(arr));
+    ba.writeToSegmentAsStream(posSeg);
+    posSeg.resetPosition();
+    final HeapBitArray newBA = HeapBitArray.heapify(posSeg, true);
     assertEquals(newBA.getArrayLength(), ba.getArrayLength());
     assertEquals(newBA.getCapacity(), ba.getCapacity());
     assertEquals(newBA.getNumBitsSet(), ba.getNumBitsSet());
@@ -163,12 +166,14 @@ public class HeapBitArrayTest {
   public void serializeNonEmptyTest() {
     final long n = 8192;
     final HeapBitArray ba = new HeapBitArray(n);
-    for (int i = 0; i < n; i += 3)
+    for (int i = 0; i < n; i += 3) {
       ba.getAndSetBit(i);
-    final WritableBuffer wbuf = WritableMemory.allocate((int) ba.getSerializedSizeBytes()).asWritableBuffer();
-    ba.writeToBuffer(wbuf);
-    wbuf.resetPosition();
-    final HeapBitArray newBA = HeapBitArray.heapify(wbuf, false);
+    }
+    final byte[] arr = new byte[(int) ba.getSerializedSizeBytes()];
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(arr));
+    ba.writeToSegmentAsStream(posSeg);
+    posSeg.resetPosition();
+    final HeapBitArray newBA = HeapBitArray.heapify(posSeg, false);
     assertEquals(newBA.getArrayLength(), ba.getArrayLength());
     assertEquals(newBA.getCapacity(), ba.getCapacity());
     assertEquals(newBA.getNumBitsSet(), ba.getNumBitsSet());
