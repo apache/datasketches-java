@@ -47,6 +47,7 @@ public final class TestUtil  {
    */
   public static final String GENERATE_JAVA_FILES = "generate_java_files";
   public static final String CHECK_CPP_FILES = "check_cpp_files";
+  public static final String CHECK_GO_FILES = "check_go_files";
   public static final String CHECK_CPP_HISTORICAL_FILES = "check_cpp_historical_files";
 
   /**
@@ -58,6 +59,11 @@ public final class TestUtil  {
    * The full target Path for C++ serialized sketches to be tested by Java.
    */
   public static final Path cppPath = createPath("serialization_test_data/cpp_generated_files");
+
+  /**
+   * The full target Path for Go serialized sketches to be tested by Java.
+   */
+  public static final Path goPath = createPath("serialization_test_data/go_generated_files");
 
   private static Path createPath(final String projectLocalDir) {
     try {
