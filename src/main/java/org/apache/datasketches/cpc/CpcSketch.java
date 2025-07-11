@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -30,13 +31,12 @@ import static org.apache.datasketches.cpc.CpcUtil.checkLgK;
 import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This is a unique-counting sketch that implements the
@@ -228,12 +228,12 @@ public final class CpcSketch {
   }
 
   /**
-   * Return the given Memory as a CpcSketch on the Java heap using the DEFAULT_UPDATE_SEED.
-   * @param mem the given Memory
-   * @return the given Memory as a CpcSketch on the Java heap.
+   * Return the given MemorySegment as a CpcSketch on the Java heap using the DEFAULT_UPDATE_SEED.
+   * @param seg the given MemorySegment
+   * @return the given MemorySegment as a CpcSketch on the Java heap.
    */
-  public static CpcSketch heapify(final Memory mem) {
-    return heapify(mem, Util.DEFAULT_UPDATE_SEED);
+  public static CpcSketch heapify(final MemorySegment seg) {
+    return heapify(seg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -246,13 +246,13 @@ public final class CpcSketch {
   }
 
   /**
-   * Return the given Memory as a CpcSketch on the Java heap.
-   * @param mem the given Memory
-   * @param seed the seed used to create the original sketch from which the Memory was derived.
-   * @return the given Memory as a CpcSketch on the Java heap.
+   * Return the given MemorySegment as a CpcSketch on the Java heap.
+   * @param seg the given MemorySegment
+   * @param seed the seed used to create the original sketch from which the MemorySegment was derived.
+   * @return the given MemorySegment as a CpcSketch on the Java heap.
    */
-  public static CpcSketch heapify(final Memory mem, final long seed) {
-    final CompressedState state = CompressedState.importFromMemory(mem);
+  public static CpcSketch heapify(final MemorySegment seg, final long seed) {
+    final CompressedState state = CompressedState.importFromSegment(seg);
     return uncompress(state, seed);
   }
 
@@ -263,8 +263,8 @@ public final class CpcSketch {
    * @return the given byte array as a CpcSketch on the Java heap.
    */
   public static CpcSketch heapify(final byte[] byteArray, final long seed) {
-    final Memory mem = Memory.wrap(byteArray);
-    return heapify(mem, seed);
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
+    return heapify(seg, seed);
   }
 
   /**
@@ -278,7 +278,7 @@ public final class CpcSketch {
   /**
    * Resets this sketch to empty but retains the original LgK and Seed.
    */
-  public final void reset() {
+  public void reset() {
     numCoupons = 0;
     mergeFlag = false;
     fiCol = 0;
@@ -298,9 +298,9 @@ public final class CpcSketch {
   public byte[] toByteArray() {
     final CompressedState state = CompressedState.compress(this);
     final long cap = state.getRequiredSerializedBytes();
-    final WritableMemory wmem = WritableMemory.allocate((int) cap);
-    state.exportToMemory(wmem);
-    return wmem.getArray();
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[(int) cap]);
+    state.exportToSegment(wseg);
+    return wseg.toArray(JAVA_BYTE);
   }
 
   /**
@@ -370,7 +370,7 @@ public final class CpcSketch {
    * @param data The given ByteBuffer
    */
   public void update(final ByteBuffer data) {
-    if ((data == null) || data.hasRemaining() == false) { return; }
+    if ((data == null) || !data.hasRemaining()) { return; }
     final long[] arr = hash(data, seed);
     hashUpdate(arr[0], arr[1]);
   }
@@ -489,7 +489,7 @@ public final class CpcSketch {
         else {
           // cannot use Table.mustInsert(), because it doesn't provide for growth
           final boolean isNovel = PairTable.maybeInsert(newTable, rowCol);
-          assert (isNovel == true);
+          assert isNovel;
         }
       }
     }
@@ -575,7 +575,7 @@ public final class CpcSketch {
         pattern = pattern ^ (1L << col); // erase the 1.
         final int rowCol = (i << 6) | col;
         final boolean isNovel = PairTable.maybeInsert(table, rowCol);
-        assert isNovel == true;
+        assert isNovel;
       }
     }
     sketch.windowOffset = newOffset;
@@ -774,14 +774,14 @@ public final class CpcSketch {
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of a CpcSketch.
-   * @param mem the given Memory
+   * Returns a human readable string of the preamble of a MemorySegment image of a CpcSketch.
+   * @param seg the given MemorySegment
    * @param detail if true, a dump of the compressed window and surprising value streams will be
    * included.
-   * @return a human readable string of the preamble of a Memory image of a CpcSketch.
+   * @return a human readable string of the preamble of a MemorySegment image of a CpcSketch.
    */
-  public static String toString(final Memory mem, final boolean detail) {
-    return PreambleUtil.toString(mem, detail);
+  public static String toString(final MemorySegment seg, final boolean detail) {
+    return PreambleUtil.toString(seg, detail);
   }
 
   private static void fillKxpByteLookup() { //called from static initializer

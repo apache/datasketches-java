@@ -25,10 +25,10 @@ import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 
+import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 /**
@@ -42,9 +42,11 @@ public class CpcSketchCrossLanguageTest {
     final int[] nArr = {0, 100, 200, 2000, 20_000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
     int flavorIdx = 0;
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final CpcSketch sk = new CpcSketch(11);
-      for (int i = 0; i < n; i++) sk.update(i);
+      for (int i = 0; i < n; i++) {
+        sk.update(i);
+      }
       assertEquals(sk.getFlavor(), flavorArr[flavorIdx++]);
       Files.newOutputStream(javaPath.resolve("cpc_n" + n + "_java.sk")).write(sk.toByteArray());
     }
@@ -52,14 +54,14 @@ public class CpcSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   void negativeIntEquivalence() throws Exception {
-    CpcSketch sk = new CpcSketch();
-    byte v1 = (byte) -1;
+    final CpcSketch sk = new CpcSketch();
+    final byte v1 = (byte) -1;
     sk.update(v1);
-    short v2 = -1;
+    final short v2 = -1;
     sk.update(v2);
-    int v3 = -1;
+    final int v3 = -1;
     sk.update(v3);
-    long v4 = -1;
+    final long v4 = -1;
     sk.update(v4);
     assertEquals(sk.getEstimate(), 1, 0.01);
     Files.newOutputStream(javaPath.resolve("cpc_negative_one_java.sk")).write(sk.toByteArray());
@@ -70,9 +72,9 @@ public class CpcSketchCrossLanguageTest {
     final int[] nArr = {0, 100, 200, 2000, 20000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
     int flavorIdx = 0;
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("cpc_n" + n + "_cpp.sk"));
-      final CpcSketch sketch = CpcSketch.heapify(Memory.wrap(bytes));
+      final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
       assertEquals(sketch.getEstimate(), n, n * 0.02);
     }

@@ -19,11 +19,13 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import static org.apache.datasketches.common.Util.ceilingMultiple2expK;
+
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Buffer;
-import org.apache.datasketches.memory.WritableBuffer;
+import org.apache.datasketches.common.positional.PositionalSegment;
 
 /**
  * This class holds an array of bits suitable for use in a Bloom Filter
@@ -38,8 +40,6 @@ final class HeapBitArray extends BitArray {
 
   // creates an array of a given size
   HeapBitArray(final long numBits) {
-    super();
-
     if (numBits <= 0) {
       throw new SketchesArgumentException("Number of bits must be strictly positive. Found: " + numBits);
     }
@@ -47,7 +47,7 @@ final class HeapBitArray extends BitArray {
       throw new SketchesArgumentException("Number of bits may not exceed " + MAX_BITS + ". Found: " + numBits);
     }
 
-    final int numLongs = (int) Math.ceil(numBits / 64.0);
+    final int numLongs = (int) ceilingMultiple2expK(numBits, 6);//Math.ceil(numBits / 64.0)
     numBitsSet_ = 0;
     isDirty_ = false;
     data_ = new long[numLongs];
@@ -55,8 +55,6 @@ final class HeapBitArray extends BitArray {
 
   // uses the provided array
   HeapBitArray(final long numBitsSet, final long[] data) {
-    super();
-
     data_ = data;
     isDirty_ = numBitsSet < 0;
     numBitsSet_ = numBitsSet;
@@ -64,23 +62,24 @@ final class HeapBitArray extends BitArray {
 
   // reads a serialized image, but the BitArray is not fully self-describing so requires
   // a flag to indicate whether the array is empty
-  static HeapBitArray heapify(final Buffer buffer, final boolean isEmpty) {
-    final int numLongs = buffer.getInt();
+  // The PositionslSegment's position must be set to the start of the bit array.
+  static HeapBitArray heapify(final PositionalSegment posSeg, final boolean isEmpty) {
+    final int numLongs = posSeg.getInt();
     if (numLongs < 0) {
-      throw new SketchesArgumentException("Possible corruption: Must have strictly positive array size. Found: " + numLongs);
+      throw new SketchesArgumentException("Possible corruption: Must have non-negative array size. Found: " + numLongs);
     }
 
     if (isEmpty) {
       return new HeapBitArray((long) numLongs * Long.SIZE);
     }
 
-    buffer.getInt(); // unused
+    posSeg.getInt(); // unused
 
     // will be -1 if dirty
-    final long numBitsSet = buffer.getLong();
+    final long numBitsSet = posSeg.getLong();
 
     final long[] data = new long[numLongs];
-    buffer.getLongArray(data, 0, numLongs);
+    posSeg.getLongArray(data, 0, numLongs);
     return new HeapBitArray(numBitsSet, data);
   }
 
@@ -90,33 +89,36 @@ final class HeapBitArray extends BitArray {
   }
 
   @Override
-  boolean hasMemory() {
+  public boolean hasMemorySegment() {
     return false;
   }
 
   @Override
-  boolean isDirect() {
+  public boolean isOffHeap() {
     return false;
   }
 
   @Override
   boolean isReadOnly() { return false; }
 
-  // queries a single bit in the array
+  @Override
+  public boolean isSameResource(final MemorySegment that) { return false; }
+
+  // queries a single bit in the array of longs
   @Override
   boolean getBit(final long index) {
-    return (data_[(int) index >>> 6] & (1L << index)) != 0 ? true : false;
+    return ((data_[(int) index >>> 6] & (1L << index)) != 0);
   }
 
-  // sets a single bit in the array without querying, meaning the method
-  // cannot properly track the number of bits set so set isDirty = true
+  // sets a single bit in the array of longs without querying, meaning the method
+  // cannot properly track the number of bits set, so set isDirty = true
   @Override
   void setBit(final long index) {
     data_[(int) index >>> 6] |= 1L << index;
     isDirty_ = true;
   }
 
-  // returns existing value of bit
+  // returns existing value of bit in an array of longs
   @Override
   boolean getAndSetBit(final long index) {
     final int offset = (int) index >>> 6;
@@ -200,13 +202,13 @@ final class HeapBitArray extends BitArray {
     }
   }
 
-  void writeToBuffer(final WritableBuffer wbuf) {
-    wbuf.putInt(data_.length);
-    wbuf.putInt(0); // unused
+  void writeToSegmentAsStream(final PositionalSegment posSeg) { //position = 16
+    posSeg.setInt(data_.length);
+    posSeg.setInt(0); // unused
 
     if (!isEmpty()) {
-      wbuf.putLong(isDirty_ ? -1 : numBitsSet_);
-      wbuf.putLongArray(data_, 0, data_.length);
+      posSeg.setLong(isDirty_ ? -1 : numBitsSet_);
+      posSeg.setLongArray(data_, 0, data_.length);
     }
   }
 

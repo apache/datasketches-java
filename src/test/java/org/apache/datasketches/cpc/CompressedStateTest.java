@@ -22,10 +22,9 @@ package org.apache.datasketches.cpc;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.io.PrintStream;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 /**
@@ -43,10 +42,10 @@ public class CompressedStateTest {
     Format fmt = state.getFormat();
     assertEquals(fmt, skFmt);
     long c = state.numCoupons;
-    WritableMemory wmem = WritableMemory.allocate((int)state.getRequiredSerializedBytes());
-    state.exportToMemory(wmem);
+    MemorySegment wseg = MemorySegment.ofArray(new byte[(int)state.getRequiredSerializedBytes()]);
+    state.exportToSegment(wseg);
     printf("%8d %8d %10s %35s\n", vIn, c, f.toString(), fmt.toString());
-    CompressedState state2 = CompressedState.importFromMemory(wmem);
+    CompressedState state2 = CompressedState.importFromSegment(wseg);
 
     final CpcUnion union = new CpcUnion(lgK);
     union.update(sk);
@@ -57,10 +56,10 @@ public class CompressedStateTest {
     fmt = state.getFormat();
     assertEquals(fmt, skFmt);
     c = state.numCoupons;
-    wmem = WritableMemory.allocate((int)state.getRequiredSerializedBytes());
-    state.exportToMemory(wmem);
+    wseg = MemorySegment.ofArray(new byte[(int)state.getRequiredSerializedBytes()]);
+    state.exportToSegment(wseg);
     printf("%8d %8d %10s %35s\n", vIn, c, f.toString(), fmt.toString());
-    state2 = CompressedState.importFromMemory(wmem);
+    state2 = CompressedState.importFromSegment(wseg);
     fmt = state2.getFormat();
     assertEquals(fmt, skFmt);
   }
@@ -111,7 +110,7 @@ public class CompressedStateTest {
     final byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
     try {
-      CompressedState.importFromMemory(Memory.wrap(byteArr));
+      CompressedState.importFromSegment(MemorySegment.ofArray(byteArr));
       fail();
     } catch (final AssertionError e) { }
   }

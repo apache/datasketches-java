@@ -20,15 +20,18 @@
 package org.apache.datasketches.common;
 
 import static java.lang.Math.pow;
+import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.apache.datasketches.common.Util.bytesToInt;
 import static org.apache.datasketches.common.Util.bytesToLong;
 import static org.apache.datasketches.common.Util.bytesToString;
-import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingMultiple2expK;
 import static org.apache.datasketches.common.Util.ceilingPowerBaseOfDouble;
+import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.characterPad;
 import static org.apache.datasketches.common.Util.checkBounds;
-import static org.apache.datasketches.common.Util.checkIfPowerOf2;
 import static org.apache.datasketches.common.Util.checkIfMultipleOf8AndGT0;
+import static org.apache.datasketches.common.Util.checkIfPowerOf2;
 import static org.apache.datasketches.common.Util.checkProbability;
 import static org.apache.datasketches.common.Util.convertToLongArray;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
@@ -39,9 +42,9 @@ import static org.apache.datasketches.common.Util.intToBytes;
 import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isLessThanUnsigned;
-import static org.apache.datasketches.common.Util.isPowerOf2;
 import static org.apache.datasketches.common.Util.isMultipleOf8AndGT0;
 import static org.apache.datasketches.common.Util.isOdd;
+import static org.apache.datasketches.common.Util.isPowerOf2;
 import static org.apache.datasketches.common.Util.longToBytes;
 import static org.apache.datasketches.common.Util.milliSecToString;
 import static org.apache.datasketches.common.Util.nanoSecToString;
@@ -51,8 +54,6 @@ import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.common.Util.pwr2SeriesNext;
 import static org.apache.datasketches.common.Util.pwr2SeriesPrev;
 import static org.apache.datasketches.common.Util.zeroPad;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -78,8 +79,6 @@ public class UtilTest {
       final int numL1s = numberOfLeadingOnes(v);
       assertEquals(Long.numberOfTrailingZeros(~v), numT1s);
       assertEquals(Long.numberOfLeadingZeros(~v), numL1s);
-      //println(zeroPad(Long.toBinaryString(v),64) + ", " + numL1s + ", " + numT1s);
-      continue;
     }
   }
 
@@ -270,7 +269,7 @@ public class UtilTest {
 
   @Test
   public void checkBytesToInt() {
-    final byte[] arr = new byte[] {4, 3, 2, 1};
+    final byte[] arr = {4, 3, 2, 1};
     final int result = 4 + (3 << 8) + (2 << 16) + (1 << 24);
     Assert.assertEquals(bytesToInt(arr), result);
     final byte[] arr2 = intToBytes(result, new byte[4]);
@@ -279,7 +278,7 @@ public class UtilTest {
 
   @Test
   public void checkBytesToLong() {
-    final byte[] arr = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
+    final byte[] arr = {8, 7, 6, 5, 4, 3, 2, 1};
     final long result = 8L + (7L << 8) + (6L << 16) + (5L << 24)
                + (4L << 32) + (3L << 40) + (2L << 48) + (1L << 56);
     Assert.assertEquals(bytesToLong(arr), result);
@@ -312,7 +311,7 @@ public class UtilTest {
 
   @Test
   public void checkMsecToString() {
-    final long nS = 60L * 60L * 1000L + 60L * 1000L + 1000L + 1L;
+    final long nS = (60L * 60L * 1000L) + (60L * 1000L) + 1000L + 1L;
     final String result = milliSecToString(nS);
     final String expected = "1:01:01.001";
     Assert.assertEquals(result, expected);
@@ -413,7 +412,7 @@ public class UtilTest {
 
   @Test
   static void checkConvertToLongArray() {
-    byte[] arr = {1,2,3,4,5,6,7,8,9,10,11,12};
+    final byte[] arr = {1,2,3,4,5,6,7,8,9,10,11,12};
 
     long[] out = convertToLongArray(arr, false);
     String s = zeroPad(Long.toHexString(out[0]), 16);
@@ -429,8 +428,12 @@ public class UtilTest {
   }
 
   @Test
-  public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
+  static void checkCeilingMultiple2expK() {
+    final long n = (1 << 36) - 1L;
+    final int k = 6;
+    final long v = ceilingMultiple2expK(n, k);
+    final long v2 = (long)Math.ceil(n / (double)(1 << k));
+    assertEquals(v, v2);
   }
 
   @Test
@@ -439,7 +442,12 @@ public class UtilTest {
     assertNotNull(cppPath);
   }
 
-  private static boolean enablePrinting = false;
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
+
+  private static boolean enablePrinting = true;
 
   static void println(final Object o) {
     if (enablePrinting) {
@@ -452,8 +460,8 @@ public class UtilTest {
    * @param o value to print
    */
   static void print(final Object o) {
-    if (enablePrinting && o != null) {
-      System.out.print(o.toString());
+    if (enablePrinting && (o != null)) {
+      //System.out.print(o.toString());
     }
   }
 

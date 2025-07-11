@@ -24,16 +24,15 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.log2;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
-import static org.apache.datasketches.cpc.CompressedState.importFromMemory;
+import static org.apache.datasketches.cpc.CompressedState.importFromSegment;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
+import java.lang.foreign.MemorySegment;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
 import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This code is used both by unit tests, for short running tests,
@@ -51,20 +50,20 @@ public class CompressionCharacterization {
   private long vIn = 0;
 
   //inputs
-  private int lgMinK;
-  private int lgMaxK; //inclusive
-  private int lgMinT; //Trials at end
-  private int lgMaxT; //Trials at start
-  private int lgMulK; //multiplier of K to produce maxU
-  private int uPPO;
-  private int incLgK; //increment of lgK
-  private PrintStream ps;
-  private PrintWriter pw;
+  private final int lgMinK;
+  private final int lgMaxK; //inclusive
+  private final int lgMinT; //Trials at end
+  private final int lgMaxT; //Trials at start
+  private final int lgMulK; //multiplier of K to produce maxU
+  private final int uPPO;
+  private final int incLgK; //increment of lgK
+  private final PrintStream ps;
+  private final PrintWriter pw;
 
   //intermediates
   private CpcSketch[] streamSketches;
   private CompressedState[] compressedStates1;
-  private WritableMemory[] memoryArr;
+  private MemorySegment[] segArr;
   private CompressedState[] compressedStates2;
   private CpcSketch[] unCompressedSketches;
 
@@ -141,7 +140,7 @@ public class CompressionCharacterization {
     //printf("%d %d %d %d\n", totalTrials, lgTotTrials, 1 << lgWaves, trialsPerWave);
     streamSketches = new CpcSketch[trialsPerWave];
     compressedStates1 = new CompressedState[trialsPerWave];
-    memoryArr = new WritableMemory[trialsPerWave];
+    segArr = new MemorySegment[trialsPerWave];
     compressedStates2 = new CompressedState[trialsPerWave];
     unCompressedSketches = new CpcSketch[trialsPerWave];
 
@@ -194,23 +193,23 @@ public class CompressionCharacterization {
       sumCom_nS += nanoEnd - nanoStart;
       nanoStart = nanoEnd;
 
-      //State to Memory loop
+      //State to MemorySegment loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
         final CompressedState state = compressedStates1[trial];
         final long cap = state.getRequiredSerializedBytes();
-        final WritableMemory wmem = WritableMemory.allocate((int) cap);
-        state.exportToMemory(wmem);
-        memoryArr[trial] = wmem;
+        final MemorySegment wseg = MemorySegment.ofArray(new byte[(int) cap]);
+        state.exportToSegment(wseg);
+        segArr[trial] = wseg;
       }
 
       nanoEnd = System.nanoTime();
       sumSer_nS += nanoEnd - nanoStart;
       nanoStart = nanoEnd;
 
-      //Memory to State loop
+      //MemorySegment to State loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        final Memory mem = memoryArr[trial];
-        final CompressedState state = importFromMemory(mem);
+        final MemorySegment seg = segArr[trial];
+        final CompressedState state = importFromSegment(seg);
         compressedStates2[trial] = state;
       }
 

@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import java.lang.foreign.MemorySegment;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class provides methods to help estimate the correct parameters when
@@ -43,11 +43,11 @@ public final class BloomFilterBuilder {
    * @return The suggested number of hash functions to use with the filter
    */
   public static short suggestNumHashes(final long maxDistinctItems, final long numFilterBits) {
-    if (maxDistinctItems < 1 || numFilterBits < 1) {
+    if ((maxDistinctItems < 1) || (numFilterBits < 1)) {
       throw new SketchesArgumentException("maxDistinctItems and numFilterBits must be strictly positive");
     }
     // ceil to ensure we never average worse than the target
-    return (short) Math.max(1, (int) Math.ceil((double) numFilterBits / maxDistinctItems * Math.log(2.0)));
+    return (short) Math.max(1, (int) Math.ceil(((double) numFilterBits / maxDistinctItems) * Math.log(2.0)));
   }
 
   /**
@@ -56,7 +56,7 @@ public final class BloomFilterBuilder {
    * @return The suggested number of hash functions to use with the filter.
    */
   public static short suggestNumHashes(final double targetFalsePositiveProb) {
-    if (targetFalsePositiveProb <= 0.0 || targetFalsePositiveProb > 1.0) {
+    if ((targetFalsePositiveProb <= 0.0) || (targetFalsePositiveProb > 1.0)) {
       throw new SketchesArgumentException("targetFalsePositiveProb must be a valid probability and strictly greater than 0");
     }
     // ceil to ensure we never average worse than the target
@@ -72,12 +72,12 @@ public final class BloomFilterBuilder {
    */
   public static long suggestNumFilterBits(final long maxDistinctItems, final double targetFalsePositiveProb) {
     validateAccuracyInputs(maxDistinctItems, targetFalsePositiveProb);
-    return (long) Math.ceil(-maxDistinctItems * Math.log(targetFalsePositiveProb) / (Math.log(2) * Math.log(2)));
+    return (long) Math.ceil((-maxDistinctItems * Math.log(targetFalsePositiveProb)) / (Math.log(2) * Math.log(2)));
   }
 
   /**
-   * Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with an optimal number of bits
-   * and hash functions for the given inputs. This is also the minimum size of a WritableMemory for
+   * Returns the minimum MemorySegment size, in bytes, needed for a serialized BloomFilter with an optimal number of bits
+   * and hash functions for the given inputs. This is also the minimum size of a MemorySegment for
    * in-place filter initialization.
    * @param maxDistinctItems The maximum expected number of distinct items to add to the filter
    * @param targetFalsePositiveProb A desired false positive probability per item
@@ -89,8 +89,8 @@ public final class BloomFilterBuilder {
   }
 
   /**
-   * Returns the minimum memory size, in bytes, needed for a serialized BloomFilter with the given number of bits.
-   * This is also the minimum size of a WritableMemory for in-place filter initialization.
+   * Returns the minimum MemorySegment size, in bytes, needed for a serialized BloomFilter with the given number of bits.
+   * This is also the minimum size of a MemorySegment for in-place filter initialization.
    * @param numBits The number of bits in the target BloomFilter's bit array.
    * @return The size, in bytes, required to hold the specified BloomFilter when serialized
    */
@@ -128,7 +128,7 @@ public final class BloomFilterBuilder {
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * using a rnadom base seed for the hash function.
+   * using a random base seed for the hash function.
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
@@ -154,78 +154,77 @@ public final class BloomFilterBuilder {
 
   /**
    * Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
-   * using a random base seed for the hash function and writing into the provided WritableMemory.
+   * using a random base seed for the hash function and writing into the provided MemorySegment.
    * @param maxDistinctItems The maximum expected number of distinct items to add to the filter
    * @param targetFalsePositiveProb A desired false positive probability per item
-   * @param dstMem A WritableMemory to hold the initialized filter
+   * @param dstSeg A MemorySegment to hold the initialized filter
    * @return A new BloomFilter configured for the given input parameters
    */
   public static BloomFilter initializeByAccuracy(
-      final long maxDistinctItems, final double targetFalsePositiveProb, final WritableMemory dstMem) {
-    return initializeByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong(),
-        dstMem);
+      final long maxDistinctItems, final double targetFalsePositiveProb, final MemorySegment dstSeg) {
+    return initializeByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong(), dstSeg);
   }
 
   /**
    * Creates a new BloomFilter with an optimal number of bits and hash functions for the given inputs,
-   * using the provided base seed for the hash function and writing into the provided WritableMemory.
+   * using the provided base seed for the hash function and writing into the provided MemorySegment.
    * @param maxDistinctItems The maximum expected number of distinct items to add to the filter
    * @param targetFalsePositiveProb A desired false positive probability per item
    * @param seed A base hash seed
-   * @param dstMem A WritableMemory to hold the initialized filter
+   * @param dstSeg A MemorySegment to hold the initialized filter
    * @return A new BloomFilter configured for the given input parameters
    */
   public static BloomFilter initializeByAccuracy(
-      final long maxDistinctItems, final double targetFalsePositiveProb, final long seed, final WritableMemory dstMem) {
+      final long maxDistinctItems, final double targetFalsePositiveProb, final long seed, final MemorySegment dstSeg) {
     validateAccuracyInputs(maxDistinctItems, targetFalsePositiveProb);
     final long numBits = suggestNumFilterBits(maxDistinctItems, targetFalsePositiveProb);
     final short numHashes = suggestNumHashes(maxDistinctItems, numBits);
 
-    if (dstMem.getCapacity() < BloomFilter.getSerializedSize(numBits)) {
-      throw new SketchesArgumentException("Provided WritableMemory is insufficient to hold requested filter");
+    if (dstSeg.byteSize() < BloomFilter.getSerializedSize(numBits)) {
+      throw new SketchesArgumentException("Provided MemorySegment is insufficient to hold requested filter");
     }
 
-    return new BloomFilter(numBits, numHashes, seed, dstMem);
+    return new BloomFilter(numBits, numHashes, seed, dstSeg);
   }
 
   /**
    * Initializes a BloomFilter with given number of bits and number of hash functions,
-   * using a random base seed for the hash function and writing into the provided WritableMemory.
+   * using a random base seed for the hash function and writing into the provided MemorySegment.
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
-   * @param dstMem A WritableMemory to hold the initialized filter
+   * @param dstSeg A MemorySegment to hold the initialized filter
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter initializeBySize(final long numBits, final int numHashes, final WritableMemory dstMem) {
-    return initializeBySize(numBits, numHashes, ThreadLocalRandom.current().nextLong(), dstMem);
+  public static BloomFilter initializeBySize(final long numBits, final int numHashes, final MemorySegment dstSeg) {
+    return initializeBySize(numBits, numHashes, ThreadLocalRandom.current().nextLong(), dstSeg);
   }
 
   /**
    * Initializes a BloomFilter with given number of bits and number of hash functions,
-   * using the provided base seed for the hash function and writing into the provided WritableMemory.
+   * using the provided base seed for the hash function and writing into the provided MemorySegment.
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
    * @param seed A base hash seed
-   * @param dstMem A WritableMemory to hold the initialized filter
+   * @param dstSeg A MemorySegment to hold the initialized filter
    * @return A new BloomFilter configured for the given input parameters
    */
-  public static BloomFilter initializeBySize(final long numBits, final int numHashes, final long seed, final WritableMemory dstMem) {
+  public static BloomFilter initializeBySize(final long numBits, final int numHashes, final long seed, final MemorySegment dstSeg) {
     validateSizeInputs(numBits, numHashes);
 
-    if (dstMem.getCapacity() < BloomFilter.getSerializedSize(numBits)) {
-      throw new SketchesArgumentException("Provided WritableMemory is insufficient to hold requested filter");
+    if (dstSeg.byteSize() < BloomFilter.getSerializedSize(numBits)) {
+      throw new SketchesArgumentException("Provided MemorySegment is insufficient to hold requested filter");
     }
 
-    return new BloomFilter(numBits, numHashes, seed, dstMem);
+    return new BloomFilter(numBits, numHashes, seed, dstSeg);
   }
 
   private static void validateAccuracyInputs(final long maxDistinctItems, final double targetFalsePositiveProb) {
     if (maxDistinctItems <= 0) {
       throw new SketchesArgumentException("maxDistinctItems must be strictly positive");
     }
-    if (targetFalsePositiveProb <= 0.0 || targetFalsePositiveProb > 1.0) {
+    if ((targetFalsePositiveProb <= 0.0) || (targetFalsePositiveProb > 1.0)) {
       throw new SketchesArgumentException("targetFalsePositiveProb must be a valid probability and strictly greater than 0");
     }
   }

@@ -26,10 +26,12 @@ import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.filters.bloomfilter.BloomFilter;
+import org.apache.datasketches.filters.bloomfilter.BloomFilterBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -42,11 +44,11 @@ public class BloomFilterCrossLanguageTest {
   public void generatBloomFilterBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 10_000, 2_000_000, 300_000_00};
     final short[] hArr = {3, 5};
-    for (int n : nArr) {
-      for (short numHashes : hArr) {
+    for (final int n : nArr) {
+      for (final short numHashes : hArr) {
         final long configBits = Math.max(n, 1000L); // so empty still has valid bit size
-        BloomFilter bf = BloomFilterBuilder.createBySize(configBits, numHashes);
-        for (int i = 0; i < n / 10; ++i) {
+        final BloomFilter bf = BloomFilterBuilder.createBySize(configBits, numHashes);
+        for (int i = 0; i < (n / 10); ++i) {
           bf.update(i);
         }
         if (n > 0) { bf.update(Float.NaN); }
@@ -61,14 +63,14 @@ public class BloomFilterCrossLanguageTest {
   public void readBloomFilterBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 10_000, 2_000_000, 300_000_00};
     final short[] hArr = {3, 5};
-    for (int n : nArr) {
-      for (short numHashes : hArr) {
+    for (final int n : nArr) {
+      for (final short numHashes : hArr) {
         final byte[] bytes = Files.readAllBytes(cppPath.resolve("bf_n" + n + "_h" + numHashes + "_cpp.sk"));
-        final BloomFilter bf = BloomFilter.heapify(Memory.wrap(bytes));
+        final BloomFilter bf = BloomFilter.heapify(MemorySegment.ofArray(bytes));
         assertEquals(bf.isEmpty(), n == 0);
         assertTrue(bf.isEmpty() || (bf.getBitsUsed() > (n / 10)));
 
-        for (int i = 0; i < n / 10; ++i) {
+        for (int i = 0; i < (n / 10); ++i) {
           assertTrue(bf.query(i));
         }
         if (n > 0) {

@@ -31,28 +31,29 @@ import static org.apache.datasketches.cpc.PreambleUtil.hasHip;
 import static org.apache.datasketches.cpc.PreambleUtil.isCompressed;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * This provides a read-only view of a serialized image of a CpcSketch, which can be
- * on-heap or off-heap represented as a Memory object, or on-heap represented as a byte array.
+ * on-heap or off-heap represented as a MemorySegment object, or on-heap represented as a byte array.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
 public final class CpcWrapper {
-  Memory mem;
+  MemorySegment seg;
 
   /**
-   * Construct a read-only view of the given Memory that contains a CpcSketch
-   * @param mem the given Memory
+   * Construct a read-only view of the given MemorySegment that contains a CpcSketch
+   * @param seg the given MemorySegment
    */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "This is OK here")
-  public CpcWrapper(final Memory mem) {
-    this.mem = mem;
-    checkLoPreamble(mem);
-    rtAssert(isCompressed(mem));
+  public CpcWrapper(final MemorySegment seg) {
+    this.seg = seg;
+    checkLoPreamble(seg);
+    rtAssert(isCompressed(seg));
 
   }
 
@@ -61,7 +62,7 @@ public final class CpcWrapper {
    * @param byteArray the given byte array
    */
   public CpcWrapper(final byte[] byteArray) {
-    this(Memory.wrap(byteArray));
+    this(MemorySegment.ofArray(byteArray));
   }
 
   /**
@@ -69,10 +70,10 @@ public final class CpcWrapper {
    * @return the best estimate of the cardinality of the sketch.
    */
   public double getEstimate() {
-    if (!hasHip(mem)) {
-      return getIconEstimate(PreambleUtil.getLgK(mem), getNumCoupons(mem));
+    if (!hasHip(seg)) {
+      return getIconEstimate(PreambleUtil.getLgK(seg), getNumCoupons(seg));
     }
-    return getHipAccum(mem);
+    return getHipAccum(seg);
   }
 
   /**
@@ -88,7 +89,7 @@ public final class CpcWrapper {
    * @return the configured Log_base2 of K of this sketch.
    */
   public int getLgK() {
-    return PreambleUtil.getLgK(mem);
+    return PreambleUtil.getLgK(seg);
   }
 
   /**
@@ -98,10 +99,10 @@ public final class CpcWrapper {
    * @return the best estimate of the lower bound of the confidence interval given <i>kappa</i>.
    */
   public double getLowerBound(final int kappa) {
-    if (!hasHip(mem)) {
-      return getIconConfidenceLB(PreambleUtil.getLgK(mem), getNumCoupons(mem), kappa);
+    if (!hasHip(seg)) {
+      return getIconConfidenceLB(PreambleUtil.getLgK(seg), getNumCoupons(seg), kappa);
     }
-    return getHipConfidenceLB(PreambleUtil.getLgK(mem), getNumCoupons(mem), getHipAccum(mem), kappa);
+    return getHipConfidenceLB(PreambleUtil.getLgK(seg), getNumCoupons(seg), getHipAccum(seg), kappa);
   }
 
   /**
@@ -111,10 +112,10 @@ public final class CpcWrapper {
    * @return the best estimate of the upper bound of the confidence interval given <i>kappa</i>.
    */
   public double getUpperBound(final int kappa) {
-    if (!hasHip(mem)) {
-      return getIconConfidenceUB(PreambleUtil.getLgK(mem), getNumCoupons(mem), kappa);
+    if (!hasHip(seg)) {
+      return getIconConfidenceUB(PreambleUtil.getLgK(seg), getNumCoupons(seg), kappa);
     }
-    return getHipConfidenceUB(PreambleUtil.getLgK(mem), getNumCoupons(mem), getHipAccum(mem), kappa);
+    return getHipConfidenceUB(PreambleUtil.getLgK(seg), getNumCoupons(seg), getHipAccum(seg), kappa);
   }
 
 }

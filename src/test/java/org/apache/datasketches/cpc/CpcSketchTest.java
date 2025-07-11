@@ -24,13 +24,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 /**
@@ -47,7 +47,7 @@ public class CpcSketchTest {
     sk.update(1L);
     sk.update(2.0);
     sk.update("3");
-    byte[] bytes = new byte[] { 4, 4 };
+    final byte[] bytes = { 4, 4 };
     sk.update(bytes);
     sk.update(ByteBuffer.wrap(bytes));  // same as previous
     sk.update(ByteBuffer.wrap(bytes, 0, 1));
@@ -188,29 +188,29 @@ public class CpcSketchTest {
 
   @Test
   public void checkHeapify() {
-    int lgK = 10;
-    CpcSketch sk = new CpcSketch(lgK, Util.DEFAULT_UPDATE_SEED);
+    final int lgK = 10;
+    final CpcSketch sk = new CpcSketch(lgK, Util.DEFAULT_UPDATE_SEED);
     assertTrue(sk.isEmpty());
-    byte[] byteArray = sk.toByteArray();
-    CpcSketch sk2 = CpcSketch.heapify(byteArray, Util.DEFAULT_UPDATE_SEED);
+    final byte[] byteArray = sk.toByteArray();
+    final CpcSketch sk2 = CpcSketch.heapify(byteArray, Util.DEFAULT_UPDATE_SEED);
     assertTrue(specialEquals(sk2, sk, false, false));
   }
 
   @Test
   public void checkHeapify2() {
-    int lgK = 10;
-    CpcSketch sk = new CpcSketch(lgK);
+    final int lgK = 10;
+    final CpcSketch sk = new CpcSketch(lgK);
     assertTrue(sk.isEmpty());
-    byte[] byteArray = sk.toByteArray();
-    Memory mem = Memory.wrap(byteArray);
-    CpcSketch sk2 = CpcSketch.heapify(mem);
+    final byte[] byteArray = sk.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(byteArray);
+    final CpcSketch sk2 = CpcSketch.heapify(seg);
     assertTrue(specialEquals(sk2, sk, false, false));
   }
 
   @Test
   public void checkRowColUpdate() {
-    int lgK = 10;
-    CpcSketch sk = new CpcSketch(lgK, Util.DEFAULT_UPDATE_SEED);
+    final int lgK = 10;
+    final CpcSketch sk = new CpcSketch(lgK, Util.DEFAULT_UPDATE_SEED);
     sk.rowColUpdate(0);
     assertEquals(sk.getFlavor(), Flavor.SPARSE);
   }
@@ -226,7 +226,7 @@ public class CpcSketchTest {
   /**
    * @param s the string to print
    */
-  private static void println(String s) {
+  private static void println(final String s) {
     //ps.println(s);  //disable here
   }
 
