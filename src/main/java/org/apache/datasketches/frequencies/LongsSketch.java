@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.frequencies;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
@@ -42,6 +43,7 @@ import static org.apache.datasketches.frequencies.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
 
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
@@ -50,8 +52,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.SuppressFBWarnings;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This sketch is useful for tracking approximate frequencies of <i>long</i> items with optional
@@ -152,7 +152,7 @@ public class LongsSketch {
    * Log2 Maximum length of the arrays internal to the hash map supported by the data
    * structure.
    */
-  private int lgMaxMapSize;
+  private final int lgMaxMapSize;
 
   /**
    * The current number of counters supported by the hash map.
@@ -173,7 +173,7 @@ public class LongsSketch {
    * The maximum number of samples used to compute approximate median of counters when doing
    * decrement
    */
-  private int sampleSize;
+  private final int sampleSize;
 
   /**
    * Hash map mapping stored items to approximate counts
@@ -216,16 +216,15 @@ public class LongsSketch {
   }
 
   /**
-   * Returns a sketch instance of this class from the given srcMem,
-   * which must be a Memory representation of this sketch class.
+   * Returns a sketch instance of this class from the given srcSeg,
+   * which must be a MemorySegment representation of this sketch class.
    *
-   * @param srcMem a Memory representation of a sketch of this class.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg a MemorySegment representation of a sketch of this class.
    * @return a sketch instance of this class.
    */
-  public static LongsSketch getInstance(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Source Memory must not be null.");
-    final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //check Memory capacity
+  public static LongsSketch getInstance(final MemorySegment srcSeg) {
+    Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null.");
+    final long pre0 = PreambleUtil.checkPreambleSize(srcSeg); //check MemorySegment capacity
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
     final int preLongs = extractPreLongs(pre0);         //Byte 0
@@ -261,7 +260,7 @@ public class LongsSketch {
     }
     //get full preamble
     final long[] preArr = new long[preLongs];
-    srcMem.getLongArray(0, preArr, 0, preLongs);
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, 0, preArr, 0, preLongs);
 
     final LongsSketch fls = new LongsSketch(lgMaxMapSize, lgCurMapSize);
     fls.streamWeight = 0; //update after
@@ -272,14 +271,14 @@ public class LongsSketch {
 
     //Get countArray
     final long[] countArray = new long[activeItems];
-    final int reqBytes = preBytes + 2 * activeItems * Long.BYTES; //count Arr + Items Arr
-    checkBounds(0, reqBytes, srcMem.getCapacity()); //check Memory capacity
-    srcMem.getLongArray(preBytes, countArray, 0, activeItems);
+    final int reqBytes = preBytes + (2 * activeItems * Long.BYTES); //count Arr + Items Arr
+    checkBounds(0, reqBytes, srcSeg.byteSize()); //check MemorySegment capacity
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, preBytes, countArray, 0, activeItems);
 
     //Get itemArray
     final int itemsOffset = preBytes + (Long.BYTES * activeItems);
     final long[] itemArray = new long[activeItems];
-    srcMem.getLongArray(itemsOffset, itemArray, 0, activeItems);
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, itemsOffset, itemArray, 0, activeItems);
     //update the sketch
     for (int i = 0; i < activeItems; i++) {
       fls.update(itemArray[i], countArray[i]);
@@ -514,8 +513,7 @@ public class LongsSketch {
    * largest error tolerance of the two merged sketches.
    */
   public LongsSketch merge(final LongsSketch other) {
-    if (other == null) { return this; }
-    if (other.isEmpty()) { return this; }
+    if ((other == null) || other.isEmpty()) { return this; }
 
     final long streamWt = streamWeight + other.streamWeight; //capture before merge
 
@@ -557,7 +555,7 @@ public class LongsSketch {
         String.format(fmt, serVer, famID, lgMaxMapSz, flags, streamWeight, offset);
     sb.append(s);
     sb.append(hashMap.serializeToString()); //numActive, curMaplen, key[i], value[i], ...
-    // maxMapCap, samplesize are deterministic functions of maxMapSize,
+    // maxMapCap, sample size are deterministic functions of maxMapSize,
     //  so we don't need them in the serialization
     return sb.toString();
   }
@@ -578,7 +576,7 @@ public class LongsSketch {
       outBytes = (preLongs + (2 * activeItems)) << 3; //2 because both keys and values are longs
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;
@@ -590,7 +588,7 @@ public class LongsSketch {
     pre0 = (empty) ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
 
     if (empty) {
-      mem.putLong(0, pre0);
+      seg.set(JAVA_LONG_UNALIGNED, 0, pre0);
     } else {
       final long pre = 0;
       final long[] preArr = new long[preLongs];
@@ -598,12 +596,11 @@ public class LongsSketch {
       preArr[1] = insertActiveItems(activeItems, pre);
       preArr[2] = streamWeight;
       preArr[3] = offset;
-      mem.putLongArray(0, preArr, 0, preLongs);
-      final int preBytes = preLongs << 3;
-      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
+      MemorySegment.copy(preArr, 0, seg, JAVA_LONG_UNALIGNED, 0, preLongs);
 
-      mem.putLongArray(preBytes + (activeItems << 3), hashMap.getActiveKeys(), 0,
-          activeItems);
+      final int preBytes = preLongs << 3;
+      MemorySegment.copy(hashMap.getActiveValues(), 0, seg, JAVA_LONG_UNALIGNED, preBytes, activeItems);
+      MemorySegment.copy(hashMap.getActiveKeys(), 0, seg, JAVA_LONG_UNALIGNED, preBytes + (activeItems << 3), activeItems);
     }
     return outArr;
   }
@@ -628,16 +625,16 @@ public class LongsSketch {
    * @return a human readable string of the preamble of a byte array image of a LongsSketch.
    */
   public static String toString(final byte[] byteArr) {
-    return toString(Memory.wrap(byteArr));
+    return toString(MemorySegment.ofArray(byteArr));
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of a LongsSketch.
-   * @param mem the given Memory object
-   * @return  a human readable string of the preamble of a Memory image of a LongsSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of a LongsSketch.
+   * @param seg the given MemorySegment object
+   * @return  a human readable string of the preamble of a MemorySegment image of a LongsSketch.
    */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.preambleToString(mem);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.preambleToString(seg);
   }
 
   /**
@@ -754,9 +751,8 @@ public class LongsSketch {
     @Override
     public int hashCode() {
       final int prime = 31;
-      int result = 1;
-      result = (prime * result) + (int) (est ^ (est >>> 32));
-      return result;
+      final int result = 1;
+      return (prime * result) + (int) (est ^ (est >>> 32));
     }
 
     /**
@@ -769,8 +765,7 @@ public class LongsSketch {
     @Override
     public boolean equals(final Object obj) {
       if (this == obj) { return true; }
-      if (obj == null) { return false; }
-      if ( !(obj instanceof Row)) { return false; }
+      if ( (obj == null) || !(obj instanceof Row)) { return false; }
       final Row that = (Row) obj;
       if (est != that.est) { return false; }
       return true;
@@ -811,8 +806,7 @@ public class LongsSketch {
       }
     });
 
-    final Row[] rowsArr = rowList.toArray(new Row[rowList.size()]);
-    return rowsArr;
+    return rowList.toArray(new Row[rowList.size()]);
   }
 
   /**
