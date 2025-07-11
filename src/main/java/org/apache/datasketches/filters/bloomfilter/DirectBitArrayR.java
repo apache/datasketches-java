@@ -56,7 +56,7 @@ public class DirectBitArrayR extends BitArray {
 
   // assumes we have a slice with only the portion of the MemorySegment the BitArray cares about
   static DirectBitArrayR wrap(final MemorySegment seg, final boolean isEmpty) {
-    final int arrayLength = seg.get(JAVA_INT_UNALIGNED, 0);
+    final int arrayLength = seg.get(JAVA_INT_UNALIGNED, 0L);
     final long storedNumBitsSet = isEmpty ? 0L : seg.get(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET);
 
     if (arrayLength < 0) {
@@ -66,7 +66,7 @@ public class DirectBitArrayR extends BitArray {
     // required capacity is arrayLength plus room for
     // arrayLength (in longs) and numBitsSet
     if ((storedNumBitsSet != 0) && (seg.byteSize() < (arrayLength + 2))) {
-      throw new SketchesArgumentException("MemorySegment capacity insufficient for Bloom Filter. Needed: "
+      throw new SketchesArgumentException("MemorySegment capacity is insufficient for Bloom Filter. Needs: "
         + (arrayLength + 2) + " , found: " + seg.byteSize());
     }
     return new DirectBitArrayR(arrayLength, storedNumBitsSet, seg);
@@ -94,7 +94,7 @@ public class DirectBitArrayR extends BitArray {
   }
 
   @Override
-  boolean getBit(final long index) {
+  boolean getBit(final long index) { //index into an array of bytes
     if (isEmpty()) { return false; }
     return (wseg_.get(JAVA_BYTE, DATA_OFFSET + ((int) index >>> 3)) & (1 << (index & 0x7))) != 0;
   }

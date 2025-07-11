@@ -22,6 +22,7 @@ package org.apache.datasketches.filters.bloomfilter;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.common.Util.ceilingMultiple2expK;
 import static org.apache.datasketches.common.Util.clear;
 import static org.apache.datasketches.common.Util.setBits;
 
@@ -54,12 +55,12 @@ final class DirectBitArray extends DirectBitArrayR {
       throw new SketchesArgumentException("Maximum size of a single filter is " + MAX_BITS + " + bits. "
               + "Requested: " + numBits);
     }
-
-    final int arrayLength = (int) Math.ceil(numBits / 64.0); // we know it'll fit in an int based on above checks
+    // we know it'll fit in an int based on above checks
+    final int arrayLength = (int) ceilingMultiple2expK(numBits, 6);//Math.ceil(numBits / 64.0);
     final long requiredBytes = (2L + arrayLength) * Long.BYTES;
     if (wseg.byteSize() < requiredBytes) {
       throw new SketchesArgumentException("Provided MemorySegment too small for requested array length. "
-        + "Requited: " + requiredBytes + ", provided capcity: " + wseg.byteSize());
+        + "Required: " + requiredBytes + ", provided capacity: " + wseg.byteSize());
     }
 
     return new DirectBitArray(arrayLength, wseg);
@@ -107,7 +108,7 @@ final class DirectBitArray extends DirectBitArrayR {
   }
 
   @Override
-  boolean getBit(final long index) {
+  boolean getBit(final long index) { //index a bit in an array of bytes
     return (wseg_.get(JAVA_BYTE, DATA_OFFSET + ((int) index >>> 3)) & (1 << (index & 0x7))) != 0;
   }
 
@@ -128,7 +129,7 @@ final class DirectBitArray extends DirectBitArrayR {
   }
 
   @Override
-  void setBit(final long index) {
+  void setBit(final long index) { //index a bit in an array of bytes
     final long segmentOffset = DATA_OFFSET + ((int) index >>> 3);
     final byte val = wseg_.get(JAVA_BYTE, segmentOffset);
     setBits(wseg_, segmentOffset, (byte) (val | (1 << (index & 0x07))));
@@ -136,7 +137,7 @@ final class DirectBitArray extends DirectBitArrayR {
   }
 
   @Override
-  boolean getAndSetBit(final long index) {
+  boolean getAndSetBit(final long index) { //index a bit in an array of bytes
     final long segmentOffset = DATA_OFFSET + ((int) index >>> 3);
     final byte mask = (byte) (1 << (index & 0x07));
     final byte val = wseg_.get(JAVA_BYTE, segmentOffset);

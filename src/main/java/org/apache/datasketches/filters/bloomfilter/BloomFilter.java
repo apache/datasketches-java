@@ -793,7 +793,6 @@ public final class BloomFilter implements MemorySegmentStatus {
       posSeg.setLong(seed_);
 
       ((HeapBitArray) bitArray_).writeToSegmentAsStream(posSeg); //option: posSeg.asSlice()
-      System.out.println("HERE");
     } else {
       MemorySegment.copy(wseg_, JAVA_BYTE, 0, bytes, 0, (int)sizeBytes);
 
@@ -837,7 +836,7 @@ public final class BloomFilter implements MemorySegmentStatus {
     return longs;
   }
 
-  // Throws an exception with the provided message if the given condition is false
+  // Throws an exception with the provided message if the given condition is true
   private static void checkArgument(final boolean condition, final String message) {
     if (condition) { throw new SketchesArgumentException(message); }
   }

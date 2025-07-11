@@ -19,11 +19,13 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
+import static org.apache.datasketches.common.Util.ceilingMultiple2expK;
+
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
-import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.positional.PositionalSegment;
 
 /**
  * This class holds an array of bits suitable for use in a Bloom Filter
@@ -45,7 +47,7 @@ final class HeapBitArray extends BitArray {
       throw new SketchesArgumentException("Number of bits may not exceed " + MAX_BITS + ". Found: " + numBits);
     }
 
-    final int numLongs = (int) Math.ceil(numBits / 64.0);
+    final int numLongs = (int) ceilingMultiple2expK(numBits, 6);//Math.ceil(numBits / 64.0)
     numBitsSet_ = 0;
     isDirty_ = false;
     data_ = new long[numLongs];
@@ -102,21 +104,21 @@ final class HeapBitArray extends BitArray {
   @Override
   public boolean isSameResource(final MemorySegment that) { return false; }
 
-  // queries a single bit in the array
+  // queries a single bit in the array of longs
   @Override
   boolean getBit(final long index) {
     return ((data_[(int) index >>> 6] & (1L << index)) != 0);
   }
 
-  // sets a single bit in the array without querying, meaning the method
-  // cannot properly track the number of bits set so set isDirty = true
+  // sets a single bit in the array of longs without querying, meaning the method
+  // cannot properly track the number of bits set, so set isDirty = true
   @Override
   void setBit(final long index) {
     data_[(int) index >>> 6] |= 1L << index;
     isDirty_ = true;
   }
 
-  // returns existing value of bit
+  // returns existing value of bit in an array of longs
   @Override
   boolean getAndSetBit(final long index) {
     final int offset = (int) index >>> 6;

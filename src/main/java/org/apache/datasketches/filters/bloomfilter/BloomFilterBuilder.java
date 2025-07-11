@@ -128,7 +128,7 @@ public final class BloomFilterBuilder {
 
   /**
    * Creates a BloomFilter with given number of bits and number of hash functions,
-   * using a rnadom base seed for the hash function.
+   * using a random base seed for the hash function.
    *
    * @param numBits The size of the BloomFilter, in bits
    * @param numHashes The number of hash functions to apply to items
@@ -162,8 +162,7 @@ public final class BloomFilterBuilder {
    */
   public static BloomFilter initializeByAccuracy(
       final long maxDistinctItems, final double targetFalsePositiveProb, final MemorySegment dstSeg) {
-    return initializeByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong(),
-        dstSeg);
+    return initializeByAccuracy(maxDistinctItems, targetFalsePositiveProb, ThreadLocalRandom.current().nextLong(), dstSeg);
   }
 
   /**

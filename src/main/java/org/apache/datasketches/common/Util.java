@@ -425,6 +425,19 @@ public final class Util {
   }
 
   /**
+   * This is a long integer equivalent to <i>Math.ceil(n / (double)(1 << k))</i>
+   * where: <i>0 &lt; k &le; 6</i> and <i>n</i> is a non-negative long.
+   * These limits are not checked for speed.
+   * @param n the input dividend as a positive long greater than zero.
+   * @param k the input divisor exponent of 2 as a positive integer where 0 &lt; k &le; 6.
+   * @return the long integer equivalent to <i>Math.ceil(n / 2^k)</i>.
+   */
+  public static long ceilingMultiple2expK(final long n, final int k) {
+    final long mask = (1L << k) - 1L;
+    return (n & mask) > 0 ? (n >>> k) + 1 : n >>> k;
+  }
+
+  /**
    * Computes the inverse integer power of 2: 1/(2^e) = 2^(-e).
    * @param e a positive value between 0 and 1023 inclusive
    * @return  the inverse integer power of 2: 1/(2^e) = 2^(-e)

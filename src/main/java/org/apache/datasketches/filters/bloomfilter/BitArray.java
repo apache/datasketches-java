@@ -20,6 +20,7 @@
 package org.apache.datasketches.filters.bloomfilter;
 
 import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.ceilingMultiple2expK;
 
 import java.lang.foreign.MemorySegment;
 
@@ -115,7 +116,7 @@ abstract class BitArray implements MemorySegmentStatus {
       throw new SketchesArgumentException("Requested number of bits exceeds maximum allowed. "
         + "Requested: " + numBits + ", maximum: " + MAX_BITS);
     }
-    final int numLongs = (int) Math.ceil(numBits / 64.0);
+    final int numLongs = (int) ceilingMultiple2expK(numBits, 6);//Math.ceil(numBits / 64.0)
     return Long.BYTES * (numLongs + 2L);
   }
 
