@@ -253,7 +253,7 @@ final class PreambleUtil {
   private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
         "Possible Corruption: "
-            + "Size of byte array or Memory not large enough for Preamble: Size: " + cap
+            + "Size of byte array or MemorySegment not large enough for Preamble: Size: " + cap
             + ", Required: " + required);
   }
 

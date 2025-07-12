@@ -145,7 +145,7 @@ public class CouponListTest {
   }
 
   @Test
-  public void checkGetMemory() {
+  public void checkGetMemorySegment() {
     final HllSketch sk1 = new HllSketch(4);
     final AbstractCoupons absCoup = (AbstractCoupons) sk1.hllSketchImpl;
     assertNull(absCoup.getMemorySegment());

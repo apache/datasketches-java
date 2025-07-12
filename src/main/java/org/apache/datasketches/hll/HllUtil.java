@@ -84,7 +84,7 @@ final class HllUtil {
   static void checkSegSize(final long minBytes, final long capBytes) {
     if (capBytes < minBytes) {
       throw new SketchesArgumentException(
-          "Given WritableMemory is not large enough: " + capBytes);
+          "Given MemorySegment is not large enough: " + capBytes);
     }
   }
 
