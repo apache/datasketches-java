@@ -19,11 +19,13 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.GADGET_FLAG_MASK;
-import static org.apache.datasketches.sampling.PreambleUtil.VAROPT_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.TOTAL_WEIGHT_R_DOUBLE;
+import static org.apache.datasketches.sampling.PreambleUtil.VAROPT_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_EMPTY;
 import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_FULL;
 import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_WARMUP;
@@ -40,21 +42,20 @@ import static org.apache.datasketches.sampling.PreambleUtil.getAndCheckPreLongs;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricLBonP;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricUBonP;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.apache.datasketches.common.ArrayOfBooleansSerDe;
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfBooleansSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This sketch provides a variance optimal sample over an input stream of weighted items. The
@@ -80,7 +81,7 @@ public final class VarOptItemsSketch<T> {
    */
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-  private static final ArrayOfBooleansSerDe MARK_SERDE = new ArrayOfBooleansSerDe();
+  private static final ArrayOfBooleansSerDe2 MARK_SERDE = new ArrayOfBooleansSerDe2();
 
   private int k_;                        // max size of sketch, in items
   private int currItemsAlloc_;           // currently allocated array size
@@ -259,22 +260,21 @@ public final class VarOptItemsSketch<T> {
   }
 
   /**
-   * Returns a sketch instance of this class from the given srcMem,
-   * which must be a Memory representation of this sketch class.
+   * Returns a sketch instance of this class from the given srcSeg,
+   * which must be a MemorySegment representation of this sketch class.
    *
    * @param <T>    The type of item this sketch contains
-   * @param srcMem a Memory representation of a sketch of this class.
-   *               <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg a MemorySegment representation of a sketch of this class.
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
-  public static <T> VarOptItemsSketch<T> heapify(final Memory srcMem,
-                                                 final ArrayOfItemsSerDe<T> serDe) {
-    final int numPreLongs = getAndCheckPreLongs(srcMem);
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(srcMem));
-    final int serVer = extractSerVer(srcMem);
-    final int familyId = extractFamilyID(srcMem);
-    final int flags = extractFlags(srcMem);
+  public static <T> VarOptItemsSketch<T> heapify(final MemorySegment srcSeg,
+                                                 final ArrayOfItemsSerDe2<T> serDe) {
+    final int numPreLongs = getAndCheckPreLongs(srcSeg);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(srcSeg));
+    final int serVer = extractSerVer(srcSeg);
+    final int familyId = extractFamilyID(srcSeg);
+    final int flags = extractFlags(srcSeg);
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
     final boolean isGadget = (flags & GADGET_FLAG_MASK) != 0;
 
@@ -284,12 +284,10 @@ public final class VarOptItemsSketch<T> {
         throw new SketchesArgumentException("Possible corruption: Must be " + VO_PRELONGS_EMPTY
                 + " for an empty sketch. Found: " + numPreLongs);
       }
-    } else {
-      if ((numPreLongs != VO_PRELONGS_WARMUP)
-          && (numPreLongs != VO_PRELONGS_FULL)) {
-        throw new SketchesArgumentException("Possible corruption: Must be " + VO_PRELONGS_WARMUP
-                + " or " + VO_PRELONGS_FULL + " for a non-empty sketch. Found: " + numPreLongs);
-      }
+    } else if ((numPreLongs != VO_PRELONGS_WARMUP)
+        && (numPreLongs != VO_PRELONGS_FULL)) {
+      throw new SketchesArgumentException("Possible corruption: Must be " + VO_PRELONGS_WARMUP
+              + " or " + VO_PRELONGS_FULL + " for a non-empty sketch. Found: " + numPreLongs);
     }
     if (serVer != VAROPT_SER_VER) {
         throw new SketchesArgumentException(
@@ -301,7 +299,7 @@ public final class VarOptItemsSketch<T> {
               "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
     }
 
-    final int k = extractK(srcMem);
+    final int k = extractK(srcSeg);
     if (k < 1) {
       throw new SketchesArgumentException("Possible Corruption: k must be at least 1: " + k);
     }
@@ -311,14 +309,14 @@ public final class VarOptItemsSketch<T> {
       return new VarOptItemsSketch<>(k, rf);
     }
 
-    final long n = extractN(srcMem);
+    final long n = extractN(srcSeg);
     if (n < 0) {
       throw new SketchesArgumentException("Possible Corruption: n cannot be negative: " + n);
     }
 
     // get rest of preamble
-    final int hCount = extractHRegionItemCount(srcMem);
-    final int rCount = extractRRegionItemCount(srcMem);
+    final int hCount = extractHRegionItemCount(srcSeg);
+    final int rCount = extractRRegionItemCount(srcSeg);
 
     if (hCount < 0) {
       throw new SketchesArgumentException("Possible Corruption: H region count cannot be "
@@ -332,7 +330,7 @@ public final class VarOptItemsSketch<T> {
     double totalRWeight = 0.0;
     if (numPreLongs == Family.VAROPT.getMaxPreLongs()) {
       if (rCount > 0) {
-        totalRWeight = extractTotalRWeight(srcMem);
+        totalRWeight = extractTotalRWeight(srcSeg);
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: "
@@ -362,7 +360,8 @@ public final class VarOptItemsSketch<T> {
     final long weightOffsetBytes = TOTAL_WEIGHT_R_DOUBLE + (rCount > 0 ? Double.BYTES : 0);
     final ArrayList<Double> weightList = new ArrayList<>(allocatedItems);
     final double[] wts = new double[allocatedItems];
-    srcMem.getDoubleArray(weightOffsetBytes, wts, 0, hCount);
+    MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, weightOffsetBytes, wts, 0, hCount);
+
     // can't use Arrays.asList(wts) since double[] rather than Double[]
     for (int i = 0; i < hCount; ++ i) {
       if (wts[i] <= 0.0) {
@@ -378,22 +377,21 @@ public final class VarOptItemsSketch<T> {
     ArrayList<Boolean> markList = null;
     if (isGadget) {
       final long markOffsetBytes = preLongBytes + ((long) hCount * Double.BYTES);
-      markBytes = ArrayOfBooleansSerDe.computeBytesNeeded(hCount);
+      markBytes = ArrayOfBooleansSerDe2.computeBytesNeeded(hCount);
       markList = new ArrayList<>(allocatedItems);
 
-      final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
-      final Boolean[] markArray = booleansSerDe.deserializeFromMemory(
-              srcMem.region(markOffsetBytes, (hCount >>> 3) + 1), 0, hCount);
+      final ArrayOfBooleansSerDe2 booleansSerDe = new ArrayOfBooleansSerDe2();
+      final Boolean[] markArray = booleansSerDe.deserializeFromMemorySegment(
+              srcSeg.asSlice(markOffsetBytes, (hCount >>> 3) + 1), 0, hCount);
 
-      for (Boolean mark : markArray) {
+      for (final Boolean mark : markArray) {
         if (mark) { ++markCount; }
       }
       markList.addAll(Arrays.asList(markArray));
     }
 
     final long offsetBytes = preLongBytes + ((long) hCount * Double.BYTES) + markBytes;
-    final T[] data = serDe.deserializeFromMemory(
-            srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), 0, totalItems);
+    final T[] data = serDe.deserializeFromMemorySegment(srcSeg.asSlice(offsetBytes), 0, totalItems);
     final List<T> wrappedData = Arrays.asList(data);
     final ArrayList<T> dataList = new ArrayList<>(allocatedItems);
     dataList.addAll(wrappedData.subList(0, hCount));
@@ -531,12 +529,12 @@ public final class VarOptItemsSketch<T> {
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of a VarOptItemsSketch.
-   * @param mem the given Memory
-   * @return a human readable string of the preamble of a Memory image of a VarOptItemsSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of a VarOptItemsSketch.
+   * @param seg the given MemorySegment
+   * @return a human readable string of the preamble of a MemorySegment image of a VarOptItemsSketch.
    */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.preambleToString(mem);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.preambleToString(seg);
   }
 
   /**
@@ -545,7 +543,7 @@ public final class VarOptItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe) {
     if ((r_ == 0) && (h_ == 0)) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
@@ -565,7 +563,7 @@ public final class VarOptItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   // bytes will be null only if empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe, final Class<?> clazz) {
     final int preLongs, numMarkBytes, outBytes;
     final boolean empty = (r_ == 0) && (h_ == 0);
     byte[] itemBytes = null; // for serialized items from serDe
@@ -578,32 +576,32 @@ public final class VarOptItemsSketch<T> {
     } else {
       preLongs = (r_ == 0 ? PreambleUtil.VO_PRELONGS_WARMUP : Family.VAROPT.getMaxPreLongs());
       itemBytes = serDe.serializeToByteArray(getDataSamples(clazz));
-      numMarkBytes = marks_ == null ? 0 : ArrayOfBooleansSerDe.computeBytesNeeded(h_);
+      numMarkBytes = marks_ == null ? 0 : ArrayOfBooleansSerDe2.computeBytesNeeded(h_);
       outBytes = (preLongs << 3) + (h_ * Double.BYTES) + numMarkBytes + itemBytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // build first preLong
-    PreambleUtil.insertPreLongs(mem, preLongs);               // Byte 0
-    PreambleUtil.insertLgResizeFactor(mem, rf_.lg());
-    PreambleUtil.insertSerVer(mem, VAROPT_SER_VER);           // Byte 1
-    PreambleUtil.insertFamilyID(mem, Family.VAROPT.getID());  // Byte 2
-    PreambleUtil.insertFlags(mem, flags);                     // Byte 3
-    PreambleUtil.insertK(mem, k_);                            // Bytes 4-7
+    PreambleUtil.insertPreLongs(seg, preLongs);               // Byte 0
+    PreambleUtil.insertLgResizeFactor(seg, rf_.lg());
+    PreambleUtil.insertSerVer(seg, VAROPT_SER_VER);           // Byte 1
+    PreambleUtil.insertFamilyID(seg, Family.VAROPT.getID());  // Byte 2
+    PreambleUtil.insertFlags(seg, flags);                     // Byte 3
+    PreambleUtil.insertK(seg, k_);                            // Bytes 4-7
 
     if (!empty) {
-      PreambleUtil.insertN(mem, n_);                                      // Bytes 8-15
-      PreambleUtil.insertHRegionItemCount(mem, h_);           // Bytes 16-19
-      PreambleUtil.insertRRegionItemCount(mem, r_);           // Bytes 20-23
+      PreambleUtil.insertN(seg, n_);                                      // Bytes 8-15
+      PreambleUtil.insertHRegionItemCount(seg, h_);           // Bytes 16-19
+      PreambleUtil.insertRRegionItemCount(seg, r_);           // Bytes 20-23
       if (r_ > 0) {
-        PreambleUtil.insertTotalRWeight(mem, totalWtR_);      // Bytes 24-31
+        PreambleUtil.insertTotalRWeight(seg, totalWtR_);      // Bytes 24-31
       }
 
       // write the first h_ weights
       int offset = preLongs << 3;
       for (int i = 0; i < h_; ++i) {
-        mem.putDouble(offset, weights_.get(i));
+        seg.set(JAVA_DOUBLE_UNALIGNED, offset, weights_.get(i));
         offset += Double.BYTES;
       }
 
@@ -611,12 +609,13 @@ public final class VarOptItemsSketch<T> {
       if (marks_ != null) {
         final byte[] markBytes;
         markBytes = MARK_SERDE.serializeToByteArray(marks_.subList(0, h_).toArray(new Boolean[0]));
-        mem.putByteArray(offset, markBytes, 0, markBytes.length);
+        MemorySegment.copy(markBytes, 0, seg, JAVA_BYTE, offset, markBytes.length);
+
         offset += markBytes.length;
       }
 
       // write the sample items, using offset from earlier
-      mem.putByteArray(offset, itemBytes, 0, itemBytes.length);
+      MemorySegment.copy(itemBytes, 0, seg, JAVA_BYTE, offset, itemBytes.length);
     }
 
     return outArr;
@@ -709,8 +708,8 @@ public final class VarOptItemsSketch<T> {
             currItemsAlloc_, rf_, h_, r_, totalWtR_);
 
     if (!asSketch) {
-      sketch.marks_ = this.marks_;
-      sketch.numMarksInH_ = this.numMarksInH_;
+      sketch.marks_ = marks_;
+      sketch.numMarksInH_ = numMarksInH_;
     }
 
     if (adjustedN >= 0) {
@@ -1029,7 +1028,7 @@ public final class VarOptItemsSketch<T> {
 
   /* Converts the data_ and weights_ arrays to heaps. In contrast to other parts
      of the library, this has nothing to do with on- or off-heap storage or the
-     Memory package.
+     MemorySegment package.
    */
   private void convertToHeap() {
     if (h_ < 2) {
@@ -1281,7 +1280,7 @@ public final class VarOptItemsSketch<T> {
     // are 2 Array.asList(data_.subList()) copies better?
     final T[] prunedList = (T[]) Array.newInstance(clazz, getNumSamples());
     int i = 0;
-    for (T item : data_) {
+    for (final T item : data_) {
       if (item != null) {
         prunedList[i++] = item;
       }

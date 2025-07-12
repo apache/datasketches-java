@@ -344,27 +344,27 @@ public class ItemsSketchTest {
   }
 
   @Test
-  public void checkMemExceptions() {
+  public void checkMemorySegmentExceptions() {
     final ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sk1.update(Long.valueOf(1), 1);
     final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
     final byte[] byteArr = sk1.toByteArray(serDe);
-    final MemorySegment mem = MemorySegment.ofArray(byteArr);
-    //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(mem, serDe);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(seg, serDe);
     //println(sk2.toString());
-    final long pre0 = mem.get(JAVA_LONG_UNALIGNED, 0); //The correct first 8 bytes.
+    final long pre0 = seg.get(JAVA_LONG_UNALIGNED, 0); //The correct first 8 bytes.
     //Now start corrupting
-    tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
-    mem.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
+    tryBadSeg(seg, PREAMBLE_LONGS_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt
-    mem.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
+    tryBadSeg(seg, SER_VER_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, FAMILY_BYTE, 2); //Corrupt
-    mem.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
+    tryBadSeg(seg, FAMILY_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
-    mem.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
+    tryBadSeg(seg, FLAGS_BYTE, 4); //Corrupt to true
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
   }
 
   @Test
@@ -406,11 +406,11 @@ public class ItemsSketchTest {
 
   //Restricted methods
 
-  private static void tryBadMem(final MemorySegment mem, final int byteOffset, final int byteValue) {
+  private static void tryBadSeg(final MemorySegment seg, final int byteOffset, final int byteValue) {
     final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
     try {
-      mem.set(JAVA_BYTE, byteOffset, (byte) byteValue); //Corrupt
-      ItemsSketch.getInstance(mem, serDe);
+      seg.set(JAVA_BYTE, byteOffset, (byte) byteValue); //Corrupt
+      ItemsSketch.getInstance(seg, serDe);
       fail();
     } catch (final SketchesArgumentException e) {
       //expected

@@ -218,7 +218,7 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Returns a sketch instance of this class from the given srcMem,
+   * Returns a sketch instance of this class from the given srcSeg,
    * which must be a MemorySegment representation of this sketch class.
    *
    * @param <T> The type of item that this sketch will track
@@ -228,7 +228,7 @@ public class ItemsSketch<T> {
    */
   public static <T> ItemsSketch<T> getInstance(final MemorySegment srcSeg,
       final ArrayOfItemsSerDe2<T> serDe) {
-    Objects.requireNonNull(srcSeg, "srcMem must not be null.");
+    Objects.requireNonNull(srcSeg, "srcSeg must not be null.");
     Objects.requireNonNull(serDe, "serDe must not be null.");
 
     final long pre0 = PreambleUtil.checkPreambleSize(srcSeg); //make sure preamble will fit
