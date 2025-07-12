@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.frequencies;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.frequencies.DistTest.randomGeometricDist;
 import static org.apache.datasketches.frequencies.PreambleUtil.FAMILY_BYTE;
@@ -32,46 +34,49 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.frequencies.ErrorType;
+import org.apache.datasketches.frequencies.LongsSketch;
+import org.apache.datasketches.frequencies.PreambleUtil;
+import org.apache.datasketches.frequencies.ReversePurgeLongHashMap;
 import org.apache.datasketches.frequencies.LongsSketch.Row;
 
 public class LongsSketchTest {
 
   @Test
   public void hashMapSerialTest() {
-    ReversePurgeLongHashMap map = new ReversePurgeLongHashMap(8);
+    final ReversePurgeLongHashMap map = new ReversePurgeLongHashMap(8);
     map.adjustOrPutValue(10, 15);
     map.adjustOrPutValue(10, 5);
     map.adjustOrPutValue(1, 1);
     map.adjustOrPutValue(2, 3);
-    String string = map.serializeToString();
+    final String string = map.serializeToString();
     //println(string);
     //println(map.toString());
-    ReversePurgeLongHashMap new_map =
+    final ReversePurgeLongHashMap new_map =
         ReversePurgeLongHashMap.getInstance(string);
-    String new_string = new_map.serializeToString();
+    final String new_string = new_map.serializeToString();
     Assert.assertTrue(string.equals(new_string));
   }
 
   @Test
   public void frequentItemsStringSerialTest() {
-    LongsSketch sketch = new LongsSketch(8);
-    LongsSketch sketch2 = new LongsSketch(128);
+    final LongsSketch sketch = new LongsSketch(8);
+    final LongsSketch sketch2 = new LongsSketch(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
     sketch.update(1000001, 1010230);
     sketch.update(1000002, 1010230);
 
-    String string0 = sketch.serializeToString();
-    LongsSketch new_sketch0 = LongsSketch.getInstance(string0);
-    String new_string0 = new_sketch0.serializeToString();
+    final String string0 = sketch.serializeToString();
+    final LongsSketch new_sketch0 = LongsSketch.getInstance(string0);
+    final String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
     Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
     Assert.assertTrue(new_sketch0.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
@@ -96,19 +101,19 @@ public class LongsSketchTest {
     sketch2.update(207, 12902390);
     sketch2.update(208, 12902390);
 
-    String string2 = sketch2.serializeToString();
-    LongsSketch new_sketch2 = LongsSketch.getInstance(string2);
-    String new_string2 = new_sketch2.serializeToString();
+    final String string2 = sketch2.serializeToString();
+    final LongsSketch new_sketch2 = LongsSketch.getInstance(string2);
+    final String new_string2 = new_sketch2.serializeToString();
     Assert.assertTrue(string2.equals(new_string2));
     Assert.assertTrue(new_sketch2.getMaximumMapCapacity() == sketch2.getMaximumMapCapacity());
     Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
-    LongsSketch merged_sketch = sketch.merge(sketch2);
+    final LongsSketch merged_sketch = sketch.merge(sketch2);
 
-    String string = merged_sketch.serializeToString();
-    LongsSketch new_sketch = LongsSketch.getInstance(string);
-    String new_string = new_sketch.serializeToString();
+    final String string = merged_sketch.serializeToString();
+    final LongsSketch new_sketch = LongsSketch.getInstance(string);
+    final String new_string = new_sketch.serializeToString();
     Assert.assertTrue(string.equals(new_string));
     Assert.assertTrue(new_sketch.getMaximumMapCapacity() == merged_sketch.getMaximumMapCapacity());
     Assert.assertTrue(new_sketch.getCurrentMapCapacity() == merged_sketch.getCurrentMapCapacity());
@@ -118,30 +123,30 @@ public class LongsSketchTest {
   @Test
   public void frequentItemsByteSerialTest() {
     //Empty Sketch
-    LongsSketch sketch = new LongsSketch(16);
-    byte[] bytearray0 = sketch.toByteArray();
-    WritableMemory mem0 = WritableMemory.writableWrap(bytearray0);
-    LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
-    String str0 = LongsSketch.toString(mem0);
+    final LongsSketch sketch = new LongsSketch(16);
+    final byte[] bytearray0 = sketch.toByteArray();
+    final MemorySegment seg0 = MemorySegment.ofArray(bytearray0);
+    final LongsSketch new_sketch0 = LongsSketch.getInstance(seg0);
+    final String str0 = LongsSketch.toString(seg0);
     println(str0);
-    String string0 = sketch.serializeToString();
-    String new_string0 = new_sketch0.serializeToString();
+    final String string0 = sketch.serializeToString();
+    final String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
 
-    LongsSketch sketch2 = new LongsSketch(128);
+    final LongsSketch sketch2 = new LongsSketch(128);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
     sketch.update(1000001, 1010230);
     sketch.update(1000002, 1010230);
 
-    byte[] bytearray1 = sketch.toByteArray();
-    Memory mem1 = Memory.wrap(bytearray1);
-    LongsSketch new_sketch1 = LongsSketch.getInstance(mem1);
-    String str1 = LongsSketch.toString(bytearray1);
+    final byte[] bytearray1 = sketch.toByteArray();
+    final MemorySegment seg1 = MemorySegment.ofArray(bytearray1);
+    final LongsSketch new_sketch1 = LongsSketch.getInstance(seg1);
+    final String str1 = LongsSketch.toString(bytearray1);
     println(str1);
-    String string1 = sketch.serializeToString();
-    String new_string1 = new_sketch1.serializeToString();
+    final String string1 = sketch.serializeToString();
+    final String new_string1 = new_sketch1.serializeToString();
     Assert.assertTrue(string1.equals(new_string1));
     Assert.assertTrue(new_sketch1.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
     Assert.assertTrue(new_sketch1.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
@@ -166,26 +171,26 @@ public class LongsSketchTest {
     sketch2.update(207, 12902390);
     sketch2.update(208, 12902390);
 
-    byte[] bytearray2 = sketch2.toByteArray();
-    Memory mem2 = Memory.wrap(bytearray2);
-    LongsSketch new_sketch2 = LongsSketch.getInstance(mem2);
+    final byte[] bytearray2 = sketch2.toByteArray();
+    final MemorySegment seg2 = MemorySegment.ofArray(bytearray2);
+    final LongsSketch new_sketch2 = LongsSketch.getInstance(seg2);
 
-    String string2 = sketch2.serializeToString();
-    String new_string2 = new_sketch2.serializeToString();
+    final String string2 = sketch2.serializeToString();
+    final String new_string2 = new_sketch2.serializeToString();
 
     Assert.assertTrue(string2.equals(new_string2));
     Assert.assertTrue(new_sketch2.getMaximumMapCapacity() == sketch2.getMaximumMapCapacity());
     Assert.assertTrue(new_sketch2.getCurrentMapCapacity() == sketch2.getCurrentMapCapacity());
     Assert.assertTrue(new_sketch2.getStreamLength() == sketch2.getStreamLength());
 
-    LongsSketch merged_sketch = sketch.merge(sketch2);
+    final LongsSketch merged_sketch = sketch.merge(sketch2);
 
-    byte[] bytearray = sketch.toByteArray();
-    Memory mem = Memory.wrap(bytearray);
-    LongsSketch new_sketch = LongsSketch.getInstance(mem);
+    final byte[] bytearray = sketch.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(bytearray);
+    final LongsSketch new_sketch = LongsSketch.getInstance(seg);
 
-    String string = sketch.serializeToString();
-    String new_string = new_sketch.serializeToString();
+    final String string = sketch.serializeToString();
+    final String new_string = new_sketch.serializeToString();
 
     Assert.assertTrue(string.equals(new_string));
     Assert.assertTrue(new_sketch.getMaximumMapCapacity() == merged_sketch.getMaximumMapCapacity());
@@ -195,7 +200,7 @@ public class LongsSketchTest {
 
   @Test
   public void frequentItemsByteResetAndEmptySerialTest() {
-    LongsSketch sketch = new LongsSketch(16);
+    final LongsSketch sketch = new LongsSketch(16);
     sketch.update(10, 100);
     sketch.update(10, 100);
     sketch.update(15, 3443);
@@ -203,51 +208,51 @@ public class LongsSketchTest {
     sketch.update(1000002, 1010230);
     sketch.reset();
 
-    byte[] bytearray0 = sketch.toByteArray();
-    Memory mem0 = Memory.wrap(bytearray0);
-    LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
+    final byte[] bytearray0 = sketch.toByteArray();
+    final MemorySegment seg0 = MemorySegment.ofArray(bytearray0);
+    final LongsSketch new_sketch0 = LongsSketch.getInstance(seg0);
 
-    String string0 = sketch.serializeToString();
-    String new_string0 = new_sketch0.serializeToString();
+    final String string0 = sketch.serializeToString();
+    final String new_string0 = new_sketch0.serializeToString();
     Assert.assertTrue(string0.equals(new_string0));
     Assert.assertTrue(new_sketch0.getMaximumMapCapacity() == sketch.getMaximumMapCapacity());
     Assert.assertTrue(new_sketch0.getCurrentMapCapacity() == sketch.getCurrentMapCapacity());
   }
 
   @Test
-  public void checkFreqLongsMemSerDe() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch sk1 = new LongsSketch(minSize);
+  public void checkFreqLongsSegSerDe() {
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch sk1 = new LongsSketch(minSize);
     sk1.update(10, 100);
     sk1.update(10, 100);
     sk1.update(15, 3443); println(sk1.toString());
     sk1.update(1000001, 1010230); println(sk1.toString());
     sk1.update(1000002, 1010230); println(sk1.toString());
 
-    byte[] bytearray0 = sk1.toByteArray();
-    Memory mem0 = Memory.wrap(bytearray0);
-    LongsSketch sk2 = LongsSketch.getInstance(mem0);
+    final byte[] bytearray0 = sk1.toByteArray();
+    final MemorySegment seg0 = MemorySegment.ofArray(bytearray0);
+    final LongsSketch sk2 = LongsSketch.getInstance(seg0);
 
     checkEquality(sk1, sk2);
   }
 
   @Test
   public void checkFreqLongsStringSerDe() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch sk1 = new LongsSketch(minSize);
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch sk1 = new LongsSketch(minSize);
     sk1.update(10, 100);
     sk1.update(10, 100);
     sk1.update(15, 3443);
     sk1.update(1000001, 1010230);
     sk1.update(1000002, 1010230);
 
-    String string1 = sk1.serializeToString();
-    LongsSketch sk2 = LongsSketch.getInstance(string1);
+    final String string1 = sk1.serializeToString();
+    final LongsSketch sk2 = LongsSketch.getInstance(string1);
 
     checkEquality(sk1, sk2);
   }
 
-  private static void checkEquality(LongsSketch sk1, LongsSketch sk2) {
+  private static void checkEquality(final LongsSketch sk1, final LongsSketch sk2) {
     assertEquals(sk1.getNumActiveItems(), sk2.getNumActiveItems());
     assertEquals(sk1.getCurrentMapCapacity(), sk2.getCurrentMapCapacity());
     assertEquals(sk1.getMaximumError(), sk2.getMaximumError());
@@ -256,55 +261,55 @@ public class LongsSketchTest {
     assertEquals(sk1.getStreamLength(), sk2.getStreamLength());
     assertEquals(sk1.isEmpty(), sk2.isEmpty());
 
-    ErrorType NFN = ErrorType.NO_FALSE_NEGATIVES;
-    ErrorType NFP = ErrorType.NO_FALSE_POSITIVES;
+    final ErrorType NFN = ErrorType.NO_FALSE_NEGATIVES;
+    final ErrorType NFP = ErrorType.NO_FALSE_POSITIVES;
     Row[] rowArr1 = sk1.getFrequentItems(NFN);
     Row[] rowArr2 = sk2.getFrequentItems(NFN);
     assertEquals(sk1.getFrequentItems(NFN).length, sk2.getFrequentItems(NFN).length);
     for (int i=0; i<rowArr1.length; i++) {
-      String s1 = rowArr1[i].toString();
-      String s2 = rowArr2[i].toString();
+      final String s1 = rowArr1[i].toString();
+      final String s2 = rowArr2[i].toString();
       assertEquals(s1, s2);
     }
     rowArr1 = sk1.getFrequentItems(NFP);
     rowArr2 = sk2.getFrequentItems(NFP);
     assertEquals(sk1.getFrequentItems(NFP).length, sk2.getFrequentItems(NFP).length);
     for (int i=0; i<rowArr1.length; i++) {
-      String s1 = rowArr1[i].toString();
-      String s2 = rowArr2[i].toString();
+      final String s1 = rowArr1[i].toString();
+      final String s2 = rowArr2[i].toString();
       assertEquals(s1, s2);
     }
   }
 
   @Test
-  public void checkFreqLongsMemDeSerExceptions() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch sk1 = new LongsSketch(minSize);
+  public void checkFreqLongsSegDeSerExceptions() {
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch sk1 = new LongsSketch(minSize);
     sk1.update(1L);
 
-    byte[] bytearray0 = sk1.toByteArray();
-    WritableMemory mem = WritableMemory.writableWrap(bytearray0);
-    long pre0 = mem.getLong(0);
+    final byte[] bytearray0 = sk1.toByteArray();
+    final MemorySegment seg = MemorySegment.ofArray(bytearray0);
+    final long pre0 = seg.get(JAVA_LONG_UNALIGNED, 0);
 
-    tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, PREAMBLE_LONGS_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, SER_VER_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, FAMILY_BYTE, 2); //Corrupt
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, FAMILY_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, FLAGS_BYTE, 4); //Corrupt to true
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
   }
 
-  private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
+  private static void tryBadSeg(final MemorySegment seg, final int byteOffset, final int byteValue) {
     try {
-      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      LongsSketch.getInstance(mem);
+      seg.set(JAVA_BYTE, byteOffset, (byte) byteValue); //Corrupt
+      LongsSketch.getInstance(seg);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
   }
@@ -320,28 +325,28 @@ public class LongsSketchTest {
     tryBadString(  "1,10,2,4,0,0,0,4,0,"); //one extra
   }
 
-  private static void tryBadString(String badString) {
+  private static void tryBadString(final String badString) {
     try {
       LongsSketch.getInstance(badString);
       fail("Should have thrown SketchesArgumentException");
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
   }
 
   @Test
   public void checkFreqLongs(){
-    int numSketches = 1;
-    int n = 2222;
-    double error_tolerance = 1.0/100;
+    final int numSketches = 1;
+    final int n = 2222;
+    final double error_tolerance = 1.0/100;
 
-    LongsSketch[] sketches = new LongsSketch[numSketches];
+    final LongsSketch[] sketches = new LongsSketch[numSketches];
     for (int h = 0; h < numSketches; h++) {
       sketches[h] = newFrequencySketch(error_tolerance);
     }
 
     long item;
-    double prob = .001;
+    final double prob = .001;
     for (int i = 0; i < n; i++) {
       item = randomGeometricDist(prob) + 1;
       for (int h = 0; h < numSketches; h++) {
@@ -350,7 +355,7 @@ public class LongsSketchTest {
     }
 
     for (int h = 0; h < numSketches; h++) {
-      long threshold = sketches[h].getMaximumError();
+      final long threshold = sketches[h].getMaximumError();
       Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       for (int i = 0; i < rows.length; i++) {
         Assert.assertTrue(rows[i].getUpperBound() > threshold);
@@ -368,12 +373,12 @@ public class LongsSketchTest {
 
   @Test
   public void updateOneTime() {
-    int size = 100;
-    double error_tolerance = 1.0 / size;
+    final int size = 100;
+    final double error_tolerance = 1.0 / size;
     //double delta = .01;
-    int numSketches = 1;
+    final int numSketches = 1;
     for (int h = 0; h < numSketches; h++) {
-      LongsSketch sketch = newFrequencySketch(error_tolerance);
+      final LongsSketch sketch = newFrequencySketch(error_tolerance);
       Assert.assertEquals(sketch.getUpperBound(13L), 0);
       Assert.assertEquals(sketch.getLowerBound(13L), 0);
       Assert.assertEquals(sketch.getMaximumError(), 0);
@@ -384,21 +389,21 @@ public class LongsSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkGetInstanceMemory() {
-    WritableMemory mem = WritableMemory.writableWrap(new byte[4]);
-    LongsSketch.getInstance(mem);
+  public void checkGetInstanceMemorySegment() {
+    final MemorySegment seg = MemorySegment.ofArray(new byte[4]);
+    LongsSketch.getInstance(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceString() {
-    String s = "";
+    final String s = "";
     LongsSketch.getInstance(s);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUpdateNegative() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch fls = new LongsSketch(minSize);
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch fls = new LongsSketch(minSize);
     fls.update(1, 0);
     fls.update(1, -1);
   }
@@ -406,11 +411,11 @@ public class LongsSketchTest {
   @SuppressWarnings("unlikely-arg-type")
   @Test
   public void checkGetFrequentItems1() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch fis = new LongsSketch(minSize);
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch fis = new LongsSketch(minSize);
     fis.update(1);
-    Row[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
-    Row row = rowArr[0];
+    final Row[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
+    final Row row = rowArr[0];
     assertTrue(row.hashCode() != 0);
     assertTrue(row.equals(row));
     assertFalse(row.equals(fis));
@@ -428,8 +433,8 @@ public class LongsSketchTest {
 
   @Test
   public void checkGetStorageBytes() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch fls = new LongsSketch(minSize);
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch fls = new LongsSketch(minSize);
     assertEquals(fls.toByteArray().length, fls.getStorageBytes());
     fls.update(1);
     assertEquals(fls.toByteArray().length, fls.getStorageBytes());
@@ -437,8 +442,8 @@ public class LongsSketchTest {
 
   @Test
   public void checkDeSerFromStringArray() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch fls = new LongsSketch(minSize);
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch fls = new LongsSketch(minSize);
     String ser = fls.serializeToString();
     println(ser);
     fls.update(1);
@@ -448,8 +453,8 @@ public class LongsSketchTest {
 
   @Test
   public void checkMerge() {
-    int minSize = 1 << LG_MIN_MAP_SIZE;
-    LongsSketch fls1 = new LongsSketch(minSize);
+    final int minSize = 1 << LG_MIN_MAP_SIZE;
+    final LongsSketch fls1 = new LongsSketch(minSize);
     LongsSketch fls2 = null;
     LongsSketch fle = fls1.merge(fls2);
     assertTrue(fle.isEmpty());
@@ -461,19 +466,19 @@ public class LongsSketchTest {
 
   @Test
   public void checkSortItems() {
-    int numSketches = 1;
-    int n = 2222;
-    double error_tolerance = 1.0/100;
-    int sketchSize = Util.ceilingPowerOf2((int) (1.0 /(error_tolerance*ReversePurgeLongHashMap.getLoadFactor())));
+    final int numSketches = 1;
+    final int n = 2222;
+    final double error_tolerance = 1.0/100;
+    final int sketchSize = Util.ceilingPowerOf2((int) (1.0 /(error_tolerance*ReversePurgeLongHashMap.getLoadFactor())));
     //println("sketchSize: "+sketchSize);
 
-    LongsSketch[] sketches = new LongsSketch[numSketches];
+    final LongsSketch[] sketches = new LongsSketch[numSketches];
     for (int h = 0; h < numSketches; h++) {
       sketches[h] = new LongsSketch(sketchSize);
     }
 
     long item;
-    double prob = .001;
+    final double prob = .001;
     for (int i = 0; i < n; i++) {
       item = randomGeometricDist(prob) + 1;
       for (int h = 0; h < numSketches; h++) {
@@ -482,17 +487,17 @@ public class LongsSketchTest {
     }
 
     for(int h=0; h<numSketches; h++) {
-      long threshold = sketches[h].getMaximumError();
-      Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
+      final long threshold = sketches[h].getMaximumError();
+      final Row[] rows = sketches[h].getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       //println("ROWS: "+rows.length);
       for (int i = 0; i < rows.length; i++) {
         Assert.assertTrue(rows[i].ub > threshold);
       }
-      Row first = rows[0];
-      long anItem = first.getItem();
-      long anEst  = first.getEstimate();
-      long aLB    = first.getLowerBound();
-      String s = first.toString();
+      final Row first = rows[0];
+      final long anItem = first.getItem();
+      final long anEst  = first.getEstimate();
+      final long aLB    = first.getLowerBound();
+      final String s = first.toString();
       println(s);
       assertTrue(anEst >= 0);
       assertTrue(aLB >= 0);
@@ -502,24 +507,24 @@ public class LongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetAndCheckPreLongs() {
-    byte[] byteArr = new byte[8];
+    final byte[] byteArr = new byte[8];
     byteArr[0] = (byte) 2;
-    PreambleUtil.checkPreambleSize(Memory.wrap(byteArr));
+    PreambleUtil.checkPreambleSize(MemorySegment.ofArray(byteArr));
   }
 
   @Test
   public void checkToString1() {
-    int size = 1 << LG_MIN_MAP_SIZE;
+    final int size = 1 << LG_MIN_MAP_SIZE;
     printSketch(size, new long[] {1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 5});
     printSketch(size, new long[] {5, 4, 3, 2, 1, 1, 1, 1, 1, 1, 1});
   }
 
   @Test
   public void checkStringDeserEmptyNotCorrupt() {
-    int size = 1 << LG_MIN_MAP_SIZE;
-    int thresh = (size * 3) / 4;
-    String fmt = "%6d%10s%s";
-    LongsSketch fls = new LongsSketch(size);
+    final int size = 1 << LG_MIN_MAP_SIZE;
+    final int thresh = (size * 3) / 4;
+    final String fmt = "%6d%10s%s";
+    final LongsSketch fls = new LongsSketch(size);
     println("Sketch Size: " + size);
     String s = null;
     int i = 0;
@@ -527,14 +532,14 @@ public class LongsSketchTest {
       fls.update(i+1, 1);
       s = fls.serializeToString();
       println(String.format("SER   " + fmt, (i + 1), fls.isEmpty() + " : ", s ));
-      LongsSketch fls2 = LongsSketch.getInstance(s);
+      final LongsSketch fls2 = LongsSketch.getInstance(s);
       println(String.format("DESER " + fmt, (i + 1), fls2.isEmpty() + " : ", s ));
     }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkStringDeserEmptyCorrupt() {
-    String s = "1,"  //serVer
+    final String s = "1,"  //serVer
              + "10," //FamID
              + "3,"  //lgMaxMapSz
              + "0,"  //Empty Flag = false ... corrupted, should be true
@@ -550,12 +555,12 @@ public class LongsSketchTest {
     assertEquals(LongsSketch.getEpsilon(1024), 3.5 / 1024, 0.0);
     try {
       LongsSketch.getEpsilon(1000);
-    } catch (SketchesArgumentException e) { }
+    } catch (final SketchesArgumentException e) { }
   }
 
   @Test
   public void checkGetAprioriError() {
-    double eps = 3.5 / 1024;
+    final double eps = 3.5 / 1024;
     assertEquals(LongsSketch.getAprioriError(1024, 10_000), eps * 10_000);
   }
 
@@ -566,14 +571,14 @@ public class LongsSketchTest {
 
   //Restricted methods
 
-  public void printSketch(int size, long[] freqArr) {
-    LongsSketch fls = new LongsSketch(size);
-    StringBuilder sb = new StringBuilder();
+  public void printSketch(final int size, final long[] freqArr) {
+    final LongsSketch fls = new LongsSketch(size);
+    final StringBuilder sb = new StringBuilder();
     for (int i = 0; i<freqArr.length; i++) {
       fls.update(i+1, freqArr[i]);
     }
     sb.append("Sketch Size: "+size).append(LS);
-    String s = fls.toString();
+    final String s = fls.toString();
     sb.append(s);
     println(sb.toString());
     printRows(fls, ErrorType.NO_FALSE_NEGATIVES);
@@ -582,19 +587,19 @@ public class LongsSketchTest {
     println("");
   }
 
-  private static void printRows(LongsSketch fls, ErrorType eType) {
-    Row[] rows = fls.getFrequentItems(eType);
-    String s1 = eType.toString();
+  private static void printRows(final LongsSketch fls, final ErrorType eType) {
+    final Row[] rows = fls.getFrequentItems(eType);
+    final String s1 = eType.toString();
     println(s1);
-    String hdr = Row.getRowHeader();
+    final String hdr = Row.getRowHeader();
     println(hdr);
     for (int i=0; i<rows.length; i++) {
-      Row row = rows[i];
-      String s2 = row.toString();
+      final Row row = rows[i];
+      final String s2 = row.toString();
       println(s2);
     }
     if (rows.length > 0) { //check equals null case
-      Row nullRow = null;
+      final Row nullRow = null;
       assertFalse(rows[0].equals(nullRow));
     }
   }
@@ -602,13 +607,13 @@ public class LongsSketchTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.err.println(s); //disable here
   }
 
-  private static LongsSketch newFrequencySketch(double eps) {
-    double loadFactor = ReversePurgeLongHashMap.getLoadFactor();
-    int maxMapSize = Util.ceilingPowerOf2((int) (1.0 /(eps*loadFactor)));
+  private static LongsSketch newFrequencySketch(final double eps) {
+    final double loadFactor = ReversePurgeLongHashMap.getLoadFactor();
+    final int maxMapSize = Util.ceilingPowerOf2((int) (1.0 /(eps*loadFactor)));
     return new LongsSketch(maxMapSize);
   }
 

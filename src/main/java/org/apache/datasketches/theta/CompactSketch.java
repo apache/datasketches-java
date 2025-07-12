@@ -105,7 +105,7 @@ public abstract class CompactSketch extends Sketch {
     final int familyID = extractFamilyID(srcSeg);
     final Family family = idToFamily(familyID);
     if (family != Family.COMPACT) {
-      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+      throw new SketchesArgumentException("Corrupted: " + family + " is not Compact!");
     }
     if (serVer == 4) {
        return heapifyV4(srcSeg, seed, enforceSeed);
@@ -186,7 +186,7 @@ public abstract class CompactSketch extends Sketch {
     final int familyID = extractFamilyID(srcSeg);
     final Family family = Family.idToFamily(familyID);
     if (family != Family.COMPACT) {
-      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+      throw new SketchesArgumentException("Corrupted: " + family + " is not Compact!");
     }
     final short seedHash = Util.computeSeedHash(seed);
 
@@ -285,7 +285,7 @@ public abstract class CompactSketch extends Sketch {
     final int familyId = bytes[PreambleUtil.FAMILY_BYTE];
     final Family family = Family.idToFamily(familyId);
     if (family != Family.COMPACT) {
-      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+      throw new SketchesArgumentException("Corrupted: " + family + " is not Compact!");
     }
     final short seedHash = Util.computeSeedHash(seed);
     if (serVer == 4) {

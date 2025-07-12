@@ -65,7 +65,7 @@ public class CompressedStateTest {
   }
 
   @Test
-  public void checkLoadMemory() {
+  public void checkLoadMemorySegment() {
     printf("%8s %8s %10s %35s\n", "vIn", "c", "Flavor", "Format");
     final CpcSketch sk = new CpcSketch(lgK);
     final int k = 1 << lgK;

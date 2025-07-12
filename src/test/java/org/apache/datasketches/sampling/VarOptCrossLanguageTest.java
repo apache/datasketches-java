@@ -27,12 +27,15 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.lang.foreign.MemorySegment;
 import java.nio.file.Files;
 
-import org.apache.datasketches.common.ArrayOfDoublesSerDe;
-import org.apache.datasketches.common.ArrayOfLongsSerDe;
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.common.ArrayOfDoublesSerDe2;
+import org.apache.datasketches.common.ArrayOfLongsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.sampling.SampleSubsetSummary;
+import org.apache.datasketches.sampling.VarOptItemsSketch;
+import org.apache.datasketches.sampling.VarOptItemsUnion;
 import org.testng.annotations.Test;
 
 /**
@@ -45,11 +48,13 @@ public class VarOptCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateSketchesLong() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final VarOptItemsSketch<Long> sk = VarOptItemsSketch.newInstance(32);
-      for (int i = 1; i <= n; i++) sk.update(Long.valueOf(i), 1.0);
+      for (int i = 1; i <= n; i++) {
+        sk.update(Long.valueOf(i), 1.0);
+      }
       Files.newOutputStream(javaPath.resolve("varopt_sketch_long_n" + n + "_java.sk"))
-        .write(sk.toByteArray(new ArrayOfLongsSerDe()));
+        .write(sk.toByteArray(new ArrayOfLongsSerDe2()));
     }
   }
 
@@ -60,7 +65,7 @@ public class VarOptCrossLanguageTest {
       sketch.update(Integer.toString(i), 1000.0 / i);
     }
     Files.newOutputStream(javaPath.resolve("varopt_sketch_string_exact_java.sk"))
-      .write(sketch.toByteArray(new ArrayOfStringsSerDe()));
+      .write(sketch.toByteArray(new ArrayOfStringsSerDe2()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -74,7 +79,7 @@ public class VarOptCrossLanguageTest {
     sketch.update(-2L, 110000.0);
     sketch.update(-3L, 120000.0);
     Files.newOutputStream(javaPath.resolve("varopt_sketch_long_sampling_java.sk"))
-      .write(sketch.toByteArray(new ArrayOfLongsSerDe()));
+      .write(sketch.toByteArray(new ArrayOfLongsSerDe2()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -102,15 +107,15 @@ public class VarOptCrossLanguageTest {
     }
     union.update(sketch);
     Files.newOutputStream(javaPath.resolve("varopt_union_double_sampling_java.sk"))
-      .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+      .write(union.toByteArray(new ArrayOfDoublesSerDe2()));
   }
 
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppSketchLongs() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_sketch_long_n" + n + "_cpp.sk"));
-      final VarOptItemsSketch<Long> sk = VarOptItemsSketch.heapify(Memory.wrap(bytes), new ArrayOfLongsSerDe());
+      final VarOptItemsSketch<Long> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe2());
       assertEquals(sk.getK(), 32);
       assertEquals(sk.getN(), n);
       assertEquals(sk.getNumSamples(), n > 10 ? 32 : n);
@@ -120,20 +125,22 @@ public class VarOptCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppSketchStringsExact() throws IOException {
     final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_sketch_string_exact_cpp.sk"));
-    final VarOptItemsSketch<String> sk = VarOptItemsSketch.heapify(Memory.wrap(bytes), new ArrayOfStringsSerDe());
+    final VarOptItemsSketch<String> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe2());
     assertEquals(sk.getK(), 1024);
     assertEquals(sk.getN(), 200);
     assertEquals(sk.getNumSamples(), 200);
     final SampleSubsetSummary ss = sk.estimateSubsetSum(item -> true);
     double weight = 0;
-    for (int i = 1; i <= 200; ++i) weight += 1000.0 / i;
+    for (int i = 1; i <= 200; ++i) {
+      weight += 1000.0 / i;
+    }
     assertEquals(ss.getTotalSketchWeight(), weight, EPS);
   }
 
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppSketchLongsSampling() throws IOException {
     final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_sketch_long_sampling_cpp.sk"));
-    final VarOptItemsSketch<Long> sk = VarOptItemsSketch.heapify(Memory.wrap(bytes), new ArrayOfLongsSerDe());
+    final VarOptItemsSketch<Long> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe2());
     assertEquals(sk.getK(), 1024);
     assertEquals(sk.getN(), 2003);
     assertEquals(sk.getNumSamples(), 1024);
@@ -150,7 +157,7 @@ public class VarOptCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppUnionDoubleSampling() throws IOException {
     final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_union_double_sampling_cpp.sk"));
-    final VarOptItemsUnion<Double> u = VarOptItemsUnion.heapify(Memory.wrap(bytes), new ArrayOfDoublesSerDe());
+    final VarOptItemsUnion<Double> u = VarOptItemsUnion.heapify(MemorySegment.ofArray(bytes), new ArrayOfDoublesSerDe2());
 
     // must reduce k in the process
     final VarOptItemsSketch<Double> sk = u.getResult();
@@ -158,7 +165,7 @@ public class VarOptCrossLanguageTest {
     assertEquals(sk.getN(), 97);
 
     // light items, ignoring the heavy one
-    SampleSubsetSummary ss = sk.estimateSubsetSum(item -> item >= 0);
+    final SampleSubsetSummary ss = sk.estimateSubsetSum(item -> item >= 0);
     assertEquals(ss.getEstimate(), 96.0, EPS);
     assertEquals(ss.getTotalSketchWeight(), 96.0 + 1024.0, EPS);
   }

@@ -34,8 +34,8 @@
  *
  * <p>Accuracy for very small streams can be important because Big Data is often fragmented into millions of smaller
  * streams (or segments) that inevitably are power-law distributed in size. If you are sketching all these fragments,
- * as a general rule, more than 80% of your sketches will be very small, 20% will be much larger, and only a few very
- * large in cardinality.
+ * as a general rule, more than 80% of your sketches will be very small, 20% will be much larger, and only a few will
+ * be very large in cardinality.</p>
  *
  * <h4>HIP / Martingale Estimator</h4>
  * When obtaining a cardinality estimate, the sketch automatically determines if it was the result of the capture of
@@ -96,7 +96,7 @@
  * terms of update time, but has the smallest storage footprint of about <i>K/2 * 1.03</i> bytes.
  *
  * <h3>Off-Heap Operation</h3>
- * This HLL sketch also offers the capability of operating off-heap. Given a <i>WritableMemory[5]</i> object
+ * This HLL sketch also offers the capability of operating off-heap. Given a <i>MemorySegment[5]</i> object
  * created by the user, the sketch will perform all of its updates and internal phase transitions
  * in that object, which can actually reside either on-heap or off-heap based on how it was
  * configured. In large systems that must update and union many millions of sketches, having the
@@ -146,9 +146,8 @@
 <i>Back to the Future: an Even More Nearly Optimal Cardinality Estimation Algorithm.</i></a>
  * arXiv 1708.06839, August 22, 2017, Yahoo Research.
  *
- * <p>[5] Memory Component,
- * <a href="https://datasketches.apache.org/docs/Memory/MemoryComponent.html">
-<i>DataSketches Memory Component</i></a>
+ * <p>[5] MemorySegment Component, See
+ * <a href="https://openjdk.org/jeps/454"><i>JEP 454: Foreign Function & Memory API</i></a>
  *
  * <p>[6] MacBook Pro 2.3 GHz 8-Core Intel Core i9
  *

@@ -229,18 +229,18 @@ public final class HashOperations {
    * @param lgArrLongs The log_base2(hashTable.length.
    * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
-   * @param memOffsetBytes offset in the writable <i>MemorySegment</i> where the hashTable starts
+   * @param segOffsetBytes offset in the writable <i>MemorySegment</i> where the hashTable starts
    * @return index of insertion.  Always positive or zero.
    */
   public static int hashInsertOnlyMemorySegment(final MemorySegment wseg, final int lgArrLongs,
-      final long hash, final int memOffsetBytes) {
+      final long hash, final int segOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     // search for duplicate or zero
     final int loopIndex = curProbe;
     do {
-      final int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+      final int curProbeOffsetBytes = (curProbe << 3) + segOffsetBytes;
       final long curArrayHash = wseg.get(JAVA_LONG_UNALIGNED, curProbeOffsetBytes);
       if (curArrayHash == EMPTY) {
         wseg.set(JAVA_LONG_UNALIGNED, curProbeOffsetBytes, hash);
@@ -262,18 +262,18 @@ public final class HashOperations {
    * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * @param hash The hash value to be potentially inserted into an empty slot only if it is not
    * a duplicate of any other hash value in the table. It must not be zero.
-   * @param memOffsetBytes offset in the writable <i>MemorySegment</i> where the hash array starts
+   * @param segOffsetBytes offset in the writable <i>MemorySegment</i> where the hash array starts
    * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    */
   public static int hashSearchOrInsertMemorySegment(final MemorySegment wseg, final int lgArrLongs,
-      final long hash, final int memOffsetBytes) {
+      final long hash, final int segOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
     // search for duplicate or zero
     final int loopIndex = curProbe;
     do {
-      final int curProbeOffsetBytes = (curProbe << 3) + memOffsetBytes;
+      final int curProbeOffsetBytes = (curProbe << 3) + segOffsetBytes;
       final long curArrayHash = wseg.get(JAVA_LONG_UNALIGNED, curProbeOffsetBytes);
       if (curArrayHash == EMPTY) {
         wseg.set(JAVA_LONG_UNALIGNED, curProbeOffsetBytes, hash);

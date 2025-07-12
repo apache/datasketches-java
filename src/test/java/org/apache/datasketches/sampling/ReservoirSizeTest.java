@@ -24,6 +24,8 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.sampling.ReservoirSize;
+import org.apache.datasketches.sampling.SamplingUtil;
 import org.testng.annotations.Test;
 
 public class ReservoirSizeTest {

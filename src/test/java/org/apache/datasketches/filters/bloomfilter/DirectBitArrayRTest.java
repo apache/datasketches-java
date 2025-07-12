@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
 
 public class DirectBitArrayRTest {
 
-  private static MemorySegment bitArrayToMemory(final HeapBitArray ba) {
+  private static MemorySegment bitArrayToMemorySegment(final HeapBitArray ba) {
     // assumes we're using small enough an array to test that
     // size can be measured with an int
     final int numBytes = (int) ba.getSerializedSizeBytes();
@@ -53,7 +53,7 @@ public class DirectBitArrayRTest {
     final HeapBitArray hba = new HeapBitArray(119);
     assertTrue(hba.isEmpty());
 
-    final MemorySegment seg = bitArrayToMemory(hba);
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
     final DirectBitArrayR dba = DirectBitArrayR.wrap(seg, hba.isEmpty());
     assertTrue(dba.isEmpty());
     assertEquals(dba.getCapacity(), 128); // nearest multiple of 64
@@ -92,7 +92,7 @@ public class DirectBitArrayRTest {
     assertTrue(hba.getBit(68));
     assertFalse(hba.isEmpty());
 
-    final MemorySegment seg = bitArrayToMemory(hba);
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
     final DirectBitArrayR dba = DirectBitArrayR.wrap(seg, hba.isEmpty());
     assertEquals(dba.getNumBitsSet(), 6);
     assertTrue(dba.getBit(68));
@@ -118,7 +118,7 @@ public class DirectBitArrayRTest {
     assertTrue(hba.getBit(68));
     assertFalse(hba.isEmpty());
 
-    final MemorySegment seg = bitArrayToMemory(hba);
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
     final DirectBitArrayR dba = DirectBitArrayR.wrap(seg, hba.isEmpty());
     assertEquals(dba.getNumBitsSet(), 6);
     assertTrue(dba.getBit(68));
@@ -130,7 +130,7 @@ public class DirectBitArrayRTest {
   public void bitAddressOutOfBoundsEmptyTest() {
     final int numBits = 256;
     final HeapBitArray hba = new HeapBitArray(numBits);
-    final MemorySegment seg = bitArrayToMemory(hba);
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
     final DirectBitArrayR dba = DirectBitArrayR.wrap(seg, hba.isEmpty());
     assertFalse(dba.getBit(19));   // in range
     assertFalse(dba.getBit(-10));        // out of bounds
@@ -145,7 +145,7 @@ public class DirectBitArrayRTest {
       hba.getAndSetBit(i);
     }
 
-    final MemorySegment seg = bitArrayToMemory(hba);
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
     final DirectBitArrayR dba = DirectBitArrayR.wrap(seg, hba.isEmpty());
     assertThrows(IndexOutOfBoundsException.class, () -> dba.getBit(-10));
     assertThrows(IndexOutOfBoundsException.class, () -> dba.getBit(2048));
@@ -159,7 +159,7 @@ public class DirectBitArrayRTest {
       hba.getAndSetBit(i);
     }
 
-    final MemorySegment seg = bitArrayToMemory(hba);
+    final MemorySegment seg = bitArrayToMemorySegment(hba);
     final DirectBitArrayR dba = DirectBitArrayR.wrap(seg, hba.isEmpty());
 
     // all of these try to modify a read-only MemorySegment

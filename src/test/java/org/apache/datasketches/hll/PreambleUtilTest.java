@@ -110,7 +110,7 @@ public class PreambleUtilTest {
 
   @SuppressWarnings("unused")
   @Test
-  public void checkCorruptMemoryInput() {
+  public void checkCorruptMemorySegmentInput() {
     final HllSketch sk = new HllSketch(12);
     byte[] segObj = sk.toCompactByteArray();
     MemorySegment wseg = MemorySegment.ofArray(segObj);

@@ -19,15 +19,18 @@
 
 package org.apache.datasketches.frequencies;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
-import org.apache.datasketches.common.ArrayOfLongsSerDe;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfLongsSerDe2;
+import org.apache.datasketches.frequencies.ItemsSketch;
+import org.apache.datasketches.frequencies.LongsSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class SerDeCompatibilityTest {
 
-  static final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
+  static final ArrayOfItemsSerDe2<Long> serDe = new ArrayOfLongsSerDe2();
 
   @Test
   public void itemsToLongs() {
@@ -38,7 +41,7 @@ public class SerDeCompatibilityTest {
     sketch1.update(4L);
 
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final LongsSketch sketch2 = LongsSketch.getInstance(WritableMemory.writableWrap(bytes));
+    final LongsSketch sketch2 = LongsSketch.getInstance(MemorySegment.ofArray(bytes));
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -61,7 +64,7 @@ public class SerDeCompatibilityTest {
     sketch1.update(4L);
 
     final byte[] bytes = sketch1.toByteArray();
-    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(WritableMemory.writableWrap(bytes), serDe);
+    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(MemorySegment.ofArray(bytes), serDe);
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);

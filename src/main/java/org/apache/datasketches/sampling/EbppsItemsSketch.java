@@ -19,20 +19,21 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EBPPS_SER_VER;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.HAS_PARTIAL_ITEM_MASK;
 
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * An implementation of an Exact and Bounded Sampling Proportional to Size sketch.
@@ -105,22 +106,20 @@ public final class EbppsItemsSketch<T> {
   }
 
   /**
-   * Returns a sketch instance of this class from the given srcMem,
-   * which must be a Memory representation of this sketch class.
+   * Returns a sketch instance of this class from the given srcSeg,
+   * which must be a MemorySegment representation of this sketch class.
    *
    * @param <T>    The type of item this sketch contains
-   * @param srcMem a Memory representation of a sketch of this class.
-   *               <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg a MemorySegment representation of a sketch of this class.
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
-  public static <T> EbppsItemsSketch<T> heapify(final Memory srcMem,
-                                                final ArrayOfItemsSerDe<T> serDe)
+  public static <T> EbppsItemsSketch<T> heapify(final MemorySegment srcSeg, final ArrayOfItemsSerDe2<T> serDe)
   {
-    final int numPreLongs = PreambleUtil.getAndCheckPreLongs(srcMem);
-    final int serVer = PreambleUtil.extractSerVer(srcMem);
-    final int familyId = PreambleUtil.extractFamilyID(srcMem);
-    final int flags = PreambleUtil.extractFlags(srcMem);
+    final int numPreLongs = PreambleUtil.getAndCheckPreLongs(srcSeg);
+    final int serVer = PreambleUtil.extractSerVer(srcSeg);
+    final int familyId = PreambleUtil.extractFamilyID(srcSeg);
+    final int flags = PreambleUtil.extractFlags(srcSeg);
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) != 0;
     final boolean hasPartialItem = (flags & HAS_PARTIAL_ITEM_MASK) != 0;
 
@@ -130,11 +129,9 @@ public final class EbppsItemsSketch<T> {
         throw new SketchesArgumentException("Possible corruption: Must be " + Family.EBPPS.getMinPreLongs()
                 + " for an empty sketch. Found: " + numPreLongs);
       }
-    } else {
-      if (numPreLongs != Family.EBPPS.getMaxPreLongs()) {
-        throw new SketchesArgumentException("Possible corruption: Must be "
-                + Family.EBPPS.getMaxPreLongs() + " for a non-empty sketch. Found: " + numPreLongs);
-      }
+    } else if (numPreLongs != Family.EBPPS.getMaxPreLongs()) {
+      throw new SketchesArgumentException("Possible corruption: Must be "
+              + Family.EBPPS.getMaxPreLongs() + " for a non-empty sketch. Found: " + numPreLongs);
     }
     if (serVer != EBPPS_SER_VER) {
         throw new SketchesArgumentException(
@@ -146,8 +143,8 @@ public final class EbppsItemsSketch<T> {
               "Possible Corruption: FamilyID must be " + reqFamilyId + ": " + familyId);
     }
 
-    final int k = PreambleUtil.extractK(srcMem);
-    if (k < 1 || k > MAX_K) {
+    final int k = PreambleUtil.extractK(srcSeg);
+    if ((k < 1) || (k > MAX_K)) {
       throw new SketchesArgumentException("Possible Corruption: k must be at least 1 "
               + "and less than " + MAX_K + ". Found: " + k);
     }
@@ -156,30 +153,30 @@ public final class EbppsItemsSketch<T> {
       return new EbppsItemsSketch<>(k);
     }
 
-    final long n = PreambleUtil.extractN(srcMem);
+    final long n = PreambleUtil.extractN(srcSeg);
     if (n < 0) {
       throw new SketchesArgumentException("Possible Corruption: n cannot be negative: " + n);
     }
 
-    final double cumWt = PreambleUtil.extractEbppsCumulativeWeight(srcMem);
-    if (cumWt < 0.0 || Double.isNaN(cumWt) || Double.isInfinite(cumWt)) {
+    final double cumWt = PreambleUtil.extractEbppsCumulativeWeight(srcSeg);
+    if ((cumWt < 0.0) || Double.isNaN(cumWt) || Double.isInfinite(cumWt)) {
       throw new SketchesArgumentException("Possible Corruption: cumWt must be nonnegative and finite: " + cumWt);
     }
 
-    final double maxWt = PreambleUtil.extractEbppsMaxWeight(srcMem);
-    if (maxWt < 0.0 || Double.isNaN(maxWt) || Double.isInfinite(maxWt)) {
+    final double maxWt = PreambleUtil.extractEbppsMaxWeight(srcSeg);
+    if ((maxWt < 0.0) || Double.isNaN(maxWt) || Double.isInfinite(maxWt)) {
       throw new SketchesArgumentException("Possible Corruption: maxWt must be nonnegative and finite: " + maxWt);
     }
 
-    final double rho = PreambleUtil.extractEbppsRho(srcMem);
-    if (rho < 0.0 || rho > 1.0 ||  Double.isNaN(rho) || Double.isInfinite(rho)) {
+    final double rho = PreambleUtil.extractEbppsRho(srcSeg);
+    if ((rho < 0.0) || (rho > 1.0) ||  Double.isNaN(rho) || Double.isInfinite(rho)) {
       throw new SketchesArgumentException("Possible Corruption: rho must be in [0.0, 1.0]: " + rho);
     }
 
     // extract C (part of sample_, not the preamble)
     // due to numeric precision issues, c may occasionally be very slightly larger than k
-    final double c = srcMem.getDouble(EBPPS_C_DOUBLE);
-    if (c < 0 || c >= (k + 1) || Double.isNaN(c) || Double.isInfinite(c)) {
+    final double c = srcSeg.get(JAVA_DOUBLE_UNALIGNED, EBPPS_C_DOUBLE);
+    if ((c < 0) || (c >= (k + 1)) || Double.isNaN(c) || Double.isInfinite(c)) {
       throw new SketchesArgumentException("Possible Corruption: c must be between 0 and k: " + c);
     }
 
@@ -187,8 +184,7 @@ public final class EbppsItemsSketch<T> {
     final int numTotalItems = (int) Math.ceil(c);
     final int numFullItems = (int) Math.floor(c); // floor() not strictly necessary
     final int offsetBytes = EBPPS_ITEMS_START;
-    final T[] rawItems = serDe.deserializeFromMemory(
-            srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), 0, numTotalItems);
+    final T[] rawItems = serDe.deserializeFromMemorySegment(srcSeg.asSlice(offsetBytes), 0, numTotalItems);
     final List<T> itemsList = Arrays.asList(rawItems);
     final ArrayList<T> data;
     final T partialItem;
@@ -223,7 +219,7 @@ public final class EbppsItemsSketch<T> {
    * @param weight the weight of the item
    */
   public void update(final T item, final double weight) {
-    if (weight < 0.0 || Double.isNaN(weight) || Double.isInfinite(weight)) {
+    if ((weight < 0.0) || Double.isNaN(weight) || Double.isInfinite(weight)) {
       throw new SketchesArgumentException("Item weights must be nonnegative and finite. "
         + "Found: " + weight);
     }
@@ -274,7 +270,6 @@ public final class EbppsItemsSketch<T> {
    */
   public void merge(final EbppsItemsSketch<T> other) {
     if (other.getCumulativeWeight() == 0.0) {
-      return;
     } else if (other.getCumulativeWeight() > cumulativeWt_) {
       // need to swap this with other
       // make a copy of other, merge into it, and take the result
@@ -313,7 +308,7 @@ public final class EbppsItemsSketch<T> {
     final double avgWt = other.cumulativeWt_ / other.getC();
     final ArrayList<T> items = other.sample_.getFullItems();
     if (items != null) {
-      for (T item : items) {
+      for (final T item : items) {
         // newWtMax is pre-computed
         final double newCumWt = cumulativeWt_ + avgWt;
         final double newRho = Math.min(1.0 / newWtMax, k_ / newCumWt);
@@ -438,7 +433,7 @@ public final class EbppsItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return the length of a byte array representation of this sketch
    */
-  public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe) {
+  public int getSerializedSizeBytes(final ArrayOfItemsSerDe2<? super T> serDe) {
     if (isEmpty()) {
       return Family.EBPPS.getMinPreLongs() << 3;
     } else if (sample_.getC() < 1.0) {
@@ -456,7 +451,7 @@ public final class EbppsItemsSketch<T> {
    * @param clazz The class represented by &lt;T&gt;
    * @return the length of a byte array representation of this sketch
    */
-  public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
+  public int getSerializedSizeBytes(final ArrayOfItemsSerDe2<? super T> serDe, final Class<?> clazz) {
     if (n_ == 0) {
       return Family.EBPPS.getMinPreLongs() << 3;
     }
@@ -473,7 +468,7 @@ public final class EbppsItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe) {
     if (n_ == 0) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
@@ -492,7 +487,7 @@ public final class EbppsItemsSketch<T> {
    * @param clazz The class represented by &lt;T&gt;
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = n_ == 0;
     byte[] itemBytes = null; // for serialized items from sample_
@@ -507,36 +502,36 @@ public final class EbppsItemsSketch<T> {
       outBytes = (preLongs << 3) + Double.BYTES + itemBytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // Common header elements
-    PreambleUtil.insertPreLongs(mem, preLongs);              // Byte 0
-    PreambleUtil.insertSerVer(mem, EBPPS_SER_VER);           // Byte 1
-    PreambleUtil.insertFamilyID(mem, Family.EBPPS.getID());  // Byte 2
+    PreambleUtil.insertPreLongs(seg, preLongs);              // Byte 0
+    PreambleUtil.insertSerVer(seg, EBPPS_SER_VER);           // Byte 1
+    PreambleUtil.insertFamilyID(seg, Family.EBPPS.getID());  // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);        // Byte 3
+      PreambleUtil.insertFlags(seg, EMPTY_FLAG_MASK);        // Byte 3
     } else {
-      PreambleUtil.insertFlags(mem, sample_.hasPartialItem() ? HAS_PARTIAL_ITEM_MASK : 0);
+      PreambleUtil.insertFlags(seg, sample_.hasPartialItem() ? HAS_PARTIAL_ITEM_MASK : 0);
     }
-    PreambleUtil.insertK(mem, k_);                           // Bytes 4-7
+    PreambleUtil.insertK(seg, k_);                           // Bytes 4-7
 
     // conditional elements
     if (!empty) {
-      PreambleUtil.insertN(mem, n_);
-      PreambleUtil.insertEbppsCumulativeWeight(mem, cumulativeWt_);
-      PreambleUtil.insertEbppsMaxWeight(mem, wtMax_);
-      PreambleUtil.insertEbppsRho(mem, rho_);
+      PreambleUtil.insertN(seg, n_);
+      PreambleUtil.insertEbppsCumulativeWeight(seg, cumulativeWt_);
+      PreambleUtil.insertEbppsMaxWeight(seg, wtMax_);
+      PreambleUtil.insertEbppsRho(seg, rho_);
 
       // data from sample_ -- itemBytes includes the partial item
-      mem.putDouble(EBPPS_C_DOUBLE, sample_.getC());
-      mem.putByteArray(EBPPS_ITEMS_START, itemBytes, 0, itemBytes.length);
+      seg.set(JAVA_DOUBLE_UNALIGNED, EBPPS_C_DOUBLE, sample_.getC());
+      MemorySegment.copy(itemBytes, 0, seg, JAVA_BYTE, EBPPS_ITEMS_START, itemBytes.length);
     }
 
     return outArr;
   }
 
   private static void checkK(final int k) {
-    if (k <= 0 || k > MAX_K) {
+    if ((k <= 0) || (k > MAX_K)) {
       throw new SketchesArgumentException("k must be strictly positive and less than " + MAX_K);
     }
   }

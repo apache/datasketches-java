@@ -19,12 +19,14 @@
 
 package org.apache.datasketches.frequencies;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 
 // @formatter:off
 
@@ -86,16 +88,16 @@ final class PreambleUtil {
   static final int SER_VER = 1;
 
   /**
-   * Returns a human readable string summary of the preamble state of the given Memory.
-   * Note: other than making sure that the given Memory size is large
+   * Returns a human readable string summary of the preamble state of the given MemorySegment.
+   * Note: other than making sure that the given MemorySegment size is large
    * enough for just the preamble, this does not do much value checking of the contents of the
    * preamble as this is primarily a tool for debugging the preamble visually.
    *
-   * @param srcMem the given Memory.
+   * @param srcSeg the given MemorySegment
    * @return the summary preamble string.
    */
-  public static String preambleToString(final Memory srcMem) {
-    final long pre0 = checkPreambleSize(srcMem); //make sure we can get the assumed preamble
+  public static String preambleToString(final MemorySegment srcSeg) {
+    final long pre0 = checkPreambleSize(srcSeg); //make sure we can get the assumed preamble
     final int preLongs = extractPreLongs(pre0);   //byte 0
     final int serVer = extractSerVer(pre0);       //byte 1
     final Family family = Family.idToFamily(extractFamilyID(pre0)); //byte 2
@@ -119,7 +121,7 @@ final class PreambleUtil {
     if (preLongs == maxPreLongs) {
       //get full preamble
       final long[] preArr = new long[preLongs];
-      srcMem.getLongArray(0, preArr, 0, preLongs);
+      MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, 0, preArr, 0, preLongs);
       activeItems =  extractActiveItems(preArr[1]);
       streamLength = preArr[2];
       offset = preArr[3];
@@ -234,14 +236,14 @@ final class PreambleUtil {
   }
 
   /**
-   * Checks Memory for capacity to hold the preamble and returns the first 8 bytes.
-   * @param mem the given Memory
+   * Checks MemorySegment for capacity to hold the preamble and returns the first 8 bytes.
+   * @param seg the given MemorySegment
    * @return the first 8 bytes of preamble as a long.
    */
-  static long checkPreambleSize(final Memory mem) {
-    final long cap = mem.getCapacity();
+  static long checkPreambleSize(final MemorySegment seg) {
+    final long cap = seg.byteSize();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    final long pre0 = mem.getLong(0);
+    final long pre0 = seg.get(JAVA_LONG_UNALIGNED, 0);
     final int preLongs = (int) (pre0 & 0X3FL); //lower 6 bits
     final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
@@ -251,7 +253,7 @@ final class PreambleUtil {
   private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
         "Possible Corruption: "
-            + "Size of byte array or Memory not large enough for Preamble: Size: " + cap
+            + "Size of byte array or MemorySegment not large enough for Preamble: Size: " + cap
             + ", Required: " + required);
   }
 

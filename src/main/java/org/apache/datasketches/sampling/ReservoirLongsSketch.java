@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
@@ -33,6 +35,7 @@ import static org.apache.datasketches.sampling.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricLBonP;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricUBonP;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
@@ -41,8 +44,6 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This sketch provides a reservoir sample over an input stream of <code>long</code>s. The sketch
@@ -124,8 +125,7 @@ public final class ReservoirLongsSketch {
           "Instantiating sketch with max size less than array length: " + k
               + " max size, array of length " + data.length);
     }
-    if (((itemsSeen >= k) && (data.length < k))
-        || ((itemsSeen < k) && (data.length < itemsSeen))) {
+    if (((itemsSeen >= k) ? (data.length < k) : (data.length < itemsSeen))) {
       throw new SketchesArgumentException("Instantiating sketch with too few samples. "
           + "Items seen: " + itemsSeen + ", max reservoir size: " + k + ", "
           + "items array length: " + data.length);
@@ -183,22 +183,21 @@ public final class ReservoirLongsSketch {
   }
 
   /**
-   * Returns a sketch instance of this class from the given srcMem, which must be a Memory
+   * Returns a sketch instance of this class from the given srcSeg, which must be a MemorySegment
    * representation of this sketch class.
    *
-   * @param srcMem a Memory representation of a sketch of this class. <a href=
-   *        "{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg a MemorySegment representation of a sketch of this class.
    * @return a sketch instance of this class
    */
-  public static ReservoirLongsSketch heapify(final Memory srcMem) {
-    Family.RESERVOIR.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+  public static ReservoirLongsSketch heapify(final MemorySegment srcSeg) {
+    Family.RESERVOIR.checkFamilyID(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
 
-    final int numPreLongs = extractPreLongs(srcMem);
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(srcMem));
-    final int serVer = extractSerVer(srcMem);
-    final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
-    final long itemsSeen = (isEmpty ? 0 : extractN(srcMem));
-    int k = extractK(srcMem);
+    final int numPreLongs = extractPreLongs(srcSeg);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(srcSeg));
+    final int serVer = extractSerVer(srcSeg);
+    final boolean isEmpty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) != 0;
+    final long itemsSeen = (isEmpty ? 0 : extractN(srcSeg));
+    int k = extractK(srcSeg);
 
     // Check values
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
@@ -211,7 +210,7 @@ public final class ReservoirLongsSketch {
 
     if (serVer != RESERVOIR_SER_VER) {
       if (serVer == 1) {
-        final short encK = extractEncodedReservoirSize(srcMem);
+        final short encK = extractEncodedReservoirSize(srcSeg);
         k = ReservoirSize.decodeValue(encK);
       } else {
         throw new SketchesArgumentException(
@@ -238,7 +237,7 @@ public final class ReservoirLongsSketch {
     }
 
     final long[] data = new long[allocatedSize];
-    srcMem.getLongArray(preLongBytes, data, 0, numSketchLongs);
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, preLongBytes, data, 0, numSketchLongs);
 
     return new ReservoirLongsSketch(data, itemsSeen, rf, k);
   }
@@ -376,12 +375,12 @@ public final class ReservoirLongsSketch {
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of a ReservoirLongsSketch.
-   * @param mem the given Memory
-   * @return a human readable string of the preamble of a Memory image of a ReservoirLongsSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of a ReservoirLongsSketch.
+   * @param seg the given MemorySegment
+   * @return a human readable string of the preamble of a MemorySegment image of a ReservoirLongsSketch.
    */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.preambleToString(mem);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.preambleToString(seg);
   }
 
   /**
@@ -402,27 +401,27 @@ public final class ReservoirLongsSketch {
       outBytes = (preLongs + numItems) << 3; // for longs, we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // build first preLong
-    PreambleUtil.insertPreLongs(mem, preLongs);                 // Byte 0
-    PreambleUtil.insertLgResizeFactor(mem, rf_.lg());
-    PreambleUtil.insertSerVer(mem, RESERVOIR_SER_VER);          // Byte 1
-    PreambleUtil.insertFamilyID(mem, Family.RESERVOIR.getID()); // Byte 2
+    PreambleUtil.insertPreLongs(seg, preLongs);                 // Byte 0
+    PreambleUtil.insertLgResizeFactor(seg, rf_.lg());
+    PreambleUtil.insertSerVer(seg, RESERVOIR_SER_VER);          // Byte 1
+    PreambleUtil.insertFamilyID(seg, Family.RESERVOIR.getID()); // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);           // Byte 3
+      PreambleUtil.insertFlags(seg, EMPTY_FLAG_MASK);           // Byte 3
     } else {
-      PreambleUtil.insertFlags(mem, 0);
+      PreambleUtil.insertFlags(seg, 0);
     }
-    PreambleUtil.insertK(mem, reservoirSize_);                  // Bytes 4-7
+    PreambleUtil.insertK(seg, reservoirSize_);                  // Bytes 4-7
 
     if (!empty) {
       // second preLong, only if non-empty
-      PreambleUtil.insertN(mem, itemsSeen_);
+      PreambleUtil.insertN(seg, itemsSeen_);
 
       // insert the serialized samples, offset by the preamble size
       final int preBytes = preLongs << 3;
-      mem.putLongArray(preBytes, data_, 0, numItems);
+      MemorySegment.copy(data_, 0, seg, JAVA_LONG_UNALIGNED, preBytes, numItems);
     }
 
     return outArr;
@@ -539,7 +538,7 @@ public final class ReservoirLongsSketch {
   // A1: We're assuming the sketch source is read-only
   // Q2: Why not copy the source sketch, permute samples, then truncate the sample array and
   // reduce k?
-  // A2: That would involve allocating memory proportional to the old k. Even if only a
+  // A2: That would involve allocating MemorySegment proportional to the old k. Even if only a
   // temporary violation of maxK, we're avoiding violating it at all.
   ReservoirLongsSketch downsampledCopy(final int maxK) {
     final ReservoirLongsSketch rls = new ReservoirLongsSketch(maxK, rf_);

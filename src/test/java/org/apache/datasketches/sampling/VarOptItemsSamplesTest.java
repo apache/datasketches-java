@@ -28,6 +28,8 @@ import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.apache.datasketches.sampling.VarOptItemsSamples;
+import org.apache.datasketches.sampling.VarOptItemsSketch;
 import org.testng.annotations.Test;
 
 /**
