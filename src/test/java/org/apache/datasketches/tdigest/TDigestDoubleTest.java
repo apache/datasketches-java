@@ -70,9 +70,6 @@ public class TDigestDoubleTest {
     for (int i = 0; i < n; i++) {
       td.update(i);
     }
-//    System.out.println(td.toString(true));
-//    td.compress();
-//    System.out.println(td.toString(true));
     assertFalse(td.isEmpty());
     assertEquals(td.getTotalWeight(), n);
     assertEquals(td.getMinValue(), 0);
@@ -124,7 +121,6 @@ public class TDigestDoubleTest {
     assertEquals(td1.getTotalWeight(), n);
     assertEquals(td1.getMinValue(), 0);
     assertEquals(td1.getMaxValue(), n - 1);
-//    System.out.println(td1.toString(true));
   }
 
   @Test
