@@ -282,7 +282,7 @@ public final class TDigestDouble {
     }
     final double w1 = weight - centroidsWeight_ - (centroidWeights_[numCentroids_ - 1] / 2.0);
     final double w2 = (centroidWeights_[numCentroids_ - 1] / 2.0) - w1;
-    return weightedAverage(centroidWeights_[numCentroids_ - 1], w1, maxValue_, w2);
+    return weightedAverage(centroidMeans_[numCentroids_ - 1], w1, maxValue_, w2);
   }
 
   /**
