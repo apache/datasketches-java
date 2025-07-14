@@ -25,7 +25,7 @@ import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import java.lang.foreign.MemorySegment;
 
 /**
- * Iterates within a given Memory extracting integer pairs.
+ * Iterates within a given MemorySegment extracting integer pairs.
  *
  * @author Lee Rhodes
  */

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
@@ -32,14 +33,13 @@ import static org.apache.datasketches.sampling.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.sampling.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.sampling.VarOptItemsSketch.newInstanceFromUnionResult;
 
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Provides a unioning operation over varopt sketches. This union allows the sample size k to float,
@@ -140,29 +140,29 @@ public final class VarOptItemsUnion<T> {
   }
 
   /**
-   * Instantiates a Union from Memory
+   * Instantiates a Union from MemorySegment
    *
    * @param <T> The type of item this sketch contains
-   * @param srcMem Memory object containing a serialized union
+   * @param srcSeg MemorySegment object containing a serialized union
    * @param serDe An instance of ArrayOfItemsSerDe
-   * @return A VarOptItemsUnion created from the provided Memory
+   * @return A VarOptItemsUnion created from the provided MemorySegment
    */
-  public static <T> VarOptItemsUnion<T> heapify(final Memory srcMem,
-                                                final ArrayOfItemsSerDe<T> serDe) {
-    Family.VAROPT_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+  public static <T> VarOptItemsUnion<T> heapify(final MemorySegment srcSeg,
+                                                final ArrayOfItemsSerDe2<T> serDe) {
+    Family.VAROPT_UNION.checkFamilyID(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
 
     long n = 0;
     double outerTauNum = 0.0;
     long outerTauDenom = 0;
 
-    final int numPreLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
-    final int maxK = extractMaxK(srcMem);
+    final int numPreLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final boolean isEmpty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) != 0;
+    final int maxK = extractMaxK(srcSeg);
     if (!isEmpty) {
-      n = extractN(srcMem);
-      outerTauNum = extractOuterTauNumerator(srcMem);
-      outerTauDenom = extractOuterTauDenominator(srcMem);
+      n = extractN(srcSeg);
+      outerTauNum = extractOuterTauNumerator(srcSeg);
+      outerTauDenom = extractOuterTauDenominator(srcSeg);
     }
 
     if (serVer != VAROPT_SER_VER) {
@@ -188,8 +188,8 @@ public final class VarOptItemsUnion<T> {
       viu.outerTauDenom = outerTauDenom;
 
       final int preLongBytes = numPreLongs << 3;
-      final Memory sketchMem = srcMem.region(preLongBytes, srcMem.getCapacity() - preLongBytes);
-      viu.gadget_ = VarOptItemsSketch.heapify(sketchMem, serDe);
+      final MemorySegment sketchSeg = srcSeg.asSlice(preLongBytes);
+      viu.gadget_ = VarOptItemsSketch.heapify(sketchSeg, serDe);
     }
 
     return viu;
@@ -209,16 +209,16 @@ public final class VarOptItemsUnion<T> {
   }
 
   /**
-   * Union the given Memory image of the sketch.
+   * Union the given MemorySegment image of the sketch.
    *
    *<p>This method can be repeatedly called.</p>
    *
-   * @param mem Memory image of sketch to be merged
+   * @param seg MemorySegment image of sketch to be merged
    * @param serDe An instance of ArrayOfItemsSerDe
    */
-  public void update(final Memory mem, final ArrayOfItemsSerDe<T> serDe) {
-    if (mem != null) {
-      final VarOptItemsSketch<T> vis = VarOptItemsSketch.heapify(mem, serDe);
+  public void update(final MemorySegment seg, final ArrayOfItemsSerDe2<T> serDe) {
+    if (seg != null) {
+      final VarOptItemsSketch<T> vis = VarOptItemsSketch.heapify(seg, serDe);
       mergeInto(vis);
     }
   }
@@ -297,7 +297,7 @@ public final class VarOptItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this union
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe) {
     assert gadget_ != null;
     if (gadget_.getNumSamples() == 0) {
       return toByteArray(serDe, null);
@@ -315,7 +315,7 @@ public final class VarOptItemsUnion<T> {
    * @return a byte array representation of this union
    */
   // gadgetBytes will be null only if gadget_ == null AND empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = gadget_.getNumSamples() == 0;
     final byte[] gadgetBytes = (empty ? null : gadget_.toByteArray(serDe, clazz));
@@ -328,26 +328,26 @@ public final class VarOptItemsUnion<T> {
       outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // build preLong
-    PreambleUtil.insertPreLongs(mem, preLongs);                    // Byte 0
-    PreambleUtil.insertSerVer(mem, VAROPT_SER_VER);                // Byte 1
-    PreambleUtil.insertFamilyID(mem, Family.VAROPT_UNION.getID()); // Byte 2
+    PreambleUtil.insertPreLongs(seg, preLongs);                    // Byte 0
+    PreambleUtil.insertSerVer(seg, VAROPT_SER_VER);                // Byte 1
+    PreambleUtil.insertFamilyID(seg, Family.VAROPT_UNION.getID()); // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);
+      PreambleUtil.insertFlags(seg, EMPTY_FLAG_MASK);
     } else {
-      PreambleUtil.insertFlags(mem, 0);                            // Byte 3
+      PreambleUtil.insertFlags(seg, 0);                            // Byte 3
     }
-    PreambleUtil.insertMaxK(mem, maxK_);                           // Bytes 4-7
+    PreambleUtil.insertMaxK(seg, maxK_);                           // Bytes 4-7
 
     if (!empty) {
-      PreambleUtil.insertN(mem, n_);                               // Bytes 8-15
-      PreambleUtil.insertOuterTauNumerator(mem, outerTauNumer);    // Bytes 16-23
-      PreambleUtil.insertOuterTauDenominator(mem, outerTauDenom);  // Bytes 24-31
+      PreambleUtil.insertN(seg, n_);                               // Bytes 8-15
+      PreambleUtil.insertOuterTauNumerator(seg, outerTauNumer);    // Bytes 16-23
+      PreambleUtil.insertOuterTauDenominator(seg, outerTauDenom);  // Bytes 24-31
 
       final int preBytes = preLongs << 3;
-      mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
+      MemorySegment.copy(gadgetBytes, 0, seg, JAVA_BYTE, preBytes, gadgetBytes.length);
     }
 
     return outArr;

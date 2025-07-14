@@ -68,7 +68,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     return lgConfigK;
   }
 
-  //Memory must be already initialized and may have data. Writable, must not be Compact.
+  //MemorySegment must be already initialized and may have data. Writable, must not be Compact.
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment wseg) {
     super(checkSegCompactFlag(wseg, lgConfigK), tgtHllType, CurMode.HLL);
     this.wseg = wseg;
@@ -78,7 +78,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     insertEmptyFlag(wseg, false);
   }
 
-  //Memory must already be initialized and should have data. Read-only. May be Compact or not
+  //MemorySegment must already be initialized and should have data. Read-only. May be Compact or not
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment seg, final boolean readOnly) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
     wseg = null;

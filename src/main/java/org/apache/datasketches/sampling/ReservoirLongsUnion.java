@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
@@ -29,10 +30,10 @@ import static org.apache.datasketches.sampling.PreambleUtil.extractMaxK;
 import static org.apache.datasketches.sampling.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.sampling.PreambleUtil.extractSerVer;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Class to union reservoir samples of longs.
@@ -79,18 +80,18 @@ public final class ReservoirLongsUnion {
   }
 
   /**
-   * Instantiates a Union from Memory
+   * Instantiates a Union from MemorySegment
    *
-   * @param srcMem Memory object containing a serialized union
-   * @return A ReservoirLongsUnion created from the provided Memory
+   * @param srcSeg MemorySegment object containing a serialized union
+   * @return A ReservoirLongsUnion created from the provided MemorySegment
    */
-  public static ReservoirLongsUnion heapify(final Memory srcMem) {
-    Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+  public static ReservoirLongsUnion heapify(final MemorySegment srcSeg) {
+    Family.RESERVOIR_UNION.checkFamilyID(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
 
-    final int numPreLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
-    int maxK = extractMaxK(srcMem);
+    final int numPreLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final boolean isEmpty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) != 0;
+    int maxK = extractMaxK(srcSeg);
 
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR_UNION.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR_UNION.getMaxPreLongs());
@@ -102,7 +103,7 @@ public final class ReservoirLongsUnion {
 
     if (serVer != RESERVOIR_SER_VER) {
       if (serVer == 1) {
-        final short encMaxK = extractEncodedReservoirSize(srcMem);
+        final short encMaxK = extractEncodedReservoirSize(srcSeg);
         maxK = ReservoirSize.decodeValue(encMaxK);
       } else {
         throw new SketchesArgumentException(
@@ -114,9 +115,8 @@ public final class ReservoirLongsUnion {
 
     if (!isEmpty) {
       final int preLongBytes = numPreLongs << 3;
-      final Memory sketchMem =
-          srcMem.region(preLongBytes, srcMem.getCapacity() - preLongBytes);
-      rlu.update(sketchMem);
+      final MemorySegment sketchSeg = srcSeg.asSlice(preLongBytes);
+      rlu.update(sketchSeg);
     }
 
     return rlu;
@@ -156,21 +156,21 @@ public final class ReservoirLongsUnion {
   }
 
   /**
-   * Union the given Memory image of the sketch.
+   * Union the given MemorySegment image of the sketch.
    *
    * <p>
    * This method can be repeatedly called. If the given sketch is null it is interpreted as an empty
    * sketch.
    * </p>
    *
-   * @param mem Memory image of sketch to be merged
+   * @param seg MemorySegment image of sketch to be merged
    */
-  public void update(final Memory mem) {
-    if (mem == null) {
+  public void update(final MemorySegment seg) {
+    if (seg == null) {
       return;
     }
 
-    ReservoirLongsSketch rls = ReservoirLongsSketch.heapify(mem);
+    ReservoirLongsSketch rls = ReservoirLongsSketch.heapify(seg);
 
     rls = (rls.getK() <= maxK_ ? rls : rls.downsampledCopy(maxK_));
 
@@ -252,22 +252,24 @@ public final class ReservoirLongsUnion {
       outBytes = (preLongs << 3) + gadgetBytes.length; // longs, so we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // construct header
-    PreambleUtil.insertPreLongs(mem, preLongs);                       // Byte 0
-    PreambleUtil.insertSerVer(mem, RESERVOIR_SER_VER);                // Byte 1
-    PreambleUtil.insertFamilyID(mem, Family.RESERVOIR_UNION.getID()); // Byte 2
+    PreambleUtil.insertPreLongs(seg, preLongs);                       // Byte 0
+    PreambleUtil.insertSerVer(seg, RESERVOIR_SER_VER);                // Byte 1
+    PreambleUtil.insertFamilyID(seg, Family.RESERVOIR_UNION.getID()); // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);                 // Byte 3
+      PreambleUtil.insertFlags(seg, EMPTY_FLAG_MASK);                 // Byte 3
     } else {
-      PreambleUtil.insertFlags(mem, 0);
+      PreambleUtil.insertFlags(seg, 0);
     }
-    PreambleUtil.insertMaxK(mem, maxK_);                              // Bytes 4-7
+    PreambleUtil.insertMaxK(seg, maxK_);                              // Bytes 4-7
 
     if (!empty) {
       final int preBytes = preLongs << 3;
-      mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
+      MemorySegment.copy(gadgetBytes, 0, seg, JAVA_BYTE, preBytes, gadgetBytes.length);
+
+
     }
 
     return outArr;
@@ -312,7 +314,7 @@ public final class ReservoirLongsUnion {
    *
    * @param sketchIn Sketch with new samples from which to draw
    * @param isModifiable Flag indicating whether sketchIn can be modified (e.g. if it was rebuild
-   *        from Memory)
+   *        from MemorySegment)
    */
   private void twoWayMergeInternal(final ReservoirLongsSketch sketchIn,
                                    final boolean isModifiable) {

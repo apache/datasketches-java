@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.sampling.PreambleUtil.RESERVOIR_SIZE_INT;
@@ -30,12 +33,15 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.sampling.PreambleUtil;
+import org.apache.datasketches.sampling.ReservoirLongsSketch;
+import org.apache.datasketches.sampling.ReservoirLongsUnion;
+import org.apache.datasketches.sampling.ReservoirSize;
+import org.testng.annotations.Test;
 
 public class ReservoirLongsUnionTest {
   @Test
@@ -60,7 +66,7 @@ public class ReservoirLongsUnionTest {
     rlu.update(5);
     assertNotNull(rlu.getResult());
 
-    // pass in a sketch, as both an object and memory
+    // pass in a sketch, as both an object and MemorySegment
     final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
     for (int i = 0; i < n; ++i) {
       rls.update(i);
@@ -72,9 +78,9 @@ public class ReservoirLongsUnionTest {
     assertEquals(rlu.getResult().getN(), rls.getN());
 
     final byte[] sketchBytes = rls.toByteArray();
-    final Memory mem = Memory.wrap(sketchBytes);
+    final MemorySegment seg = MemorySegment.ofArray(sketchBytes);
     rlu = ReservoirLongsUnion.newInstance(rls.getK());
-    rlu.update(mem);
+    rlu.update(seg);
     assertNotNull(rlu.getResult());
 
     println(rlu.toString());
@@ -90,10 +96,10 @@ public class ReservoirLongsUnionTest {
     }
 
     final byte[] unionBytes = union.toByteArray();
-    final Memory mem = Memory.wrap(unionBytes);
+    final MemorySegment seg = MemorySegment.ofArray(unionBytes);
 
     final ReservoirLongsUnion rlu;
-    rlu = ReservoirLongsUnion.heapify(mem);
+    rlu = ReservoirLongsUnion.heapify(seg);
 
     assertNotNull(rlu);
     assertEquals(rlu.getMaxK(), k);
@@ -110,8 +116,8 @@ public class ReservoirLongsUnionTest {
     rlu.update((ReservoirLongsSketch) null);
     assertNull(rlu.getResult());
 
-    // null memory
-    rlu.update((Memory) null);
+    // null MemorySegment
+    rlu.update((MemorySegment) null);
     assertNull(rlu.getResult());
 
     // valid input
@@ -130,9 +136,9 @@ public class ReservoirLongsUnionTest {
     }
 
     final byte[] unionBytes = rlu.toByteArray();
-    final Memory mem = Memory.wrap(unionBytes);
+    final MemorySegment seg = MemorySegment.ofArray(unionBytes);
 
-    final ReservoirLongsUnion rebuiltUnion = ReservoirLongsUnion.heapify(mem);
+    final ReservoirLongsUnion rebuiltUnion = ReservoirLongsUnion.heapify(seg);
     validateUnionEquality(rlu, rebuiltUnion);
   }
 
@@ -146,14 +152,14 @@ public class ReservoirLongsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray();
-    final WritableMemory unionMem = WritableMemory.writableWrap(unionBytes);
+    final MemorySegment unionSeg = MemorySegment.ofArray(unionBytes);
 
-    unionMem.putByte(SER_VER_BYTE, (byte) 1);
-    unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
-    unionMem.putShort(RESERVOIR_SIZE_SHORT, encK);
-    println(PreambleUtil.preambleToString(unionMem));
+    unionSeg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 1);
+    unionSeg.set(JAVA_INT_UNALIGNED, RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    unionSeg.set(JAVA_SHORT_UNALIGNED, RESERVOIR_SIZE_SHORT, encK);
+    println(PreambleUtil.preambleToString(unionSeg));
 
-    final ReservoirLongsUnion rebuilt = ReservoirLongsUnion.heapify(unionMem);
+    final ReservoirLongsUnion rebuilt = ReservoirLongsUnion.heapify(unionSeg);
     final byte[] rebuiltBytes = rebuilt.toByteArray();
 
     assertEquals(unionBytesOrig.length, rebuiltBytes.length);
@@ -176,19 +182,19 @@ public class ReservoirLongsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray();
-    final WritableMemory unionMem = WritableMemory.writableWrap(unionBytes);
+    final MemorySegment unionSeg = MemorySegment.ofArray(unionBytes);
 
-    unionMem.putByte(SER_VER_BYTE, (byte) 1);
-    unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
-    unionMem.putShort(RESERVOIR_SIZE_SHORT, encK);
+    unionSeg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 1);
+    unionSeg.set(JAVA_INT_UNALIGNED, RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    unionSeg.set(JAVA_SHORT_UNALIGNED, RESERVOIR_SIZE_SHORT, encK);
 
     // force gadget header to v1, too
     final int offset = Family.RESERVOIR_UNION.getMaxPreLongs() << 3;
-    unionMem.putByte(offset + SER_VER_BYTE, (byte) 1);
-    unionMem.putInt(offset + RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
-    unionMem.putShort(offset + RESERVOIR_SIZE_SHORT, encK);
+    unionSeg.set(JAVA_BYTE, offset + SER_VER_BYTE, (byte) 1);
+    unionSeg.set(JAVA_INT_UNALIGNED, offset + RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
+    unionSeg.set(JAVA_SHORT_UNALIGNED, offset + RESERVOIR_SIZE_SHORT, encK);
 
-    final ReservoirLongsUnion rebuilt = ReservoirLongsUnion.heapify(unionMem);
+    final ReservoirLongsUnion rebuilt = ReservoirLongsUnion.heapify(unionSeg);
     final byte[] rebuiltBytes = rebuilt.toByteArray();
 
     assertEquals(unionBytesOrig.length, rebuiltBytes.length);
@@ -199,7 +205,7 @@ public class ReservoirLongsUnionTest {
 
   //@SuppressWarnings("null") // this is the point of the test
   @Test(expectedExceptions = java.lang.NullPointerException.class)
-  public void checkNullMemoryInstantiation() {
+  public void checkNullMemorySegmentInstantiation() {
     ReservoirLongsUnion.heapify(null);
   }
 
@@ -256,10 +262,10 @@ public class ReservoirLongsUnionTest {
     // downsample input sketch, use as gadget (exact mode, but irrelevant here)
     final ReservoirLongsSketch bigKSketch = getBasicSketch(maxK / 2, bigK);
     final byte[] bigKBytes = bigKSketch.toByteArray();
-    final Memory bigKMem = Memory.wrap(bigKBytes);
+    final MemorySegment bigKSeg = MemorySegment.ofArray(bigKBytes);
 
     ReservoirLongsUnion rlu = ReservoirLongsUnion.newInstance(maxK);
-    rlu.update(bigKMem);
+    rlu.update(bigKSeg);
     assertNotNull(rlu.getResult());
     assertEquals(rlu.getResult().getK(), maxK);
     assertEquals(rlu.getResult().getN(), maxK / 2);
@@ -267,10 +273,10 @@ public class ReservoirLongsUnionTest {
     // sketch k < maxK but in sampling mode
     final ReservoirLongsSketch smallKSketch = getBasicSketch(maxK, smallK);
     final byte[] smallKBytes = smallKSketch.toByteArray();
-    final Memory smallKMem = Memory.wrap(smallKBytes);
+    final MemorySegment smallKSeg = MemorySegment.ofArray(smallKBytes);
 
     rlu = ReservoirLongsUnion.newInstance(maxK);
-    rlu.update(smallKMem);
+    rlu.update(smallKSeg);
     assertNotNull(rlu.getResult());
     assertTrue(rlu.getResult().getK() < maxK);
     assertEquals(rlu.getResult().getK(), smallK);
@@ -279,10 +285,10 @@ public class ReservoirLongsUnionTest {
     // sketch k < maxK and in exact mode
     final ReservoirLongsSketch smallKExactSketch = getBasicSketch(smallK, smallK);
     final byte[] smallKExactBytes = smallKExactSketch.toByteArray();
-    final Memory smallKExactMem = Memory.wrap(smallKExactBytes);
+    final MemorySegment smallKExactSeg = MemorySegment.ofArray(smallKExactBytes);
 
     rlu = ReservoirLongsUnion.newInstance(maxK);
-    rlu.update(smallKExactMem);
+    rlu.update(smallKExactSeg);
     assertNotNull(rlu.getResult());
     assertEquals(rlu.getResult().getK(), maxK);
     assertEquals(rlu.getResult().getN(), smallK);
@@ -305,12 +311,12 @@ public class ReservoirLongsUnionTest {
     assertEquals(rlu.getResult().getN(), n1 + n2);
     assertEquals(rlu.getResult().getNumSamples(), n1 + n2);
 
-    // creating from Memory should avoid a copy
+    // creating from MemorySegment should avoid a copy
     final int n3 = 2048;
     final ReservoirLongsSketch sketch3 = getBasicSketch(n3, k);
     final byte[] sketch3Bytes = sketch3.toByteArray();
-    final Memory mem = Memory.wrap(sketch3Bytes);
-    rlu.update(mem);
+    final MemorySegment seg = MemorySegment.ofArray(sketch3Bytes);
+    rlu.update(seg);
 
     assertEquals(rlu.getResult().getK(), k);
     assertEquals(rlu.getResult().getN(), n1 + n2 + n3);
@@ -369,30 +375,30 @@ public class ReservoirLongsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.writableWrap(rlu.toByteArray());
-    mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
+    final MemorySegment seg = MemorySegment.ofArray(rlu.toByteArray());
+    seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
-    ReservoirLongsUnion.heapify(mem);
+    ReservoirLongsUnion.heapify(seg);
     fail();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.writableWrap(rlu.toByteArray());
-    mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
+    final MemorySegment seg = MemorySegment.ofArray(rlu.toByteArray());
+    seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
-    ReservoirLongsUnion.heapify(mem);
+    ReservoirLongsUnion.heapify(seg);
     fail();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.writableWrap(rlu.toByteArray());
-    mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
+    final MemorySegment seg = MemorySegment.ofArray(rlu.toByteArray());
+    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
-    ReservoirLongsUnion.heapify(mem);
+    ReservoirLongsUnion.heapify(seg);
     fail();
   }
 

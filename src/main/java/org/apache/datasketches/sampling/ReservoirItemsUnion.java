@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
@@ -29,14 +30,13 @@ import static org.apache.datasketches.sampling.PreambleUtil.extractMaxK;
 import static org.apache.datasketches.sampling.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.sampling.PreambleUtil.extractSerVer;
 
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Class to union reservoir samples of generic items.
@@ -85,21 +85,21 @@ public final class ReservoirItemsUnion<T> {
   }
 
   /**
-   * Instantiates a Union from Memory
+   * Instantiates a Union from MemorySegment
    *
    * @param <T> The type of item this sketch contains
-   * @param srcMem Memory object containing a serialized union
+   * @param srcSeg MemorySegment object containing a serialized union
    * @param serDe An instance of ArrayOfItemsSerDe
-   * @return A ReservoirItemsUnion created from the provided Memory
+   * @return A ReservoirItemsUnion created from the provided MemorySegment
    */
-  public static <T> ReservoirItemsUnion<T> heapify(final Memory srcMem,
-                                                   final ArrayOfItemsSerDe<T> serDe) {
-    Family.RESERVOIR_UNION.checkFamilyID(srcMem.getByte(FAMILY_BYTE));
+  public static <T> ReservoirItemsUnion<T> heapify(final MemorySegment srcSeg,
+                                                   final ArrayOfItemsSerDe2<T> serDe) {
+    Family.RESERVOIR_UNION.checkFamilyID(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
 
-    final int numPreLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final boolean isEmpty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) != 0;
-    int maxK = extractMaxK(srcMem);
+    final int numPreLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final boolean isEmpty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) != 0;
+    int maxK = extractMaxK(srcSeg);
 
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR_UNION.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR_UNION.getMaxPreLongs());
@@ -111,7 +111,7 @@ public final class ReservoirItemsUnion<T> {
 
     if (serVer != RESERVOIR_SER_VER) {
       if (serVer == 1) {
-        final short encMaxK = extractEncodedReservoirSize(srcMem);
+        final short encMaxK = extractEncodedReservoirSize(srcSeg);
         maxK = ReservoirSize.decodeValue(encMaxK);
       } else {
         throw new SketchesArgumentException(
@@ -123,9 +123,8 @@ public final class ReservoirItemsUnion<T> {
 
     if (!isEmpty) {
       final int preLongBytes = numPreLongs << 3;
-      final Memory sketchMem =
-              srcMem.region(preLongBytes, srcMem.getCapacity() - preLongBytes);
-      riu.update(sketchMem, serDe);
+      final MemorySegment sketchSeg = srcSeg.asSlice(preLongBytes);
+      riu.update(sketchSeg, serDe);
     }
 
     return riu;
@@ -163,20 +162,20 @@ public final class ReservoirItemsUnion<T> {
   }
 
   /**
-   * Union the given Memory image of the sketch.
+   * Union the given MemorySegment image of the sketch.
    *
    *<p>This method can be repeatedly called. If the given sketch is null it is interpreted as an
    * empty sketch.</p>
    *
-   * @param mem Memory image of sketch to be merged
+   * @param seg MemorySegment image of sketch to be merged
    * @param serDe An instance of ArrayOfItemsSerDe
    */
-  public void update(final Memory mem, final ArrayOfItemsSerDe<T> serDe) {
-    if (mem == null) {
+  public void update(final MemorySegment seg, final ArrayOfItemsSerDe2<T> serDe) {
+    if (seg == null) {
       return;
     }
 
-    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.heapify(mem, serDe);
+    ReservoirItemsSketch<T> ris = ReservoirItemsSketch.heapify(seg, serDe);
     ris = (ris.getK() <= maxK_ ? ris : ris.downsampledCopy(maxK_));
 
     if (gadget_ == null) {
@@ -246,7 +245,7 @@ public final class ReservoirItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this union
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe) {
     if ((gadget_ == null) || (gadget_.getNumSamples() == 0)) {
       return toByteArray(serDe, null);
     } else {
@@ -287,7 +286,7 @@ public final class ReservoirItemsUnion<T> {
    * @return a byte array representation of this union
    */
   // gadgetBytes will be null only if gadget_ == null AND empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = gadget_ == null;
     final byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);
@@ -300,22 +299,22 @@ public final class ReservoirItemsUnion<T> {
       outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // build preLong
-    PreambleUtil.insertPreLongs(mem, preLongs);                       // Byte 0
-    PreambleUtil.insertSerVer(mem, RESERVOIR_SER_VER);                // Byte 1
-    PreambleUtil.insertFamilyID(mem, Family.RESERVOIR_UNION.getID()); // Byte 2
+    PreambleUtil.insertPreLongs(seg, preLongs);                       // Byte 0
+    PreambleUtil.insertSerVer(seg, RESERVOIR_SER_VER);                // Byte 1
+    PreambleUtil.insertFamilyID(seg, Family.RESERVOIR_UNION.getID()); // Byte 2
     if (empty) {
-      PreambleUtil.insertFlags(mem, EMPTY_FLAG_MASK);
+      PreambleUtil.insertFlags(seg, EMPTY_FLAG_MASK);
     } else {
-      PreambleUtil.insertFlags(mem, 0);                               // Byte 3
+      PreambleUtil.insertFlags(seg, 0);                               // Byte 3
     }
-    PreambleUtil.insertMaxK(mem, maxK_);                              // Bytes 4-5
+    PreambleUtil.insertMaxK(seg, maxK_);                              // Bytes 4-5
 
     if (!empty) {
       final int preBytes = preLongs << 3;
-      mem.putByteArray(preBytes, gadgetBytes, 0, gadgetBytes.length);
+      MemorySegment.copy(gadgetBytes, 0, seg, JAVA_BYTE, preBytes, gadgetBytes.length);
     }
 
     return outArr;
@@ -360,7 +359,7 @@ public final class ReservoirItemsUnion<T> {
    *
    * @param sketchIn Sketch with new samples from which to draw
    * @param isModifiable Flag indicating whether sketchIn can be modified (e.g. if it was rebuild
-   *        from Memory)
+   *        from MemorySegment)
    */
   private void twoWayMergeInternal(final ReservoirItemsSketch<T> sketchIn,
                                    final boolean isModifiable) {

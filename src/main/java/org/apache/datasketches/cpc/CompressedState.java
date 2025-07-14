@@ -137,55 +137,55 @@ final class CompressedState {
         break;
       }
       case SPARSE_HYBRID_MERGED : {
-        //state.fiCol = getFiCol(mem);
+        //state.fiCol = getFiCol(seg;
         state.numCoupons = getNumCoupons(seg);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
         state.csvLengthInts = getSvLengthInts(seg);
-        //state.cwLength = getCwLength(mem);
-        //state.kxp = getKxP(mem);
-        //state.hipEstAccum = getHipAccum(mem);
+        //state.cwLength = getCwLength(seg;
+        //state.kxp = getKxP(seg;
+        //state.hipEstAccum = getHipAccum(seg;
         checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
-        //state.cwStream = getCwStream(mem);
+        //state.cwStream = getCwStream(seg;
         state.csvStream = getSvStream(seg);
         break;
       }
       case SPARSE_HYBRID_HIP : {
-        //state.fiCol = getFiCol(mem);
+        //state.fiCol = getFiCol(seg;
         state.numCoupons = getNumCoupons(seg);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
         state.csvLengthInts = getSvLengthInts(seg);
-        //state.cwLength = getCwLength(mem);
+        //state.cwLength = getCwLength(seg;
         state.kxp = getKxP(seg);
         state.hipEstAccum = getHipAccum(seg);
         checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
-        //state.cwStream = getCwStream(mem);
+        //state.cwStream = getCwStream(seg;
         state.csvStream = getSvStream(seg);
         break;
       }
       case PINNED_SLIDING_MERGED_NOSV : {
         state.fiCol = getFiCol(seg);
         state.numCoupons = getNumCoupons(seg);
-        //state.numCsv = getNumCsv(mem);
-        //state.csvLength = getCsvLength(mem);
+        //state.numCsv = getNumCsv(seg;
+        //state.csvLength = getCsvLength(seg;
         state.cwLengthInts = getWLengthInts(seg);
-        //state.kxp = getKxP(mem);
-        //state.hipEstAccum = getHipAccum(mem);
+        //state.kxp = getKxP(seg;
+        //state.hipEstAccum = getHipAccum(seg;
         checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
         state.cwStream = getWStream(seg);
-        //state.csvStream = getCsvStream(mem);
+        //state.csvStream = getCsvStream(seg;
         break;
       }
       case PINNED_SLIDING_HIP_NOSV : {
         state.fiCol = getFiCol(seg);
         state.numCoupons = getNumCoupons(seg);
-        //state.numCsv = getNumCsv(mem);
-        //state.csvLength = getCsvLength(mem);
+        //state.numCsv = getNumCsv(seg;
+        //state.csvLength = getCsvLength(seg;
         state.cwLengthInts = getWLengthInts(seg);
         state.kxp = getKxP(seg);
         state.hipEstAccum = getHipAccum(seg);
         checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
         state.cwStream = getWStream(seg);
-        //state.csvStream = getCsvStream(mem);
+        //state.csvStream = getCsvStream(seg;
         break;
       }
       case PINNED_SLIDING_MERGED : {
@@ -194,8 +194,8 @@ final class CompressedState {
         state.numCsv = getNumSv(seg);
         state.csvLengthInts = getSvLengthInts(seg);
         state.cwLengthInts = getWLengthInts(seg);
-        //state.kxp = getKxP(mem);
-        //state.hipEstAccum = getHipAccum(mem);
+        //state.kxp = getKxP(seg;
+        //state.hipEstAccum = getHipAccum(seg;
         checkCapacity(seg.byteSize(), state.getRequiredSerializedBytes());
         state.cwStream = getWStream(seg);
         state.csvStream = getSvStream(seg);

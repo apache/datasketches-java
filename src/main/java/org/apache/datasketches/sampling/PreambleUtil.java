@@ -19,17 +19,21 @@
 
 package org.apache.datasketches.sampling;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 import java.util.Locale;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 //@formatter:off
 
@@ -76,9 +80,9 @@ import org.apache.datasketches.memory.WritableMemory;
  *  0   || Preamble_Longs | SerVer | FamID  |  Flags |---------Max Res. Size (K)---------|
  * </pre>
  *
- * 
+ *
  * <h1>VarOpt Sampling</h1>
- * 
+ *
  * <p><strong>VarOpt:</strong> A VarOpt sketch has a more complex internal items structure and
  * requires a larger preamble. Values serving a similar purpose in both reservoir and varopt sampling
  * share the same byte ranges, allowing method re-use where practical.</p>
@@ -125,9 +129,9 @@ import org.apache.datasketches.memory.WritableMemory;
  *  3   ||-------------------------Outer Tau Denominator (long)--------------------------|
  *  </pre>
  *
- * 
+ *
  * <h1>EPPS Sampling</h1>
- * 
+ *
  * <p>An empty sketch requires 8 bytes.
  *
  * <pre>
@@ -168,7 +172,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *  6+  ||  {Items Array}                |
  *      ||  {Optional Item (if needed)}  |
  * </pre>
- * 
+ *
  *  @author Jon Malkin
  *  @author Lee Rhodes
  */
@@ -230,45 +234,45 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   static String preambleToString(final byte[] byteArr) {
-    final Memory mem = Memory.wrap(byteArr);
-    return preambleToString(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return preambleToString(seg);
   }
 
   /**
-   * Returns a human readable string summary of the preamble state of the given Memory.
-   * Note: other than making sure that the given Memory size is large
+   * Returns a human readable string summary of the preamble state of the given MemorySegment.
+   * Note: other than making sure that the given MemorySegment size is large
    * enough for just the preamble, this does not do much value checking of the contents of the
    * preamble as this is primarily a tool for debugging the preamble visually.
    *
-   * @param mem the given Memory.
+   * @param seg the given MemorySegment.
    * @return the summary preamble string.
    */
-  static String preambleToString(final Memory mem) {
-    final int preLongs = getAndCheckPreLongs(mem);  // make sure we can get the assumed preamble
+  static String preambleToString(final MemorySegment seg) {
+    final int preLongs = getAndCheckPreLongs(seg);  // make sure we can get the assumed preamble
 
-    final Family family = Family.idToFamily(mem.getByte(FAMILY_BYTE));
+    final Family family = Family.idToFamily(seg.get(JAVA_BYTE, FAMILY_BYTE));
 
     switch (family) {
       case RESERVOIR:
       case VAROPT:
-        return sketchPreambleToString(mem, family, preLongs);
+        return sketchPreambleToString(seg, family, preLongs);
       case RESERVOIR_UNION:
       case VAROPT_UNION:
-        return unionPreambleToString(mem, family, preLongs);
+        return unionPreambleToString(seg, family, preLongs);
       default:
         throw new SketchesArgumentException("Inspecting preamble with Sampling family's "
                 + "PreambleUtil with object of family " + family.getFamilyName());
     }
   }
 
-  private static String sketchPreambleToString(final Memory mem,
+  private static String sketchPreambleToString(final MemorySegment seg,
                                                final Family family,
                                                final int preLongs) {
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(mem));
-    final int serVer = extractSerVer(mem);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(seg));
+    final int serVer = extractSerVer(seg);
 
     // Flags
-    final int flags = extractFlags(mem);
+    final int flags = extractFlags(seg);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
@@ -278,17 +282,17 @@ final class PreambleUtil {
 
     final int k;
     if (serVer == 1) {
-      final short encK = extractEncodedReservoirSize(mem);
+      final short encK = extractEncodedReservoirSize(seg);
       k = ReservoirSize.decodeValue(encK);
     } else {
-      k = extractK(mem);
+      k = extractK(seg);
     }
 
     long n = 0;
     if (!isEmpty) {
-      n = extractN(mem);
+      n = extractN(seg);
     }
-    final long dataBytes = mem.getCapacity() - (preLongs << 3);
+    final long dataBytes = seg.byteSize() - (preLongs << 3);
 
     final StringBuilder sb = new StringBuilder();
     sb.append(LS)
@@ -312,9 +316,9 @@ final class PreambleUtil {
       sb.append("Bytes 8-15: Items Seen (n)    : ").append(n).append(LS);
     }
     if ((family == Family.VAROPT) && !isEmpty) {
-      final int hCount = extractHRegionItemCount(mem);
-      final int rCount = extractRRegionItemCount(mem);
-      final double totalRWeight = extractTotalRWeight(mem);
+      final int hCount = extractHRegionItemCount(seg);
+      final int rCount = extractRRegionItemCount(seg);
+      final double totalRWeight = extractTotalRWeight(seg);
       sb.append("Bytes 16-19: H region count   : ").append(hCount).append(LS)
         .append("Bytes 20-23: R region count   : ").append(rCount).append(LS);
       if (rCount > 0) {
@@ -322,7 +326,7 @@ final class PreambleUtil {
       }
     }
 
-    sb.append("TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS)
+    sb.append("TOTAL Sketch Bytes            : ").append(seg.byteSize()).append(LS)
       .append("  Preamble Bytes              : ").append(preLongs << 3).append(LS)
       .append("  Data Bytes                  : ").append(dataBytes).append(LS)
       .append("### END ")
@@ -331,14 +335,14 @@ final class PreambleUtil {
     return sb.toString();
   }
 
-  private static String unionPreambleToString(final Memory mem,
+  private static String unionPreambleToString(final MemorySegment seg,
                                               final Family family,
                                               final int preLongs) {
-    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(mem));
-    final int serVer = extractSerVer(mem);
+    final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(seg));
+    final int serVer = extractSerVer(seg);
 
     // Flags
-    final int flags = extractFlags(mem);
+    final int flags = extractFlags(seg);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     //final String nativeOrder = ByteOrder.nativeOrder().toString();
@@ -347,13 +351,13 @@ final class PreambleUtil {
 
     final int k;
     if (serVer == 1) {
-      final short encK = extractEncodedReservoirSize(mem);
+      final short encK = extractEncodedReservoirSize(seg);
       k = ReservoirSize.decodeValue(encK);
     } else {
-      k = extractK(mem);
+      k = extractK(seg);
     }
 
-    final long dataBytes = mem.getCapacity() - (preLongs << 3);
+    final long dataBytes = seg.byteSize() - (preLongs << 3);
 
     return LS
             + "### END " + family.getFamilyName().toUpperCase(Locale.US) + " PREAMBLE SUMMARY" + LS
@@ -367,7 +371,7 @@ final class PreambleUtil {
             //+ "  READ_ONLY                       : " + readOnly + LS
             + "  EMPTY                           : " + isEmpty + LS
             + "Bytes  4-7: Max Sketch Size (maxK): " + k + LS
-            + "TOTAL Sketch Bytes                : " + mem.getCapacity() + LS
+            + "TOTAL Sketch Bytes                : " + seg.byteSize() + LS
             + "  Preamble Bytes                  : " + (preLongs << 3) + LS
             + "  Sketch Bytes                    : " + dataBytes + LS
             + "### END " + family.getFamilyName().toUpperCase(Locale.US) + " PREAMBLE SUMMARY" + LS;
@@ -375,156 +379,156 @@ final class PreambleUtil {
 
   // Extraction methods
 
-  static int extractPreLongs(final Memory mem) {
-    return mem.getByte(PREAMBLE_LONGS_BYTE) & 0x3F;
+  static int extractPreLongs(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0x3F;
   }
 
-  static int extractResizeFactor(final Memory mem) {
-    return (mem.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0x3;
+  static int extractResizeFactor(final MemorySegment seg) {
+    return (seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0x3;
   }
 
-  static int extractSerVer(final Memory mem) {
-    return mem.getByte(SER_VER_BYTE) & 0xFF;
+  static int extractSerVer(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, SER_VER_BYTE) & 0xFF;
   }
 
-  static int extractFamilyID(final Memory mem) {
-    return mem.getByte(FAMILY_BYTE) & 0xFF;
+  static int extractFamilyID(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FAMILY_BYTE) & 0xFF;
   }
 
-  static int extractFlags(final Memory mem) {
-    return mem.getByte(FLAGS_BYTE) & 0xFF;
+  static int extractFlags(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FLAGS_BYTE) & 0xFF;
   }
 
-  static short extractEncodedReservoirSize(final Memory mem) {
-    return mem.getShort(RESERVOIR_SIZE_SHORT);
+  static short extractEncodedReservoirSize(final MemorySegment seg) {
+    return seg.get(JAVA_SHORT_UNALIGNED, RESERVOIR_SIZE_SHORT);
   }
 
-  static int extractK(final Memory mem) {
-    return mem.getInt(RESERVOIR_SIZE_INT);
+  static int extractK(final MemorySegment seg) {
+    return seg.get(JAVA_INT_UNALIGNED, RESERVOIR_SIZE_INT);
   }
 
-  static int extractMaxK(final Memory mem) {
-    return extractK(mem);
+  static int extractMaxK(final MemorySegment seg) {
+    return extractK(seg);
   }
 
-  static long extractN(final Memory mem) {
-    return mem.getLong(ITEMS_SEEN_LONG);
+  static long extractN(final MemorySegment seg) {
+    return seg.get(JAVA_LONG_UNALIGNED, ITEMS_SEEN_LONG);
   }
 
-  static int extractHRegionItemCount(final Memory mem) {
-    return mem.getInt(ITEM_COUNT_H_INT);
+  static int extractHRegionItemCount(final MemorySegment seg) {
+    return seg.get(JAVA_INT_UNALIGNED, ITEM_COUNT_H_INT);
   }
 
-  static int extractRRegionItemCount(final Memory mem) {
-    return mem.getInt(ITEM_COUNT_R_INT);
+  static int extractRRegionItemCount(final MemorySegment seg) {
+    return seg.get(JAVA_INT_UNALIGNED, ITEM_COUNT_R_INT);
   }
 
-  static double extractTotalRWeight(final Memory mem) {
-    return mem.getDouble(TOTAL_WEIGHT_R_DOUBLE);
+  static double extractTotalRWeight(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, TOTAL_WEIGHT_R_DOUBLE);
   }
 
-  static double extractOuterTauNumerator(final Memory mem) {
-    return mem.getDouble(OUTER_TAU_NUM_DOUBLE);
+  static double extractOuterTauNumerator(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, OUTER_TAU_NUM_DOUBLE);
   }
 
-  static long extractOuterTauDenominator(final Memory mem) {
-    return mem.getLong(OUTER_TAU_DENOM_LONG);
+  static long extractOuterTauDenominator(final MemorySegment seg) {
+    return seg.get(JAVA_LONG_UNALIGNED, OUTER_TAU_DENOM_LONG);
   }
 
-  static double extractEbppsCumulativeWeight(final Memory mem) {
-    return mem.getDouble(EBPPS_CUM_WT_DOUBLE);
+  static double extractEbppsCumulativeWeight(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, EBPPS_CUM_WT_DOUBLE);
   }
 
-  static double extractEbppsMaxWeight(final Memory mem) {
-    return mem.getDouble(EBPPS_MAX_WT_DOUBLE);
+  static double extractEbppsMaxWeight(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, EBPPS_MAX_WT_DOUBLE);
   }
 
-  static double extractEbppsRho(final Memory mem) {
-    return mem.getDouble(EBPPS_RHO_DOUBLE);
+  static double extractEbppsRho(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, EBPPS_RHO_DOUBLE);
   }
 
   // Insertion methods
 
-  static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
-    final int curByte = wmem.getByte(PREAMBLE_LONGS_BYTE);
+  static void insertPreLongs(final MemorySegment wseg, final int preLongs) {
+    final int curByte = wseg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE);
     final int mask = 0x3F;
     final byte newByte = (byte) ((preLongs & mask) | (~mask & curByte));
-    wmem.putByte(PREAMBLE_LONGS_BYTE, newByte);
+    wseg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, newByte);
   }
 
-  static void insertLgResizeFactor(final WritableMemory wmem, final int rf) {
-    final int curByte = wmem.getByte(PREAMBLE_LONGS_BYTE);
+  static void insertLgResizeFactor(final MemorySegment wseg, final int rf) {
+    final int curByte = wseg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE);
     final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits
     final int mask = 3;
     final byte newByte = (byte) (((rf & mask) << shift) | (~(mask << shift) & curByte));
-    wmem.putByte(PREAMBLE_LONGS_BYTE, newByte);
+    wseg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, newByte);
   }
 
-  static void insertSerVer(final WritableMemory wmem, final int serVer) {
-    wmem.putByte(SER_VER_BYTE, (byte) serVer);
+  static void insertSerVer(final MemorySegment wseg, final int serVer) {
+    wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) serVer);
   }
 
-  static void insertFamilyID(final WritableMemory wmem, final int famId) {
-    wmem.putByte(FAMILY_BYTE, (byte) famId);
+  static void insertFamilyID(final MemorySegment wseg, final int famId) {
+    wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) famId);
   }
 
-  static void insertFlags(final WritableMemory wmem, final int flags) {
-    wmem.putByte(FLAGS_BYTE,  (byte) flags);
+  static void insertFlags(final MemorySegment wseg, final int flags) {
+    wseg.set(JAVA_BYTE, FLAGS_BYTE,  (byte) flags);
   }
 
-  static void insertK(final WritableMemory wmem, final int k) {
-    wmem.putInt(RESERVOIR_SIZE_INT, k);
+  static void insertK(final MemorySegment wseg, final int k) {
+    wseg.set(JAVA_INT_UNALIGNED, RESERVOIR_SIZE_INT, k);
   }
 
-  static void insertMaxK(final WritableMemory wmem, final int maxK) {
-    insertK(wmem, maxK);
+  static void insertMaxK(final MemorySegment wseg, final int maxK) {
+    insertK(wseg, maxK);
   }
 
-  static void insertN(final WritableMemory wmem, final long totalSeen) {
-    wmem.putLong(ITEMS_SEEN_LONG, totalSeen);
+  static void insertN(final MemorySegment wseg, final long totalSeen) {
+    wseg.set(JAVA_LONG_UNALIGNED, ITEMS_SEEN_LONG, totalSeen);
   }
 
-  static void insertHRegionItemCount(final WritableMemory wmem, final int hCount) {
-    wmem.putInt(ITEM_COUNT_H_INT, hCount);
+  static void insertHRegionItemCount(final MemorySegment wseg, final int hCount) {
+    wseg.set(JAVA_INT_UNALIGNED, ITEM_COUNT_H_INT, hCount);
   }
 
-  static void insertRRegionItemCount(final WritableMemory wmem, final int rCount) {
-    wmem.putInt(ITEM_COUNT_R_INT, rCount);
+  static void insertRRegionItemCount(final MemorySegment wseg, final int rCount) {
+    wseg.set(JAVA_INT_UNALIGNED, ITEM_COUNT_R_INT, rCount);
   }
 
-  static void insertTotalRWeight(final WritableMemory wmem, final double weight) {
-    wmem.putDouble(TOTAL_WEIGHT_R_DOUBLE, weight);
+  static void insertTotalRWeight(final MemorySegment wseg, final double weight) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, TOTAL_WEIGHT_R_DOUBLE, weight);
   }
 
-  static void insertOuterTauNumerator(final WritableMemory wmem, final double numer) {
-    wmem.putDouble(OUTER_TAU_NUM_DOUBLE, numer);
+  static void insertOuterTauNumerator(final MemorySegment wseg, final double numer) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, OUTER_TAU_NUM_DOUBLE, numer);
   }
 
-  static void insertOuterTauDenominator(final WritableMemory wmem, final long denom) {
-    wmem.putLong(OUTER_TAU_DENOM_LONG, denom);
+  static void insertOuterTauDenominator(final MemorySegment wseg, final long denom) {
+    wseg.set(JAVA_LONG_UNALIGNED, OUTER_TAU_DENOM_LONG, denom);
   }
 
-  static void insertEbppsCumulativeWeight(final WritableMemory wmem, final double cumWt) {
-    wmem.putDouble(EBPPS_CUM_WT_DOUBLE, cumWt);
+  static void insertEbppsCumulativeWeight(final MemorySegment wseg, final double cumWt) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, EBPPS_CUM_WT_DOUBLE, cumWt);
   }
 
-  static void insertEbppsMaxWeight(final WritableMemory wmem, final double maxWt) {
-    wmem.putDouble(EBPPS_MAX_WT_DOUBLE, maxWt);
+  static void insertEbppsMaxWeight(final MemorySegment wseg, final double maxWt) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, EBPPS_MAX_WT_DOUBLE, maxWt);
   }
 
-  static void insertEbppsRho(final WritableMemory wmem, final double rho) {
-    wmem.putDouble(EBPPS_RHO_DOUBLE, rho);
+  static void insertEbppsRho(final MemorySegment wseg, final double rho) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, EBPPS_RHO_DOUBLE, rho);
   }
 
   /**
-   * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
-   * @param mem the given Memory
+   * Checks MemorySegment for capacity to hold the preamble and returns the extracted preLongs.
+   * @param seg the given MemorySegment
    * @return the extracted prelongs value.
    */
-  static int getAndCheckPreLongs(final Memory mem) {
-    final long cap = mem.getCapacity();
+  static int getAndCheckPreLongs(final MemorySegment seg) {
+    final long cap = seg.byteSize();
     if (cap < 8) { throwNotBigEnough(cap, 8); }
-    final int preLongs = mem.getByte(0) & 0x3F;
+    final int preLongs = seg.get(JAVA_BYTE, 0) & 0x3F;
     final int required = Math.max(preLongs << 3, 8);
     if (cap < required) { throwNotBigEnough(cap, required); }
     return preLongs;
@@ -532,7 +536,7 @@ final class PreambleUtil {
 
   private static void throwNotBigEnough(final long cap, final int required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: Size of byte array or Memory not large enough: Size: " + cap
+        "Possible Corruption: Size of byte array or MemorySegment not large enough: Size: " + cap
         + ", Required: " + required);
   }
 }

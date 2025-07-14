@@ -60,10 +60,10 @@ class ReversePurgeItemHashMap<T> {
    */
   ReversePurgeItemHashMap(final int mapSize) {
     lgLength = exactLog2OfInt(mapSize, "mapSize");
-    this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
-    this.keys = new Object[mapSize];
-    this.values = new long[mapSize];
-    this.states = new short[mapSize];
+    loadThreshold = (int) (mapSize * LOAD_FACTOR);
+    keys = new Object[mapSize];
+    values = new long[mapSize];
+    states = new short[mapSize];
   }
 
   /**
@@ -101,8 +101,8 @@ class ReversePurgeItemHashMap<T> {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;
     int drift = 1;
-    while (states[probe] != 0 && !keys[probe].equals(key)) {
-      probe = probe + 1 & arrayMask;
+    while ((states[probe] != 0) && !keys[probe].equals(key)) {
+      probe = (probe + 1) & arrayMask;
       drift++;
       //only used for theoretical analysis
       assert drift < DRIFT_LIMIT : "drift: " + drift + " >= DRIFT_LIMIT";
@@ -137,14 +137,14 @@ class ReversePurgeItemHashMap<T> {
     // When we find the next non-empty cell, we know we are at the high end of a cluster
     // Work towards the front; delete any non-positive entries.
     for (int probe = firstProbe; probe-- > 0;) {
-      if (states[probe] > 0 && values[probe] <= 0) {
+      if ((states[probe] > 0) && (values[probe] <= 0)) {
         hashDelete(probe); //does the work of deletion and moving higher items towards the front.
         numActive--;
       }
     }
     //now work on the first cluster that was skipped.
     for (int probe = states.length; probe-- > firstProbe;) {
-      if (states[probe] > 0 && values[probe] <= 0) {
+      if ((states[probe] > 0) && (values[probe] <= 0)) {
         hashDelete(probe);
         numActive--;
       }
@@ -306,7 +306,7 @@ class ReversePurgeItemHashMap<T> {
     states[deleteProbe] = 0; //mark as empty
     int drift = 1;
     final int arrayMask = keys.length - 1;
-    int probe = deleteProbe + drift & arrayMask; //map length must be a power of 2
+    int probe = (deleteProbe + drift) & arrayMask; //map length must be a power of 2
     // advance until you find a free location replacing locations as needed
     while (states[probe] != 0) {
       if (states[probe] > drift) {
@@ -319,7 +319,7 @@ class ReversePurgeItemHashMap<T> {
         drift = 0;
         deleteProbe = probe;
       }
-      probe = probe + 1 & arrayMask;
+      probe = (probe + 1) & arrayMask;
       drift++;
       //only used for theoretical analysis
       assert drift < DRIFT_LIMIT : "drift: " + drift + " >= DRIFT_LIMIT";
@@ -329,8 +329,8 @@ class ReversePurgeItemHashMap<T> {
   private int hashProbe(final T key) {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;
-    while (states[probe] > 0 && !keys[probe].equals(key)) {
-      probe = probe + 1 & arrayMask;
+    while ((states[probe] > 0) && !keys[probe].equals(key)) {
+      probe = (probe + 1) & arrayMask;
     }
     return probe;
   }
@@ -364,13 +364,13 @@ class ReversePurgeItemHashMap<T> {
     }
 
     boolean next() {
-      i_ = i_ + stride_ & mask_;
+      i_ = (i_ + stride_) & mask_;
       while (count_ < numActive_) {
         if (states_[i_] > 0) {
           count_++;
           return true;
         }
-        i_ = i_ + stride_ & mask_;
+        i_ = (i_ + stride_) & mask_;
       }
       return false;
     }

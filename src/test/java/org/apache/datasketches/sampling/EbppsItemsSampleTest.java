@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.apache.datasketches.sampling.EbppsItemsSample;
 import org.testng.annotations.Test;
 
 public class EbppsItemsSampleTest {

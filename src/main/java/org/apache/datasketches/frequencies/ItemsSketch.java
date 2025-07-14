@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.frequencies;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
@@ -42,17 +44,16 @@ import static org.apache.datasketches.frequencies.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This sketch is useful for tracking approximate frequencies of items of type <i>&lt;T&gt;</i>
@@ -209,7 +210,7 @@ public class ItemsSketch<T> {
     this.lgMaxMapSize = Math.max(lgMaxMapSize, LG_MIN_MAP_SIZE);
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
     hashMap = new ReversePurgeItemHashMap<>(1 << lgCurMapSz);
-    this.curMapCap = hashMap.getCapacity();
+    curMapCap = hashMap.getCapacity();
     final int maxMapCap =
         (int) ((1 << lgMaxMapSize) * ReversePurgeItemHashMap.getLoadFactor());
     offset = 0;
@@ -217,21 +218,20 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Returns a sketch instance of this class from the given srcMem,
-   * which must be a Memory representation of this sketch class.
+   * Returns a sketch instance of this class from the given srcSeg,
+   * which must be a MemorySegment representation of this sketch class.
    *
    * @param <T> The type of item that this sketch will track
-   * @param srcMem a Memory representation of a sketch of this class.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg a MemorySegment representation of a sketch of this class.
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class.
    */
-  public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
-      final ArrayOfItemsSerDe<T> serDe) {
-    Objects.requireNonNull(srcMem, "srcMem must not be null.");
+  public static <T> ItemsSketch<T> getInstance(final MemorySegment srcSeg,
+      final ArrayOfItemsSerDe2<T> serDe) {
+    Objects.requireNonNull(srcSeg, "srcSeg must not be null.");
     Objects.requireNonNull(serDe, "serDe must not be null.");
 
-    final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
+    final long pre0 = PreambleUtil.checkPreambleSize(srcSeg); //make sure preamble will fit
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
     final int preLongs = extractPreLongs(pre0);         //Byte 0
@@ -267,7 +267,7 @@ public class ItemsSketch<T> {
     }
     //get full preamble
     final long[] preArr = new long[preLongs];
-    srcMem.getLongArray(0, preArr, 0, preLongs);
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, 0, preArr, 0, preLongs);
 
     final ItemsSketch<T> fis = new ItemsSketch<>(lgMaxMapSize, lgCurMapSize);
     fis.streamWeight = 0; //update after
@@ -278,14 +278,13 @@ public class ItemsSketch<T> {
 
     //Get countArray
     final long[] countArray = new long[activeItems];
-    final int reqBytes = preBytes + activeItems * Long.BYTES; //count Arr only
-    checkBounds(0, reqBytes, srcMem.getCapacity()); //check Memory capacity
-    srcMem.getLongArray(preBytes, countArray, 0, activeItems);
+    final int reqBytes = preBytes + (activeItems * Long.BYTES); //count Arr only
+    checkBounds(0, reqBytes, srcSeg.byteSize()); //check MemorySegment capacity
+    MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, preBytes, countArray, 0, activeItems);
 
     //Get itemArray
     final int itemsOffset = preBytes + (Long.BYTES * activeItems);
-    final T[] itemArray = serDe.deserializeFromMemory(
-        srcMem.region(itemsOffset, srcMem.getCapacity() - itemsOffset), 0, activeItems);
+    final T[] itemArray = serDe.deserializeFromMemorySegment(srcSeg.asSlice(itemsOffset), 0, activeItems);
     //update the sketch
     for (int i = 0; i < activeItems; i++) {
       fis.update(itemArray[i], countArray[i]);
@@ -311,7 +310,7 @@ public class ItemsSketch<T> {
    * @return the current number of counters the sketch is configured to support.
    */
   public int getCurrentMapCapacity() {
-    return this.curMapCap;
+    return curMapCap;
   }
 
   /**
@@ -429,7 +428,7 @@ public class ItemsSketch<T> {
    * @return the sum of the frequencies in the stream seen so far by the sketch
    */
   public long getStreamLength() {
-    return this.streamWeight;
+    return streamWeight;
   }
 
   /**
@@ -462,17 +461,16 @@ public class ItemsSketch<T> {
    * largest error tolerance of the two merged sketches.
    */
   public ItemsSketch<T> merge(final ItemsSketch<T> other) {
-    if (other == null) { return this; }
-    if (other.isEmpty()) { return this; }
+    if ((other == null) || other.isEmpty()) { return this; }
 
-    final long streamLen = this.streamWeight + other.streamWeight; //capture before merge
+    final long streamLen = streamWeight + other.streamWeight; //capture before merge
 
     final ReversePurgeItemHashMap.Iterator<T> iter = other.hashMap.iterator();
     while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
     }
-    this.offset += other.offset;
-    this.streamWeight = streamLen; //corrected streamWeight
+    offset += other.offset;
+    streamWeight = streamLen; //corrected streamWeight
     return this;
   }
 
@@ -481,9 +479,9 @@ public class ItemsSketch<T> {
    */
   public void reset() {
     hashMap = new ReversePurgeItemHashMap<>(1 << LG_MIN_MAP_SIZE);
-    this.curMapCap = hashMap.getCapacity();
-    this.offset = 0;
-    this.streamWeight = 0;
+    curMapCap = hashMap.getCapacity();
+    offset = 0;
+    streamWeight = 0;
   }
 
   //Serialization
@@ -493,7 +491,7 @@ public class ItemsSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe) {
     final int preLongs;
     final int outBytes;
     final boolean empty = isEmpty();
@@ -508,7 +506,7 @@ public class ItemsSketch<T> {
       outBytes = ((preLongs + activeItems) << 3) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.writableWrap(outArr);
+    final MemorySegment seg = MemorySegment.ofArray(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;
@@ -520,18 +518,19 @@ public class ItemsSketch<T> {
     pre0 = empty ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
 
     if (empty) {
-      mem.putLong(0, pre0);
+      seg.set(JAVA_LONG_UNALIGNED, 0, pre0);
     } else {
       final long pre = 0;
       final long[] preArr = new long[preLongs];
       preArr[0] = pre0;
       preArr[1] = insertActiveItems(activeItems, pre);
-      preArr[2] = this.streamWeight;
-      preArr[3] = this.offset;
-      mem.putLongArray(0, preArr, 0, preLongs);
+      preArr[2] = streamWeight;
+      preArr[3] = offset;
+      MemorySegment.copy(preArr, 0, seg, JAVA_LONG_UNALIGNED, 0, preLongs);
+
       final int preBytes = preLongs << 3;
-      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
-      mem.putByteArray(preBytes + (this.getNumActiveItems() << 3), bytes, 0, bytes.length);
+      MemorySegment.copy(hashMap.getActiveValues(), 0, seg, JAVA_LONG_UNALIGNED, preBytes, activeItems);
+      MemorySegment.copy(bytes, 0, seg, JAVA_BYTE, preBytes + (this.getNumActiveItems() << 3), bytes.length);
     }
     return outArr;
   }
@@ -556,16 +555,16 @@ public class ItemsSketch<T> {
    * @return a human readable string of the preamble of a byte array image of a ItemsSketch.
    */
   public static String toString(final byte[] byteArr) {
-    return toString(Memory.wrap(byteArr));
+    return toString(MemorySegment.ofArray(byteArr));
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of a ItemsSketch.
-   * @param mem the given Memory object
-   * @return a human readable string of the preamble of a Memory image of a ItemsSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of a ItemsSketch.
+   * @param seg the given MemorySegment object
+   * @return a human readable string of the preamble of a MemorySegment image of a ItemsSketch.
    */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.preambleToString(mem);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.preambleToString(seg);
   }
 
   /**
@@ -590,7 +589,7 @@ public class ItemsSketch<T> {
     if (count < 0) {
       throw new SketchesArgumentException("Count may not be negative");
     }
-    this.streamWeight += count;
+    streamWeight += count;
     hashMap.adjustOrPutValue(item, count);
 
     if (getNumActiveItems() > curMapCap) { //over the threshold, we need to do something
@@ -620,7 +619,7 @@ public class ItemsSketch<T> {
 
     Row(final T item, final long estimate, final long ub, final long lb) {
       this.item = item;
-      this.est = estimate;
+      est = estimate;
       this.ub = ub;
       this.lb = lb;
     }
@@ -672,7 +671,7 @@ public class ItemsSketch<T> {
      */
     @Override
     public int compareTo(final Row<T> that) {
-      return (this.est < that.est) ? -1 : (this.est > that.est) ? 1 : 0;
+      return (est < that.est) ? -1 : (est > that.est) ? 1 : 0;
     }
 
     /**
@@ -685,9 +684,8 @@ public class ItemsSketch<T> {
     @Override
     public int hashCode() {
       final int prime = 31;
-      int result = 1;
-      result = (prime * result) + (int) (est ^ (est >>> 32));
-      return result;
+      final int result = 1;
+      return (prime * result) + (int) (est ^ (est >>> 32));
     }
 
     /**
@@ -701,8 +699,7 @@ public class ItemsSketch<T> {
     @Override
     public boolean equals(final Object obj) {
       if (this == obj) { return true; }
-      if (obj == null) { return false; }
-      if ( !(obj instanceof Row)) { return false; }
+      if ( (obj == null) || !(obj instanceof Row)) { return false; }
       final Row<T> that = (Row<T>) obj;
       if (est != that.est) { return false; }
       return true;
@@ -710,6 +707,7 @@ public class ItemsSketch<T> {
 
   } //End of class Row<T>
 
+  @SuppressWarnings("unchecked")
   Row<T>[] sortItems(final long threshold, final ErrorType errorType) {
     final ArrayList<Row<T>> rowList = new ArrayList<>();
     final ReversePurgeItemHashMap.Iterator<T> iter = hashMap.iterator();
@@ -743,10 +741,7 @@ public class ItemsSketch<T> {
       }
     });
 
-    @SuppressWarnings("unchecked")
-    final Row<T>[] rowsArr =
-      rowList.toArray((Row<T>[]) Array.newInstance(Row.class, rowList.size()));
-    return rowsArr;
+    return rowList.toArray((Row<T>[]) Array.newInstance(Row.class, rowList.size()));
   }
 
 }

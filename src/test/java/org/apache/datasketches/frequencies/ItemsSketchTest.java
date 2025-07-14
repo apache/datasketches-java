@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.frequencies;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.frequencies.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
@@ -30,22 +32,24 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.common.ArrayOfLongsSerDe;
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.common.ArrayOfUtf16StringsSerDe;
+import org.apache.datasketches.common.ArrayOfLongsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfUtf16StringsSerDe2;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.frequencies.ErrorType;
+import org.apache.datasketches.frequencies.ItemsSketch;
+import org.apache.datasketches.frequencies.ReversePurgeItemHashMap;
 import org.apache.datasketches.frequencies.ItemsSketch.Row;
 
 public class ItemsSketchTest {
 
   @Test
   public void empty() {
-    ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 0);
     Assert.assertEquals(sketch.getStreamLength(), 0);
@@ -55,7 +59,7 @@ public class ItemsSketchTest {
 
   @Test
   public void nullInput() {
-    ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch.update(null);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 0);
@@ -66,7 +70,7 @@ public class ItemsSketchTest {
 
   @Test
   public void oneItem() {
-    ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch.update("a");
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertEquals(sketch.getNumActiveItems(), 1);
@@ -77,7 +81,7 @@ public class ItemsSketchTest {
 
   @Test
   public void severalItems() {
-    ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch.update("a");
     sketch.update("b");
     sketch.update("c");
@@ -108,7 +112,7 @@ public class ItemsSketchTest {
 
   @Test
   public void estimationMode() {
-    ItemsSketch<Integer> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<Integer> sketch = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch.update(1, 10);
     sketch.update(2);
     sketch.update(3);
@@ -126,12 +130,12 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch.getStreamLength(), 35);
 
     {
-      ItemsSketch.Row<Integer>[] items =
+      final ItemsSketch.Row<Integer>[] items =
           sketch.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
       Assert.assertEquals(items.length, 2);
       // only 2 items (1 and 7) should have counts more than 1
       int count = 0;
-      for (ItemsSketch.Row<Integer> item: items) {
+      for (final ItemsSketch.Row<Integer> item: items) {
         if (item.getLowerBound() > 1) {
           count++;
         }
@@ -140,12 +144,12 @@ public class ItemsSketchTest {
     }
 
     {
-      ItemsSketch.Row<Integer>[] items =
+      final ItemsSketch.Row<Integer>[] items =
           sketch.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
       Assert.assertTrue(items.length >= 2);
       // only 2 items (1 and 7) should have counts more than 1
       int count = 0;
-      for (ItemsSketch.Row<Integer> item: items) {
+      for (final ItemsSketch.Row<Integer> item: items) {
         if (item.getLowerBound() > 5) {
           count++;
         }
@@ -156,10 +160,10 @@ public class ItemsSketchTest {
 
   @Test
   public void serializeStringDeserializeEmpty() {
-    ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
-    byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
-    ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfStringsSerDe());
+    final ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe2());
+    final ItemsSketch<String> sketch2 =
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe2());
     Assert.assertTrue(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 0);
     Assert.assertEquals(sketch2.getStreamLength(), 0);
@@ -167,15 +171,15 @@ public class ItemsSketchTest {
 
   @Test
   public void serializeDeserializeUft8Strings() {
-    ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
-    byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
-    ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfStringsSerDe());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe2());
+    final ItemsSketch<String> sketch2 =
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe2());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -191,15 +195,15 @@ public class ItemsSketchTest {
 
   @Test
   public void serializeDeserializeUtf16Strings() {
-    ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch1.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     sketch1.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
-    byte[] bytes = sketch1.toByteArray(new ArrayOfUtf16StringsSerDe());
-    ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfUtf16StringsSerDe());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfUtf16StringsSerDe2());
+    final ItemsSketch<String> sketch2 =
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfUtf16StringsSerDe2());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -215,7 +219,7 @@ public class ItemsSketchTest {
 
   @Test
   public void forceResize() {
-    ItemsSketch<String> sketch1 = new ItemsSketch<>(2 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch1 = new ItemsSketch<>(2 << LG_MIN_MAP_SIZE);
     for (int i=0; i<32; i++) {
       sketch1.update(Integer.toString(i), i*i);
     }
@@ -223,25 +227,25 @@ public class ItemsSketchTest {
 
   @Test
   public void getRowHeader() {
-    String header = ItemsSketch.Row.getRowHeader();
+    final String header = ItemsSketch.Row.getRowHeader();
     Assert.assertNotNull(header);
     Assert.assertTrue(header.length() > 0);
   }
 
   @Test
   public void serializeLongDeserialize() {
-    ItemsSketch<Long> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<Long> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch1.update(1L);
     sketch1.update(2L);
     sketch1.update(3L);
     sketch1.update(4L);
 
-    String s = sketch1.toString();
+    final String s = sketch1.toString();
     println(s);
 
-    byte[] bytes = sketch1.toByteArray(new ArrayOfLongsSerDe());
-    ItemsSketch<Long> sketch2 =
-        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfLongsSerDe());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfLongsSerDe2());
+    final ItemsSketch<Long> sketch2 =
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe2());
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -257,13 +261,13 @@ public class ItemsSketchTest {
 
   @Test
   public void mergeExact() {
-    ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch1.update("a");
     sketch1.update("b");
     sketch1.update("c");
     sketch1.update("d");
 
-    ItemsSketch<String> sketch2 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch2 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch2.update("b");
     sketch2.update("c");
     sketch2.update("b");
@@ -280,7 +284,7 @@ public class ItemsSketchTest {
 
   @Test
   public void checkNullMapReturns() {
-    ReversePurgeItemHashMap<Long> map = new ReversePurgeItemHashMap<>(1 << LG_MIN_MAP_SIZE);
+    final ReversePurgeItemHashMap<Long> map = new ReversePurgeItemHashMap<>(1 << LG_MIN_MAP_SIZE);
     Assert.assertNull(map.getActiveKeys());
     Assert.assertNull(map.getActiveValues());
   }
@@ -288,40 +292,40 @@ public class ItemsSketchTest {
   @SuppressWarnings("unlikely-arg-type")
   @Test
   public void checkMisc() {
-    ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     Assert.assertEquals(sk1.getCurrentMapCapacity(), 6);
     Assert.assertEquals(sk1.getEstimate(Long.valueOf(1)), 0);
-    ItemsSketch<Long> sk2 = new ItemsSketch<>(8);
+    final ItemsSketch<Long> sk2 = new ItemsSketch<>(8);
     Assert.assertEquals(sk1.merge(sk2), sk1 );
     Assert.assertEquals(sk1.merge(null), sk1);
     sk1.update(Long.valueOf(1));
-    ItemsSketch.Row<Long>[] rows = sk1.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
-    ItemsSketch.Row<Long> row = rows[0];
+    final ItemsSketch.Row<Long>[] rows = sk1.getFrequentItems(ErrorType.NO_FALSE_NEGATIVES);
+    final ItemsSketch.Row<Long> row = rows[0];
     Assert.assertTrue(row.hashCode() != 0);
     Assert.assertTrue(row.equals(row));
     Assert.assertFalse(row.equals(sk1));
     Assert.assertEquals((long)row.getItem(), 1L);
     Assert.assertEquals(row.getEstimate(), 1);
     Assert.assertEquals(row.getUpperBound(), 1);
-    String s = row.toString();
+    final String s = row.toString();
     println(s);
-    ItemsSketch.Row<Long> nullRow = null; //check equals(null)
+    final ItemsSketch.Row<Long> nullRow = null; //check equals(null)
     Assert.assertFalse(row.equals(nullRow));
   }
 
   @Test
   public void checkToString() {
-    ItemsSketch<Long> sk = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<Long> sk = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sk.update(Long.valueOf(1));
-    println(ItemsSketch.toString(sk.toByteArray(new ArrayOfLongsSerDe())));
+    println(ItemsSketch.toString(sk.toByteArray(new ArrayOfLongsSerDe2())));
   }
 
   @Test
   public void checkGetFrequentItems1() {
-    ItemsSketch<Long> fis = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<Long> fis = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     fis.update(1L);
-    Row<Long>[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
-    Row<Long> row = rowArr[0];
+    final Row<Long>[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
+    final Row<Long> row = rowArr[0];
     assertNotNull(row);
     assertEquals(row.est, 1L);
     assertEquals(row.item, Long.valueOf(1L));
@@ -335,46 +339,46 @@ public class ItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUpdateException() {
-    ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sk1.update(Long.valueOf(1), -1);
   }
 
   @Test
-  public void checkMemExceptions() {
-    ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+  public void checkMemorySegmentExceptions() {
+    final ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sk1.update(Long.valueOf(1), 1);
-    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
-    byte[] byteArr = sk1.toByteArray(serDe);
-    WritableMemory mem = WritableMemory.writableWrap(byteArr);
-    //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(mem, serDe);
+    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final byte[] byteArr = sk1.toByteArray(serDe);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(seg, serDe);
     //println(sk2.toString());
-    long pre0 = mem.getLong(0); //The correct first 8 bytes.
+    final long pre0 = seg.get(JAVA_LONG_UNALIGNED, 0); //The correct first 8 bytes.
     //Now start corrupting
-    tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, PREAMBLE_LONGS_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, SER_VER_BYTE, 2); //Corrupt
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, SER_VER_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, FAMILY_BYTE, 2); //Corrupt
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, FAMILY_BYTE, 2); //Corrupt
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
 
-    tryBadMem(mem, FLAGS_BYTE, 4); //Corrupt to true
-    mem.putLong(0, pre0); //restore
+    tryBadSeg(seg, FLAGS_BYTE, 4); //Corrupt to true
+    seg.set(JAVA_LONG_UNALIGNED, 0, pre0); //restore
   }
 
   @Test
   public void oneItemUtf8() {
-    ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
+    final ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sketch1.update("\u5fb5");
     Assert.assertFalse(sketch1.isEmpty());
     Assert.assertEquals(sketch1.getNumActiveItems(), 1);
     Assert.assertEquals(sketch1.getStreamLength(), 1);
     Assert.assertEquals(sketch1.getEstimate("\u5fb5"), 1);
 
-    byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
-    ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(Memory.wrap(bytes), new ArrayOfStringsSerDe());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe2());
+    final ItemsSketch<String> sketch2 =
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe2());
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 1);
     Assert.assertEquals(sketch2.getStreamLength(), 1);
@@ -386,12 +390,12 @@ public class ItemsSketchTest {
     assertEquals(ItemsSketch.getEpsilon(1024), 3.5 / 1024, 0.0);
     try {
       ItemsSketch.getEpsilon(1000);
-    } catch (SketchesArgumentException e) { }
+    } catch (final SketchesArgumentException e) { }
   }
 
   @Test
   public void checkGetAprioriError() {
-    double eps = 3.5 / 1024;
+    final double eps = 3.5 / 1024;
     assertEquals(ItemsSketch.getAprioriError(1024, 10_000), eps * 10_000);
   }
 
@@ -402,13 +406,13 @@ public class ItemsSketchTest {
 
   //Restricted methods
 
-  private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
-    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+  private static void tryBadSeg(final MemorySegment seg, final int byteOffset, final int byteValue) {
+    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
     try {
-      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      ItemsSketch.getInstance(mem, serDe);
+      seg.set(JAVA_BYTE, byteOffset, (byte) byteValue); //Corrupt
+      ItemsSketch.getInstance(seg, serDe);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
   }
@@ -417,7 +421,7 @@ public class ItemsSketchTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 }
