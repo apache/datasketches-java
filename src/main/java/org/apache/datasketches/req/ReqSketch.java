@@ -22,12 +22,12 @@ package org.apache.datasketches.req;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.FloatsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
@@ -123,7 +123,7 @@ public final class ReqSketch extends BaseReqSketch {
     this.minItem = minItem;
     this.maxItem = maxItem;
     this.compactors = compactors;
-    this.rand = new Random();
+    rand = new Random();
   }
 
   /**
@@ -138,9 +138,9 @@ public final class ReqSketch extends BaseReqSketch {
   ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug) {
     checkK(k);
     this.k = k;
-    this.hra = highRankAccuracy;
+    hra = highRankAccuracy;
     this.reqDebug = reqDebug;
-    this.rand = (reqDebug == null) ? new Random() : new Random(1);
+    rand = (reqDebug == null) ? new Random() : new Random(1);
     grow();
   }
 
@@ -149,16 +149,16 @@ public final class ReqSketch extends BaseReqSketch {
    * @param other the other sketch to be deep copied into this one.
    */
   ReqSketch(final ReqSketch other) {
-    this.k = other.k;
-    this.hra = other.hra;
-    this.totalN = other.totalN;
-    this.retItems = other.retItems;
-    this.maxNomSize = other.maxNomSize;
-    this.minItem = other.minItem;
-    this.maxItem = other.maxItem;
-    this.reqDebug = other.reqDebug;
-    this.reqSV = null;
-    this.rand = (reqDebug == null) ? new Random() : new Random(1);
+    k = other.k;
+    hra = other.hra;
+    totalN = other.totalN;
+    retItems = other.retItems;
+    maxNomSize = other.maxNomSize;
+    minItem = other.minItem;
+    maxItem = other.maxItem;
+    reqDebug = other.reqDebug;
+    reqSV = null;
+    rand = (reqDebug == null) ? new Random() : new Random(1);
 
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.add(new ReqCompactor(other.compactors.get(i)));
@@ -169,17 +169,17 @@ public final class ReqSketch extends BaseReqSketch {
    * Returns a new ReqSketchBuilder
    * @return a new ReqSketchBuilder
    */
-  public static final ReqSketchBuilder builder() {
+  public static ReqSketchBuilder builder() {
     return new ReqSketchBuilder();
   }
 
   /**
-   * Returns an ReqSketch on the heap from a Memory image of the sketch.
-   * @param mem The Memory object holding a valid image of an ReqSketch
-   * @return an ReqSketch on the heap from a Memory image of the sketch.
+   * Returns an ReqSketch on the heap from a MemorySegment image of the sketch.
+   * @param seg The MemorySegment object holding a valid image of an ReqSketch
+   * @return an ReqSketch on the heap from a MemorySegment image of the sketch.
    */
-  public static ReqSketch heapify(final Memory mem) {
-    return ReqSerDe.heapify(mem);
+  public static ReqSketch heapify(final MemorySegment seg) {
+    return ReqSerDe.heapify(seg);
   }
 
   @Override
@@ -199,7 +199,7 @@ public final class ReqSketch extends BaseReqSketch {
       if (!Float.isFinite(v)) {
         throw new SketchesArgumentException("Numbers must be finite");
       }
-      if (i < len - 1 && v >= splits[i + 1]) {
+      if ((i < (len - 1)) && (v >= splits[i + 1])) {
         throw new SketchesArgumentException(
           "Numbers must be unique and monotonically increasing");
       }
@@ -254,7 +254,7 @@ public final class ReqSketch extends BaseReqSketch {
   @Override
   public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
-    if (normRank < 0 || normRank > 1.0) {
+    if ((normRank < 0) || (normRank > 1.0)) {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
@@ -379,15 +379,15 @@ public final class ReqSketch extends BaseReqSketch {
 
   @Override
   public ReqSketch merge(final ReqSketch other) {
-    if (other == null || other.isEmpty()) { return this; }
+    if ((other == null) || other.isEmpty()) { return this; }
     if (other.hra != hra) {
       throw new SketchesArgumentException(
           "Both sketches must have the same HighRankAccuracy setting.");
     }
     totalN += other.totalN;
     //update min, max items, n
-    if (Float.isNaN(minItem) || other.minItem < minItem) { minItem = other.minItem; }
-    if (Float.isNaN(maxItem) || other.maxItem > maxItem) { maxItem = other.maxItem; }
+    if (Float.isNaN(minItem) || (other.minItem < minItem)) { minItem = other.minItem; }
+    if (Float.isNaN(maxItem) || (other.maxItem > maxItem)) { maxItem = other.maxItem; }
     //Grow until self has at least as many compactors as other
     while (getNumLevels() < other.getNumLevels()) { grow(); }
     //Merge the items in all height compactors
@@ -447,12 +447,12 @@ public final class ReqSketch extends BaseReqSketch {
       if (item < minItem) { minItem = item; }
       if (item > maxItem) { maxItem = item; }
     }
-    final FloatBuffer buf = compactors.get(0).getBuffer();
-    buf.append(item);
+    final FloatBuffer fbuf = compactors.get(0).getBuffer();
+    fbuf.append(item);
     retItems++;
     totalN++;
     if (retItems >= maxNomSize) {
-      buf.sort();
+      fbuf.sort();
       compress();
     }
     reqSV = null;
@@ -519,7 +519,7 @@ public final class ReqSketch extends BaseReqSketch {
   }
 
   private static void checkK(final int k) {
-    if ((k & 1) > 0 || k < 4 || k > 1024) {
+    if (((k & 1) > 0) || (k < 4) || (k > 1024)) {
       throw new SketchesArgumentException(
           "<i>K</i> must be even and in the range [4, 1024]: " + k );
     }
@@ -533,11 +533,11 @@ public final class ReqSketch extends BaseReqSketch {
       final int compNomCap = c.getNomCapacity();
 
       if (compRetItems >= compNomCap) {
-        if (h + 1 >= getNumLevels()) { //at the top?
+        if ((h + 1) >= getNumLevels()) { //at the top?
           if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
           grow(); //add a level, increases maxNomSize
         }
-        final FloatBuffer promoted = c.compact(cReturn, this.rand);
+        final FloatBuffer promoted = c.compact(cReturn, rand);
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
@@ -550,7 +550,7 @@ public final class ReqSketch extends BaseReqSketch {
 
   private void grow() {
     final byte lgWeight = (byte)getNumLevels();
-    if (lgWeight == 0 && reqDebug != null) { reqDebug.emitStart(this); }
+    if ((lgWeight == 0) && (reqDebug != null)) { reqDebug.emitStart(this); }
     compactors.add(new ReqCompactor(lgWeight, hra, k, reqDebug));
     maxNomSize = computeMaxNomSize();
     if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
@@ -564,7 +564,7 @@ public final class ReqSketch extends BaseReqSketch {
     return reqSV;
   }
 
-  private final FloatsSketchSortedView refreshSortedView() {
+  private FloatsSketchSortedView refreshSortedView() {
     if (reqSV == null) {
       final CreateSortedView csv = new CreateSortedView();
       reqSV = csv.getSV();
@@ -587,11 +587,11 @@ public final class ReqSketch extends BaseReqSketch {
       int count = 0;
       for (int i = 0; i < numComp; i++) {
         final ReqCompactor c = compactors.get(i);
-        final FloatBuffer bufIn = c.getBuffer();
-        final long bufWeight = 1 << c.getLgWeight();
-        final int bufInLen = bufIn.getCount();
-        mergeSortIn(bufIn, bufWeight, count, getHighRankAccuracyMode());
-        count += bufInLen;
+        final FloatBuffer fbufIn = c.getBuffer();
+        final long fbufWeight = 1 << c.getLgWeight();
+        final int fbufInLen = fbufIn.getCount();
+        mergeSortIn(fbufIn, fbufWeight, count, getHighRankAccuracyMode());
+        count += fbufInLen;
       }
       createCumulativeNativeRanks();
       return new FloatsSketchSortedView(quantiles, cumWeights, ReqSketch.this);
@@ -602,33 +602,33 @@ public final class ReqSketch extends BaseReqSketch {
      * the ultimate array size has already been set.  However, this must simultaneously deal with
      * sorting the base FloatBuffer as well.
      *
-     * @param bufIn given FloatBuffer. If not sorted it will be sorted here.
-     * @param bufWeight associated weight of input FloatBuffer
+     * @param fbufIn given FloatBuffer. If not sorted it will be sorted here.
+     * @param fbufWeight associated weight of input FloatBuffer
      * @param count tracks number of items inserted into the class arrays
      */
-    private void mergeSortIn(final FloatBuffer bufIn, final long bufWeight, final int count, final boolean hra) {
-      if (!bufIn.isSorted()) { bufIn.sort(); }
-      final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
-      final int bufInLen = bufIn.getCount();
-      final int totLen = count + bufInLen;
+    private void mergeSortIn(final FloatBuffer fbufIn, final long fbufWeight, final int count, final boolean hra) {
+      if (!fbufIn.isSorted()) { fbufIn.sort(); }
+      final float[] arrIn = fbufIn.getArray(); //may be larger than its item count.
+      final int fbufInLen = fbufIn.getCount();
+      final int totLen = count + fbufInLen;
       int i = count - 1;
-      int j = bufInLen - 1;
-      int h = hra ? bufIn.getCapacity() - 1 : bufInLen - 1;
+      int j = fbufInLen - 1;
+      int h = hra ? fbufIn.getCapacity() - 1 : fbufInLen - 1;
       for (int k = totLen; k-- > 0; ) {
-        if (i >= 0 && j >= 0) { //both valid
+        if ((i >= 0) && (j >= 0)) { //both valid
           if (quantiles[i] >= arrIn[h]) {
             quantiles[k] = quantiles[i];
             cumWeights[k] = cumWeights[i--]; //not yet natRanks, just individual wts
           } else {
             quantiles[k] = arrIn[h--]; j--;
-            cumWeights[k] = bufWeight;
+            cumWeights[k] = fbufWeight;
           }
         } else if (i >= 0) { //i is valid
           quantiles[k] = quantiles[i];
           cumWeights[k] = cumWeights[i--];
         } else if (j >= 0) { //j is valid
           quantiles[k] = arrIn[h--]; j--;
-          cumWeights[k] = bufWeight;
+          cumWeights[k] = fbufWeight;
         } else {
           break;
         }

@@ -278,8 +278,9 @@ public class ItemsSketch<T> {
 
     //Get countArray
     final long[] countArray = new long[activeItems];
-    final int reqBytes = preBytes + (activeItems * Long.BYTES); //count Arr only
+    final long reqBytes = (preBytes + ((long)activeItems * Long.BYTES)); //count Arr only
     checkBounds(0, reqBytes, srcSeg.byteSize()); //check MemorySegment capacity
+
     MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, preBytes, countArray, 0, activeItems);
 
     //Get itemArray
@@ -530,7 +531,7 @@ public class ItemsSketch<T> {
 
       final int preBytes = preLongs << 3;
       MemorySegment.copy(hashMap.getActiveValues(), 0, seg, JAVA_LONG_UNALIGNED, preBytes, activeItems);
-      MemorySegment.copy(bytes, 0, seg, JAVA_BYTE, preBytes + (this.getNumActiveItems() << 3), bytes.length);
+      MemorySegment.copy(bytes, 0, seg, JAVA_BYTE, preBytes + (activeItems << 3), bytes.length);
     }
     return outArr;
   }

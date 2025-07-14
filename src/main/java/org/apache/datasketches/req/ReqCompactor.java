@@ -25,10 +25,10 @@ import static org.apache.datasketches.req.BaseReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
 import static org.apache.datasketches.req.ReqSketch.NOM_CAP_MULT;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Random;
 
-import org.apache.datasketches.memory.WritableBuffer;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.req.ReqSketch.CompactorReturn;
 
 /**
@@ -122,7 +122,7 @@ class ReqCompactor {
     final long compactionRange = computeCompactionRange(secsToCompact);
     final int compactionStart = (int) (compactionRange & 0xFFFF_FFFFL); //low 32
     final int compactionEnd = (int) (compactionRange >>> 32); //high 32
-    assert compactionEnd - compactionStart >= 2;
+    assert (compactionEnd - compactionStart) >= 2;
 
     if ((state & 1L) == 1L) { coin = !coin; } //if numCompactions odd, flip coin;
     else { coin = rand.nextBoolean(); }       //random coin flip
@@ -137,7 +137,7 @@ class ReqCompactor {
     buf.trimCount(buf.getCount() - (compactionEnd - compactionStart));
     state += 1;
     ensureEnoughSections();
-    cReturn.deltaRetItems = buf.getCount() - startRetItems + promote.getCount();
+    cReturn.deltaRetItems = (buf.getCount() - startRetItems) + promote.getCount();
     cReturn.deltaNomSize = getNomCapacity() - startNomCap;
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
     return promote;
@@ -175,7 +175,7 @@ class ReqCompactor {
    */
   int getSerializationBytes() {
     final int count = buf.getCount();
-    return 8 + 4 + 1 + 1 + 2 + 4 + count * Float.BYTES; // 20 + array
+    return 8 + 4 + 1 + 1 + 2 + 4 + (count * Float.BYTES); // 20 + array
   }
 
   int getNumSections() {
@@ -227,9 +227,9 @@ class ReqCompactor {
   private boolean ensureEnoughSections() {
     final float szf;
     final int ne;
-    if (state >= 1L << numSections - 1
-        && sectionSize > MIN_K
-        && (ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K)
+    if ((state >= (1L << (numSections - 1)))
+        && (sectionSize > MIN_K)
+        && ((ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K))
     {
       sectionSizeFlt = szf;
       sectionSize = ne;
@@ -248,9 +248,9 @@ class ReqCompactor {
    */
   private long computeCompactionRange(final int secsToCompact) {
     final int bufLen = buf.getCount();
-    int nonCompact = getNomCapacity() / 2 + (numSections - secsToCompact) * sectionSize;
+    int nonCompact = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
     //make compacted region even:
-    nonCompact = (bufLen - nonCompact & 1) == 1 ? nonCompact + 1 : nonCompact;
+    nonCompact = ((bufLen - nonCompact) & 1) == 1 ? nonCompact + 1 : nonCompact;
     final long low =  hra ? 0                   : nonCompact;
     final long high = hra ? bufLen - nonCompact : bufLen;
     return (high << 32) + low;
@@ -293,16 +293,16 @@ class ReqCompactor {
   byte[] toByteArray() {
     final int bytes = getSerializationBytes();
     final byte[] arr = new byte[bytes];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(arr).asWritableBuffer();
-    wbuf.putLong(state);
-    wbuf.putFloat(sectionSizeFlt);
-    wbuf.putByte(lgWeight);
-    wbuf.putByte(numSections);
-    wbuf.incrementPosition(2); //pad 2
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(arr));
+    posSeg.setLong(state);
+    posSeg.setFloat(sectionSizeFlt);
+    posSeg.setByte(lgWeight);
+    posSeg.setByte(numSections);
+    posSeg.incrementPosition(2); //pad 2
     //buf.sort(); //sort if necessary
-    wbuf.putInt(buf.getCount()); //count
-    wbuf.putByteArray(buf.floatsToBytes(), 0, Float.BYTES * buf.getCount());
-    assert wbuf.getPosition() == bytes;
+    posSeg.setInt(buf.getCount()); //count
+    posSeg.setByteArray(buf.floatsToBytes(), 0, Float.BYTES * buf.getCount());
+    assert posSeg.getPosition() == bytes;
     return arr;
   }
 
@@ -319,10 +319,9 @@ class ReqCompactor {
     final int secSz = getSectionSize();
     final int numSec = getNumSections();
     final long num = getState();
-    final String prefix = String.format(
+    return String.format(
       "  C:%d Len:%d NomSz:%d SecSz:%d NumSec:%d State:%d",
            h, len, nom, secSz, numSec, num);
-    return prefix;
   }
 
 }

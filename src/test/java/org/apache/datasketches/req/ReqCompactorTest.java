@@ -22,8 +22,13 @@ package org.apache.datasketches.req;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.memory.Buffer;
-import org.apache.datasketches.memory.Memory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.positional.PositionalSegment;
+import org.apache.datasketches.req.FloatBuffer;
+import org.apache.datasketches.req.ReqCompactor;
+import org.apache.datasketches.req.ReqSerDe;
+import org.apache.datasketches.req.ReqSketch;
 import org.apache.datasketches.req.ReqSerDe.Compactor;
 import org.testng.annotations.Test;
 
@@ -63,10 +68,10 @@ public class ReqCompactorTest {
     final int nomCap = 2 * 3 * k;
     final int cap = 2 * nomCap;
     final int delta = nomCap;
-    final FloatBuffer buf = c1.getBuffer();
+    final FloatBuffer fbuf = c1.getBuffer();
 
     for (int i = 1; i <= nomCap; i++) {
-      buf.append(i); //compactor doesn't have a direct update() method
+      fbuf.append(i); //compactor doesn't have a direct update() method
     }
     final float minV = 1;
     final float maxV = nomCap;
@@ -76,11 +81,11 @@ public class ReqCompactorTest {
     final long state = c1.getState();
     final int lgWeight = c1.getLgWeight();
     final boolean c1hra = c1.isHighRankAccuracy();
-    final boolean sorted = buf.isSorted();
+    final boolean sorted = fbuf.isSorted();
     final byte[] c1ser = c1.toByteArray();
     //now deserialize
-    final Buffer buff = Memory.wrap(c1ser).asBuffer();
-    final Compactor compactor = ReqSerDe.extractCompactor(buff, sorted, c1hra);
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, sorted, c1hra);
     final ReqCompactor c2 = compactor.reqCompactor;
     assertEquals(compactor.minItem, minV);
     assertEquals(compactor.maxItem, maxV);
@@ -91,9 +96,9 @@ public class ReqCompactorTest {
     assertEquals(c2.getState(), state);
     assertEquals(c2.getLgWeight(), lgWeight);
     assertEquals(c2.isHighRankAccuracy(), c1hra);
-    final FloatBuffer buf2 = c2.getBuffer();
-    assertEquals(buf2.getCapacity(), cap);
-    assertEquals(buf2.getDelta(), delta);
-    assertTrue(buf.isEqualTo(buf2));
+    final FloatBuffer fbuf2 = c2.getBuffer();
+    assertEquals(fbuf2.getCapacity(), cap);
+    assertEquals(fbuf2.getDelta(), delta);
+    assertTrue(fbuf.isEqualTo(fbuf2));
   }
 }

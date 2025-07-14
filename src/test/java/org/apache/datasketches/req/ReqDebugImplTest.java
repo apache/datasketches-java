@@ -21,6 +21,10 @@ package org.apache.datasketches.req;
 
 import java.util.List;
 
+import org.apache.datasketches.req.ReqCompactor;
+import org.apache.datasketches.req.ReqDebug;
+import org.apache.datasketches.req.ReqSketch;
+
 /**
  * The implementation of the ReqDebug interface. The current levels are
  * implemented:
