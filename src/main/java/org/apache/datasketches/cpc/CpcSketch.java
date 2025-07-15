@@ -727,7 +727,7 @@ public final class CpcSketch {
     final double errConst = mergeFlag ? log(2) : sqrt(log(2) / 2.0);
     final double rse = errConst / Math.sqrt(1 << lgK);
     final StringBuilder sb = new StringBuilder();
-    sb.append("### CPD SKETCH - PREAMBLE:").append(LS);
+    sb.append("### CPC SKETCH - PREAMBLE:").append(LS);
     sb.append("  Flavor         : ").append(getFlavor()).append(LS);
     sb.append("  LgK            : ").append(lgK).append(LS);
     sb.append("  Merge Flag     : ").append(mergeFlag).append(LS);
