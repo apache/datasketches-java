@@ -33,6 +33,9 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
+import org.apache.datasketches.req.BaseReqSketch;
+import org.apache.datasketches.req.ReqSketch;
+import org.apache.datasketches.req.ReqSketchBuilder;
 import org.testng.annotations.Test;
 
 /**

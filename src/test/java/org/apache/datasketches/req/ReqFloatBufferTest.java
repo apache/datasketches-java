@@ -19,14 +19,17 @@
 
 package org.apache.datasketches.req;
 
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.req.FloatBuffer;
 import org.testng.annotations.Test;
 
 /**
@@ -59,7 +62,7 @@ public class ReqFloatBufferTest {
   private static void checkGetEvensOrOddsImpl(final boolean odds, final boolean spaceAtBottom) {
     final int cap = 16;
     final FloatBuffer buf = new FloatBuffer(cap, 0, spaceAtBottom);
-    for (int i = 0; i < cap/2; i++) {
+    for (int i = 0; i < (cap/2); i++) {
       buf.append(i);
     }
     final FloatBuffer out = buf.getEvensOrOdds(0, cap/2, odds);
@@ -147,7 +150,7 @@ public class ReqFloatBufferTest {
   }
 
   private static void iterateValues(final FloatBuffer buf, final int len) {
-    for (float v = 0.5f; v <= len + 0.5f; v += 0.5f) {
+    for (float v = 0.5f; v <= (len + 0.5f); v += 0.5f) {
       checkCountWithCriteria(buf, v);
     }
   }
@@ -265,29 +268,29 @@ public class ReqFloatBufferTest {
   }
 
   private static void checkSerDeImpl(final boolean hra) {
-    final FloatBuffer buf = new FloatBuffer(100, 100, hra);
-    for (int i = 0; i <= 100; i++) { buf.append(i); }
-    final int capacity = buf.getCapacity();
-    final int count = buf.getCount();
-    final int delta = buf.getDelta();
-    final boolean sorted = buf.isSorted();
-    final boolean sab = buf.isSpaceAtBottom();
-    assertEquals(buf.getItemFromIndex(100), 100.0f);
-    assertEquals(buf.getItemFromIndex(hra ? 199 : 1), 1.0f);
-    assertEquals(buf.isSpaceAtBottom(), hra);
+    final FloatBuffer fbuf = new FloatBuffer(100, 100, hra);
+    for (int i = 0; i <= 100; i++) { fbuf.append(i); }
+    final int capacity = fbuf.getCapacity();
+    final int count = fbuf.getCount();
+    final int delta = fbuf.getDelta();
+    final boolean sorted = fbuf.isSorted();
+    final boolean sab = fbuf.isSpaceAtBottom();
+    assertEquals(fbuf.getItemFromIndex(100), 100.0f);
+    assertEquals(fbuf.getItemFromIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(fbuf.isSpaceAtBottom(), hra);
     //uses the serialization method
-    final WritableMemory wmem = WritableMemory.writableWrap(buf.floatsToBytes());
+    final MemorySegment wseg = MemorySegment.ofArray(fbuf.floatsToBytes());
     final float[] farr2 = new float[101];
-    wmem.getFloatArray(0, farr2, 0, 101);
+    MemorySegment.copy(wseg, JAVA_FLOAT_UNALIGNED, 0, farr2, 0, 101);
     //uses the deserialization method
-    final FloatBuffer buf2 = FloatBuffer.reconstruct(farr2, count, capacity, delta, sorted, sab);
-    assertEquals(buf2.getCapacity(), capacity);
-    assertEquals(buf2.getCount(), count);
-    assertEquals(buf2.getDelta(), delta);
-    assertEquals(buf2.isSorted(), sorted);
-    assertEquals(buf2.getItemFromIndex(100), 100.0f);
-    assertEquals(buf2.getItemFromIndex(hra ? 199 : 1), 1.0f);
-    assertEquals(buf2.isSpaceAtBottom(), sab);
+    final FloatBuffer fbuf2 = FloatBuffer.reconstruct(farr2, count, capacity, delta, sorted, sab);
+    assertEquals(fbuf2.getCapacity(), capacity);
+    assertEquals(fbuf2.getCount(), count);
+    assertEquals(fbuf2.getDelta(), delta);
+    assertEquals(fbuf2.isSorted(), sorted);
+    assertEquals(fbuf2.getItemFromIndex(100), 100.0f);
+    assertEquals(fbuf2.getItemFromIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(fbuf2.isSpaceAtBottom(), sab);
   }
 
   static void print(final Object o) { System.out.print(o.toString()); }

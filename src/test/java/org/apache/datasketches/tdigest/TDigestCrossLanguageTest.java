@@ -26,10 +26,10 @@ import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 public class TDigestCrossLanguageTest {
@@ -37,9 +37,9 @@ public class TDigestCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppDouble() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("tdigest_double_n" + n + "_cpp.sk"));
-      final TDigestDouble td = TDigestDouble.heapify(Memory.wrap(bytes));
+      final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? td.isEmpty() : !td.isEmpty());
       assertEquals(td.getTotalWeight(), n);
       if (n > 0) {
@@ -59,9 +59,9 @@ public class TDigestCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppFloat() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("tdigest_float_n" + n + "_cpp.sk"));
-      final TDigestDouble td = TDigestDouble.heapify(Memory.wrap(bytes), true);
+      final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes), true);
       assertTrue(n == 0 ? td.isEmpty() : !td.isEmpty());
       assertEquals(td.getTotalWeight(), n);
       if (n > 0) {
@@ -81,9 +81,11 @@ public class TDigestCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateForCppDouble() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final TDigestDouble td = new TDigestDouble((short) 100);
-      for (int i = 1; i <= n; i++) td.update(i);
+      for (int i = 1; i <= n; i++) {
+        td.update(i);
+      }
       Files.newOutputStream(javaPath.resolve("tdigest_double_n" + n + "_java.sk")).write(td.toByteArray());
     }
   }

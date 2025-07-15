@@ -26,13 +26,16 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.FloatsSketchSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
+import org.apache.datasketches.req.ReqSketch;
+import org.apache.datasketches.req.ReqSketchBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -124,8 +127,8 @@ public class ReqSketchTest {
     final String dfmt = "%10.2f%10.6f" + LS;
     final String sfmt = "%10s%10s" + LS;
     if (iDebug > 0) { printf(sfmt, "Value", "Rank"); }
-    float va = 0;
-    double ranka = 0;
+    final float va = 0;
+    final double ranka = 0;
     for (int i = 0; i < spArr.length; i++) {
       final float v = spArr[i];
       final double trueRank = trueRanks[i];
@@ -269,7 +272,7 @@ public class ReqSketchTest {
   @Test
   public void checkSerDe() {
     final int k = 12;
-    final int exact = 2 * 3 * k - 1;
+    final int exact = (2 * 3 * k) - 1;
     checkSerDeImpl(12, false, 0);
     checkSerDeImpl(12, true, 0);
     checkSerDeImpl(12, false, 4);
@@ -286,13 +289,13 @@ public class ReqSketchTest {
       sk1.update(i);
     }
     final byte[] sk1Arr = sk1.toByteArray();
-    final Memory mem = Memory.wrap(sk1Arr);
-    final ReqSketch sk2 = ReqSketch.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(sk1Arr);
+    final ReqSketch sk2 = ReqSketch.heapify(seg);
     assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
     assertEquals(sk1.isEmpty(), sk2.isEmpty());
     if (sk2.isEmpty()) {
-      try { sk2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-      try { sk2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+      try { sk2.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+      try { sk2.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
     } else {
       assertEquals(sk2.getMinItem(), sk1.getMinItem());
       assertEquals(sk2.getMaxItem(), sk1.getMaxItem());

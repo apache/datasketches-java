@@ -24,9 +24,10 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.TestUtil;
-import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 public class TDigestDoubleTest {
@@ -66,10 +67,9 @@ public class TDigestDoubleTest {
   public void manyValues() {
     final TDigestDouble td = new TDigestDouble();
     final int n = 10000;
-    for (int i = 0; i < n; i++) td.update(i);
-//    System.out.println(td.toString(true));
-//    td.compress();
-//    System.out.println(td.toString(true));
+    for (int i = 0; i < n; i++) {
+      td.update(i);
+    }
     assertFalse(td.isEmpty());
     assertEquals(td.getTotalWeight(), n);
     assertEquals(td.getMinValue(), 0);
@@ -77,10 +77,10 @@ public class TDigestDoubleTest {
     assertEquals(td.getRank(0), 0, 0.0001);
     assertEquals(td.getRank(n / 4), 0.25, 0.0001);
     assertEquals(td.getRank(n / 2), 0.5, 0.0001);
-    assertEquals(td.getRank(n * 3 / 4), 0.75, 0.0001);
+    assertEquals(td.getRank((n * 3) / 4), 0.75, 0.0001);
     assertEquals(td.getRank(n), 1);
     assertEquals(td.getQuantile(0), 0);
-    assertEquals(td.getQuantile(0.5), n / 2, n / 2 * 0.03);
+    assertEquals(td.getQuantile(0.5), n / 2, (n / 2) * 0.03);
     assertEquals(td.getQuantile(0.9), n * 0.9, n * 0.9 * 0.01);
     assertEquals(td.getQuantile(0.95), n * 0.95, n * 0.95 * 0.01);
     assertEquals(td.getQuantile(1), n - 1);
@@ -113,22 +113,21 @@ public class TDigestDoubleTest {
     final int n = 10000;
     final TDigestDouble td1 = new TDigestDouble();
     final TDigestDouble td2 = new TDigestDouble();
-    for (int i = 0; i < n / 2; i++) {
+    for (int i = 0; i < (n / 2); i++) {
       td1.update(i);
-      td2.update(n / 2 + i);
+      td2.update((n / 2) + i);
     }
     td1.merge(td2);
     assertEquals(td1.getTotalWeight(), n);
     assertEquals(td1.getMinValue(), 0);
     assertEquals(td1.getMaxValue(), n - 1);
-//    System.out.println(td1.toString(true));
   }
 
   @Test
   public void serializeDeserializeEmpty() {
     final TDigestDouble td1 = new TDigestDouble();
     final byte[] bytes = td1.toByteArray();
-    final TDigestDouble td2 = TDigestDouble.heapify(Memory.wrap(bytes));
+    final TDigestDouble td2 = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
     assertEquals(td2.getK(), td1.getK());
     assertEquals(td2.getTotalWeight(), td1.getTotalWeight());
     assertEquals(td2.isEmpty(), td1.isEmpty());
@@ -137,9 +136,11 @@ public class TDigestDoubleTest {
   @Test
   public void serializeDeserializeNonEmpty() {
     final TDigestDouble td1 = new TDigestDouble();
-    for (int i = 0; i < 10000; i++) td1.update(i);
+    for (int i = 0; i < 10000; i++) {
+      td1.update(i);
+    }
     final byte[] bytes = td1.toByteArray();
-    final TDigestDouble td2 = TDigestDouble.heapify(Memory.wrap(bytes));
+    final TDigestDouble td2 = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
     assertEquals(td2.getK(), td1.getK());
     assertEquals(td2.getTotalWeight(), td1.getTotalWeight());
     assertEquals(td2.isEmpty(), td1.isEmpty());
@@ -152,7 +153,7 @@ public class TDigestDoubleTest {
   @Test
   public void deserializeFromReferenceImplementationDouble() {
     final byte[] bytes = TestUtil.getResourceBytes("tdigest_ref_k100_n10000_double.sk");
-    final TDigestDouble td = TDigestDouble.heapify(Memory.wrap(bytes));
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
     final int n = 10000;
     assertEquals(td.getK(), 100);
     assertEquals(td.getTotalWeight(), n);
@@ -161,14 +162,14 @@ public class TDigestDoubleTest {
     assertEquals(td.getRank(0), 0, 0.0001);
     assertEquals(td.getRank(n / 4), 0.25, 0.0001);
     assertEquals(td.getRank(n / 2), 0.5, 0.0001);
-    assertEquals(td.getRank(n * 3 / 4), 0.75, 0.0001);
+    assertEquals(td.getRank((n * 3) / 4), 0.75, 0.0001);
     assertEquals(td.getRank(n), 1);
   }
 
   @Test
   public void deserializeFromReferenceImplementationFloat() {
     final byte[] bytes = TestUtil.getResourceBytes("tdigest_ref_k100_n10000_float.sk");
-    final TDigestDouble td = TDigestDouble.heapify(Memory.wrap(bytes));
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
     final int n = 10000;
     assertEquals(td.getK(), 100);
     assertEquals(td.getTotalWeight(), n);
@@ -177,7 +178,7 @@ public class TDigestDoubleTest {
     assertEquals(td.getRank(0), 0, 0.0001);
     assertEquals(td.getRank(n / 4), 0.25, 0.0001);
     assertEquals(td.getRank(n / 2), 0.5, 0.0001);
-    assertEquals(td.getRank(n * 3 / 4), 0.75, 0.0001);
+    assertEquals(td.getRank((n * 3) / 4), 0.75, 0.0001);
     assertEquals(td.getRank(n), 1);
   }
 }

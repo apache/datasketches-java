@@ -22,6 +22,7 @@ package org.apache.datasketches.req;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.req.ReqSketchBuilder;
 import org.testng.annotations.Test;
 
 /**

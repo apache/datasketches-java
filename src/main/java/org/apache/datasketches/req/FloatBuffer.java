@@ -22,11 +22,11 @@ package org.apache.datasketches.req;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
+import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableBuffer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 
@@ -176,7 +176,7 @@ class FloatBuffer {
    * @return this
    */
   private FloatBuffer ensureSpace(final int space) {
-    if (count_ + space > capacity_) {
+    if ((count_ + space) > capacity_) {
       final int newCap = count_ + space + delta_;
       ensureCapacity(newCap);
     }
@@ -219,7 +219,7 @@ class FloatBuffer {
     }
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(arr_, low, high, item, crit);
-    return index == -1 ? 0 : index - low + 1;
+    return index == -1 ? 0 : (index - low) + 1;
   }
 
   /**
@@ -234,8 +234,8 @@ class FloatBuffer {
    * @return the selected odds from the range
    */
   FloatBuffer getEvensOrOdds(final int startOffset, final int endOffset, final boolean odds) {
-    final int start = spaceAtBottom_ ? capacity_ - count_ + startOffset : startOffset;
-    final int end = spaceAtBottom_ ? capacity_ - count_ + endOffset : endOffset;
+    final int start = spaceAtBottom_ ? (capacity_ - count_) + startOffset : startOffset;
+    final int end = spaceAtBottom_ ? (capacity_ - count_) + endOffset : endOffset;
     sort();
     final int range = endOffset - startOffset;
     if ((range & 1) == 1) {
@@ -265,7 +265,7 @@ class FloatBuffer {
    * @return an item given its offset
    */
   float getItem(final int offset) {
-    final int index = spaceAtBottom_ ? capacity_ - count_ + offset : offset;
+    final int index = spaceAtBottom_ ? (capacity_ - count_) + offset : offset;
     return arr_[index];
   }
 
@@ -317,11 +317,11 @@ class FloatBuffer {
    * @return true iff this is exactly equal to that FloatBuffer.
    */
   boolean isEqualTo(final FloatBuffer that) {
-    if (capacity_ != that.capacity_
-        || count_ != that.count_
-        || delta_ != that.delta_
-        || sorted_ != that.sorted_
-        || spaceAtBottom_ != that.spaceAtBottom_) { return false; }
+    if ((capacity_ != that.capacity_)
+        || (count_ != that.count_)
+        || (delta_ != that.delta_)
+        || (sorted_ != that.sorted_)
+        || (spaceAtBottom_ != that.spaceAtBottom_)) { return false; }
     for (int i = 0; i < capacity_; i++) {
       if (arr_[i] != that.arr_[i]) { return false; }
     }
@@ -354,7 +354,7 @@ class FloatBuffer {
       int i = capacity_ - count_;
       int j = bufIn.capacity_ - bufIn.count_;
       for (int k = tgtStart; k < capacity_; k++) {
-        if (i < capacity_ && j < bufIn.capacity_) { //both valid
+        if ((i < capacity_) && (j < bufIn.capacity_)) { //both valid
           arr_[k] = arr_[i] <= arrIn[j] ? arr_[i++] : arrIn[j++];
         } else if (i < capacity_) { //i is valid
           arr_[k] = arr_[i++];
@@ -368,7 +368,7 @@ class FloatBuffer {
       int i = count_ - 1;
       int j = bufInLen - 1;
       for (int k = totLen; k-- > 0; ) {
-        if (i >= 0 && j >= 0) { //both valid
+        if ((i >= 0) && (j >= 0)) { //both valid
           arr_[k] = arr_[i] >= arrIn[j] ? arr_[i--] : arrIn[j--];
         } else if (i >= 0) { //i is valid
           arr_[k] = arr_[i--];
@@ -401,18 +401,18 @@ class FloatBuffer {
   byte[] floatsToBytes() {
     final int bytes = Float.BYTES * count_;
     final byte[] arr = new byte[bytes];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(arr).asWritableBuffer();
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(arr));
     if (spaceAtBottom_) {
-      wbuf.putFloatArray(arr_, capacity_ - count_, count_);
+      posSeg.setFloatArray(arr_, capacity_ - count_, count_);
     } else {
-      wbuf.putFloatArray(arr_, 0, count_);
+      posSeg.setFloatArray(arr_, 0, count_);
     }
-    assert wbuf.getPosition() == bytes;
+    assert posSeg.getPosition() == bytes;
     return arr;
   }
 
   /**
-   * Returns a printable formatted string of the items of this buffer separated by a single space.
+   * Returns a printable formatted string of the items of this FloatBuffer separated by a single space.
    * @param fmt The format for each printed item.
    * @param width the number of items to print per line
    * @return a printable, formatted string of the items of this buffer.
@@ -427,7 +427,7 @@ class FloatBuffer {
     for (int i = start; i < end; i++) {
       final float v = arr_[i];
       final String str = String.format(fmt, v);
-      if (i > start && ++cnt % width == 0) { sb.append(LS).append(spaces); }
+      if ((i > start) && ((++cnt % width) == 0)) { sb.append(LS).append(spaces); }
       sb.append(str);
     }
     return sb.toString();

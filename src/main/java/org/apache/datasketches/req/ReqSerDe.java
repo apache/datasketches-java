@@ -23,14 +23,12 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 
+import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.memory.Buffer;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableBuffer;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.positional.PositionalSegment;
 
 /**
  * This class handles serialization and deserialization.
@@ -130,24 +128,24 @@ class ReqSerDe {
   private static final byte SER_VER = 1;
   private static final byte FAMILY_ID = (byte) Family.REQ.getID();
 
-  static ReqSketch heapify(final Memory mem) {
-    final Buffer buff = mem.asBuffer();
+  static ReqSketch heapify(final MemorySegment seg) {
+    final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     //Extract first 8 bytes
-    final byte preInts = buff.getByte();
-    final byte serVer = buff.getByte();
+    final byte preInts = posSeg.getByte();
+    final byte serVer = posSeg.getByte();
     assert serVer == (byte)1;
-    final byte familyId = buff.getByte();
+    final byte familyId = posSeg.getByte();
     assert familyId == 17;
     //  Extract flags
-    final int flags = buff.getByte() & 0xFF;
+    final int flags = posSeg.getByte() & 0xFF;
     final boolean empty = (flags & 4) > 0;
     final boolean hra = (flags & 8) > 0;
     final boolean rawItems = (flags & 16) > 0;
     final boolean lvl0Sorted = (flags & 32) > 0;
     //  remainder fields
-    final int k = buff.getShort() & 0xFFFF;
-    final int numCompactors = buff.getByte() & 0xFF;
-    final int numRawItems = buff.getByte() & 0xFF;
+    final int k = posSeg.getShort() & 0xFFFF;
+    final int numCompactors = posSeg.getByte() & 0xFF;
+    final int numRawItems = posSeg.getByte() & 0xFF;
     //  extract different serialization formats
     final SerDeFormat deserFormat = getDeserFormat(empty, rawItems, numCompactors);
     switch (deserFormat) {
@@ -158,12 +156,12 @@ class ReqSerDe {
       case RAWITEMS: {
         assert preInts == 2;
         final ReqSketch sk = new ReqSketch(k, hra, null);
-        for (int i = 0; i < numRawItems; i++) { sk.update(buff.getFloat()); }
+        for (int i = 0; i < numRawItems; i++) { sk.update(posSeg.getFloat()); }
         return sk;
       }
       case EXACT: {
         assert preInts == 2;
-        final Compactor compactor = extractCompactor(buff, lvl0Sorted, hra);
+        final Compactor compactor = extractCompactor(posSeg, lvl0Sorted, hra);
         //Construct sketch
         final long totalN = compactor.count;
         final float minItem = compactor.minItem;
@@ -177,14 +175,14 @@ class ReqSerDe {
       }
       default: { //ESTIMATION
         assert preInts == 4;
-        final long totalN = buff.getLong();
-        final float minItem = buff.getFloat();
-        final float maxItem = buff.getFloat();
+        final long totalN = posSeg.getLong();
+        final float minItem = posSeg.getFloat();
+        final float maxItem = posSeg.getFloat();
 
         final List<ReqCompactor> compactors = new ArrayList<>();
         for (int i = 0; i < numCompactors; i++) {
           final boolean level0sorted = i == 0 ? lvl0Sorted : true;
-          final Compactor compactor = extractCompactor(buff, level0sorted, hra);
+          final Compactor compactor = extractCompactor(posSeg, level0sorted, hra);
           compactors.add(compactor.reqCompactor);
         }
         final ReqSketch sk = new ReqSketch(k, hra, totalN, minItem, maxItem, compactors);
@@ -195,17 +193,17 @@ class ReqSerDe {
     }
   }
 
-  static final Compactor extractCompactor(final Buffer buff, final boolean lvl0Sorted,
+  static final Compactor extractCompactor(final PositionalSegment posSeg, final boolean lvl0Sorted,
       final boolean hra) {
-    final long state = buff.getLong();
-    final float sectionSizeFlt = buff.getFloat();
+    final long state = posSeg.getLong();
+    final float sectionSizeFlt = posSeg.getFloat();
     final int sectionSize = round(sectionSizeFlt);
-    final byte lgWt = buff.getByte();
-    final byte numSections = buff.getByte();
-    buff.incrementPosition(2);
-    final int count = buff.getInt();
+    final byte lgWt = posSeg.getByte();
+    final byte numSections = posSeg.getByte();
+    posSeg.incrementPosition(2);
+    final int count = posSeg.getInt();
     final float[] arr = new float[count];
-    buff.getFloatArray(arr, 0, count);
+    posSeg.getFloatArray(arr, 0, count);
     float minItem = Float.MAX_VALUE;
     float maxItem = Float.MIN_VALUE;
     for (int i = 0; i < count; i++) {
@@ -267,46 +265,47 @@ class ReqSerDe {
     final SerDeFormat serDeFormat = getSerFormat(sk);
     final int bytes = getSerBytes(sk, serDeFormat);
     final byte[] arr = new byte[bytes];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(arr).asWritableBuffer();
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(arr));
+
     final byte preInts = (byte)(serDeFormat == SerDeFormat.ESTIMATION ? 4 : 2);
     final byte flags = getFlags(sk);
     final byte numCompactors = sk.isEmpty() ? 0 : (byte) sk.getNumLevels();
     final byte numRawItems = sk.getN() <= 4 ? (byte) sk.getN() : 0;
-    wbuf.putByte(preInts);
-    wbuf.putByte(SER_VER);
-    wbuf.putByte(FAMILY_ID);
-    wbuf.putByte(flags);
-    wbuf.putShort((short)sk.getK());
-    wbuf.putByte(numCompactors);
-    wbuf.putByte(numRawItems);
+    posSeg.setByte(preInts);
+    posSeg.setByte(SER_VER);
+    posSeg.setByte(FAMILY_ID);
+    posSeg.setByte(flags);
+    posSeg.setShort((short)sk.getK());
+    posSeg.setByte(numCompactors);
+    posSeg.setByte(numRawItems);
 
     switch (serDeFormat) {
       case EMPTY: {
-        assert wbuf.getPosition() == bytes;
+        assert posSeg.getPosition() == bytes;
         return arr;
       }
       case RAWITEMS: {
         final ReqCompactor c0 = sk.getCompactors().get(0);
         final FloatBuffer fbuf = c0.getBuffer();
-        for (int i = 0; i < numRawItems; i++) { wbuf.putFloat(fbuf.getItem(i)); }
-        assert wbuf.getPosition() == bytes;
+        for (int i = 0; i < numRawItems; i++) { posSeg.setFloat(fbuf.getItem(i)); }
+        assert posSeg.getPosition() == bytes;
         return arr;
       }
       case EXACT: {
         final ReqCompactor c0 = sk.getCompactors().get(0);
-        wbuf.putByteArray(c0.toByteArray(), 0, c0.getSerializationBytes());
-        assert wbuf.getPosition() == bytes;
+        posSeg.setByteArray(c0.toByteArray(), 0, c0.getSerializationBytes());
+        assert posSeg.getPosition() == bytes;
         return arr;
       }
       default: { //Normal Estimation
-        wbuf.putLong(sk.getN());
-        wbuf.putFloat(sk.getMinItem());
-        wbuf.putFloat(sk.getMaxItem());
+        posSeg.setLong(sk.getN());
+        posSeg.setFloat(sk.getMinItem());
+        posSeg.setFloat(sk.getMaxItem());
         for (int i = 0; i < numCompactors; i++) {
           final ReqCompactor c = sk.getCompactors().get(i);
-          wbuf.putByteArray(c.toByteArray(), 0, c.getSerializationBytes());
+          posSeg.setByteArray(c.toByteArray(), 0, c.getSerializationBytes());
         }
-        assert wbuf.getPosition() == bytes : wbuf.getPosition() + ", " + bytes;
+        assert posSeg.getPosition() == bytes : posSeg.getPosition() + ", " + bytes;
         return arr;
       }
     }
@@ -318,7 +317,7 @@ class ReqSerDe {
         return 8;
       }
       case RAWITEMS: {
-        return sk.getCompactors().get(0).getBuffer().getCount() * Float.BYTES + 8;
+        return (sk.getCompactors().get(0).getBuffer().getCount() * Float.BYTES) + 8;
       }
       case EXACT: {
         return sk.getCompactors().get(0).getSerializationBytes() + 8;
