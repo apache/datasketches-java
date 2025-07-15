@@ -46,10 +46,10 @@ github:
     delete_comment_discussion: "Re: [D] {title} ({repository})"
 
 notifications:
-  commits:              commits@dataskethces.apache.org
-  issues:               dev@dataskethces.apache.org
-  discussions:          dev@dataskethces.apache.org
-  pullrequests_status:  dev@dataskethces.apache.org
-  pullrequests_comment: dev@dataskethces.apache.org
+  commits:              commits@datasketches.apache.org
+  issues:               dev@datasketches.apache.org
+  discussions:          dev@datasketches.apache.org
+  pullrequests_status:  dev@datasketches.apache.org
+  pullrequests_comment: dev@datasketches.apache.org
   # Send dependabot PRs to commits@ instead
-  pullrequests_bot_dependabot: commits@dataskethces.apache.org
+  pullrequests_bot_dependabot: commits@datasketches.apache.org
