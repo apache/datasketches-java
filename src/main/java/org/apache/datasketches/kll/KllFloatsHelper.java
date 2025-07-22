@@ -25,10 +25,9 @@ import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Random;
-
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Static methods to support KllFloatsSketch
@@ -59,7 +58,7 @@ final class KllFloatsHelper {
   static void compressWhileUpdatingSketch(final KllFloatsSketch fltSk) {
     final int level =
         findLevelToCompact(fltSk.getK(), fltSk.getM(), fltSk.getNumLevels(), fltSk.levelsArr);
-    if (level == fltSk.getNumLevels() - 1) {
+    if (level == (fltSk.getNumLevels() - 1)) {
       //The level to compact is the top level, thus we need to add a level.
       //Be aware that this operation grows the items array,
       //shifts the items data and the level boundaries of the data,
@@ -104,7 +103,7 @@ final class KllFloatsHelper {
     }
 
     // verify that we freed up halfAdjPop array slots just below the current level
-    assert myLevelsArr[level] == rawBeg + halfAdjPop;
+    assert myLevelsArr[level] == (rawBeg + halfAdjPop);
 
     // finally, we need to shift up the data in the levels below
     // so that the freed-up space can be used by level zero
@@ -157,7 +156,7 @@ final class KllFloatsHelper {
     float[] myNewFloatItemsArr = myCurFloatItemsArr;
 
     //merge higher levels if they exist
-    if (otherNumLevels > 1  && !otherFltSk.isCompactSingleItem()) {
+    if ((otherNumLevels > 1)  && !otherFltSk.isCompactSingleItem()) {
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final float[] workbuf = new float[tmpSpaceNeeded];
@@ -196,23 +195,19 @@ final class KllFloatsHelper {
 
       //calculate the new levels array length
       final int finalLevelsArrLen;
-      if (myCurLevelsArr.length < myNewNumLevels + 1) { finalLevelsArrLen = myNewNumLevels + 1; }
+      if (myCurLevelsArr.length < (myNewNumLevels + 1)) { finalLevelsArrLen = myNewNumLevels + 1; }
       else { finalLevelsArrLen = myCurLevelsArr.length; }
 
       //THE NEW LEVELS ARRAY
       myNewLevelsArr = new int[finalLevelsArrLen];
-      for (int lvl = 0; lvl < myNewNumLevels + 1; lvl++) { // includes the "extra" index
+      for (int lvl = 0; lvl < (myNewNumLevels + 1); lvl++) { // includes the "extra" index
         myNewLevelsArr[lvl] = outlevels[lvl] + theShift;
       }
 
-      //MEMORY SPACE MANAGEMENT
-      if (mySketch.getWritableMemory() != null) {
-        final WritableMemory oldWmem = mySketch.getWritableMemory();
-        final WritableMemory wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewFloatItemsArr.length);
-        if (!wmem.isSameResource(oldWmem)) {
-          mySketch.getMemoryRequestServer().requestClose(oldWmem);
-        }
-        mySketch.setWritableMemory(wmem);
+      //MemorySegment SPACE MANAGEMENT
+      if (mySketch.getMemorySegment() != null) {
+        final MemorySegment wseg = KllHelper.memorySegmentSpaceMgmt(mySketch, myNewLevelsArr.length, myNewFloatItemsArr.length);
+        mySketch.setMemorySegment(wseg);
       }
     } //end of updating levels above level 0
 
@@ -256,10 +251,7 @@ final class KllFloatsHelper {
       if (a == limA) {
         bufC[c] = bufB[b];
         b++;
-      } else if (b == limB) {
-        bufC[c] = bufA[a];
-        a++;
-      } else if (bufA[a] < bufB[b]) {
+      } else if ((b == limB) || (bufA[a] < bufB[b])) {
         bufC[c] = bufA[a];
         a++;
       } else {
@@ -453,15 +445,15 @@ final class KllFloatsHelper {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       workLevels[lvl + 1] = workLevels[lvl] + selfPop + otherPop;
-      assert selfPop >= 0 && otherPop >= 0;
-      if (selfPop == 0 && otherPop == 0) { continue; }
-      if (selfPop > 0 && otherPop == 0) {
+      assert (selfPop >= 0) && (otherPop >= 0);
+      if ((selfPop == 0) && (otherPop == 0)) { continue; }
+      if ((selfPop > 0) && (otherPop == 0)) {
         System.arraycopy(myCurFloatItemsArr, myCurLevelsArr[lvl], workBuf, workLevels[lvl], selfPop);
       }
-      else if (selfPop == 0 && otherPop > 0) {
+      else if ((selfPop == 0) && (otherPop > 0)) {
         System.arraycopy(otherFloatItemsArr, otherLevelsArr[lvl], workBuf, workLevels[lvl], otherPop);
       }
-      else if (selfPop > 0 && otherPop > 0) {
+      else if ((selfPop > 0) && (otherPop > 0)) {
         mergeSortedFloatArrays( //only workBuf is modified
             myCurFloatItemsArr, myCurLevelsArr[lvl], selfPop,
             otherFloatItemsArr, otherLevelsArr[lvl], otherPop,

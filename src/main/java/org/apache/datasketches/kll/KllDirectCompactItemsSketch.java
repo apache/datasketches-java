@@ -19,27 +19,29 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentN;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfBooleansSerDe;
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfBooleansSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.MemorySegmentRequest;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This class implements an off-heap, read-only KllItemsSketch using WritableMemory.
+ * This class implements an off-heap, read-only KllItemsSketch using MemorySegment.
  *
  * <p>Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}</p>
@@ -48,22 +50,22 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 @SuppressWarnings("unchecked")
 final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
-  private Memory mem;
+  private final MemorySegment seg;
 
   /**
-   * Internal implementation of the wrapped Memory KllSketch.
-   * @param memVal the MemoryValadate object
+   * Internal implementation of the wrapped MemorySegment KllSketch.
+   * @param segVal the MemoryValadate object
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
    */
   KllDirectCompactItemsSketch( //called below and KllItemsSketch
-      final KllMemoryValidate memVal,
+      final KllMemorySegmentValidate segVal,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
-    super(memVal.sketchStructure, comparator, serDe);
-    this.mem = memVal.srcMem;
+      final ArrayOfItemsSerDe2<T> serDe) {
+    super(segVal.sketchStructure, comparator, serDe);
+    seg = segVal.srcSeg;
     readOnly = true;
-    levelsArr = memVal.levelsArr; //always converted to writable form.
+    levelsArr = segVal.levelsArr; //always converted to writable form.
   }
 
   //End of constructors
@@ -76,24 +78,24 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   public int getK() {
-    return getMemoryK(mem);
+    return getMemorySegmentK(seg);
   }
 
   //MinMax Methods
 
   @Override
   public T getMaxItem() {
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
+    if ((sketchStructure == COMPACT_EMPTY) || isEmpty()) {
       throw new SketchesArgumentException(EMPTY_MSG);
     }
     if (sketchStructure == COMPACT_SINGLE) {
-      return serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0];
+      return serDe.deserializeFromMemorySegment(seg, DATA_START_ADR_SINGLE_ITEM, 1)[0];
     }
     //sketchStructure == COMPACT_FULL
-    final int baseOffset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
-    final int offset = baseOffset + serDe.sizeOf(mem, baseOffset, 1); //size of minItem
+    final int baseOffset = DATA_START_ADR + (getNumLevels() * Integer.BYTES);
+    final int offset = baseOffset + serDe.sizeOf(seg, baseOffset, 1); //size of minItem
 
-    return serDe.deserializeFromMemory(mem, offset, 1)[0];
+    return serDe.deserializeFromMemorySegment(seg, offset, 1)[0];
   }
 
   @Override
@@ -104,15 +106,15 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   public T getMinItem() {
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
+    if ((sketchStructure == COMPACT_EMPTY) || isEmpty()) {
       throw new SketchesArgumentException(EMPTY_MSG);
     }
     if (sketchStructure == COMPACT_SINGLE) {
-      return serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0];
+      return serDe.deserializeFromMemorySegment(seg, DATA_START_ADR_SINGLE_ITEM, 1)[0];
     }
     //sketchStructure == COMPACT_FULL
-    final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
-    return serDe.deserializeFromMemory(mem, offset, 1)[0];
+    final int offset = DATA_START_ADR + (getNumLevels() * Integer.BYTES);
+    return serDe.deserializeFromMemorySegment(seg, offset, 1)[0];
   }
 
   @Override
@@ -125,7 +127,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   public long getN() {
     if (sketchStructure == COMPACT_EMPTY) { return 0; }
     if (sketchStructure == COMPACT_SINGLE) { return 1; }
-    return getMemoryN(mem);
+    return getMemorySegmentN(seg);
   }
 
   //restricted
@@ -133,77 +135,77 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   private int getCompactDataOffset() { //Sketch cannot be empty
     return sketchStructure == COMPACT_SINGLE
         ? DATA_START_ADR_SINGLE_ITEM
-        : DATA_START_ADR + getNumLevels() * Integer.BYTES + getMinMaxSizeBytes();
+        : DATA_START_ADR + (getNumLevels() * Integer.BYTES) + getMinMaxSizeBytes();
   }
 
   @Override
   int getM() {
-    return getMemoryM(mem);
+    return getMemorySegmentM(seg);
   }
 
   @Override
   int getMinK() {
-    if (sketchStructure == COMPACT_EMPTY || sketchStructure == COMPACT_SINGLE) { return getMemoryK(mem); }
-    return getMemoryMinK(mem);
+    if ((sketchStructure == COMPACT_EMPTY) || (sketchStructure == COMPACT_SINGLE)) { return getMemorySegmentK(seg); }
+    return getMemorySegmentMinK(seg);
   }
 
   @Override
   byte[] getMinMaxByteArr() { //this is only used by COMPACT_FULL
-    final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
-    final int bytesMinMax = serDe.sizeOf(mem, offset, 2);
+    final int offset = DATA_START_ADR + (getNumLevels() * Integer.BYTES);
+    final int bytesMinMax = serDe.sizeOf(seg, offset, 2);
     final byte[] byteArr = new byte[bytesMinMax];
-    mem.getByteArray(offset, byteArr, 0, bytesMinMax);
+    MemorySegment.copy(seg, JAVA_BYTE, offset, byteArr, 0, bytesMinMax);
     return byteArr;
   }
 
   @Override
   int getMinMaxSizeBytes() { //this is only used by COMPACT_FULL
-    final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
-    if (serDe instanceof ArrayOfBooleansSerDe) { return 2; }
-    return serDe.sizeOf(mem, offset, 2);
+    final int offset = DATA_START_ADR + (getNumLevels() * Integer.BYTES);
+    if (serDe instanceof ArrayOfBooleansSerDe2) { return 2; }
+    return serDe.sizeOf(seg, offset, 2);
   }
 
   @Override
   T[] getRetainedItemsArray() {
     final int numRet = getNumRetained();
-    if (sketchStructure == COMPACT_EMPTY || getN() == 0) {
+    if ((sketchStructure == COMPACT_EMPTY) || (getN() == 0)) {
       return (T[]) Array.newInstance(serDe.getClassOfT(), numRet);
     }
     final int offset = getCompactDataOffset(); //both single & full
-    return serDe.deserializeFromMemory(mem, offset, numRet);
+    return serDe.deserializeFromMemorySegment(seg, offset, numRet);
   }
 
   @Override
   byte[] getRetainedItemsByteArr() {
-    if (sketchStructure == COMPACT_EMPTY || getN() == 0) { return new byte[0]; }
+    if ((sketchStructure == COMPACT_EMPTY) || (getN() == 0)) { return new byte[0]; }
     final int offset = getCompactDataOffset(); //both single & full
-    final int bytes = serDe.sizeOf(mem, offset, getNumRetained());
+    final int bytes = serDe.sizeOf(seg, offset, getNumRetained());
     final byte[] byteArr = new byte[bytes];
-    mem.getByteArray(offset, byteArr, 0, bytes);
+    MemorySegment.copy(seg, JAVA_BYTE, offset, byteArr, 0, bytes);
     return byteArr;
   }
 
   @Override
   int getRetainedItemsSizeBytes() {
-    if (sketchStructure == COMPACT_EMPTY || getN() == 0) { return 0; }
+    if ((sketchStructure == COMPACT_EMPTY) || (getN() == 0)) { return 0; }
     final int offset = getCompactDataOffset(); //both single & full
-    return serDe.sizeOf(mem, offset, getNumRetained());
+    return serDe.sizeOf(seg, offset, getNumRetained());
   }
 
   @Override
   T getSingleItem() {
     if (getN() != 1) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     final int offset = getCompactDataOffset(); //both single & full
-    return (serDe.deserializeFromMemory(mem, offset, 1)[0]);
+    return (serDe.deserializeFromMemorySegment(seg, offset, 1)[0]);
   }
 
   @Override
   byte[] getSingleItemByteArr() {
     if (getN() != 1) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     final int offset = getCompactDataOffset(); //both single & full
-    final int bytes = serDe.sizeOf(mem, offset, 1);
+    final int bytes = serDe.sizeOf(seg, offset, 1);
     final byte[] byteArr = new byte[bytes];
-    mem.getByteArray(offset, byteArr, 0, bytes);
+    MemorySegment.copy(seg, JAVA_BYTE, offset, byteArr, 0, bytes);
     return byteArr;
   }
 
@@ -211,8 +213,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   int getSingleItemSizeBytes() {
     if (getN() != 1) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     final int offset = getCompactDataOffset(); //both single & full
-    final int bytes = serDe.sizeOf(mem, offset, 1);
-    return bytes;
+    return serDe.sizeOf(seg, offset, 1);
   }
 
   @Override
@@ -227,15 +228,15 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     final int offset = getCompactDataOffset();
     final int numRetItems = getNumRetained();
     final int numCapItems = levelsArr[getNumLevels()];
-    final T[] retItems = serDe.deserializeFromMemory(mem, offset, numRetItems);
+    final T[] retItems = serDe.deserializeFromMemorySegment(seg, offset, numRetItems);
     final T[] capItems = (T[]) Array.newInstance(serDe.getClassOfT(), numCapItems);
     System.arraycopy(retItems, 0, capItems, levelsArr[0], numRetItems);
     return capItems;
   }
 
   @Override
-  WritableMemory getWritableMemory() {
-    return (WritableMemory)mem;
+  MemorySegment getMemorySegment() {
+    return seg;
   }
 
   @Override
@@ -245,7 +246,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   boolean isLevelZeroSorted() {
-    return getMemoryLevelZeroSortedFlag(mem);
+    return getMemorySegmentLevelZeroSortedFlag(seg);
   }
 
   @Override
@@ -281,6 +282,26 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   void setN(final long n) {
     throw new SketchesArgumentException(UNSUPPORTED_MSG);
+  }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return (seg != null) && seg.scope().isAlive();
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return hasMemorySegment() && seg.isNative();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return MemorySegmentStatus.isSameResource(seg, that);
+  }
+
+  @Override
+  MemorySegmentRequest getMemorySegmentRequest() {
+    return null;
   }
 
 }

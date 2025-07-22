@@ -206,22 +206,22 @@ package org.apache.datasketches.quantilescommon;
 public interface QuantilesAPI {
 
   /** The sketch must not be empty for this operation. */
-  static String EMPTY_MSG = "The sketch must not be empty for this operation. ";
+  String EMPTY_MSG = "The sketch must not be empty for this operation. ";
 
   /** Unsupported operation for this Sketch Type. */
-  static String UNSUPPORTED_MSG = "Unsupported operation for this Sketch Type. ";
+  String UNSUPPORTED_MSG = "Unsupported operation for this Sketch Type. ";
 
   /** Sketch does not have just one item. */
-  static String NOT_SINGLE_ITEM_MSG = "Sketch does not have just one item. ";
+  String NOT_SINGLE_ITEM_MSG = "Sketch does not have just one item. ";
 
   /** MemoryRequestServer must not be null. */
-  static String MEM_REQ_SVR_NULL_MSG = "MemoryRequestServer must not be null. ";
+  String MEM_REQ_SVR_NULL_MSG = "MemoryRequestServer must not be null. ";
 
   /** Target sketch is Read Only, cannot write. */
-  static String TGT_IS_READ_ONLY_MSG = "Target sketch is Read Only, cannot write. ";
+  String TGT_IS_READ_ONLY_MSG = "Target sketch is Read Only, cannot write. ";
 
   /** A sketch cannot merge with itself. */
-  static String SELF_MERGE_MSG = "A sketch cannot merge with itself. ";
+  String SELF_MERGE_MSG = "A sketch cannot merge with itself. ";
 
   /**
    * Gets the user configured parameter k, which controls the accuracy of the sketch
@@ -271,18 +271,6 @@ public interface QuantilesAPI {
    * given rank exists.
    */
   double getRankUpperBound(double rank);
-
-  /**
-   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
-   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
-   */
-  boolean hasMemory();
-
-  /**
-   * Returns true if this sketch's data structure is off-heap (a.k.a., Direct or Native memory).
-   * @return true if this sketch's data structure is off-heap (a.k.a., Direct or Native memory).
-   */
-  boolean isDirect();
 
   /**
    * Returns true if this sketch is empty.

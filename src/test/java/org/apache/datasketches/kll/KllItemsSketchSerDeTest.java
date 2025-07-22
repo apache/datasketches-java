@@ -24,39 +24,40 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.kll.KllItemsSketch;
 import org.testng.annotations.Test;
 
 public class KllItemsSketchSerDeTest {
-  private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
 
   @Test
   public void serializeDeserializeEmpty() {
     final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();
-    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
     assertEquals(bytes.length, sk1.getSerializedSizeBytes());
     assertTrue(sk2.isEmpty());
     assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
     assertEquals(sk2.getN(), sk1.getN());
     assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
-    try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
-    try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk2.getMinItem(); fail(); } catch (final SketchesArgumentException e) {}
+    try { sk2.getMaxItem(); fail(); } catch (final SketchesArgumentException e) {}
     assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
     //from heap -> byte[] -> off heap
-    final KllItemsSketch<String> sk3 = KllItemsSketch.wrap(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sk3 = KllItemsSketch.wrap(MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
     assertTrue(sk3.isEmpty());
     assertEquals(sk3.getNumRetained(), sk1.getNumRetained());
     assertEquals(sk3.getN(), sk1.getN());
     assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
-    try { sk3.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
-    try { sk3.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk3.getMinItem(); fail(); } catch (final SketchesArgumentException e) {}
+    try { sk3.getMaxItem(); fail(); } catch (final SketchesArgumentException e) {}
     assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
     //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
     final byte[] bytes2 = sk3.toByteArray();
@@ -69,7 +70,7 @@ public class KllItemsSketchSerDeTest {
     sk1.update(" 1");
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();
-    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
     assertEquals(bytes.length, sk1.getSerializedSizeBytes());
     assertFalse(sk2.isEmpty());
     assertEquals(sk2.getNumRetained(), 1);
@@ -79,7 +80,7 @@ public class KllItemsSketchSerDeTest {
     assertEquals(sk2.getMaxItem(), " 1");
     assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
     //from heap -> byte[] -> off heap
-    final KllItemsSketch<String> sk3 = KllItemsSketch.wrap(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sk3 = KllItemsSketch.wrap(MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
     assertFalse(sk3.isEmpty());
     assertEquals(sk3.getNumRetained(), 1);
     assertEquals(sk3.getN(), 1);
@@ -103,7 +104,7 @@ public class KllItemsSketchSerDeTest {
     assertEquals(sk1.getMaxItem(), " 999");
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();
-    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
     assertEquals(bytes.length, sk1.getSerializedSizeBytes());
     assertFalse(sk2.isEmpty());
     assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
@@ -113,7 +114,7 @@ public class KllItemsSketchSerDeTest {
     assertEquals(sk2.getMaxItem(), sk1.getMaxItem());
     assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
     //from heap -> byte[] -> off heap
-    final KllItemsSketch<String> sk3 = KllItemsSketch.wrap(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sk3 = KllItemsSketch.wrap(MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
     assertFalse(sk3.isEmpty());
     assertEquals(sk3.getNumRetained(), sk1.getNumRetained());
     assertEquals(sk3.getN(), sk1.getN());

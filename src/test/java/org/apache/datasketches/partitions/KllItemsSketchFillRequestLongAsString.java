@@ -26,7 +26,7 @@ import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.ge
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllItemsSketch;
 
@@ -35,8 +35,8 @@ import org.apache.datasketches.kll.KllItemsSketch;
  * @author Lee Rhodes
  */
 public class KllItemsSketchFillRequestLongAsString implements SketchFillRequest<String, KllItemsSketch<String>> {
-  private int k;
-  private int numDigits;
+  private final int k;
+  private final int numDigits;
 
   public KllItemsSketchFillRequestLongAsString() {
     k = 1 << 10;
@@ -45,18 +45,18 @@ public class KllItemsSketchFillRequestLongAsString implements SketchFillRequest<
 
   public KllItemsSketchFillRequestLongAsString(final int k, final long totalN) {
     this.k = k;
-    this.numDigits = digits(totalN);
+    numDigits = digits(totalN);
   }
 
   @Override
   public KllItemsSketch<String> getRange(final String lowerQuantile, final String upperQuantile,
       final BoundsRule bounds) {
-    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe2());
     long upper, lower;
     try {
       lower = Long.parseLong(lowerQuantile.trim());
       upper = Long.parseLong(upperQuantile.trim());
-    } catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
+    } catch (final NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
     if (bounds == INCLUDE_BOTH) {
       for (long i = lower; i <= upper; i++) { sk.update(getString(i, numDigits)); }
     } else if (bounds == INCLUDE_UPPER) {
@@ -68,9 +68,9 @@ public class KllItemsSketchFillRequestLongAsString implements SketchFillRequest<
   }
 
   public KllItemsSketch<String> getRange(final long lowerQuantile, final long upperQuantile, final BoundsRule bounds) {
-    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
-    long lower = lowerQuantile;
-    long upper = upperQuantile;
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe2());
+    final long lower = lowerQuantile;
+    final long upper = upperQuantile;
     if (bounds == INCLUDE_BOTH) {
       for (long i = lower; i <= upper; i++) { sk.update(getString(i, numDigits)); }
     } else if (bounds == INCLUDE_UPPER) {

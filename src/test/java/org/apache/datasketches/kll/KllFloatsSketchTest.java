@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
@@ -29,10 +30,13 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.kll.KllFloatsSketch;
+import org.apache.datasketches.kll.KllHelper;
+import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.testng.annotations.Test;
@@ -43,7 +47,6 @@ public class KllFloatsSketchTest {
   private static final double PMF_EPS_FOR_K_128 = KllSketch.getNormalizedRankError(128, true);
   private static final double PMF_EPS_FOR_K_256 = KllSketch.getNormalizedRankError(256, true);
   private static final double NUMERIC_NOISE_TOLERANCE = 1E-6;
-  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void empty() {
@@ -52,13 +55,13 @@ public class KllFloatsSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    try { sketch.getRank(0); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getQuantile(0.5); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getQuantiles(new double[] {0}); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getPMF(new float[] {0}); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getCDF(new float[] {0}); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getRank(0); fail(); } catch (final SketchesArgumentException e) {}
+    try { sketch.getMinItem(); fail(); } catch (final SketchesArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (final SketchesArgumentException e) {}
+    try { sketch.getQuantile(0.5); fail(); } catch (final SketchesArgumentException e) {}
+    try { sketch.getQuantiles(new double[] {0}); fail(); } catch (final SketchesArgumentException e) {}
+    try { sketch.getPMF(new float[] {0}); fail(); } catch (final SketchesArgumentException e) {}
+    try { sketch.getCDF(new float[] {0}); fail(); } catch (final SketchesArgumentException e) {}
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }
@@ -118,7 +121,7 @@ public class KllFloatsSketchTest {
     }
 
     for (int i = 0; i >= 10; i++) {
-      double rank = i/10.0;
+      final double rank = i/10.0;
       float q = rank == 1.0 ? i : i + 1;
       assertEquals(sketch.getQuantile(rank, EXCLUSIVE), q);
       q = (float)(rank == 0 ? i + 1.0 : i);
@@ -233,21 +236,21 @@ public class KllFloatsSketchTest {
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i * 1.0f);
-      sketch2.update((2 * n - i - 1) * 1.0f);
+      sketch2.update(((2 * n) - i - 1) * 1.0f);
     }
 
     assertEquals(sketch1.getMinItem(), 0.0f);
     assertEquals(sketch1.getMaxItem(), (n - 1) * 1.0f);
 
     assertEquals(sketch2.getMinItem(), n * 1.0f);
-    assertEquals(sketch2.getMaxItem(), (2 * n - 1) * 1.0f);
+    assertEquals(sketch2.getMaxItem(), ((2 * n) - 1) * 1.0f);
 
     sketch1.merge(sketch2);
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2L * n);
     assertEquals(sketch1.getMinItem(), 0.0f);
-    assertEquals(sketch1.getMaxItem(), (2 * n - 1) * 1.0f);
+    assertEquals(sketch1.getMaxItem(), ((2 * n) - 1) * 1.0f);
     assertEquals(sketch1.getQuantile(0.5), n * 1.0f, 2 * n * PMF_EPS_FOR_K_256);
   }
 
@@ -258,14 +261,14 @@ public class KllFloatsSketchTest {
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
-      sketch2.update(2 * n - i - 1);
+      sketch2.update((2 * n) - i - 1);
     }
 
     assertEquals(sketch1.getMinItem(), 0.0f);
     assertEquals(sketch1.getMaxItem(), n - 1f);
 
     assertEquals(sketch2.getMinItem(), n);
-    assertEquals(sketch2.getMaxItem(), 2f * n - 1.0f);
+    assertEquals(sketch2.getMaxItem(), (2f * n) - 1.0f);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
     assertTrue(sketch1.getNormalizedRankError(true) < sketch2.getNormalizedRankError(true));
@@ -278,7 +281,7 @@ public class KllFloatsSketchTest {
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2 * n);
     assertEquals(sketch1.getMinItem(), 0.0f);
-    assertEquals(sketch1.getMaxItem(), 2.0f * n - 1.0f);
+    assertEquals(sketch1.getMaxItem(), (2.0f * n) - 1.0f);
     assertEquals(sketch1.getQuantile(0.5), n, 2 * n * PMF_EPS_FOR_K_128);
   }
 
@@ -395,16 +398,16 @@ public class KllFloatsSketchTest {
 
   @Test
   public void checkReset() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
-    long n1 = sk.getN();
-    float min1 = sk.getMinItem();
-    float max1 = sk.getMaxItem();
+    final long n1 = sk.getN();
+    final float min1 = sk.getMinItem();
+    final float max1 = sk.getMaxItem();
     sk.reset();
     for (int i = 1; i <= 100; i++) { sk.update(i); }
-    long n2 = sk.getN();
-    float min2 = sk.getMinItem();
-    float max2 = sk.getMaxItem();
+    final long n2 = sk.getN();
+    final float min2 = sk.getMinItem();
+    final float max2 = sk.getMaxItem();
     assertEquals(n2, n1);
     assertEquals(min2, min1);
     assertEquals(max2, max1);
@@ -412,22 +415,20 @@ public class KllFloatsSketchTest {
 
   @Test
   public void checkReadOnlyUpdate() {
-    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
-    Memory mem = Memory.wrap(sk1.toByteArray());
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(mem);
-    try { sk2.update(1); fail(); } catch (SketchesArgumentException e) { }
+    final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
+    final MemorySegment seg = MemorySegment.ofArray(sk1.toByteArray());
+    final KllFloatsSketch sk2 = KllFloatsSketch.wrap(seg);
+    try { sk2.update(1); fail(); } catch (final SketchesArgumentException e) { }
   }
 
   @Test
   public void checkNewDirectInstanceAndSize() {
-    WritableMemory wmem = WritableMemory.allocate(3000);
-    KllFloatsSketch.newDirectInstance(wmem, memReqSvr);
-    try { KllFloatsSketch.newDirectInstance(null, memReqSvr); fail(); }
-    catch (NullPointerException e) { }
-    try { KllFloatsSketch.newDirectInstance(wmem, null); fail(); }
-    catch (NullPointerException e) { }
-    int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, FLOATS_SKETCH, true);
-    int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, FLOATS_SKETCH, false);
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[3000]);
+    KllFloatsSketch.newDirectInstance(wseg);
+    try { KllFloatsSketch.newDirectInstance(null); fail(); }
+    catch (final NullPointerException e) { }
+    final int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, FLOATS_SKETCH, true);
+    final int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, FLOATS_SKETCH, false);
     assertTrue(compactSize < updateSize);
   }
 
@@ -468,7 +469,7 @@ public class KllFloatsSketchTest {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     final float[] floatIn = {10, 20, 30, 40};
     for (int i = 0; i < floatIn.length; i++) { sketch.update(floatIn[i]); }
-    float[] sp = new float[] { 10, 20, 30, 40 };
+    final float[] sp = { 10, 20, 30, 40 };
     println("SplitPoints:");
     for (int i = 0; i < sp.length; i++) {
       printf("%10.2f", sp[i]);
@@ -496,133 +497,133 @@ public class KllFloatsSketchTest {
 
   @Test
   public void checkWrapCase1Floats() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
 
-    Memory mem = Memory.wrap(sk.toByteArray());
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(mem);
+    final MemorySegment seg = MemorySegment.ofArray(sk.toByteArray()).asReadOnly();
+    final KllFloatsSketch sk2 = KllFloatsSketch.wrap(seg);
 
-    assertTrue(mem.isReadOnly());
+    assertTrue(seg.isReadOnly());
     assertTrue(sk2.isReadOnly());
-    assertFalse(sk2.isDirect());
+    assertFalse(sk2.isOffHeap());
   }
 
   @Test
   public void checkWritableWrapCase6And2Floats() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
 
-    WritableMemory wmem = WritableMemory.writableWrap(KllHelper.toByteArray(sk, true));
-    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    final MemorySegment wseg = MemorySegment.ofArray(KllHelper.toByteArray(sk, true));
+    final KllFloatsSketch sk2 = KllFloatsSketch.wrap(wseg);
 
-    assertFalse(wmem.isReadOnly());
+    assertFalse(wseg.isReadOnly());
     assertFalse(sk2.isReadOnly());
-    assertFalse(sk2.isDirect());
+    assertFalse(sk2.isOffHeap());
   }
 
   @Test
   public void checkKllSketchCase5Floats() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
 
-    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    final MemorySegment wseg = MemorySegment.ofArray(sk.toByteArray());
+    final KllFloatsSketch sk2 = KllFloatsSketch.wrap(wseg);
 
-    assertFalse(wmem.isReadOnly());
+    assertFalse(wseg.isReadOnly());
     assertTrue(sk2.isReadOnly());
-    assertFalse(sk2.isDirect());
+    assertFalse(sk2.isOffHeap());
   }
 
   @Test
   public void checkKllSketchCase3Floats() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
 
-    Memory mem = Memory.wrap(KllHelper.toByteArray(sk, true));
-    WritableMemory wmem = (WritableMemory) mem;
-    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    final MemorySegment seg = MemorySegment.ofArray(KllHelper.toByteArray(sk, true)).asReadOnly();
+    final MemorySegment wseg = (MemorySegment) seg;
+    final KllFloatsSketch sk2 = KllFloatsSketch.wrap(wseg);
 
-    assertTrue(wmem.isReadOnly());
+    assertTrue(wseg.isReadOnly());
     assertTrue(sk2.isReadOnly());
-    assertFalse(sk2.isDirect());
+    assertFalse(sk2.isOffHeap());
   }
 
   @Test
   public void checkKllSketchCase7Floats() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
 
-    Memory mem = Memory.wrap(KllHelper.toByteArray(sk, true));
-    WritableMemory wmem = (WritableMemory) mem;
-    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    final MemorySegment seg = MemorySegment.ofArray(KllHelper.toByteArray(sk, true)).asReadOnly();
+    final MemorySegment wseg = (MemorySegment) seg;
+    final KllFloatsSketch sk2 = KllFloatsSketch.wrap(wseg);
 
-    assertTrue(wmem.isReadOnly());
+    assertTrue(wseg.isReadOnly());
     assertTrue(sk2.isReadOnly());
-    assertFalse(sk2.isDirect());
+    assertFalse(sk2.isOffHeap());
   }
 
   @Test
   public void checkReadOnlyExceptions() {
-    int[] intArr = new int[0];
-    int intV = 2;
-    int idx = 1;
-    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
-    Memory mem = Memory.wrap(sk1.toByteArray());
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(mem);
-    try { sk2.setLevelsArray(intArr);              fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setLevelsArrayAt(idx,intV);          fail(); } catch (SketchesArgumentException e) { }
+    final int[] intArr = {};
+    final int intV = 2;
+    final int idx = 1;
+    final KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
+    final MemorySegment seg = MemorySegment.ofArray(sk1.toByteArray());
+    final KllFloatsSketch sk2 = KllFloatsSketch.wrap(seg);
+    try { sk2.setLevelsArray(intArr);              fail(); } catch (final SketchesArgumentException e) { }
+    try { sk2.setLevelsArrayAt(idx,intV);          fail(); } catch (final SketchesArgumentException e) { }
   }
 
   @Test
   public void checkIsSameResource() {
-    int cap = 128;
-    WritableMemory wmem = WritableMemory.allocate(cap);
-    WritableMemory reg1 = wmem.writableRegion(0, 64);
-    WritableMemory reg2 = wmem.writableRegion(64, 64);
-    assertFalse(reg1 == reg2);
-    assertFalse(reg1.isSameResource(reg2));
+    final int cap = 128;
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[cap]);
+    final MemorySegment slice1 = wseg.asSlice(0, 64);
+    final MemorySegment slice2 = wseg.asSlice(64, 64);
+    assertFalse(slice1 == slice2);
+    assertFalse(MemorySegmentStatus.isSameResource(slice1, slice2));
 
-    WritableMemory reg3 = wmem.writableRegion(0, 64);
-    assertFalse(reg1 == reg3);
-    assertTrue(reg1.isSameResource(reg3));
+    final MemorySegment slice3 = wseg.asSlice(0, 64);
+    assertFalse(slice1 == slice3);
+    assertTrue(MemorySegmentStatus.isSameResource(slice1, slice3));
 
-    byte[] byteArr1 = KllFloatsSketch.newHeapInstance(20).toByteArray();
-    reg1.putByteArray(0, byteArr1, 0, byteArr1.length);
-    KllFloatsSketch sk1 = KllFloatsSketch.wrap(reg1);
+    final byte[] byteArr1 = KllFloatsSketch.newHeapInstance(20).toByteArray();
+    MemorySegment.copy(byteArr1, 0, slice1, JAVA_BYTE, 0, byteArr1.length);
+    final KllFloatsSketch sk1 = KllFloatsSketch.wrap(slice1);
 
-    byte[] byteArr2 = KllFloatsSketch.newHeapInstance(20).toByteArray();
-    reg2.putByteArray(0, byteArr2, 0, byteArr2.length);
-    assertFalse(sk1.isSameResource(reg2));
+    final byte[] byteArr2 = KllFloatsSketch.newHeapInstance(20).toByteArray();
+    MemorySegment.copy(byteArr2, 0, slice2, JAVA_BYTE, 0, byteArr2.length);
+    assertFalse(sk1.isSameResource(slice2));
 
-    byte[] byteArr3 = KllFloatsSketch.newHeapInstance(20).toByteArray();
-    reg3.putByteArray(0, byteArr3, 0, byteArr3.length);
-    assertTrue(sk1.isSameResource(reg3));
+    final byte[] byteArr3 = KllFloatsSketch.newHeapInstance(20).toByteArray();
+    MemorySegment.copy(byteArr3, 0, slice3, JAVA_BYTE, 0, byteArr3.length);
+    assertTrue(sk1.isSameResource(slice3));
   }
 
   @Test
   public void checkSortedViewAfterReset() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     sk.update(1.0f);
-    FloatsSortedView sv = sk.getSortedView();
-    float fsv = sv.getQuantile(1.0, INCLUSIVE);
+    final FloatsSortedView sv = sk.getSortedView();
+    final float fsv = sv.getQuantile(1.0, INCLUSIVE);
     assertEquals(fsv, 1.0f);
     sk.reset();
-    try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getSortedView(); fail(); } catch (final SketchesArgumentException e) { }
   }
 
   @Test
   public void checkVectorUpdate() {
-    boolean withLevels = false;
-    boolean withLevelsAndItems = true;
-    int k = 20;
-    int n = 108;
-    int maxVsz = 40;  //max vector size
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    final boolean withLevels = false;
+    final boolean withLevelsAndItems = true;
+    final int k = 20;
+    final int n = 108;
+    final int maxVsz = 40;  //max vector size
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     int j = 1;
     int rem;
-    while ((rem = n - j + 1) > 0) {
-      int vecSz = min(rem, maxVsz);
-      float[] v = new float[vecSz];
+    while ((rem = (n - j) + 1) > 0) {
+      final int vecSz = min(rem, maxVsz);
+      final float[] v = new float[vecSz];
       for (int i = 0; i < vecSz; i++) { v[i] = j++; }
       sk.update(v, 0, vecSz);
     }

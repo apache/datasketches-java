@@ -27,13 +27,13 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class implements an on-heap items KllSketch.
@@ -64,83 +64,83 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
    * @param serDe serialization / deserialization class
    */
   KllHeapItemsSketch(final int k, final int m, final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
+      final ArrayOfItemsSerDe2<T> serDe) {
     super(UPDATABLE, comparator, serDe);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    this.levelsArr = new int[] {k, k};
-    this.readOnly = false;
+    levelsArr = new int[] {k, k};
+    readOnly = false;
     this.k = k;
     this.m = m;
-    this.n = 0;
-    this.minK = k;
-    this.isLevelZeroSorted = false;
-    this.minItem = null;
-    this.maxItem = null;
-    this.itemsArr = new Object[k];
+    n = 0;
+    minK = k;
+    isLevelZeroSorted = false;
+    minItem = null;
+    maxItem = null;
+    itemsArr = new Object[k];
   }
 
   /**
    * Used for creating a temporary sketch for use with weighted updates.
    */
   KllHeapItemsSketch(final int k, final int m, final T item, final long weight, final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
+      final ArrayOfItemsSerDe2<T> serDe) {
     super(UPDATABLE, comparator, serDe);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    this.levelsArr = KllHelper.createLevelsArray(weight);
-    this.readOnly = false;
+    levelsArr = KllHelper.createLevelsArray(weight);
+    readOnly = false;
     this.k = k;
     this.m = m;
-    this.n = weight;
-    this.minK = k;
-    this.isLevelZeroSorted = false;
-    this.minItem = item;
-    this.maxItem = item;
-    this.itemsArr = KllItemsHelper.createItemsArray(serDe.getClassOfT(), item, weight);
+    n = weight;
+    minK = k;
+    isLevelZeroSorted = false;
+    minItem = item;
+    maxItem = item;
+    itemsArr = KllItemsHelper.createItemsArray(serDe.getClassOfT(), item, weight);
   }
 
   /**
    * The Heapify constructor
-   * @param srcMem the Source Memory image that contains data.
-   * @param comparator the comparator for this sketch and given Memory.
-   * @param serDe the serializer / deserializer for this sketch and the given Memory.
+   * @param srcSeg the Source MemorySegment image that contains data.
+   * @param comparator the comparator for this sketch and given MemorySegment.
+   * @param serDe the serializer / deserializer for this sketch and the given MemorySegment.
    */
   KllHeapItemsSketch(
-      final Memory srcMem,
+      final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
+      final ArrayOfItemsSerDe2<T> serDe) {
     super(SketchStructure.UPDATABLE, comparator, serDe);
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, SketchType.ITEMS_SKETCH, serDe);
-    this.k = memVal.k;
-    this.m = memVal.m;
-    this.levelsArr = memVal.levelsArr;
-    this.readOnly = false;
-    this.n = memVal.n;
-    this.minK = memVal.minK;
-    this.isLevelZeroSorted = memVal.level0SortedFlag;
-    this.itemsArr = new Object[levelsArr[memVal.numLevels]]; //updatable size
-    final SketchStructure memStruct = memVal.sketchStructure;
-    if (memStruct == COMPACT_EMPTY) {
-      this.minItem = null;
-      this.maxItem = null;
-      this.itemsArr = new Object[k];
-    } else if (memStruct == COMPACT_SINGLE) {
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.ITEMS_SKETCH, serDe);
+    k = segVal.k;
+    m = segVal.m;
+    levelsArr = segVal.levelsArr;
+    readOnly = false;
+    n = segVal.n;
+    minK = segVal.minK;
+    isLevelZeroSorted = segVal.level0SortedFlag;
+    itemsArr = new Object[levelsArr[segVal.numLevels]]; //updatable size
+    final SketchStructure segStruct = segVal.sketchStructure;
+    if (segStruct == COMPACT_EMPTY) {
+      minItem = null;
+      maxItem = null;
+      itemsArr = new Object[k];
+    } else if (segStruct == COMPACT_SINGLE) {
       final int offset = N_LONG_ADR;
-      final T item = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
-      this.minItem = item;
-      this.maxItem = item;
+      final T item = serDe.deserializeFromMemorySegment(srcSeg, offset, 1)[0];
+      minItem = item;
+      maxItem = item;
       itemsArr[k - 1] = item;
-    } else if (memStruct == COMPACT_FULL) {
-      int offset = DATA_START_ADR + memVal.numLevels * Integer.BYTES;
-      this.minItem = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
+    } else if (segStruct == COMPACT_FULL) {
+      int offset = DATA_START_ADR + (segVal.numLevels * Integer.BYTES);
+      minItem = serDe.deserializeFromMemorySegment(srcSeg, offset, 1)[0];
       offset += serDe.sizeOf(minItem);
-      this.maxItem = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
+      maxItem = serDe.deserializeFromMemorySegment(srcSeg, offset, 1)[0];
       offset += serDe.sizeOf(maxItem);
-      final int numRetained = levelsArr[memVal.numLevels] - levelsArr[0];
-      final Object[] retItems = serDe.deserializeFromMemory(srcMem, offset, numRetained);
+      final int numRetained = levelsArr[segVal.numLevels] - levelsArr[0];
+      final Object[] retItems = serDe.deserializeFromMemorySegment(srcSeg, offset, numRetained);
       System.arraycopy(retItems, 0, itemsArr, levelsArr[0], numRetained);
-    } else { //memStruct == UPDATABLE
+    } else { //segStruct == UPDATABLE
       throw new SketchesArgumentException(UNSUPPORTED_MSG + "UPDATABLE");
     }
   }
@@ -238,8 +238,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   T getSingleItem() {
     if (n != 1L) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
-    final T item = (T) itemsArr[k - 1];
-    return item;
+    return (T) itemsArr[k - 1];
   }
 
   @Override
@@ -261,7 +260,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  WritableMemory getWritableMemory() {
+  MemorySegment getMemorySegment() {
     return null;
   }
 
@@ -295,17 +294,37 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   void setItemsArrayAt(final int index, final Object item) {
-    this.itemsArr[index] = item;
+    itemsArr[index] = item;
   }
 
   @Override
   void setMaxItem(final Object item) {
-    this.maxItem = (T) item;
+    maxItem = (T) item;
   }
 
   @Override
   void setMinItem(final Object item) {
-    this.minItem = (T) item;
+    minItem = (T) item;
+  }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return false;
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return false;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return false;
+  }
+
+  @Override
+  MemorySegmentRequest getMemorySegmentRequest() {
+    return null;
   }
 
 }

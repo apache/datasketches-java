@@ -45,16 +45,15 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.UNSUPPORTED_MSG;
 
-import java.nio.ByteOrder;
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
-import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.MemorySegmentRequest;
+import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableBuffer;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * This class provides some useful sketch analysis tools that are used internally.
@@ -97,25 +96,25 @@ final class KllHelper {
    * This is the exact powers of 3 from 3^0 to 3^30 where the exponent is the index
    */
   static long[] powersOfThree =
-      new long[] {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
-  1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467,
-  3486784401L, 10460353203L, 31381059609L, 94143178827L, 282429536481L,
-  847288609443L, 2541865828329L, 7625597484987L, 22876792454961L, 68630377364883L,
-  205891132094649L};
+      {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
+ 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467,
+ 3486784401L, 10460353203L, 31381059609L, 94143178827L, 282429536481L,
+ 847288609443L, 2541865828329L, 7625597484987L, 22876792454961L, 68630377364883L,
+ 205891132094649L};
 
   /**
    * Checks the validity of the given k
    * @param k must be greater than 7 and less than 65536.
    */
   static void checkK(final int k, final int m) {
-    if (k < m || k > KllSketch.MAX_K) {
+    if ((k < m) || (k > KllSketch.MAX_K)) {
       throw new SketchesArgumentException(
           "K must be >= " + m + " and <= " + KllSketch.MAX_K + ": " + k);
     }
   }
 
   static void checkM(final int m) {
-    if (m < KllSketch.MIN_M || m > KllSketch.MAX_M || ((m & 1) == 1)) {
+    if ((m < KllSketch.MIN_M) || (m > KllSketch.MAX_M) || ((m & 1) == 1)) {
       throw new SketchesArgumentException(
           "M must be >= 2, <= 8 and even: " + m);
     }
@@ -255,7 +254,7 @@ final class KllHelper {
       gStats.maxItems = lvlStats.numItems;
       gStats.maxN = lvlStats.n; //
       gStats.compactBytes =
-          gStats.maxItems * typeBytes + gStats.numLevels * Integer.BYTES + 2 * typeBytes + DATA_START_ADR;
+          (gStats.maxItems * typeBytes) + (gStats.numLevels * Integer.BYTES) + (2 * typeBytes) + DATA_START_ADR;
       gStats.updatableBytes = gStats.compactBytes + Integer.BYTES;
       if (printGrowthScheme) {
         printf("%10d %,10d %,20d %,13d %,15d" + LS,
@@ -323,11 +322,12 @@ final class KllHelper {
   }
 
   /**
-   * This method is for direct Double and Float sketches only and does the following:
+   * This method is only used by the direct Double, Float and Long sketches
+   * and does the following:
    * <ul>
-   * <li>Determines if the required sketch bytes will fit in the current Memory.
+   * <li>Determines if the required sketch bytes will fit in the current MemorySegment.
    * If so, it will stretch the positioning of the arrays to fit. Otherwise:
-   * <li>Allocates a new WritableMemory of the required size</li>
+   * <li>Allocates a new heap MemorySegment of the required size</li>
    * <li>Copies over the preamble as is (20 bytes)</li>
    * <li>The caller is responsible for filling the remainder and updating the preamble.</li>
    * </ul>
@@ -335,34 +335,36 @@ final class KllHelper {
    * @param sketch The current sketch that needs to be expanded.
    * @param newLevelsArrLen the element length of the new Levels array.
    * @param newItemsArrLen the element length of the new Items array.
-   * @return the new expanded memory with preamble.
+   * @return the new expanded MemorySegment with preamble.
    */
-  static WritableMemory memorySpaceMgmt(
+  static MemorySegment memorySegmentSpaceMgmt(
       final KllSketch sketch,
       final int newLevelsArrLen,
       final int newItemsArrLen) {
     final KllSketch.SketchType sketchType = sketch.sketchType;
     if (sketchType == ITEMS_SKETCH) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
-    final WritableMemory wmem = sketch.getWritableMemory();
-    if (wmem == null) { return null; }
-    final WritableMemory oldWmem = wmem;
+    final MemorySegment oldWseg = sketch.getMemorySegment();
+    if (oldWseg == null) {
+      return null;
+    }
     final int typeBytes = sketchType.getBytes();
     final int requiredSketchBytes =  DATA_START_ADR
-      + newLevelsArrLen * Integer.BYTES
-      + 2 * typeBytes
-      + newItemsArrLen * typeBytes;
-    final WritableMemory newWmem;
+      + (newLevelsArrLen * Integer.BYTES)
+      + (2 * typeBytes)
+      + (newItemsArrLen * typeBytes);
 
-    if (requiredSketchBytes > oldWmem.getCapacity()) { //Acquire new WritableMemory
-      final MemoryRequestServer memReqSvr = sketch.getMemoryRequestServer();
-      newWmem = memReqSvr.request(oldWmem, requiredSketchBytes);
-      oldWmem.copyTo(0, newWmem, 0, DATA_START_ADR); //copy preamble (first 20 bytes)
+    if (requiredSketchBytes > oldWseg.byteSize()) { //Acquire new larger MemorySegment
+      MemorySegmentRequest memSegReq = sketch.getMemorySegmentRequest();
+      if (memSegReq == null) {
+        memSegReq = MemorySegmentRequest.DEFAULT;
+      }
+      final MemorySegment newSeg = memSegReq.request(oldWseg, requiredSketchBytes);
+      MemorySegment.copy(oldWseg, 0, newSeg, 0, DATA_START_ADR); //copy preamble (first 20 bytes)
+      memSegReq.requestClose(oldWseg);
+      return newSeg;
     }
-    else { //Expand or contract in current memory
-      newWmem = oldWmem;
-    }
-    assert requiredSketchBytes <= newWmem.getCapacity();
-    return newWmem;
+    //Expand in current MemorySegment
+    return oldWseg;
   }
 
   private static String outputDataDetail(final KllSketch sketch) {
@@ -442,7 +444,7 @@ final class KllHelper {
     else { tgtStructure = COMPACT_FULL; }
     final int totalBytes = srcSk.currentSerializedSizeBytes(myUpdatable);
     final byte[] bytesOut = new byte[totalBytes];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(bytesOut).asWritableBuffer(ByteOrder.LITTLE_ENDIAN);
+    final PositionalSegment pSeg = PositionalSegment.wrap(MemorySegment.ofArray(bytesOut));
 
     //ints 0,1
     final byte preInts = (byte)tgtStructure.getPreInts();
@@ -455,13 +457,13 @@ final class KllHelper {
     final byte m = (byte) srcSk.getM();
 
     //load first 8 bytes
-    wbuf.putByte(preInts); //byte 0
-    wbuf.putByte(serVer);
-    wbuf.putByte(famId);
-    wbuf.putByte(flags);
-    wbuf.putShort(k);
-    wbuf.putByte(m);
-    wbuf.incrementPosition(1); //byte 7 is unused
+    pSeg.setByte(preInts); //byte 0
+    pSeg.setByte(serVer);
+    pSeg.setByte(famId);
+    pSeg.setByte(flags);
+    pSeg.setShort(k);
+    pSeg.setByte(m);
+    pSeg.incrementPosition(1); //byte 7 is unused
 
     if (tgtStructure == COMPACT_EMPTY) {
       return bytesOut;
@@ -470,8 +472,8 @@ final class KllHelper {
     if (tgtStructure == COMPACT_SINGLE) {
       final byte[] siByteArr = srcSk.getSingleItemByteArr();
       final int len = siByteArr.length;
-      wbuf.putByteArray(siByteArr, 0, len);
-      wbuf.incrementPosition(-len);
+      pSeg.setByteArray(siByteArr, 0, len);
+      pSeg.incrementPosition(-len);
       return bytesOut;
     }
 
@@ -488,18 +490,18 @@ final class KllHelper {
         ? srcSk.getRetainedItemsByteArr()
         : srcSk.getTotalItemsByteArr();
 
-    wbuf.putLong(n);
-    wbuf.putShort(minK);
-    wbuf.putByte(numLevels);
-    wbuf.incrementPosition(1);
-    wbuf.putIntArray(lvlsArr, 0, lvlsArr.length);
-    wbuf.putByteArray(minMaxByteArr, 0, minMaxByteArr.length);
-    wbuf.putByteArray(itemsByteArr, 0, itemsByteArr.length);
+    pSeg.setLong(n);
+    pSeg.setShort(minK);
+    pSeg.setByte(numLevels);
+    pSeg.incrementPosition(1);
+    pSeg.setIntArray(lvlsArr, 0, lvlsArr.length);
+    pSeg.setByteArray(minMaxByteArr, 0, minMaxByteArr.length);
+    pSeg.setByteArray(itemsByteArr, 0, itemsByteArr.length);
     return bytesOut;
   }
 
   static <T> String toStringImpl(final KllSketch sketch, final boolean withLevels, final boolean withLevelsAndItems,
-      final ArrayOfItemsSerDe<T> serDe) {
+      final ArrayOfItemsSerDe2<T> serDe) {
     final StringBuilder sb = new StringBuilder();
     final int k = sketch.getK();
     final int m = sketch.getM();
@@ -507,15 +509,15 @@ final class KllHelper {
     final int[] fullLevelsArr = sketch.getLevelsArray(UPDATABLE);
 
     final SketchType sketchType = sketch.sketchType;
-    final boolean hasMemory = sketch.hasMemory();
+    final boolean hasMemSeg = sketch.hasMemorySegment();
     final long n = sketch.getN();
     final String epsPct = String.format("%.3f%%", sketch.getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", sketch.getNormalizedRankError(true) * 100);
-    final boolean compact = sketch.isCompactMemoryFormat();
+    final boolean compact = sketch.isCompactMemorySegmentFormat();
 
-    final String directStr = hasMemory ? "Direct" : "";
+    final String directStr = hasMemSeg ? "Direct" : "";
     final String compactStr = compact ? "Compact" : "";
-    final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "Memory") + ")") : "false";
+    final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "MemSeg") + ")") : "false";
     final String skTypeStr = sketchType.getName();
     final String className = "Kll" + directStr + compactStr + skTypeStr;
 
@@ -641,13 +643,13 @@ final class KllHelper {
 
     // Check if growing the levels arr if required.
     // Note that merging MIGHT over-grow levels_, in which case we might not have to grow it
-    final boolean growLevelsArr = myCurLevelsArr.length < myCurNumLevels + 2;
+    final boolean growLevelsArr = myCurLevelsArr.length < (myCurNumLevels + 2);
 
     // GROW LEVELS ARRAY
     if (growLevelsArr) {
       //grow levels arr by one and copy the old data to the new array, extra space at the top.
       myNewLevelsArr = Arrays.copyOf(myCurLevelsArr, myCurNumLevels + 2);
-      assert myNewLevelsArr.length == myCurLevelsArr.length + 1;
+      assert myNewLevelsArr.length == (myCurLevelsArr.length + 1);
       myNewNumLevels = myCurNumLevels + 1;
       sketch.incNumLevels(); //increment for off-heap
     } else {
@@ -655,7 +657,7 @@ final class KllHelper {
       myNewNumLevels = myCurNumLevels;
     }
     // This loop updates all level indices EXCLUDING the "extra" index at the top
-    for (int level = 0; level <= myNewNumLevels - 1; level++) {
+    for (int level = 0; level <= (myNewNumLevels - 1); level++) {
       myNewLevelsArr[level] += deltaItemsCap;
     }
     myNewLevelsArr[myNewNumLevels] = myNewTotalItemsCapacity; // initialize the new "extra" index at the top
@@ -682,14 +684,10 @@ final class KllHelper {
       System.arraycopy(myCurItemsArr, 0, myNewItemsArr, deltaItemsCap, myCurTotalItemsCapacity);
     }
 
-    //MEMORY SPACE MANAGEMENT
-    if (sketch.getWritableMemory() != null) {
-      final WritableMemory oldWmem = sketch.getWritableMemory();
-      final WritableMemory wmem = memorySpaceMgmt(sketch, myNewLevelsArr.length, myNewTotalItemsCapacity);
-      if (!wmem.isSameResource(oldWmem)) {
-        sketch.getMemoryRequestServer().requestClose(oldWmem);
-      }
-      sketch.setWritableMemory(wmem);
+    //MemorySegment SPACE MANAGEMENT
+    if (sketch.getMemorySegment() != null) {
+      final MemorySegment wseg = memorySegmentSpaceMgmt(sketch, myNewLevelsArr.length, myNewTotalItemsCapacity);
+      sketch.setMemorySegment(wseg);
     }
 
     //update our sketch with new expanded spaces
@@ -720,7 +718,7 @@ final class KllHelper {
       itmSk.setItemsArray(myNewItemsArr);
     }
 
-  }
+  } //END of addEmptyTopLevelToCompletelyFullSketch(...)
 
   /**
    * Finds the first level starting with level 0 that exceeds its nominal capacity
@@ -787,7 +785,7 @@ final class KllHelper {
   /**
    * @param o the Object to println
    */
-  private static final void println(final Object o) {
+  private static void println(final Object o) {
     if (enablePrinting) { System.out.println(o.toString()); }
   }
 

@@ -53,7 +53,7 @@ public class KllPartitionsTest {
    * </ul>
    * @param args input arguments as defined above.
    */
-  public void main(String[] args) {
+  public void main(final String[] args) {
     final int k, maxPartsPerSk;
     final long totalN, tgtPartitionSize;
     final QuantileSearchCriteria searchCrit;
@@ -63,7 +63,7 @@ public class KllPartitionsTest {
       totalN = Long.parseLong(args[2].trim());
       tgtPartitionSize = Long.parseLong(args[3].trim());
       maxPartsPerSk = Integer.parseInt(args[4].trim());
-    } catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
+    } catch (final NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
     kllPartitioner(k, searchCrit, totalN, tgtPartitionSize, maxPartsPerSk);
   }
 

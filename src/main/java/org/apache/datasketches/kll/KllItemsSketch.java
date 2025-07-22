@@ -24,17 +24,15 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
@@ -44,7 +42,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 /**
  * This variation of the KllSketch implements generic data types. The user must provide
  * a suitable implementation of the <i>java.lang.Comparator</i> as well as an implementation of
- * the serializer / deserializer, <i>org.apache.datasketches.common.ArrayOfItemsSerDe</i>.
+ * the serializer / deserializer, <i>org.apache.datasketches.common.ArrayOfItemsSerDe2</i>.
  * @param <T> The sketch data type.
  * @see org.apache.datasketches.kll.KllSketch
  */
@@ -52,12 +50,12 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
   private ItemsSketchSortedView<T> itemsSV = null;
   final Comparator<? super T> comparator;
-  final ArrayOfItemsSerDe<T> serDe;
+  final ArrayOfItemsSerDe2<T> serDe;
 
   KllItemsSketch( //pass-through constructor
       final SketchStructure skStructure,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
+      final ArrayOfItemsSerDe2<T> serDe) {
     super(ITEMS_SKETCH, skStructure);
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "SerDe must not be null.");
@@ -78,10 +76,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
    */
   public static <T> KllItemsSketch<T> newHeapInstance(
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
-    final KllItemsSketch<T> itmSk =
-        new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
-    return itmSk;
+      final ArrayOfItemsSerDe2<T> serDe) {
+    return new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
   }
 
   /**
@@ -98,49 +94,49 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public static <T> KllItemsSketch<T> newHeapInstance(
       final int k,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
+      final ArrayOfItemsSerDe2<T> serDe) {
     return new KllHeapItemsSketch<>(k, DEFAULT_M, comparator, serDe);
   }
 
-  // Factory to create an heap instance from a Memory image
+  // Factory to create an heap instance from a MemorySegment image
 
   /**
-   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a compact Memory image of a sketch serialized by this sketch and of the same type of T.
+   * Factory heapify takes a compact sketch image in MemorySegment and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source MemorySegment.
+   * @param srcSeg a compact MemorySegment image of a sketch serialized by this sketch and of the same type of T.
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
    * @param <T> The sketch data type
-   * @return a heap-based sketch based on the given Memory.
+   * @return a heap-based sketch based on the given MemorySegment.
    */
   public static <T> KllItemsSketch<T> heapify(
-      final Memory srcMem,
+      final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
-    return new KllHeapItemsSketch<>(srcMem, comparator, serDe);
+      final ArrayOfItemsSerDe2<T> serDe) {
+    return new KllHeapItemsSketch<>(srcSeg, comparator, serDe);
   }
 
-  //Factory to wrap a Read-Only Memory
+  //Factory to wrap a Read-Only MemorySegment
 
   /**
-   * Constructs a thin wrapper on the heap around a Memory (or WritableMemory) already initialized with a
+   * Constructs a thin wrapper on the heap around a MemorySegment (or MemorySegment) already initialized with a
    * validated sketch image of a type T consistent with the given comparator and serDe.
-   * A reference to the Memory is kept in the sketch and must remain in scope consistent
+   * A reference to the MemorySegment is kept in the sketch and must remain in scope consistent
    * with the temporal scope of this sketch. The amount of data kept on the heap is very small.
-   * All of the item data originally collected by the given Memory sketch object remains in the
-   * Memory object
-   * @param srcMem the Memory object that this sketch will wrap.
+   * All of the item data originally collected by the given MemorySegment sketch object remains in the
+   * MemorySegment object
+   * @param srcSeg the MemorySegment object that this sketch will wrap.
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
    * @param <T> The sketch data type
-   * @return a heap-base sketch that is a thin wrapper around the given srcMem.
+   * @return a heap-base sketch that is a thin wrapper around the given srcSeg.
    */
   public static <T> KllItemsSketch<T> wrap(
-      final Memory srcMem,
+      final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, SketchType.ITEMS_SKETCH, serDe);
-    return new KllDirectCompactItemsSketch<>(memVal, comparator, serDe);
+      final ArrayOfItemsSerDe2<T> serDe) {
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.ITEMS_SKETCH, serDe);
+    return new KllDirectCompactItemsSketch<>(segVal, comparator, serDe);
   }
 
   //END of Constructors
@@ -267,7 +263,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public final void merge(final KllSketch other) {
-    if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    if (readOnly || (sketchStructure != UPDATABLE)) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllItemsSketch<T> othItmSk = (KllItemsSketch<T>)other;
     if (othItmSk.isEmpty()) { return; }
@@ -301,10 +297,10 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   public String toString(final boolean withLevels, final boolean withLevelsAndItems) {
     KllSketch sketch = this;
-    if (hasMemory()) {
-      final Memory mem = getWritableMemory();
-      assert mem != null;
-      sketch = KllItemsSketch.heapify((Memory)getWritableMemory(), comparator, serDe);
+    if (hasMemorySegment()) {
+      final MemorySegment seg = getMemorySegment();
+      assert seg != null;
+      sketch = KllItemsSketch.heapify(getMemorySegment(), comparator, serDe);
     }
     return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
   }
@@ -334,12 +330,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //restricted
 
   @Override
-  MemoryRequestServer getMemoryRequestServer() {
-    //this is not used and must return a null
-    return null;
-  }
-
-  @Override
   abstract byte[] getMinMaxByteArr();
 
   @Override
@@ -356,7 +346,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //abstract Object[] getRetainedItemsArray();
 
   @Override
-  ArrayOfItemsSerDe<T> getSerDe() { return serDe; }
+  ArrayOfItemsSerDe2<T> getSerDe() { return serDe; }
 
   abstract T getSingleItem();
 
@@ -401,7 +391,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  void setWritableMemory(final WritableMemory wmem) {
+  void setMemorySegment(final MemorySegment wseg) {
     throw new SketchesArgumentException(UNSUPPORTED_MSG + "Sketch not writable.");
   }
 
@@ -429,14 +419,14 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     long[] cumWeights; //The new cumWeights array
 
     ItemsSketchSortedView<T> getSV() {
-      if (isEmpty() || getN() == 0) { throw new SketchesArgumentException(EMPTY_MSG); }
+      if (isEmpty() || (getN() == 0)) { throw new SketchesArgumentException(EMPTY_MSG); }
       final T[] srcQuantiles = getTotalItemsArray();
       final int[] srcLevelsArr = levelsArr;
       final int srcNumLevels = getNumLevels();
 
       if (!isLevelZeroSorted()) {
         Arrays.sort(srcQuantiles, srcLevelsArr[0], srcLevelsArr[1], comparator);
-        if (!hasMemory()) { setLevelZeroSorted(true); }
+        if (!hasMemorySegment()) { setLevelZeroSorted(true); }
       }
       final int numQuantiles = getNumRetained();
       quantiles = (T[]) Array.newInstance(serDe.getClassOfT(), numQuantiles);
@@ -527,7 +517,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       int iSrc2 = fromIndex2;
       int iDst = fromIndex1;
 
-      while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
+      while ((iSrc1 < toIndex1) && (iSrc2 < toIndex2)) {
         if (Util.lt((T) quantilesSrc[iSrc1], (T) quantilesSrc[iSrc2], comp)) {
           quantilesDst[iDst] = quantilesSrc[iSrc1];
           weightsDst[iDst] = weightsSrc[iSrc1];

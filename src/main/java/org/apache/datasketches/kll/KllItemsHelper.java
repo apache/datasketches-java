@@ -63,7 +63,7 @@ final class KllItemsHelper {
   private static <T> void compressWhileUpdatingSketch(final KllItemsSketch<T> itmSk) {
     final int level =
         findLevelToCompact(itmSk.getK(), itmSk.getM(), itmSk.getNumLevels(), itmSk.levelsArr);
-    if (level == itmSk.getNumLevels() - 1) {
+    if (level == (itmSk.getNumLevels() - 1)) {
       //The level to compact is the top level, thus we need to add a level.
       //Be aware that this operation grows the items array,
       //shifts the items data and the level boundaries of the data,
@@ -108,7 +108,7 @@ final class KllItemsHelper {
     }
 
     // verify that we freed up halfAdjPop array slots just below the current level
-    assert myLevelsArr[level] == rawBeg + halfAdjPop;
+    assert myLevelsArr[level] == (rawBeg + halfAdjPop);
 
     // finally, we need to shift up the data in the levels below
     // so that the freed-up space can be used by level zero
@@ -162,7 +162,7 @@ final class KllItemsHelper {
     Object[] myNewItemsArr = myCurItemsArr;
 
     //merge higher levels if they exist
-    if (otherNumLevels > 1  && !otherItmSk.isCompactSingleItem()) {
+    if ((otherNumLevels > 1)  && !otherItmSk.isCompactSingleItem()) {
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final Object[] workbuf = new Object[tmpSpaceNeeded];
@@ -201,12 +201,12 @@ final class KllItemsHelper {
 
       //calculate the new levels array length
       final int finalLevelsArrLen;
-      if (myCurLevelsArr.length < myNewNumLevels + 1) { finalLevelsArrLen = myNewNumLevels + 1; }
+      if (myCurLevelsArr.length < (myNewNumLevels + 1)) { finalLevelsArrLen = myNewNumLevels + 1; }
       else { finalLevelsArrLen = myCurLevelsArr.length; }
 
       //THE NEW LEVELS ARRAY
       myNewLevelsArr = new int[finalLevelsArrLen];
-      for (int lvl = 0; lvl < myNewNumLevels + 1; lvl++) { // includes the "extra" index
+      for (int lvl = 0; lvl < (myNewNumLevels + 1); lvl++) { // includes the "extra" index
         myNewLevelsArr[lvl] = outlevels[lvl] + theShift;
       }
 
@@ -484,15 +484,15 @@ final class KllItemsHelper {
       final int selfPop = KllHelper.currentLevelSizeItems(lvl, myCurNumLevels, myCurLevelsArr);
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
-      assert selfPop >= 0 && otherPop >= 0;
-      if (selfPop == 0 && otherPop == 0) { continue; }
-      else if (selfPop > 0 && otherPop == 0) {
+      assert (selfPop >= 0) && (otherPop >= 0);
+      if ((selfPop == 0) && (otherPop == 0)) { }
+      else if ((selfPop > 0) && (otherPop == 0)) {
         System.arraycopy(myCurItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
       }
-      else if (selfPop == 0 && otherPop > 0) {
+      else if ((selfPop == 0) && (otherPop > 0)) {
         System.arraycopy(otherItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
       }
-      else if (selfPop > 0 && otherPop > 0) {
+      else if ((selfPop > 0) && (otherPop > 0)) {
         mergeSortedItemsArrays(
             myCurItemsArr, myCurLevelsArr[lvl], selfPop,
             otherItemsArr, otherLevelsArr[lvl], otherPop,

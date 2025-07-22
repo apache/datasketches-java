@@ -19,6 +19,12 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
@@ -30,14 +36,13 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class defines the serialized data structure and provides access methods for the preamble fields.
@@ -175,8 +180,8 @@ final class KllPreambleUtil<T> {
    * @return the summary string.
    */
   static String toString(final byte[] byteArr, final SketchType sketchType, final boolean includeData) {
-    final Memory mem = Memory.wrap(byteArr);
-    return toString(mem, sketchType, includeData, null);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return toString(seg, sketchType, includeData, null);
   }
 
   /**
@@ -189,48 +194,48 @@ final class KllPreambleUtil<T> {
    * @return the summary string.
    */
   static String toString(final byte[] byteArr, final SketchType sketchType, final boolean includeData,
-      final ArrayOfItemsSerDe<?> serDe) {
-    final Memory mem = Memory.wrap(byteArr);
-    return toString(mem, sketchType, includeData, serDe);
+      final ArrayOfItemsSerDe2<?> serDe) {
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return toString(seg, sketchType, includeData, serDe);
   }
 
   /**
-   * Returns a human readable string summary of the internal state of the given Memory.
+   * Returns a human readable string summary of the internal state of the given MemorySegment.
    * Used primarily in testing.
    *
-   * @param mem the given Memory
+   * @param seg the given MemorySegment
    * @param includeData if true, includes detail of retained data.
    * @return the summary string.
    */
-  static String toString(final Memory mem, final SketchType sketchType, final boolean includeData) {
-    return toString(mem, sketchType, includeData, null);
+  static String toString(final MemorySegment seg, final SketchType sketchType, final boolean includeData) {
+    return toString(seg, sketchType, includeData, null);
   }
 
   /**
-   * Returns a human readable string summary of the internal state of the given Memory.
+   * Returns a human readable string summary of the internal state of the given MemorySegment.
    * Used primarily in testing.
    *
-   * @param mem the given Memory
+   * @param seg the given MemorySegment
    * @param sketchType the sketch type: FLOATS_SKETCH, DOUBLES_SKETCH, LONGS_SKETCH, or ITEMS_SKETCH.
    * @param includeData if true, includes detail of retained data.
    * @param serDe must be supplied for KllItemsSketch, otherwise can be null.
    * @return the summary string.
    */
-  static <T> String toString(final Memory mem, final SketchType sketchType, final boolean includeData,
-      final ArrayOfItemsSerDe<T> serDe) {
+  static <T> String toString(final MemorySegment seg, final SketchType sketchType, final boolean includeData,
+      final ArrayOfItemsSerDe2<T> serDe) {
     if (sketchType == ITEMS_SKETCH) {
       Objects.requireNonNull(serDe, "SerDe parameter must not be null for ITEMS_SKETCH.");
     }
-    final KllMemoryValidate memVal = new KllMemoryValidate(mem, sketchType, serDe);
-    final SketchStructure myStructure = memVal.sketchStructure;
-    final int flags = memVal.flags & 0XFF;
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, sketchType, serDe);
+    final SketchStructure myStructure = segVal.sketchStructure;
+    final int flags = segVal.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
-    final int preInts = memVal.preInts; //??
-    final boolean emptyFlag = memVal.emptyFlag;
-    final int sketchBytes = memVal.sketchBytes;
+    final int preInts = segVal.preInts; //??
+    final boolean emptyFlag = segVal.emptyFlag;
+    final int sketchBytes = segVal.sketchBytes;
     final int typeBytes = sketchType.getBytes();
-    final int familyID = getMemoryFamilyID(mem);
+    final int familyID = getMemorySegmentFamilyID(seg);
     final String famName = idToFamily(familyID).toString();
 
     final StringBuilder sb = new StringBuilder();
@@ -238,24 +243,24 @@ final class KllPreambleUtil<T> {
     sb.append("Sketch Type                          : ").append(sketchType.toString()).append(LS);
     sb.append("SketchStructure                      : ").append(myStructure.toString()).append(LS);
     sb.append("Byte   0       : Preamble Ints       : ").append(preInts).append(LS);
-    sb.append("Byte   1       : SerVer              : ").append(memVal.serVer).append(LS);
-    sb.append("Byte   2       : FamilyID            : ").append(memVal.familyID).append(LS);
+    sb.append("Byte   1       : SerVer              : ").append(segVal.serVer).append(LS);
+    sb.append("Byte   2       : FamilyID            : ").append(segVal.familyID).append(LS);
     sb.append("               : FamilyName          : ").append(famName).append(LS);
     sb.append("Byte   3       : Flags Field         : ").append(flagsStr).append(LS);
     sb.append("            Bit: Flag Name           : ").append(LS);
     sb.append("              0: EMPTY               : ").append(emptyFlag).append(LS);
-    sb.append("              1: LEVEL_ZERO_SORTED   : ").append(memVal.level0SortedFlag).append(LS);
-    sb.append("Bytes  4-5     : K                   : ").append(memVal.k).append(LS);
-    sb.append("Byte   6       : Min Level Cap, M    : ").append(memVal.m).append(LS);
+    sb.append("              1: LEVEL_ZERO_SORTED   : ").append(segVal.level0SortedFlag).append(LS);
+    sb.append("Bytes  4-5     : K                   : ").append(segVal.k).append(LS);
+    sb.append("Byte   6       : Min Level Cap, M    : ").append(segVal.m).append(LS);
     sb.append("Byte   7       : (Reserved)          : ").append(LS);
 
-    final long n = memVal.n;
-    final int minK = memVal.minK;
-    final int numLevels = memVal.numLevels;
-    final int[] levelsArr = memVal.levelsArr; //the full levels array
+    final long n = segVal.n;
+    final int minK = segVal.minK;
+    final int numLevels = segVal.numLevels;
+    final int[] levelsArr = segVal.levelsArr; //the full levels array
     final int retainedItems = levelsArr[numLevels] - levelsArr[0];
 
-    if (myStructure == COMPACT_FULL || myStructure == UPDATABLE) {
+    if ((myStructure == COMPACT_FULL) || (myStructure == UPDATABLE)) {
       sb.append("Bytes  8-15    : N                   : ").append(n).append(LS);
       sb.append("Bytes 16-17    : MinK                : ").append(minK).append(LS);
       sb.append("Byte  18       : NumLevels           : ").append(numLevels).append(LS);
@@ -267,8 +272,8 @@ final class KllPreambleUtil<T> {
     }
     sb.append("PreambleBytes                        : ").append(preInts * Integer.BYTES).append(LS);
     sb.append("Sketch Bytes                         : ").append(sketchBytes).append(LS);
-    sb.append("Memory Capacity Bytes                : ").append(mem.getCapacity()).append(LS);
-    sb.append("### END KLL Sketch Memory Summary").append(LS);
+    sb.append("MemorySegment Capacity Bytes                : ").append(seg.byteSize()).append(LS);
+    sb.append("### END KLL Sketch MemorySegment Summary").append(LS);
 
     if (includeData) {
       sb.append(LS);
@@ -279,26 +284,26 @@ final class KllPreambleUtil<T> {
 
         sb.append("LEVELS ARR:").append(LS);
         offsetBytes = DATA_START_ADR;
-        for (int i = 0; i < numLevels + 1; i++) {
-          sb.append(i + ", " + mem.getInt(offsetBytes)).append(LS);
+        for (int i = 0; i < (numLevels + 1); i++) {
+          sb.append(i + ", " + seg.get(JAVA_INT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += Integer.BYTES;
         }
 
         sb.append("MIN/MAX:").append(LS);
         if (sketchType == DOUBLES_SKETCH) {
-          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else if (sketchType == FLOATS_SKETCH) {
-          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else if (sketchType == LONGS_SKETCH) {
-          sb.append(mem.getLong(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-          sb.append(mem.getLong(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else { //ITEMS_SKETCH
           sb.append("<<<Updatable Structure is not suppported by ItemsSketch>>>").append(LS);
@@ -308,17 +313,17 @@ final class KllPreambleUtil<T> {
         final int itemsSpace = (sketchBytes - offsetBytes) / typeBytes;
         if (sketchType == DOUBLES_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
-            sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
+            sb.append(i + ", " + seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else if (sketchType == FLOATS_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
-            sb.append(mem.getFloat(offsetBytes)).append(LS);
+            sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else if (sketchType == LONGS_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
-            sb.append(mem.getLong(offsetBytes)).append(LS);
+            sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
@@ -331,54 +336,54 @@ final class KllPreambleUtil<T> {
         offsetBytes = DATA_START_ADR;
         int j;
         for (j = 0; j < numLevels; j++) {
-          sb.append(j + ", " + mem.getInt(offsetBytes)).append(LS);
+          sb.append(j + ", " + seg.get(JAVA_INT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += Integer.BYTES;
         }
         sb.append(j + ", " + levelsArr[numLevels]);
-        sb.append(" (Top level of Levels Array is absent in Memory)").append(LS);
+        sb.append(" (Top level of Levels Array is absent in MemorySegment)").append(LS);
 
         sb.append("MIN/MAX:").append(LS);
         if (sketchType == DOUBLES_SKETCH) {
-          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else if (sketchType == FLOATS_SKETCH) {
-          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else if (sketchType == LONGS_SKETCH) {
-          sb.append(mem.getLong(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-          sb.append(mem.getLong(offsetBytes)).append(LS);
+          sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else {  //ITEMS_SKETCH
-          sb.append(serDe.deserializeFromMemory(mem, offsetBytes, 1)[0]).append(LS);
-          offsetBytes += serDe.sizeOf(mem, offsetBytes, 1);
-          sb.append(serDe.deserializeFromMemory(mem, offsetBytes, 1)[0]).append(LS);
-          offsetBytes += serDe.sizeOf(mem, offsetBytes, 1);
+          sb.append(serDe.deserializeFromMemorySegment(seg, offsetBytes, 1)[0]).append(LS);
+          offsetBytes += serDe.sizeOf(seg, offsetBytes, 1);
+          sb.append(serDe.deserializeFromMemorySegment(seg, offsetBytes, 1)[0]).append(LS);
+          offsetBytes += serDe.sizeOf(seg, offsetBytes, 1);
         }
 
         sb.append("RETAINED DATA").append(LS);
         final int itemSpace = (sketchBytes - offsetBytes) / (typeBytes == 0 ? 1 : typeBytes);
         if (sketchType == DOUBLES_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
-            sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
+            sb.append(i + ", " + seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else if (sketchType == FLOATS_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
-            sb.append(i + ", " + mem.getFloat(offsetBytes)).append(LS);
+            sb.append(i + ", " + seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else if (sketchType == LONGS_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
-            sb.append(i + ", " + mem.getLong(offsetBytes)).append(LS);
+            sb.append(i + ", " + seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
-          final T[] itemsArr = serDe.deserializeFromMemory(mem, offsetBytes, retainedItems);
+          final T[] itemsArr = serDe.deserializeFromMemorySegment(seg, offsetBytes, retainedItems);
           for (int i = 0; i < itemsArr.length; i++) {
             sb.append(i + ", " + serDe.toString(itemsArr[i])).append(LS);
           }
@@ -388,13 +393,13 @@ final class KllPreambleUtil<T> {
 
           sb.append("SINGLE ITEM DATUM: "); //no LS
           if (sketchType == DOUBLES_SKETCH) {
-            sb.append(mem.getDouble(DATA_START_ADR_SINGLE_ITEM)).append(LS);
+            sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else if (sketchType == FLOATS_SKETCH) {
-            sb.append(mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
+            sb.append(seg.get(JAVA_FLOAT_UNALIGNED, DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else if (sketchType == LONGS_SKETCH) {
-            sb.append(mem.getLong(DATA_START_ADR_SINGLE_ITEM)).append(LS);
+            sb.append(seg.get(JAVA_LONG_UNALIGNED, DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else { //ITEMS_SKETCH
-            sb.append(serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0]).append(LS);
+            sb.append(serDe.deserializeFromMemorySegment(seg, DATA_START_ADR_SINGLE_ITEM, 1)[0]).append(LS);
           }
 
       } else { //COMPACT_EMPTY
@@ -405,101 +410,100 @@ final class KllPreambleUtil<T> {
     return sb.toString();
   }
 
-  static int getMemoryPreInts(final Memory mem) {
-    return mem.getByte(PREAMBLE_INTS_BYTE_ADR) & 0XFF;
+  static int getMemorySegmentPreInts(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, PREAMBLE_INTS_BYTE_ADR) & 0XFF;
   }
 
-  static int getMemorySerVer(final Memory mem) {
-    return mem.getByte(SER_VER_BYTE_ADR) & 0XFF;
+  static int getMemorySegmentSerVer(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, SER_VER_BYTE_ADR) & 0XFF;
   }
 
-  static SketchStructure getMemorySketchStructure(final Memory mem) {
-    final int preInts = getMemoryPreInts(mem);
-    final int serVer = getMemorySerVer(mem);
-    final SketchStructure structure = KllSketch.SketchStructure.getSketchStructure(preInts, serVer);
-    return structure;
+  static SketchStructure getMemorySegmentSketchStructure(final MemorySegment seg) {
+    final int preInts = getMemorySegmentPreInts(seg);
+    final int serVer = getMemorySegmentSerVer(seg);
+    return KllSketch.SketchStructure.getSketchStructure(preInts, serVer);
   }
 
-  static int getMemoryFamilyID(final Memory mem) {
-    return mem.getByte(FAMILY_BYTE_ADR) & 0XFF;
+  static int getMemorySegmentFamilyID(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FAMILY_BYTE_ADR) & 0XFF;
   }
 
-  static int getMemoryFlags(final Memory mem) {
-    return mem.getByte(FLAGS_BYTE_ADR) & 0XFF;
+  static int getMemorySegmentFlags(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FLAGS_BYTE_ADR) & 0XFF;
   }
 
-  static boolean getMemoryEmptyFlag(final Memory mem) {
-    return (getMemoryFlags(mem) & EMPTY_BIT_MASK) != 0;
+  static boolean getMemorySegmentEmptyFlag(final MemorySegment seg) {
+    return (getMemorySegmentFlags(seg) & EMPTY_BIT_MASK) != 0;
   }
 
-  static boolean getMemoryLevelZeroSortedFlag(final Memory mem) {
-    return (getMemoryFlags(mem) & LEVEL_ZERO_SORTED_BIT_MASK) != 0;
+  static boolean getMemorySegmentLevelZeroSortedFlag(final MemorySegment seg) {
+    return (getMemorySegmentFlags(seg) & LEVEL_ZERO_SORTED_BIT_MASK) != 0;
   }
 
-  static int getMemoryK(final Memory mem) {
-    return mem.getShort(K_SHORT_ADR) & 0XFFFF;
+  static int getMemorySegmentK(final MemorySegment seg) {
+    return seg.get(JAVA_SHORT_UNALIGNED, K_SHORT_ADR) & 0XFFFF;
   }
 
-  static int getMemoryM(final Memory mem) {
-    return mem.getByte(M_BYTE_ADR) & 0XFF;
+  static int getMemorySegmentM(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, M_BYTE_ADR) & 0XFF;
   }
 
-  static long getMemoryN(final Memory mem) {
-    return mem.getLong(N_LONG_ADR);
+  static long getMemorySegmentN(final MemorySegment seg) {
+    return seg.get(JAVA_LONG_UNALIGNED, N_LONG_ADR);
   }
 
-  static int getMemoryMinK(final Memory mem) {
-    return mem.getShort(MIN_K_SHORT_ADR) & 0XFFFF;
+  static int getMemorySegmentMinK(final MemorySegment seg) {
+    return seg.get(JAVA_SHORT_UNALIGNED, MIN_K_SHORT_ADR) & 0XFFFF;
   }
 
-  static int getMemoryNumLevels(final Memory mem) {
-    return mem.getByte(NUM_LEVELS_BYTE_ADR) & 0XFF;
+  static int getMemorySegmentNumLevels(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, NUM_LEVELS_BYTE_ADR) & 0XFF;
   }
 
-  static void setMemoryPreInts(final WritableMemory wmem, final int numPreInts) {
-    wmem.putByte(PREAMBLE_INTS_BYTE_ADR, (byte) numPreInts);
+  static void setMemorySegmentPreInts(final MemorySegment wseg, final int numPreInts) {
+    wseg.set(JAVA_BYTE, PREAMBLE_INTS_BYTE_ADR, (byte) numPreInts);
   }
 
-  static void setMemorySerVer(final WritableMemory wmem, final int serVer) {
-    wmem.putByte(SER_VER_BYTE_ADR, (byte) serVer);
+  static void setMemorySegmentSerVer(final MemorySegment wseg, final int serVer) {
+    wseg.set(JAVA_BYTE, SER_VER_BYTE_ADR, (byte) serVer);
   }
 
-  static void setMemoryFamilyID(final WritableMemory wmem, final int famId) {
-    wmem.putByte(FAMILY_BYTE_ADR, (byte) famId);
+  static void setMemorySegmentFamilyID(final MemorySegment wseg, final int famId) {
+    wseg.set(JAVA_BYTE, FAMILY_BYTE_ADR, (byte) famId);
   }
 
-  static void setMemoryFlags(final WritableMemory wmem, final int flags) {
-    wmem.putByte(FLAGS_BYTE_ADR, (byte) flags);
+  static void setMemorySegmentFlags(final MemorySegment wseg, final int flags) {
+    wseg.set(JAVA_BYTE, FLAGS_BYTE_ADR, (byte) flags);
   }
 
-  static void setMemoryEmptyFlag(final WritableMemory wmem,  final boolean empty) {
-    final int flags = getMemoryFlags(wmem);
-    setMemoryFlags(wmem, empty ? flags | EMPTY_BIT_MASK : flags & ~EMPTY_BIT_MASK);
+  static void setMemorySegmentEmptyFlag(final MemorySegment wseg,  final boolean empty) {
+    final int flags = getMemorySegmentFlags(wseg);
+    setMemorySegmentFlags(wseg, empty ? flags | EMPTY_BIT_MASK : flags & ~EMPTY_BIT_MASK);
   }
 
-  static void setMemoryLevelZeroSortedFlag(final WritableMemory wmem,  final boolean levelZeroSorted) {
-    final int flags = getMemoryFlags(wmem);
-    setMemoryFlags(wmem, levelZeroSorted ? flags | LEVEL_ZERO_SORTED_BIT_MASK : flags & ~LEVEL_ZERO_SORTED_BIT_MASK);
+  static void setMemorySegmentLevelZeroSortedFlag(final MemorySegment wseg,  final boolean levelZeroSorted) {
+    final int flags = getMemorySegmentFlags(wseg);
+    setMemorySegmentFlags(wseg, levelZeroSorted ? flags | LEVEL_ZERO_SORTED_BIT_MASK : flags & ~LEVEL_ZERO_SORTED_BIT_MASK);
   }
 
-  static void setMemoryK(final WritableMemory wmem, final int memK) {
-    wmem.putShort(K_SHORT_ADR, (short) memK);
+  static void setMemorySegmentK(final MemorySegment wseg, final int segK) {
+    wseg.set(JAVA_SHORT_UNALIGNED, K_SHORT_ADR, (short) segK);
   }
 
-  static void setMemoryM(final WritableMemory wmem, final int memM) {
-    wmem.putByte(M_BYTE_ADR, (byte) memM);
+  static void setMemorySegmentM(final MemorySegment wseg, final int segM) {
+    wseg.set(JAVA_BYTE, M_BYTE_ADR, (byte) segM);
   }
 
-  static void setMemoryN(final WritableMemory wmem, final long memN) {
-    wmem.putLong(N_LONG_ADR, memN);
+  static void setMemorySegmentN(final MemorySegment wseg, final long segN) {
+    wseg.set(JAVA_LONG_UNALIGNED, N_LONG_ADR, segN);
   }
 
-  static void setMemoryMinK(final WritableMemory wmem, final int memMinK) {
-    wmem.putShort(MIN_K_SHORT_ADR, (short) memMinK);
+  static void setMemorySegmentMinK(final MemorySegment wseg, final int segMinK) {
+    wseg.set(JAVA_SHORT_UNALIGNED, MIN_K_SHORT_ADR, (short) segMinK);
   }
 
-  static void setMemoryNumLevels(final WritableMemory wmem, final int memNumLevels) {
-    wmem.putByte(NUM_LEVELS_BYTE_ADR, (byte) memNumLevels);
+  static void setMemorySegmentNumLevels(final MemorySegment wseg, final int segNumLevels) {
+    wseg.set(JAVA_BYTE, NUM_LEVELS_BYTE_ADR, (byte) segNumLevels);
   }
 
 }

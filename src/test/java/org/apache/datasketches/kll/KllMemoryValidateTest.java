@@ -19,21 +19,25 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.*;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentEmptyFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentSerVer;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.kll.KllDoublesSketch;
+import org.apache.datasketches.kll.KllFloatsSketch;
+import org.apache.datasketches.kll.KllHelper;
+import org.apache.datasketches.kll.KllMemorySegmentValidate;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("unused")
@@ -41,117 +45,117 @@ public class KllMemoryValidateTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidFamily() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryFamilyID(wmem, Family.KLL.getID() - 1);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentFamilyID(wseg, Family.KLL.getID() - 1);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidSerVer() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL - 1);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentSerVer(wseg, SERIAL_VERSION_EMPTY_FULL - 1);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidEmptyAndSingleFormat() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(1);
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryEmptyFlag(wmem, true);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentEmptyFlag(wseg, true);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidUpdatableAndSerVer() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemorySerVer(wmem, SERIAL_VERSION_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentSerVer(wseg, SERIAL_VERSION_SINGLE);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidSingleAndPreInts() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(1);
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentPreInts(wseg, PREAMBLE_INTS_FULL);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidSingleAndSerVer() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(1);
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentSerVer(wseg, SERIAL_VERSION_EMPTY_FULL);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidEmptyDoublesAndPreIntsFull() {
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
+    final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentPreInts(wseg, PREAMBLE_INTS_FULL);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidSingleDoubleCompactAndSerVer() {
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
+    final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
     sk.update(1);
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentSerVer(wseg, SERIAL_VERSION_EMPTY_FULL);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidDoubleUpdatableAndPreInts() {
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
-    byte[] byteArr = KllHelper.toByteArray(sk, true);
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
+    final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
+    final byte[] byteArr = KllHelper.toByteArray(sk, true);
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentPreInts(wseg, PREAMBLE_INTS_EMPTY_SINGLE);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidFloatFullAndPreInts() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(1); sk.update(2);
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentPreInts(wseg, PREAMBLE_INTS_EMPTY_SINGLE);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidFloatUpdatableFullAndPreInts() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(1); sk.update(2);
-    byte[] byteArr = KllHelper.toByteArray(sk, true);
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
+    final byte[] byteArr = KllHelper.toByteArray(sk, true);
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentPreInts(wseg, PREAMBLE_INTS_EMPTY_SINGLE);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidDoubleCompactSingleAndPreInts() {
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
+    final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
     sk.update(1);
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);//should be 2, single
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
+    final byte[] byteArr = sk.toByteArray();
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    setMemorySegmentPreInts(wseg, PREAMBLE_INTS_FULL);//should be 2, single
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
   }
 
 }

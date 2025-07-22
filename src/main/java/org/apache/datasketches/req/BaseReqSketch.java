@@ -140,16 +140,6 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   public abstract FloatsSortedView getSortedView();
 
   @Override
-  public boolean hasMemory() {
-    return false;
-  }
-
-  @Override
-  public boolean isDirect() {
-    return false;
-  }
-
-  @Override
   public abstract boolean isEmpty();
 
   @Override
@@ -201,28 +191,28 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   static boolean exactRank(final int k, final int levels, final double rank,
       final boolean hra, final long totalN) {
     final int baseCap = k * INIT_NUMBER_OF_SECTIONS;
-    if (levels == 1 || totalN <= baseCap) { return true; }
+    if ((levels == 1) || (totalN <= baseCap)) { return true; }
     final double exactRankThresh = (double)baseCap / totalN;
-    return hra && rank >= 1.0 - exactRankThresh || !hra && rank <= exactRankThresh;
+    return (hra ? (rank >= (1.0 - exactRankThresh)) : (rank <= exactRankThresh));
   }
 
   static double getRankLB(final int k, final int levels, final double rank,
       final int numStdDev, final boolean hra, final long totalN) {
     if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
-    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double relative = (relRseFactor / k) * (hra ? 1.0 - rank : rank);
     final double fixed = fixRseFactor / k;
-    final double lbRel = rank - numStdDev * relative;
-    final double lbFix = rank - numStdDev * fixed;
+    final double lbRel = rank - (numStdDev * relative);
+    final double lbFix = rank - (numStdDev * fixed);
     return Math.max(lbRel, lbFix);
   }
 
   static double getRankUB(final int k, final int levels, final double rank,
       final int numStdDev, final boolean hra, final long totalN) {
     if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
-    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double relative = (relRseFactor / k) * (hra ? 1.0 - rank : rank);
     final double fixed = fixRseFactor / k;
-    final double ubRel = rank + numStdDev * relative;
-    final double ubFix = rank + numStdDev * fixed;
+    final double ubRel = rank + (numStdDev * relative);
+    final double ubFix = rank + (numStdDev * fixed);
     return Math.min(ubRel, ubFix);
   }
 

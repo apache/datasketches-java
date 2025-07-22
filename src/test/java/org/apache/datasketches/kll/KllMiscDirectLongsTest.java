@@ -25,20 +25,24 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.kll.KllDirectLongsSketch;
+import org.apache.datasketches.kll.KllHeapLongsSketch;
+import org.apache.datasketches.kll.KllHelper;
+import org.apache.datasketches.kll.KllLongsSketch;
+import org.apache.datasketches.kll.KllPreambleUtil;
 import org.apache.datasketches.quantilescommon.LongsSortedView;
 import org.apache.datasketches.quantilescommon.LongsSortedViewIterator;
 import org.testng.annotations.Test;
 
 public class KllMiscDirectLongsTest {
   static final String LS = System.getProperty("line.separator");
-  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void checkBounds() {
-    final KllLongsSketch kll = getDirectLongsSketch(200, 0);
+    final KllLongsSketch kll = getDirectLongsSketch(200, 1000);
     for (int i = 0; i < 1000; i++) {
       kll.update(i);
     }
@@ -54,8 +58,8 @@ public class KllMiscDirectLongsTest {
     final double rest = kll.getRank(est);
     final double restUB = kll.getRankUpperBound(rest);
     final double restLB = kll.getRankLowerBound(rest);
-    assertTrue(restUB - rest < (2 * eps));
-    assertTrue(rest - restLB < (2 * eps));
+    assertTrue((restUB - rest) < (2 * eps));
+    assertTrue((rest - restLB) < (2 * eps));
   }
 
   //@Test //enable static println(..) for visual checking
@@ -76,9 +80,9 @@ public class KllMiscDirectLongsTest {
 
   @Test
   public void viewDirectCompactions() {
-    int k = 20;
-    int u = 108;
-    KllLongsSketch sk = getDirectLongsSketch(k, 0);
+    final int k = 20;
+    final int u = 108;
+    final KllLongsSketch sk = getDirectLongsSketch(k, 0);
     for (int i = 1; i <= u; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
@@ -92,20 +96,20 @@ public class KllMiscDirectLongsTest {
 
   @Test
   public void viewCompactionAndSortedView() {
-    int k = 20;
-    KllLongsSketch sk = getDirectLongsSketch(k, 0);
+    final int k = 20;
+    final KllLongsSketch sk = getDirectLongsSketch(k, 0);
     show(sk, 20);
-    LongsSortedView sv = sk.getSortedView();
-    LongsSortedViewIterator itr = sv.iterator();
+    final LongsSortedView sv = sk.getSortedView();
+    final LongsSortedViewIterator itr = sv.iterator();
     printf("%12s%12s\n", "Value", "CumWeight");
     while (itr.next()) {
-      long v = itr.getQuantile();
-      long wt = itr.getWeight();
+      final long v = itr.getQuantile();
+      final long wt = itr.getWeight();
       printf("%12d%12d\n", v, wt);
     }
   }
 
-  private static void show(final KllLongsSketch sk, int limit) {
+  private static void show(final KllLongsSketch sk, final int limit) {
     int i = (int) sk.getN();
     for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
@@ -113,12 +117,12 @@ public class KllMiscDirectLongsTest {
 
   @Test
   public void checkSketchInitializeLongHeap() {
-    int k = 20; //don't change this
+    final int k = 20; //don't change this
     KllLongsSketch sk;
 
     //println("#### CASE: LONG FULL HEAP");
     sk = getDirectLongsSketch(k, 0);
-    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
+    for (int i = 1; i <= (k + 1); i++) { sk.update(i); }
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -144,8 +148,8 @@ public class KllMiscDirectLongsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getLongItemsArray().length, 20);
     assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
-    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMaxItem(); fail(); } catch (final SketchesArgumentException e) { }
+    try { sk.getMinItem(); fail(); } catch (final SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -168,21 +172,21 @@ public class KllMiscDirectLongsTest {
   }
 
   @Test
-  public void checkSketchInitializeLongHeapifyCompactMem() {
-    int k = 20; //don't change this
+  public void checkSketchInitializeLongHeapifyCompactMemorySegment() {
+    final int k = 20; //don't change this
     KllLongsSketch sk;
     KllLongsSketch sk2;
     byte[] compBytes;
-    WritableMemory wmem;
+    MemorySegment wseg;
 
     //println("#### CASE: LONG FULL HEAPIFIED FROM COMPACT");
     sk2 = getDirectLongsSketch(k, 0);
-    for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
+    for (int i = 1; i <= (k + 1); i++) { sk2.update(i); }
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
-    wmem = WritableMemory.writableWrap(compBytes);
-    //println(KllPreambleUtil.toString(wmem));
-    sk = KllLongsSketch.heapify(wmem);
+    wseg = MemorySegment.ofArray(compBytes);
+    //println(KllPreambleUtil.toString(wseg));
+    sk = KllLongsSketch.heapify(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -200,9 +204,9 @@ public class KllMiscDirectLongsTest {
     sk2 = getDirectLongsSketch(k, 0);
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
-    wmem = WritableMemory.writableWrap(compBytes);
-    //println(KllPreambleUtil.toString(wmem));
-    sk = KllLongsSketch.heapify(wmem);
+    wseg = MemorySegment.ofArray(compBytes);
+    //println(KllPreambleUtil.toString(wseg));
+    sk = KllLongsSketch.heapify(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -211,8 +215,8 @@ public class KllMiscDirectLongsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getLongItemsArray().length, 20);
     assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
-    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMaxItem(); fail(); } catch (final SketchesArgumentException e) { }
+    try { sk.getMinItem(); fail(); } catch (final SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -221,9 +225,9 @@ public class KllMiscDirectLongsTest {
     sk2.update(1);
     //println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
-    wmem = WritableMemory.writableWrap(compBytes);
-    //println(KllPreambleUtil.toString(wmem));
-    sk = KllLongsSketch.heapify(wmem);
+    wseg = MemorySegment.ofArray(compBytes);
+    //println(KllPreambleUtil.toString(wseg));
+    sk = KllLongsSketch.heapify(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -239,20 +243,20 @@ public class KllMiscDirectLongsTest {
   }
 
   @Test
-  public void checkSketchInitializeLongHeapifyUpdatableMem() {
-    int k = 20; //don't change this
+  public void checkSketchInitializeLongHeapifyUpdatableMemorySegment() {
+    final int k = 20; //don't change this
     KllLongsSketch sk;
     KllLongsSketch sk2;
     byte[] compBytes;
-    WritableMemory wmem;
+    MemorySegment wseg;
 
     //println("#### CASE: LONG FULL HEAPIFIED FROM UPDATABLE");
     sk2 = getDirectLongsSketch(k, 0);
-    for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
+    for (int i = 1; i <= (k + 1); i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2,true);
-    wmem = WritableMemory.writableWrap(compBytes);
-    sk = KllHeapLongsSketch.heapifyImpl(wmem);
+    wseg = MemorySegment.ofArray(compBytes);
+    sk = KllHeapLongsSketch.heapifyImpl(wseg);
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -271,9 +275,9 @@ public class KllMiscDirectLongsTest {
     sk2 = getDirectLongsSketch(k, 0);
     //println(sk.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2, true);
-    wmem = WritableMemory.writableWrap(compBytes);
-    //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapLongsSketch.heapifyImpl(wmem);
+    wseg = MemorySegment.ofArray(compBytes);
+    //println(KllPreambleUtil.toString(wseg));
+    sk = KllHeapLongsSketch.heapifyImpl(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -282,8 +286,8 @@ public class KllMiscDirectLongsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getLongItemsArray().length, 20);
     assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
-    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMaxItem(); fail(); } catch (final SketchesArgumentException e) { }
+    try { sk.getMinItem(); fail(); } catch (final SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -292,9 +296,9 @@ public class KllMiscDirectLongsTest {
     sk2.update(1);
     //println(sk.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2,true);
-    wmem = WritableMemory.writableWrap(compBytes);
-    //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapLongsSketch.heapifyImpl(wmem);
+    wseg = MemorySegment.ofArray(compBytes);
+    //println(KllPreambleUtil.toString(wseg));
+    sk = KllHeapLongsSketch.heapifyImpl(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -311,42 +315,42 @@ public class KllMiscDirectLongsTest {
 
   @Test
   public void checkMemoryToStringLongUpdatable() {
-    int k = 20; //don't change this
+    final int k = 20; //don't change this
     KllLongsSketch sk;
     KllLongsSketch sk2;
     byte[] upBytes;
     byte[] upBytes2;
-    WritableMemory wmem;
+    MemorySegment wseg;
     String s;
 
     println("#### CASE: LONG FULL UPDATABLE");
     sk = getDirectLongsSketch(k, 0);
-    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
+    for (int i = 1; i <= (k + 1); i++) { sk.update(i); }
     upBytes = KllHelper.toByteArray(sk, true);
-    wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, LONGS_SKETCH, true);
-    println("step 1: sketch to byte[]/memory & analyze memory");
+    wseg = MemorySegment.ofArray(upBytes);
+    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
-    sk2 = KllLongsSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllLongsSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
-    wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, LONGS_SKETCH, true);
-    println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
+    wseg = MemorySegment.ofArray(upBytes2);
+    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
 
     println("#### CASE: LONG EMPTY UPDATABLE");
     sk = getDirectLongsSketch(k, 0);
     upBytes = KllHelper.toByteArray(sk, true);
-    wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, LONGS_SKETCH, true);
-    println("step 1: sketch to byte[]/memory & analyze memory");
+    wseg = MemorySegment.ofArray(upBytes);
+    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
-    sk2 = KllLongsSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllLongsSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
-    wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, LONGS_SKETCH, true);
-    println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
+    wseg = MemorySegment.ofArray(upBytes2);
+    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
 
@@ -354,26 +358,26 @@ public class KllMiscDirectLongsTest {
     sk = getDirectLongsSketch(k, 0);
     sk.update(1);
     upBytes = KllHelper.toByteArray(sk, true);
-    wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, LONGS_SKETCH, true);
-    println("step 1: sketch to byte[]/memory & analyze memory");
+    wseg = MemorySegment.ofArray(upBytes);
+    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
-    sk2 = KllLongsSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllLongsSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
-    wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, LONGS_SKETCH, true);
-    println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
+    wseg = MemorySegment.ofArray(upBytes2);
+    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
   }
 
   @Test
   public void checkSimpleMerge() {
-    int k = 20;
-    int n1 = 21;
-    int n2 = 21;
-    KllLongsSketch sk1 = getDirectLongsSketch(k, 0);
-    KllLongsSketch sk2 = getDirectLongsSketch(k, 0);
+    final int k = 20;
+    final int n1 = 21;
+    final int n2 = 21;
+    final KllLongsSketch sk1 = getDirectLongsSketch(k, 0);
+    final KllLongsSketch sk2 = getDirectLongsSketch(k, 0);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }
@@ -390,22 +394,22 @@ public class KllMiscDirectLongsTest {
 
   @Test
   public void checkSizes() {
-    KllLongsSketch sk = getDirectLongsSketch(20, 0);
+    final KllLongsSketch sk = getDirectLongsSketch(20, 0);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     //println(sk.toString(true, true));
-    byte[] byteArr1 = KllHelper.toByteArray(sk, true);
-    int size1 = sk.currentSerializedSizeBytes(true);
+    final byte[] byteArr1 = KllHelper.toByteArray(sk, true);
+    final int size1 = sk.currentSerializedSizeBytes(true);
     assertEquals(size1, byteArr1.length);
-    byte[] byteArr2 = sk.toByteArray();
-    int size2 = sk.currentSerializedSizeBytes(false);
+    final byte[] byteArr2 = sk.toByteArray();
+    final int size2 = sk.currentSerializedSizeBytes(false);
     assertEquals(size2, byteArr2.length);
   }
 
   @Test
   public void checkNewInstance() {
-    int k = 200;
-    WritableMemory dstMem = WritableMemory.allocate(3000);
-    KllLongsSketch sk = KllLongsSketch.newDirectInstance(k, dstMem, memReqSvr);
+    final int k = 200;
+    final MemorySegment dstSeg = MemorySegment.ofArray(new byte[3000]);
+    final KllLongsSketch sk = KllLongsSketch.newDirectInstance(k, dstSeg, null);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
     assertEquals(sk.getMinItem(), 1L);
     assertEquals(sk.getMaxItem(), 10000L);
@@ -414,27 +418,26 @@ public class KllMiscDirectLongsTest {
 
   @Test
   public void checkDifferentM() {
-    int k = 20;
-    int m = 4;
-    WritableMemory dstMem = WritableMemory.allocate(1000);
-    KllLongsSketch sk = KllDirectLongsSketch.newDirectUpdatableInstance(k, m, dstMem, memReqSvr);
+    final int k = 20;
+    final int m = 4;
+    final MemorySegment dstSeg = MemorySegment.ofArray(new byte[1000]);
+    final KllLongsSketch sk = KllDirectLongsSketch.newDirectUpdatableInstance(k, m, dstSeg, null);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
     assertEquals(sk.getMinItem(), 1L);
     assertEquals(sk.getMaxItem(), 200L);
   }
 
   private static KllLongsSketch getDirectLongsSketch(final int k, final int n) {
-    KllLongsSketch sk = KllLongsSketch.newHeapInstance(k);
+    final KllLongsSketch sk = KllLongsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
-    byte[] byteArr = KllHelper.toByteArray(sk, true);
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    KllLongsSketch dfsk = KllLongsSketch.writableWrap(wmem, memReqSvr);
-    return dfsk;
+    final byte[] byteArr = KllHelper.toByteArray(sk, true);
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    return KllLongsSketch.wrap(wseg);
   }
 
   @Test
   public void printlnTest() {
-    String s = "PRINTING:  printf in " + this.getClass().getName();
+    final String s = "PRINTING:  printf in " + this.getClass().getName();
     println(s);
     printf("%s\n", s);
   }

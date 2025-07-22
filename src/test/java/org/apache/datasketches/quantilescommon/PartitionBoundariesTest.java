@@ -29,7 +29,7 @@ import static org.testng.Assert.fail;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.quantiles.ItemsSketch;
@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  * This tests partition boundaries with both KllItemsSketch and classic ItemsSketch
  */
 public class PartitionBoundariesTest {
-  private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
   private static String[] hdr     = {"N", "MaxItem", "MinItem", "NumParts", "SearchCriteria"};
   private static String hdrfmt    = "%6s %10s %10s %10s %15s" + LS;
   private static String hdrdfmt   = "%6d %10s %10s %10d %15s" + LS;
@@ -54,20 +54,20 @@ public class PartitionBoundariesTest {
 
   //@Test //visual check only. set enablePrinting = true to view.
   public void checkSkewWithClassic() {
-    int n = 2050; //1000000;
-    int k = 1 << 15;
-    int n2 = 200;
-    int totalN = n + n2;
-    int numDigits = digits(totalN);
-    long v2 = 1000L;
-    QuantileSearchCriteria searchCrit = QuantileSearchCriteria.INCLUSIVE;
-    ItemsSketch<String> sk = ItemsSketch.getInstance(String.class,k, Comparator.naturalOrder());
+    final int n = 2050; //1000000;
+    final int k = 1 << 15;
+    final int n2 = 200;
+    final int totalN = n + n2;
+    final int numDigits = digits(totalN);
+    final long v2 = 1000L;
+    final QuantileSearchCriteria searchCrit = QuantileSearchCriteria.INCLUSIVE;
+    final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class,k, Comparator.naturalOrder());
 
     for (long i = 1; i <= n; i++)  { sk.update(getString(i, numDigits)); }
     for (long i = 1; i <= n2; i++) { sk.update(getString(v2, numDigits)); }
-    int numParts = sk.getMaxPartitions(); //22
-    ItemsSketchSortedView<String> sv = sk.getSortedView();
-    GenericSortedViewIterator<String> itr = sv.iterator();
+    final int numParts = sk.getMaxPartitions(); //22
+    final ItemsSketchSortedView<String> sv = sk.getSortedView();
+    final GenericSortedViewIterator<String> itr = sv.iterator();
     println("SORTED VIEW:");
     printf(rowhdrfmt2, (Object[])rowhdr2);
     int j = 0;
@@ -75,12 +75,12 @@ public class PartitionBoundariesTest {
       printf(rowdfmt2, j++, itr.getNormalizedRank(searchCrit), itr.getNaturalRank(searchCrit), itr.getQuantile());
     }
 
-    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(numParts, searchCrit);
-    int arrLen = gpb.getBoundaries().length;
-    double[] normRanks = gpb.getNormalizedRanks();
-    long[] natRanks = gpb.getNaturalRanks();
-    String[] boundaries = gpb.getBoundaries();
-    long[] numDeltaItems = gpb.getNumDeltaItems();
+    final GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(numParts, searchCrit);
+    final int arrLen = gpb.getBoundaries().length;
+    final double[] normRanks = gpb.getNormalizedRanks();
+    final long[] natRanks = gpb.getNaturalRanks();
+    final String[] boundaries = gpb.getBoundaries();
+    final long[] numDeltaItems = gpb.getNumDeltaItems();
     println("");
     println("GET PARTITION BOUNDARIES:");
     printf(hdrfmt, (Object[]) hdr);
@@ -94,20 +94,20 @@ public class PartitionBoundariesTest {
 
   //@Test //visual check only. set enablePrinting = true to view.
   public void checkSkewWithKll() {
-    int n = 2050; //1_000_000;
-    int k = 1 << 15;
-    int n2 = 200;
-    int totalN = n + n2;
-    int numDigits = digits(totalN);
-    long v2 = 1000L;
-    QuantileSearchCriteria searchCrit = QuantileSearchCriteria.INCLUSIVE;
-    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
+    final int n = 2050; //1_000_000;
+    final int k = 1 << 15;
+    final int n2 = 200;
+    final int totalN = n + n2;
+    final int numDigits = digits(totalN);
+    final long v2 = 1000L;
+    final QuantileSearchCriteria searchCrit = QuantileSearchCriteria.INCLUSIVE;
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
 
     for (long i = 1; i <= n; i++)  { sk.update(getString(i, numDigits)); }
     for (long i = 1; i <= n2; i++) { sk.update(getString(v2, numDigits)); }
-    int numParts = sk.getMaxPartitions(); //22
-    ItemsSketchSortedView<String> sv = sk.getSortedView();
-    GenericSortedViewIterator<String> itr = sv.iterator();
+    final int numParts = sk.getMaxPartitions(); //22
+    final ItemsSketchSortedView<String> sv = sk.getSortedView();
+    final GenericSortedViewIterator<String> itr = sv.iterator();
     println("SORTED VIEW:");
     printf(rowhdrfmt2, (Object[])rowhdr2);
     int j = 0;
@@ -115,12 +115,12 @@ public class PartitionBoundariesTest {
       printf(rowdfmt2, j++, itr.getNormalizedRank(searchCrit), itr.getNaturalRank(searchCrit), itr.getQuantile());
     }
 
-    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(numParts, searchCrit);
-    int arrLen = gpb.getBoundaries().length;
-    double[] normRanks = gpb.getNormalizedRanks();
-    long[] natRanks = gpb.getNaturalRanks();
-    String[] boundaries = gpb.getBoundaries();
-    long[] numDeltaItems = gpb.getNumDeltaItems();
+    final GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(numParts, searchCrit);
+    final int arrLen = gpb.getBoundaries().length;
+    final double[] normRanks = gpb.getNormalizedRanks();
+    final long[] natRanks = gpb.getNaturalRanks();
+    final String[] boundaries = gpb.getBoundaries();
+    final long[] numDeltaItems = gpb.getNumDeltaItems();
     println("");
     println("GET PARTITION BOUNDARIES:");
     printf(hdrfmt, (Object[]) hdr);
@@ -174,22 +174,22 @@ public class PartitionBoundariesTest {
     final Comparator<String> comparator = Comparator.naturalOrder();
     final String maxItem = "8";
     final String minItem = "1";
-    ItemsSketchSortedView<String> sv = new ItemsSketchSortedView<>(
+    final ItemsSketchSortedView<String> sv = new ItemsSketchSortedView<>(
         quantiles, cumWeights, totalN, comparator, maxItem, minItem,
         String.class, .01, 4);
 
-    GenericSortedViewIterator<String> itr = sv.iterator();
+    final GenericSortedViewIterator<String> itr = sv.iterator();
     while (itr.next()) {
       println(itr.getNaturalRank(INCLUSIVE) + ", " + itr.getQuantile(INCLUSIVE));
     }
-    GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(2);
-    String[] boundaries = gpb.getBoundaries();
-    long[] natRanks = gpb.getNaturalRanks();
-    double[] normRanks = gpb.getNormalizedRanks();
-    long[] deltaItems = gpb.getNumDeltaItems();
-    int numParts = gpb.getNumPartitions();
-    String maxItm = gpb.getMaxItem();
-    String minItm = gpb.getMinItem();
+    final GenericPartitionBoundaries<String> gpb = sv.getPartitionBoundariesFromNumParts(2);
+    final String[] boundaries = gpb.getBoundaries();
+    final long[] natRanks = gpb.getNaturalRanks();
+    final double[] normRanks = gpb.getNormalizedRanks();
+    final long[] deltaItems = gpb.getNumDeltaItems();
+    final int numParts = gpb.getNumPartitions();
+    final String maxItm = gpb.getMaxItem();
+    final String minItm = gpb.getMinItem();
     assertEquals(boundaries, new String[] {"1","4","8"});
     assertEquals(natRanks, new long[] {1,4,8});
     assertEquals(normRanks, new double[] {.125,.5,1.0});
@@ -204,7 +204,7 @@ public class PartitionBoundariesTest {
   public void checkSketchPartitionLimits() {
     final long totalN = 2000; //1_000_000;
     final Comparator<String> comparator = Comparator.naturalOrder();
-    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
     final int k = 1 << 15;
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
     final int d = digits(totalN);
@@ -227,7 +227,7 @@ public class PartitionBoundariesTest {
       println("Bad numPartsRequest " + badNumPartsRequest);
       gpb = sk.getPartitionBoundariesFromNumParts(badNumPartsRequest);
       fail("Bad numPartsRequest should have failed. " + badNumPartsRequest);
-    } catch (SketchesArgumentException e) { } //OK
+    } catch (final SketchesArgumentException e) { } //OK
   }
 
   @SuppressWarnings("unused")
@@ -235,7 +235,7 @@ public class PartitionBoundariesTest {
   public void checkSketchPartitionLimits2() {
     final long totalN = 2000; //1_000_000;
     final Comparator<String> comparator = Comparator.naturalOrder();
-    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
     final int k = 1 << 15;
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
     final int d = digits(totalN);
@@ -250,12 +250,12 @@ public class PartitionBoundariesTest {
     //this should pass
     final long goodPartSizeRequest= sk.getMinPartitionSizeItems();
     println("Good partSizeRequest " + goodPartSizeRequest);
-    GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromPartSize(goodPartSizeRequest);
+    final GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromPartSize(goodPartSizeRequest);
     //this should fail
     try {
       final long badPartSizeRequest = goodPartSizeRequest - 1;
       println("Bad partSizeRequest " + badPartSizeRequest);
-    } catch (SketchesArgumentException e) { } //OK
+    } catch (final SketchesArgumentException e) { } //OK
   }
 
   @Test

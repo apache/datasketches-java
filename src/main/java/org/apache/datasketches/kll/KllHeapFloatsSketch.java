@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
@@ -28,13 +29,12 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SING
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class implements an on-heap floats KllSketch.
@@ -67,16 +67,16 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    this.levelsArr = new int[] {k, k};
-    this.readOnly = false;
+    levelsArr = new int[] {k, k};
+    readOnly = false;
     this.k = k;
     this.m = m;
-    this.n = 0;
-    this.minK = k;
-    this.isLevelZeroSorted = false;
-    this.minFloatItem = Float.NaN;
-    this.maxFloatItem = Float.NaN;
-    this.floatItems = new float[k];
+    n = 0;
+    minK = k;
+    isLevelZeroSorted = false;
+    minFloatItem = Float.NaN;
+    maxFloatItem = Float.NaN;
+    floatItems = new float[k];
   }
 
   /**
@@ -86,76 +86,76 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    this.levelsArr = KllHelper.createLevelsArray(weight);
-    this.readOnly = false;
+    levelsArr = KllHelper.createLevelsArray(weight);
+    readOnly = false;
     this.k = k;
     this.m = m;
-    this.n = weight;
-    this.minK = k;
-    this.isLevelZeroSorted = false;
-    this.minFloatItem = item;
-    this.maxFloatItem = item;
-    this.floatItems = KllFloatsHelper.createItemsArray(item, weight);
+    n = weight;
+    minK = k;
+    isLevelZeroSorted = false;
+    minFloatItem = item;
+    maxFloatItem = item;
+    floatItems = KllFloatsHelper.createItemsArray(item, weight);
   }
 
   /**
    * Heapify constructor.
-   * @param srcMem Memory object that contains data serialized by this sketch.
-   * @param memValidate the MemoryValidate object
+   * @param srcSeg MemorySegment object that contains data serialized by this sketch.
+   * @param segValidate the MemoryValidate object
    */
   private KllHeapFloatsSketch(
-      final Memory srcMem,
-      final KllMemoryValidate memValidate) {
+      final MemorySegment srcSeg,
+      final KllMemorySegmentValidate segValidate) {
     super(UPDATABLE);
-    final SketchStructure memStructure = memValidate.sketchStructure;
-    this.k = memValidate.k;
-    this.m = memValidate.m;
-    this.n = memValidate.n;
-    this.minK = memValidate.minK;
-    this.levelsArr = memValidate.levelsArr; //normalized to full
-    this.isLevelZeroSorted = memValidate.level0SortedFlag;
+    final SketchStructure segStructure = segValidate.sketchStructure;
+    k = segValidate.k;
+    m = segValidate.m;
+    n = segValidate.n;
+    minK = segValidate.minK;
+    levelsArr = segValidate.levelsArr; //normalized to full
+    isLevelZeroSorted = segValidate.level0SortedFlag;
 
-    if (memStructure == COMPACT_EMPTY) {
+    if (segStructure == COMPACT_EMPTY) {
       minFloatItem = Float.NaN;
       maxFloatItem = Float.NaN;
       floatItems = new float[k];
     }
-    else if (memStructure == COMPACT_SINGLE) {
-      final float item = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+    else if (segStructure == COMPACT_SINGLE) {
+      final float item = srcSeg.get(JAVA_FLOAT_UNALIGNED, DATA_START_ADR_SINGLE_ITEM);
       minFloatItem = maxFloatItem = item;
       floatItems = new float[k];
       floatItems[k - 1] = item;
     }
-    else if (memStructure == COMPACT_FULL) {
+    else if (segStructure == COMPACT_FULL) {
       int offsetBytes = DATA_START_ADR;
       offsetBytes += (levelsArr.length - 1) * Integer.BYTES; //shortened levelsArr
-      minFloatItem = srcMem.getFloat(offsetBytes);
+      minFloatItem = srcSeg.get(JAVA_FLOAT_UNALIGNED, offsetBytes);
       offsetBytes += Float.BYTES;
-      maxFloatItem = srcMem.getFloat(offsetBytes);
+      maxFloatItem = srcSeg.get(JAVA_FLOAT_UNALIGNED, offsetBytes);
       offsetBytes += Float.BYTES;
       final int capacityItems = levelsArr[getNumLevels()];
       final int freeSpace = levelsArr[0];
       final int retainedItems = capacityItems - freeSpace;
       floatItems = new float[capacityItems];
-      srcMem.getFloatArray(offsetBytes, floatItems, freeSpace, retainedItems);
+      MemorySegment.copy(srcSeg, JAVA_FLOAT_UNALIGNED, offsetBytes, floatItems, freeSpace, retainedItems);
     }
-    else { //(memStructure == UPDATABLE)
+    else { //(segStructure == UPDATABLE)
       int offsetBytes = DATA_START_ADR;
       offsetBytes += levelsArr.length * Integer.BYTES; //full levelsArr
-      minFloatItem = srcMem.getFloat(offsetBytes);
+      minFloatItem = srcSeg.get(JAVA_FLOAT_UNALIGNED, offsetBytes);
       offsetBytes += Float.BYTES;
-      maxFloatItem = srcMem.getFloat(offsetBytes);
+      maxFloatItem = srcSeg.get(JAVA_FLOAT_UNALIGNED, offsetBytes);
       offsetBytes += Float.BYTES;
       final int capacityItems = levelsArr[getNumLevels()];
       floatItems = new float[capacityItems];
-      srcMem.getFloatArray(offsetBytes, floatItems, 0, capacityItems);
+      MemorySegment.copy(srcSeg, JAVA_FLOAT_UNALIGNED, offsetBytes, floatItems, 0, capacityItems);
     }
   }
 
-  static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
-    return new KllHeapFloatsSketch(srcMem, memVal);
+  static KllHeapFloatsSketch heapifyImpl(final MemorySegment srcSeg) {
+    Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, FLOATS_SKETCH);
+    return new KllHeapFloatsSketch(srcSeg, segVal);
   }
 
   //End of constructors
@@ -208,10 +208,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setMaxItem(final float item) { this.maxFloatItem = item; }
+  void setMaxItem(final float item) { maxFloatItem = item; }
 
   @Override
-  void setMinItem(final float item) { this.minFloatItem = item; }
+  void setMinItem(final float item) { minFloatItem = item; }
 
   //END MinMax Methods
 
@@ -233,9 +233,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   int getM() { return m; }
 
   @Override
-  MemoryRequestServer getMemoryRequestServer() { return null; }
-
-  @Override
   int getMinK() { return minK; }
 
   @Override
@@ -250,21 +247,21 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     final int retained = getNumRetained();
     final int bytes = retained * Float.BYTES;
     bytesOut = new byte[bytes];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytesOut);
-    wmem.putFloatArray(0, floatItems, levelsArr[0], retained);
+    final MemorySegment wseg = MemorySegment.ofArray(bytesOut);
+    MemorySegment.copy(floatItems, levelsArr[0], wseg, JAVA_FLOAT_UNALIGNED, 0, retained);
     return bytesOut;
   }
 
   @Override
   byte[] getTotalItemsByteArr() {
     final byte[] byteArr = new byte[floatItems.length * Float.BYTES];
-    final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    wmem.putFloatArray(0, floatItems, 0, floatItems.length);
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    MemorySegment.copy(floatItems, 0, wseg, JAVA_FLOAT_UNALIGNED, 0, floatItems.length);
     return byteArr;
   }
 
   @Override
-  WritableMemory getWritableMemory() {
+  MemorySegment getMemorySegment() {
     return null;
   }
 
@@ -277,13 +274,13 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  boolean isLevelZeroSorted() { return this.isLevelZeroSorted; }
+  boolean isLevelZeroSorted() { return isLevelZeroSorted; }
 
   @Override
   void setFloatItemsArray(final float[] floatItems) { this.floatItems = floatItems; }
 
   @Override
-  void setFloatItemsArrayAt(final int index, final float item) { this.floatItems[index] = item; }
+  void setFloatItemsArrayAt(final int index, final float item) { floatItems[index] = item; }
 
   @Override
   void setFloatItemsArrayAt(final int dstIndex, final float[] srcItems, final int srcOffset, final int length) {
@@ -291,7 +288,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted = sorted; }
+  void setLevelZeroSorted(final boolean sorted) { isLevelZeroSorted = sorted; }
 
   @Override
   void setMinK(final int minK) { this.minK = minK; }
@@ -310,6 +307,26 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setWritableMemory(final WritableMemory wmem) { }
+  void setMemorySegment(final MemorySegment wseg) { }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return false;
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return false;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return false;
+  }
+
+  @Override
+  MemorySegmentRequest getMemorySegmentRequest() {
+    return null;
+  }
 
 }

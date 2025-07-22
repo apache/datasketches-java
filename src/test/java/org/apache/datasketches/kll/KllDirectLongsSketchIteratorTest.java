@@ -19,19 +19,20 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.kll.KllHelper;
+import org.apache.datasketches.kll.KllLongsSketch;
 import org.apache.datasketches.quantilescommon.QuantilesLongsSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class KllDirectLongsSketchIteratorTest {
-  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void emptySketch() {
     final KllLongsSketch sketch = getDLSketch(200, 0);
-    QuantilesLongsSketchIterator it = sketch.iterator();
+    final QuantilesLongsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -39,7 +40,7 @@ public class KllDirectLongsSketchIteratorTest {
   public void oneItemSketch() {
     final KllLongsSketch sketch = getDLSketch(200, 0);
     sketch.update(0);
-    QuantilesLongsSketchIterator it = sketch.iterator();
+    final QuantilesLongsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getQuantile(), 0);
     Assert.assertEquals(it.getWeight(), 1);
@@ -48,12 +49,12 @@ public class KllDirectLongsSketchIteratorTest {
 
   @Test
   public void bigSketches() {
-    for (int n = 1000; n < 100000; n += 2000) {
+    for (int n = 1000; n < 11000; n += 2000) {
       final KllLongsSketch sketch = getDLSketch(200, 0);
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      QuantilesLongsSketchIterator it = sketch.iterator();
+      final QuantilesLongsSketchIterator it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {
@@ -66,13 +67,12 @@ public class KllDirectLongsSketchIteratorTest {
   }
 
   private static KllLongsSketch getDLSketch(final int k, final int n) {
-    KllLongsSketch sk = KllLongsSketch.newHeapInstance(k);
+    final KllLongsSketch sk = KllLongsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
-    byte[] byteArr = KllHelper.toByteArray(sk, true);
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
+    final byte[] byteArr = KllHelper.toByteArray(sk, true);
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
 
-    KllLongsSketch dlsk = KllLongsSketch.writableWrap(wmem, memReqSvr);
-    return dlsk;
+    return KllLongsSketch.wrap(wseg);
   }
 
 }

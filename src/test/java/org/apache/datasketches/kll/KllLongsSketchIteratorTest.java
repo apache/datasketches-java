@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import org.apache.datasketches.kll.KllLongsSketch;
 import org.apache.datasketches.quantilescommon.LongsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantilesLongsSketchIterator;
 import org.testng.Assert;

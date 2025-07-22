@@ -38,8 +38,8 @@ public class KllSketchTest {
     assertEquals(getSketchStructure(2,2), COMPACT_SINGLE);
     assertEquals(getSketchStructure(5,1), COMPACT_FULL);
     assertEquals(getSketchStructure(5,3), UPDATABLE);
-    try { getSketchStructure(5,2); fail(); } catch (SketchesArgumentException e) { }
-    try { getSketchStructure(2,3); fail(); } catch (SketchesArgumentException e) { }
+    try { getSketchStructure(5,2); fail(); } catch (final SketchesArgumentException e) { }
+    try { getSketchStructure(2,3); fail(); } catch (final SketchesArgumentException e) { }
   }
 
   private final static boolean enablePrinting = false;

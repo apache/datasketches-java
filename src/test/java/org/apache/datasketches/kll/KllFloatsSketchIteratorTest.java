@@ -24,6 +24,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.testng.Assert;

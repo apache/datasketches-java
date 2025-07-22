@@ -232,8 +232,8 @@ public class KolmogorovSmirnovTest {
      s2.update(x);
    }
 
-   double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
-   double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
+   final double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
+   final double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("MedRes Classic Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
@@ -257,8 +257,8 @@ public class KolmogorovSmirnovTest {
      s2.update(x);
    }
 
-   double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
-   double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
+   final double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
+   final double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("MedRes KLL Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
@@ -282,8 +282,8 @@ public class KolmogorovSmirnovTest {
      s2.update(x);
    }
 
-   double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
-   double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
+   final double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
+   final double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("MedRes KLL Floats");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
@@ -307,8 +307,8 @@ public class KolmogorovSmirnovTest {
      s2.update(x);
    }
 
-   double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
-   double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
+   final double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
+   final double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("HiRes Classic Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
@@ -332,8 +332,8 @@ public class KolmogorovSmirnovTest {
      s2.update(x);
    }
 
-   double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
-   double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
+   final double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
+   final double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("HiRes KLL Doubles");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
@@ -357,8 +357,8 @@ public class KolmogorovSmirnovTest {
      s2.update(x);
    }
 
-   double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
-   double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
+   final double D = KolmogorovSmirnov.computeKSDelta(s1, s2);
+   final double thresh = KolmogorovSmirnov.computeKSThreshold(s1, s2, tgtPvalue);
    final boolean reject = KolmogorovSmirnov.kolmogorovSmirnovTest(s1, s2, tgtPvalue);
    println("HiRes KLL Floats");
    println("pVal = " + tgtPvalue + "\nK = " + k + "\nD = " + D + "\nTh = " + thresh
