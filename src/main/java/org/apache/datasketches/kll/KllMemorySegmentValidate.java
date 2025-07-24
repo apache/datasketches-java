@@ -19,40 +19,42 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFlags;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryPreInts;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentEmptyFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentFlags;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentSerVer;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
-import org.apache.datasketches.common.ArrayOfBooleansSerDe;
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.ArrayOfBooleansSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
-import org.apache.datasketches.memory.Memory;
 
 /**
- * This class performs all the error checking of an incoming Memory object and extracts the key fields in the process.
- * This is used by all KLL sketches that read or import Memory objects.
+ * This class performs all the error checking of an incoming MemorySegment object and extracts the key fields in the process.
+ * This is used by all KLL sketches that read or import MemorySegment objects.
  * @author lrhodes
  *
  */
-final class KllMemoryValidate {
-  final Memory srcMem;
-  final ArrayOfItemsSerDe<?> serDe;
+final class KllMemorySegmentValidate {
+  final MemorySegment srcSeg;
+  final ArrayOfItemsSerDe2<?> serDe;
   final SketchType sketchType;
   final SketchStructure sketchStructure;
 
@@ -81,29 +83,29 @@ final class KllMemoryValidate {
   int sketchBytes = 0; //used by KllPreambleUtil
   private int typeBytes = 0; //always 0 for generic
 
-  KllMemoryValidate(final Memory srcMem, final SketchType sketchType) {
-    this(srcMem, sketchType, null);
+  KllMemorySegmentValidate(final MemorySegment srcSeg, final SketchType sketchType) {
+    this(srcSeg, sketchType, null);
   }
 
-  KllMemoryValidate(final Memory srcMem, final SketchType sketchType, final ArrayOfItemsSerDe<?> serDe) {
-    final long memCapBytes = srcMem.getCapacity();
-    if (memCapBytes < 8) { throw new SketchesArgumentException(MEMORY_TOO_SMALL + memCapBytes); }
-    this.srcMem = srcMem;
+  KllMemorySegmentValidate(final MemorySegment srcSeg, final SketchType sketchType, final ArrayOfItemsSerDe2<?> serDe) {
+    final long segCapBytes = srcSeg.byteSize();
+    if (segCapBytes < 8) { throw new SketchesArgumentException(MEMORY_TOO_SMALL + segCapBytes); }
+    this.srcSeg = srcSeg;
     this.sketchType = sketchType;
     this.serDe = serDe;
-    preInts = getMemoryPreInts(srcMem);
-    serVer = getMemorySerVer(srcMem);
+    preInts = getMemorySegmentPreInts(srcSeg);
+    serVer = getMemorySegmentSerVer(srcSeg);
     sketchStructure = SketchStructure.getSketchStructure(preInts, serVer);
-    familyID = getMemoryFamilyID(srcMem);
+    familyID = getMemorySegmentFamilyID(srcSeg);
     if (familyID != Family.KLL.getID()) { throw new SketchesArgumentException(SRC_NOT_KLL + familyID); }
-    flags = getMemoryFlags(srcMem);
-    k = getMemoryK(srcMem);
-    m = getMemoryM(srcMem);
+    flags = getMemorySegmentFlags(srcSeg);
+    k = getMemorySegmentK(srcSeg);
+    m = getMemorySegmentM(srcSeg);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
     //flags
-    emptyFlag = getMemoryEmptyFlag(srcMem);
-    level0SortedFlag  = getMemoryLevelZeroSortedFlag(srcMem);
+    emptyFlag = getMemorySegmentEmptyFlag(srcSeg);
+    level0SortedFlag  = getMemorySegmentLevelZeroSortedFlag(srcSeg);
     if (sketchType == DOUBLES_SKETCH) { typeBytes = Double.BYTES; }
     else if (sketchType == FLOATS_SKETCH) { typeBytes = Float.BYTES; }
     else { typeBytes = 0; }
@@ -115,16 +117,15 @@ final class KllMemoryValidate {
     switch (sketchStructure) {
       case COMPACT_FULL: {
         if (emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_FULL); }
-        n = getMemoryN(srcMem);
-        //if (n <= 1) { memoryValidateThrow(N_AND_COMPACT_FULL); } //very old sketches prior to serVer=2 will violate.
-        minK = getMemoryMinK(srcMem);
-        numLevels = getMemoryNumLevels(srcMem);
+        n = getMemorySegmentN(srcSeg);
+        minK = getMemorySegmentMinK(srcSeg);
+        numLevels = getMemorySegmentNumLevels(srcSeg);
         // Get Levels Arr and add the last element
         levelsArr = new int[numLevels + 1];
-        srcMem.getIntArray(DATA_START_ADR, levelsArr, 0, numLevels); //copies all except the last one
+        MemorySegment.copy(srcSeg, JAVA_INT_UNALIGNED, DATA_START_ADR, levelsArr, 0, numLevels); //copies all except the last one
         final int capacityItems = KllHelper.computeTotalItemCapacity(k, m, numLevels);
         levelsArr[numLevels] = capacityItems; //load the last one
-        sketchBytes = computeSketchBytes(srcMem, sketchType, levelsArr, false, serDe);
+        sketchBytes = computeSketchBytes(srcSeg, sketchType, levelsArr, false, serDe);
         break;
       }
       case COMPACT_EMPTY: {
@@ -143,19 +144,21 @@ final class KllMemoryValidate {
         numLevels = 1;   //assumed
         levelsArr = new int[] {k - 1, k};
         if (sketchType == ITEMS_SKETCH) {
-          sketchBytes = DATA_START_ADR_SINGLE_ITEM + serDe.sizeOf(srcMem, DATA_START_ADR_SINGLE_ITEM, 1);
+          sketchBytes = DATA_START_ADR_SINGLE_ITEM + serDe.sizeOf(srcSeg, DATA_START_ADR_SINGLE_ITEM, 1);
         } else {
           sketchBytes = DATA_START_ADR_SINGLE_ITEM + typeBytes;
         }
         break;
       }
       case UPDATABLE: {
-        n = getMemoryN(srcMem);
-        minK = getMemoryMinK(srcMem);
-        numLevels = getMemoryNumLevels(srcMem);
+        n = getMemorySegmentN(srcSeg);
+        minK = getMemorySegmentMinK(srcSeg);
+        numLevels = getMemorySegmentNumLevels(srcSeg);
         levelsArr = new int[numLevels + 1];
-        srcMem.getIntArray(DATA_START_ADR, levelsArr, 0, numLevels + 1);
-        sketchBytes = computeSketchBytes(srcMem, sketchType, levelsArr, true, serDe);
+        MemorySegment.copy(srcSeg, JAVA_INT_UNALIGNED, DATA_START_ADR, levelsArr, 0, numLevels + 1);
+
+
+        sketchBytes = computeSketchBytes(srcSeg, sketchType, levelsArr, true, serDe);
         break;
       }
       default: break; //can not happen
@@ -163,23 +166,23 @@ final class KllMemoryValidate {
   }
 
   static int computeSketchBytes( //for COMPACT_FULL or UPDATABLE only
-      final Memory srcMem,
+      final MemorySegment srcSeg,
       final SketchType sketchType,
       final int[] levelsArr, //full levels array
       final boolean updatable,
-      final ArrayOfItemsSerDe<?> serDe) { //serDe only valid for ITEMS_SKETCH
+      final ArrayOfItemsSerDe2<?> serDe) { //serDe only valid for ITEMS_SKETCH
     final int numLevels = levelsArr.length - 1;
     final int capacityItems = levelsArr[numLevels];
     final int retainedItems = (levelsArr[numLevels] - levelsArr[0]);
     final int levelsLen = updatable ? levelsArr.length : levelsArr.length - 1;
     final int numItems = updatable ? capacityItems : retainedItems;
 
-    int offsetBytes = DATA_START_ADR + levelsLen * Integer.BYTES; //levels array
+    int offsetBytes = DATA_START_ADR + (levelsLen * Integer.BYTES); //levels array
     if (sketchType == ITEMS_SKETCH) {
-      if (serDe instanceof ArrayOfBooleansSerDe) {
-        offsetBytes += serDe.sizeOf(srcMem, offsetBytes, numItems) + 2; //2 for min & max
+      if (serDe instanceof ArrayOfBooleansSerDe2) {
+        offsetBytes += serDe.sizeOf(srcSeg, offsetBytes, numItems) + 2; //2 for min & max
       } else {
-        offsetBytes += serDe.sizeOf(srcMem, offsetBytes, numItems + 2); //2 for min & max
+        offsetBytes += serDe.sizeOf(srcSeg, offsetBytes, numItems + 2); //2 for min & max
       }
     } else {
       final int typeBytes = sketchType.getBytes();
@@ -193,6 +196,6 @@ final class KllMemoryValidate {
   static final String EMPTY_FLAG_AND_COMPACT_SINGLE = "A single item sketch should not have empty flag set. ";
   //static final String N_AND_COMPACT_FULL = "A compact full sketch should have n > 1. ";
   static final String SRC_NOT_KLL = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: ";
-  static final String MEMORY_TOO_SMALL = "A sketch memory image must be at least 8 bytes. ";
+  static final String MEMORY_TOO_SMALL = "A sketch MemorySegment image must be at least 8 bytes. ";
 
 }

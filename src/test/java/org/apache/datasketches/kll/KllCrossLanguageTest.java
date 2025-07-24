@@ -28,14 +28,19 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
 import org.apache.datasketches.common.TestUtil;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.kll.KllDoublesSketch;
+import org.apache.datasketches.kll.KllFloatsSketch;
+import org.apache.datasketches.kll.KllHeapItemsSketch;
+import org.apache.datasketches.kll.KllItemsSketch;
+import org.apache.datasketches.kll.KllLongsSketch;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
@@ -45,12 +50,12 @@ import org.testng.annotations.Test;
  * Methods for cross language integration testing
  */
 public class KllCrossLanguageTest {
-  private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateKllDoublesSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
       for (int i = 1; i <= n; i++) { sk.update(i); }
       Files.newOutputStream(javaPath.resolve("kll_double_n" + n + "_java.sk")).write(sk.toByteArray());
@@ -60,7 +65,7 @@ public class KllCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateKllFloatsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
       for (int i = 1; i <= n; i++) { sk.update(i); }
       Files.newOutputStream(javaPath.resolve("kll_float_n" + n + "_java.sk")).write(sk.toByteArray());
@@ -70,7 +75,7 @@ public class KllCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateKllLongsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final KllLongsSketch sk = KllLongsSketch.newHeapInstance();
       for (int i = 1; i <= n; i++) { sk.update(i); }
       Files.newOutputStream(javaPath.resolve("kll_long_n" + n + "_java.sk")).write(sk.toByteArray());
@@ -80,7 +85,7 @@ public class KllCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateKllItemsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final int digits = Util.numDigits(n);
       final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
       for (int i = 1; i <= n; i++) { sk.update(Util.longToFixedLengthString(i, digits)); }
@@ -91,7 +96,7 @@ public class KllCrossLanguageTest {
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllDoublesSketchOneItemVersion1() {
     final byte[] byteArr = TestUtil.getResourceBytes("kll_sketch_double_one_item_v1.sk");
-    final KllDoublesSketch sk = KllDoublesSketch.heapify(Memory.wrap(byteArr));
+    final KllDoublesSketch sk = KllDoublesSketch.heapify(MemorySegment.ofArray(byteArr));
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getN(), 1);
@@ -103,7 +108,7 @@ public class KllCrossLanguageTest {
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllFloatsSketchOneItemVersion1() {
     final byte[] byteArr = TestUtil.getResourceBytes("kll_sketch_float_one_item_v1.sk");
-    final KllFloatsSketch sk = KllFloatsSketch.heapify(Memory.wrap(byteArr));
+    final KllFloatsSketch sk = KllFloatsSketch.heapify(MemorySegment.ofArray(byteArr));
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getN(), 1);
@@ -115,9 +120,9 @@ public class KllCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void kllFloat() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_float_n" + n + "_cpp.sk"));
-      final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
+      final KllFloatsSketch sketch = KllFloatsSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getK(), 200);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertTrue(n > 100 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
@@ -126,7 +131,7 @@ public class KllCrossLanguageTest {
         assertEquals(sketch.getMinItem(), 1);
         assertEquals(sketch.getMaxItem(), n);
         long weight = 0;
-        QuantilesFloatsSketchIterator it = sketch.iterator();
+        final QuantilesFloatsSketchIterator it = sketch.iterator();
         while (it.next()) {
           assertTrue(it.getQuantile() >= sketch.getMinItem());
           assertTrue(it.getQuantile() <= sketch.getMaxItem());
@@ -140,9 +145,9 @@ public class KllCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void kllDouble() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_double_n" + n + "_cpp.sk"));
-      final KllDoublesSketch sketch = KllDoublesSketch.heapify(Memory.wrap(bytes));
+      final KllDoublesSketch sketch = KllDoublesSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getK(), 200);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertTrue(n > 100 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
@@ -151,7 +156,7 @@ public class KllCrossLanguageTest {
         assertEquals(sketch.getMinItem(), 1);
         assertEquals(sketch.getMaxItem(), n);
         long weight = 0;
-        QuantilesDoublesSketchIterator it = sketch.iterator();
+        final QuantilesDoublesSketchIterator it = sketch.iterator();
         while (it.next()) {
           assertTrue(it.getQuantile() >= sketch.getMinItem());
           assertTrue(it.getQuantile() <= sketch.getMaxItem());
@@ -165,25 +170,25 @@ public class KllCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void kllString() throws IOException {
     // sketch contains numbers in strings to make meaningful assertions
-    Comparator<String> numericOrder = new Comparator<String>() {
+    final Comparator<String> numericOrder = new Comparator<String>() {
       @Override
       public int compare(final String s1, final String s2) {
         try {
           final int i1 = Integer.parseInt(s1);
           final int i2 = Integer.parseInt(s2);
           return Integer.compare(i1, i2);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
           throw new RuntimeException(e);
         }
       }
     };
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_string_n" + n + "_cpp.sk"));
       final KllHeapItemsSketch<String> sketch = new KllHeapItemsSketch<>(
-        Memory.wrap(bytes),
+        MemorySegment.ofArray(bytes),
         numericOrder,
-        new ArrayOfStringsSerDe()
+        new ArrayOfStringsSerDe2()
       );
       assertEquals(sketch.getK(), 200);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -193,7 +198,7 @@ public class KllCrossLanguageTest {
         assertEquals(sketch.getMinItem(), Integer.toString(1));
         assertEquals(sketch.getMaxItem(), Integer.toString(n));
         long weight = 0;
-        QuantilesGenericSketchIterator<String> it = sketch.iterator();
+        final QuantilesGenericSketchIterator<String> it = sketch.iterator();
         while (it.next()) {
           assertTrue(numericOrder.compare(it.getQuantile(), sketch.getMinItem()) >= 0);
           assertTrue(numericOrder.compare(it.getQuantile(), sketch.getMaxItem()) <= 0);

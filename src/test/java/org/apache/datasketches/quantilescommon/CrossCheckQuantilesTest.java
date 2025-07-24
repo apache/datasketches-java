@@ -34,7 +34,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllFloatsSketch;
@@ -67,7 +67,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 public class CrossCheckQuantilesTest {
-  private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
   private final Comparator<String> comparator = Comparator.naturalOrder();
   private final static int k = 32; //all sketches are in exact mode
 
@@ -160,13 +160,13 @@ public class CrossCheckQuantilesTest {
     }
   }
 
-  private void checkGetRank(int set, QuantileSearchCriteria crit) {
+  private void checkGetRank(final int set, final QuantileSearchCriteria crit) {
     double trueRank;
     double testRank;
 
     println(LS + "FLOATS getRank Test SV vs Sk");
-    float maxFloatvalue = getMaxFloatValue(set);
-    for (float v = 5f; v <= maxFloatvalue + 5f; v += 5f) {
+    final float maxFloatvalue = getMaxFloatValue(set);
+    for (float v = 5f; v <= (maxFloatvalue + 5f); v += 5f) {
       trueRank = getTrueFloatRank(svCumWeights[set], svFValues[set],v, crit);
 
       testRank = floatsSV.getRank(v, crit);
@@ -180,8 +180,8 @@ public class CrossCheckQuantilesTest {
     }
 
     println(LS + "DOUBLES getRank Test SV vs Sk");
-    double maxDoubleValue = getMaxDoubleValue(set);
-    for (double v = 5; v <= maxDoubleValue + 5; v += 5) {
+    final double maxDoubleValue = getMaxDoubleValue(set);
+    for (double v = 5; v <= (maxDoubleValue + 5); v += 5) {
       trueRank = getTrueDoubleRank(svCumWeights[set], svDValues[set],v, crit);
 
       testRank = doublesSV.getRank(v, crit);
@@ -197,9 +197,9 @@ public class CrossCheckQuantilesTest {
     println(LS + "ITEMS getRank Test SV vs Sk");
     int maxItemValue;
     try { maxItemValue = Integer.parseInt(getMaxItemValue(set)); }
-    catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
-    for (int v = 5; v <= maxItemValue + 5; v += 5) {
-      String s = longToFixedLengthString(v, 2);
+    catch (final NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
+    for (int v = 5; v <= (maxItemValue + 5); v += 5) {
+      final String s = longToFixedLengthString(v, 2);
       trueRank = getTrueItemRank(svCumWeights[set], svIValues[set], s, crit, comparator);
 
       testRank = kllItemsSV.getRank(s, crit);
@@ -215,15 +215,15 @@ public class CrossCheckQuantilesTest {
     }
   }
 
-  private void checkGetQuantile(int set, QuantileSearchCriteria crit) {
-    int twoN = (int)totalN[set] * 2;
-    double dTwoN = twoN;
+  private void checkGetQuantile(final int set, final QuantileSearchCriteria crit) {
+    final int twoN = (int)totalN[set] * 2;
+    final double dTwoN = twoN;
     float trueFQ;
     float testFQ;
 
     println(LS + "FLOATS getQuantile Test SV vs Sk");
     for (int i = 0; i <= twoN; i++) {
-      double normRank = i / dTwoN;
+      final double normRank = i / dTwoN;
       trueFQ = getTrueFloatQuantile(svCumWeights[set], svFValues[set], normRank, crit);
 
       testFQ = floatsSV.getQuantile(normRank, crit);
@@ -240,7 +240,7 @@ public class CrossCheckQuantilesTest {
     double trueDQ;
     double testDQ;
     for (int i = 0; i <= twoN; i++) {
-      double normRank = i / dTwoN;
+      final double normRank = i / dTwoN;
       trueDQ = getTrueDoubleQuantile(svCumWeights[set], svDValues[set], normRank, crit);
 
       testDQ = doublesSV.getQuantile(normRank, crit);
@@ -257,7 +257,7 @@ public class CrossCheckQuantilesTest {
     String trueIQ;
     String testIQ;
     for (int i = 0; i <= twoN; i++) {
-      double normRank = i / dTwoN;
+      final double normRank = i / dTwoN;
       trueIQ = getTrueItemQuantile(svCumWeights[set], svIValues[set], normRank, crit);
 
       testIQ = kllItemsSV.getQuantile(normRank, crit);
@@ -273,24 +273,24 @@ public class CrossCheckQuantilesTest {
     }
   }
 
-  private double getMaxDoubleValue(int set) {
-    int streamLen = skDStreamValues[set].length;
+  private double getMaxDoubleValue(final int set) {
+    final int streamLen = skDStreamValues[set].length;
     return skDStreamValues[set][streamLen -1];
   }
 
-  private float getMaxFloatValue(int set) {
-    int streamLen = skFStreamValues[set].length;
+  private float getMaxFloatValue(final int set) {
+    final int streamLen = skFStreamValues[set].length;
     return skFStreamValues[set][streamLen -1];
   }
 
-  private String getMaxItemValue(int set) {
-    int streamLen = skIStreamValues[set].length;
+  private String getMaxItemValue(final int set) {
+    final int streamLen = skIStreamValues[set].length;
     return skIStreamValues[set][streamLen -1];
   }
 
   /*******BUILD & LOAD SKETCHES***********/
 
-  private void buildSketches(int set) {
+  private void buildSketches(final int set) {
     reqFloatsSk = ReqSketch.builder().setK(k).build();
     kllFloatsSk = KllFloatsSketch.newHeapInstance(k);
     kllDoublesSk = KllDoublesSketch.newHeapInstance(k);
@@ -298,7 +298,7 @@ public class CrossCheckQuantilesTest {
     kllItemsSk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
     itemsSk = ItemsSketch.getInstance(String.class, k, comparator);
 
-    int count = skFStreamValues[set].length;
+    final int count = skFStreamValues[set].length;
     for (int i = 0; i < count; i++) {
       reqFloatsSk.update(skFStreamValues[set][i]);
       kllFloatsSk.update(skFStreamValues[set][i]);
@@ -311,13 +311,13 @@ public class CrossCheckQuantilesTest {
 
   /*******BUILD & LOAD SVs***********/
 
-  private void buildSVs(int set) throws Exception {
+  private void buildSVs(final int set) throws Exception {
     floatsSV = new FloatsSketchSortedView(svFValues[set], svCumWeights[set], totalN[set],
         svMaxFValues[set], svMinFValues[set]);
     doublesSV = new DoublesSketchSortedView(svDValues[set], svCumWeights[set], totalN[set],
         svMaxDValues[set], svMinDValues[set]);
-    String svImax = svIValues[set][svIValues[set].length - 1];
-    String svImin = svIValues[set][0];
+    final String svImax = svIValues[set][svIValues[set].length - 1];
+    final String svImin = svIValues[set][0];
 
     kllItemsSV = new ItemsSketchSortedView<>(svIValues[set], svCumWeights[set], totalN[set],
         comparator, svImax, svImin, String.class, .01, svCumWeights[set].length);
@@ -337,8 +337,8 @@ public class CrossCheckQuantilesTest {
     skIStreamValues = new String[numSets][];
     for (int i = 0; i < numSets; i++) {
       svCumWeights[i] = convertToCumWeights(svWeights[i]);
-      int len = svCumWeights[i].length;
-      int totalCount = (int)svCumWeights[i][len -1];
+      final int len = svCumWeights[i].length;
+      final int totalCount = (int)svCumWeights[i][len -1];
       totalN[i] = totalCount;
       skFStreamValues[i] = convertToFloatStream(svFValues[i], svWeights[i], totalCount);
       skDStreamValues[i] = convertToDoubleStream(svDValues[i], svWeights[i], totalCount);
@@ -351,12 +351,12 @@ public class CrossCheckQuantilesTest {
       final float[] svFValueArr,
       final long[] svWeightsArr,
       final int totalCount) {
-    float[] out = new float[totalCount];
-    int len = svWeightsArr.length;
+    final float[] out = new float[totalCount];
+    final int len = svWeightsArr.length;
     int i = 0;
     for (int j = 0; j < len; j++) {
-      float f = svFValueArr[j];
-      int wt = (int)svWeightsArr[j];
+      final float f = svFValueArr[j];
+      final int wt = (int)svWeightsArr[j];
       for (int w = 0; w < wt; w++) {
         out[i++] = f;
       }
@@ -368,12 +368,12 @@ public class CrossCheckQuantilesTest {
       final double[] svDValueArr,
       final long[] svWeightsArr,
       final int totalCount) {
-    double[] out = new double[totalCount];
-    int len = svWeightsArr.length;
+    final double[] out = new double[totalCount];
+    final int len = svWeightsArr.length;
     int i = 0;
     for (int j = 0; j < len; j++) {
-      double d = svDValueArr[j];
-      int wt = (int)svWeightsArr[j];
+      final double d = svDValueArr[j];
+      final int wt = (int)svWeightsArr[j];
       for (int w = 0; w < wt; w++) {
         out[i++] = d;
       }
@@ -385,12 +385,12 @@ public class CrossCheckQuantilesTest {
       final String[] svIValueArr,
       final long[] svWeightsArr,
       final int totalCount) {
-    String[] out = new String[totalCount];
-    int len = svWeightsArr.length;
+    final String[] out = new String[totalCount];
+    final int len = svWeightsArr.length;
     int i = 0;
     for (int j = 0; j < len; j++) {
-      String s = svIValueArr[j];
-      int wt = (int)svWeightsArr[j];
+      final String s = svIValueArr[j];
+      final int wt = (int)svWeightsArr[j];
       for (int w = 0; w < wt; w++) {
         out[i++] = s;
       }

@@ -26,28 +26,29 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe2;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class KllItemsSketchiteratorTest {
-  private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
 
   @Test
   public void emptySketch() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    QuantilesGenericSketchIterator<String> it = sketch.iterator();
+    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    final QuantilesGenericSketchIterator<String> it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     sketch.update("1");
-    QuantilesGenericSketchIterator<String> it = sketch.iterator();
+    final QuantilesGenericSketchIterator<String> it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getQuantile(), "1");
     Assert.assertEquals(it.getWeight(), 1);
@@ -56,10 +57,10 @@ public class KllItemsSketchiteratorTest {
 
   @Test
   public void twoItemSketchForIterator() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     sketch.update("1");
     sketch.update("2");
-    QuantilesGenericSketchIterator<String> itr = sketch.iterator();
+    final QuantilesGenericSketchIterator<String> itr = sketch.iterator();
     assertTrue(itr.next());
 
     assertEquals(itr.getQuantile(), "2");
@@ -73,10 +74,10 @@ public class KllItemsSketchiteratorTest {
 
   @Test
   public void twoItemSketchForSortedViewIterator() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     sketch.update("1");
     sketch.update("2");
-    GenericSortedViewIterator<String> itr = sketch.getSortedView().iterator();
+    final GenericSortedViewIterator<String> itr = sketch.getSortedView().iterator();
 
     assertTrue(itr.next());
 
@@ -101,11 +102,11 @@ public class KllItemsSketchiteratorTest {
   public void bigSketches() {
     final int digits = 6;
     for (int n = 1000; n < 100_000; n += 2000) {
-      KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+      final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
       for (int i = 0; i < n; i++) {
         sketch.update(Util.longToFixedLengthString(i, digits));
       }
-      QuantilesGenericSketchIterator<String> it = sketch.iterator();
+      final QuantilesGenericSketchIterator<String> it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

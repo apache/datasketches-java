@@ -21,6 +21,7 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.common.Util.isOdd;
 
+import org.apache.datasketches.kll.KllDoublesSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

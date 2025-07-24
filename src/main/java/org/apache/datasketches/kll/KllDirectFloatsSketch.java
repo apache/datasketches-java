@@ -19,39 +19,43 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryM;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentM;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentN;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentSerVer;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentRequest;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This class implements an off-heap, updatable KllFloatsSketch using WritableMemory.
+ * This class implements an off-heap, updatable KllFloatsSketch using MemorySegment.
  *
  * <p>Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}</p>
@@ -59,61 +63,57 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes, Kevin Lang
  */
 class KllDirectFloatsSketch extends KllFloatsSketch {
-  private WritableMemory wmem;
-  private MemoryRequestServer memReqSvr;
+  private MemorySegment wseg;
+  private final MemorySegmentRequest memSegReq;
 
   /**
-   * Constructs from Memory or WritableMemory already initialized with a sketch image and validated.
-   * @param wmem the current WritableMemory
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @param memVal the MemoryValadate object
+   * Constructs from MemorySegment or MemorySegment already initialized with a sketch image and validated.
+   * @param sketchStructure the given structure.
+   * @param wseg the current MemorySegment
+   * @param segVal the MemoryValadate object
    */
   KllDirectFloatsSketch(
-      final SketchStructure sketchStructure,
-      final WritableMemory wmem,
-      final MemoryRequestServer memReqSvr,
-      final KllMemoryValidate memVal) {
-    super(sketchStructure);
-    this.wmem = wmem;
-    this.memReqSvr = memReqSvr;
-    readOnly = (wmem != null && wmem.isReadOnly()) || sketchStructure != UPDATABLE;
-    levelsArr = memVal.levelsArr; //always converted to writable form.
+      final MemorySegment wseg,
+      final KllMemorySegmentValidate segVal,
+      final MemorySegmentRequest memSegReq) {
+    super(segVal);
+    this.wseg = wseg;
+    this.memSegReq = memSegReq;
   }
 
   /**
    * Create a new updatable, direct instance of this sketch.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param m parameter that controls the minimum level width in items.
-   * @param dstMem the given destination WritableMemory object for use by the sketch
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @param dstSeg the given destination MemorySegment object for use by the sketch
+   * @param memSegReq the callback for the sketch to request a larger MemorySegment.
    * @return a new instance of this sketch
    */
   static KllDirectFloatsSketch newDirectUpdatableInstance(
       final int k,
       final int m,
-      final WritableMemory dstMem,
-      final MemoryRequestServer memReqSvr) {
-    setMemoryPreInts(dstMem, UPDATABLE.getPreInts());
-    setMemorySerVer(dstMem, UPDATABLE.getSerVer());
-    setMemoryFamilyID(dstMem, Family.KLL.getID());
-    setMemoryK(dstMem, k);
-    setMemoryM(dstMem, m);
-    setMemoryN(dstMem, 0);
-    setMemoryMinK(dstMem, k);
-    setMemoryNumLevels(dstMem, 1);
+      final MemorySegment dstSeg,
+      final MemorySegmentRequest memSegReq) {
+    setMemorySegmentPreInts(dstSeg, UPDATABLE.getPreInts());
+    setMemorySegmentSerVer(dstSeg, UPDATABLE.getSerVer());
+    setMemorySegmentFamilyID(dstSeg, Family.KLL.getID());
+    setMemorySegmentK(dstSeg, k);
+    setMemorySegmentM(dstSeg, m);
+    setMemorySegmentN(dstSeg, 0);
+    setMemorySegmentMinK(dstSeg, k);
+    setMemorySegmentNumLevels(dstSeg, 1);
     int offset = DATA_START_ADR;
     //new Levels array
-    dstMem.putIntArray(offset, new int[] {k, k}, 0, 2);
+    MemorySegment.copy(new int[] {k, k}, 0, dstSeg, JAVA_INT_UNALIGNED, offset, 2);
     offset += 2 * Integer.BYTES;
     //new min/max array
-    dstMem.putFloatArray(offset, new float[] {Float.NaN, Float.NaN}, 0, 2);
+    MemorySegment.copy(new float[] {Float.NaN, Float.NaN}, 0, dstSeg, JAVA_FLOAT_UNALIGNED, offset, 2);
     offset += 2 * ITEM_BYTES;
     //new empty items array
-    dstMem.putFloatArray(offset, new float[k], 0, k);
-
-    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem, FLOATS_SKETCH, null);
-    final WritableMemory wMem = dstMem;
-    return new KllDirectFloatsSketch(UPDATABLE, wMem, memReqSvr, memVal);
+    MemorySegment.copy(new float[k], 0, dstSeg, JAVA_FLOAT_UNALIGNED, offset, k);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, FLOATS_SKETCH, null);
+    final MemorySegment wSeg = dstSeg;
+    return new KllDirectFloatsSketch(wSeg, segVal, memSegReq);
   }
 
   //End of Constructors
@@ -126,29 +126,29 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   public int getK() {
-    return getMemoryK(wmem);
+    return getMemorySegmentK(wseg);
   }
 
   //MinMax Methods
-  
+
   @Override
   public float getMaxItem() {
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if ((sketchStructure == COMPACT_EMPTY) || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    return wmem.getFloat(offset);
+    return wseg.get(JAVA_FLOAT_UNALIGNED, offset);
   }
 
   @Override
   float getMaxItemInternal() {
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Float.NaN; }
+    if ((sketchStructure == COMPACT_EMPTY) || isEmpty()) { return Float.NaN; }
     if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    return wmem.getFloat(offset);
+    return wseg.get(JAVA_FLOAT_UNALIGNED, offset);
   }
-  
+
   @Override
   String getMaxItemAsString() {
     final float maxItem = getMaxItemInternal();
@@ -157,20 +157,20 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   public float getMinItem() {
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
+    if ((sketchStructure == COMPACT_EMPTY) || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    return wmem.getFloat(offset);
+    return wseg.get(JAVA_FLOAT_UNALIGNED, offset);
   }
 
   @Override
   float getMinItemInternal() {
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { return Float.NaN; }
+    if ((sketchStructure == COMPACT_EMPTY) || isEmpty()) { return Float.NaN; }
     if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
     //either compact-full or updatable
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    return wmem.getFloat(offset);
+    return wseg.get(JAVA_FLOAT_UNALIGNED, offset);
   }
 
   @Override
@@ -183,23 +183,23 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   void setMaxItem(final float item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
-    wmem.putFloat(offset, item);
+    wseg.set(JAVA_FLOAT_UNALIGNED, offset, item);
   }
 
   @Override
   void setMinItem(final float item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    wmem.putFloat(offset, item);
+    wseg.set(JAVA_FLOAT_UNALIGNED, offset, item);
   }
-  
+
   //END MinMax Methods
-  
+
   @Override
   public long getN() {
     if (sketchStructure == COMPACT_EMPTY) { return 0; }
     else if (sketchStructure == COMPACT_SINGLE) { return 1; }
-    else { return getMemoryN(wmem); }
+    else { return getMemorySegmentN(wseg); }
   }
 
   //other restricted
@@ -215,10 +215,10 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     }
     final int capacityItems = KllHelper.computeTotalItemCapacity(k, getM(), getNumLevels());
     final float[] floatItemsArr = new float[capacityItems];
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (2 * ITEM_BYTES);
     final int shift = (sketchStructure == COMPACT_FULL) ? levelsArr[0] : 0;
     final int numItems = (sketchStructure == COMPACT_FULL) ? getNumRetained() : capacityItems;
-    wmem.getFloatArray(offset, floatItemsArr, shift, numItems);
+    MemorySegment.copy(wseg, JAVA_FLOAT_UNALIGNED, offset, floatItemsArr, shift, numItems);
     return floatItemsArr;
   }
 
@@ -228,9 +228,9 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     if (sketchStructure == COMPACT_SINGLE) { return new float[] { getFloatSingleItem() }; }
     final int numRetained = getNumRetained();
     final float[] floatItemsArr = new float[numRetained];
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (2 * ITEM_BYTES)
         + (sketchStructure == COMPACT_FULL ? 0 : levelsArr[0] * ITEM_BYTES);
-    wmem.getFloatArray(offset, floatItemsArr, 0, numRetained);
+    MemorySegment.copy(wseg, JAVA_FLOAT_UNALIGNED, offset, floatItemsArr, 0, numRetained);
     return floatItemsArr;
   }
 
@@ -238,28 +238,30 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   float getFloatSingleItem() {
     if (!isSingleItem()) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     if (sketchStructure == COMPACT_SINGLE) {
-      return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+      return wseg.get(JAVA_FLOAT_UNALIGNED, DATA_START_ADR_SINGLE_ITEM);
     }
     final int offset;
     if (sketchStructure == COMPACT_FULL) {
-      offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
+      offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (2 * ITEM_BYTES);
     } else { //sketchStructure == UPDATABLE
-      offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (2 + getK() - 1) * ITEM_BYTES;
+      offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (((2 + getK()) - 1) * ITEM_BYTES);
     }
-    return wmem.getFloat(offset);
+    return wseg.get(JAVA_FLOAT_UNALIGNED, offset);
   }
 
   @Override
   int getM() {
-    return getMemoryM(wmem);
+    return getMemorySegmentM(wseg);
   }
 
   @Override
-  MemoryRequestServer getMemoryRequestServer() { return memReqSvr; }
+  MemorySegmentRequest getMemorySegmentRequest() {
+    return memSegReq;
+  }
 
   @Override
   int getMinK() {
-    if (sketchStructure == COMPACT_FULL || sketchStructure == UPDATABLE) { return getMemoryMinK(wmem); }
+    if ((sketchStructure == COMPACT_FULL) || (sketchStructure == UPDATABLE)) { return getMemorySegmentMinK(wseg); }
     return getK();
   }
 
@@ -274,14 +276,14 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     final int offset;
     if (sketchStructure == COMPACT_SINGLE) {
       offset = DATA_START_ADR_SINGLE_ITEM;
-      wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
+      MemorySegment.copy(wseg, JAVA_BYTE, offset, bytesOut, 0, ITEM_BYTES);
       copyBytes(bytesOut, 0, bytesOut, ITEM_BYTES, ITEM_BYTES);
       return bytesOut;
     }
     //sketchStructure == UPDATABLE OR COMPACT_FULL
     offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
-    wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
-    wmem.getByteArray(offset + ITEM_BYTES, bytesOut, ITEM_BYTES, ITEM_BYTES);
+    MemorySegment.copy(wseg, JAVA_BYTE, offset, bytesOut, 0, ITEM_BYTES);
+    MemorySegment.copy(wseg, JAVA_BYTE,offset + ITEM_BYTES, bytesOut, ITEM_BYTES, ITEM_BYTES);
     return bytesOut;
   }
 
@@ -290,8 +292,8 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     if (sketchStructure == COMPACT_EMPTY) { return new byte[0]; }
     final float[] fltArr = getFloatRetainedItemsArray();
     final byte[] fltByteArr = new byte[fltArr.length * ITEM_BYTES];
-    final WritableMemory wmem2 = WritableMemory.writableWrap(fltByteArr);
-    wmem2.putFloatArray(0, fltArr, 0, fltArr.length);
+    final MemorySegment wseg2 = MemorySegment.ofArray(fltByteArr);
+    MemorySegment.copy(fltArr, 0, wseg2, JAVA_FLOAT_UNALIGNED, 0, fltArr.length);
     return fltByteArr;
   }
 
@@ -299,93 +301,98 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   byte[] getTotalItemsByteArr() {
     final float[] fltArr = getFloatItemsArray();
     final byte[] fltByteArr = new byte[fltArr.length * ITEM_BYTES];
-    final WritableMemory wmem2 = WritableMemory.writableWrap(fltByteArr);
-    wmem2.putFloatArray(0, fltArr, 0, fltArr.length);
+    final MemorySegment wseg2 = MemorySegment.ofArray(fltByteArr);
+    MemorySegment.copy(fltArr, 0, wseg2, JAVA_FLOAT_UNALIGNED, 0, fltArr.length);
     return fltByteArr;
   }
 
   @Override
-  WritableMemory getWritableMemory() {
-    return wmem;
+  MemorySegment getMemorySegment() {
+    return wseg;
   }
 
   @Override
   void incN(final int increment) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryN(wmem, getMemoryN(wmem) + increment);
+    setMemorySegmentN(wseg, getMemorySegmentN(wseg) + increment);
   }
 
   @Override
   void incNumLevels() {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    int numLevels = getMemoryNumLevels(wmem);
-    setMemoryNumLevels(wmem, ++numLevels);
+    int numLevels = getMemorySegmentNumLevels(wseg);
+    setMemorySegmentNumLevels(wseg, ++numLevels);
   }
 
   @Override
   boolean isLevelZeroSorted() {
-    return getMemoryLevelZeroSortedFlag(wmem);
+    return getMemorySegmentLevelZeroSortedFlag(wseg);
   }
 
   @Override
   void setFloatItemsArray(final float[] floatItems) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
-    wmem.putFloatArray(offset, floatItems, 0, floatItems.length);
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (2 * ITEM_BYTES);
+    MemorySegment.copy(floatItems, 0, wseg, JAVA_FLOAT_UNALIGNED, offset, floatItems.length);
   }
 
   @Override
   void setFloatItemsArrayAt(final int index, final float item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset =
-        DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
-    wmem.putFloat(offset, item);
+        DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ((index + 2) * ITEM_BYTES);
+    wseg.set(JAVA_FLOAT_UNALIGNED, offset, item);
   }
 
   @Override
   void setFloatItemsArrayAt(final int index, final float[] items, final int srcOffset, final int length) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
-    wmem.putFloatArray(offset, items, srcOffset, length);
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ((index + 2) * ITEM_BYTES);
+    MemorySegment.copy(items, srcOffset, wseg, JAVA_FLOAT_UNALIGNED, offset, length);
   }
-  
+
   @Override
   void setLevelZeroSorted(final boolean sorted) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryLevelZeroSortedFlag(wmem, sorted);
+    setMemorySegmentLevelZeroSortedFlag(wseg, sorted);
   }
 
   @Override
   void setMinK(final int minK) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryMinK(wmem, minK);
+    setMemorySegmentMinK(wseg, minK);
   }
 
   @Override
   void setN(final long n) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryN(wmem, n);
+    setMemorySegmentN(wseg, n);
   }
 
   @Override
   void setNumLevels(final int numLevels) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    setMemoryNumLevels(wmem, numLevels);
+    setMemorySegmentNumLevels(wseg, numLevels);
   }
 
   @Override
-  void setWritableMemory(final WritableMemory wmem) {
-    this.wmem = wmem;
+  public boolean hasMemorySegment() {
+    return (wseg != null) && wseg.scope().isAlive();
   }
 
-  final static class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
+  @Override
+  public boolean isOffHeap() {
+    return hasMemorySegment() && wseg.isNative();
+  }
 
-    KllDirectCompactFloatsSketch(
-        final SketchStructure sketchStructure,
-        final Memory srcMem,
-        final KllMemoryValidate memVal) {
-      super(sketchStructure, (WritableMemory) srcMem, null, memVal);
-    }
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return MemorySegmentStatus.isSameResource(wseg, that);
+  }
+
+  @Override
+  void setMemorySegment(final MemorySegment wseg) {
+    this.wseg = wseg;
   }
 
 }

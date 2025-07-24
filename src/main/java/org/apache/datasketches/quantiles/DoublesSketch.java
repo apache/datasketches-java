@@ -299,10 +299,10 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return ClassicUtil.getKFromEpsilon(epsilon, pmf);
   }
 
-  @Override
+  @SuppressWarnings("javadoc") //@Override
   public abstract boolean hasMemory();
 
-  @Override
+  @SuppressWarnings("javadoc") //@Override
   public abstract boolean isDirect();
 
   @Override
@@ -312,7 +312,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   @Override
   public boolean isEstimationMode() {
-    return getN() >= 2L * k_;
+    return getN() >= (2L * k_);
   }
 
   @Override
@@ -429,7 +429,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   public static int getCompactSerialiedSizeBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     final int metaPreLongs = MAX_PRELONGS + 2; //plus min, max
-    return metaPreLongs + computeRetainedItems(k, n) << 3;
+    return (metaPreLongs + computeRetainedItems(k, n)) << 3;
   }
 
   @Override
@@ -462,7 +462,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
       final int ceil = Math.max(ceilingPowerOf2((int)n), MIN_K * 2);
       return (metaPre + ceil) << 3;
     }
-    return (metaPre + (2 + totLevels) * k) << 3;
+    return (metaPre + ((2 + totLevels) * k)) << 3;
   }
 
   /**
@@ -484,7 +484,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    *                performance at the cost of slightly increased serialization time.
    */
   public void putMemory(final WritableMemory dstMem, final boolean compact) {
-    if (hasMemory() && isCompact() == compact) {
+    if (hasMemory() && (isCompact() == compact)) {
       final Memory srcMem = getMemory();
       srcMem.copyTo(0, dstMem, 0, getSerializedSizeBytes());
     } else {

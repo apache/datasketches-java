@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
@@ -36,19 +37,19 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.MemorySegmentRequest;
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /*
  * Sampled stream data (floats, doubles, or items) is stored as a heap array called itemsArr or as part of a
- * WritableMemory/Memory object.
+ * MemorySegment object.
  * This array is partitioned into sections called levels and the indices into the array of items
  * are tracked by a small integer array called levelsArr.
  * The data for level i lies in positions levelsArr[i] through levelsArr[i + 1] - 1 inclusive.
@@ -88,7 +89,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-public abstract class KllSketch implements QuantilesAPI {
+public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
 
   /**
    * The default K
@@ -117,18 +118,26 @@ public abstract class KllSketch implements QuantilesAPI {
   int[] levelsArr; //Always updatable form
 
   /**
-   * Constructor for on-heap and off-heap.
-   * If both wmem and memReqSvr are null, this is a heap constructor.
-   * If wmem != null and wmem is not readOnly, then memReqSvr must not be null.
-   * If wmem was derived from an original Memory instance via a cast, it will be readOnly.
+   * Constructor for on-heap.
    * @param sketchType either DOUBLES_SKETCH, FLOATS_SKETCH or ITEMS_SKETCH
-   * @param wmem  the current WritableMemory or null
+   * @param sketchStructure the current sketch structure
    */
   KllSketch(
       final SketchType sketchType,
       final SketchStructure sketchStructure) {
    this.sketchType = sketchType;
    this.sketchStructure = sketchStructure;
+  }
+
+  /**
+   * Constructor for MemorySegment based sketch
+   * @param segVal MemorySegment validator.
+   */
+  KllSketch(final KllMemorySegmentValidate segVal) {
+    sketchType = segVal.sketchType;
+    sketchStructure = segVal.sketchStructure;
+    levelsArr = segVal.levelsArr; //always converted to writable form.
+    readOnly = segVal.srcSeg.isReadOnly() || (segVal.sketchStructure != UPDATABLE);
   }
 
   /**
@@ -155,16 +164,16 @@ public abstract class KllSketch implements QuantilesAPI {
    * Returns upper bound on the serialized size of a KllSketch given the following parameters.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
-   * @param sketchType Only DOUBLES_SKETCH and FLOATS_SKETCH is supported for this operation.
-   * @param updatableMemFormat true if updatable Memory format, otherwise the standard compact format.
+   * @param sketchType Only DOUBLES_SKETCH, LONGS_SKETCH and FLOATS_SKETCH are supported for this operation.
+   * @param updatableFormat true if updatable MemorySegment format, otherwise the standard compact format.
    * @return upper bound on the serialized size of a KllSketch.
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n,
-      final SketchType sketchType, final boolean updatableMemFormat) {
+      final SketchType sketchType, final boolean updatableFormat) {
     if (sketchType == ITEMS_SKETCH) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
     final KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, sketchType, false);
-    return updatableMemFormat ? gStats.updatableBytes : gStats.compactBytes;
+    return updatableFormat ? gStats.updatableBytes : gStats.compactBytes;
   }
 
   /**
@@ -214,24 +223,18 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   @Override
-  public boolean hasMemory() {
-    final WritableMemory wmem = getWritableMemory();
-    return (wmem != null);
-  }
+  public abstract boolean hasMemorySegment();
 
   /**
-   * Returns true if this sketch is in a Compact Memory Format.
-   * @return true if this sketch is in a Compact Memory Format.
+   * Returns true if this sketch is in a Compact MemorySegment Format.
+   * @return true if this sketch is in a Compact MemorySegment Format.
    */
-  public boolean isCompactMemoryFormat() {
-    return hasMemory() && sketchStructure != UPDATABLE;
+  public boolean isCompactMemorySegmentFormat() {
+    return hasMemorySegment() && (sketchStructure != UPDATABLE);
   }
 
   @Override
-  public boolean isDirect() {
-    final WritableMemory wmem = getWritableMemory();
-    return (wmem != null) ? wmem.isDirect() : false;
-  }
+  public abstract boolean isOffHeap();
 
   @Override
   public final boolean isEmpty() {
@@ -244,11 +247,11 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   /**
-   * Returns true if the backing WritableMemory is in updatable format.
-   * @return true if the backing WritableMemory is in updatable format.
+   * Returns true if the backing MemorySegment is in updatable format.
+   * @return true if the backing MemorySegment is in updatable format.
    */
-  public final boolean isMemoryUpdatableFormat() {
-    return hasMemory() && sketchStructure == UPDATABLE;
+  public final boolean isMemorySegmentUpdatableFormat() {
+    return hasMemorySegment() && (sketchStructure == UPDATABLE);
   }
 
   @Override
@@ -256,18 +259,8 @@ public abstract class KllSketch implements QuantilesAPI {
     return readOnly;
   }
 
-  /**
-   * Returns true if the backing resource of <i>this</i> is identical with the backing resource
-   * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
-   * the region offset must also be the same.
-   * @param that A different non-null object
-   * @return true if the backing resource of <i>this</i> is the same as the backing resource
-   * of <i>that</i>.
-   */
-  public final boolean isSameResource(final Memory that) {
-    final WritableMemory wmem = getWritableMemory();
-    return (wmem != null) && wmem.isSameResource(that);
-  }
+  @Override
+  public abstract boolean isSameResource(MemorySegment that);
 
   /**
    * Merges another sketch into this one.
@@ -300,7 +293,7 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   final int currentSerializedSizeBytes(final boolean updatable) {
     final boolean myUpdatable = sketchType == ITEMS_SKETCH ? false : updatable;
-    final long srcN = this.getN();
+    final long srcN = getN();
     final SketchStructure tgtStructure;
     if (myUpdatable) { tgtStructure = UPDATABLE; }
     else if (srcN == 0) { tgtStructure = COMPACT_EMPTY; }
@@ -351,10 +344,10 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract int getM();
 
   /**
-   * Gets the MemoryRequestServer or null.
-   * @return the MemoryRequestServer or null.
+   * Gets the MemorySegmentRequest object or null.
+   * @return the MemorySegmentRequest or null.
    */
-  abstract MemoryRequestServer getMemoryRequestServer();
+  abstract MemorySegmentRequest getMemorySegmentRequest();
 
   /**
    * MinK is the K that results from a merge with a sketch configured with a K lower than
@@ -380,7 +373,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * @return the current number of levels
    */
   final int getNumLevels() {
-    if (sketchStructure == UPDATABLE || sketchStructure == COMPACT_FULL) { return levelsArr.length - 1; }
+    if ((sketchStructure == UPDATABLE) || (sketchStructure == COMPACT_FULL)) { return levelsArr.length - 1; }
     return 1;
   }
 
@@ -402,7 +395,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * Gets the serializer / deserializer or null.
    * @return the serializer / deserializer or null.
    */
-  abstract ArrayOfItemsSerDe<?> getSerDe();
+  abstract ArrayOfItemsSerDe2<?> getSerDe();
 
   /**
    * Gets the serialized byte array of the Single Item that corresponds to the Single Item Flag being true.
@@ -433,18 +426,18 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract int getTotalItemsNumBytes();
 
   /**
-   * This returns the WritableMemory for Direct type sketches,
+   * This returns the MemorySegment for Direct type sketches,
    * otherwise returns null.
-   * @return the WritableMemory for Direct type sketches, otherwise null.
+   * @return the MemorySegment for Direct type sketches, otherwise null.
    */
-  abstract WritableMemory getWritableMemory();
+  abstract MemorySegment getMemorySegment();
 
   abstract void incN(int increment);
 
   abstract void incNumLevels();
 
   final boolean isCompactSingleItem() {
-    return hasMemory() && sketchStructure == COMPACT_SINGLE && (getN() == 1);
+    return hasMemorySegment() && (sketchStructure == COMPACT_SINGLE) && (getN() == 1);
   }
 
   boolean isDoublesSketch() { return sketchType == DOUBLES_SKETCH; }
@@ -465,19 +458,19 @@ public abstract class KllSketch implements QuantilesAPI {
   final void setLevelsArray(final int[] levelsArr) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     this.levelsArr = levelsArr;
-    final WritableMemory wmem = getWritableMemory();
-    if (wmem != null) {
-      wmem.putIntArray(DATA_START_ADR, this.levelsArr, 0, levelsArr.length);
+    final MemorySegment wseg = getMemorySegment();
+    if (wseg != null) {
+      MemorySegment.copy(this.levelsArr, 0, wseg, JAVA_INT_UNALIGNED, DATA_START_ADR, levelsArr.length);
     }
   }
 
   final void setLevelsArrayAt(final int index, final int idxVal) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    this.levelsArr[index] = idxVal;
-    final WritableMemory wmem = getWritableMemory();
-    if (wmem != null) {
-      final int offset = DATA_START_ADR + index * Integer.BYTES;
-      wmem.putInt(offset, idxVal);
+    levelsArr[index] = idxVal;
+    final MemorySegment wseg = getMemorySegment();
+    if (wseg != null) {
+      final int offset = DATA_START_ADR + (index * Integer.BYTES);
+      wseg.set(JAVA_INT_UNALIGNED, offset, idxVal);
     }
   }
 
@@ -489,7 +482,7 @@ public abstract class KllSketch implements QuantilesAPI {
 
   abstract void setNumLevels(int numLevels);
 
-  abstract void setWritableMemory(final WritableMemory wmem);
+  abstract void setMemorySegment(final MemorySegment wseg);
 
   /**
    * Used to define the variable type of the current instance of this class.
@@ -512,10 +505,10 @@ public abstract class KllSketch implements QuantilesAPI {
      */
     LONGS_SKETCH(Long.BYTES, "KllLongsSketch");
 
-    private int typeBytes;
-    private String name;
+    private final int typeBytes;
+    private final String name;
 
-    private SketchType(final int typeBytes, final String name) {
+    SketchType(final int typeBytes, final String name) {
       this.typeBytes = typeBytes;
       this.name = name;
     }
@@ -546,10 +539,10 @@ public abstract class KllSketch implements QuantilesAPI {
     /** Updatable Preamble Structure */
     UPDATABLE(PREAMBLE_INTS_FULL, SERIAL_VERSION_UPDATABLE); //also used by the heap sketch.
 
-    private int preInts;
-    private int serVer;
+    private final int preInts;
+    private final int serVer;
 
-    private SketchStructure(final int preInts, final int serVer) {
+    SketchStructure(final int preInts, final int serVer) {
       this.preInts = preInts;
       this.serVer = serVer;
     }
@@ -575,7 +568,7 @@ public abstract class KllSketch implements QuantilesAPI {
     public static SketchStructure getSketchStructure(final int preInts, final int serVer) {
       final SketchStructure[] ssArr = SketchStructure.values();
       for (int i = 0; i < ssArr.length; i++) {
-        if (ssArr[i].preInts == preInts && ssArr[i].serVer == serVer) {
+        if ((ssArr[i].preInts == preInts) && (ssArr[i].serVer == serVer)) {
           return ssArr[i];
         }
       }

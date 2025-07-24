@@ -24,6 +24,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.testng.Assert;

@@ -202,7 +202,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
     ItemsUtil.checkItemsSerVer(serVer);
 
-    if (serVer == 3 && (flags & COMPACT_FLAG_MASK) == 0) {
+    if ((serVer == 3) && ((flags & COMPACT_FLAG_MASK) == 0)) {
       throw new SketchesArgumentException("Non-compact Memory images are not supported.");
     }
 
@@ -407,7 +407,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return ClassicUtil.getKFromEpsilon(epsilon, pmf);
   }
 
-  @Override
+  @SuppressWarnings("javadoc") //@Override
   public boolean hasMemory() {
     return false;
   }
@@ -417,14 +417,14 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    return getN() == 0;
   }
 
-  @Override
+  @SuppressWarnings("javadoc") //@Override
   public boolean isDirect() {
     return false;
   }
 
   @Override
   public boolean isEstimationMode() {
-    return getN() >= 2L * k_;
+    return getN() >= (2L * k_);
   }
 
   @Override
@@ -544,15 +544,15 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     // this method only uses the base buffer part of the combined buffer
 
     if (item == null) { return; }
-    if (maxItem_ == null || comparator_.compare(item, maxItem_) > 0) { maxItem_ = item; }
-    if (minItem_ == null || comparator_.compare(item, minItem_) < 0) { minItem_ = item; }
+    if ((maxItem_ == null) || (comparator_.compare(item, maxItem_) > 0)) { maxItem_ = item; }
+    if ((minItem_ == null) || (comparator_.compare(item, minItem_) < 0)) { minItem_ = item; }
 
-    if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
+    if ((baseBufferCount_ + 1) > combinedBufferItemCapacity_) {
       ItemsSketch.growBaseBuffer(this);
     }
     combinedBuffer_[baseBufferCount_++] = item;
     n_++;
-    if (baseBufferCount_ == 2 * k_) {
+    if (baseBufferCount_ == (2 * k_)) {
       ItemsUtil.processFullBaseBuffer(this);
     }
     classicQisSV = null;
@@ -624,7 +624,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     final Object[] baseBuffer = sketch.getCombinedBuffer();
     final int oldSize = sketch.getCombinedBufferAllocatedCount();
     final int k = sketch.getK();
-    assert oldSize < 2 * k;
+    assert oldSize < (2 * k);
     final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
     sketch.combinedBufferItemCapacity_ = newSize;
     sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
@@ -637,7 +637,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return refreshSortedView();
   }
 
-  private final ItemsSketchSortedView<T> refreshSortedView() {
+  private ItemsSketchSortedView<T> refreshSortedView() {
     return (classicQisSV == null) ? (classicQisSV = getSV(this)) : classicQisSV;
   }
 
@@ -671,7 +671,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   }
 
-  private final static <T> void populateFromItemsSketch(
+  private static <T> void populateFromItemsSketch(
       final int k, final long totalN, final long bitPattern, final T[] combinedBuffer,
       final int baseBufferCount, final int numQuantiles, final T[] svQuantiles, final long[] svCumWeights,
       final Comparator<? super T> comparator) {

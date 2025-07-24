@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
@@ -28,13 +29,12 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SING
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class implements an on-heap doubles KllSketch.
@@ -67,16 +67,16 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    this.levelsArr = new int[] {k, k};
-    this.readOnly = false;
+    levelsArr = new int[] {k, k};
+    readOnly = false;
     this.k = k;
     this.m = m;
-    this.n = 0;
-    this.minK = k;
-    this.isLevelZeroSorted = false;
-    this.minDoubleItem = Double.NaN;
-    this.maxDoubleItem = Double.NaN;
-    this.doubleItems = new double[k];
+    n = 0;
+    minK = k;
+    isLevelZeroSorted = false;
+    minDoubleItem = Double.NaN;
+    maxDoubleItem = Double.NaN;
+    doubleItems = new double[k];
   }
 
   /**
@@ -86,76 +86,76 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    this.levelsArr = KllHelper.createLevelsArray(weight);
-    this.readOnly = false;
+    levelsArr = KllHelper.createLevelsArray(weight);
+    readOnly = false;
     this.k = k;
     this.m = m;
-    this.n = weight;
-    this.minK = k;
-    this.isLevelZeroSorted = false;
-    this.minDoubleItem = item;
-    this.maxDoubleItem = item;
-    this.doubleItems = KllDoublesHelper.createItemsArray(item, weight);
+    n = weight;
+    minK = k;
+    isLevelZeroSorted = false;
+    minDoubleItem = item;
+    maxDoubleItem = item;
+    doubleItems = KllDoublesHelper.createItemsArray(item, weight);
   }
 
   /**
    * Heapify constructor.
-   * @param srcMem Memory object that contains data serialized by this sketch.
-   * @param memValidate the MemoryValidate object
+   * @param srcSeg MemorySegment object that contains data serialized by this sketch.
+   * @param segValidate the MemoryValidate object
    */
   private KllHeapDoublesSketch(
-      final Memory srcMem,
-      final KllMemoryValidate memValidate) {
+      final MemorySegment srcSeg,
+      final KllMemorySegmentValidate segValidate) {
     super(UPDATABLE);
-    final SketchStructure memStructure = memValidate.sketchStructure;
-    this.k = memValidate.k;
-    this.m = memValidate.m;
-    this.n = memValidate.n;
-    this.minK = memValidate.minK;
-    this.levelsArr = memValidate.levelsArr; //normalized to full
-    this.isLevelZeroSorted = memValidate.level0SortedFlag;
+    final SketchStructure segStructure = segValidate.sketchStructure;
+    k = segValidate.k;
+    m = segValidate.m;
+    n = segValidate.n;
+    minK = segValidate.minK;
+    levelsArr = segValidate.levelsArr; //normalized to full
+    isLevelZeroSorted = segValidate.level0SortedFlag;
 
-    if (memStructure == COMPACT_EMPTY) {
+    if (segStructure == COMPACT_EMPTY) {
       minDoubleItem = Double.NaN;
       maxDoubleItem = Double.NaN;
       doubleItems = new double[k];
     }
-    else if (memStructure == COMPACT_SINGLE) {
-      final double item = srcMem.getDouble(DATA_START_ADR_SINGLE_ITEM);
+    else if (segStructure == COMPACT_SINGLE) {
+      final double item = srcSeg.get(JAVA_DOUBLE_UNALIGNED, DATA_START_ADR_SINGLE_ITEM);
       minDoubleItem = maxDoubleItem = item;
       doubleItems = new double[k];
       doubleItems[k - 1] = item;
     }
-    else if (memStructure == COMPACT_FULL) {
+    else if (segStructure == COMPACT_FULL) {
       int offsetBytes = DATA_START_ADR;
       offsetBytes += (levelsArr.length - 1) * Integer.BYTES; //shortened levelsArr
-      minDoubleItem = srcMem.getDouble(offsetBytes);
+      minDoubleItem = srcSeg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes);
       offsetBytes += Double.BYTES;
-      maxDoubleItem = srcMem.getDouble(offsetBytes);
+      maxDoubleItem = srcSeg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes);
       offsetBytes += Double.BYTES;
       final int capacityItems = levelsArr[getNumLevels()];
       final int freeSpace = levelsArr[0];
       final int retainedItems = capacityItems - freeSpace;
       doubleItems = new double[capacityItems];
-      srcMem.getDoubleArray(offsetBytes, doubleItems, freeSpace, retainedItems);
+      MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, offsetBytes, doubleItems, freeSpace, retainedItems);
     }
-    else { //(memStructure == UPDATABLE)
+    else { //(segStructure == UPDATABLE)
       int offsetBytes = DATA_START_ADR;
       offsetBytes += levelsArr.length * Integer.BYTES; //full levelsArr
-      minDoubleItem = srcMem.getDouble(offsetBytes);
+      minDoubleItem = srcSeg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes);
       offsetBytes += Double.BYTES;
-      maxDoubleItem = srcMem.getDouble(offsetBytes);
+      maxDoubleItem = srcSeg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes);
       offsetBytes += Double.BYTES;
       final int capacityItems = levelsArr[getNumLevels()];
       doubleItems = new double[capacityItems];
-      srcMem.getDoubleArray(offsetBytes, doubleItems, 0, capacityItems);
+      MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, offsetBytes, doubleItems, 0, capacityItems);
     }
   }
 
-  static KllHeapDoublesSketch heapifyImpl(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
-    return new KllHeapDoublesSketch(srcMem, memVal);
+  static KllHeapDoublesSketch heapifyImpl(final MemorySegment srcSeg) {
+    Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, DOUBLES_SKETCH);
+    return new KllHeapDoublesSketch(srcSeg, segVal);
   }
 
   //End of constructors
@@ -208,10 +208,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void setMaxItem(final double item) { this.maxDoubleItem = item; }
+  void setMaxItem(final double item) { maxDoubleItem = item; }
 
   @Override
-  void setMinItem(final double item) { this.minDoubleItem = item; }
+  void setMinItem(final double item) { minDoubleItem = item; }
 
   //END MinMax Methods
 
@@ -233,9 +233,6 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   int getM() { return m; }
 
   @Override
-  MemoryRequestServer getMemoryRequestServer() { return null; }
-
-  @Override
   int getMinK() { return minK; }
 
   @Override
@@ -250,21 +247,21 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     final int retained = getNumRetained();
     final int bytes = retained * Double.BYTES;
     bytesOut = new byte[bytes];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytesOut);
-    wmem.putDoubleArray(0, doubleItems, levelsArr[0], retained);
+    final MemorySegment wseg = MemorySegment.ofArray(bytesOut);
+    MemorySegment.copy(doubleItems,  levelsArr[0], wseg, JAVA_DOUBLE_UNALIGNED, 0, retained);
     return bytesOut;
   }
 
   @Override
   byte[] getTotalItemsByteArr() {
     final byte[] byteArr = new byte[doubleItems.length * Double.BYTES];
-    final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    wmem.putDoubleArray(0, doubleItems, 0, doubleItems.length);
+    final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+    MemorySegment.copy(doubleItems, 0, wseg, JAVA_DOUBLE_UNALIGNED, 0, doubleItems.length);
     return byteArr;
   }
 
   @Override
-  WritableMemory getWritableMemory() {
+  MemorySegment getMemorySegment() {
     return null;
   }
 
@@ -277,13 +274,13 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  boolean isLevelZeroSorted() { return this.isLevelZeroSorted; }
+  boolean isLevelZeroSorted() { return isLevelZeroSorted; }
 
   @Override
   void setDoubleItemsArray(final double[] doubleItems) { this.doubleItems = doubleItems; }
 
   @Override
-  void setDoubleItemsArrayAt(final int index, final double item) { this.doubleItems[index] = item; }
+  void setDoubleItemsArrayAt(final int index, final double item) { doubleItems[index] = item; }
 
   @Override
   void setDoubleItemsArrayAt(final int dstIndex, final double[] srcItems, final int srcOffset, final int length) {
@@ -291,7 +288,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted = sorted; }
+  void setLevelZeroSorted(final boolean sorted) { isLevelZeroSorted = sorted; }
 
   @Override
   void setMinK(final int minK) { this.minK = minK; }
@@ -310,6 +307,26 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void setWritableMemory(final WritableMemory wmem) { }
+  void setMemorySegment(final MemorySegment wseg) { }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return false;
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return false;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return false;
+  }
+
+  @Override
+  MemorySegmentRequest getMemorySegmentRequest() {
+    return null;
+  }
 
 }
