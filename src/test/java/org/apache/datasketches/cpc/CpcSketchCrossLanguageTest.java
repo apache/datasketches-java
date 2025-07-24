@@ -31,7 +31,6 @@ import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 /**
