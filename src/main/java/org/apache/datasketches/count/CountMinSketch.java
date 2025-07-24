@@ -25,10 +25,15 @@ import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.hash.MurmurHash3;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
+import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
+
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import java.util.Random;
+
+import static org.apache.datasketches.common.SpecialValueLayouts.JAVA_INT_UNALIGNED_BIG_ENDIAN;
+import static org.apache.datasketches.common.SpecialValueLayouts.JAVA_LONG_UNALIGNED_BIG_ENDIAN;
+import static org.apache.datasketches.common.SpecialValueLayouts.JAVA_SHORT_UNALIGNED_BIG_ENDIAN;
 
 
 public class CountMinSketch {
@@ -39,9 +44,9 @@ public class CountMinSketch {
   private final long[] sketchArray_;
   private long totalWeight_;
 
-  // Thread-local ByteBuffer to avoid allocations in hot paths
-  private static final ThreadLocal<ByteBuffer> LONG_BUFFER =
-          ThreadLocal.withInitial(() -> ByteBuffer.allocate(8));
+  // Thread-local MemorySegment to avoid allocations in hot paths with explicit endianness control
+  private static final ThreadLocal<MemorySegment> LONG_SEGMENT =
+          ThreadLocal.withInitial(() -> MemorySegment.ofArray(new byte[8]));
 
   private enum Flag {
     IS_EMPTY;
@@ -104,14 +109,14 @@ public class CountMinSketch {
   }
 
   /**
-   * Efficiently converts a long to byte array using thread-local buffer to avoid allocations.
+   * Efficiently converts a long to byte array using thread-local MemorySegment with explicit endianness.
    */
   private static byte[] longToBytes(final long value) {
-    final ByteBuffer buffer = LONG_BUFFER.get();
-    buffer.clear();
-    buffer.putLong(value);
-    return buffer.array();
+    final MemorySegment segment = LONG_SEGMENT.get();
+    segment.set(JAVA_LONG_UNALIGNED_BIG_ENDIAN, 0, value);
+    return segment.toArray(JAVA_BYTE);
   }
+
 
   private long[] getHashes(byte[] item) {
     long[] updateLocations = new long[numHashes_];
@@ -371,39 +376,62 @@ public class CountMinSketch {
   }
 
   /**
-   * Serializes the sketch into the provided ByteBuffer.
-   * @param buf The ByteBuffer to write into.
+   * Returns the serialized size in bytes.
    */
-  public void serialize(ByteArrayOutputStream buf) {
+  private int getSerializedSizeBytes() {
+    final int preambleBytes = Family.COUNTMIN.getMinPreLongs() * Long.BYTES;
+    if (isEmpty()) {
+      return preambleBytes;
+    }
+    return preambleBytes + Long.BYTES + (sketchArray_.length * Long.BYTES);
+  }
+
+
+  /**
+   * Returns the sketch as a byte array.
+   */
+  public byte[] toByteArray() {
+    final int serializedSizeBytes = getSerializedSizeBytes();
+    final MemorySegment wseg = MemorySegment.ofArray(new byte[serializedSizeBytes]);
+    
+    long offset = 0;
+    
     // Long 0
     final int preambleLongs = Family.COUNTMIN.getMinPreLongs();
-    buf.write((byte) preambleLongs);
+    wseg.set(JAVA_BYTE, offset++, (byte) preambleLongs);
     final int serialVersion = 1;
-    buf.write((byte) serialVersion);
+    wseg.set(JAVA_BYTE, offset++, (byte) serialVersion);
     final int familyId = Family.COUNTMIN.getID();
-    buf.write((byte) familyId);
+    wseg.set(JAVA_BYTE, offset++, (byte) familyId);
     final int flagsByte = isEmpty() ? Flag.IS_EMPTY.mask() : 0;
-    buf.write((byte)flagsByte);
+    wseg.set(JAVA_BYTE, offset++, (byte) flagsByte);
     final int NULL_32 = 0;
-    buf.writeBytes(ByteBuffer.allocate(4).putInt(NULL_32).array());
+    wseg.set(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset, NULL_32);
+    offset += 4;
 
     // Long 1
-    buf.writeBytes(ByteBuffer.allocate(4).putInt(numBuckets_).array());
-    buf.write(numHashes_);
+    wseg.set(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset, numBuckets_);
+    offset += 4;
+    wseg.set(JAVA_BYTE, offset++, numHashes_);
     short hashSeed = Util.computeSeedHash(seed_);
-    buf.writeBytes(ByteBuffer.allocate(2).putShort(hashSeed).array());
+    wseg.set(JAVA_SHORT_UNALIGNED_BIG_ENDIAN, offset, hashSeed);
+    offset += 2;
     final byte NULL_8 = 0;
-    buf.write(NULL_8);
+    wseg.set(JAVA_BYTE, offset++, NULL_8);
+    
     if (isEmpty()) {
-      return;
+      return wseg.toArray(JAVA_BYTE);
     }
 
-    final byte[] totWeightByte = ByteBuffer.allocate(8).putLong(totalWeight_).array();
-    buf.writeBytes(totWeightByte);
+    wseg.set(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset, totalWeight_);
+    offset += 8;
 
     for (long w: sketchArray_) {
-      buf.writeBytes(ByteBuffer.allocate(8).putLong(w).array());
+      wseg.set(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset, w);
+      offset += 8;
     }
+    
+    return wseg.toArray(JAVA_BYTE);
   }
 
   /**
@@ -413,20 +441,22 @@ public class CountMinSketch {
    * @return The deserialized CountMinSketch.
    */
   public static CountMinSketch deserialize(final byte[] b, final long seed) {
-    ByteBuffer buf = ByteBuffer.allocate(b.length);
-    buf.put(b);
-    buf.flip();
+    final MemorySegment buf = MemorySegment.ofArray(b);
+    long offset = 0;
 
-    final byte preambleLongs = buf.get();
-    final byte serialVersion = buf.get();
-    final byte familyId = buf.get();
-    final byte flagsByte = buf.get();
-    final int NULL_32 = buf.getInt();
+    final byte preambleLongs = buf.get(JAVA_BYTE, offset++);
+    final byte serialVersion = buf.get(JAVA_BYTE, offset++);
+    final byte familyId = buf.get(JAVA_BYTE, offset++);
+    final byte flagsByte = buf.get(JAVA_BYTE, offset++);
+    final int NULL_32 = buf.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset);
+    offset += 4;
 
-    final int numBuckets = buf.getInt();
-    final byte numHashes = buf.get();
-    final short seedHash = buf.getShort();
-    final byte NULL_8 = buf.get();
+    final int numBuckets = buf.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset);
+    offset += 4;
+    final byte numHashes = buf.get(JAVA_BYTE, offset++);
+    final short seedHash = buf.get(JAVA_SHORT_UNALIGNED_BIG_ENDIAN, offset);
+    offset += 2;
+    final byte NULL_8 = buf.get(JAVA_BYTE, offset++);
 
     if (seedHash != Util.computeSeedHash(seed)) {
       throw new SketchesArgumentException("Incompatible seed hashes: " + String.valueOf(seedHash) + ", "
@@ -438,11 +468,13 @@ public class CountMinSketch {
     if (empty) {
       return cms;
     }
-    long w =  buf.getLong();
+    long w = buf.get(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset);
+    offset += 8;
     cms.totalWeight_ = w;
 
     for (int i = 0; i < cms.sketchArray_.length; i++) {
-      cms.sketchArray_[i] = buf.getLong();
+      cms.sketchArray_[i] = buf.get(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset);
+      offset += 8;
     }
 
     return cms;
