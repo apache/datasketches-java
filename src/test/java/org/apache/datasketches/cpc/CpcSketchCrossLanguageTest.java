@@ -31,6 +31,7 @@ import java.lang.foreign.MemorySegment;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 /**
@@ -89,7 +90,7 @@ public class CpcSketchCrossLanguageTest {
     int flavorIdx = 0;
     for (int n: nArr) {
       final byte[] bytes = Files.readAllBytes(goPath.resolve("cpc_n" + n + "_go.sk"));
-      final CpcSketch sketch = CpcSketch.heapify(Memory.wrap(bytes));
+      final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
       assertEquals(sketch.getEstimate(), n, n * 0.02);
     }
