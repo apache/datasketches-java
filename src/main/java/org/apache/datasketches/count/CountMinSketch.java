@@ -31,9 +31,9 @@ import java.nio.charset.StandardCharsets;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import java.util.Random;
 
-import static org.apache.datasketches.common.SpecialValueLayouts.JAVA_INT_UNALIGNED_BIG_ENDIAN;
-import static org.apache.datasketches.common.SpecialValueLayouts.JAVA_LONG_UNALIGNED_BIG_ENDIAN;
-import static org.apache.datasketches.common.SpecialValueLayouts.JAVA_SHORT_UNALIGNED_BIG_ENDIAN;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 
 
 public class CountMinSketch {
@@ -113,7 +113,7 @@ public class CountMinSketch {
    */
   private static byte[] longToBytes(final long value) {
     final MemorySegment segment = LONG_SEGMENT.get();
-    segment.set(JAVA_LONG_UNALIGNED_BIG_ENDIAN, 0, value);
+    segment.set(JAVA_LONG_UNALIGNED, 0, value);
     return segment.toArray(JAVA_BYTE);
   }
 
@@ -393,9 +393,9 @@ public class CountMinSketch {
   public byte[] toByteArray() {
     final int serializedSizeBytes = getSerializedSizeBytes();
     final MemorySegment wseg = MemorySegment.ofArray(new byte[serializedSizeBytes]);
-    
+
     long offset = 0;
-    
+
     // Long 0
     final int preambleLongs = Family.COUNTMIN.getMinPreLongs();
     wseg.set(JAVA_BYTE, offset++, (byte) preambleLongs);
@@ -406,31 +406,31 @@ public class CountMinSketch {
     final int flagsByte = isEmpty() ? Flag.IS_EMPTY.mask() : 0;
     wseg.set(JAVA_BYTE, offset++, (byte) flagsByte);
     final int NULL_32 = 0;
-    wseg.set(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset, NULL_32);
+    wseg.set(JAVA_INT_UNALIGNED, offset, NULL_32);
     offset += 4;
 
     // Long 1
-    wseg.set(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset, numBuckets_);
+    wseg.set(JAVA_INT_UNALIGNED, offset, numBuckets_);
     offset += 4;
     wseg.set(JAVA_BYTE, offset++, numHashes_);
     short hashSeed = Util.computeSeedHash(seed_);
-    wseg.set(JAVA_SHORT_UNALIGNED_BIG_ENDIAN, offset, hashSeed);
+    wseg.set(JAVA_SHORT_UNALIGNED, offset, hashSeed);
     offset += 2;
     final byte NULL_8 = 0;
     wseg.set(JAVA_BYTE, offset++, NULL_8);
-    
+
     if (isEmpty()) {
       return wseg.toArray(JAVA_BYTE);
     }
 
-    wseg.set(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset, totalWeight_);
+    wseg.set(JAVA_LONG_UNALIGNED, offset, totalWeight_);
     offset += 8;
 
     for (long w: sketchArray_) {
-      wseg.set(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset, w);
+      wseg.set(JAVA_LONG_UNALIGNED, offset, w);
       offset += 8;
     }
-    
+
     return wseg.toArray(JAVA_BYTE);
   }
 
@@ -448,13 +448,13 @@ public class CountMinSketch {
     final byte serialVersion = buf.get(JAVA_BYTE, offset++);
     final byte familyId = buf.get(JAVA_BYTE, offset++);
     final byte flagsByte = buf.get(JAVA_BYTE, offset++);
-    final int NULL_32 = buf.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset);
+    final int NULL_32 = buf.get(JAVA_INT_UNALIGNED, offset);
     offset += 4;
 
-    final int numBuckets = buf.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset);
+    final int numBuckets = buf.get(JAVA_INT_UNALIGNED, offset);
     offset += 4;
     final byte numHashes = buf.get(JAVA_BYTE, offset++);
-    final short seedHash = buf.get(JAVA_SHORT_UNALIGNED_BIG_ENDIAN, offset);
+    final short seedHash = buf.get(JAVA_SHORT_UNALIGNED, offset);
     offset += 2;
     final byte NULL_8 = buf.get(JAVA_BYTE, offset++);
 
@@ -468,12 +468,12 @@ public class CountMinSketch {
     if (empty) {
       return cms;
     }
-    long w = buf.get(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset);
+    long w = buf.get(JAVA_LONG_UNALIGNED, offset);
     offset += 8;
     cms.totalWeight_ = w;
 
     for (int i = 0; i < cms.sketchArray_.length; i++) {
-      cms.sketchArray_[i] = buf.get(JAVA_LONG_UNALIGNED_BIG_ENDIAN, offset);
+      cms.sketchArray_[i] = buf.get(JAVA_LONG_UNALIGNED, offset);
       offset += 8;
     }
 
