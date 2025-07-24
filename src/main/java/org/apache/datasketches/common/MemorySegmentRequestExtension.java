@@ -36,7 +36,7 @@ public final class MemorySegmentRequestExtension implements MemorySegmentRequest
     if (prevSeg.isNative()) {
       final Arena arena = Arena.ofConfined();
       final MemorySegment seg = arena.allocate(newByteSize);
-      table.put(seg, arena);  //println("Add");
+      table.put(seg, arena);  //System.out.println("Add");
       return seg;
     } else {
       if (newByteSize > Integer.MAX_VALUE) {
@@ -51,7 +51,7 @@ public final class MemorySegmentRequestExtension implements MemorySegmentRequest
     final Arena arena = table.get(prevSeg);
     if ((arena != null) && arena.scope().isAlive()) {
       arena.close();
-      table.remove(prevSeg); //println("Remove");
+      table.remove(prevSeg); //System.out.println("Remove");
     } //else ignore
   }
 
@@ -62,17 +62,9 @@ public final class MemorySegmentRequestExtension implements MemorySegmentRequest
     for (final Enumeration<Arena> e = table.elements(); e.hasMoreElements();) {
       final Arena arena = e.nextElement();
       if (arena.scope().isAlive()) {
-        arena.close(); //println("Closed remaining Arenas in the Hashtable");
+        arena.close(); //System.out.println("Closed a remaining Arena in the Hashtable");
       }
     }
   }
-
-//  /**
-//   * Println Object o
-//   * @param o object to print
-//   */
-//  private static void println(final Object o) {
-//    System.out.println(o.toString());
-//  }
 
 }
