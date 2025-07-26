@@ -36,6 +36,16 @@ import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 
 
+/**
+ * Java implementation of the CountMin sketch data structure of Cormode and Muthukrishnan.
+ * This implementation is inspired by and compatible with the datasketches-cpp version by Charlie Dickens.
+ *
+ * The CountMin sketch is a probabilistic data structure that provides frequency estimates for items
+ * in a data stream. It uses multiple hash functions to distribute items across a two-dimensional array,
+ * providing approximate counts with configurable error bounds.
+ *
+ * Reference: http://dimacs.rutgers.edu/~graham/pubs/papers/cm-full.pdf
+ */
 public class CountMinSketch {
   private final byte numHashes_;
   private final int numBuckets_;
