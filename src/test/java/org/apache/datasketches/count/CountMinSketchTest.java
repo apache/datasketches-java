@@ -203,10 +203,7 @@ public class CountMinSketchTest {
     final long seed = 123456;
     CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
 
-    ByteArrayOutputStream buf = new ByteArrayOutputStream();
-    c.serialize(buf);
-
-    byte[] b = buf.toByteArray();
+    byte[] b = c.toByteArray();
     assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(b, seed - 1));
 
     CountMinSketch d = CountMinSketch.deserialize(b, seed);
@@ -228,11 +225,10 @@ public class CountMinSketchTest {
       c.update(i, 10*i*i);
     }
 
-    ByteArrayOutputStream buf = new ByteArrayOutputStream();
-    c.serialize(buf);
+    byte[] b = c.toByteArray();
 
-    assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(buf.toByteArray(), seed - 1));
-    CountMinSketch d = CountMinSketch.deserialize(buf.toByteArray(), seed);
+    assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(b, seed - 1));
+    CountMinSketch d = CountMinSketch.deserialize(b, seed);
 
     assertEquals(d.getNumHashes_(), c.getNumHashes_());
     assertEquals(d.getNumBuckets_(), c.getNumBuckets_());
