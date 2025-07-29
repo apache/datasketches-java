@@ -109,9 +109,9 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public static KllDoublesSketch newDirectInstance(
       final int k,
       final MemorySegment dstSeg,
-      final MemorySegmentRequest memSegReq) {
+      final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(dstSeg, "Parameter 'dstSeg' must not be null");
-    return KllDirectDoublesSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstSeg, memSegReq);
+    return KllDirectDoublesSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstSeg, mSegReq);
   }
 
   //Factory to create an heap instance from a MemorySegment image
@@ -172,10 +172,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param mSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
-  public static KllDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest memSegReq) {
+  public static KllDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, DOUBLES_SKETCH);
-    return new KllDirectDoublesSketch(srcSeg, segVal, memSegReq);
+    return new KllDirectDoublesSketch(srcSeg, segVal, mSegReq);
   }
 
   //END of Constructors

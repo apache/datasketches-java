@@ -99,7 +99,7 @@ under the License.
     <jvm-arguments></jvm-arguments>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-arguments}</argLine>
+    <argLine>-Xmx10g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 ${jvm-arguments}</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>

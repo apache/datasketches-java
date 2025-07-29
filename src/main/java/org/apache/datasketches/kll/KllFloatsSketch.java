@@ -109,9 +109,9 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   public static KllFloatsSketch newDirectInstance(
       final int k,
       final MemorySegment dstSeg,
-      final MemorySegmentRequest memSegReq) {
+      final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(dstSeg, "Parameter 'dstSeg' must not be null");
-    return KllDirectFloatsSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstSeg, memSegReq);
+    return KllDirectFloatsSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstSeg, mSegReq);
   }
 
   //Factory to create an heap instance from a MemorySegment image
@@ -172,10 +172,10 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
    * @param mSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
-  public static KllFloatsSketch writableWrap(final MemorySegment srcSeg, final MemorySegmentRequest memSegReq) {
+  public static KllFloatsSketch writableWrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, FLOATS_SKETCH);
-    return new KllDirectFloatsSketch(srcSeg, segVal, memSegReq);
+    return new KllDirectFloatsSketch(srcSeg, segVal, mSegReq);
   }
 
   //END of Constructors
