@@ -19,22 +19,19 @@
 
 package org.apache.datasketches.count;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
+import java.nio.charset.StandardCharsets;
+import java.util.Random;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.hash.MurmurHash3;
-
-import java.lang.foreign.MemorySegment;
-import java.nio.charset.StandardCharsets;
-import java.util.Random;
-
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
-import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
-import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
-
 
 /**
  * Java implementation of the CountMin sketch data structure of Cormode and Muthukrishnan.
@@ -85,8 +82,8 @@ public class CountMinSketch {
       throw new SketchesArgumentException("Number of buckets must be positive, got: " + numBuckets);
     }
     if (numBuckets < 3) {
-      throw new SketchesArgumentException("Number of buckets must be at least 3 to ensure relative error ≤ 1.0. " +
-          "With " + numBuckets + " buckets, relative error would be " + String.format("%.3f", Math.exp(1.0) / numBuckets));
+      throw new SketchesArgumentException("Number of buckets must be at least 3 to ensure relative error ≤ 1.0. "
+          + "With " + numBuckets + " buckets, relative error would be " + String.format("%.3f", Math.exp(1.0) / numBuckets));
     }
 
     // Check for potential overflow in array size calculation
@@ -101,7 +98,7 @@ public class CountMinSketch {
     // be 2^31-1.  We check only against 2^30 for simplicity.
     if (totalSize >= (1L << 30)) {
       throw new SketchesArgumentException("Sketch would require excessive memory: " + numHashes + " * " + numBuckets
-          + " = " + totalSize + " elements (~" + String.format("%d", totalSize * Long.BYTES / (1024 * 1024 * 1024)) + " GB). "
+          + " = " + totalSize + " elements (~" + String.format("%d", (totalSize * Long.BYTES) / (1024 * 1024 * 1024)) + " GB). "
           + "Consider reducing numHashes or numBuckets.");
     }
 
@@ -127,13 +124,12 @@ public class CountMinSketch {
     return segment.toArray(JAVA_BYTE);
   }
 
-
   private long[] getHashes(final byte[] item) {
     final long[] updateLocations = new long[numHashes_];
 
     for (int i = 0; i < numHashes_; i++) {
       final long[] index = MurmurHash3.hash(item, hashSeeds_[i]);
-      updateLocations[i] = i * (long)numBuckets_ + Math.floorMod(index[0], numBuckets_);
+      updateLocations[i] = (i * (long)numBuckets_) + Math.floorMod(index[0], numBuckets_);
     }
 
     return updateLocations;
@@ -184,7 +180,7 @@ public class CountMinSketch {
    * @return The relative error.
    */
   public double getRelativeError() {
-    return Math.exp(1.0) / (double)numBuckets_;
+    return Math.exp(1.0) / numBuckets_;
   }
 
   /**
@@ -193,7 +189,7 @@ public class CountMinSketch {
    * @return Suggested number of hash functions.
    */
   public static byte suggestNumHashes(final double confidence) {
-    if (confidence < 0 || confidence > 1) {
+    if ((confidence < 0) || (confidence > 1)) {
       throw new SketchesException("Confidence must be between 0 and 1.0 (inclusive).");
     }
     final int value = (int) Math.ceil(Math.log(1.0 / (1.0 - confidence)));
@@ -227,7 +223,7 @@ public class CountMinSketch {
    * @param weight The weight of the item.
    */
   public void update(final String item, final long weight) {
-    if (item == null || item.isEmpty()) {
+    if ((item == null) || item.isEmpty()) {
       return;
     }
     final byte[] strByte = item.getBytes(StandardCharsets.UTF_8);
@@ -266,7 +262,7 @@ public class CountMinSketch {
    * @return Estimated frequency.
    */
   public long getEstimate(final String item) {
-    if (item == null || item.isEmpty()) {
+    if ((item == null) || item.isEmpty()) {
       return 0;
     }
 
@@ -309,7 +305,7 @@ public class CountMinSketch {
    * @return Upper bound of estimated frequency.
    */
   public long getUpperBound(final String item) {
-    if (item == null || item.isEmpty()) {
+    if ((item == null) || item.isEmpty()) {
       return 0;
     }
 
@@ -345,7 +341,7 @@ public class CountMinSketch {
    * @return Lower bound of estimated frequency.
    */
   public long getLowerBound(final String item) {
-    if (item == null || item.isEmpty()) {
+    if ((item == null) || item.isEmpty()) {
       return 0;
     }
 
@@ -371,8 +367,8 @@ public class CountMinSketch {
       throw new SketchesException("Cannot merge a sketch with itself");
     }
 
-    final boolean acceptableConfig = getNumBuckets_() == other.getNumBuckets_()
-        && getNumHashes_() == other.getNumHashes_() && getSeed_() == other.getSeed_();
+    final boolean acceptableConfig = (getNumBuckets_() == other.getNumBuckets_())
+        && (getNumHashes_() == other.getNumHashes_()) && (getSeed_() == other.getSeed_());
 
     if (!acceptableConfig) {
       throw new SketchesException("Incompatible sketch configuration.");
@@ -396,9 +392,9 @@ public class CountMinSketch {
     return preambleBytes + Long.BYTES + (sketchArray_.length * Long.BYTES);
   }
 
-
   /**
    * Returns the sketch as a byte array.
+   * @return the result byte array
    */
   public byte[] toByteArray() {
     final int serializedSizeBytes = getSerializedSizeBytes();
