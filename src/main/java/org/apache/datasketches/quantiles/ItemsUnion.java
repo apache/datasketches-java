@@ -43,7 +43,7 @@ public final class ItemsUnion<T> {
   Class<T> clazz_;
 
   private ItemsUnion(final int maxK, final Comparator<? super T> comparator, final ItemsSketch<T> gadget) {
-    Objects.requireNonNull(gadget, "Gadjet sketch must not be null.");
+    Objects.requireNonNull(gadget, "Gadget sketch must not be null.");
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     maxK_ = maxK;
     comparator_ = comparator;
@@ -138,7 +138,7 @@ public final class ItemsUnion<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    */
   public void union(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> that = ItemsSketch.getInstance(this.clazz_, srcMem, comparator_, serDe);
+    final ItemsSketch<T> that = ItemsSketch.getInstance(clazz_, srcMem, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }
 
@@ -150,7 +150,7 @@ public final class ItemsUnion<T> {
   public void update(final T dataItem) {
     if (dataItem == null) { return; }
     if (gadget_ == null) {
-      gadget_ = ItemsSketch.getInstance(this.clazz_, maxK_, comparator_);
+      gadget_ = ItemsSketch.getInstance(clazz_, maxK_, comparator_);
     }
     gadget_.update(dataItem);
   }
@@ -162,7 +162,7 @@ public final class ItemsUnion<T> {
    */
   public ItemsSketch<T> getResult() {
     if (gadget_ == null) {
-      return ItemsSketch.getInstance(this.clazz_, maxK_, comparator_);
+      return ItemsSketch.getInstance(clazz_, maxK_, comparator_);
     }
     return ItemsSketch.copy(gadget_); //can't have any externally owned handles.
   }
@@ -242,7 +242,7 @@ public final class ItemsUnion<T> {
     sb.append(LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
-      sb.append(ItemsSketch.getInstance(this.clazz_, maxK_, comparator_).toString());
+      sb.append(ItemsSketch.getInstance(clazz_, maxK_, comparator_).toString());
       return sb.toString();
     }
     sb.append(gadget_.toString(sketchSummary, dataDetail));
@@ -259,7 +259,7 @@ public final class ItemsUnion<T> {
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     if (gadget_ == null) {
-      final ItemsSketch<T> sketch = ItemsSketch.getInstance(this.clazz_, maxK_, comparator_);
+      final ItemsSketch<T> sketch = ItemsSketch.getInstance(clazz_, maxK_, comparator_);
       return sketch.toByteArray(serDe);
     }
     return gadget_.toByteArray(serDe);
@@ -317,17 +317,15 @@ public final class ItemsUnion<T> {
           for (int i = 0; i < otherCnt; i++) {
             ret.update((T) combBuf[i]);
           }
-        }
-        else { //myQS = empty/valid, other = valid and in est mode
+        } else //myQS = empty/valid, other = valid and in est mode
           if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
-            ItemsMergeImpl.mergeInto(other, myQS);
-            ret = myQS;
-          }
-          else { //Bigger: myQS.getK() > other.getK(), must reverse roles
-            //must copy other as it will become mine and can't have any externally owned handles.
-            ret = ItemsSketch.copy(other);
-            ItemsMergeImpl.mergeInto(myQS, ret);
-          }
+          ItemsMergeImpl.mergeInto(other, myQS);
+          ret = myQS;
+        }
+        else { //Bigger: myQS.getK() > other.getK(), must reverse roles
+          //must copy other as it will become mine and can't have any externally owned handles.
+          ret = ItemsSketch.copy(other);
+          ItemsMergeImpl.mergeInto(myQS, ret);
         }
         break;
       }

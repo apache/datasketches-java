@@ -173,7 +173,7 @@ public final class ClassicUtil {
    * @param srcSeg the source MemorySegment containing a sketch
    * @return true if flags indicate a compact sketch, otherwise false
    */
-  static boolean checkIsCompactMemory(final MemorySegment srcSeg) {
+  static boolean checkIsMemorySegmentCompact(final MemorySegment srcSeg) {
     // only reading so downcast is ok
     final int flags = extractFlags(srcSeg);
     final int compactFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;

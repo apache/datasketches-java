@@ -24,6 +24,8 @@ import static org.apache.datasketches.common.Util.TAB;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
+
 /**
  * For building a new quantiles DoublesSketch.
  *
@@ -72,13 +74,24 @@ public class DoublesSketchBuilder {
   }
 
   /**
-   * Returns a quantiles UpdateDoublesSketch with the current configuration of this builder
-   * and the specified backing destination MemorySegment store.
+   * Returns a UpdateDoublesSketch with the current configuration of this builder
+   * and the specified backing destination MemorySegment store that can grow.
    * @param dstSeg destination MemorySegment for use by the sketch
    * @return an UpdateDoublesSketch
    */
   public UpdateDoublesSketch build(final MemorySegment dstSeg) {
-    return DirectUpdateDoublesSketch.newInstance(bK, dstSeg);
+    return this.build(dstSeg, null);
+  }
+
+  /**
+   * Returns a UpdateDoublesSketch with the current configuration of this builder
+   * and the specified backing destination MemorySegment store that can grow.
+   * @param dstSeg destination MemorySegment for use by the sketch
+   * @param mSegReq a user developed MemorySegmentRequest or null.
+   * @return an UpdateDoublesSketch
+   */
+  public UpdateDoublesSketch build(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
+    return DirectUpdateDoublesSketch.newInstance(bK, dstSeg, mSegReq);
   }
 
   /**

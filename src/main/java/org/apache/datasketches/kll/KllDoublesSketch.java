@@ -103,7 +103,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * Create a new direct updatable instance of this sketch with a given <em>k</em>.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @param dstSeg the given destination MemorySegment object for use by the sketch
-   * @param memSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
+   * @param mSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
    * @return a new direct instance of this sketch
    */
   public static KllDoublesSketch newDirectInstance(
@@ -169,7 +169,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * but not written to, independent of whether the MemorySegment was created on-heap or off-heap.</p>
    *
    * @param srcSeg a MemorySegment that contains sketch data.
-   * @param memSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
+   * @param mSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
   public static KllDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest memSegReq) {

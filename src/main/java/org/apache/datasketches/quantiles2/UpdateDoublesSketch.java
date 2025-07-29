@@ -38,16 +38,8 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * @return a sketch that wraps the given srcSeg
    */
   public static UpdateDoublesSketch wrap(final MemorySegment srcSeg) {
-    return DirectUpdateDoublesSketch.wrapInstance(srcSeg);
+    return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
   }
-
-  /**
-   * Updates this sketch with the given double data item
-   *
-   * @param item an item from a stream of items.  NaNs are ignored.
-   */
-  @Override
-  public abstract void update(double item);
 
   /**
    * Factory heapify takes a compact sketch image in MemorySegment and instantiates an on-heap sketch.
@@ -79,6 +71,9 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
     }
     return DirectCompactDoublesSketch.createFromUpdateSketch(this, dstSeg);
   }
+
+  @Override
+  public abstract void update(double item);
 
   @Override
   boolean isCompact() {

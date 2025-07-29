@@ -19,16 +19,17 @@
 
 package org.apache.datasketches.quantiles2;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static org.apache.datasketches.common.Util.LS;
-import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
+import static org.apache.datasketches.quantiles2.PreambleUtil.COMBINED_BUFFER;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -45,12 +46,12 @@ public class HeapCompactDoublesSketchTest {
     final int n = 45;
     final UpdateDoublesSketch qs = buildAndLoadQS(k, n);
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = Memory.wrap(qsBytes);
+    final MemorySegment qsSeg = MemorySegment.ofArray(qsBytes);
 
-    final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
+    final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsSeg);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
 
-    assertNull(compactQs.getMemory());
+    assertNull(compactQs.getMemorySegment());
   }
 
   @Test
@@ -74,9 +75,9 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming reverse ordered inserts
 
     final byte[] qsBytes = qs.compact().toByteArray();
-    final Memory qsMem = Memory.wrap(qsBytes);
+    final MemorySegment qsSeg = MemorySegment.ofArray(qsBytes);
 
-    final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsMem);
+    final HeapCompactDoublesSketch compactQs = HeapCompactDoublesSketch.heapifyInstance(qsSeg);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
   }
 
@@ -89,17 +90,17 @@ public class HeapCompactDoublesSketchTest {
     }
     assertEquals(qs.getBaseBufferCount(), k);
     final byte[] sketchBytes = qs.toByteArray(true);
-    final WritableMemory mem = WritableMemory.writableWrap(sketchBytes);
+    final MemorySegment seg = MemorySegment.ofArray(sketchBytes);
 
     // modify to make v2, clear compact flag, and insert a -1 in the middle of the base buffer
-    PreambleUtil.insertSerVer(mem, 2);
-    PreambleUtil.insertFlags(mem, 0);
+    PreambleUtil.insertSerVer(seg, 2);
+    PreambleUtil.insertFlags(seg, 0);
     final long tgtAddr = COMBINED_BUFFER + ((Double.BYTES * (long)k) / 2);
-    mem.putDouble(tgtAddr, -1.0);
-    assert mem.getDouble(tgtAddr - Double.BYTES) > mem.getDouble(tgtAddr);
+    seg.set(JAVA_DOUBLE_UNALIGNED, tgtAddr, -1.0);
+    assert seg.get(JAVA_DOUBLE_UNALIGNED, tgtAddr - Double.BYTES) > seg.get(JAVA_DOUBLE_UNALIGNED, tgtAddr);
 
     // ensure the heapified base buffer is sorted
-    final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
+    final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(seg);
     checkBaseBufferIsSorted(qs2);
   }
 
@@ -109,23 +110,23 @@ public class HeapCompactDoublesSketchTest {
     final UpdateDoublesSketch qs1 = buildAndLoadQS(k, 0);
     final byte[] byteArr = qs1.compact().toByteArray();
     final byte[] byteArr2 = qs1.toByteArray(true);
-    final Memory mem = Memory.wrap(byteArr);
-    final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(seg);
     assertTrue(qs2.isEmpty());
     assertEquals(byteArr.length, qs1.getSerializedSizeBytes());
     assertEquals(byteArr, byteArr2);
-    try { qs2.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) { }
-    try { qs2.getQuantiles(new double[] {0.0, 0.5, 1.0}); fail(); } catch (IllegalArgumentException e) { }
-    try { qs2.getRank(0); fail(); } catch (IllegalArgumentException e) { }
+    try { qs2.getQuantile(0.5); fail(); } catch (final IllegalArgumentException e) { }
+    try { qs2.getQuantiles(new double[] {0.0, 0.5, 1.0}); fail(); } catch (final IllegalArgumentException e) { }
+    try { qs2.getRank(0); fail(); } catch (final IllegalArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkMemTooSmall1() {
-    final Memory mem = Memory.wrap(new byte[7]);
-    HeapCompactDoublesSketch.heapifyInstance(mem);
+  public void checkSegTooSmall1() {
+    final MemorySegment seg = MemorySegment.ofArray(new byte[7]);
+    HeapCompactDoublesSketch.heapifyInstance(seg);
   }
 
-  static void checkBaseBufferIsSorted(HeapCompactDoublesSketch qs) {
+  static void checkBaseBufferIsSorted(final HeapCompactDoublesSketch qs) {
     final double[] combinedBuffer = qs.getCombinedBuffer();
     final int bbCount = qs.getBaseBufferCount();
 

@@ -42,8 +42,11 @@ public final class ItemsUnion<T> {
   ItemsSketch<T> gadget_;
   Class<T> clazz_;
 
-  private ItemsUnion(final int maxK, final Comparator<? super T> comparator, final ItemsSketch<T> gadget) {
-    Objects.requireNonNull(gadget, "Gadjet sketch must not be null.");
+  private ItemsUnion(
+      final int maxK,
+      final Comparator<? super T> comparator,
+      final ItemsSketch<T> gadget) {
+    Objects.requireNonNull(gadget, "Gadget sketch must not be null.");
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     maxK_ = maxK;
     comparator_ = comparator;
@@ -59,7 +62,9 @@ public final class ItemsUnion<T> {
    * @param comparator to compare items
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final Comparator<? super T> comparator) {
+  public static <T> ItemsUnion<T> getInstance(
+      final Class<T> clazz,
+      final Comparator<? super T> comparator) {
     final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, comparator);
     return new ItemsUnion<>(PreambleUtil.DEFAULT_K, comparator, emptySk);
   }
@@ -75,7 +80,9 @@ public final class ItemsUnion<T> {
    * @param comparator to compare items
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final int maxK,
+  public static <T> ItemsUnion<T> getInstance(
+      final Class<T> clazz,
+      final int maxK,
       final Comparator<? super T> comparator) {
     final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, maxK, comparator);
     return new ItemsUnion<>(maxK, comparator, emptySk);
@@ -91,8 +98,11 @@ public final class ItemsUnion<T> {
    * @param <T> The sketch data type
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final MemorySegment srcSeg,
-      final Comparator<? super T> comparator, final ArrayOfItemsSerDe2<T> serDe) {
+  public static <T> ItemsUnion<T> getInstance(
+      final Class<T> clazz,
+      final MemorySegment srcSeg,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe2<T> serDe) {
     final ItemsSketch<T> gadget = ItemsSketch.getInstance(clazz, srcSeg, comparator, serDe);
     return new ItemsUnion<>(gadget.getK(), gadget.getComparator(), gadget);
   }
@@ -137,7 +147,9 @@ public final class ItemsUnion<T> {
    * @param srcSeg MemorySegment image of sketch to be merged
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void union(final MemorySegment srcSeg, final ArrayOfItemsSerDe2<T> serDe) {
+  public void union(
+      final MemorySegment srcSeg,
+      final ArrayOfItemsSerDe2<T> serDe) {
     final ItemsSketch<T> that = ItemsSketch.getInstance(clazz_, srcSeg, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }

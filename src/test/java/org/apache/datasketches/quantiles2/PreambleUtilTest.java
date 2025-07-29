@@ -19,28 +19,28 @@
 
 package org.apache.datasketches.quantiles2;
 
-import static org.apache.datasketches.quantiles.PreambleUtil.extractFamilyID;
-import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
-import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
-import static org.apache.datasketches.quantiles.PreambleUtil.extractMaxDouble;
-import static org.apache.datasketches.quantiles.PreambleUtil.extractMinDouble;
-import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
-import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertFamilyID;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertFlags;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertK;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertMaxDouble;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertMinDouble;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
-import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
+import static org.apache.datasketches.common.Util.clear;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractFamilyID;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractFlags;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractK;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractMaxDouble;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractMinDouble;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractN;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractPreLongs;
+import static org.apache.datasketches.quantiles2.PreambleUtil.extractSerVer;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertFamilyID;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertFlags;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertK;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertMaxDouble;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertMinDouble;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertN;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertPreLongs;
+import static org.apache.datasketches.quantiles2.PreambleUtil.insertSerVer;
 import static org.testng.Assert.assertEquals;
 
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class PreambleUtilTest {
@@ -49,113 +49,115 @@ public class PreambleUtilTest {
   public void checkInsertsAndExtracts() {
     final int bytes = 32;
     try (Arena arena = Arena.ofConfined()) {
-        WritableMemory offHeapMem = WritableMemory.allocateDirect(bytes, arena);
-      final WritableMemory onHeapMem = WritableMemory.writableWrap(new byte[bytes]);
+        final MemorySegment offHeapSeg = arena.allocate(bytes);
+      final MemorySegment onHeapSeg = MemorySegment.ofArray(new byte[bytes]);
 
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //BYTES
       int v = 0XFF;
       int onH, offH;
 
       //PREAMBLE_LONGS_BYTE;
-      insertPreLongs(onHeapMem, v);
-      onH = extractPreLongs(onHeapMem);
+      insertPreLongs(onHeapSeg, v);
+      onH = extractPreLongs(onHeapSeg);
       assertEquals(onH, v);
 
-      insertPreLongs(offHeapMem, v);
-      offH = extractPreLongs(offHeapMem);
+      insertPreLongs(offHeapSeg, v);
+      offH = extractPreLongs(offHeapSeg);
       assertEquals(offH, v);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //SER_VER_BYTE;
-      insertSerVer(onHeapMem, v);
-      onH = extractSerVer(onHeapMem);
+      insertSerVer(onHeapSeg, v);
+      onH = extractSerVer(onHeapSeg);
       assertEquals(onH, v);
 
-      insertSerVer(offHeapMem, v);
-      offH = extractSerVer(offHeapMem);
+      insertSerVer(offHeapSeg, v);
+      offH = extractSerVer(offHeapSeg);
       assertEquals(offH, v);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //FAMILY_BYTE;
-      insertFamilyID(onHeapMem, v);
-      onH = extractFamilyID(onHeapMem);
+      insertFamilyID(onHeapSeg, v);
+      onH = extractFamilyID(onHeapSeg);
       assertEquals(onH, v);
 
-      insertFamilyID(offHeapMem, v);
-      offH = extractFamilyID(offHeapMem);
+      insertFamilyID(offHeapSeg, v);
+      offH = extractFamilyID(offHeapSeg);
       assertEquals(offH, v);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //FLAGS_BYTE;
-      insertFlags(onHeapMem, v);
-      onH = extractFlags(onHeapMem);
+      insertFlags(onHeapSeg, v);
+      onH = extractFlags(onHeapSeg);
       assertEquals(onH, v);
 
-      insertFlags(offHeapMem, v);
-      offH = extractFlags(offHeapMem);
+      insertFlags(offHeapSeg, v);
+      offH = extractFlags(offHeapSeg);
       assertEquals(offH, v);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //SHORTS
       v = 0XFFFF;
 
       //K_SHORT;
-      insertK(onHeapMem, v);
-      onH = extractK(onHeapMem);
+      insertK(onHeapSeg, v);
+      onH = extractK(onHeapSeg);
       assertEquals(onH, v);
 
-      insertK(offHeapMem, v);
-      offH = extractK(offHeapMem);
+      insertK(offHeapSeg, v);
+      offH = extractK(offHeapSeg);
       assertEquals(offH, v);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //LONGS
 
       //N_LONG;
-      long onHL, offHL, vL = 1L << 30;
-      insertN(onHeapMem, vL);
-      onHL = extractN(onHeapMem);
+      long onHL, offHL;
+      final long vL = 1L << 30;
+      insertN(onHeapSeg, vL);
+      onHL = extractN(onHeapSeg);
       assertEquals(onHL, vL);
 
-      insertN(offHeapMem, vL);
-      offHL = extractN(offHeapMem);
+      insertN(offHeapSeg, vL);
+      offHL = extractN(offHeapSeg);
       assertEquals(offHL, vL);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //DOUBLES
 
       //MIN_DOUBLE;
-      double onHD, offHD, vD = 1L << 40;
+      double onHD, offHD;
+      final double vD = 1L << 40;
 
-      insertMinDouble(onHeapMem, vD);
-      onHD = extractMinDouble(onHeapMem);
+      insertMinDouble(onHeapSeg, vD);
+      onHD = extractMinDouble(onHeapSeg);
       assertEquals(onHD, vD);
 
-      insertMinDouble(offHeapMem, vD);
-      offHD = extractMinDouble(offHeapMem);
+      insertMinDouble(offHeapSeg, vD);
+      offHD = extractMinDouble(offHeapSeg);
       assertEquals(offHD, vD);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
 
       //MAX_DOUBLE;
-      insertMaxDouble(onHeapMem, vD);
-      onHD = extractMaxDouble(onHeapMem);
+      insertMaxDouble(onHeapSeg, vD);
+      onHD = extractMaxDouble(onHeapSeg);
       assertEquals(onHD, vD);
 
-      insertMaxDouble(offHeapMem, vD);
-      offHD = extractMaxDouble(offHeapMem);
+      insertMaxDouble(offHeapSeg, vD);
+      offHD = extractMaxDouble(offHeapSeg);
       assertEquals(offHD, vD);
-      onHeapMem.clear();
-      offHeapMem.clear();
+      clear(onHeapSeg);
+      clear(offHeapSeg);
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
@@ -163,22 +165,22 @@ public class PreambleUtilTest {
 
   @Test
   public void checkToString() {
-    int k = PreambleUtil.DEFAULT_K;
-    int n = 1000000;
-    UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    final int k = PreambleUtil.DEFAULT_K;
+    final int n = 1000000;
+    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
     for (int i=0; i<n; i++) {
       qs.update(i);
     }
-    byte[] byteArr = qs.toByteArray();
+    final byte[] byteArr = qs.toByteArray();
     DoublesSketch.toString(byteArr);
-    println(DoublesSketch.toString(Memory.wrap(byteArr)));
+    println(DoublesSketch.toString(MemorySegment.ofArray(byteArr)));
   }
 
   @Test
   public void checkToStringEmpty() {
-    int k = PreambleUtil.DEFAULT_K;
-    DoublesSketch qs = DoublesSketch.builder().setK(k).build();
-    byte[] byteArr = qs.toByteArray();
+    final int k = PreambleUtil.DEFAULT_K;
+    final DoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    final byte[] byteArr = qs.toByteArray();
     println(PreambleUtil.toString(byteArr, true));
   }
 
@@ -190,7 +192,7 @@ public class PreambleUtilTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

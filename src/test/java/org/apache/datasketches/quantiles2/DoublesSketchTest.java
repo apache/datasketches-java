@@ -25,26 +25,26 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.lang.foreign.Arena;
+
 
 public class DoublesSketchTest {
 
   @Test
   public void heapToDirect() {
-    UpdateDoublesSketch heapSketch = DoublesSketch.builder().build();
+    final UpdateDoublesSketch heapSketch = DoublesSketch.builder().build();
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    DoublesSketch directSketch = DoublesSketch.wrap(WritableMemory.writableWrap(heapSketch.toByteArray(false)));
+    final DoublesSketch directSketch = DoublesSketch.wrap(MemorySegment.ofArray(heapSketch.toByteArray(false)));
 
     assertEquals(directSketch.getMinItem(), 0.0);
     assertEquals(directSketch.getMaxItem(), 999.0);
@@ -53,13 +53,13 @@ public class DoublesSketchTest {
 
   @Test
   public void directToHeap() {
-    int sizeBytes = 10000;
-    UpdateDoublesSketch directSketch = DoublesSketch.builder().build(WritableMemory.writableWrap(new byte[sizeBytes]));
+    final int sizeBytes = 10000;
+    final UpdateDoublesSketch directSketch = DoublesSketch.builder().build(MemorySegment.ofArray(new byte[sizeBytes]));
     for (int i = 0; i < 1000; i++) {
       directSketch.update(i);
     }
     UpdateDoublesSketch heapSketch;
-    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(WritableMemory.writableWrap(directSketch.toByteArray()));
+    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(MemorySegment.ofArray(directSketch.toByteArray()));
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
@@ -70,10 +70,10 @@ public class DoublesSketchTest {
 
   @Test
   public void checkToByteArray() {
-    UpdateDoublesSketch ds = DoublesSketch.builder().build(); //k = 128
+    final UpdateDoublesSketch ds = DoublesSketch.builder().build(); //k = 128
     ds.update(1);
     ds.update(2);
-    byte[] arr = ds.toByteArray(false);
+    final byte[] arr = ds.toByteArray(false);
     assertEquals(arr.length, ds.getCurrentUpdatableSerializedSizeBytes());
   }
 
@@ -115,66 +115,68 @@ public class DoublesSketchTest {
 
   @Test
   public void checkIsSameResource() {
-    int k = 16;
-    WritableMemory mem = WritableMemory.writableWrap(new byte[(k*16) +24]);
-    WritableMemory cmem = WritableMemory.writableWrap(new byte[8]);
-    DirectUpdateDoublesSketch duds =
-            (DirectUpdateDoublesSketch) DoublesSketch.builder().setK(k).build(mem);
-    assertTrue(duds.isSameResource(mem));
-    DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cmem);
-    assertTrue(dcds.isSameResource(cmem));
+    final int k = 16;
+    final MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) +24]);
+    final MemorySegment cseg = MemorySegment.ofArray(new byte[8]);
+    final DirectUpdateDoublesSketch duds =
+            (DirectUpdateDoublesSketch) DoublesSketch.builder().setK(k).build(seg);
+    assertTrue(duds.isSameResource(seg));
+    final DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cseg);
+    assertTrue(dcds.isSameResource(cseg));
 
-    UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
-    assertFalse(uds.isSameResource(mem));
+    final UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
+    assertFalse(uds.isSameResource(seg));
   }
 
   @Test
   public void checkEmptyExceptions() {
-    int k = 16;
-    UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
-    try { uds.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { uds.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { uds.getRank(1.0); fail(); } catch (IllegalArgumentException e) {}
-    try { uds.getPMF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
-    try { uds.getCDF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
+    final int k = 16;
+    final UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
+    try { uds.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { uds.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { uds.getRank(1.0); fail(); } catch (final IllegalArgumentException e) {}
+    try { uds.getPMF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (final IllegalArgumentException e) {}
+    try { uds.getCDF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (final IllegalArgumentException e) {}
   }
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-    WritableMemory wmem = WritableMemory.allocateDirect(1000, Arena.ofConfined());
-    WritableMemory wmem2 = wmem;
-    UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
-    Assert.assertTrue(sketch.isSameResource(wmem));
+    final Arena arena = Arena.ofConfined();
+    final MemorySegment wseg = arena.allocate(1000);
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build(wseg);
+    Assert.assertTrue(sketch.isSameResource(wseg));
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    Assert.assertFalse(sketch.isSameResource(wmem));
-    Assert.assertFalse(wmem2.isAlive());
+    Assert.assertFalse(sketch.isSameResource(wseg));
+    arena.close();
+    Assert.assertFalse(wseg.scope().isAlive());
   }
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
+    final Arena arena = Arena.ofConfined();
     int i = 0;
-    WritableMemory wmem = WritableMemory.allocateDirect(50, Arena.ofConfined());
-    WritableMemory wmem2 = wmem;
-    UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
-    Assert.assertTrue(sketch.isSameResource(wmem));
+    final MemorySegment wseg = arena.allocate(50);
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build(wseg);
+    Assert.assertTrue(sketch.isSameResource(wseg));
     for (; i < 1000; i++) {
-      if (sketch.isSameResource(wmem)) {
+      if (sketch.isSameResource(wseg)) {
         sketch.update(i);
       } else {
         //println("MOVED OUT at i = " + i);
         break;
       }
     }
-    Assert.assertFalse(wmem2.isAlive());
+    arena.close();
+    Assert.assertFalse(wseg.scope().isAlive());
   }
 
   @Test
   public void checkEmptyDirect() {
     try (Arena arena = Arena.ofConfined()) {
-       WritableMemory wmem = WritableMemory.allocateDirect(1000, Arena.ofConfined());
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build(wmem);
+       final MemorySegment wseg = arena.allocate(1000);
+      final UpdateDoublesSketch sketch = DoublesSketch.builder().build(wseg);
       sketch.toByteArray(); //exercises a specific path
     } catch (final Exception e) {
       throw new RuntimeException(e);
@@ -212,9 +214,9 @@ public class DoublesSketchTest {
     final double eps = sk.getNormalizedRankError(false);
     println("" + (2 * eps));
     for (int i = 1; i <= 10000; i++) { sk.update(i); }
-    double rlb = sk.getRankLowerBound(.5);
+    final double rlb = sk.getRankLowerBound(.5);
     println(.5 - rlb);
-    assertTrue(.5 - rlb <= 2* eps);
+    assertTrue((.5 - rlb) <= (2* eps));
   }
 
   @Test
@@ -223,9 +225,9 @@ public class DoublesSketchTest {
     final double eps = sk.getNormalizedRankError(false);
     println(""+ (2 * eps));
     for (int i = 1; i <= 10000; i++) { sk.update(i); }
-    double rub = sk.getRankUpperBound(.5);
+    final double rub = sk.getRankUpperBound(.5);
     println(rub -.5);
-    assertTrue(rub -.5 <= 2 * eps);
+    assertTrue((rub -.5) <= (2 * eps));
   }
 
   @Test
@@ -245,7 +247,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkToStringHeap() {
-    DoublesSketch sk = DoublesSketch.builder().setK(8).build();
+    final DoublesSketch sk = DoublesSketch.builder().setK(8).build();
     final int n = 32;
     for (int i = 1; i <= n; i++) {
       final double item = i;

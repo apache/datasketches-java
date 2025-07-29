@@ -354,13 +354,13 @@ final class KllHelper {
       + (newItemsArrLen * typeBytes);
 
     if (requiredSketchBytes > oldWseg.byteSize()) { //Acquire new larger MemorySegment
-      MemorySegmentRequest memSegReq = sketch.getMemorySegmentRequest();
-      if (memSegReq == null) {
-        memSegReq = MemorySegmentRequest.DEFAULT;
+      MemorySegmentRequest mSegReq = sketch.getMemorySegmentRequest();
+      if (mSegReq == null) {
+        mSegReq = MemorySegmentRequest.DEFAULT;
       }
-      final MemorySegment newSeg = memSegReq.request(oldWseg, requiredSketchBytes);
+      final MemorySegment newSeg = mSegReq.request(oldWseg, requiredSketchBytes);
       MemorySegment.copy(oldWseg, 0, newSeg, 0, DATA_START_ADR); //copy preamble (first 20 bytes)
-      memSegReq.requestClose(oldWseg);
+      mSegReq.requestClose(oldWseg);
       return newSeg;
     }
     //Expand in current MemorySegment

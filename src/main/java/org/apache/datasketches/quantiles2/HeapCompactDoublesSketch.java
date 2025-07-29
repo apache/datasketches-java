@@ -175,15 +175,15 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer(flags, serVer, preLongs);
     ClassicUtil.checkFamilyID(familyID);
 
-    final HeapCompactDoublesSketch hds = new HeapCompactDoublesSketch(k); //checks k
+    final HeapCompactDoublesSketch hcds = new HeapCompactDoublesSketch(k); //checks k
     if (empty) {
-      hds.n_ = 0;
-      hds.combinedBuffer_ = null;
-      hds.baseBufferCount_ = 0;
-      hds.bitPattern_ = 0;
-      hds.minItem_ = Double.NaN;
-      hds.maxItem_ = Double.NaN;
-      return hds;
+      hcds.n_ = 0;
+      hcds.combinedBuffer_ = null;
+      hcds.baseBufferCount_ = 0;
+      hcds.bitPattern_ = 0;
+      hcds.minItem_ = Double.NaN;
+      hcds.maxItem_ = Double.NaN;
+      return hcds;
     }
 
     //Not empty, must have valid preamble + min, max, n.
@@ -193,16 +193,16 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     HeapUpdateDoublesSketch.checkHeapSegCapacity(k, n, srcIsCompact, serVer, segCapBytes);
 
     //set class members by computing them
-    hds.n_ = n;
-    hds.baseBufferCount_ = computeBaseBufferItems(k, n);
-    hds.bitPattern_ = computeBitPattern(k, n);
-    hds.minItem_ = srcSeg.get(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE);
-    hds.maxItem_ = srcSeg.get(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE);
+    hcds.n_ = n;
+    hcds.baseBufferCount_ = computeBaseBufferItems(k, n);
+    hcds.bitPattern_ = computeBitPattern(k, n);
+    hcds.minItem_ = srcSeg.get(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE);
+    hcds.maxItem_ = srcSeg.get(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE);
 
     final int totItems = ClassicUtil.computeRetainedItems(k, n);
-    hds.srcMemoryToCombinedBuffer(srcSeg, serVer, srcIsCompact, totItems);
+    hcds.srcMemorySegmentToCombinedBuffer(srcSeg, serVer, srcIsCompact, totItems);
 
-    return hds;
+    return hcds;
   }
 
   @Override
@@ -245,7 +245,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
    * @param srcIsCompact true if the given source MemorySegment is in compact form
    * @param combBufCap total items for the combined buffer (size in doubles)
    */
-  private void srcMemoryToCombinedBuffer(final MemorySegment srcSeg, final int serVer,
+  private void srcMemorySegmentToCombinedBuffer(final MemorySegment srcSeg, final int serVer,
                                          final boolean srcIsCompact, final int combBufCap) {
     final int preLongs = 2;
     final int extra = (serVer == 1) ? 3 : 2; // space for min and max quantiles, buf alloc (SerVer 1)

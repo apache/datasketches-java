@@ -44,11 +44,11 @@ public class DirectUpdateDoublesSketchTest {
 
   @Test
   public void checkSmallMinMax () {
-    int k = 32;
-    int n = 8;
-    UpdateDoublesSketch qs1 = buildDQS(k, n);
-    UpdateDoublesSketch qs2 = buildDQS(k, n);
-    UpdateDoublesSketch qs3 = buildDQS(k, n);
+    final int k = 32;
+    final int n = 8;
+    final UpdateDoublesSketch qs1 = buildDQS(k, n);
+    final UpdateDoublesSketch qs2 = buildDQS(k, n);
+    final UpdateDoublesSketch qs3 = buildDQS(k, n);
 
     for (int i = n; i >= 1; i--) {
       qs1.update(i);
@@ -67,34 +67,34 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(qs3.getQuantile (0.5, EXCLUSIVE), 5.0);
     assertEquals(qs3.getQuantile (1.0, EXCLUSIVE), 8.0);
 
-    double[] queries = {0.0, 0.5, 1.0};
+    final double[] queries = {0.0, 0.5, 1.0};
 
-    double[] resultsA = qs1.getQuantiles(queries, EXCLUSIVE);
+    final double[] resultsA = qs1.getQuantiles(queries, EXCLUSIVE);
     assertEquals(resultsA[0], 1.0);
     assertEquals(resultsA[1], 5.0);
     assertEquals(resultsA[2], 8.0);
 
-    DoublesUnion union1 = DoublesUnion.heapify(qs1);
+    final DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.union(qs2);
-    DoublesSketch result1 = union1.getResult();
+    final DoublesSketch result1 = union1.getResult();
 
-    DoublesUnion union2 = DoublesUnion.heapify(qs2);
+    final DoublesUnion union2 = DoublesUnion.heapify(qs2);
     union2.union(qs3);
-    DoublesSketch result2 = union2.getResult();
+    final DoublesSketch result2 = union2.getResult();
 
-    double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
+    final double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
     printResults(resultsB);
     assertEquals(resultsB[0], 1.0);
     assertEquals(resultsB[1], 11.0);
     assertEquals(resultsB[2], 18.0);
 
-    double[] resultsC = result2.getQuantiles(queries, EXCLUSIVE);
+    final double[] resultsC = result2.getQuantiles(queries, EXCLUSIVE);
     assertEquals(resultsC[0], 1.0);
     assertEquals(resultsC[1], 11.0);
     assertEquals(resultsC[2], 18.0);
   }
 
-  static void printResults(double[] results) {
+  static void printResults(final double[] results) {
     println(results[0] + ", " + results[1] + ", " + results[2]);
   }
 
@@ -110,7 +110,7 @@ public class DirectUpdateDoublesSketchTest {
     assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMinItem()));
     assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMaxItem()));
 
-    s2.reset(); // empty: so should be a no-op
+    s2.reset();
     assertEquals(s2.getN(), 0);
   }
 
@@ -143,9 +143,9 @@ public class DirectUpdateDoublesSketchTest {
 
   @Test
   public void checkMisc() {
-    int k = PreambleUtil.DEFAULT_K;
-    int n = 48;
-    int cap = 32 + ((2 * k) << 3);
+    final int k = PreambleUtil.DEFAULT_K;
+    final int n = 48;
+    final int cap = 32 + ((2 * k) << 3);
     WritableMemory mem = WritableMemory.writableWrap(new byte[cap]);
     UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build(mem);
     mem = qs.getMemory();
@@ -154,7 +154,7 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(combBuf.length, 2 * k);
     qs = buildAndLoadDQS(k, n);
     qs.update(Double.NaN);
-    int n2 = (int)qs.getN();
+    final int n2 = (int)qs.getN();
     assertEquals(n2, n);
     combBuf = qs.getCombinedBuffer();
     assertEquals(combBuf.length, ceilingPowerOf2(n)); // since n < k
@@ -167,33 +167,33 @@ public class DirectUpdateDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test
   public void variousExceptions() {
-    WritableMemory mem = WritableMemory.writableWrap(new byte[8]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[8]);
     try {
-      int flags = PreambleUtil.COMPACT_FLAG_MASK;
+      final int flags = PreambleUtil.COMPACT_FLAG_MASK;
       DirectUpdateDoublesSketchR.checkCompact(2, 0);
       fail();
-    } catch (SketchesArgumentException e) {} //OK
+    } catch (final SketchesArgumentException e) {} //OK
     try {
-      int flags = PreambleUtil.COMPACT_FLAG_MASK;
+      final int flags = PreambleUtil.COMPACT_FLAG_MASK;
       DirectUpdateDoublesSketchR.checkCompact(3, flags);
       fail();
-    } catch (SketchesArgumentException e) {} //OK
+    } catch (final SketchesArgumentException e) {} //OK
     try {
       DirectUpdateDoublesSketchR.checkPreLongs(3);
       fail();
-    } catch (SketchesArgumentException e) {} //OK
+    } catch (final SketchesArgumentException e) {} //OK
     try {
       DirectUpdateDoublesSketchR.checkPreLongs(0);
       fail();
-    } catch (SketchesArgumentException e) {} //OK
+    } catch (final SketchesArgumentException e) {} //OK
     try {
       DirectUpdateDoublesSketchR.checkDirectFlags(PreambleUtil.COMPACT_FLAG_MASK);
       fail();
-    } catch (SketchesArgumentException e) {} //OK
+    } catch (final SketchesArgumentException e) {} //OK
     try {
       DirectUpdateDoublesSketchR.checkEmptyAndN(true, 1);
       fail();
-    } catch (SketchesArgumentException e) {} //OK
+    } catch (final SketchesArgumentException e) {} //OK
   }
 
   @Test
@@ -213,14 +213,14 @@ public class DirectUpdateDoublesSketchTest {
 
   @Test
   public void serializeDeserialize() {
-    int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000);
-    WritableMemory mem = WritableMemory.writableWrap(new byte[sizeBytes]);
-    UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(mem);
+    final int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[sizeBytes]);
+    final UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(mem);
     for (int i = 0; i < 1000; i++) {
       sketch1.update(i);
     }
 
-    UpdateDoublesSketch sketch2 = UpdateDoublesSketch.wrap(mem);
+    final UpdateDoublesSketch sketch2 = UpdateDoublesSketch.wrap(mem);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
@@ -228,9 +228,9 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(sketch2.getMaxItem(), 1999.0);
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
 
-    byte[] arr2 = sketch2.toByteArray(false);
+    final byte[] arr2 = sketch2.toByteArray(false);
     assertEquals(arr2.length, sketch2.getSerializedSizeBytes());
-    DoublesSketch sketch3 = DoublesSketch.wrap(WritableMemory.writableWrap(arr2));
+    final DoublesSketch sketch3 = DoublesSketch.wrap(WritableMemory.writableWrap(arr2));
     assertEquals(sketch3.getMinItem(), 0.0);
     assertEquals(sketch3.getMaxItem(), 1999.0);
     assertEquals(sketch3.getQuantile(0.5), 1000.0, 10.0);
@@ -238,13 +238,13 @@ public class DirectUpdateDoublesSketchTest {
 
   @Test
   public void mergeTest() {
-    DoublesSketch dqs1 = buildAndLoadDQS(128, 256);
-    DoublesSketch dqs2 = buildAndLoadDQS(128, 256, 256);
-    DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
+    final DoublesSketch dqs1 = buildAndLoadDQS(128, 256);
+    final DoublesSketch dqs2 = buildAndLoadDQS(128, 256, 256);
+    final DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
     union.union(dqs1);
     union.union(dqs2);
-    DoublesSketch result = union.getResult();
-    double median = result.getQuantile(0.5);
+    final DoublesSketch result = union.getResult();
+    final double median = result.getQuantile(0.5);
     println("Median: " + median);
     assertEquals(median, 258.0, .05 * 258);
   }
@@ -289,25 +289,24 @@ public class DirectUpdateDoublesSketchTest {
     }
   }
 
-  static UpdateDoublesSketch buildAndLoadDQS(int k, int n) {
+  static UpdateDoublesSketch buildAndLoadDQS(final int k, final int n) {
     return buildAndLoadDQS(k, n, 0);
   }
 
-  static UpdateDoublesSketch buildAndLoadDQS(int k, long n, int startV) {
-    UpdateDoublesSketch qs = buildDQS(k, n);
+  static UpdateDoublesSketch buildAndLoadDQS(final int k, final long n, final int startV) {
+    final UpdateDoublesSketch qs = buildDQS(k, n);
     for (long i = 1; i <= n; i++) {
       qs.update(startV + i);
     }
     return qs;
   }
 
-  static UpdateDoublesSketch buildDQS(int k, long n) {
+  static UpdateDoublesSketch buildDQS(final int k, final long n) {
     int cap = DoublesSketch.getUpdatableStorageBytes(k, n);
     if (cap < (2 * k)) { cap = 2 * k; }
-    DoublesSketchBuilder bldr = new DoublesSketchBuilder();
+    final DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);
-    UpdateDoublesSketch dqs = bldr.build(WritableMemory.writableWrap(new byte[cap]));
-    return dqs;
+    return bldr.build(WritableMemory.writableWrap(new byte[cap]));
   }
 
   @Test
@@ -318,14 +317,14 @@ public class DirectUpdateDoublesSketchTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     print(s+LS);
   }
 
   /**
    * @param s value to print
    */
-  static void print(String s) {
+  static void print(final String s) {
     //System.err.print(s); //disable here
   }
 

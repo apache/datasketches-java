@@ -97,8 +97,7 @@ final class DoublesUtil {
     }
   }
 
-  static String toString(final boolean withLevels, final boolean withLevelsAndItems,
-      final DoublesSketch sk) {
+  static String toString(final boolean withLevels, final boolean withLevelsAndItems, final DoublesSketch sk) {
     final StringBuilder sb = new StringBuilder();
     sb.append(getSummary(sk));
     if (withLevels) {
@@ -131,13 +130,13 @@ final class DoublesUtil {
     final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
     final double eps =  getNormalizedRankError(k, false);
     final String epsPctStr = String.format("%.3f%%", eps * 100.0);
-    final String memCap = sk.hasMemorySegment() ? Long.toString(sk.getMemorySegment().byteSize()) : "";
+    final String segCap = sk.hasMemorySegment() ? Long.toString(sk.getMemorySegment().byteSize()) : "";
     final double minItem = sk.isEmpty() ? Double.NaN : sk.getMinItem();
     final double maxItem = sk.isEmpty() ? Double.NaN : sk.getMaxItem();
 
     sb.append(LS).append("### Classic Quantiles ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
     sb.append("    Empty                        : ").append(sk.isEmpty()).append(LS);
-    sb.append("    Memory, Capacity bytes       : ").append(sk.hasMemorySegment()).append(", ").append(memCap).append(LS);
+    sb.append("    Segment, Capacity bytes      : ").append(sk.hasMemorySegment()).append(", ").append(segCap).append(LS);
     sb.append("    Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
     sb.append("    K                            : ").append(kStr).append(LS);
     sb.append("    N                            : ").append(nStr).append(LS);
@@ -198,7 +197,8 @@ final class DoublesUtil {
       sb.append("    <NO DATA>").append(LS);
     } else {
       sb.append("  Index | Level | Valid | Item").append(LS);
-      for (int i = 0; i < combBufCap; i++) {
+      final int limit = Math.min(items.length, combBufCap);
+      for (int i = 0; i < limit; i++) {
         final int levelNum = getLevelNum(k, i);
         final String lvlStr = (levelNum == -1) ? "BB" : ("" + levelNum);
         final String validLvl = getValidFromIndex(levelNum, bitPattern, i, bbCount) ? "T" : "F";

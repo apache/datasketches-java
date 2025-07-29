@@ -151,11 +151,11 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   /**
    * Obtains a new instance of an ItemsSketch.
+   * @param <T> The sketch data type
    * @param clazz the given class of T
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @param comparator to compare items
-   * @param <T> The sketch data type
    * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
@@ -225,9 +225,9 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     sk.combinedBuffer_ = new Object[sk.combinedBufferItemCapacity_];
 
     final int srcSegItemsOffsetBytes = preambleLongs * Long.BYTES;
-    final MemorySegment mReg =
+    final MemorySegment slice =
         srcSeg.asSlice(srcSegItemsOffsetBytes, srcSeg.byteSize() - srcSegItemsOffsetBytes);
-    final T[] itemsArray = serDe.deserializeFromMemorySegment(mReg, 0, numSegItems);
+    final T[] itemsArray = serDe.deserializeFromMemorySegment(slice, 0, numSegItems);
     sk.itemsArrayToCombinedBuffer(itemsArray);
     return sk;
   }
@@ -518,7 +518,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param dstSeg the given MemorySegment.
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void putMemory(final MemorySegment dstSeg, final ArrayOfItemsSerDe2<T> serDe) {
+  public void putMemorySegment(final MemorySegment dstSeg, final ArrayOfItemsSerDe2<T> serDe) {
     final byte[] byteArr = toByteArray(serDe);
     final long segCap = dstSeg.byteSize();
     if (segCap < byteArr.length) {

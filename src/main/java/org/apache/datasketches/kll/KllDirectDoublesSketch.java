@@ -86,7 +86,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param m parameter that controls the minimum level width in items.
    * @param dstSeg the given destination MemorySegment object for use by the sketch
-   * @param memSegReq the callback for the sketch to request a larger MemorySegment.
+   * @param mSegReq the callback for the sketch to request a larger MemorySegment.
    * @return a new instance of this sketch
    */
   static KllDirectDoublesSketch newDirectUpdatableInstance(

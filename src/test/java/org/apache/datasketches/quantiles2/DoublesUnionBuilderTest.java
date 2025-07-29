@@ -22,33 +22,32 @@ package org.apache.datasketches.quantiles2;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
-import org.testng.annotations.Test;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 public class DoublesUnionBuilderTest {
 
   @Test
   public void checkBuilds() {
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
     for (int i=0; i<1000; i++) { qs1.update(i); }
 
-    int bytes = qs1.getCurrentCompactSerializedSizeBytes();
-    WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
-    qs1.putMemory(dstMem);
-    Memory srcMem = dstMem;
+    final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
+    final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes]);
+    qs1.putMemorySegment(dstSeg);
+    final MemorySegment srcSeg = dstSeg;
 
-    DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+    final DoublesUnionBuilder bldr = new DoublesUnionBuilder();
     bldr.setMaxK(128);
     DoublesUnion union = bldr.build(); //virgin union
 
-    union = DoublesUnion.heapify(srcMem);
-    DoublesSketch qs2 = union.getResult();
+    union = DoublesUnion.heapify(srcSeg);
+    final DoublesSketch qs2 = union.getResult();
     assertEquals(qs1.getCurrentCompactSerializedSizeBytes(), qs2.getCurrentCompactSerializedSizeBytes());
 
     union = DoublesUnion.heapify(qs2);
-    DoublesSketch qs3 = union.getResult();
+    final DoublesSketch qs3 = union.getResult();
     assertEquals(qs2.getCurrentCompactSerializedSizeBytes(), qs3.getCurrentCompactSerializedSizeBytes());
     assertFalse(qs2 == qs3);
   }
@@ -56,27 +55,27 @@ public class DoublesUnionBuilderTest {
 
 @Test
 public void checkDeprecated1() {
-  UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
+  final UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
   for (int i=0; i<1000; i++) {
     qs1.update(i);
   }
 
-  int bytes = qs1.getCurrentCompactSerializedSizeBytes();
-  WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
-  qs1.putMemory(dstMem);
-  Memory srcMem = dstMem;
+  final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
+  final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes]);
+  qs1.putMemorySegment(dstSeg);
+  final MemorySegment srcSeg = dstSeg;
 
-  DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+  final DoublesUnionBuilder bldr = new DoublesUnionBuilder();
   bldr.setMaxK(128);
   DoublesUnion union = bldr.build(); //virgin union
 
-  union = DoublesUnion.heapify(srcMem); //heapify
-  DoublesSketch qs2 = union.getResult();
+  union = DoublesUnion.heapify(srcSeg); //heapify
+  final DoublesSketch qs2 = union.getResult();
   assertEquals(qs1.getCurrentCompactSerializedSizeBytes(), qs2.getCurrentCompactSerializedSizeBytes());
   assertEquals(qs1.getCurrentUpdatableSerializedSizeBytes(), qs2.getCurrentUpdatableSerializedSizeBytes());
 
   union = DoublesUnion.heapify(qs2);  //heapify again
-  DoublesSketch qs3 = union.getResult();
+  final DoublesSketch qs3 = union.getResult();
   assertEquals(qs2.getCurrentCompactSerializedSizeBytes(), qs3.getCurrentCompactSerializedSizeBytes());
   assertEquals(qs2.getCurrentUpdatableSerializedSizeBytes(), qs3.getCurrentUpdatableSerializedSizeBytes());
   assertFalse(qs2 == qs3); //different objects
@@ -88,10 +87,10 @@ public void checkDeprecated1() {
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    //System.err.println(s); //disable here
+  static void println(final Object o) {
+    //System.err.println(o.toString()); //disable here
   }
 
 }

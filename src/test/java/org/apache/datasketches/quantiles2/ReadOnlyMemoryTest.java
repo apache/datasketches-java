@@ -21,25 +21,26 @@ package org.apache.datasketches.quantiles2;
 
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.memory.Memory;
 
 public class ReadOnlyMemoryTest {
 
   @Test
   public void wrapAndTryUpdatingSparseSketch() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final byte[] bytes = s1.toByteArray(false);
     Assert.assertEquals(bytes.length, 64); // 32 + MIN_K(=2) * 2 * 8 = 64
-    //final Memory mem = Memory.wrap(ByteBuffer.wrap(bytes)
+    //final MemorySegment seg = MemorySegment.ofArray(ByteBuffer.wrap(bytes)
     // .asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    final Memory mem = Memory.wrap(bytes);
-    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(mem);
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(seg);
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 2.0);
 
@@ -53,13 +54,13 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void wrapCompactSketch() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    //Memory mem = Memory.wrap(ByteBuffer.wrap(s1.compact().toByteArray())
+    //MemorySegment seg = MemorySegment.ofArray(ByteBuffer.wrap(s1.compact().toByteArray())
     // .asReadOnlyBuffer().order(ByteOrder.nativeOrder())););
-    final Memory mem = Memory.wrap(s1.compact().toByteArray());
-    final DoublesSketch s2 = DoublesSketch.wrap(mem); // compact, so this is ok
+    final MemorySegment seg = MemorySegment.ofArray(s1.compact().toByteArray());
+    final DoublesSketch s2 = DoublesSketch.wrap(seg); // compact, so this is ok
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 2.0);
     Assert.assertEquals(s2.getN(), 2);
@@ -67,22 +68,22 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void heapifySparseSketch() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    Memory mem = Memory.wrap(s1.toByteArray(false));
-    DoublesSketch s2 = DoublesSketch.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
+    final DoublesSketch s2 = DoublesSketch.heapify(seg);
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 2.0);
   }
 
   @Test
   public void heapifyAndUpdateSparseSketch() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    Memory mem = Memory.wrap(s1.toByteArray(false));
-    UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
+    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.heapify(seg);
     s2.update(3);
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 3.0);
@@ -90,11 +91,11 @@ public class ReadOnlyMemoryTest {
 
   @Test
   public void heapifyCompactSketch() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    Memory mem = Memory.wrap(s1.toByteArray(true));
-    DoublesSketch s2 = DoublesSketch.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
+    final DoublesSketch s2 = DoublesSketch.heapify(seg);
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 2.0);
   }
@@ -102,24 +103,24 @@ public class ReadOnlyMemoryTest {
   @Test
   public void heapifyEmptyUpdateSketch() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
-    final Memory mem = Memory.wrap(s1.toByteArray());
-    DoublesSketch s2 = DoublesSketch.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray());
+    final DoublesSketch s2 = DoublesSketch.heapify(seg);
     Assert.assertTrue(s2.isEmpty());
   }
 
   @Test
   public void heapifyEmptyCompactSketch() {
     final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
-    final Memory mem = Memory.wrap(s1.toByteArray());
-    DoublesSketch s2 = DoublesSketch.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray());
+    final DoublesSketch s2 = DoublesSketch.heapify(seg);
     Assert.assertTrue(s2.isEmpty());
   }
 
   @Test
   public void wrapEmptyUpdateSketch() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
-    final Memory mem = Memory.wrap(s1.toByteArray());
-    UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray());
+    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(seg);
     Assert.assertTrue(s2.isEmpty());
 
     // ensure the various put calls fail
@@ -184,45 +185,45 @@ public class ReadOnlyMemoryTest {
   @Test
   public void wrapEmptyCompactSketch() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
-    final Memory mem = Memory.wrap(s1.compact().toByteArray());
-    DoublesSketch s2 = DoublesSketch.wrap(mem); // compact, so this is ok
+    final MemorySegment seg = MemorySegment.ofArray(s1.compact().toByteArray());
+    final DoublesSketch s2 = DoublesSketch.wrap(seg); // compact, so this is ok
     Assert.assertTrue(s2.isEmpty());
   }
 
   @Test
   public void heapifyUnionFromSparse() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    Memory mem = Memory.wrap(s1.toByteArray(false));
-    DoublesUnion u = DoublesUnion.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
+    final DoublesUnion u = DoublesUnion.heapify(seg);
     u.update(3);
-    DoublesSketch s2 = u.getResult();
+    final DoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
   public void heapifyUnionFromCompact() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    Memory mem = Memory.wrap(s1.toByteArray(true));
-    DoublesUnion u = DoublesUnion.heapify(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
+    final DoublesUnion u = DoublesUnion.heapify(seg);
     u.update(3);
-    DoublesSketch s2 = u.getResult();
+    final DoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
   public void wrapUnionFromSparse() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    Memory mem = Memory.wrap(s1.toByteArray(false));
-    DoublesUnion u = DoublesUnion.wrap(mem);
-    DoublesSketch s2 = u.getResult();
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false)).asReadOnly();
+    final DoublesUnion u = DoublesUnion.wrap(seg);
+    final DoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 2.0);
 
@@ -230,46 +231,46 @@ public class ReadOnlyMemoryTest {
     try {
       u.update(3);
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final IllegalArgumentException e) {
       // expected
     }
 
     try {
       u.union(s2);
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final IllegalArgumentException e) {
       // expected
     }
 
     try {
-      u.union(mem);
+      u.union(seg);
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final IllegalArgumentException e) {
       // expected
     }
 
     try {
       u.reset();
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final IllegalArgumentException e) {
       // expected
     }
 
     try {
       u.getResultAndReset();
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final AssertionError e) { //null
       // expected
     }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrapUnionFromCompact() {
-    UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    Memory mem = Memory.wrap(s1.toByteArray(true));
-    DoublesUnion.wrap(mem);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
+    DoublesUnion.wrap(seg);
     fail();
   }
 

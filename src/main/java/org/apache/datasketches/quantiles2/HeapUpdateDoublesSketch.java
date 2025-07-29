@@ -109,15 +109,15 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    * @return a HeapUpdateDoublesSketch
    */
   static HeapUpdateDoublesSketch newInstance(final int k) {
-    final HeapUpdateDoublesSketch hqs = new HeapUpdateDoublesSketch(k);
+    final HeapUpdateDoublesSketch huds = new HeapUpdateDoublesSketch(k);
     final int baseBufAlloc = 2 * Math.min(MIN_K, k); //the min is important
-    hqs.n_ = 0;
-    hqs.combinedBuffer_ = new double[baseBufAlloc];
-    hqs.baseBufferCount_ = 0;
-    hqs.bitPattern_ = 0;
-    hqs.minItem_ = Double.NaN;
-    hqs.maxItem_ = Double.NaN;
-    return hqs;
+    huds.n_ = 0;
+    huds.combinedBuffer_ = new double[baseBufAlloc];
+    huds.baseBufferCount_ = 0;
+    huds.bitPattern_ = 0;
+    huds.minItem_ = Double.NaN;
+    huds.maxItem_ = Double.NaN;
+    return huds;
   }
 
   /**
@@ -147,8 +147,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     checkPreLongsFlagsSerVer(flags, serVer, preLongs);
     checkFamilyID(familyID);
 
-    final HeapUpdateDoublesSketch hds = newInstance(k); //checks k
-    if (empty) { return hds; }
+    final HeapUpdateDoublesSketch huds = newInstance(k); //checks k
+    if (empty) { return huds; }
 
     //Not empty, must have valid preamble + min, max, n.
     //Forward compatibility from SerVer = 1 :
@@ -157,13 +157,13 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     checkHeapSegCapacity(k, n, srcIsCompact, serVer, segCapBytes);
 
     //set class members by computing them
-    hds.n_ = n;
+    huds.n_ = n;
     final int combBufCap = computeCombinedBufferItemCapacity(k, n);
-    hds.baseBufferCount_ = computeBaseBufferItems(k, n);
-    hds.bitPattern_ = computeBitPattern(k, n);
+    huds.baseBufferCount_ = computeBaseBufferItems(k, n);
+    huds.bitPattern_ = computeBitPattern(k, n);
     //Extract min, max, data from srcSeg into Combined Buffer
-    hds.srcMemoryToCombinedBuffer(srcSeg, serVer, srcIsCompact, combBufCap);
-    return hds;
+    huds.srcMemorySegmentToCombinedBuffer(srcSeg, serVer, srcIsCompact, combBufCap);
+    return huds;
   }
 
   @Override
@@ -285,7 +285,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    * @param srcIsCompact true if the given source MemorySegment is in compact form
    * @param combBufCap total items for the combined buffer (size in doubles)
    */
-  private void srcMemoryToCombinedBuffer(final MemorySegment srcSeg, final int serVer,
+  private void srcMemorySegmentToCombinedBuffer(final MemorySegment srcSeg, final int serVer,
                                          final boolean srcIsCompact, final int combBufCap) {
     final int preLongs = 2;
     final int extra = (serVer == 1) ? 3 : 2; // space for min and max quantiles, buf alloc (SerVer 1)

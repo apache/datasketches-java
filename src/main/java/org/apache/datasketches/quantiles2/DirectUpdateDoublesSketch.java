@@ -51,7 +51,6 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentRequest;
-import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * Implements the DoublesSketch off-heap.
@@ -61,23 +60,24 @@ import org.apache.datasketches.common.SketchesArgumentException;
  *
  */
 final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
-  MemorySegmentRequest memSegReq = null;
+  private MemorySegmentRequest mSegReq = null;
 
-  private DirectUpdateDoublesSketch(final int k) {
-    super(k); //Checks k
+  private DirectUpdateDoublesSketch(final int k, final MemorySegment seg, final MemorySegmentRequest mSegReq) {
+    super(k, seg); //Checks k
+    this.mSegReq = mSegReq;
   }
 
   /**
-   * Obtains a new Direct instance of a DoublesSketch, which may be off-heap.
+   * Creates a new Direct instance of a DoublesSketch, which may be off-heap.
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
    * @param dstSeg the destination MemorySegment that will be initialized to hold the data for this sketch.
    * It must initially be at least (16 * MIN_K + 32) bytes, where MIN_K defaults to 2. As it grows
-   * it will request more MemorySegment using the MemoryRequest callback.
+   * it will request more MemorySegment using the MemorySegmentRequest callback.
    * @return a DirectUpdateDoublesSketch
    */
-  static DirectUpdateDoublesSketch newInstance(final int k, final MemorySegment dstSeg) {
+  static DirectUpdateDoublesSketch newInstance(final int k, final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
     // must be able to hold at least an empty sketch
     final long segCap = dstSeg.byteSize();
     checkDirectSegCapacity(k, 0, segCap);
@@ -96,9 +96,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
       insertMaxDouble(dstSeg, Double.NaN);
     }
 
-    final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
-    dds.seg_ = dstSeg;
-    return dds;
+    return new DirectUpdateDoublesSketch(k, dstSeg, mSegReq);
   }
 
   /**
@@ -107,7 +105,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
    * @param srcSeg the given non-compact MemorySegment image of a DoublesSketch that may have data
    * @return a sketch that wraps the given srcSeg
    */
-  static DirectUpdateDoublesSketch wrapInstance(final MemorySegment srcSeg) {
+  static DirectUpdateDoublesSketch wrapInstance(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     final long segCap = srcSeg.byteSize();
 
     final int preLongs = extractPreLongs(srcSeg);
@@ -129,9 +127,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     checkDirectSegCapacity(k, n, segCap);
     checkEmptyAndN(empty, n);
 
-    final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
-    dds.seg_ = srcSeg;
-    return dds;
+    return new DirectUpdateDoublesSketch(k, srcSeg, mSegReq);
   }
 
   @Override
@@ -262,17 +258,11 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
     assert needBytes > segBytes;
 
-    memSegReq = (memSegReq == null) ? MemorySegmentRequest.DEFAULT : memSegReq;
-    if (memSegReq == null) {
-      throw new SketchesArgumentException(
-          "A request for more MemorySegment has been denied, "
-          + "or a default MemoryRequestServer has not been provided. Must abort. ");
-    }
+    mSegReq = (mSegReq == null) ? MemorySegmentRequest.DEFAULT : mSegReq;
 
-    final MemorySegment newSeg = memSegReq.request(seg_, needBytes);
+    final MemorySegment newSeg = mSegReq.request(seg_, needBytes);
     MemorySegment.copy(seg_, 0, newSeg, 0, segBytes);
-    memSegReq.requestClose(seg_);
-
+    mSegReq.requestClose(seg_);
     return newSeg;
   }
 }

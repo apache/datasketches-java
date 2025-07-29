@@ -95,11 +95,11 @@ class DoublesUnionImplR extends DoublesUnion {
       if (segCapBytes < DoublesSketch.getUpdatableStorageBytes(0, 0)) {
         throw new SketchesArgumentException("Insufficient capacity for result: " + segCapBytes);
       }
-      return DirectUpdateDoublesSketch.newInstance(maxK_, dstSeg);
+      return DirectUpdateDoublesSketch.newInstance(maxK_, dstSeg, null);
     }
 
-    gadget_.putMemory(dstSeg, false);
-    return DirectUpdateDoublesSketch.wrapInstance(dstSeg);
+    gadget_.putMemorySegment(dstSeg, false);
+    return DirectUpdateDoublesSketch.wrapInstance(dstSeg, null);
   }
 
   @Override

@@ -56,12 +56,12 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
    * different <i>k</i>.
-   * @param dstMem the MemorySegment to be used by the sketch
+   * @param dstSeg the MemorySegment to be used by the sketch
    * @return a DoublesUnion object
    */
-  static DoublesUnionImpl directInstance(final int maxK, final MemorySegment dstMem) {
-    Objects.requireNonNull(dstMem);
-    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstMem);
+  static DoublesUnionImpl directInstance(final int maxK, final MemorySegment dstSeg) {
+    Objects.requireNonNull(dstSeg);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstSeg, null);
     final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
     union.maxK_ = maxK;
     union.gadget_ = sketch;
@@ -86,16 +86,16 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
 
   /**
    * Returns a Heap DoublesUnion object that has been initialized with the data from the given
-   * MemorySegment image of a DoublesSketch. The srcMem object will not be modified and a reference to
+   * MemorySegment image of a DoublesSketch. The srcSeg object will not be modified and a reference to
    * it is not retained. The <i>maxK</i> of the resulting union will be that obtained from
    * the sketch MemorySegment image.
    *
-   * @param srcMem a MemorySegment image of a quantiles DoublesSketch
+   * @param srcSeg a MemorySegment image of a quantiles DoublesSketch
    * @return a DoublesUnion object
    */
-  static DoublesUnionImpl heapifyInstance(final MemorySegment srcMem) {
-    Objects.requireNonNull(srcMem);
-    final HeapUpdateDoublesSketch sketch = HeapUpdateDoublesSketch.heapifyInstance(srcMem);
+  static DoublesUnionImpl heapifyInstance(final MemorySegment srcSeg) {
+    Objects.requireNonNull(srcSeg);
+    final HeapUpdateDoublesSketch sketch = HeapUpdateDoublesSketch.heapifyInstance(srcSeg);
     final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
     return union;
@@ -105,13 +105,13 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * Returns an updatable Union object that wraps off-heap data structure of the given MemorySegment
    * image of a non-compact DoublesSketch. The data structures of the Union remain off-heap.
    *
-   * @param mem A MemorySegment image of a non-compact DoublesSketch to be used as the data
+   * @param seg A MemorySegment image of a non-compact DoublesSketch to be used as the data
    * structure for the union and will be modified.
    * @return a Union object
    */
-  static DoublesUnionImpl wrapInstance(final MemorySegment mem) {
-    Objects.requireNonNull(mem);
-    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(mem);
+  static DoublesUnionImpl wrapInstance(final MemorySegment seg) {
+    Objects.requireNonNull(seg);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(seg, null);
     final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
     return union;
@@ -125,9 +125,9 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
   }
 
   @Override
-  public void union(final MemorySegment mem) {
-    Objects.requireNonNull(mem);
-    gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(mem));
+  public void union(final MemorySegment seg) {
+    Objects.requireNonNull(seg);
+    gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(seg));
     gadget_.doublesSV = null;
   }
 
@@ -150,7 +150,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
 
   @Override
   public void reset() {
-    gadget_ = null;
+    gadget_.reset();
   }
 
   //@formatter:off
@@ -189,7 +189,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
         }
         else { //myQS = null, other is est mode
           ret = (myMaxK < other.getK())
-              ? other.downSampleInternal(other, myMaxK, null) //null mem
+              ? other.downSampleInternal(other, myMaxK, null) //null seg
               : DoublesUtil.copyToHeap(other); //copy required because caller has handle
         }
         break;
@@ -209,9 +209,9 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
           ret = myQS;
         } else if (myQS.isEmpty()) {
           if (myQS.hasMemorySegment()) {
-            final MemorySegment mem = myQS.getMemorySegment(); //myQS is empty, ok to reconfigure
-            other.putMemory(mem, false); // not compact, but BB ordered
-            ret = DirectUpdateDoublesSketch.wrapInstance(mem);
+            final MemorySegment seg = myQS.getMemorySegment(); //myQS is empty, ok to reconfigure
+            other.putMemorySegment(seg, false); // not compact, but BB ordered
+            ret = DirectUpdateDoublesSketch.wrapInstance(seg, null);
           } else { //myQS is empty and on heap
             ret = DoublesUtil.copyToHeap(other);
           }

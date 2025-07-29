@@ -26,7 +26,7 @@ import static java.lang.System.arraycopy;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.quantiles2.ClassicUtil.MAX_PRELONGS;
 import static org.apache.datasketches.quantiles2.ClassicUtil.MIN_K;
-import static org.apache.datasketches.quantiles2.ClassicUtil.checkIsCompactMemory;
+import static org.apache.datasketches.quantiles2.ClassicUtil.checkIsMemorySegmentCompact;
 import static org.apache.datasketches.quantiles2.ClassicUtil.checkK;
 import static org.apache.datasketches.quantiles2.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles2.ClassicUtil.computeRetainedItems;
@@ -101,6 +101,7 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * @see QuantilesAPI
  */
 public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmentStatus {
+
   /**
    * Setting the seed makes the results of the sketch deterministic if the input quantiles are
    * received in exactly the same order. This is only useful when performing test comparisons,
@@ -113,6 +114,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    */
   final int k_;
 
+  /**
+   * holder for SortedView
+   */
   DoublesSketchSortedView doublesSV = null;
 
   DoublesSketch(final int k) {
@@ -139,10 +143,10 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @return a heap-based Sketch based on the given MemorySegment
    */
   public static DoublesSketch heapify(final MemorySegment srcSeg) {
-    if (checkIsCompactMemory(srcSeg)) {
+    if (checkIsMemorySegmentCompact(srcSeg)) {
       return HeapCompactDoublesSketch.heapifyInstance(srcSeg);
     }
-    return UpdateDoublesSketch.heapify(srcSeg);
+    return HeapUpdateDoublesSketch.heapifyInstance(srcSeg);
   }
 
   /**
@@ -154,7 +158,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @return a sketch that wraps the given srcSeg
    */
   public static DoublesSketch wrap(final MemorySegment srcSeg) {
-    if (checkIsCompactMemory(srcSeg)) {
+    if (checkIsMemorySegmentCompact(srcSeg)) {
       return DirectCompactDoublesSketch.wrapInstance(srcSeg);
     }
     return DirectUpdateDoublesSketchR.wrapInstance(srcSeg);
@@ -462,8 +466,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    *
    * @param dstSeg the given MemorySegment.
    */
-  public void putMemory(final MemorySegment dstSeg) {
-    putMemory(dstSeg, true);
+  public void putMemorySegment(final MemorySegment dstSeg) {
+    putMemorySegment(dstSeg, true);
   }
 
   /**
@@ -474,7 +478,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @param compact if true, compacts and sorts the base buffer, which optimizes merge
    *                performance at the cost of slightly increased serialization time.
    */
-  public void putMemory(final MemorySegment dstSeg, final boolean compact) {
+  public void putMemorySegment(final MemorySegment dstSeg, final boolean compact) {
     if (hasMemorySegment() && (isCompact() == compact)) {
       final MemorySegment srcSeg = getMemorySegment();
       MemorySegment.copy(srcSeg, 0, dstSeg, 0, getSerializedSizeBytes());
@@ -515,7 +519,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
                                          final MemorySegment dstSeg) {
     final UpdateDoublesSketch newSketch = dstSeg == null
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
-            : DirectUpdateDoublesSketch.newInstance(smallerK, dstSeg);
+            : DirectUpdateDoublesSketch.newInstance(smallerK, dstSeg, null);
     if (srcSketch.isEmpty()) { return newSketch; }
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;

@@ -19,17 +19,17 @@
 
 package org.apache.datasketches.quantiles2;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfDoublesSerDe;
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.common.ArrayOfDoublesSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe2;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class SerDeCompatibilityTest {
 
-  private static final ArrayOfItemsSerDe<Double> serDe = new ArrayOfDoublesSerDe();
+  private static final ArrayOfItemsSerDe2<Double> serDe = new ArrayOfDoublesSerDe2();
 
   @Test
   public void itemsToDoubles() {
@@ -38,7 +38,7 @@ public class SerDeCompatibilityTest {
 
     final byte[] bytes = sketch1.toByteArray(serDe);
     final UpdateDoublesSketch sketch2;
-    sketch2 = UpdateDoublesSketch.heapify(Memory.wrap(bytes));
+    sketch2 = UpdateDoublesSketch.heapify(MemorySegment.ofArray(bytes));
 
     for (int i = 501; i <= 1000; i++) { sketch2.update(i); }
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -60,7 +60,7 @@ public class SerDeCompatibilityTest {
     final byte[] bytes = cs.toByteArray(); // must be compact
 
     //reconstruct with ItemsSketch
-    final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Double.class, Memory.wrap(bytes),
+    final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Double.class, MemorySegment.ofArray(bytes),
         Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) { sketch2.update((double) i); }

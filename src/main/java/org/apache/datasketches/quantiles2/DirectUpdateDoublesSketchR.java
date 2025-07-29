@@ -55,8 +55,9 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   MemorySegment seg_;
 
   //**CONSTRUCTORS**********************************************************
-  DirectUpdateDoublesSketchR(final int k) {
+  DirectUpdateDoublesSketchR(final int k, final MemorySegment seg) {
     super(k); //Checks k
+    seg_ = seg;
   }
 
   /**
@@ -87,9 +88,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     checkDirectSegCapacity(k, n, segCap);
     checkEmptyAndN(empty, n);
 
-    final DirectUpdateDoublesSketchR dds = new DirectUpdateDoublesSketchR(k);
-    dds.seg_ = srcSeg;
-    return dds;
+    return new DirectUpdateDoublesSketchR(k, srcSeg);
   }
 
   @Override
