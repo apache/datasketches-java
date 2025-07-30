@@ -383,23 +383,22 @@ public class ItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep1() {
-    final MemorySegment mem = MemorySegment.ofArray(new byte[4]);
-    ItemsSketch.getInstance(String.class, mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(new byte[4]);
+    ItemsSketch.getInstance(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep2() {
-    final MemorySegment mem = MemorySegment.ofArray(new byte[8]);
-    ItemsSketch.getInstance(String.class, mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(new byte[8]);
+    ItemsSketch.getInstance(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
   @Test
   public void checkGoodSerDeId() {
     final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, Comparator.naturalOrder());
     final byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
-    final MemorySegment mem = MemorySegment.ofArray(byteArr);
-    //println(PreambleUtil.toString(mem));
-    ItemsSketch.getInstance(String.class, mem, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    ItemsSketch.getInstance(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
   @Test
@@ -451,8 +450,8 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     final byte[] byteArr = new byte[200];
-    final MemorySegment mem = MemorySegment.ofArray(byteArr);
-    sketch.putMemorySegment(mem, new ArrayOfStringsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    sketch.putMemorySegment(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -462,8 +461,8 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     final byte[] byteArr = new byte[100];
-    final MemorySegment mem = MemorySegment.ofArray(byteArr);
-    sketch.putMemorySegment(mem, new ArrayOfStringsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    sketch.putMemorySegment(seg, new ArrayOfStringsSerDe());
   }
 
   @Test
@@ -558,22 +557,22 @@ public class ItemsSketchTest {
   private static void checkToFromByteArray2(final int k, final int n) {
     final ItemsSketch<String> is = buildStringIS(k, n);
     byte[] byteArr;
-    MemorySegment mem;
+    MemorySegment seg;
     ItemsSketch<String> is2;
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
     //ordered
     byteArr = is.toByteArray(true, serDe);
-    mem = MemorySegment.ofArray(byteArr);
-    is2 = ItemsSketch.getInstance(String.class, mem, Comparator.naturalOrder(), serDe);
+    seg = MemorySegment.ofArray(byteArr);
+    is2 = ItemsSketch.getInstance(String.class, seg, Comparator.naturalOrder(), serDe);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));
     }
 
     //Not-ordered
     byteArr = is.toByteArray(false, serDe);
-    mem = MemorySegment.ofArray(byteArr);
-    is2 = ItemsSketch.getInstance(String.class, mem, Comparator.naturalOrder(), serDe);
+    seg = MemorySegment.ofArray(byteArr);
+    is2 = ItemsSketch.getInstance(String.class, seg, Comparator.naturalOrder(), serDe);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));
     }

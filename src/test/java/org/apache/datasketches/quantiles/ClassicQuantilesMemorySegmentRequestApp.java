@@ -28,11 +28,11 @@ public class ClassicQuantilesMemorySegmentRequestApp {
     final MemorySegment seg = arena.allocate(initalBytes);
 
     //Use the custom extension of the MemorySegmentRequest interface.
-    final MemorySegmentRequestExtension memSegReqExt = new MemorySegmentRequestExtension();
+    final MemorySegmentRequestExtension mSegReqExt = new MemorySegmentRequestExtension();
 
     //Create a new KllLongsSketch and pass the custom extension
     final DoublesSketchBuilder bldr = DoublesSketch.builder().setK(k);
-    final DoublesSketch sk = bldr.build(seg, memSegReqExt);
+    final DoublesSketch sk = bldr.build(seg, mSegReqExt);
 
     //Update the sketch with way more data than the original MemorySegment can handle, forcing it to request larger MemorySegments.
     for (int n = 1; n <= itemsIn; n++) {
@@ -48,7 +48,7 @@ public class ClassicQuantilesMemorySegmentRequestApp {
     assertFalse(sk.getMemorySegment().equals(seg));
 
     //All done with the sketch. Cleanup any unclosed off-heap MemorySegments.
-    memSegReqExt.cleanup();
+    mSegReqExt.cleanup();
 
     //Close the original off-heap allocated MemorySegment.
     arena.close();

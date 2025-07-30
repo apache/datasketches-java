@@ -235,7 +235,7 @@ final class CouponHashMap extends Map {
   }
 
   @Override
-  long getMemoryUsageBytes() {
+  long getTotalUsageBytes() {
     final long arrays = keysArr_.length
         + ((long) couponsArr_.length * Short.BYTES)
         + curCountsArr_.length

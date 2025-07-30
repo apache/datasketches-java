@@ -64,21 +64,21 @@ import org.apache.datasketches.common.SketchesArgumentException;
  */
 class KllDirectDoublesSketch extends KllDoublesSketch {
   private MemorySegment wseg;
-  private final MemorySegmentRequest memSegReq;
+  private final MemorySegmentRequest mSegReq;
 
   /**
    * Constructs from MemorySegment or MemorySegment already initialized with a sketch image and validated.
-   * @param sketchStructure the given structure.
    * @param wseg the current MemorySegment
-   * @param segVal the MemoryValadate object
+   * @param segVal the MemorySegment Validate object
+   * @param mSegmentRequest the MemorySegmentRequest object.
    */
   KllDirectDoublesSketch(
       final MemorySegment wseg,
       final KllMemorySegmentValidate segVal,
-      final MemorySegmentRequest memSegReq) {
+      final MemorySegmentRequest mSegmentRequest) {
     super(segVal);
     this.wseg = wseg;
-    this.memSegReq = memSegReq;
+    mSegReq = mSegmentRequest;
   }
 
   /**
@@ -93,7 +93,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
       final int k,
       final int m,
       final MemorySegment dstSeg,
-      final MemorySegmentRequest memSegReq) {
+      final MemorySegmentRequest mSegmentRequest) {
     setMemorySegmentPreInts(dstSeg, UPDATABLE.getPreInts());
     setMemorySegmentSerVer(dstSeg, UPDATABLE.getSerVer());
     setMemorySegmentFamilyID(dstSeg, Family.KLL.getID());
@@ -113,7 +113,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     MemorySegment.copy(new double[k], 0, dstSeg, JAVA_DOUBLE_UNALIGNED, offset, k);
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, DOUBLES_SKETCH, null);
     final MemorySegment wSeg = dstSeg;
-    return new KllDirectDoublesSketch(wSeg, segVal, memSegReq);
+    return new KllDirectDoublesSketch(wSeg, segVal, mSegmentRequest);
   }
 
   //End of constructors
@@ -256,7 +256,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
 
   @Override
   MemorySegmentRequest getMemorySegmentRequest() {
-    return memSegReq;
+    return mSegReq;
   }
 
   @Override

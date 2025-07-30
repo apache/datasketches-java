@@ -126,7 +126,7 @@ abstract class Map {
 
   abstract int getCurrentCountEntries();
 
-  abstract long getMemoryUsageBytes();
+  abstract long getTotalUsageBytes();
 
   int getKeySizeBytes() {
     return keySizeBytes_;
@@ -239,7 +239,7 @@ abstract class Map {
     final String ae = Map.fmtLong(getActiveEntries());
     final String de = Map.fmtLong(getDeletedEntries());
     final String esb = Map.fmtDouble(getEntrySizeBytes());
-    final String mub = Map.fmtLong(getMemoryUsageBytes());
+    final String mub = Map.fmtLong(getTotalUsageBytes());
 
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = this.getClass().getSimpleName();

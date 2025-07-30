@@ -30,10 +30,10 @@ public class KllMemorySegmentRequestApp {
     final MemorySegment seg = arena.allocate(numBytes);
 
     //Use the custom extension of the MemorySegmentRequest interface.
-    final MemorySegmentRequestExtension memSegReqExt = new MemorySegmentRequestExtension();
+    final MemorySegmentRequestExtension mSegReqExt = new MemorySegmentRequestExtension();
 
     //Create a new KllLongsSketch and pass the custom extension
-    final KllLongsSketch sk = KllLongsSketch.newDirectInstance(k, seg, memSegReqExt);
+    final KllLongsSketch sk = KllLongsSketch.newDirectInstance(k, seg, mSegReqExt);
 
     //Update the sketch with way more data than the original MemorySegment can handle, forcing it to request larger MemorySegments.
     for (int n = 1; n <= (10 * k); n++) { sk.update(n); }
@@ -47,7 +47,7 @@ public class KllMemorySegmentRequestApp {
     assertFalse(sk.getMemorySegment().equals(seg));
 
     //All done with the sketch. Cleanup any unclosed off-heap MemorySegments.
-    memSegReqExt.cleanup();
+    mSegReqExt.cleanup();
 
     //Close the original off-heap allocated MemorySegment.
     arena.close();
