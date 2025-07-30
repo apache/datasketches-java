@@ -49,8 +49,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.apache.datasketches.common.ArrayOfBooleansSerDe2;
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -81,7 +81,7 @@ public final class VarOptItemsSketch<T> {
    */
   private static final ResizeFactor DEFAULT_RESIZE_FACTOR = ResizeFactor.X8;
 
-  private static final ArrayOfBooleansSerDe2 MARK_SERDE = new ArrayOfBooleansSerDe2();
+  private static final ArrayOfBooleansSerDe MARK_SERDE = new ArrayOfBooleansSerDe();
 
   private int k_;                        // max size of sketch, in items
   private int currItemsAlloc_;           // currently allocated array size
@@ -269,7 +269,7 @@ public final class VarOptItemsSketch<T> {
    * @return a sketch instance of this class
    */
   public static <T> VarOptItemsSketch<T> heapify(final MemorySegment srcSeg,
-                                                 final ArrayOfItemsSerDe2<T> serDe) {
+                                                 final ArrayOfItemsSerDe<T> serDe) {
     final int numPreLongs = getAndCheckPreLongs(srcSeg);
     final ResizeFactor rf = ResizeFactor.getRF(extractResizeFactor(srcSeg));
     final int serVer = extractSerVer(srcSeg);
@@ -377,10 +377,10 @@ public final class VarOptItemsSketch<T> {
     ArrayList<Boolean> markList = null;
     if (isGadget) {
       final long markOffsetBytes = preLongBytes + ((long) hCount * Double.BYTES);
-      markBytes = ArrayOfBooleansSerDe2.computeBytesNeeded(hCount);
+      markBytes = ArrayOfBooleansSerDe.computeBytesNeeded(hCount);
       markList = new ArrayList<>(allocatedItems);
 
-      final ArrayOfBooleansSerDe2 booleansSerDe = new ArrayOfBooleansSerDe2();
+      final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
       final Boolean[] markArray = booleansSerDe.deserializeFromMemorySegment(
               srcSeg.asSlice(markOffsetBytes, (hCount >>> 3) + 1), 0, hCount);
 
@@ -543,7 +543,7 @@ public final class VarOptItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
     if ((r_ == 0) && (h_ == 0)) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
@@ -563,7 +563,7 @@ public final class VarOptItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   // bytes will be null only if empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, numMarkBytes, outBytes;
     final boolean empty = (r_ == 0) && (h_ == 0);
     byte[] itemBytes = null; // for serialized items from serDe
@@ -576,7 +576,7 @@ public final class VarOptItemsSketch<T> {
     } else {
       preLongs = (r_ == 0 ? PreambleUtil.VO_PRELONGS_WARMUP : Family.VAROPT.getMaxPreLongs());
       itemBytes = serDe.serializeToByteArray(getDataSamples(clazz));
-      numMarkBytes = marks_ == null ? 0 : ArrayOfBooleansSerDe2.computeBytesNeeded(h_);
+      numMarkBytes = marks_ == null ? 0 : ArrayOfBooleansSerDe.computeBytesNeeded(h_);
       outBytes = (preLongs << 3) + (h_ * Double.BYTES) + numMarkBytes + itemBytes.length;
     }
     final byte[] outArr = new byte[outBytes];

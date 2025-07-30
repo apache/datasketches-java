@@ -1,6 +1,5 @@
-package org.apache.datasketches.quantiles2;
+package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles2.DoublesSketch.getUpdatableStorageBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 

@@ -29,7 +29,7 @@ final class HeapDoublesSketchAccessor extends DoublesSketchAccessor {
                             final boolean forceSize,
                             final int level) {
     super(ds, forceSize, level);
-    assert !ds.hasMemory();
+    assert !ds.hasMemorySegment();
   }
 
   @Override
@@ -39,7 +39,7 @@ final class HeapDoublesSketchAccessor extends DoublesSketchAccessor {
 
   @Override
   double get(final int index) {
-    assert index >= 0 && index < numItems_;
+    assert (index >= 0) && (index < numItems_);
     assert n_ == ds_.getN();
 
     return ds_.getCombinedBuffer()[offset_ + index];
@@ -47,7 +47,7 @@ final class HeapDoublesSketchAccessor extends DoublesSketchAccessor {
 
   @Override
   double set(final int index, final double quantile) {
-    assert index >= 0 && index < numItems_;
+    assert (index >= 0) && (index < numItems_);
     assert n_ == ds_.getN();
 
     final int idxOffset = offset_ + index;

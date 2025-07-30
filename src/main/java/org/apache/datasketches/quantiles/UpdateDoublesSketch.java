@@ -19,8 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * Extends DoubleSketch
@@ -33,32 +32,23 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
+   * Wrap this sketch around the given non-compact MemorySegment image of a DoublesSketch.
    *
-   * @param srcMem the given Memory image of a DoublesSketch that may have data,
-   * @return a sketch that wraps the given srcMem
+   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data,
+   * @return a sketch that wraps the given srcSeg
    */
-  public static UpdateDoublesSketch wrap(final WritableMemory srcMem) {
-    return DirectUpdateDoublesSketch.wrapInstance(srcMem);
+  public static UpdateDoublesSketch wrap(final MemorySegment srcSeg) {
+    return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
   }
 
   /**
-   * Updates this sketch with the given double data item
-   *
-   * @param item an item from a stream of items.  NaNs are ignored.
+   * Factory heapify takes a compact sketch image in MemorySegment and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source MemorySegment.
+   * @param srcSeg compact MemorySegment image of a sketch serialized by this sketch.
+   * @return a heap-based sketch based on the given MemorySegment.
    */
-  @Override
-  public abstract void update(double item);
-
-  /**
-   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a heap-based sketch based on the given Memory.
-   */
-  public static UpdateDoublesSketch heapify(final Memory srcMem) {
-    return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
+  public static UpdateDoublesSketch heapify(final MemorySegment srcSeg) {
+    return HeapUpdateDoublesSketch.heapifyInstance(srcSeg);
   }
 
   /**
@@ -70,17 +60,20 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Returns a compact version of this sketch. If passing in a Memory object, the compact sketch
-   * will use that direct memory; otherwise, an on-heap sketch will be returned.
-   * @param dstMem An optional target memory to hold the sketch.
+   * Returns a compact version of this sketch. If passing in a MemorySegment object, the compact sketch
+   * will use that direct MemorySegment; otherwise, an on-heap sketch will be returned.
+   * @param dstSeg An optional target MemorySegment to hold the sketch.
    * @return A compact version of this sketch
    */
-  public CompactDoublesSketch compact(final WritableMemory dstMem) {
-    if (dstMem == null) {
+  public CompactDoublesSketch compact(final MemorySegment dstSeg) {
+    if (dstSeg == null) {
       return HeapCompactDoublesSketch.createFromUpdateSketch(this);
     }
-    return DirectCompactDoublesSketch.createFromUpdateSketch(this, dstMem);
+    return DirectCompactDoublesSketch.createFromUpdateSketch(this, dstSeg);
   }
+
+  @Override
+  public abstract void update(double item);
 
   @Override
   boolean isCompact() {

@@ -41,7 +41,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -395,7 +395,7 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
    * Gets the serializer / deserializer or null.
    * @return the serializer / deserializer or null.
    */
-  abstract ArrayOfItemsSerDe2<?> getSerDe();
+  abstract ArrayOfItemsSerDe<?> getSerDe();
 
   /**
    * Gets the serialized byte array of the Single Item that corresponds to the Single Item Flag being true.

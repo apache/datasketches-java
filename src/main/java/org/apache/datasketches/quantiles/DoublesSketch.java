@@ -19,25 +19,26 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.System.arraycopy;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.quantiles.ClassicUtil.MAX_PRELONGS;
 import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
-import static org.apache.datasketches.quantiles.ClassicUtil.checkIsCompactMemory;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkIsMemorySegmentCompact;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 import static org.apache.datasketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
@@ -99,7 +100,8 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  *
  * @see QuantilesAPI
  */
-public abstract class DoublesSketch implements QuantilesDoublesAPI {
+public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmentStatus {
+
   /**
    * Setting the seed makes the results of the sketch deterministic if the input quantiles are
    * received in exactly the same order. This is only useful when performing test comparisons,
@@ -112,6 +114,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   final int k_;
 
+  /**
+   * holder for SortedView
+   */
   DoublesSketchSortedView doublesSV = null;
 
   DoublesSketch(final int k) {
@@ -132,32 +137,31 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a Memory image of a Sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a heap-based Sketch based on the given Memory
+   * Heapify takes the sketch image in MemorySegment and instantiates an on-heap Sketch.
+   * The resulting sketch will not retain any link to the source MemorySegment.
+   * @param srcSeg a MemorySegment image of a Sketch.
+   * @return a heap-based Sketch based on the given MemorySegment
    */
-  public static DoublesSketch heapify(final Memory srcMem) {
-    if (checkIsCompactMemory(srcMem)) {
-      return HeapCompactDoublesSketch.heapifyInstance(srcMem);
+  public static DoublesSketch heapify(final MemorySegment srcSeg) {
+    if (checkIsMemorySegmentCompact(srcSeg)) {
+      return HeapCompactDoublesSketch.heapifyInstance(srcSeg);
     }
-    return UpdateDoublesSketch.heapify(srcMem);
+    return HeapUpdateDoublesSketch.heapifyInstance(srcSeg);
   }
 
   /**
-   * Wrap this sketch around the given Memory image of a DoublesSketch, compact or updatable.
+   * Wrap this sketch around the given MemorySegment image of a DoublesSketch, compact or updatable.
    * A DirectUpdateDoublesSketch can only wrap an updatable array, and a
    * DirectCompactDoublesSketch can only wrap a compact array.
    *
-   * @param srcMem the given Memory image of a DoublesSketch that may have data,
-   * @return a sketch that wraps the given srcMem
+   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data,
+   * @return a sketch that wraps the given srcSeg
    */
-  public static DoublesSketch wrap(final Memory srcMem) {
-    if (checkIsCompactMemory(srcMem)) {
-      return DirectCompactDoublesSketch.wrapInstance(srcMem);
+  public static DoublesSketch wrap(final MemorySegment srcSeg) {
+    if (checkIsMemorySegmentCompact(srcSeg)) {
+      return DirectCompactDoublesSketch.wrapInstance(srcSeg);
     }
-    return DirectUpdateDoublesSketchR.wrapInstance(srcMem);
+    return DirectUpdateDoublesSketchR.wrapInstance(srcSeg);
   }
 
   @Override
@@ -299,11 +303,11 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return ClassicUtil.getKFromEpsilon(epsilon, pmf);
   }
 
-  @SuppressWarnings("javadoc") //@Override
-  public abstract boolean hasMemory();
+  @Override
+  public abstract boolean hasMemorySegment();
 
-  @SuppressWarnings("javadoc") //@Override
-  public abstract boolean isDirect();
+  @Override
+  public abstract boolean isOffHeap();
 
   @Override
   public boolean isEmpty() {
@@ -318,17 +322,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   @Override
   public abstract boolean isReadOnly();
 
-  /**
-   * Returns true if the backing resource of <i>this</i> is identical with the backing resource
-   * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
-   * the region offset must also be the same.
-   * @param that A different non-null object
-   * @return true if the backing resource of <i>this</i> is the same as the backing resource
-   * of <i>that</i>.
-   */
-  public boolean isSameResource(final Memory that) { //Overridden by direct sketches
-    return false;
-  }
+  @Override
+  public abstract boolean isSameResource(final MemorySegment that);
 
   @Override
   public byte[] toByteArray() {
@@ -380,13 +375,13 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of a DoublesSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of a DoublesSketch.
    * Used for debugging.
-   * @param mem the given Memory
-   * @return a human readable string of the preamble of a Memory image of a DoublesSketch.
+   * @param seg the given MemorySegment
+   * @return a human readable string of the preamble of a MemorySegment image of a DoublesSketch.
    */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.toString(mem, true);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.toString(seg, true);
   }
 
   /**
@@ -396,14 +391,14 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    * @param srcSketch the sourcing sketch
    * @param smallerK the new sketch's K that must be smaller than this K.
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
-   * @param dstMem the destination Memory.  It must not overlap the Memory of this sketch.
+   * @param dstSeg the destination MemorySegment.  It must not overlap the MemorySegment of this sketch.
    * If null, a heap sketch will be returned, otherwise it will be off-heap.
    *
    * @return the new sketch.
    */
   public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK,
-        final WritableMemory dstMem) {
-    return downSampleInternal(srcSketch, smallerK, dstMem);
+        final MemorySegment dstSeg) {
+    return downSampleInternal(srcSketch, smallerK, dstSeg);
   }
 
   @Override
@@ -412,8 +407,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
-   * @return the current number of bytes this sketch would require to store in the compact Memory Format.
+   * Returns the current number of bytes this sketch would require to store in the compact MemorySegment Format.
+   * @return the current number of bytes this sketch would require to store in the compact MemorySegment Format.
    */
   public int getCurrentCompactSerializedSizeBytes() {
     return getCompactSerialiedSizeBytes(getK(), getN());
@@ -439,8 +434,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
-   * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * Returns the current number of bytes this sketch would require to store in the updatable MemorySegment Format.
+   * @return the current number of bytes this sketch would require to store in the updatable MemorySegment Format.
    */
   public int getCurrentUpdatableSerializedSizeBytes() {
     return getUpdatableStorageBytes(getK(), getN());
@@ -466,36 +461,36 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * Puts the current sketch into the given Memory in compact form if there is sufficient space,
+   * Puts the current sketch into the given MemorySegment in compact form if there is sufficient space,
    * otherwise, it throws an error.
    *
-   * @param dstMem the given memory.
+   * @param dstSeg the given MemorySegment.
    */
-  public void putMemory(final WritableMemory dstMem) {
-    putMemory(dstMem, true);
+  public void putMemorySegment(final MemorySegment dstSeg) {
+    putMemorySegment(dstSeg, true);
   }
 
   /**
-   * Puts the current sketch into the given Memory if there is sufficient space, otherwise,
+   * Puts the current sketch into the given MemorySegment if there is sufficient space, otherwise,
    * throws an error.
    *
-   * @param dstMem the given memory.
+   * @param dstSeg the given MemorySegment.
    * @param compact if true, compacts and sorts the base buffer, which optimizes merge
    *                performance at the cost of slightly increased serialization time.
    */
-  public void putMemory(final WritableMemory dstMem, final boolean compact) {
-    if (hasMemory() && (isCompact() == compact)) {
-      final Memory srcMem = getMemory();
-      srcMem.copyTo(0, dstMem, 0, getSerializedSizeBytes());
+  public void putMemorySegment(final MemorySegment dstSeg, final boolean compact) {
+    if (hasMemorySegment() && (isCompact() == compact)) {
+      final MemorySegment srcSeg = getMemorySegment();
+      MemorySegment.copy(srcSeg, 0, dstSeg, 0, getSerializedSizeBytes());
     } else {
       final byte[] byteArr = toByteArray(compact);
       final int arrLen = byteArr.length;
-      final long memCap = dstMem.getCapacity();
-      if (memCap < arrLen) {
+      final long segCap = dstSeg.byteSize();
+      if (segCap < arrLen) {
         throw new SketchesArgumentException(
-           "Destination Memory not large enough: " + memCap + " < " + arrLen);
+           "Destination MemorySegment not large enough: " + segCap + " < " + arrLen);
       }
-      dstMem.putByteArray(0, byteArr, 0, arrLen);
+      MemorySegment.copy(byteArr, 0, dstSeg, JAVA_BYTE, 0, arrLen);
     }
   }
 
@@ -521,10 +516,10 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    * public API.
    */
   UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK,
-                                         final WritableMemory dstMem) {
-    final UpdateDoublesSketch newSketch = dstMem == null
+                                         final MemorySegment dstSeg) {
+    final UpdateDoublesSketch newSketch = dstSeg == null
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
-            : DirectUpdateDoublesSketch.newInstance(smallerK, dstMem);
+            : DirectUpdateDoublesSketch.newInstance(smallerK, dstSeg, null);
     if (srcSketch.isEmpty()) { return newSketch; }
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;
@@ -563,10 +558,10 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   abstract double[] getCombinedBuffer();
 
   /**
-   * Gets the Memory if it exists, otherwise returns null.
-   * @return the Memory if it exists, otherwise returns null.
+   * Gets the MemorySegment if it exists, otherwise returns null.
+   * @return the MemorySegment if it exists, otherwise returns null.
    */
-  abstract WritableMemory getMemory();
+  abstract MemorySegment getMemorySegment();
 
   //************SORTED VIEW****************************
 

@@ -22,8 +22,8 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
 import org.testng.annotations.Test;
 
 public class DoublesUtilTest {
@@ -35,11 +35,11 @@ public class DoublesUtilTest {
     final DoublesSketch qs = buildAndLoadQS(k,n);
 
     byte[] byteArr = qs.toByteArray(false);
-    Memory mem = Memory.wrap(byteArr);
+    MemorySegment mem = MemorySegment.ofArray(byteArr);
     println(memToString(true, true, mem));
 
     byteArr = qs.toByteArray(true);
-    mem = Memory.wrap(byteArr);
+    mem = MemorySegment.ofArray(byteArr);
     println(memToString(true, true, mem));
   }
 
@@ -50,12 +50,12 @@ public class DoublesUtilTest {
     final DoublesSketch qs = buildAndLoadQS(k,n);
 
     final byte[] byteArr = qs.toByteArray();
-    final Memory mem = Memory.wrap(byteArr);
+    final MemorySegment mem = MemorySegment.ofArray(byteArr);
     println(memToString(true, true, mem));
   }
 
   static String memToString(final boolean withLevels, final boolean withLevelsAndItems,
-      final Memory mem) {
+      final MemorySegment mem) {
     final DoublesSketch ds = DoublesSketch.heapify(mem);
     return ds.toString(withLevels, withLevelsAndItems);
   }
@@ -71,7 +71,7 @@ public class DoublesUtilTest {
     DoublesSketchTest.testSketchEquality(huds, target1);
 
     // DirectUpdateDoublesSketch
-    final WritableMemory mem1 = WritableMemory.writableWrap(huds.toByteArray());
+    final MemorySegment mem1 = MemorySegment.ofArray(huds.toByteArray());
     final DirectUpdateDoublesSketch duds = (DirectUpdateDoublesSketch) UpdateDoublesSketch.wrap(mem1);
     final HeapUpdateDoublesSketch target2 = DoublesUtil.copyToHeap(duds);
     DoublesSketchTest.testSketchEquality(huds, duds);
@@ -84,7 +84,7 @@ public class DoublesUtilTest {
     DoublesSketchTest.testSketchEquality(hcds, target3);
 
     // DirectCompactDoublesSketch
-    final Memory mem2 = Memory.wrap(hcds.toByteArray());
+    final MemorySegment mem2 = MemorySegment.ofArray(hcds.toByteArray());
     final DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) DoublesSketch.wrap(mem2);
     final HeapUpdateDoublesSketch target4 = DoublesUtil.copyToHeap(dcds);
     DoublesSketchTest.testSketchEquality(huds, dcds);

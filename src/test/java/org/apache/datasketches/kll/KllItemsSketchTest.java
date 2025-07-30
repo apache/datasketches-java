@@ -40,7 +40,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 import java.util.Random;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
@@ -59,7 +59,7 @@ public class KllItemsSketchTest {
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
   private static final double PMF_EPS_FOR_K_256 = 0.013; // PMF rank error (epsilon) for k=256
   private static final double NUMERIC_NOISE_TOLERANCE = 1E-6;
-  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void empty() {

@@ -29,7 +29,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.FloatsSketchSortedView;
@@ -507,7 +507,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
-  ArrayOfItemsSerDe2<?> getSerDe() { return null; }
+  ArrayOfItemsSerDe<?> getSerDe() { return null; }
 
   @Override
   final byte[] getSingleItemByteArr() {

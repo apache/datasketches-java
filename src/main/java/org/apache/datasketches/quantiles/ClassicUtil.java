@@ -35,9 +35,10 @@ import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Utilities for the classic quantiles sketches and independent of the type.
@@ -124,14 +125,14 @@ public final class ClassicUtil {
 
   /**
    * Used by Classic Quantiles.
-   * Checks the consistency of the flag bits and the state of preambleLong and the memory
+   * Checks the consistency of the flag bits and the state of preambleLong and the MemorySegment
    * capacity and returns the empty state.
    * @param preambleLongs the size of preamble in longs
    * @param flags the flags field
-   * @param memCapBytes the memory capacity
+   * @param segCapBytes the MemorySegment capacity
    * @return the empty state
    */
-  static boolean checkPreLongsFlagsCap(final int preambleLongs, final int flags, final long memCapBytes) {
+  static boolean checkPreLongsFlagsCap(final int preambleLongs, final int flags, final long segCapBytes) {
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
     final int minPre = Family.QUANTILES.getMinPreLongs(); //1
     final int maxPre = Family.QUANTILES.getMaxPreLongs(); //2
@@ -141,9 +142,9 @@ public final class ClassicUtil {
           "Possible corruption: PreambleLongs inconsistent with empty state: " + preambleLongs);
     }
     checkHeapFlags(flags);
-    if (memCapBytes < (preambleLongs << 3)) {
+    if (segCapBytes < (preambleLongs << 3)) {
       throw new SketchesArgumentException(
-          "Possible corruption: Insufficient capacity for preamble: " + memCapBytes);
+          "Possible corruption: Insufficient capacity for preamble: " + segCapBytes);
     }
     return empty;
   }
@@ -166,15 +167,15 @@ public final class ClassicUtil {
 
   /**
    * Used by Classic Quantiles.
-   * Checks just the flags field of an input Memory object. Returns true for a compact
+   * Checks just the flags field of an input MemorySegment object. Returns true for a compact
    * sketch, false for an update sketch. Does not perform additional checks, including sketch
    * family.
-   * @param srcMem the source Memory containing a sketch
+   * @param srcSeg the source MemorySegment containing a sketch
    * @return true if flags indicate a compact sketch, otherwise false
    */
-  static boolean checkIsCompactMemory(final Memory srcMem) {
+  static boolean checkIsMemorySegmentCompact(final MemorySegment srcSeg) {
     // only reading so downcast is ok
-    final int flags = extractFlags(srcMem);
+    final int flags = extractFlags(srcSeg);
     final int compactFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;
     return (flags & compactFlags) > 0;
   }

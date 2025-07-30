@@ -26,7 +26,7 @@ import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.ge
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllItemsSketch;
 
@@ -51,7 +51,7 @@ public class KllItemsSketchFillRequestLongAsString implements SketchFillRequest<
   @Override
   public KllItemsSketch<String> getRange(final String lowerQuantile, final String upperQuantile,
       final BoundsRule bounds) {
-    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe2());
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
     long upper, lower;
     try {
       lower = Long.parseLong(lowerQuantile.trim());
@@ -68,7 +68,7 @@ public class KllItemsSketchFillRequestLongAsString implements SketchFillRequest<
   }
 
   public KllItemsSketch<String> getRange(final long lowerQuantile, final long upperQuantile, final BoundsRule bounds) {
-    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe2());
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
     final long lower = lowerQuantile;
     final long upper = upperQuantile;
     if (bounds == INCLUDE_BOTH) {

@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.TestUtil;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllDoublesSketch;
@@ -50,7 +50,7 @@ import org.testng.annotations.Test;
  * Methods for cross language integration testing
  */
 public class KllCrossLanguageTest {
-  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateKllDoublesSketchBinaries() throws IOException {
@@ -188,7 +188,7 @@ public class KllCrossLanguageTest {
       final KllHeapItemsSketch<String> sketch = new KllHeapItemsSketch<>(
         MemorySegment.ofArray(bytes),
         numericOrder,
-        new ArrayOfStringsSerDe2()
+        new ArrayOfStringsSerDe()
       );
       assertEquals(sketch.getK(), 200);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());

@@ -19,9 +19,8 @@
 
 package org.apache.datasketches.common;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Objects;
-
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Base class for serializing and deserializing custom types.
@@ -48,28 +47,28 @@ public abstract class ArrayOfItemsSerDe<T> {
   public abstract byte[] serializeToByteArray(T[] items);
 
   /**
-   * Deserialize a contiguous sequence of serialized items from the given Memory
-   * starting at a Memory offset of zero and extending numItems.
+   * Deserialize a contiguous sequence of serialized items from the given MemorySegment
+   * starting at a MemorySegment offset of zero and extending numItems.
    *
-   * @param mem Memory containing a contiguous sequence of serialized items
+   * @param seg MemorySegment containing a contiguous sequence of serialized items
    * @param numItems number of items in the contiguous serialized sequence.
    * @return array of deserialized items
-   * @see #deserializeFromMemory(Memory, long, int)
+   * @see #deserializeFromMemorySegment(MemorySegment, long, int)
    */
-  public T[] deserializeFromMemory(final Memory mem, final int numItems) {
-    return deserializeFromMemory(mem, 0, numItems);
+  public T[] deserializeFromMemorySegment(final MemorySegment seg, final int numItems) {
+    return deserializeFromMemorySegment(seg, 0, numItems);
   }
 
   /**
-   * Deserialize a contiguous sequence of serialized items from the given Memory
-   * starting at the given Memory <i>offsetBytes</i> and extending numItems.
+   * Deserialize a contiguous sequence of serialized items from the given MemorySegment
+   * starting at the given MemorySegment <i>offsetBytes</i> and extending numItems.
    *
-   * @param mem Memory containing a contiguous sequence of serialized items
-   * @param offsetBytes the starting offset in the given Memory.
+   * @param seg MemorySegment containing a contiguous sequence of serialized items
+   * @param offsetBytes the starting offset in the given MemorySegment.
    * @param numItems number of items in the contiguous serialized sequence.
    * @return array of deserialized items
    */
-  public abstract T[] deserializeFromMemory(Memory mem, long offsetBytes, int numItems);
+  public abstract T[] deserializeFromMemorySegment(MemorySegment seg, long offsetBytes, int numItems);
 
   /**
    * Returns the serialized size in bytes of a single unserialized item.
@@ -93,14 +92,14 @@ public abstract class ArrayOfItemsSerDe<T> {
   }
 
   /**
-   * Returns the serialized size in bytes of the number of contiguous serialized items in Memory.
-   * The capacity of the given Memory can be much larger that the required size of the items.
-   * @param mem the given Memory.
-   * @param offsetBytes the starting offset in the given Memory.
-   * @param numItems the number of serialized items contained in the Memory
+   * Returns the serialized size in bytes of the number of contiguous serialized items in MemorySegment.
+   * The capacity of the given MemorySegment can be much larger that the required size of the items.
+   * @param seg the given MemorySegment.
+   * @param offsetBytes the starting offset in the given MemorySegment.
+   * @param numItems the number of serialized items contained in the MemorySegment
    * @return the serialized size in bytes of the given number of items.
    */
-  public abstract int sizeOf(Memory mem, long offsetBytes, int numItems);
+  public abstract int sizeOf(MemorySegment seg, long offsetBytes, int numItems);
 
   /**
    * Returns a human readable string of an item.

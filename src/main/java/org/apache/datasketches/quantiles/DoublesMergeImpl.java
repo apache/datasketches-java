@@ -20,11 +20,13 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.common.Util.checkIfPowerOf2;
+import static org.apache.datasketches.common.Util.clearBits;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.FLAGS_BYTE;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Down-sampling and merge algorithms for doubles quantiles.
@@ -106,9 +108,9 @@ final class DoublesMergeImpl {
       }
     }
 
-    if (tgt.hasMemory() && (nFinal > 0)) {
-      final WritableMemory mem = tgt.getMemory();
-      mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    if (tgt.hasMemorySegment() && (nFinal > 0)) {
+      final MemorySegment seg = tgt.getMemorySegment();
+      clearBits(seg, FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
 
     tgt.putN(nFinal);
@@ -198,9 +200,9 @@ final class DoublesMergeImpl {
         tgt.putBitPattern(newTgtBitPattern); //off-heap is a no-op
       }
     }
-    if (tgt.hasMemory() && (nFinal > 0)) {
-      final WritableMemory mem = tgt.getMemory();
-      mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
+    if (tgt.hasMemorySegment() && (nFinal > 0)) {
+      final MemorySegment seg = tgt.getMemorySegment();
+      clearBits(seg, FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
     tgt.putN(nFinal);
 

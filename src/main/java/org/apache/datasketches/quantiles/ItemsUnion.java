@@ -21,11 +21,11 @@ package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.common.Util.LS;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * The API for Union operations for generic ItemsSketches
@@ -42,7 +42,10 @@ public final class ItemsUnion<T> {
   ItemsSketch<T> gadget_;
   Class<T> clazz_;
 
-  private ItemsUnion(final int maxK, final Comparator<? super T> comparator, final ItemsSketch<T> gadget) {
+  private ItemsUnion(
+      final int maxK,
+      final Comparator<? super T> comparator,
+      final ItemsSketch<T> gadget) {
     Objects.requireNonNull(gadget, "Gadget sketch must not be null.");
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     maxK_ = maxK;
@@ -59,7 +62,9 @@ public final class ItemsUnion<T> {
    * @param comparator to compare items
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final Comparator<? super T> comparator) {
+  public static <T> ItemsUnion<T> getInstance(
+      final Class<T> clazz,
+      final Comparator<? super T> comparator) {
     final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, comparator);
     return new ItemsUnion<>(PreambleUtil.DEFAULT_K, comparator, emptySk);
   }
@@ -75,25 +80,30 @@ public final class ItemsUnion<T> {
    * @param comparator to compare items
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final int maxK,
+  public static <T> ItemsUnion<T> getInstance(
+      final Class<T> clazz,
+      final int maxK,
       final Comparator<? super T> comparator) {
     final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, maxK, comparator);
     return new ItemsUnion<>(maxK, comparator, emptySk);
   }
 
   /**
-   * Heapify the given srcMem into a Union object.
+   * Heapify the given srcSeg into a Union object.
    * @param clazz The sketch class type
-   * A reference to srcMem will not be maintained internally.
-   * @param srcMem the given srcMem.
+   * A reference to srcSeg will not be maintained internally.
+   * @param srcSeg the given srcSeg.
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
    * @param <T> The sketch data type
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final Memory srcMem,
-      final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> gadget = ItemsSketch.getInstance(clazz, srcMem, comparator, serDe);
+  public static <T> ItemsUnion<T> getInstance(
+      final Class<T> clazz,
+      final MemorySegment srcSeg,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
+    final ItemsSketch<T> gadget = ItemsSketch.getInstance(clazz, srcSeg, comparator, serDe);
     return new ItemsUnion<>(gadget.getK(), gadget.getComparator(), gadget);
   }
 
@@ -126,19 +136,21 @@ public final class ItemsUnion<T> {
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
-   * Merges the given Memory image of a ItemsSketch into this union object.
-   * The given Memory object is not modified and a link to it is not retained.
+   * Merges the given MemorySegment image of a ItemsSketch into this union object.
+   * The given MemorySegment object is not modified and a link to it is not retained.
    * It is required that the ratio of the two K's be a power of 2.
    * This is easily satisfied if each of the K's are already a power of 2.
    * If the given sketch is null or empty it is ignored.
    *
    * <p>It is required that the results of the union operation, which can be obtained at any time,
    * is obtained from {@link #getResult() }.</p>
-   * @param srcMem Memory image of sketch to be merged
+   * @param srcSeg MemorySegment image of sketch to be merged
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void union(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> that = ItemsSketch.getInstance(clazz_, srcMem, comparator_, serDe);
+  public void union(
+      final MemorySegment srcSeg,
+      final ArrayOfItemsSerDe<T> serDe) {
+    final ItemsSketch<T> that = ItemsSketch.getInstance(clazz_, srcSeg, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }
 
@@ -194,14 +206,6 @@ public final class ItemsUnion<T> {
    */
   public boolean isEmpty() {
     return (gadget_ == null) || gadget_.isEmpty();
-  }
-
-  /**
-   * Returns true if this union is direct
-   * @return true if this union is direct
-   */
-  public boolean isDirect() {
-    return (gadget_ != null) && gadget_.isDirect();
   }
 
   /**
@@ -317,8 +321,7 @@ public final class ItemsUnion<T> {
           for (int i = 0; i < otherCnt; i++) {
             ret.update((T) combBuf[i]);
           }
-        } else //myQS = empty/valid, other = valid and in est mode
-          if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
+        } else if (myQS.getK() <= other.getK()) { //I am smaller or equal, thus the target
           ItemsMergeImpl.mergeInto(other, myQS);
           ret = myQS;
         }

@@ -19,9 +19,10 @@
 
 package org.apache.datasketches.quantiles;
 
-import java.util.Arrays;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+import java.util.Arrays;
 
 /**
  * @author Jon Malkin
@@ -32,7 +33,7 @@ final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
                               final boolean forceSize,
                               final int level) {
     super(ds, forceSize, level);
-    assert ds.hasMemory();
+    assert ds.hasMemorySegment();
   }
 
   @Override
@@ -42,23 +43,23 @@ final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
 
   @Override
   double get(final int index) {
-    assert index >= 0 && index < numItems_;
+    assert (index >= 0) && (index < numItems_);
     assert n_ == ds_.getN();
 
     final int idxOffset = offset_ + (index << 3);
-    return ds_.getMemory().getDouble(idxOffset);
+    return ds_.getMemorySegment().get(JAVA_DOUBLE_UNALIGNED, idxOffset);
   }
 
   @Override
   double set(final int index, final double quantile) {
-    assert index >= 0 && index < numItems_;
+    assert (index >= 0) && (index < numItems_);
     assert n_ == ds_.getN();
     assert !ds_.isCompact(); // can't write to a compact sketch
 
     final int idxOffset = offset_ + (index << 3);
-    final WritableMemory mem = ds_.getMemory();
-    final double oldVal = mem.getDouble(idxOffset);
-    mem.putDouble(idxOffset, quantile);
+    final MemorySegment seg = ds_.getMemorySegment();
+    final double oldVal = seg.get(JAVA_DOUBLE_UNALIGNED, idxOffset);
+    seg.set(JAVA_DOUBLE_UNALIGNED, idxOffset, quantile);
     return oldVal;
   }
 
@@ -66,7 +67,7 @@ final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
   double[] getArray(final int fromIdx, final int numItems) {
     final double[] dstArray = new double[numItems];
     final int offsetBytes = offset_ + (fromIdx << 3);
-    ds_.getMemory().getDoubleArray(offsetBytes, dstArray, 0, numItems);
+    MemorySegment.copy(ds_.getMemorySegment(), JAVA_DOUBLE_UNALIGNED, offsetBytes, dstArray, 0, numItems);
     return dstArray;
   }
 
@@ -75,7 +76,7 @@ final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
                 final int dstIndex, final int numItems) {
     assert !ds_.isCompact(); // can't write to compact sketch
     final int offsetBytes = offset_ + (dstIndex << 3);
-    ds_.getMemory().putDoubleArray(offsetBytes, srcArray, srcIndex, numItems);
+    MemorySegment.copy(srcArray, srcIndex, ds_.getMemorySegment(), JAVA_DOUBLE_UNALIGNED, offsetBytes, numItems);
   }
 
   @Override
@@ -83,10 +84,10 @@ final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
     assert currLvl_ == BB_LVL_IDX;
 
     final double[] tmpBuffer = new double[numItems_];
-    final WritableMemory mem = ds_.getMemory();
-    mem.getDoubleArray(offset_, tmpBuffer, 0, numItems_);
+    final MemorySegment seg = ds_.getMemorySegment();
+    MemorySegment.copy(seg, JAVA_DOUBLE_UNALIGNED, offset_, tmpBuffer, 0, numItems_);
     Arrays.sort(tmpBuffer, 0, numItems_);
-    mem.putDoubleArray(offset_, tmpBuffer, 0, numItems_);
+    MemorySegment.copy(tmpBuffer, 0, seg, JAVA_DOUBLE_UNALIGNED, offset_, numItems_);
   }
 
 }

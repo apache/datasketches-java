@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 
@@ -114,7 +114,7 @@ public final class EbppsItemsSketch<T> {
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
-  public static <T> EbppsItemsSketch<T> heapify(final MemorySegment srcSeg, final ArrayOfItemsSerDe2<T> serDe)
+  public static <T> EbppsItemsSketch<T> heapify(final MemorySegment srcSeg, final ArrayOfItemsSerDe<T> serDe)
   {
     final int numPreLongs = PreambleUtil.getAndCheckPreLongs(srcSeg);
     final int serVer = PreambleUtil.extractSerVer(srcSeg);
@@ -433,7 +433,7 @@ public final class EbppsItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return the length of a byte array representation of this sketch
    */
-  public int getSerializedSizeBytes(final ArrayOfItemsSerDe2<? super T> serDe) {
+  public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe) {
     if (isEmpty()) {
       return Family.EBPPS.getMinPreLongs() << 3;
     } else if (sample_.getC() < 1.0) {
@@ -451,7 +451,7 @@ public final class EbppsItemsSketch<T> {
    * @param clazz The class represented by &lt;T&gt;
    * @return the length of a byte array representation of this sketch
    */
-  public int getSerializedSizeBytes(final ArrayOfItemsSerDe2<? super T> serDe, final Class<?> clazz) {
+  public int getSerializedSizeBytes(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     if (n_ == 0) {
       return Family.EBPPS.getMinPreLongs() << 3;
     }
@@ -468,7 +468,7 @@ public final class EbppsItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
     if (n_ == 0) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
@@ -487,7 +487,7 @@ public final class EbppsItemsSketch<T> {
    * @param clazz The class represented by &lt;T&gt;
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = n_ == 0;
     byte[] itemBytes = null; // for serialized items from sample_

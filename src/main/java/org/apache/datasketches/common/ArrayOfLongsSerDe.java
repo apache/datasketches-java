@@ -19,12 +19,11 @@
 
 package org.apache.datasketches.common;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Objects;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of Long.
@@ -46,29 +45,29 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
     Objects.requireNonNull(items, "Items must not be null");
     if (items.length == 0) { return new byte[0]; }
     final byte[] bytes = new byte[Long.BYTES * items.length];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
     long offset = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putLong(offset, items[i]);
+      seg.set(JAVA_LONG_UNALIGNED, offset, items[i]);
       offset += Long.BYTES;
     }
     return bytes;
   }
 
   @Override
-  public Long[] deserializeFromMemory(final Memory mem, final int numItems) {
-    return deserializeFromMemory(mem, 0, numItems);
+  public Long[] deserializeFromMemorySegment(final MemorySegment seg, final int numItems) {
+    return deserializeFromMemorySegment(seg, 0, numItems);
   }
 
   @Override
-  public Long[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public Long[] deserializeFromMemorySegment(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return new Long[0]; }
     long offset = offsetBytes;
-    Util.checkBounds(offset, Long.BYTES * (long)numItems, mem.getCapacity());
+    Util.checkBounds(offset, Long.BYTES * (long)numItems, seg.byteSize());
     final Long[] array = new Long[numItems];
     for (int i = 0; i < numItems; i++) {
-      array[i] = mem.getLong(offset);
+      array[i] = seg.get(JAVA_LONG_UNALIGNED, offset);
       offset += Long.BYTES;
     }
     return array;
@@ -87,8 +86,8 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   }
 
   @Override
-  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public int sizeOf(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     return numItems * Long.BYTES;
   }
 

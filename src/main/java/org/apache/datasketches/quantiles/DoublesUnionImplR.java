@@ -21,10 +21,10 @@ package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.common.Util.LS;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Union operation for on-heap.
@@ -41,15 +41,15 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   /**
-   * Returns a read-only Union object that wraps off-heap data structure of the given memory
+   * Returns a read-only Union object that wraps off-heap data structure of the given MemorySegment
    * image of a non-compact DoublesSketch. The data structures of the Union remain off-heap.
    *
-   * @param mem A memory image of a non-compact DoublesSketch to be used as the data
+   * @param seg A MemorySegment image of a non-compact DoublesSketch to be used as the data
    * structure for the union and will be modified.
    * @return a Union object
    */
-  static DoublesUnionImplR wrapInstance(final Memory mem) {
-    final DirectUpdateDoublesSketchR sketch = DirectUpdateDoublesSketchR.wrapInstance(mem);
+  static DoublesUnionImplR wrapInstance(final MemorySegment seg) {
+    final DirectUpdateDoublesSketchR sketch = DirectUpdateDoublesSketchR.wrapInstance(seg);
     final int k = sketch.getK();
     final DoublesUnionImplR union = new DoublesUnionImplR(k);
     union.maxK_ = k;
@@ -63,7 +63,7 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public void union(final Memory mem) {
+  public void union(final MemorySegment seg) {
     throw new SketchesReadOnlyException("Call to update() on read-only Union");
   }
 
@@ -89,17 +89,17 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public UpdateDoublesSketch getResult(final WritableMemory dstMem) {
-    final long memCapBytes = dstMem.getCapacity();
+  public UpdateDoublesSketch getResult(final MemorySegment dstSeg) {
+    final long segCapBytes = dstSeg.byteSize();
     if (gadget_ == null) {
-      if (memCapBytes < DoublesSketch.getUpdatableStorageBytes(0, 0)) {
-        throw new SketchesArgumentException("Insufficient capacity for result: " + memCapBytes);
+      if (segCapBytes < DoublesSketch.getUpdatableStorageBytes(0, 0)) {
+        throw new SketchesArgumentException("Insufficient capacity for result: " + segCapBytes);
       }
-      return DirectUpdateDoublesSketch.newInstance(maxK_, dstMem);
+      return DirectUpdateDoublesSketch.newInstance(maxK_, dstSeg, null);
     }
 
-    gadget_.putMemory(dstMem, false);
-    return DirectUpdateDoublesSketch.wrapInstance(dstMem);
+    gadget_.putMemorySegment(dstSeg, false);
+    return DirectUpdateDoublesSketch.wrapInstance(dstSeg, null);
   }
 
   @Override
@@ -113,18 +113,23 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public boolean hasMemory() {
-    return (gadget_ != null) && gadget_.hasMemory();
+  public boolean hasMemorySegment() {
+    return (gadget_ != null) && gadget_.hasMemorySegment();
   }
 
   @Override
-  public boolean isDirect() {
-    return (gadget_ != null) && gadget_.isDirect();
+  public boolean isOffHeap() {
+    return (gadget_ != null) && gadget_.isOffHeap();
   }
 
   @Override
   public boolean isEmpty() {
     return (gadget_ == null) || gadget_.isEmpty();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return (gadget_ == null) ? false : gadget_.isSameResource(that);
   }
 
   @Override
@@ -156,11 +161,6 @@ class DoublesUnionImplR extends DoublesUnion {
     }
     sb.append(gadget_.toString(sketchSummary, dataDetail));
     return sb.toString();
-  }
-
-  @Override
-  public boolean isSameResource(final Memory that) {
-    return (gadget_ == null) ? false : gadget_.isSameResource(that);
   }
 
 }

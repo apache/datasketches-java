@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
@@ -42,7 +42,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 /**
  * This variation of the KllSketch implements generic data types. The user must provide
  * a suitable implementation of the <i>java.lang.Comparator</i> as well as an implementation of
- * the serializer / deserializer, <i>org.apache.datasketches.common.ArrayOfItemsSerDe2</i>.
+ * the serializer / deserializer, <i>org.apache.datasketches.common.ArrayOfItemsSerDe</i>.
  * @param <T> The sketch data type.
  * @see org.apache.datasketches.kll.KllSketch
  */
@@ -50,12 +50,12 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
   private ItemsSketchSortedView<T> itemsSV = null;
   final Comparator<? super T> comparator;
-  final ArrayOfItemsSerDe2<T> serDe;
+  final ArrayOfItemsSerDe<T> serDe;
 
   KllItemsSketch( //pass-through constructor
       final SketchStructure skStructure,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     super(ITEMS_SKETCH, skStructure);
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "SerDe must not be null.");
@@ -76,7 +76,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
    */
   public static <T> KllItemsSketch<T> newHeapInstance(
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     return new KllHeapItemsSketch<>(DEFAULT_K, DEFAULT_M, comparator, serDe);
   }
 
@@ -94,7 +94,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public static <T> KllItemsSketch<T> newHeapInstance(
       final int k,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     return new KllHeapItemsSketch<>(k, DEFAULT_M, comparator, serDe);
   }
 
@@ -112,7 +112,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public static <T> KllItemsSketch<T> heapify(
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     return new KllHeapItemsSketch<>(srcSeg, comparator, serDe);
   }
 
@@ -134,7 +134,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public static <T> KllItemsSketch<T> wrap(
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.ITEMS_SKETCH, serDe);
     return new KllDirectCompactItemsSketch<>(segVal, comparator, serDe);
   }
@@ -346,7 +346,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //abstract Object[] getRetainedItemsArray();
 
   @Override
-  ArrayOfItemsSerDe2<T> getSerDe() { return serDe; }
+  ArrayOfItemsSerDe<T> getSerDe() { return serDe; }
 
   abstract T getSingleItem();
 

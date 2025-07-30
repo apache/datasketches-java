@@ -30,8 +30,8 @@ import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.common.ArrayOfLongsSerDe2;
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.sampling.ReservoirItemsSketch;
@@ -50,12 +50,12 @@ public class VarOptItemsUnionTest {
     final int n = 30;
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
-    final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
 
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
-    VarOptItemsUnion.heapify(seg, new ArrayOfLongsSerDe2());
+    VarOptItemsUnion.heapify(seg, new ArrayOfLongsSerDe());
     fail();
   }
 
@@ -65,19 +65,19 @@ public class VarOptItemsUnionTest {
     final int n = 30;
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
-    final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
 
     // corrupt the preLongs count to 0
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMinPreLongs() - 1));
-    VarOptItemsUnion.heapify(seg, new ArrayOfLongsSerDe2());
+    VarOptItemsUnion.heapify(seg, new ArrayOfLongsSerDe());
     fail();
   }
 
   @Test
   public void unionEmptySketch() {
     final int k = 2048;
-    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
     // we'll union from MemorySegment for good measure
     final byte[] sketchBytes = VarOptItemsSketch.<String>newInstance(k).toByteArray(serDe);
@@ -226,7 +226,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<Long> union1 = VarOptItemsUnion.newInstance(k);
     union1.update(baseVis);
 
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final MemorySegment unionImg = MemorySegment.ofArray(union1.toByteArray(serDe));
     final VarOptItemsUnion<Long> union2 = VarOptItemsUnion.heapify(unionImg, serDe);
 
@@ -306,7 +306,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<Long> union1 = VarOptItemsUnion.newInstance(k);
     union1.update(baseVis);
 
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final MemorySegment unionImg = MemorySegment.ofArray(union1.toByteArray(serDe));
     final VarOptItemsUnion<Long> union2 = VarOptItemsUnion.heapify(unionImg, serDe);
 
@@ -343,9 +343,9 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<String> union = VarOptItemsUnion.newInstance(k);
     // null inputs to update() should leave the union empty
     union.update((VarOptItemsSketch<String>) null);
-    union.update(null, new ArrayOfStringsSerDe2());
+    union.update(null, new ArrayOfStringsSerDe());
 
-    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final byte[] bytes = union.toByteArray(serDe);
     assertEquals(bytes.length, 8);
 
@@ -370,7 +370,7 @@ public class VarOptItemsUnionTest {
     union.update(sketch1);
     union.update(sketch2);
 
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] unionBytes = union.toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(unionBytes);
 
@@ -397,7 +397,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(sketch);
 
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] unionBytes = union.toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(unionBytes);
 

@@ -26,7 +26,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
@@ -35,7 +35,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class KllItemsSketchiteratorTest {
-  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void emptySketch() {

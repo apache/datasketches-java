@@ -19,13 +19,14 @@
 
 package org.apache.datasketches.hash;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.ValueLayout;
 import java.util.Objects;
-
-import org.apache.datasketches.memory.Memory;
 
 /**
  * The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
@@ -36,7 +37,7 @@ import org.apache.datasketches.memory.Memory;
  * MurmurHash3_x64_128(...), final revision 150</a>,
  * which is in the Public Domain, was the inspiration for this implementation in Java.</p>
  *
- * <p>This implementation of the MurmurHash3 allows hashing of a block of on-heap Memory defined by an offset
+ * <p>This implementation of the MurmurHash3 allows hashing of a block of on-heap MemorySegment defined by an offset
  * and length. The calling API also allows the user to supply the small output array of two longs,
  * so that the entire hash function is static and free of object allocations.</p>
  *
@@ -51,6 +52,8 @@ import org.apache.datasketches.memory.Memory;
 public final class MurmurHash3FFM21 {
   private static final long C1 = 0x87c37b91114253d5L;
   private static final long C2 = 0x4cf5ad432745937fL;
+
+  private MurmurHash3FFM21() { }
 
   /**
    * Returns a 128-bit hash of the input.
@@ -165,32 +168,14 @@ public final class MurmurHash3FFM21 {
     return hash(MemorySegment.ofArray(byteArr), 0L, byteArr.length, seed, hashOut);
   }
 
-  //The main API calls
-
-  /**
-   * Returns a 128-bit hash of the input as a long array of size 2.
-   *
-   * @param mem The input Memory. Must be non-null and non-empty,
-   * otherwise throws IllegalArgumentException.
-   * @param offsetBytes the starting point within Memory.
-   * @param lengthBytes the total number of bytes to be hashed.
-   * @param seed A long valued seed.
-   * @param hashOut the size 2 long array for the resulting 128-bit hash
-   * @return the hash.
-   */
-  public static long[] hash(final Memory mem, final long offsetBytes, final long lengthBytes,
-      final long seed, final long[] hashOut) {
-    Objects.requireNonNull(mem, "Input Memory is null");
-    final MemorySegment seg = mem.getMemorySegment();
-    return hash(seg, offsetBytes, lengthBytes, seed, hashOut);
-  }
+  //The worker method
 
   /**
    * Returns a 128-bit hash of the input as a long array of size 2.
    *
    * @param seg The input MemorySegment. Must be non-null and non-empty,
    * otherwise throws IllegalArgumentException.
-   * @param offsetBytes the starting point within Memory.
+   * @param offsetBytes the starting point within MemorySegment.
    * @param lengthBytes the total number of bytes to be hashed.
    * @param seed A long valued seed.
    * @param hashOut the size 2 long array for the resulting 128-bit hash
@@ -199,21 +184,25 @@ public final class MurmurHash3FFM21 {
    */
   public static long[] hash(final MemorySegment seg, final long offsetBytes, final long lengthBytes,
       final long seed, final long[] hashOut) {
-    Objects.requireNonNull(seg, "Input MemorySegment is null");
-    if (seg.byteSize() == 0L) { throw new IllegalArgumentException("Input MemorySegment is empty."); }
+    Objects.requireNonNull(seg, "Input MemorySegment must not be null");
+    final long segCap = seg.byteSize();
+    if (segCap == 0L) { throw new IllegalArgumentException("Input MemorySegment must not be empty."); }
 
     long cumOff = offsetBytes;
+    long rem = lengthBytes;
 
     long h1 = seed;
     long h2 = seed;
-    long rem = lengthBytes;
 
     // Process the 128-bit blocks (the body) into the hash
     while (rem >= 16L) {
-      final long k1 = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, cumOff);     //0, 16, 32, ...
-      final long k2 = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, cumOff + 8); //8, 24, 40, ...
-      cumOff += 16L;
-      rem -= 16L;
+      final long k1 = seg.get(JAVA_LONG_UNALIGNED, cumOff);     //0, 16, 32, ...
+      final long k2 = seg.get(JAVA_LONG_UNALIGNED, cumOff + 8); //8, 24, 40, ...
+
+      synchronized (MurmurHash3FFM21.class) {
+        cumOff += 16L;
+        rem -= 16L;
+      }
 
       h1 ^= mixK1(k1);
       h1 = Long.rotateLeft(h1, 27);
@@ -232,75 +221,75 @@ public final class MurmurHash3FFM21 {
       long k2 = 0;
       switch ((int) rem) {
         case 15: {
-          k2 ^= (seg.get(ValueLayout.JAVA_BYTE, cumOff + 14) & 0xFFL) << 48;
+          k2 ^= (seg.get(JAVA_BYTE, cumOff + 14) & 0xFFL) << 48;
         }
         //$FALL-THROUGH$
         case 14: {
-          k2 ^= (seg.get(ValueLayout.JAVA_SHORT_UNALIGNED, cumOff + 12) & 0xFFFFL) << 32;
-          k2 ^= seg.get(ValueLayout.JAVA_INT_UNALIGNED, cumOff + 8) & 0xFFFFFFFFL;
-          k1 = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, cumOff);
+          k2 ^= (seg.get(JAVA_SHORT_UNALIGNED, cumOff + 12) & 0xFFFFL) << 32;
+          k2 ^= seg.get(JAVA_INT_UNALIGNED, cumOff + 8) & 0xFFFFFFFFL;
+          k1 = seg.get(JAVA_LONG_UNALIGNED, cumOff);
           break;
         }
 
         case 13: {
-          k2 ^= (seg.get(ValueLayout.JAVA_BYTE, cumOff + 12) & 0xFFL) << 32;
+          k2 ^= (seg.get(JAVA_BYTE, cumOff + 12) & 0xFFL) << 32;
         }
         //$FALL-THROUGH$
         case 12: {
-          k2 ^= seg.get(ValueLayout.JAVA_INT_UNALIGNED, cumOff + 8) & 0xFFFFFFFFL;
-          k1 = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, cumOff);
+          k2 ^= seg.get(JAVA_INT_UNALIGNED, cumOff + 8) & 0xFFFFFFFFL;
+          k1 = seg.get(JAVA_LONG_UNALIGNED, cumOff);
           break;
         }
 
         case 11: {
-          k2 ^= (seg.get(ValueLayout.JAVA_BYTE, cumOff + 10) & 0xFFL) << 16;
+          k2 ^= (seg.get(JAVA_BYTE, cumOff + 10) & 0xFFL) << 16;
         }
         //$FALL-THROUGH$
         case 10: {
-          k2 ^= seg.get(ValueLayout.JAVA_SHORT_UNALIGNED, cumOff + 8) & 0xFFFFL;
-          k1 = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, cumOff);
+          k2 ^= seg.get(JAVA_SHORT_UNALIGNED, cumOff + 8) & 0xFFFFL;
+          k1 = seg.get(JAVA_LONG_UNALIGNED, cumOff);
           break;
         }
 
         case  9: {
-          k2 ^= seg.get(ValueLayout.JAVA_BYTE, cumOff + 8) & 0xFFL;
+          k2 ^= seg.get(JAVA_BYTE, cumOff + 8) & 0xFFL;
         }
         //$FALL-THROUGH$
         case  8: {
-          k1 = seg.get(ValueLayout.JAVA_LONG_UNALIGNED, cumOff);
+          k1 = seg.get(JAVA_LONG_UNALIGNED, cumOff);
           break;
         }
 
         case  7: {
-          k1 ^= (seg.get(ValueLayout.JAVA_BYTE, cumOff + 6) & 0xFFL) << 48;
+          k1 ^= (seg.get(JAVA_BYTE, cumOff + 6) & 0xFFL) << 48;
         }
         //$FALL-THROUGH$
         case  6: {
-          k1 ^= (seg.get(ValueLayout.JAVA_SHORT_UNALIGNED, cumOff + 4) & 0xFFFFL) << 32;
-          k1 ^= seg.get(ValueLayout.JAVA_INT_UNALIGNED, cumOff) & 0xFFFFFFFFL;
+          k1 ^= (seg.get(JAVA_SHORT_UNALIGNED, cumOff + 4) & 0xFFFFL) << 32;
+          k1 ^= seg.get(JAVA_INT_UNALIGNED, cumOff) & 0xFFFFFFFFL;
           break;
         }
 
         case  5: {
-          k1 ^= (seg.get(ValueLayout.JAVA_BYTE, cumOff + 4) & 0xFFL) << 32;
+          k1 ^= (seg.get(JAVA_BYTE, cumOff + 4) & 0xFFL) << 32;
         }
         //$FALL-THROUGH$
         case  4: {
-          k1 ^= seg.get(ValueLayout.JAVA_INT_UNALIGNED, cumOff) & 0xFFFFFFFFL;
+          k1 ^= seg.get(JAVA_INT_UNALIGNED, cumOff) & 0xFFFFFFFFL;
           break;
         }
 
         case  3: {
-          k1 ^= (seg.get(ValueLayout.JAVA_BYTE, cumOff + 2) & 0xFFL) << 16;
+          k1 ^= (seg.get(JAVA_BYTE, cumOff + 2) & 0xFFL) << 16;
         }
         //$FALL-THROUGH$
         case  2: {
-          k1 ^= seg.get(ValueLayout.JAVA_SHORT_UNALIGNED, cumOff) & 0xFFFFL;
+          k1 ^= seg.get(JAVA_SHORT_UNALIGNED, cumOff) & 0xFFFFL;
           break;
         }
 
         case  1: {
-          k1 ^= seg.get(ValueLayout.JAVA_BYTE, cumOff) & 0xFFL;
+          k1 ^= seg.get(JAVA_BYTE, cumOff) & 0xFFL;
           break;
         }
         default: break; //can't happen
@@ -380,7 +369,5 @@ public final class MurmurHash3FFM21 {
     hashOut[1] = h2;
     return hashOut;
   }
-
-  private MurmurHash3FFM21() { }
 
 }

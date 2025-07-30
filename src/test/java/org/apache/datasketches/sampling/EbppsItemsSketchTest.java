@@ -27,8 +27,8 @@ import static org.testng.Assert.assertTrue;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 
-import org.apache.datasketches.common.ArrayOfLongsSerDe2;
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.sampling.EbppsItemsSketch;
 import org.apache.datasketches.sampling.PreambleUtil;
@@ -189,10 +189,10 @@ public class EbppsItemsSketchTest {
     final EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(k);
 
     // empty
-    byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
-    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe2()));
+    byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe()));
     MemorySegment seg = MemorySegment.ofArray(bytes);
-    EbppsItemsSketch<String> sk_heapify = EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch<String> sk_heapify = EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
 
     // add uniform items
@@ -201,19 +201,19 @@ public class EbppsItemsSketchTest {
     }
 
     // non-empty, no partial item
-    bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
-    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe2()));
+    bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe()));
     seg = MemorySegment.ofArray(bytes);
-    sk_heapify = EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    sk_heapify = EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
 
     // non-empty with partial item
     sk.update(Integer.toString(2 * k), 2.5);
     assertEquals(sk.getCumulativeWeight(), k + 2.5, EPS);
-    bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
-    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe2()));
+    bytes = sk.toByteArray(new ArrayOfStringsSerDe());
+    assertEquals(bytes.length, sk.getSerializedSizeBytes(new ArrayOfStringsSerDe()));
     seg = MemorySegment.ofArray(bytes);
-    sk_heapify = EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    sk_heapify = EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
     checkIfEqual(sk, sk_heapify);
 
     assertNotNull(sk.toString());
@@ -222,37 +222,37 @@ public class EbppsItemsSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeZeroK() {
     final EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertK(seg, 0);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeTooLargeK() {
     final EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertK(seg, Integer.MAX_VALUE);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeBadSerVer() {
     final EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertSerVer(seg, -1);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeBadFamily() {
     final EbppsItemsSketch<String> sk = new EbppsItemsSketch<>(5);
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertFamilyID(seg, 0);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -261,10 +261,10 @@ public class EbppsItemsSketchTest {
     for (int i = 0; i < 10; ++i) {
       sk.update(Integer.toString(i));
     }
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertN(seg, -1000);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -273,10 +273,10 @@ public class EbppsItemsSketchTest {
     for (int i = 0; i < 10; ++i) {
       sk.update(Integer.toString(i));
     }
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertEbppsCumulativeWeight(seg, Double.NaN);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -285,10 +285,10 @@ public class EbppsItemsSketchTest {
     for (int i = 0; i < 10; ++i) {
       sk.update(Integer.toString(i));
     }
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertEbppsMaxWeight(seg, Double.POSITIVE_INFINITY);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -297,10 +297,10 @@ public class EbppsItemsSketchTest {
     for (int i = 0; i < 10; ++i) {
       sk.update(Integer.toString(i));
     }
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     PreambleUtil.insertEbppsRho(seg, -0.1);
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -309,10 +309,10 @@ public class EbppsItemsSketchTest {
     for (int i = 0; i < 10; ++i) {
       sk.update(Integer.toString(i));
     }
-    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     seg.set(JAVA_DOUBLE_UNALIGNED, 40, -2.0); // from the defined spec
-    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe2());
+    EbppsItemsSketch.heapify(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -321,9 +321,9 @@ public class EbppsItemsSketchTest {
     for (long i = 0; i < 10; ++i) {
       sk.update(i);
     }
-    final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(bytes);
     final MemorySegment shortSeg = seg.asSlice(0, seg.byteSize() - 1);
-    EbppsItemsSketch.heapify(shortSeg, new ArrayOfLongsSerDe2());
+    EbppsItemsSketch.heapify(shortSeg, new ArrayOfLongsSerDe());
   }
 }

@@ -528,7 +528,7 @@ public class KllDirectDoublesSketchTest {
   }
 
   @Test
-  public void checkGetWritableMemory() {
+  public void checkGetMemorySegment() {
     final KllDoublesSketch sketch = getUpdatableDirectDoublesSketch(200, 200);
     assertEquals(sketch.getK(), 200);
     assertEquals(sketch.getN(), 200);

@@ -39,8 +39,8 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.common.ArrayOfBooleansSerDe2;
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
@@ -54,7 +54,7 @@ import org.apache.datasketches.kll.KllSketch.SketchType;
  */
 final class KllMemorySegmentValidate {
   final MemorySegment srcSeg;
-  final ArrayOfItemsSerDe2<?> serDe;
+  final ArrayOfItemsSerDe<?> serDe;
   final SketchType sketchType;
   final SketchStructure sketchStructure;
 
@@ -87,7 +87,7 @@ final class KllMemorySegmentValidate {
     this(srcSeg, sketchType, null);
   }
 
-  KllMemorySegmentValidate(final MemorySegment srcSeg, final SketchType sketchType, final ArrayOfItemsSerDe2<?> serDe) {
+  KllMemorySegmentValidate(final MemorySegment srcSeg, final SketchType sketchType, final ArrayOfItemsSerDe<?> serDe) {
     final long segCapBytes = srcSeg.byteSize();
     if (segCapBytes < 8) { throw new SketchesArgumentException(MEMORY_TOO_SMALL + segCapBytes); }
     this.srcSeg = srcSeg;
@@ -170,7 +170,7 @@ final class KllMemorySegmentValidate {
       final SketchType sketchType,
       final int[] levelsArr, //full levels array
       final boolean updatable,
-      final ArrayOfItemsSerDe2<?> serDe) { //serDe only valid for ITEMS_SKETCH
+      final ArrayOfItemsSerDe<?> serDe) { //serDe only valid for ITEMS_SKETCH
     final int numLevels = levelsArr.length - 1;
     final int capacityItems = levelsArr[numLevels];
     final int retainedItems = (levelsArr[numLevels] - levelsArr[0]);
@@ -179,7 +179,7 @@ final class KllMemorySegmentValidate {
 
     int offsetBytes = DATA_START_ADR + (levelsLen * Integer.BYTES); //levels array
     if (sketchType == ITEMS_SKETCH) {
-      if (serDe instanceof ArrayOfBooleansSerDe2) {
+      if (serDe instanceof ArrayOfBooleansSerDe) {
         offsetBytes += serDe.sizeOf(srcSeg, offsetBytes, numItems) + 2; //2 for min & max
       } else {
         offsetBytes += serDe.sizeOf(srcSeg, offsetBytes, numItems + 2); //2 for min & max
