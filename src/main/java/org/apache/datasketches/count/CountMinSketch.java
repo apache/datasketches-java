@@ -19,8 +19,10 @@
 
 package org.apache.datasketches.count;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
@@ -28,10 +30,18 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.hash.MurmurHash3;
 
 /**
- * CountMinSketch.
+ * Java implementation of the CountMin sketch data structure of Cormode and Muthukrishnan.
+ * This implementation is inspired by and compatible with the datasketches-cpp version by Charlie Dickens.
+ *
+ * The CountMin sketch is a probabilistic data structure that provides frequency estimates for items
+ * in a data stream. It uses multiple hash functions to distribute items across a two-dimensional array,
+ * providing approximate counts with configurable error bounds.
+ *
+ * Reference: http://dimacs.rutgers.edu/~graham/pubs/papers/cm-full.pdf
  */
 public class CountMinSketch {
   private final byte numHashes_;
@@ -40,6 +50,10 @@ public class CountMinSketch {
   private final long[] hashSeeds_;
   private final long[] sketchArray_;
   private long totalWeight_;
+
+  // Thread-local MemorySegment to avoid allocations in hot paths with explicit endianness control
+  private static final ThreadLocal<MemorySegment> LONG_SEGMENT =
+          ThreadLocal.withInitial(() -> MemorySegment.ofArray(new byte[Long.BYTES]));
 
   private enum Flag {
     IS_EMPTY;
@@ -58,28 +72,56 @@ public class CountMinSketch {
    * @param seed The base hash seed
    */
   CountMinSketch(final byte numHashes, final int numBuckets, final long seed) {
-    numHashes_ = numHashes;
-    numBuckets_ = numBuckets;
-    seed_ = seed;
-    hashSeeds_ = new long[numHashes];
-    sketchArray_ = new long[numHashes * numBuckets];
-    totalWeight_ = 0;
+    // Validate numHashes
+    if (numHashes <= 0) {
+      throw new SketchesArgumentException("Number of hash functions must be positive, got: " + numHashes);
+    }
 
+    // Validate numBuckets with clear mathematical justification
+    if (numBuckets <= 0) {
+      throw new SketchesArgumentException("Number of buckets must be positive, got: " + numBuckets);
+    }
     if (numBuckets < 3) {
-      throw new SketchesArgumentException("Using fewer than 3 buckets incurs relative error greater than 1.");
+      throw new SketchesArgumentException("Number of buckets must be at least 3 to ensure relative error ≤ 1.0. "
+          + "With " + numBuckets + " buckets, relative error would be " + String.format("%.3f", Math.exp(1.0) / numBuckets));
+    }
+
+    // Check for potential overflow in array size calculation
+    // Use long arithmetic to detect overflow before casting
+    final long totalSize = (long) numHashes * (long) numBuckets;
+    if (totalSize > Integer.MAX_VALUE) {
+      throw new SketchesArgumentException("Sketch array size would overflow: " + numHashes + " * " + numBuckets
+          + " = " + totalSize + " > " + Integer.MAX_VALUE);
     }
 
     // This check is to ensure later compatibility with a Java implementation whose maximum size can only
     // be 2^31-1.  We check only against 2^30 for simplicity.
-    if ((numBuckets * numHashes) >= (1 << 30)) {
-      throw new SketchesArgumentException("These parameters generate a sketch that exceeds 2^30 elements. \b"
-          + "Try reducing either the number of buckets or the number of hash functions.");
+    if (totalSize >= (1L << 30)) {
+      throw new SketchesArgumentException("Sketch would require excessive memory: " + numHashes + " * " + numBuckets
+          + " = " + totalSize + " elements (~" + String.format("%d", (totalSize * Long.BYTES) / (1024 * 1024 * 1024)) + " GB). "
+          + "Consider reducing numHashes or numBuckets.");
     }
+
+    numHashes_ = numHashes;
+    numBuckets_ = numBuckets;
+    seed_ = seed;
+    hashSeeds_ = new long[numHashes];
+    sketchArray_ = new long[(int) totalSize];
+    totalWeight_ = 0;
 
     final Random rand = new Random(seed);
     for (int i = 0; i < numHashes; i++) {
       hashSeeds_[i] = rand.nextLong();
     }
+  }
+
+  /**
+   * Efficiently converts a long to byte array using thread-local MemorySegment with explicit endianness.
+   */
+  private static byte[] longToBytes(final long value) {
+    final MemorySegment segment = LONG_SEGMENT.get();
+    segment.set(JAVA_LONG_UNALIGNED, 0, value);
+    return segment.toArray(JAVA_BYTE);
   }
 
   private long[] getHashes(final byte[] item) {
@@ -172,8 +214,7 @@ public class CountMinSketch {
    * @param weight The weight of the item.
    */
   public void update(final long item, final long weight) {
-    final byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
-    update(longByte, weight);
+    update(longToBytes(item), weight);
   }
 
   /**
@@ -212,8 +253,7 @@ public class CountMinSketch {
    * @return Estimated frequency.
    */
   public long getEstimate(final long item) {
-    final byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
-    return getEstimate(longByte);
+    return getEstimate(longToBytes(item));
   }
 
   /**
@@ -242,8 +282,9 @@ public class CountMinSketch {
 
     final long[] hashLocations = getHashes(item);
     long res = sketchArray_[(int) hashLocations[0]];
-    for (final long h : hashLocations) {
-      res = Math.min(res,  sketchArray_[(int) h]);
+    // Start from index 1 to avoid processing first element twice
+    for (int i = 1; i < hashLocations.length; i++) {
+      res = Math.min(res, sketchArray_[(int) hashLocations[i]]);
     }
 
     return res;
@@ -255,8 +296,7 @@ public class CountMinSketch {
    * @return Upper bound of estimated frequency.
    */
   public long getUpperBound(final long item) {
-    final byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
-    return getUpperBound(longByte);
+    return getUpperBound(longToBytes(item));
   }
 
   /**
@@ -270,7 +310,7 @@ public class CountMinSketch {
     }
 
     final byte[] strByte = item.getBytes(StandardCharsets.UTF_8);
-    return  getUpperBound(strByte);
+    return getUpperBound(strByte);
   }
 
   /**
@@ -292,8 +332,7 @@ public class CountMinSketch {
    * @return Lower bound of estimated frequency.
    */
   public long getLowerBound(final long item) {
-    final byte[] longByte = ByteBuffer.allocate(8).putLong(item).array();
-    return getLowerBound(longByte);
+    return getLowerBound(longToBytes(item));
   }
 
   /**
@@ -343,39 +382,56 @@ public class CountMinSketch {
   }
 
   /**
-   * Serializes the sketch into the provided ByteBuffer.
-   * @param buf The ByteBuffer to write into.
+   * Returns the serialized size in bytes.
    */
-  public void serialize(final ByteArrayOutputStream buf) {
+  private int getSerializedSizeBytes() {
+    final int preambleBytes = Family.COUNTMIN.getMinPreLongs() * Long.BYTES;
+    if (isEmpty()) {
+      return preambleBytes;
+    }
+    return preambleBytes + Long.BYTES + (sketchArray_.length * Long.BYTES);
+  }
+
+  /**
+   * Returns the sketch as a byte array.
+   * @return the result byte array
+   */
+  public byte[] toByteArray() {
+    final int serializedSizeBytes = getSerializedSizeBytes();
+    final byte[] bytes = new byte[serializedSizeBytes];
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(bytes));
+
     // Long 0
     final int preambleLongs = Family.COUNTMIN.getMinPreLongs();
-    buf.write((byte) preambleLongs);
+    posSeg.setByte((byte) preambleLongs);
     final int serialVersion = 1;
-    buf.write((byte) serialVersion);
+    posSeg.setByte((byte) serialVersion);
     final int familyId = Family.COUNTMIN.getID();
-    buf.write((byte) familyId);
+    posSeg.setByte((byte) familyId);
     final int flagsByte = isEmpty() ? Flag.IS_EMPTY.mask() : 0;
-    buf.write((byte)flagsByte);
+    posSeg.setByte((byte) flagsByte);
     final int NULL_32 = 0;
-    buf.writeBytes(ByteBuffer.allocate(4).putInt(NULL_32).array());
+    posSeg.setInt(NULL_32);
 
     // Long 1
-    buf.writeBytes(ByteBuffer.allocate(4).putInt(numBuckets_).array());
-    buf.write(numHashes_);
+    posSeg.setInt(numBuckets_);
+    posSeg.setByte(numHashes_);
     final short hashSeed = Util.computeSeedHash(seed_);
-    buf.writeBytes(ByteBuffer.allocate(2).putShort(hashSeed).array());
+    posSeg.setShort(hashSeed);
     final byte NULL_8 = 0;
-    buf.write(NULL_8);
+    posSeg.setByte(NULL_8);
+
     if (isEmpty()) {
-      return;
+      return bytes;
     }
 
-    final byte[] totWeightByte = ByteBuffer.allocate(8).putLong(totalWeight_).array();
-    buf.writeBytes(totWeightByte);
+    posSeg.setLong(totalWeight_);
 
     for (final long w: sketchArray_) {
-      buf.writeBytes(ByteBuffer.allocate(8).putLong(w).array());
+      posSeg.setLong(w);
     }
+
+    return bytes;
   }
 
   /**
@@ -384,26 +440,40 @@ public class CountMinSketch {
    * @param seed The seed used during serialization.
    * @return The deserialized CountMinSketch.
    */
-  @SuppressWarnings("unused")
   public static CountMinSketch deserialize(final byte[] b, final long seed) {
-    final ByteBuffer buf = ByteBuffer.allocate(b.length);
-    buf.put(b);
-    buf.flip();
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(b));
 
-    final byte preambleLongs = buf.get();
-    final byte serialVersion = buf.get();
-    final byte familyId = buf.get();
-    final byte flagsByte = buf.get();
-    final int NULL_32 = buf.getInt();
+    final byte preambleLongs = posSeg.getByte();
+    final byte serialVersion = posSeg.getByte();
+    final byte familyId = posSeg.getByte();
+    final byte flagsByte = posSeg.getByte();
+    posSeg.getInt(); // skip NULL_32
 
-    final int numBuckets = buf.getInt();
-    final byte numHashes = buf.get();
-    final short seedHash = buf.getShort();
-    final byte NULL_8 = buf.get();
+    // Validate serialization format
+    final int expectedPreambleLongs = Family.COUNTMIN.getMinPreLongs();
+    if (preambleLongs != expectedPreambleLongs) {
+      throw new SketchesArgumentException("Preamble longs mismatch: expected " + expectedPreambleLongs
+          + ", actual " + preambleLongs);
+    }
+    final int expectedSerialVersion = 1;
+    if (serialVersion != expectedSerialVersion) {
+      throw new SketchesArgumentException("Serial version mismatch: expected " + expectedSerialVersion
+          + ", actual " + serialVersion);
+    }
+    final int expectedFamilyId = Family.COUNTMIN.getID();
+    if (familyId != expectedFamilyId) {
+      throw new SketchesArgumentException("Family ID mismatch: expected " + expectedFamilyId
+          + ", actual " + familyId);
+    }
+
+    final int numBuckets = posSeg.getInt();
+    final byte numHashes = posSeg.getByte();
+    final short seedHash = posSeg.getShort();
+    posSeg.getByte(); // skip NULL_8
 
     if (seedHash != Util.computeSeedHash(seed)) {
-      throw new SketchesArgumentException("Incompatible seed hashes: " + String.valueOf(seedHash) + ", "
-          + String.valueOf(Util.computeSeedHash(seed)));
+      throw new SketchesArgumentException("Incompatible seed hashes: " + seedHash + ", "
+          + Util.computeSeedHash(seed));
     }
 
     final CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, seed);
@@ -411,11 +481,11 @@ public class CountMinSketch {
     if (empty) {
       return cms;
     }
-    final long w =  buf.getLong();
+    final long w = posSeg.getLong();
     cms.totalWeight_ = w;
 
     for (int i = 0; i < cms.sketchArray_.length; i++) {
-      cms.sketchArray_[i] = buf.getLong();
+      cms.sketchArray_[i] = posSeg.getLong();
     }
 
     return cms;
