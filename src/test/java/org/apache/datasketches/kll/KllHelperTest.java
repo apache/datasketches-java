@@ -33,7 +33,7 @@ import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -47,7 +47,7 @@ import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.testng.annotations.Test;
 
 public class KllHelperTest {
-  public ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
 
   @Test

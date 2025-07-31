@@ -60,7 +60,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   }
 
   private static final boolean checkLvl(final int level) {
-    if (level != BB_LVL_IDX && level < 0) {
+    if ((level != BB_LVL_IDX) && (level < 0)) {
       throw new SketchesArgumentException("Parameter level is < 0.");
     }
     return true;
@@ -72,7 +72,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
 
   static DoublesSketchAccessor wrap(final DoublesSketch ds, final boolean forceSize) {
 
-    if (ds.hasMemory()) {
+    if (ds.hasMemorySegment()) {
       return new DirectDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
     }
     return new HeapDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
@@ -84,7 +84,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
     currLvl_ = lvl;
     if (lvl == BB_LVL_IDX) {
       numItems_ = (forceSize_ ? ds_.getK() * 2 : ds_.getBaseBufferCount());
-      offset_ = (ds_.hasMemory() ? COMBINED_BUFFER : 0);
+      offset_ = (ds_.hasMemorySegment() ? COMBINED_BUFFER : 0);
     } else {
       if (((ds_.getBitPattern() & (1L << lvl)) > 0) || forceSize_) {
         numItems_ = ds_.getK();
@@ -102,7 +102,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
         levelStart = (2 + currLvl_) * ds_.getK();
       }
 
-      if (ds_.hasMemory()) {
+      if (ds_.hasMemorySegment()) {
         final int preLongsAndExtra = Family.QUANTILES.getMaxPreLongs() + 2; // +2 for min, max vals
         offset_ = (preLongsAndExtra + levelStart) << 3;
       } else {

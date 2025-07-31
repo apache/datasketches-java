@@ -1,0 +1,32 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite name="AllTestsSuite">
+  <test name="AllTests">
+    <packages>
+      <package name="org.apache.datasketches.common.positional" />
+      <package name="org.apache.datasketches.common" />
+      <package name="org.apache.datasketches.count" />
+      <package name="org.apache.datasketches.cpc" />
+      <package name="org.apache.datasketches.fdt" />
+      <package name="org.apache.datasketches.filters.bloomfilter" />
+      <package name="org.apache.datasketches.frequencies" />
+      <package name="org.apache.datasketches.hash" />
+      <package name="org.apache.datasketches.hll" />
+      <package name="org.apache.datasketches.hllmap" />
+      <package name="org.apache.datasketches.kll" />
+      <package name="org.apache.datasketches.partitions" />
+      <package name="org.apache.datasketches.quantiles" />
+      <package name="org.apache.datasketches.quantiles2" />
+      <package name="org.apache.datasketches.quantilescommon" />
+      <package name="org.apache.datasketches.req" />
+      <package name="org.apache.datasketches.sampling" />
+      <package name="org.apache.datasketches.tdigest" />
+      <package name="org.apache.datasketches.theta" />
+      <package name="org.apache.datasketches.thetacommon" />
+      <package name="org.apache.datasketches.tuple.adouble" />
+      <package name="org.apache.datasketches.tuple.aninteger" />
+      <package name="org.apache.datasketches.arrayofdoubles" />
+      <package name="org.apache.datasketches.strings" />
+      <package name="org.apache.datasketches.tuple" />
+    </packages>
+  </test>
+</suite>

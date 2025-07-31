@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Predicate;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -208,7 +208,7 @@ public final class ReservoirItemsSketch<T> {
    * @return a sketch instance of this class
    */
   public static <T> ReservoirItemsSketch<T> heapify(final MemorySegment srcSeg,
-                                                    final ArrayOfItemsSerDe2<T> serDe) {
+                                                    final ArrayOfItemsSerDe<T> serDe) {
     Family.RESERVOIR.checkFamilyID(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
 
     final int numPreLongs = extractPreLongs(srcSeg);
@@ -441,7 +441,7 @@ public final class ReservoirItemsSketch<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe) {
     if (itemsSeen_ == 0) {
       // null class is ok since empty -- no need to call serDe
       return toByteArray(serDe, null);
@@ -459,7 +459,7 @@ public final class ReservoirItemsSketch<T> {
    * @return a byte array representation of this sketch
    */
   // bytes will be null only if empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<? super T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = itemsSeen_ == 0;
     byte[] bytes = null; // for serialized items from serDe

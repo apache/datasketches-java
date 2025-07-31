@@ -19,8 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
@@ -36,7 +35,10 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -46,8 +48,6 @@ import java.util.Random;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
@@ -151,11 +151,11 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   /**
    * Obtains a new instance of an ItemsSketch.
+   * @param <T> The sketch data type
    * @param clazz the given class of T
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @param comparator to compare items
-   * @param <T> The sketch data type
    * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
@@ -175,10 +175,9 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Heapifies the given srcMem, which must be a Memory image of a ItemsSketch
+   * Heapifies the given srcSeg, which must be a MemorySegment image of a ItemsSketch
    * @param clazz the given class of T
-   * @param srcMem a Memory image of a sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg a MemorySegment image of a sketch.
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
    * @param <T> The sketch data type
@@ -186,37 +185,37 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    */
   public static <T> ItemsSketch<T> getInstance(
       final Class<T> clazz,
-      final Memory srcMem,
+      final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    final long memCapBytes = srcMem.getCapacity();
-    if (memCapBytes < 8) {
-      throw new SketchesArgumentException("Memory too small: " + memCapBytes);
+    final long segCapBytes = srcSeg.byteSize();
+    if (segCapBytes < 8) {
+      throw new SketchesArgumentException("MemorySegment too small: " + segCapBytes);
     }
 
-    final int preambleLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
-    final int flags = extractFlags(srcMem);
-    final int k = extractK(srcMem);
+    final int preambleLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    final int flags = extractFlags(srcSeg);
+    final int k = extractK(srcSeg);
 
     ItemsUtil.checkItemsSerVer(serVer);
 
     if ((serVer == 3) && ((flags & COMPACT_FLAG_MASK) == 0)) {
-      throw new SketchesArgumentException("Non-compact Memory images are not supported.");
+      throw new SketchesArgumentException("Non-compact MemorySegment images are not supported.");
     }
 
-    final boolean empty = checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
+    final boolean empty = checkPreLongsFlagsCap(preambleLongs, flags, segCapBytes);
     checkFamilyID(familyID);
     final ItemsSketch<T> sk = getInstance(clazz, k, comparator); //checks k
     if (empty) { return sk; }
 
     //Not empty, must have valid preamble + min, max
-    final long n = extractN(srcMem);
+    final long n = extractN(srcSeg);
 
-    //can't check memory capacity here, not enough information
+    //can't check MemorySegment capacity here, not enough information
     final int extra = 2; //for min, max
-    final int numMemItems = computeRetainedItems(k, n) + extra;
+    final int numSegItems = computeRetainedItems(k, n) + extra;
 
     //set class members
     sk.n_ = n;
@@ -225,10 +224,10 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     sk.bitPattern_ = computeBitPattern(k, n);
     sk.combinedBuffer_ = new Object[sk.combinedBufferItemCapacity_];
 
-    final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
-    final Memory mReg = srcMem.region(srcMemItemsOffsetBytes,
-        srcMem.getCapacity() - srcMemItemsOffsetBytes);
-    final T[] itemsArray = serDe.deserializeFromMemory(mReg, 0, numMemItems);
+    final int srcSegItemsOffsetBytes = preambleLongs * Long.BYTES;
+    final MemorySegment slice =
+        srcSeg.asSlice(srcSegItemsOffsetBytes, srcSeg.byteSize() - srcSegItemsOffsetBytes);
+    final T[] itemsArray = serDe.deserializeFromMemorySegment(slice, 0, numSegItems);
     sk.itemsArrayToCombinedBuffer(itemsArray);
     return sk;
   }
@@ -407,19 +406,9 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return ClassicUtil.getKFromEpsilon(epsilon, pmf);
   }
 
-  @SuppressWarnings("javadoc") //@Override
-  public boolean hasMemory() {
-    return false;
-  }
-
   @Override
   public boolean isEmpty() {
    return getN() == 0;
-  }
-
-  @SuppressWarnings("javadoc") //@Override
-  public boolean isDirect() {
-    return false;
   }
 
   @Override
@@ -494,13 +483,13 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Returns a human readable string of the preamble of a Memory image of an ItemsSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of an ItemsSketch.
    * Used for debugging.
-   * @param mem the given Memory
-   * @return a human readable string of the preamble of a Memory image of an ItemsSketch.
+   * @param seg the given MemorySegment
+   * @return a human readable string of the preamble of a MemorySegment image of an ItemsSketch.
    */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.toString(mem, false);
+  public static String toString(final MemorySegment seg) {
+    return PreambleUtil.toString(seg, false);
   }
 
   /**
@@ -523,20 +512,20 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Puts the current sketch into the given Memory if there is sufficient space.
+   * Puts the current sketch into the given MemorySegment if there is sufficient space.
    * Otherwise, throws an error.
    *
-   * @param dstMem the given memory.
+   * @param dstSeg the given MemorySegment.
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void putMemory(final WritableMemory dstMem, final ArrayOfItemsSerDe<T> serDe) {
+  public void putMemorySegment(final MemorySegment dstSeg, final ArrayOfItemsSerDe<T> serDe) {
     final byte[] byteArr = toByteArray(serDe);
-    final long memCap = dstMem.getCapacity();
-    if (memCap < byteArr.length) {
+    final long segCap = dstSeg.byteSize();
+    if (segCap < byteArr.length) {
       throw new SketchesArgumentException(
-          "Destination Memory not large enough: " + memCap + " < " + byteArr.length);
+          "Destination MemorySegment not large enough: " + segCap + " < " + byteArr.length);
     }
-    dstMem.putByteArray(0, byteArr, 0, byteArr.length);
+    MemorySegment.copy(byteArr, 0, dstSeg, JAVA_BYTE, 0, byteArr.length);
   }
 
   @Override

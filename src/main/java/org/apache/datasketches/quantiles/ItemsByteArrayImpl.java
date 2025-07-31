@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
@@ -29,12 +30,12 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 
+import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The items to byte array algorithms.
@@ -46,8 +47,7 @@ final class ItemsByteArrayImpl {
 
   private ItemsByteArrayImpl() {}
 
-  static <T> byte[] toByteArray(final ItemsSketch<T> sketch, final boolean ordered,
-      final ArrayOfItemsSerDe<T> serDe) {
+  static <T> byte[] toByteArray(final ItemsSketch<T> sketch, final boolean ordered, final ArrayOfItemsSerDe<T> serDe) {
     final boolean empty = sketch.isEmpty();
 
     final int flags = (empty ? EMPTY_FLAG_MASK : 0)
@@ -56,9 +56,9 @@ final class ItemsByteArrayImpl {
 
     if (empty) {
       final byte[] outByteArr = new byte[Long.BYTES];
-      final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
+      final MemorySegment segOut = MemorySegment.ofArray(outByteArr);
       final int preLongs = 1;
-      insertPre0(memOut, preLongs, flags, sketch.getK());
+      insertPre0(segOut, preLongs, flags, sketch.getK());
       return outByteArr;
     }
 
@@ -69,14 +69,14 @@ final class ItemsByteArrayImpl {
     final byte[] itemsByteArr = serDe.serializeToByteArray(dataArr);
     final int numOutBytes = (preLongs << 3) + itemsByteArr.length;
     final byte[] outByteArr = new byte[numOutBytes];
-    final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
+    final MemorySegment segOut = MemorySegment.ofArray(outByteArr);
 
     //insert preamble
-    insertPre0(memOut, preLongs, flags, sketch.getK());
-    insertN(memOut, sketch.getN());
+    insertPre0(segOut, preLongs, flags, sketch.getK());
+    insertN(segOut, sketch.getN());
 
     //insert data
-    memOut.putByteArray(preLongs << 3, itemsByteArr, 0, itemsByteArr.length);
+    MemorySegment.copy(itemsByteArr, 0, segOut, JAVA_BYTE, preLongs << 3, itemsByteArr.length);
     return outByteArr;
   }
 
@@ -123,13 +123,13 @@ final class ItemsByteArrayImpl {
     return outArr;
   }
 
-  private static void insertPre0(final WritableMemory wmem,
+  private static void insertPre0(final MemorySegment wseg,
       final int preLongs, final int flags, final int k) {
-    insertPreLongs(wmem, preLongs);
-    insertSerVer(wmem, ItemsUtil.ITEMS_SER_VER);
-    insertFamilyID(wmem, Family.QUANTILES.getID());
-    insertFlags(wmem, flags);
-    insertK(wmem, k);
+    insertPreLongs(wseg, preLongs);
+    insertSerVer(wseg, ItemsUtil.ITEMS_SER_VER);
+    insertFamilyID(wseg, Family.QUANTILES.getID());
+    insertFlags(wseg, flags);
+    insertK(wseg, k);
   }
 
 }

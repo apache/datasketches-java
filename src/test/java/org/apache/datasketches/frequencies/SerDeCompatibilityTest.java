@@ -21,8 +21,8 @@ package org.apache.datasketches.frequencies;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
-import org.apache.datasketches.common.ArrayOfLongsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.frequencies.ItemsSketch;
 import org.apache.datasketches.frequencies.LongsSketch;
 import org.testng.Assert;
@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 public class SerDeCompatibilityTest {
 
-  static final ArrayOfItemsSerDe2<Long> serDe = new ArrayOfLongsSerDe2();
+  static final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
 
   @Test
   public void itemsToLongs() {

@@ -29,7 +29,7 @@ import static org.testng.Assert.fail;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.quantiles.ItemsSketch;
@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  * This tests partition boundaries with both KllItemsSketch and classic ItemsSketch
  */
 public class PartitionBoundariesTest {
-  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
   private static String[] hdr     = {"N", "MaxItem", "MinItem", "NumParts", "SearchCriteria"};
   private static String hdrfmt    = "%6s %10s %10s %10s %15s" + LS;
   private static String hdrdfmt   = "%6d %10s %10s %10d %15s" + LS;
@@ -204,7 +204,7 @@ public class PartitionBoundariesTest {
   public void checkSketchPartitionLimits() {
     final long totalN = 2000; //1_000_000;
     final Comparator<String> comparator = Comparator.naturalOrder();
-    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final int k = 1 << 15;
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
     final int d = digits(totalN);
@@ -235,7 +235,7 @@ public class PartitionBoundariesTest {
   public void checkSketchPartitionLimits2() {
     final long totalN = 2000; //1_000_000;
     final Comparator<String> comparator = Comparator.naturalOrder();
-    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final int k = 1 << 15;
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
     final int d = digits(totalN);

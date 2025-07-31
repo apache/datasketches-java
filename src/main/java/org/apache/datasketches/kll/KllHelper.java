@@ -48,7 +48,7 @@ import static org.apache.datasketches.quantilescommon.QuantilesAPI.UNSUPPORTED_M
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
@@ -354,13 +354,13 @@ final class KllHelper {
       + (newItemsArrLen * typeBytes);
 
     if (requiredSketchBytes > oldWseg.byteSize()) { //Acquire new larger MemorySegment
-      MemorySegmentRequest memSegReq = sketch.getMemorySegmentRequest();
-      if (memSegReq == null) {
-        memSegReq = MemorySegmentRequest.DEFAULT;
+      MemorySegmentRequest mSegReq = sketch.getMemorySegmentRequest();
+      if (mSegReq == null) {
+        mSegReq = MemorySegmentRequest.DEFAULT;
       }
-      final MemorySegment newSeg = memSegReq.request(oldWseg, requiredSketchBytes);
+      final MemorySegment newSeg = mSegReq.request(oldWseg, requiredSketchBytes);
       MemorySegment.copy(oldWseg, 0, newSeg, 0, DATA_START_ADR); //copy preamble (first 20 bytes)
-      memSegReq.requestClose(oldWseg);
+      mSegReq.requestClose(oldWseg);
       return newSeg;
     }
     //Expand in current MemorySegment
@@ -501,7 +501,7 @@ final class KllHelper {
   }
 
   static <T> String toStringImpl(final KllSketch sketch, final boolean withLevels, final boolean withLevelsAndItems,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     final StringBuilder sb = new StringBuilder();
     final int k = sketch.getK();
     final int m = sketch.getM();
@@ -509,15 +509,15 @@ final class KllHelper {
     final int[] fullLevelsArr = sketch.getLevelsArray(UPDATABLE);
 
     final SketchType sketchType = sketch.sketchType;
-    final boolean hasMemSeg = sketch.hasMemorySegment();
+    final boolean hasMSeg = sketch.hasMemorySegment();
     final long n = sketch.getN();
     final String epsPct = String.format("%.3f%%", sketch.getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", sketch.getNormalizedRankError(true) * 100);
     final boolean compact = sketch.isCompactMemorySegmentFormat();
 
-    final String directStr = hasMemSeg ? "Direct" : "";
+    final String directStr = hasMSeg ? "Direct" : "";
     final String compactStr = compact ? "Compact" : "";
-    final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "MemSeg") + ")") : "false";
+    final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "MemorySegment") + ")") : "false";
     final String skTypeStr = sketchType.getName();
     final String className = "Kll" + directStr + compactStr + skTypeStr;
 

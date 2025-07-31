@@ -19,14 +19,16 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteOrder;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 //@formatter:off
 
@@ -117,44 +119,44 @@ final class PreambleUtil {
    * @return the summary string.
    */
   static String toString(final byte[] byteArr, final boolean isDoublesSketch) {
-    final Memory mem = Memory.wrap(byteArr);
-    return toString(mem, isDoublesSketch);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return toString(seg, isDoublesSketch);
   }
 
   /**
-   * Returns a human readable string summary of the Preamble of the given Memory. If this Memory
+   * Returns a human readable string summary of the Preamble of the given MemorySegment. If this MemorySegment
    * image is from a DoublesSketch, the MinQuantile and MaxQuantile will also be output.
    * Used primarily in testing.
    *
-   * @param mem the given Memory
+   * @param seg the given MemorySegment
    * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
    * to output min and max quantiles in the summary
    * @return the summary string.
    */
-  static String toString(final Memory mem, final boolean isDoublesSketch) {
-    return memoryToString(mem, isDoublesSketch);
+  static String toString(final MemorySegment seg, final boolean isDoublesSketch) {
+    return memorySegmentToString(seg, isDoublesSketch);
   }
 
-  private static String memoryToString(final Memory srcMem, final boolean isDoublesSketch) {
-    final int preLongs = extractPreLongs(srcMem); //either 1 or 2
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
+  private static String memorySegmentToString(final MemorySegment srcSeg, final boolean isDoublesSketch) {
+    final int preLongs = extractPreLongs(srcSeg); //either 1 or 2
+    final int serVer = extractSerVer(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
     final String famName = idToFamily(familyID).toString();
-    final int flags = extractFlags(srcMem);
+    final int flags = extractFlags(srcSeg);
     final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final String nativeOrder = ByteOrder.nativeOrder().toString();
     final boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-    final int k = extractK(srcMem);
+    final int k = extractK(srcSeg);
 
-    final long n = (preLongs == 1) ? 0L : extractN(srcMem);
+    final long n = (preLongs == 1) ? 0L : extractN(srcSeg);
     double minDouble = Double.NaN;
     double maxDouble = Double.NaN;
     if ((preLongs > 1) && isDoublesSketch) { // preLongs = 2 or 3
-      minDouble = extractMinDouble(srcMem);
-      maxDouble = extractMaxDouble(srcMem);
+      minDouble = extractMinDouble(srcSeg);
+      maxDouble = extractMaxDouble(srcSeg);
     }
 
     final StringBuilder sb = new StringBuilder();
@@ -180,73 +182,73 @@ final class PreambleUtil {
       sb.append("MaxDouble                      : ").append(maxDouble).append(LS);
     }
     sb.append("Retained Items                 : ").append(computeRetainedItems(k, n)).append(LS);
-    sb.append("Total Bytes                    : ").append(srcMem.getCapacity()).append(LS);
+    sb.append("Total Bytes                    : ").append(srcSeg.byteSize()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
 
   //@formatter:on
-  static int extractPreLongs(final Memory mem) {
-    return mem.getByte(PREAMBLE_LONGS_BYTE) & 0XFF;
+  static int extractPreLongs(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0XFF;
   }
 
-  static int extractSerVer(final Memory mem) {
-    return mem.getByte(SER_VER_BYTE) & 0XFF;
+  static int extractSerVer(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
   }
 
-  static int extractFamilyID(final Memory mem) {
-    return mem.getByte(FAMILY_BYTE) & 0XFF;
+  static int extractFamilyID(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
   }
 
-  static int extractFlags(final Memory mem) {
-    return mem.getByte(FLAGS_BYTE) & 0XFF;
+  static int extractFlags(final MemorySegment seg) {
+    return seg.get(JAVA_BYTE, FLAGS_BYTE) & 0XFF;
   }
 
-  static int extractK(final Memory mem) {
-    return mem.getShort(K_SHORT) & 0XFFFF;
+  static int extractK(final MemorySegment seg) {
+    return seg.get(JAVA_SHORT_UNALIGNED, K_SHORT) & 0XFFFF;
   }
 
-  static long extractN(final Memory mem) {
-    return mem.getLong(N_LONG);
+  static long extractN(final MemorySegment seg) {
+    return seg.get(JAVA_LONG_UNALIGNED, N_LONG);
   }
 
-  static double extractMinDouble(final Memory mem) {
-    return mem.getDouble(MIN_DOUBLE);
+  static double extractMinDouble(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE);
   }
 
-  static double extractMaxDouble(final Memory mem) {
-    return mem.getDouble(MAX_DOUBLE);
+  static double extractMaxDouble(final MemorySegment seg) {
+    return seg.get(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE);
   }
 
-  static void insertPreLongs(final WritableMemory wmem, final int numPreLongs) {
-    wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) numPreLongs);
+  static void insertPreLongs(final MemorySegment wseg, final int numPreLongs) {
+    wseg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) numPreLongs);
   }
 
-  static void insertSerVer(final WritableMemory wmem, final int serVer) {
-    wmem.putByte(SER_VER_BYTE, (byte) serVer);
+  static void insertSerVer(final MemorySegment wseg, final int serVer) {
+    wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) serVer);
   }
 
-  static void insertFamilyID(final WritableMemory wmem, final int famId) {
-    wmem.putByte(FAMILY_BYTE, (byte) famId);
+  static void insertFamilyID(final MemorySegment wseg, final int famId) {
+    wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) famId);
   }
 
-  static void insertFlags(final WritableMemory wmem, final int flags) {
-    wmem.putByte(FLAGS_BYTE, (byte) flags);
+  static void insertFlags(final MemorySegment wseg, final int flags) {
+    wseg.set(JAVA_BYTE, FLAGS_BYTE, (byte) flags);
   }
 
-  static void insertK(final WritableMemory wmem, final int k) {
-    wmem.putShort(K_SHORT, (short) k);
+  static void insertK(final MemorySegment wseg, final int k) {
+    wseg.set(JAVA_SHORT_UNALIGNED, K_SHORT, (short) k);
   }
 
-  static void insertN(final WritableMemory wmem, final long n) {
-    wmem.putLong(N_LONG, n);
+  static void insertN(final MemorySegment wseg, final long n) {
+    wseg.set(JAVA_LONG_UNALIGNED, N_LONG, n);
   }
 
-  static void insertMinDouble(final WritableMemory wmem, final double minDouble) {
-    wmem.putDouble(MIN_DOUBLE, minDouble);
+  static void insertMinDouble(final MemorySegment wseg, final double minDouble) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE, minDouble);
   }
 
-  static void insertMaxDouble(final WritableMemory wmem, final double maxDouble) {
-    wmem.putDouble(MAX_DOUBLE, maxDouble);
+  static void insertMaxDouble(final MemorySegment wseg, final double maxDouble) {
+    wseg.set(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE, maxDouble);
   }
 }

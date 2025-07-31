@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
 
 /**
  * For building a new DoublesSketch Union operation.
@@ -33,7 +33,6 @@ public class DoublesUnionBuilder {
    * Constructor for a new DoublesUnionBuilder. The default configuration is
    * <ul>
    * <li>k: 128. This produces a normalized rank error of about 1.7%</li>
-   * <li>Memory: null</li>
    * </ul>
    */
   public DoublesUnionBuilder() {}
@@ -71,12 +70,12 @@ public class DoublesUnionBuilder {
 
   /**
    * Returns a new empty Union object with the current configuration of this Builder
-   * and the specified backing destination Memory store.
-   * @param dstMem the destination memory
+   * and the specified backing destination MemorySegment store.
+   * @param dstSeg the destination MemorySegment
    * @return a Union object
    */
-  public DoublesUnion build(final WritableMemory dstMem) {
-    return DoublesUnionImpl.directInstance(bMaxK, dstMem);
+  public DoublesUnion build(final MemorySegment dstSeg) {
+    return DoublesUnionImpl.directInstance(bMaxK, dstSeg);
   }
 
 }

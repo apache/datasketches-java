@@ -19,16 +19,14 @@
 
 package org.apache.datasketches.hash;
 
-import static org.apache.datasketches.memory.internal.XxHash64.hash;
-import static org.apache.datasketches.memory.internal.XxHash64.hashBytes;
-import static org.apache.datasketches.memory.internal.XxHash64.hashChars;
-import static org.apache.datasketches.memory.internal.XxHash64.hashDoubles;
-import static org.apache.datasketches.memory.internal.XxHash64.hashFloats;
-import static org.apache.datasketches.memory.internal.XxHash64.hashInts;
-import static org.apache.datasketches.memory.internal.XxHash64.hashLongs;
-import static org.apache.datasketches.memory.internal.XxHash64.hashShorts;
-
-import org.apache.datasketches.memory.internal.XxHash64;
+import static org.apache.datasketches.hash.XxHash64.hash;
+import static org.apache.datasketches.hash.XxHash64.hashBytes;
+import static org.apache.datasketches.hash.XxHash64.hashChars;
+import static org.apache.datasketches.hash.XxHash64.hashDoubles;
+import static org.apache.datasketches.hash.XxHash64.hashFloats;
+import static org.apache.datasketches.hash.XxHash64.hashInts;
+import static org.apache.datasketches.hash.XxHash64.hashLongs;
+import static org.apache.datasketches.hash.XxHash64.hashShorts;
 
 /**
  * The XxHash is a fast, non-cryptographic, 64-bit hash function that has
@@ -202,4 +200,3 @@ public final class XxHash {
   }
 
 }
-

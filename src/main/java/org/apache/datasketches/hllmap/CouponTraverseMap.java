@@ -213,7 +213,7 @@ final class CouponTraverseMap extends Map {
   }
 
   @Override
-  long getMemoryUsageBytes() {
+  long getTotalUsageBytes() {
     return keysArr_.length
         + ((long)couponsArr_.length * Short.BYTES)
         + stateArr_.length + (4L * Integer.BYTES);

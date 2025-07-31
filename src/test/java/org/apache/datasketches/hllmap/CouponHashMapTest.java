@@ -78,12 +78,12 @@ public class CouponHashMapTest {
   @Test
   public void growAndShrink() {
     CouponHashMap map = CouponHashMap.getInstance(4, 16);
-    long sizeBytes1 = map.getMemoryUsageBytes();
+    long sizeBytes1 = map.getTotalUsageBytes();
     for (int i = 0; i < 1000; i ++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
       map.update(key, (short) Map.coupon16(new byte[] {1}));
     }
-    long sizeBytes2 = map.getMemoryUsageBytes();
+    long sizeBytes2 = map.getTotalUsageBytes();
     Assert.assertTrue(sizeBytes2 > sizeBytes1);
     for (int i = 0; i < 1000; i ++) {
       byte[] key = String.format("%4s", i).getBytes(UTF_8);
@@ -91,7 +91,7 @@ public class CouponHashMapTest {
       Assert.assertTrue(index >= 0);
       map.deleteKey(index);
     }
-    long sizeBytes3 = map.getMemoryUsageBytes();
+    long sizeBytes3 = map.getTotalUsageBytes();
     Assert.assertTrue(sizeBytes3 < sizeBytes2);
     println(map.toString());
   }

@@ -23,15 +23,12 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.HashSet;
 
-import org.testng.annotations.Test;
-
-import java.lang.foreign.Arena;
-import java.nio.ByteOrder;
-
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -45,7 +42,7 @@ public class DebugUnionTest {
     final int numSketches = 3;
     final int sketchK = 8;
     final int unionK = 8;
-    UpdateDoublesSketch[] sketchArr = new UpdateDoublesSketch[numSketches];
+    final UpdateDoublesSketch[] sketchArr = new UpdateDoublesSketch[numSketches];
 
     //builds the input sketches, all on heap
     DoublesSketch.setRandom(1); //make deterministic for test
@@ -56,17 +53,17 @@ public class DebugUnionTest {
 
     //loads the on heap union
     DoublesSketch.setRandom(1); //make deterministic for test
-    DoublesUnion hUnion = DoublesUnion.builder().setMaxK(unionK).build();
+    final DoublesUnion hUnion = DoublesUnion.builder().setMaxK(unionK).build();
     for (int s = 0; s < numSketches; s++) { hUnion.union(sketchArr[s]); }
-    DoublesSketch hSketch = hUnion.getResult();
+    final DoublesSketch hSketch = hUnion.getResult();
 
     //loads the direct union
     DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion dUnion;
     DoublesSketch dSketch;
     try (Arena arena = Arena.ofConfined()) {
-      WritableMemory wmem = WritableMemory.allocateDirect(10_000_000, arena);
-      dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
+      final MemorySegment wseg = arena.allocate(10_000_000);
+      dUnion = DoublesUnion.builder().setMaxK(8).build(wseg);
       for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap
     } catch (final Exception e) {
@@ -74,22 +71,22 @@ public class DebugUnionTest {
     }
 
     //iterates and counts errors
-    int hCount = hSketch.getNumRetained();
-    int dCount = dSketch.getNumRetained();
+    final int hCount = hSketch.getNumRetained();
+    final int dCount = dSketch.getNumRetained();
 
     assertEquals(hCount, dCount); //Retained items must be the same
 
     int hErrors = 0;
     int dErrors = 0;
 
-    QuantilesDoublesSketchIterator hit = hSketch.iterator();
-    QuantilesDoublesSketchIterator dit = dSketch.iterator();
+    final QuantilesDoublesSketchIterator hit = hSketch.iterator();
+    final QuantilesDoublesSketchIterator dit = dSketch.iterator();
 
     while (hit.next() && dit.next()) {
-      double v = hit.getQuantile();
+      final double v = hit.getQuantile();
       if (!set.contains(v)) { hErrors++; }
 
-      double w = dit.getQuantile();
+      final double w = dit.getQuantile();
       if (!set.contains(w)) { dErrors++; }
       assertEquals(v, w, 0); //Items must be returned in same order and be equal
     }
@@ -122,14 +119,14 @@ public class DebugUnionTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     print(s+LS);
   }
 
   /**
    * @param s value to print
    */
-  static void print(String s) {
+  static void print(final String s) {
     //System.out.print(s); //disable here
   }
 

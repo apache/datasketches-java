@@ -200,7 +200,7 @@ final class HllMap extends Map {
   }
 
   @Override
-  long getMemoryUsageBytes() {
+  long getTotalUsageBytes() {
     final long arrays = keysArr_.length
         + ((long) arrOfHllArr_.length * Long.BYTES)
         + ((long) invPow2SumLoArr_.length * Double.BYTES)

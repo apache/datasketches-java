@@ -19,9 +19,11 @@
 
 package org.apache.datasketches.common;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
 import org.testng.annotations.Test;
 
 public class ArrayOfXSerDeTest {
@@ -30,98 +32,98 @@ public class ArrayOfXSerDeTest {
   public void checkBooleanItems() {
     int bytes;
     byte[] byteArr;
-    int offset = 10;
-    WritableMemory wmem;
-    ArrayOfBooleansSerDe serDe = new ArrayOfBooleansSerDe();
+    final int offset = 10;
+    MemorySegment wseg;
+    final ArrayOfBooleansSerDe serDe = new ArrayOfBooleansSerDe();
 
-    Boolean[] items = {true,false,true,false,true,false,true,false,true,false};
+    final Boolean[] items = {true,false,true,false,true,false,true,false,true,false};
     bytes = serDe.sizeOf(items);
     byteArr = serDe.serializeToByteArray(items);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Boolean[] deSer = serDe.deserializeFromMemory(wmem, offset, items.length);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Boolean[] deSer = serDe.deserializeFromMemorySegment(wseg, offset, items.length);
     assertEquals(deSer, items);
-    assertEquals(serDe.sizeOf(wmem, offset, items.length), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, items.length), bytes);
 
-    Boolean item = true;
+    final Boolean item = true;
     bytes = serDe.sizeOf(item);
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.toString(item), item.toString());
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Boolean deItem = serDe.deserializeFromMemory(wmem, offset, 1)[0];
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Boolean deItem = serDe.deserializeFromMemorySegment(wseg, offset, 1)[0];
     assertEquals(deItem, item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
   }
 
   @Test
   public void checkDoubleItems() {
     int bytes;
     byte[] byteArr;
-    int offset = 10;
-    WritableMemory wmem;
-    ArrayOfDoublesSerDe serDe = new ArrayOfDoublesSerDe();
+    final int offset = 10;
+    MemorySegment wseg;
+    final ArrayOfDoublesSerDe serDe = new ArrayOfDoublesSerDe();
 
-    Double[] items = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    final Double[] items = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     bytes = serDe.sizeOf(items);
     byteArr = serDe.serializeToByteArray(items);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Double[] deSer = serDe.deserializeFromMemory(wmem, offset, items.length);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Double[] deSer = serDe.deserializeFromMemorySegment(wseg, offset, items.length);
     assertEquals(deSer,items);
-    assertEquals(serDe.sizeOf(wmem, offset, items.length), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, items.length), bytes);
 
-    Double item = 13.0;
+    final Double item = 13.0;
     bytes = serDe.sizeOf(item);
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
     assertEquals(serDe.toString(item), item.toString());
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Double deItem = serDe.deserializeFromMemory(wmem, offset, 1)[0];
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Double deItem = serDe.deserializeFromMemorySegment(wseg, offset, 1)[0];
     assertEquals(deItem, item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
   }
 
   @Test
   public void checkLongItems() {
     int bytes;
     byte[] byteArr;
-    int offset = 10;
-    WritableMemory wmem;
-    ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
+    final int offset = 10;
+    MemorySegment wseg;
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
 
-    Long[] items = {1L, 2L, 3L, 4L, 5L, 6L};
+    final Long[] items = {1L, 2L, 3L, 4L, 5L, 6L};
     bytes = serDe.sizeOf(items);
     byteArr = serDe.serializeToByteArray(items);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Long[] deSer = serDe.deserializeFromMemory(wmem, offset, items.length);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Long[] deSer = serDe.deserializeFromMemorySegment(wseg, offset, items.length);
     assertEquals(deSer,items);
-    assertEquals(serDe.sizeOf(wmem, offset, items.length), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, items.length), bytes);
 
-    Long item = 13L;
+    final Long item = 13L;
     bytes = serDe.sizeOf(item);
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
     assertEquals(serDe.toString(item), item.toString());
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Long deItem = serDe.deserializeFromMemory(wmem, offset, 1)[0];
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Long deItem = serDe.deserializeFromMemorySegment(wseg, offset, 1)[0];
     assertEquals(deItem, item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
   }
 
   @Test
@@ -129,30 +131,30 @@ public class ArrayOfXSerDeTest {
     int bytes;
     byte[] byteArr;
     final int offset = 10;
-    WritableMemory wmem;
-    ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
+    MemorySegment wseg;
+    final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
 
     Number item = (double)5;
     bytes = serDe.sizeOf(item);
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Number deSer1 = serDe.deserializeFromMemory(wmem, offset, 1)[0];
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Number deSer1 = serDe.deserializeFromMemorySegment(wseg, offset, 1)[0];
     assertEquals(deSer1,item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
 
-    Number[] items = {(long)1, (int)2, (short)3, (byte)4, (double)5, (float)6};
+    final Number[] items = {(long)1, (int)2, (short)3, (byte)4, (double)5, (float)6};
     bytes = serDe.sizeOf(items);
     byteArr = serDe.serializeToByteArray(items);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Number[] deSer = serDe.deserializeFromMemory(wmem, offset, items.length);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Number[] deSer = serDe.deserializeFromMemorySegment(wseg, offset, items.length);
     assertEquals(deSer,items);
-    assertEquals(serDe.sizeOf(wmem, offset, items.length), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, items.length), bytes);
 
     item = 13.0;
     bytes = serDe.sizeOf(item);
@@ -161,11 +163,11 @@ public class ArrayOfXSerDeTest {
     assertEquals(serDe.sizeOf(item), bytes);
     assertEquals(serDe.toString(item), item.toString());
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Number[] deItem = serDe.deserializeFromMemory(wmem, offset, 1);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final Number[] deItem = serDe.deserializeFromMemorySegment(wseg, offset, 1);
     assertEquals(deItem[0], item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
   }
 
   @Test
@@ -173,30 +175,30 @@ public class ArrayOfXSerDeTest {
     int bytes;
     byte[] byteArr;
     final int offset = 10;
-    WritableMemory wmem;
-    ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    MemorySegment wseg;
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
     String item = "abcdefghijklmnopqr";
     bytes = serDe.sizeOf(item);
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String deSer1 = serDe.deserializeFromMemory(wmem, offset, 1)[0];
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final String deSer1 = serDe.deserializeFromMemorySegment(wseg, offset, 1)[0];
     assertEquals(deSer1,item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
 
-    String[] items = {"abc","def","ghi","jkl","mno","pqr"};
+    final String[] items = {"abc","def","ghi","jkl","mno","pqr"};
     bytes = serDe.sizeOf(items);
     byteArr = serDe.serializeToByteArray(items);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String[] deSer = serDe.deserializeFromMemory(wmem, offset, items.length);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final String[] deSer = serDe.deserializeFromMemorySegment(wseg, offset, items.length);
     assertEquals(deSer,items);
-    assertEquals(serDe.sizeOf(wmem, offset, items.length), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, items.length), bytes);
 
     item = "13.0";
     bytes = serDe.sizeOf(item);
@@ -205,11 +207,11 @@ public class ArrayOfXSerDeTest {
     assertEquals(serDe.sizeOf(item), bytes);
     assertEquals(serDe.toString(item), item);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String[] deItem = serDe.deserializeFromMemory(wmem, offset, 1);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final String[] deItem = serDe.deserializeFromMemorySegment(wseg, offset, 1);
     assertEquals(deItem[0], item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
   }
 
   @Test
@@ -217,30 +219,30 @@ public class ArrayOfXSerDeTest {
     int bytes;
     byte[] byteArr;
     final int offset = 10;
-    WritableMemory wmem;
-    ArrayOfUtf16StringsSerDe serDe = new ArrayOfUtf16StringsSerDe();
+    MemorySegment wseg;
+    final ArrayOfUtf16StringsSerDe serDe = new ArrayOfUtf16StringsSerDe();
 
     String item = "abcdefghijklmnopqr";
     bytes = serDe.sizeOf(item);
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String deSer1 = serDe.deserializeFromMemory(wmem, offset, 1)[0];
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final String deSer1 = serDe.deserializeFromMemorySegment(wseg, offset, 1)[0];
     assertEquals(deSer1,item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
 
-    String[] items = {"abc","def","ghi","jkl","mno","pqr"};
+    final String[] items = {"abc","def","ghi","jkl","mno","pqr"};
     bytes = serDe.sizeOf(items);
     byteArr = serDe.serializeToByteArray(items);
     assertEquals(byteArr.length, bytes);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String[] deSer = serDe.deserializeFromMemory(wmem, offset, items.length);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final String[] deSer = serDe.deserializeFromMemorySegment(wseg, offset, items.length);
     assertEquals(deSer,items);
-    assertEquals(serDe.sizeOf(wmem, offset, items.length), bytes); //
+    assertEquals(serDe.sizeOf(wseg, offset, items.length), bytes); //
 
     item = "13.0";
     bytes = serDe.sizeOf(item);
@@ -249,11 +251,11 @@ public class ArrayOfXSerDeTest {
     assertEquals(serDe.sizeOf(item), bytes);
     assertEquals(serDe.toString(item), item);
 
-    wmem = WritableMemory.allocate(offset + byteArr.length);
-    wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String[] deItem = serDe.deserializeFromMemory(wmem, offset, 1);
+    wseg = MemorySegment.ofArray(new byte[offset + byteArr.length]);
+    MemorySegment.copy(byteArr, 0, wseg, JAVA_BYTE, offset, byteArr.length);
+    final String[] deItem = serDe.deserializeFromMemorySegment(wseg, offset, 1);
     assertEquals(deItem[0], item);
-    assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
+    assertEquals(serDe.sizeOf(wseg, offset, 1), bytes);
   }
 
 }

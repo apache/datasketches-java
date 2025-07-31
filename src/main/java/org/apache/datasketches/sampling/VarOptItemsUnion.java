@@ -37,7 +37,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 
@@ -148,7 +148,7 @@ public final class VarOptItemsUnion<T> {
    * @return A VarOptItemsUnion created from the provided MemorySegment
    */
   public static <T> VarOptItemsUnion<T> heapify(final MemorySegment srcSeg,
-                                                final ArrayOfItemsSerDe2<T> serDe) {
+                                                final ArrayOfItemsSerDe<T> serDe) {
     Family.VAROPT_UNION.checkFamilyID(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
 
     long n = 0;
@@ -216,7 +216,7 @@ public final class VarOptItemsUnion<T> {
    * @param seg MemorySegment image of sketch to be merged
    * @param serDe An instance of ArrayOfItemsSerDe
    */
-  public void update(final MemorySegment seg, final ArrayOfItemsSerDe2<T> serDe) {
+  public void update(final MemorySegment seg, final ArrayOfItemsSerDe<T> serDe) {
     if (seg != null) {
       final VarOptItemsSketch<T> vis = VarOptItemsSketch.heapify(seg, serDe);
       mergeInto(vis);
@@ -297,7 +297,7 @@ public final class VarOptItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this union
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     assert gadget_ != null;
     if (gadget_.getNumSamples() == 0) {
       return toByteArray(serDe, null);
@@ -315,7 +315,7 @@ public final class VarOptItemsUnion<T> {
    * @return a byte array representation of this union
    */
   // gadgetBytes will be null only if gadget_ == null AND empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = gadget_.getNumSamples() == 0;
     final byte[] gadgetBytes = (empty ? null : gadget_.toByteArray(serDe, clazz));

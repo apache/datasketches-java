@@ -37,8 +37,8 @@ public class UtilTest {
 
   @Test
   public void checkCombBufItemCapacity() {
-    int k = 227;
-    int capEl = computeCombinedBufferItemCapacity(k, 0);
+    final int k = 227;
+    final int capEl = computeCombinedBufferItemCapacity(k, 0);
     assertEquals(capEl, 2 * MIN_K);
   }
 
@@ -49,24 +49,24 @@ public class UtilTest {
 
   @Test
   public void checkHiBitPos() {
-    int bitPos = hiBitPos(4096);
+    final int bitPos = hiBitPos(4096);
     assertEquals(bitPos, 12);
   }
 
   @Test
   public void checkNumValidLevels() {
-    long v = (1L << 32)-1L;
-    int ones = computeValidLevels(v);
+    final long v = (1L << 32)-1L;
+    final int ones = computeValidLevels(v);
     assertEquals(ones, 32);
   }
 
   @Test
   public void testPositionOfLowestZeroBitStartingAt() {
-    int [] answers = {9, 8, 7, 7, 7, 4, 4, 4, 1, 1};
-    long v = 109L;
+    final int [] answers = {9, 8, 7, 7, 7, 4, 4, 4, 1, 1};
+    final long v = 109L;
     //println("IN: " + Long.toBinaryString(v));
     for (int i = 0, j = 9; i < 10; i++, j--) {
-      int result = lowestZeroBitStartingAt(v, i);
+      final int result = lowestZeroBitStartingAt(v, i);
       //System.out.printf ("%d %d %d%n", i, result, answers[j]);
       assertTrue (answers[j] == result);
     }
@@ -74,16 +74,16 @@ public class UtilTest {
 
   @Test
   public void testPositionOfLowestZeroBitStartingAt2() {
-    long bits = -1L;
-    int startingBit = 70; //only low 6 bits are used
-    int result = lowestZeroBitStartingAt(bits, startingBit);
+    final long bits = -1L;
+    final int startingBit = 70; //only low 6 bits are used
+    final int result = lowestZeroBitStartingAt(bits, startingBit);
     assertEquals(result, 64);
   }
 
 //The remainder of this file is a brute force test of corner cases
  // for blockyTandemMergeSort.
 
- private static void assertMergeTestPrecondition(double [] arr, long [] brr, int arrLen, int blkSize) {
+ private static void assertMergeTestPrecondition(final double [] arr, final long [] brr, final int arrLen, final int blkSize) {
    int violationsCount = 0;
    for (int i = 0; i < (arrLen-1); i++) {
      if (((i+1) % blkSize) == 0) {
@@ -102,7 +102,7 @@ public class UtilTest {
    assertEquals(violationsCount, 0);
  }
 
- private static void  assertMergeTestPostcondition(double [] arr, long [] brr, int arrLen) {
+ private static void  assertMergeTestPostcondition(final double [] arr, final long [] brr, final int arrLen) {
    int violationsCount = 0;
    for (int i = 0; i < (arrLen-1); i++) {
      if (arr[i] > arr[i+1]) { violationsCount++; }
@@ -119,23 +119,23 @@ public class UtilTest {
  }
 
 
- private static double[] makeMergeTestInput(int arrLen, int blkSize) {
-   double[] arr = new double[arrLen];
+ private static double[] makeMergeTestInput(final int arrLen, final int blkSize) {
+   final double[] arr = new double[arrLen];
 
-   double pick = Math.random ();
+   final double pick = Math.random ();
 
    for (int i = 0; i < arrLen; i++) {
      if (pick < 0.01) { // every value the same
        arr[i] = 0.3;
      }
      else if (pick < 0.02) { // ascending values
-       int j = i+1;
-       int denom = arrLen+1;
+       final int j = i+1;
+       final int denom = arrLen+1;
        arr[i] = ((double) j) / ((double) denom);
      }
      else if (pick < 0.03) { // descending values
-       int j = i+1;
-       int denom = arrLen+1;
+       final int j = i+1;
+       final int denom = arrLen+1;
        arr[i] = 1.0 - (((double) j) / ((double) denom));
      }
      else { // random values
@@ -150,8 +150,8 @@ public class UtilTest {
    return arr;
  }
 
- private static long [] makeTheTandemArray(double [] arr) {
-   long [] brr = new long [arr.length + 1];  /* make it one longer, just like in the sketches */
+ private static long [] makeTheTandemArray(final double [] arr) {
+   final long [] brr = new long [arr.length + 1];  /* make it one longer, just like in the sketches */
    for (int i = 0; i < arr.length; i++) {
      brr[i] = (long) (1e12 * (1.0 - arr[i])); /* it's a better test with the order reversed */
    }
@@ -168,14 +168,14 @@ public class UtilTest {
   * @param numTries number of tries
   * @param maxArrLen maximum length of array size
   */
- private static void testBlockyTandemMergeSort(int numTries, int maxArrLen) {
+ private static void testBlockyTandemMergeSort(final int numTries, final int maxArrLen) {
    int arrLen = 0;
    double[] arr = null;
    for (arrLen = 0; arrLen <= maxArrLen; arrLen++) {
      for (int blkSize = 1; blkSize <= (arrLen + 100); blkSize++) {
        for (int tryno = 1; tryno <= numTries; tryno++) {
          arr = makeMergeTestInput(arrLen, blkSize);
-         long [] brr = makeTheTandemArray(arr);
+         final long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
          DoublesSketch.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
@@ -224,7 +224,7 @@ public class UtilTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

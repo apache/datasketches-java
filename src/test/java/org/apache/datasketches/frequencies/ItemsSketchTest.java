@@ -36,9 +36,9 @@ import java.lang.foreign.MemorySegment;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.common.ArrayOfLongsSerDe2;
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
-import org.apache.datasketches.common.ArrayOfUtf16StringsSerDe2;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfUtf16StringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.frequencies.ErrorType;
 import org.apache.datasketches.frequencies.ItemsSketch;
@@ -161,9 +161,9 @@ public class ItemsSketchTest {
   @Test
   public void serializeStringDeserializeEmpty() {
     final ItemsSketch<String> sketch1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
-    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     final ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe2());
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
     Assert.assertTrue(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 0);
     Assert.assertEquals(sketch2.getStreamLength(), 0);
@@ -177,9 +177,9 @@ public class ItemsSketchTest {
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
-    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     final ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe2());
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -201,9 +201,9 @@ public class ItemsSketchTest {
     sketch1.update("ccccccccccccccccccccccccccccc");
     sketch1.update("ddddddddddddddddddddddddddddd");
 
-    final byte[] bytes = sketch1.toByteArray(new ArrayOfUtf16StringsSerDe2());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfUtf16StringsSerDe());
     final ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfUtf16StringsSerDe2());
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfUtf16StringsSerDe());
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     sketch2.update("ccccccccccccccccccccccccccccc");
     sketch2.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
@@ -243,9 +243,9 @@ public class ItemsSketchTest {
     final String s = sketch1.toString();
     println(s);
 
-    final byte[] bytes = sketch1.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfLongsSerDe());
     final ItemsSketch<Long> sketch2 =
-        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe2());
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe());
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -317,7 +317,7 @@ public class ItemsSketchTest {
   public void checkToString() {
     final ItemsSketch<Long> sk = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sk.update(Long.valueOf(1));
-    println(ItemsSketch.toString(sk.toByteArray(new ArrayOfLongsSerDe2())));
+    println(ItemsSketch.toString(sk.toByteArray(new ArrayOfLongsSerDe())));
   }
 
   @Test
@@ -347,7 +347,7 @@ public class ItemsSketchTest {
   public void checkMemorySegmentExceptions() {
     final ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
     sk1.update(Long.valueOf(1), 1);
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] byteArr = sk1.toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
     //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(seg, serDe);
@@ -376,9 +376,9 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch1.getStreamLength(), 1);
     Assert.assertEquals(sketch1.getEstimate("\u5fb5"), 1);
 
-    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] bytes = sketch1.toByteArray(new ArrayOfStringsSerDe());
     final ItemsSketch<String> sketch2 =
-        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe2());
+        ItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertEquals(sketch2.getNumActiveItems(), 1);
     Assert.assertEquals(sketch2.getStreamLength(), 1);
@@ -407,7 +407,7 @@ public class ItemsSketchTest {
   //Restricted methods
 
   private static void tryBadSeg(final MemorySegment seg, final int byteOffset, final int byteValue) {
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     try {
       seg.set(JAVA_BYTE, byteOffset, (byte) byteValue); //Corrupt
       ItemsSketch.getInstance(seg, serDe);

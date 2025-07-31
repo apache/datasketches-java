@@ -35,7 +35,7 @@ public class HllMapTest {
     Assert.assertTrue(map.getEntrySizeBytes() > 800);
     Assert.assertEquals(map.getCapacityEntries(), 147);
     Assert.assertEquals(map.getTableEntries(), 157);
-    Assert.assertTrue(map.getMemoryUsageBytes() < 140000);
+    Assert.assertTrue(map.getTotalUsageBytes() < 140000);
 //    println("Entry bytes   : " + map.getEntrySizeBytes());
 //    println("Capacity      : " + map.getCapacityEntries());
 //    println("Table Entries : " + map.getTableEntries());
@@ -78,7 +78,7 @@ public class HllMapTest {
     Assert.assertTrue(map.getEntrySizeBytes() > 800);
     Assert.assertEquals(map.getCapacityEntries(), 147);
     Assert.assertEquals(map.getTableEntries(), 157);
-    Assert.assertTrue(map.getMemoryUsageBytes() < 140000);
+    Assert.assertTrue(map.getTotalUsageBytes() < 140000);
 //    println("Entry bytes   : " + map.getEntrySizeBytes());
 //    println("Capacity      : " + map.getCapacityEntries());
 //    println("Table Entries : " + map.getTableEntries());

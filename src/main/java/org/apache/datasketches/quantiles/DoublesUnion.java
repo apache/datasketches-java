@@ -19,15 +19,16 @@
 
 package org.apache.datasketches.quantiles;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
 
 /**
  * The API for Union operations for quantiles DoublesSketches
  *
  * @author Lee Rhodes
  */
-public abstract class DoublesUnion {
+public abstract class DoublesUnion implements MemorySegmentStatus {
 
   /**
    * Returns a new UnionBuilder
@@ -47,52 +48,35 @@ public abstract class DoublesUnion {
   }
 
   /**
-   * Returns a Heap Union object that has been initialized with the data from the given memory
+   * Returns a Heap Union object that has been initialized with the data from the given MemorySegment
    * image of a sketch.
    *
-   * @param srcMem A memory image of a DoublesSketch to be used as a source of data,
-   * but will not be modified.
+   * @param srcSeg A MemorySegment image of a DoublesSketch to be used as a source of data and will not be modified.
    * @return a Union object
    */
-  public static DoublesUnion heapify(final Memory srcMem) {
-    return DoublesUnionImpl.heapifyInstance(srcMem);
+  public static DoublesUnion heapify(final MemorySegment srcSeg) {
+    return DoublesUnionImpl.heapifyInstance(srcSeg);
   }
 
   /**
-   * Returns a read-only Union object that wraps off-heap data of the given memory image of
+   * Returns an updatable Union object that wraps off-heap data of the given MemorySegment image of
    * a sketch. The data structures of the Union remain off-heap.
    *
-   * @param mem A memory region to be used as the data structure for the sketch
-   * and will be modified.
+   * @param seg A MemorySegment region to be used as the data structure for the sketch and will be modified.
    * @return a Union object
    */
-  public static DoublesUnion wrap(final Memory mem) {
-    return DoublesUnionImplR.wrapInstance(mem);
+  public static DoublesUnion wrap(final MemorySegment seg) {
+    return DoublesUnionImpl.wrapInstance(seg);
   }
 
-  /**
-   * Returns an updatable Union object that wraps off-heap data of the given memory image of
-   * a sketch. The data structures of the Union remain off-heap.
-   *
-   * @param mem A memory region to be used as the data structure for the sketch
-   * and will be modified.
-   * @return a Union object
-   */
-  public static DoublesUnion wrap(final WritableMemory mem) {
-    return DoublesUnionImpl.wrapInstance(mem);
-  }
+  @Override
+  public abstract boolean hasMemorySegment();
 
-  /**
-   * Returns true if this union's data structure is backed by Memory or WritableMemory.
-   * @return true if this union's data structure is backed by Memory or WritableMemory.
-   */
-  public abstract boolean hasMemory();
+  @Override
+  public abstract boolean isOffHeap();
 
-  /**
- * Returns true if this union is off-heap (direct)
- * @return true if this union is off-heap (direct)
-   */
-  public abstract boolean isDirect();
+  @Override
+  public abstract boolean isSameResource(final MemorySegment that);
 
   /**
    * Returns true if this union is empty
@@ -129,8 +113,8 @@ public abstract class DoublesUnion {
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
-   * Merges the given Memory image of a DoublesSketch into this union object.
-   * The given Memory object is not modified and a link to it is not retained.
+   * Merges the given MemorySegment image of a DoublesSketch into this union object.
+   * The given MemorySegment object is not modified and a link to it is not retained.
    * It is required that the ratio of the two K's be a power of 2.
    * This is easily satisfied if each of the K's are already a power of 2.
    * If the given sketch is null or empty it is ignored.
@@ -138,9 +122,9 @@ public abstract class DoublesUnion {
    * <p>It is required that the results of the union operation, which can be obtained at any time,
    * is obtained from {@link #getResult() }.
    *
-   * @param mem Memory image of sketch to be merged
+   * @param seg MemorySegment image of sketch to be merged
    */
-  public abstract void union(Memory mem);
+  public abstract void union(MemorySegment seg);
 
   /**
    * Update this union with the given double (or float) data Item.
@@ -159,14 +143,14 @@ public abstract class DoublesUnion {
   public abstract UpdateDoublesSketch getResult();
 
   /**
-   * Places the result of this Union into the provided memory as an UpdateDoublesSketch,
+   * Places the result of this Union into the provided MemorySegment as an UpdateDoublesSketch,
    * which enables further update operations on the resulting sketch. The Union state has not
    * been changed, which allows further union operations.
    *
-   * @param dstMem the destination memory for the result
+   * @param dstSeg the destination MemorySegment for the result
    * @return the result of this Union operation
    */
-  public abstract UpdateDoublesSketch getResult(WritableMemory dstMem);
+  public abstract UpdateDoublesSketch getResult(MemorySegment dstSeg);
 
   /**
    * Gets the result of this Union  as an UpdateDoublesSketch, which enables further update
@@ -203,15 +187,5 @@ public abstract class DoublesUnion {
    * @return summary information about the sketch.
    */
   public abstract String toString(boolean sketchSummary, boolean dataDetail);
-
-  /**
-   * Returns true if the backing resource of <i>this</i> is identical with the backing resource
-   * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
-   * the region offset must also be the same.
-   * @param that A different non-null object
-   * @return true if the backing resource of <i>this</i> is the same as the backing resource
-   * of <i>that</i>.
-   */
-  public abstract boolean isSameResource(final Memory that);
 
 }

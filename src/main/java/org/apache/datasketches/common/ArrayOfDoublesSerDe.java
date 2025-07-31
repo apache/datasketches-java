@@ -19,12 +19,11 @@
 
 package org.apache.datasketches.common;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Objects;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of Double.
@@ -46,30 +45,30 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
     Objects.requireNonNull(items, "Items must not be null");
     if (items.length == 0) { return new byte[0]; }
     final byte[] bytes = new byte[Double.BYTES * items.length];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
     long offset = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putDouble(offset, items[i]);
+      seg.set(JAVA_DOUBLE_UNALIGNED, offset, items[i]);
       offset += Double.BYTES;
     }
     return bytes;
   }
 
   @Override
-  public Double[] deserializeFromMemory(final Memory mem, final int numItems) {
-    return deserializeFromMemory(mem, 0, numItems);
+  public Double[] deserializeFromMemorySegment(final MemorySegment seg, final int numItems) {
+    return deserializeFromMemorySegment(seg, 0, numItems);
   }
 
   @Override
-  public Double[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public Double[] deserializeFromMemorySegment(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return new Double[0]; }
     long offset = offsetBytes;
-    Util.checkBounds(offset, Double.BYTES * (long)numItems, mem.getCapacity());
+    Util.checkBounds(offset, Double.BYTES * (long)numItems, seg.byteSize());
     final Double[] array = new Double[numItems];
 
     for (int i = 0; i < numItems; i++) {
-      array[i] = mem.getDouble(offset);
+      array[i] = seg.get(JAVA_DOUBLE_UNALIGNED, offset);
       offset += Double.BYTES;
     }
     return array;
@@ -88,8 +87,8 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   }
 
   @Override
-  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public int sizeOf(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     return numItems * Double.BYTES;
   }
 

@@ -34,7 +34,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllFloatsSketch;
@@ -67,7 +67,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 public class CrossCheckQuantilesTest {
-  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
   private final Comparator<String> comparator = Comparator.naturalOrder();
   private final static int k = 32; //all sketches are in exact mode
 

@@ -33,7 +33,7 @@ import static org.apache.datasketches.sampling.PreambleUtil.extractSerVer;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -93,7 +93,7 @@ public final class ReservoirItemsUnion<T> {
    * @return A ReservoirItemsUnion created from the provided MemorySegment
    */
   public static <T> ReservoirItemsUnion<T> heapify(final MemorySegment srcSeg,
-                                                   final ArrayOfItemsSerDe2<T> serDe) {
+                                                   final ArrayOfItemsSerDe<T> serDe) {
     Family.RESERVOIR_UNION.checkFamilyID(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
 
     final int numPreLongs = extractPreLongs(srcSeg);
@@ -170,7 +170,7 @@ public final class ReservoirItemsUnion<T> {
    * @param seg MemorySegment image of sketch to be merged
    * @param serDe An instance of ArrayOfItemsSerDe
    */
-  public void update(final MemorySegment seg, final ArrayOfItemsSerDe2<T> serDe) {
+  public void update(final MemorySegment seg, final ArrayOfItemsSerDe<T> serDe) {
     if (seg == null) {
       return;
     }
@@ -245,7 +245,7 @@ public final class ReservoirItemsUnion<T> {
    * @param serDe An instance of ArrayOfItemsSerDe
    * @return a byte array representation of this union
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     if ((gadget_ == null) || (gadget_.getNumSamples() == 0)) {
       return toByteArray(serDe, null);
     } else {
@@ -286,7 +286,7 @@ public final class ReservoirItemsUnion<T> {
    * @return a byte array representation of this union
    */
   // gadgetBytes will be null only if gadget_ == null AND empty == true
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe, final Class<?> clazz) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = gadget_ == null;
     final byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);

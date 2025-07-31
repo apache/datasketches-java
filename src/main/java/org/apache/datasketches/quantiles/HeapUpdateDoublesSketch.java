@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkHeapFlags;
@@ -38,12 +39,11 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
@@ -109,38 +109,37 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    * @return a HeapUpdateDoublesSketch
    */
   static HeapUpdateDoublesSketch newInstance(final int k) {
-    final HeapUpdateDoublesSketch hqs = new HeapUpdateDoublesSketch(k);
+    final HeapUpdateDoublesSketch huds = new HeapUpdateDoublesSketch(k);
     final int baseBufAlloc = 2 * Math.min(MIN_K, k); //the min is important
-    hqs.n_ = 0;
-    hqs.combinedBuffer_ = new double[baseBufAlloc];
-    hqs.baseBufferCount_ = 0;
-    hqs.bitPattern_ = 0;
-    hqs.minItem_ = Double.NaN;
-    hqs.maxItem_ = Double.NaN;
-    return hqs;
+    huds.n_ = 0;
+    huds.combinedBuffer_ = new double[baseBufAlloc];
+    huds.baseBufferCount_ = 0;
+    huds.bitPattern_ = 0;
+    huds.minItem_ = Double.NaN;
+    huds.maxItem_ = Double.NaN;
+    return huds;
   }
 
   /**
-   * Heapifies the given srcMem, which must be a Memory image of a DoublesSketch and may have data.
+   * Heapifies the given srcSeg, which must be a MemorySegment image of a DoublesSketch and may have data.
    *
-   * @param srcMem a Memory image of a sketch, which may be in compact or not compact form.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param srcSeg a MemorySegment image of a sketch, which may be in compact or not compact form.
    * @return a DoublesSketch on the Java heap.
    */
-  static HeapUpdateDoublesSketch heapifyInstance(final Memory srcMem) {
-    final long memCapBytes = srcMem.getCapacity();
-    if (memCapBytes < 8) {
-      throw new SketchesArgumentException("Source Memory too small: " + memCapBytes + " < 8");
+  static HeapUpdateDoublesSketch heapifyInstance(final MemorySegment srcSeg) {
+    final long segCapBytes = srcSeg.byteSize();
+    if (segCapBytes < 8) {
+      throw new SketchesArgumentException("Source MemorySegment too small: " + segCapBytes + " < 8");
     }
 
-    final int preLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
-    final int flags = extractFlags(srcMem);
-    final int k = extractK(srcMem);
+    final int preLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    final int flags = extractFlags(srcSeg);
+    final int k = extractK(srcSeg);
 
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
-    final long n = empty ? 0 : extractN(srcMem);
+    final long n = empty ? 0 : extractN(srcSeg);
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
@@ -148,23 +147,23 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     checkPreLongsFlagsSerVer(flags, serVer, preLongs);
     checkFamilyID(familyID);
 
-    final HeapUpdateDoublesSketch hds = newInstance(k); //checks k
-    if (empty) { return hds; }
+    final HeapUpdateDoublesSketch huds = newInstance(k); //checks k
+    if (empty) { return huds; }
 
     //Not empty, must have valid preamble + min, max, n.
     //Forward compatibility from SerVer = 1 :
-    final boolean srcIsCompact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
+    final boolean srcIsCompact = (serVer == 2) || ((flags & COMPACT_FLAG_MASK) > 0);
 
-    checkHeapMemCapacity(k, n, srcIsCompact, serVer, memCapBytes);
+    checkHeapSegCapacity(k, n, srcIsCompact, serVer, segCapBytes);
 
     //set class members by computing them
-    hds.n_ = n;
+    huds.n_ = n;
     final int combBufCap = computeCombinedBufferItemCapacity(k, n);
-    hds.baseBufferCount_ = computeBaseBufferItems(k, n);
-    hds.bitPattern_ = computeBitPattern(k, n);
-    //Extract min, max, data from srcMem into Combined Buffer
-    hds.srcMemoryToCombinedBuffer(srcMem, serVer, srcIsCompact, combBufCap);
-    return hds;
+    huds.baseBufferCount_ = computeBaseBufferItems(k, n);
+    huds.bitPattern_ = computeBitPattern(k, n);
+    //Extract min, max, data from srcSeg into Combined Buffer
+    huds.srcMemorySegmentToCombinedBuffer(srcSeg, serVer, srcIsCompact, combBufCap);
+    return huds;
   }
 
   @Override
@@ -185,17 +184,22 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  public boolean hasMemory() {
+  public boolean hasMemorySegment() {
     return false;
   }
 
   @Override
-  public boolean isDirect() {
+  public boolean isOffHeap() {
     return false;
   }
 
   @Override
   public boolean isReadOnly() {
+    return false;
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
     return false;
   }
 
@@ -274,14 +278,14 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   /**
-   * Loads the Combined Buffer, min and max from the given source Memory.
+   * Loads the Combined Buffer, min and max from the given source MemorySegment.
    * The resulting Combined Buffer is always in non-compact form and must be pre-allocated.
-   * @param srcMem the given source Memory
+   * @param srcSeg the given source MemorySegment
    * @param serVer the serialization version of the source
-   * @param srcIsCompact true if the given source Memory is in compact form
+   * @param srcIsCompact true if the given source MemorySegment is in compact form
    * @param combBufCap total items for the combined buffer (size in doubles)
    */
-  private void srcMemoryToCombinedBuffer(final Memory srcMem, final int serVer,
+  private void srcMemorySegmentToCombinedBuffer(final MemorySegment srcSeg, final int serVer,
                                          final boolean srcIsCompact, final int combBufCap) {
     final int preLongs = 2;
     final int extra = (serVer == 1) ? 3 : 2; // space for min and max quantiles, buf alloc (SerVer 1)
@@ -291,32 +295,32 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final long n = getN();
     final double[] combinedBuffer = new double[combBufCap]; //always non-compact
     //Load min, max
-    putMinItem(srcMem.getDouble(MIN_DOUBLE));
-    putMaxItem(srcMem.getDouble(MAX_DOUBLE));
+    putMinItem(srcSeg.get(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE));
+    putMaxItem(srcSeg.get(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE));
 
     if (srcIsCompact) {
       //Load base buffer
-      srcMem.getDoubleArray(preBytes, combinedBuffer, 0, bbCnt);
+      MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, preBytes, combinedBuffer, 0, bbCnt);
 
-      //Load levels from compact srcMem
+      //Load levels from compact srcSeg
       long bitPattern = bitPattern_;
       if (bitPattern != 0) {
-        long memOffset = preBytes + (bbCnt << 3);
+        long segOffset = preBytes + (bbCnt << 3);
         int combBufOffset = 2 * k;
         while (bitPattern != 0L) {
           if ((bitPattern & 1L) > 0L) {
-            srcMem.getDoubleArray(memOffset, combinedBuffer, combBufOffset, k);
-            memOffset += (k << 3); //bytes, increment compactly
+            MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, segOffset, combinedBuffer, combBufOffset, k);
+            segOffset += (k << 3); //bytes, increment compactly
           }
           combBufOffset += k; //doubles, increment every level
           bitPattern >>>= 1;
         }
 
       }
-    } else { //srcMem not compact
+    } else { //srcSeg not compact
       final int levels = computeNumLevelsNeeded(k, n);
       final int totItems = (levels == 0) ? bbCnt : (2 + levels) * k;
-      srcMem.getDoubleArray(preBytes, combinedBuffer, 0, totItems);
+      MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, preBytes, combinedBuffer, 0, totItems);
     }
     putCombinedBuffer(combinedBuffer);
   }
@@ -345,7 +349,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  WritableMemory getMemory() {
+  MemorySegment getMemorySegment() {
     return null;
   }
 
@@ -431,15 +435,15 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   /**
-   * Checks the validity of the heap memory capacity assuming n, k and the compact state.
+   * Checks the validity of the heap MemorySegment capacity assuming n, k and the compact state.
    * @param k the given k
    * @param n the given n
-   * @param compact true if memory is in compact form
+   * @param compact true if MemorySegment is in compact form
    * @param serVer serialization version of the source
-   * @param memCapBytes the current memory capacity in bytes
+   * @param segCapBytes the current MemorySegment capacity in bytes
    */
-  static void checkHeapMemCapacity(final int k, final long n, final boolean compact,
-                                   final int serVer, final long memCapBytes) {
+  static void checkHeapSegCapacity(final int k, final long n, final boolean compact,
+                                   final int serVer, final long segCapBytes) {
     final int metaPre = Family.QUANTILES.getMaxPreLongs() + ((serVer == 1) ? 3 : 2);
     final int retainedItems = computeRetainedItems(k, n);
     final int reqBufBytes;
@@ -451,9 +455,9 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
           ? (metaPre + retainedItems) << 3
           : (metaPre + ((2 + totLevels) * k)) << 3;
     }
-    if (memCapBytes < reqBufBytes) {
-      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
-          + memCapBytes + " < " + reqBufBytes);
+    if (segCapBytes < reqBufBytes) {
+      throw new SketchesArgumentException("Possible corruption: MemorySegment capacity too small: "
+          + segCapBytes + " < " + reqBufBytes);
     }
   }
 
