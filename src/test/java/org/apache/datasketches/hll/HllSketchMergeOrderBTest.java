@@ -1,10 +1,6 @@
 package org.apache.datasketches.hll;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
 import static org.apache.datasketches.common.Util.pwr2SeriesNext;
-
-import java.util.Random;
 
 import org.testng.annotations.Test;
 
