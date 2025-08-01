@@ -663,7 +663,7 @@ under the License.
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <configuration>
-                <groups>${testng.check-cpp-files}</groups>
+                <groups>${testng.check-go-files}</groups>
                 <excludedGroups>${testng.generate-java-files},${testng.check-cpp-files},${testng.check-cpp-historical-files}</excludedGroups>
               </configuration>
             </plugin>
