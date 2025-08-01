@@ -19,12 +19,11 @@ public class HllSketchMergeOrderBTest {
     @Test
     public void testDataSketchHLLMergeOrderDependency() {
         final int ppo = 1 << 17; //Points per octave.
-        // Create 3 sketches with powers-of-2 pattern that triggers order dependency
+
+        // Create 3 sketches with fractional powers of 2 series
         final HllSketch sketchA = createUniquePowerSeriesSketch(1L << 59, ppo, 1L << 60);
         final HllSketch sketchB = createUniquePowerSeriesSketch(1L << 60, ppo, 1L << 61);
         final HllSketch sketchC = createUniquePowerSeriesSketch(1L << 61, ppo, 1L << 62);
-
-        println("");
 
         final double skAEst = sketchA.getCompositeEstimate();
         final double skBEst = sketchB.getCompositeEstimate();
@@ -34,12 +33,13 @@ public class HllSketchMergeOrderBTest {
         final double skB_RE = (skBEst/ppo) - 1.0;
         final double skC_RE = (skCEst/ppo) - 1.0;
 
-        //Print individual estimates:
+        //Print individual composite estimates and Relative Error:
+        println("");
         println("SketchA estimate: " + skAEst + ", RE%: " + (skA_RE * 100));
         println("SketchB estimate: " + skBEst + ", RE%: " + (skB_RE * 100));
-        println("SketchD estimate: " + skCEst + ", RE%: " + (skC_RE * 100));
+        println("SketchC estimate: " + skCEst + ", RE%: " + (skC_RE * 100));
 
-        println("\nNOTE: Sketch Error for Composite Estimator for LgK = 11 is +/- 4.6% at 95% confidence.\n");
+        println("\nNOTE: Sketch Relative Error for Composite Estimator for LgK = 11 is +/- 4.6% at 95% confidence.\n");
 
         // Test six different merge orders:
         final double estimateABC = mergeThreeSketches(sketchA, sketchB, sketchC);
@@ -57,24 +57,13 @@ public class HllSketchMergeOrderBTest {
         println("Merge order CBA: " + estimateCBA);
     }
 
-    @Test
-    public void checkNewGenerator() {
-      final long baseValue = 1L << 59;
-      final int ppo = 1 << 13;
-      final long limit = (1L << 60);
-      int count = 0;
-      long lastp = 0;
-      for (long p = baseValue; p < limit; p = pwr2SeriesNext(ppo, p)) {
-        count++;
-        println(count + ", " + p);
-        lastp = p;
-      }
-      println("Count : " + count);
-      println("last p: " + lastp);
-      println(1L << 60);
-    }
-
-
+    /**
+     * Generates a power series based on fractional powers of 2 where the separation between successive values is 2^(1/ppo).
+     * @param baseValue starting value, inclusive
+     * @param ppo number of unique points per octave
+     * @param limit the upper limit, exclusive
+     * @return the loaded sketch
+     */
     private HllSketch createUniquePowerSeriesSketch(final long baseValue, final int ppo, final long limit) {
       final HllSketch sketch = new HllSketch(LOG2M);
       int count = 0;
@@ -101,6 +90,27 @@ public class HllSketchMergeOrderBTest {
         return union.getCompositeEstimate();
     }
 
+    @Test
+    /**
+     * Used for tweaking the generator algorithm
+     */
+    public void checkNewGenerator() {
+      final long baseValue = 1L << 59;
+      final int ppo = 1 << 10;
+      final long limit = 1L << 60;
+      int count = 0;
+      long lastp = 0;
+      for (long p = baseValue; p < limit; p = pwr2SeriesNext(ppo, p)) {
+        count++;
+        println(count + ", " + p);
+        lastp = p;
+      }
+      println("\nPPO:       " + ppo);
+      println("Count:     " + count);
+      println("baseValue: " + baseValue);
+      println("last p:    " + lastp);
+      println("limit:     " + limit);
+    }
 
     private static void println(final Object o) { System.out.println(o.toString()); }
 
