@@ -457,7 +457,7 @@ public final class Util {
    *     int minP = 1;
    *     int ppo = 2;
    *
-   *     for (int p = minP; p <= maxP; p = pwr2LawNext(ppo, p)) {
+   *     for (int p = minP; p <= maxP; p = pwr2SeriesNext(ppo, p)) {
    *       System.out.print(p + " ");
    *     }
    *     //generates the following series:
@@ -488,7 +488,7 @@ public final class Util {
    *     int minP = 1;
    *     int ppo = 2;
    *
-   *     for (int p = maxP; p >= minP; p = pwr2LawPrev(ppo, p)) {
+   *     for (int p = maxP; p >= minP; p = pwr2SeriesPrev(ppo, p)) {
    *       System.out.print(p + " ");
    *     }
    *     //generates the following series:
