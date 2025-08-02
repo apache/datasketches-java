@@ -310,7 +310,7 @@ public final class MurmurHash3 implements Serializable {
   /**
    * Hash the remaining bytes of the given ByteBuffer starting at position() ending at limit (exclusive).
    *
-   * @param buf The input ByteBuffer. It must be non-null and non-empty and using Little Endian.
+   * @param buf The input ByteBuffer. It must be non-null and non-empty.
    * @param seed A long valued seed.
    * @return a 128-bit hash of the input as a long array of size 2.
    */
