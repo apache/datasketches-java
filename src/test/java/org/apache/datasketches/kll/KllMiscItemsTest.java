@@ -33,8 +33,8 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfBooleansSerDe2;
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllDirectCompactItemsSketch;
@@ -51,7 +51,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 public class KllMiscItemsTest {
-  public ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void checkSortedViewConstruction() {
@@ -561,11 +561,11 @@ public class KllMiscItemsTest {
   public void checkIssue484() {
     final int k = 20;
     final Boolean[] items = { true,false,true,false,true,false,true,false,true,false };
-    final KllItemsSketch<Boolean> sketch = KllItemsSketch.newHeapInstance(k, Boolean::compareTo, new ArrayOfBooleansSerDe2());
+    final KllItemsSketch<Boolean> sketch = KllItemsSketch.newHeapInstance(k, Boolean::compareTo, new ArrayOfBooleansSerDe());
     for (int i = 0; i < items.length; i++) { sketch.update(items[i]); }
     final byte[] serialized = sketch.toByteArray();
     final KllItemsSketch<Boolean> deserialized =
-        KllItemsSketch.wrap(MemorySegment.ofArray(serialized), Boolean::compareTo, new ArrayOfBooleansSerDe2());
+        KllItemsSketch.wrap(MemorySegment.ofArray(serialized), Boolean::compareTo, new ArrayOfBooleansSerDe());
     checkSketchesEqual(sketch, deserialized);
   }
 

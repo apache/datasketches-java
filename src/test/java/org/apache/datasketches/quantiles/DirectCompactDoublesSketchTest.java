@@ -25,12 +25,11 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -48,9 +47,9 @@ public class DirectCompactDoublesSketchTest {
     final UpdateDoublesSketch qs = HeapUpdateDoublesSketchTest.buildAndLoadQS(k, n);
 
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = Memory.wrap(qsBytes);
+    final MemorySegment qsSeg = MemorySegment.ofArray(qsBytes);
 
-    DirectCompactDoublesSketch.wrapInstance(qsMem);
+    DirectCompactDoublesSketch.wrapInstance(qsSeg);
     fail();
   }
 
@@ -62,9 +61,9 @@ public class DirectCompactDoublesSketchTest {
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
-    final WritableMemory dstMem = WritableMemory.writableWrap(new byte[qs.getCurrentCompactSerializedSizeBytes()]);
+    final MemorySegment dstSeg = MemorySegment.ofArray(new byte[qs.getCurrentCompactSerializedSizeBytes()]);
     final DirectCompactDoublesSketch compactQs
-            = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstMem);
+            = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstSeg);
 
     // don't expect equal but new base buffer should be sorted
     final double[] combinedBuffer = compactQs.getCombinedBuffer();
@@ -82,9 +81,9 @@ public class DirectCompactDoublesSketchTest {
     final DirectCompactDoublesSketch qs = buildAndLoadDCQS(k, n); // assuming ordered inserts
 
     final byte[] qsBytes = qs.toByteArray();
-    final Memory qsMem = Memory.wrap(qsBytes);
+    final MemorySegment qsSeg = MemorySegment.ofArray(qsBytes);
 
-    final DirectCompactDoublesSketch compactQs = DirectCompactDoublesSketch.wrapInstance(qsMem);
+    final DirectCompactDoublesSketch compactQs = DirectCompactDoublesSketch.wrapInstance(qsSeg);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
     assertEquals(qsBytes.length, compactQs.getSerializedSizeBytes());
 
@@ -95,9 +94,9 @@ public class DirectCompactDoublesSketchTest {
   @Test
   public void wrapEmptyCompactSketch() {
     final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
-    final Memory mem
-            = Memory.wrap(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
-    final DoublesSketch s2 = DoublesSketch.wrap(mem);
+    final MemorySegment seg
+            = MemorySegment.ofBuffer(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
+    final DoublesSketch s2 = DoublesSketch.wrap(seg);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
     assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMinItem()));
@@ -108,22 +107,22 @@ public class DirectCompactDoublesSketchTest {
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
     final DirectCompactDoublesSketch qs1 = buildAndLoadDCQS(k, 0);
-    try { qs1.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
-    try { qs1.getQuantiles(new double[] {0.0, 0.5, 1.0}); fail(); } catch (IllegalArgumentException e) {}
+    try { qs1.getQuantile(0.5); fail(); } catch (final IllegalArgumentException e) {}
+    try { qs1.getQuantiles(new double[] {0.0, 0.5, 1.0}); fail(); } catch (final IllegalArgumentException e) {}
     final double[] combinedBuffer = qs1.getCombinedBuffer();
     assertEquals(combinedBuffer.length, 2 * k);
     assertNotEquals(combinedBuffer.length, qs1.getCombinedBufferItemCapacity());
   }
 
   @Test
-  public void checkCheckDirectMemCapacity() {
+  public void checkCheckDirectSegCapacity() {
     final int k = 128;
-    DirectCompactDoublesSketch.checkDirectMemCapacity(k, (2 * k) - 1, (4 + (2 * k)) * 8);
-    DirectCompactDoublesSketch.checkDirectMemCapacity(k, (2 * k) + 1, (4 + (3 * k)) * 8);
-    DirectCompactDoublesSketch.checkDirectMemCapacity(k, 0, 8);
+    DirectCompactDoublesSketch.checkDirectSegCapacity(k, (2 * k) - 1, (4 + (2 * k)) * 8);
+    DirectCompactDoublesSketch.checkDirectSegCapacity(k, (2 * k) + 1, (4 + (3 * k)) * 8);
+    DirectCompactDoublesSketch.checkDirectSegCapacity(k, 0, 8);
 
     try {
-      DirectCompactDoublesSketch.checkDirectMemCapacity(k, 10000, 64);
+      DirectCompactDoublesSketch.checkDirectSegCapacity(k, 10000, 64);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -131,9 +130,9 @@ public class DirectCompactDoublesSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkMemTooSmall() {
-    final Memory mem = Memory.wrap(new byte[7]);
-    HeapCompactDoublesSketch.heapifyInstance(mem);
+  public void checkSegTooSmall() {
+    final MemorySegment seg = MemorySegment.ofArray(new byte[7]);
+    HeapCompactDoublesSketch.heapifyInstance(seg);
   }
 
   static DirectCompactDoublesSketch buildAndLoadDCQS(final int k, final int n) {
@@ -146,8 +145,8 @@ public class DirectCompactDoublesSketchTest {
       qs.update(startV + i);
     }
     final byte[] byteArr = new byte[qs.getCurrentCompactSerializedSizeBytes()];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArr);
-    return (DirectCompactDoublesSketch) qs.compact(mem);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    return (DirectCompactDoublesSketch) qs.compact(seg);
   }
 
   @Test

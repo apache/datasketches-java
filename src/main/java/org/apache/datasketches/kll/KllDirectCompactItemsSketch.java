@@ -34,8 +34,8 @@ import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfBooleansSerDe2;
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -61,7 +61,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   KllDirectCompactItemsSketch( //called below and KllItemsSketch
       final KllMemorySegmentValidate segVal,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     super(segVal.sketchStructure, comparator, serDe);
     seg = segVal.srcSeg;
     readOnly = true;
@@ -161,7 +161,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   int getMinMaxSizeBytes() { //this is only used by COMPACT_FULL
     final int offset = DATA_START_ADR + (getNumLevels() * Integer.BYTES);
-    if (serDe instanceof ArrayOfBooleansSerDe2) { return 2; }
+    if (serDe instanceof ArrayOfBooleansSerDe) { return 2; }
     return serDe.sizeOf(seg, offset, 2);
   }
 

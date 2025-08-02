@@ -27,14 +27,14 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.testng.annotations.Test;
 
 public class KllItemsSketchSerDeTest {
-  private final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+  private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void serializeDeserializeEmpty() {

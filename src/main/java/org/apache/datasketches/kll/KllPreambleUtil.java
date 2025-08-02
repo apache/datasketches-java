@@ -39,7 +39,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
 import java.lang.foreign.MemorySegment;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
@@ -194,7 +194,7 @@ final class KllPreambleUtil<T> {
    * @return the summary string.
    */
   static String toString(final byte[] byteArr, final SketchType sketchType, final boolean includeData,
-      final ArrayOfItemsSerDe2<?> serDe) {
+      final ArrayOfItemsSerDe<?> serDe) {
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
     return toString(seg, sketchType, includeData, serDe);
   }
@@ -222,7 +222,7 @@ final class KllPreambleUtil<T> {
    * @return the summary string.
    */
   static <T> String toString(final MemorySegment seg, final SketchType sketchType, final boolean includeData,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     if (sketchType == ITEMS_SKETCH) {
       Objects.requireNonNull(serDe, "SerDe parameter must not be null for ITEMS_SKETCH.");
     }

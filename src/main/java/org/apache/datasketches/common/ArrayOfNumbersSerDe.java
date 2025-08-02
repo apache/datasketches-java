@@ -19,6 +19,12 @@
 
 package org.apache.datasketches.common;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
@@ -26,9 +32,8 @@ import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
 import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.common.ByteArrayUtil.putShortLE;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Objects;
-
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Methods of serializing and deserializing arrays of the object version of primitive types of
@@ -110,50 +115,50 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   }
 
   @Override
-  public Number[] deserializeFromMemory(final Memory mem, final int numItems) {
-    return deserializeFromMemory(mem, 0, numItems);
+  public Number[] deserializeFromMemorySegment(final MemorySegment seg, final int numItems) {
+    return deserializeFromMemorySegment(seg, 0, numItems);
   }
 
   @Override
-  public Number[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public Number[] deserializeFromMemorySegment(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return new Number[0]; }
     final Number[] array = new Number[numItems];
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
-      Util.checkBounds(offset, Byte.BYTES, mem.getCapacity());
-      final byte typeId = mem.getByte(offset);
+      Util.checkBounds(offset, Byte.BYTES, seg.byteSize());
+      final byte typeId = seg.get(JAVA_BYTE, offset);
       offset += Byte.BYTES;
 
       switch (typeId) {
         case LONG_INDICATOR:
-          Util.checkBounds(offset, Long.BYTES, mem.getCapacity());
-          array[i] = mem.getLong(offset);
+          Util.checkBounds(offset, Long.BYTES, seg.byteSize());
+          array[i] = seg.get(JAVA_LONG_UNALIGNED, offset);
           offset += Long.BYTES;
           break;
         case INTEGER_INDICATOR:
-          Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
-          array[i] = mem.getInt(offset);
+          Util.checkBounds(offset, Integer.BYTES, seg.byteSize());
+          array[i] = seg.get(JAVA_INT_UNALIGNED, offset);
           offset += Integer.BYTES;
           break;
         case SHORT_INDICATOR:
-          Util.checkBounds(offset, Short.BYTES, mem.getCapacity());
-          array[i] = mem.getShort(offset);
+          Util.checkBounds(offset, Short.BYTES, seg.byteSize());
+          array[i] = seg.get(JAVA_SHORT_UNALIGNED, offset);
           offset += Short.BYTES;
           break;
         case BYTE_INDICATOR:
-          Util.checkBounds(offset, Byte.BYTES, mem.getCapacity());
-          array[i] = mem.getByte(offset);
+          Util.checkBounds(offset, Byte.BYTES, seg.byteSize());
+          array[i] = seg.get(JAVA_BYTE, offset);
           offset += Byte.BYTES;
           break;
         case DOUBLE_INDICATOR:
-          Util.checkBounds(offset, Double.BYTES, mem.getCapacity());
-          array[i] = mem.getDouble(offset);
+          Util.checkBounds(offset, Double.BYTES, seg.byteSize());
+          array[i] = seg.get(JAVA_DOUBLE_UNALIGNED, offset);
           offset += Double.BYTES;
           break;
         case FLOAT_INDICATOR:
-          Util.checkBounds(offset, Float.BYTES, mem.getCapacity());
-          array[i] = mem.getFloat(offset);
+          Util.checkBounds(offset, Float.BYTES, seg.byteSize());
+          array[i] = seg.get(JAVA_FLOAT_UNALIGNED, offset);
           offset += Float.BYTES;
           break;
         default:
@@ -190,37 +195,37 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   }
 
   @Override
-  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public int sizeOf(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
-      Util.checkBounds(offset, Byte.BYTES, mem.getCapacity());
-      final byte typeId = mem.getByte(offset);
+      Util.checkBounds(offset, Byte.BYTES, seg.byteSize());
+      final byte typeId = seg.get(JAVA_BYTE, offset);
       offset += Byte.BYTES;
 
       switch (typeId) {
         case LONG_INDICATOR:
-          Util.checkBounds(offset, Long.BYTES, mem.getCapacity());
+          Util.checkBounds(offset, Long.BYTES, seg.byteSize());
           offset += Long.BYTES;
           break;
         case INTEGER_INDICATOR:
-          Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
+          Util.checkBounds(offset, Integer.BYTES, seg.byteSize());
           offset += Integer.BYTES;
           break;
         case SHORT_INDICATOR:
-          Util.checkBounds(offset, Short.BYTES, mem.getCapacity());
+          Util.checkBounds(offset, Short.BYTES, seg.byteSize());
           offset += Short.BYTES;
           break;
         case BYTE_INDICATOR:
-          Util.checkBounds(offset, Byte.BYTES, mem.getCapacity());
+          Util.checkBounds(offset, Byte.BYTES, seg.byteSize());
           offset += Byte.BYTES;
           break;
         case DOUBLE_INDICATOR:
-          Util.checkBounds(offset, Double.BYTES, mem.getCapacity());
+          Util.checkBounds(offset, Double.BYTES, seg.byteSize());
           offset += Double.BYTES;
           break;
         case FLOAT_INDICATOR:
-          Util.checkBounds(offset, Float.BYTES, mem.getCapacity());
+          Util.checkBounds(offset, Float.BYTES, seg.byteSize());
           offset += Float.BYTES;
           break;
         default:

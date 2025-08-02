@@ -87,7 +87,7 @@ public class CpcSketchCrossLanguageTest {
     final int[] nArr = {0, 100, 200, 2000, 20000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
     int flavorIdx = 0;
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(goPath.resolve("cpc_n" + n + "_go.sk"));
       final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);

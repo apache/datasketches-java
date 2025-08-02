@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
 import static org.apache.datasketches.quantiles.ClassicUtil.DOUBLES_SER_VER;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeTotalLevels;
@@ -35,10 +36,10 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The doubles to byte array algorithms.
@@ -58,11 +59,11 @@ final class DoublesByteArrayImpl {
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK) : 0);
 
-    if (empty && !sketch.hasMemory()) { //empty & !has Memory
+    if (empty && !sketch.hasMemorySegment()) { //empty & !has MemorySegment
       final byte[] outByteArr = new byte[Long.BYTES];
-      final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
+      final MemorySegment segOut = MemorySegment.ofArray(outByteArr);
       final int preLongs = 1;
-      insertPre0(memOut, preLongs, flags, sketch.getK());
+      insertPre0(segOut, preLongs, flags, sketch.getK());
       return outByteArr;
     }
     //not empty || direct; flags passed for convenience
@@ -85,35 +86,35 @@ final class DoublesByteArrayImpl {
         : sketch.getCurrentUpdatableSerializedSizeBytes());
 
     final byte[] outByteArr = new byte[outBytes];
-    final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
+    final MemorySegment segOut = MemorySegment.ofArray(outByteArr);
 
     //insert pre0
     final int k = sketch.getK();
-    insertPre0(memOut, preLongs, flags, k);
+    insertPre0(segOut, preLongs, flags, k);
     if (sketch.isEmpty()) { return outByteArr; }
 
     //insert N, min, max
     final long n = sketch.getN();
-    insertN(memOut, n);
-    insertMinDouble(memOut, sketch.isEmpty() ? Double.NaN : sketch.getMinItem());
-    insertMaxDouble(memOut, sketch.isEmpty() ? Double.NaN : sketch.getMaxItem());
+    insertN(segOut, n);
+    insertMinDouble(segOut, sketch.isEmpty() ? Double.NaN : sketch.getMinItem());
+    insertMaxDouble(segOut, sketch.isEmpty() ? Double.NaN : sketch.getMaxItem());
 
     // If not-compact, have accessor always report full levels. Then use level size to determine
     // whether to copy data out.
     final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(sketch, !compact);
 
     final int minAndMax = 2; // extra space for min and max quantiles
-    long memOffsetBytes = (preLongs + minAndMax) << 3;
+    long segOffsetBytes = (preLongs + minAndMax) << 3;
 
     // might need to sort base buffer but don't want to change input sketch
     final int bbCnt = computeBaseBufferItems(k, n);
     if (bbCnt > 0) { //Base buffer items only
       final double[] bbItemsArr = dsa.getArray(0, bbCnt);
       if (ordered) { Arrays.sort(bbItemsArr); }
-      memOut.putDoubleArray(memOffsetBytes, bbItemsArr, 0, bbCnt);
+      MemorySegment.copy(bbItemsArr, 0, segOut, JAVA_DOUBLE_UNALIGNED, segOffsetBytes, bbCnt);
     }
     // If n < 2k, totalLevels == 0 so ok to overshoot the offset update
-    memOffsetBytes += (compact ? bbCnt : 2 * k) << 3;
+    segOffsetBytes += (compact ? bbCnt : 2 * k) << 3;
 
     // If serializing from a compact sketch to a non-compact form, we may end up copying data for a
     // higher level one or more times into an unused level. A bit wasteful, but not incorrect.
@@ -122,21 +123,21 @@ final class DoublesByteArrayImpl {
       dsa.setLevel(lvl);
       if (dsa.numItems() > 0) {
         assert dsa.numItems() == k;
-        memOut.putDoubleArray(memOffsetBytes, dsa.getArray(0, k), 0, k);
-        memOffsetBytes += (k << 3);
+        MemorySegment.copy(dsa.getArray(0, k), 0, segOut, JAVA_DOUBLE_UNALIGNED, segOffsetBytes, k);
+        segOffsetBytes += (k << 3);
       }
     }
 
     return outByteArr;
   }
 
-  private static void insertPre0(final WritableMemory wmem,
+  private static void insertPre0(final MemorySegment wseg,
       final int preLongs, final int flags, final int k) {
-    insertPreLongs(wmem, preLongs);
-    insertSerVer(wmem, DOUBLES_SER_VER);
-    insertFamilyID(wmem, Family.QUANTILES.getID());
-    insertFlags(wmem, flags);
-    insertK(wmem, k);
+    insertPreLongs(wseg, preLongs);
+    insertSerVer(wseg, DOUBLES_SER_VER);
+    insertFamilyID(wseg, Family.QUANTILES.getID());
+    insertFlags(wseg, flags);
+    insertK(wseg, k);
   }
 
 }

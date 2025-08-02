@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.quantiles.ClassicUtil.DOUBLES_SER_VER;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
@@ -44,10 +47,10 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.MemorySegmentRequest;
 
 /**
  * Implements the DoublesSketch off-heap.
@@ -57,63 +60,62 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  */
 final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
-  MemoryRequestServer memReqSvr = null;
+  private MemorySegmentRequest mSegReq = null;
 
-  private DirectUpdateDoublesSketch(final int k) {
-    super(k); //Checks k
+  private DirectUpdateDoublesSketch(final int k, final MemorySegment seg, final MemorySegmentRequest mSegReq) {
+    super(k, seg); //Checks k
+    this.mSegReq = mSegReq;
   }
 
   /**
-   * Obtains a new Direct instance of a DoublesSketch, which may be off-heap.
+   * Creates a new Direct instance of a DoublesSketch, which may be off-heap.
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
-   * @param dstMem the destination Memory that will be initialized to hold the data for this sketch.
+   * @param dstSeg the destination MemorySegment that will be initialized to hold the data for this sketch.
    * It must initially be at least (16 * MIN_K + 32) bytes, where MIN_K defaults to 2. As it grows
-   * it will request more memory using the MemoryRequest callback.
+   * it will request more MemorySegment using the MemorySegmentRequest callback.
    * @return a DirectUpdateDoublesSketch
    */
-  static DirectUpdateDoublesSketch newInstance(final int k, final WritableMemory dstMem) {
+  static DirectUpdateDoublesSketch newInstance(final int k, final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
     // must be able to hold at least an empty sketch
-    final long memCap = dstMem.getCapacity();
-    checkDirectMemCapacity(k, 0, memCap);
+    final long segCap = dstSeg.byteSize();
+    checkDirectSegCapacity(k, 0, segCap);
 
-    //initialize dstMem
-    dstMem.putLong(0, 0L); //clear pre0
-    insertPreLongs(dstMem, 2);
-    insertSerVer(dstMem, DOUBLES_SER_VER);
-    insertFamilyID(dstMem, Family.QUANTILES.getID());
-    insertFlags(dstMem, EMPTY_FLAG_MASK);
-    insertK(dstMem, k);
+    //initialize dstSeg
+    dstSeg.set(JAVA_LONG_UNALIGNED, 0, 0L); //clear pre0
+    insertPreLongs(dstSeg, 2);
+    insertSerVer(dstSeg, DOUBLES_SER_VER);
+    insertFamilyID(dstSeg, Family.QUANTILES.getID());
+    insertFlags(dstSeg, EMPTY_FLAG_MASK);
+    insertK(dstSeg, k);
 
-    if (memCap >= COMBINED_BUFFER) {
-      insertN(dstMem, 0L);
-      insertMinDouble(dstMem, Double.NaN);
-      insertMaxDouble(dstMem, Double.NaN);
+    if (segCap >= COMBINED_BUFFER) {
+      insertN(dstSeg, 0L);
+      insertMinDouble(dstSeg, Double.NaN);
+      insertMaxDouble(dstSeg, Double.NaN);
     }
 
-    final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
-    dds.mem_ = dstMem;
-    return dds;
+    return new DirectUpdateDoublesSketch(k, dstSeg, mSegReq);
   }
 
   /**
-   * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
+   * Wrap this sketch around the given non-compact MemorySegment image of a DoublesSketch.
    *
-   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data
-   * @return a sketch that wraps the given srcMem
+   * @param srcSeg the given non-compact MemorySegment image of a DoublesSketch that may have data
+   * @return a sketch that wraps the given srcSeg
    */
-  static DirectUpdateDoublesSketch wrapInstance(final WritableMemory srcMem) {
-    final long memCap = srcMem.getCapacity();
+  static DirectUpdateDoublesSketch wrapInstance(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+    final long segCap = srcSeg.byteSize();
 
-    final int preLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
-    final int flags = extractFlags(srcMem);
-    final int k = extractK(srcMem);
+    final int preLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    final int flags = extractFlags(srcSeg);
+    final int k = extractK(srcSeg);
 
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
-    final long n = empty ? 0 : extractN(srcMem);
+    final long n = empty ? 0 : extractN(srcSeg);
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
@@ -122,12 +124,10 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     checkDirectFlags(flags); //Cannot be compact
     checkK(k);
     checkCompact(serVer, flags);
-    checkDirectMemCapacity(k, n, memCap);
+    checkDirectSegCapacity(k, n, segCap);
     checkEmptyAndN(empty, n);
 
-    final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
-    dds.mem_ = srcMem;
-    return dds;
+    return new DirectUpdateDoublesSketch(k, srcSeg, mSegReq);
   }
 
   @Override
@@ -142,11 +142,11 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final int curBBCount = getBaseBufferCount();
     final int newBBCount = curBBCount + 1; //derived, not stored
 
-    //must check memory capacity before we put anything in it
+    //must check MemorySegment capacity before we put anything in it
     final int combBufItemCap = getCombinedBufferItemCapacity();
     if (newBBCount > combBufItemCap) {
       //only changes combinedBuffer when it is only a base buffer
-      mem_ = growCombinedMemBuffer(2 * getK());
+      seg_ = growCombinedSegBuffer(2 * getK());
     }
 
     final long curN = getN();
@@ -160,18 +160,18 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
       if (dataItem < getMinItem()) { putMinItem(dataItem); }
     }
 
-    mem_.putDouble(COMBINED_BUFFER + ((long) curBBCount * Double.BYTES), dataItem); //put the item
-    mem_.putByte(FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
+    seg_.set(JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER + ((long) curBBCount * Double.BYTES), dataItem); //put the item
+    seg_.set(JAVA_BYTE, FLAGS_BYTE, (byte) 0); //not compact, not ordered, not empty
 
     if (newBBCount == (2 * k_)) { //Propagate
       // make sure there will be enough levels for the propagation
-      final int curMemItemCap = getCombinedBufferItemCapacity();
+      final int curSegItemCap = getCombinedBufferItemCapacity();
       final int itemSpaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(k_, newN);
 
-      //check mem has capacity to accommodate new level
-      if (itemSpaceNeeded > curMemItemCap) {
+      //check seg has capacity to accommodate new level
+      if (itemSpaceNeeded > curSegItemCap) {
         // copies base buffer plus old levels, adds space for new level
-        mem_ = growCombinedMemBuffer(itemSpaceNeeded);
+        seg_ = growCombinedSegBuffer(itemSpaceNeeded);
       }
 
       // sort base buffer via accessor which modifies the underlying base buffer,
@@ -198,11 +198,11 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   public void reset() {
-    if (mem_.getCapacity() >= COMBINED_BUFFER) {
-      mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //not compact, not ordered
-      mem_.putLong(N_LONG, 0L);
-      mem_.putDouble(MIN_DOUBLE, Double.NaN);
-      mem_.putDouble(MAX_DOUBLE, Double.NaN);
+    if (seg_.byteSize() >= COMBINED_BUFFER) {
+      seg_.set(JAVA_BYTE, FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //not compact, not ordered
+      seg_.set(JAVA_LONG_UNALIGNED, N_LONG, 0L);
+      seg_.set(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE, Double.NaN);
+      seg_.set(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE, Double.NaN);
     }
   }
 
@@ -211,25 +211,25 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   void putMinItem(final double minQuantile) {
-    assert (mem_.getCapacity() >= COMBINED_BUFFER);
-    mem_.putDouble(MIN_DOUBLE, minQuantile);
+    assert (seg_.byteSize() >= COMBINED_BUFFER);
+    seg_.set(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE, minQuantile);
   }
 
   @Override
   void putMaxItem(final double maxQuantile) {
-    assert (mem_.getCapacity() >= COMBINED_BUFFER);
-    mem_.putDouble(MAX_DOUBLE, maxQuantile);
+    assert (seg_.byteSize() >= COMBINED_BUFFER);
+    seg_.set(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE, maxQuantile);
   }
 
   @Override
   void putN(final long n) {
-    assert (mem_.getCapacity() >= COMBINED_BUFFER);
-    mem_.putLong(N_LONG, n);
+    assert (seg_.byteSize() >= COMBINED_BUFFER);
+    seg_.set(JAVA_LONG_UNALIGNED, N_LONG, n);
   }
 
   @Override
   void putCombinedBuffer(final double[] combinedBuffer) {
-    mem_.putDoubleArray(COMBINED_BUFFER, combinedBuffer, 0, combinedBuffer.length);
+    MemorySegment.copy(combinedBuffer, 0, seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, combinedBuffer.length);
   }
 
   @Override
@@ -244,31 +244,25 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
-    mem_ = growCombinedMemBuffer(itemSpaceNeeded);
+    seg_ = growCombinedSegBuffer(itemSpaceNeeded);
     // copy out any data that was there
     final double[] newCombBuf = new double[itemSpaceNeeded];
-    mem_.getDoubleArray(COMBINED_BUFFER, newCombBuf, 0, curCombBufItemCap);
+    MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, newCombBuf, 0, curCombBufItemCap);
     return newCombBuf;
   }
 
   //Direct supporting methods
 
-  private WritableMemory growCombinedMemBuffer(final int itemSpaceNeeded) {
-    final long memBytes = mem_.getCapacity();
+  private MemorySegment growCombinedSegBuffer(final int itemSpaceNeeded) {
+    final long segBytes = seg_.byteSize();
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
-    assert needBytes > memBytes;
+    assert needBytes > segBytes;
 
-    memReqSvr = (memReqSvr == null) ? mem_.getMemoryRequestServer() : memReqSvr;
-    if (memReqSvr == null) {
-      throw new SketchesArgumentException(
-          "A request for more memory has been denied, "
-          + "or a default MemoryRequestServer has not been provided. Must abort. ");
-    }
+    mSegReq = (mSegReq == null) ? MemorySegmentRequest.DEFAULT : mSegReq;
 
-    final WritableMemory newMem = memReqSvr.request(mem_, needBytes);
-    mem_.copyTo(0, newMem, 0, memBytes);
-    memReqSvr.requestClose(mem_);
-
-    return newMem;
+    final MemorySegment newSeg = mSegReq.request(seg_, needBytes);
+    MemorySegment.copy(seg_, 0, newSeg, 0, segBytes);
+    mSegReq.requestClose(seg_);
+    return newSeg;
   }
 }

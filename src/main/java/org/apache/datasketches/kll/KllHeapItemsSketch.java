@@ -31,7 +31,7 @@ import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
 import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
 
@@ -64,7 +64,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
    * @param serDe serialization / deserialization class
    */
   KllHeapItemsSketch(final int k, final int m, final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     super(UPDATABLE, comparator, serDe);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
@@ -84,7 +84,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
    * Used for creating a temporary sketch for use with weighted updates.
    */
   KllHeapItemsSketch(final int k, final int m, final T item, final long weight, final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     super(UPDATABLE, comparator, serDe);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
@@ -109,7 +109,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   KllHeapItemsSketch(
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     super(SketchStructure.UPDATABLE, comparator, serDe);
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.ITEMS_SKETCH, serDe);
     k = segVal.k;

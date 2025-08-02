@@ -50,7 +50,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -227,7 +227,7 @@ public class ItemsSketch<T> {
    * @return a sketch instance of this class.
    */
   public static <T> ItemsSketch<T> getInstance(final MemorySegment srcSeg,
-      final ArrayOfItemsSerDe2<T> serDe) {
+      final ArrayOfItemsSerDe<T> serDe) {
     Objects.requireNonNull(srcSeg, "srcSeg must not be null.");
     Objects.requireNonNull(serDe, "serDe must not be null.");
 
@@ -492,7 +492,7 @@ public class ItemsSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  public byte[] toByteArray(final ArrayOfItemsSerDe2<T> serDe) {
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     final int preLongs;
     final int outBytes;
     final boolean empty = isEmpty();

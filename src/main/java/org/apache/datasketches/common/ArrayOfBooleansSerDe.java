@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.common;
 
-import java.util.Objects;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+import java.util.Objects;
 
 /**
  * Methods of serializing and deserializing arrays of Boolean as a bit array.
@@ -54,7 +54,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
     Objects.requireNonNull(items, "Items must not be null");
     final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
 
     byte val = 0;
     for (int i = 0; i < items.length; ++i) {
@@ -62,34 +62,34 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
         val |= 0x1 << (i & 0x7);
       }
       if ((i & 0x7) == 0x7) {
-        mem.putByte(i >>> 3, val);
+        seg.set(JAVA_BYTE, i >>> 3, val);
         val = 0;
       }
     }
     // write out any remaining values (if val=0, still good to be explicit)
     if ((items.length & 0x7) > 0) {
-      mem.putByte(bytesNeeded - 1, val);
+      seg.set(JAVA_BYTE, bytesNeeded - 1, val);
     }
     return bytes;
   }
 
   @Override
-  public Boolean[] deserializeFromMemory(final Memory mem, final int numItems) {
-    return deserializeFromMemory(mem, 0, numItems);
+  public Boolean[] deserializeFromMemorySegment(final MemorySegment seg, final int numItems) {
+    return deserializeFromMemorySegment(seg, 0, numItems);
   }
 
   @Override
-  public Boolean[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public Boolean[] deserializeFromMemorySegment(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return new Boolean[0]; }
     final int numBytes = computeBytesNeeded(numItems);
-    Util.checkBounds(offsetBytes, numBytes, mem.getCapacity());
+    Util.checkBounds(offsetBytes, numBytes, seg.byteSize());
     final Boolean[] array = new Boolean[numItems];
 
     byte srcVal = 0;
     for (int i = 0, b = 0; i < numItems; ++i) {
       if ((i & 0x7) == 0x0) { // should trigger on first iteration
-        srcVal = mem.getByte(offsetBytes + b++);
+        srcVal = seg.get(JAVA_BYTE, offsetBytes + b++);
       }
       array[i] = ((srcVal >>> (i & 0x7)) & 0x1) == 1;
     }
@@ -109,8 +109,8 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   }
 
   @Override
-  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public int sizeOf(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     return computeBytesNeeded(numItems);
   }
 

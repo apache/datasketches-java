@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
@@ -34,10 +36,11 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
 
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
@@ -49,30 +52,31 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  */
 class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
-  WritableMemory mem_;
+  MemorySegment seg_;
 
   //**CONSTRUCTORS**********************************************************
-  DirectUpdateDoublesSketchR(final int k) {
+  DirectUpdateDoublesSketchR(final int k, final MemorySegment seg) {
     super(k); //Checks k
+    seg_ = seg;
   }
 
   /**
-   * Wrap this sketch around the given non-compact Memory image of a DoublesSketch.
+   * Wrap this sketch around the given non-compact MemorySegment image of a DoublesSketch.
    *
-   * @param srcMem the given non-compact Memory image of a DoublesSketch that may have data
-   * @return a sketch that wraps the given srcMem
+   * @param srcSeg the given non-compact MemorySegment image of a DoublesSketch that may have data
+   * @return a sketch that wraps the given srcSeg
    */
-  static DirectUpdateDoublesSketchR wrapInstance(final Memory srcMem) {
-    final long memCap = srcMem.getCapacity();
+  static DirectUpdateDoublesSketchR wrapInstance(final MemorySegment srcSeg) {
+    final long segCap = srcSeg.byteSize();
 
-    final int preLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
-    final int flags = extractFlags(srcMem);
-    final int k = extractK(srcMem);
+    final int preLongs = extractPreLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    final int flags = extractFlags(srcSeg);
+    final int k = extractK(srcSeg);
 
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
-    final long n = empty ? 0 : extractN(srcMem);
+    final long n = empty ? 0 : extractN(srcSeg);
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
@@ -81,39 +85,37 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     checkDirectFlags(flags); //Cannot be compact
     ClassicUtil.checkK(k);
     checkCompact(serVer, flags);
-    checkDirectMemCapacity(k, n, memCap);
+    checkDirectSegCapacity(k, n, segCap);
     checkEmptyAndN(empty, n);
 
-    final DirectUpdateDoublesSketchR dds = new DirectUpdateDoublesSketchR(k);
-    dds.mem_ = (WritableMemory) srcMem;
-    return dds;
+    return new DirectUpdateDoublesSketchR(k, srcSeg);
   }
 
   @Override
   public double getMaxItem() {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
-    return mem_.getDouble(MAX_DOUBLE);
+    return seg_.get(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE);
   }
 
   @Override
   public double getMinItem() {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
-    return mem_.getDouble(MIN_DOUBLE);
+    return seg_.get(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE);
   }
 
   @Override
   public long getN() {
-    return (mem_.getCapacity() < COMBINED_BUFFER) ? 0 : mem_.getLong(N_LONG);
+    return (seg_.byteSize() < COMBINED_BUFFER) ? 0 : seg_.get(JAVA_LONG_UNALIGNED, N_LONG);
   }
 
   @Override
-  public boolean hasMemory() {
-    return (mem_ != null);
+  public boolean hasMemorySegment() {
+    return (seg_ != null);
   }
 
   @Override
-  public boolean isDirect() {
-    return (mem_ != null) ? mem_.isDirect() : false;
+  public boolean isOffHeap() {
+    return (seg_ != null) ? seg_.isNative() : false;
   }
 
   @Override
@@ -122,8 +124,8 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
-  public boolean isSameResource(final Memory that) {
-    return mem_.isSameResource(that);
+  public boolean isSameResource(final MemorySegment that) {
+    return MemorySegmentStatus.isSameResource(seg_, that);
   }
 
   @Override
@@ -146,7 +148,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
   @Override
   int getCombinedBufferItemCapacity() {
-    return Math.max(0, (int)mem_.getCapacity() - COMBINED_BUFFER) / 8;
+    return Math.max(0, (int)seg_.byteSize() - COMBINED_BUFFER) / 8;
   }
 
   @Override
@@ -156,7 +158,9 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     final long n = getN();
     final int itemCap = ClassicUtil.computeCombinedBufferItemCapacity(k, n);
     final double[] combinedBuffer = new double[itemCap];
-    mem_.getDoubleArray(COMBINED_BUFFER, combinedBuffer, 0, itemCap);
+    MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, combinedBuffer, 0, itemCap);
+
+
     return combinedBuffer;
   }
 
@@ -168,8 +172,8 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
-  WritableMemory getMemory() {
-    return mem_;
+  MemorySegment getMemorySegment() {
+    return seg_;
   }
 
   //Puts
@@ -212,24 +216,24 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   //Checks
 
   /**
-   * Checks the validity of the direct memory capacity assuming n, k.
+   * Checks the validity of the direct MemorySegment capacity assuming n, k.
    * @param k the given k
    * @param n the given n
-   * @param memCapBytes the current memory capacity in bytes
+   * @param segCapBytes the current MemorySegment capacity in bytes
    */
-  static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {
+  static void checkDirectSegCapacity(final int k, final long n, final long segCapBytes) {
     final int reqBufBytes = getUpdatableStorageBytes(k, n);
 
-    if (memCapBytes < reqBufBytes) {
-      throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "
-          + memCapBytes + " < " + reqBufBytes);
+    if (segCapBytes < reqBufBytes) {
+      throw new SketchesArgumentException("Possible corruption: MemorySegment capacity too small: "
+          + segCapBytes + " < " + reqBufBytes);
     }
   }
 
   static void checkCompact(final int serVer, final int flags) {
-    final boolean compact = (serVer == 2) | ((flags & COMPACT_FLAG_MASK) > 0);
+    final boolean compact = (serVer == 2) || ((flags & COMPACT_FLAG_MASK) > 0);
     if (compact) {
-      throw new SketchesArgumentException("Compact Memory is not supported for Wrap Instance.");
+      throw new SketchesArgumentException("Compact MemorySegment is not supported for Wrap Instance.");
     }
   }
 
@@ -257,4 +261,5 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
           "Possible corruption: Empty Flag = true and N > 0: " + n);
     }
   }
+
 }

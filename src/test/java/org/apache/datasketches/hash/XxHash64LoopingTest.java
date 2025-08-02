@@ -19,9 +19,11 @@
 
 package org.apache.datasketches.hash;
 
+import static org.apache.datasketches.hash.XxHash64.hash;
 import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
 import org.testng.annotations.Test;
 
 /**
@@ -37,12 +39,12 @@ public class XxHash64LoopingTest {
    */
   @Test
   public void testWithSeed() {
-    long seed = 42L;
+    final long seed = 42L;
     for (int i = 0; i < 1025; i++) {
-      byte[] byteArr = new byte[i];
+      final byte[] byteArr = new byte[i];
       for (int j = 0; j < byteArr.length; j++) { byteArr[j] = (byte) j; }
-      WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-      long hash = wmem.xxHash64(0, byteArr.length, seed);
+      final MemorySegment wseg = MemorySegment.ofArray(byteArr);
+      final long hash = hash(wseg, 0, byteArr.length, seed);
       assertEquals(hash, HASHES_OF_LOOPING_BYTES_WITH_SEED_42[i]);
     }
   }

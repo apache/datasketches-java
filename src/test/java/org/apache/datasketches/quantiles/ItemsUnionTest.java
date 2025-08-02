@@ -22,12 +22,12 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.quantiles.PreambleUtil.DEFAULT_K;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -47,14 +47,13 @@ public class ItemsUnionTest {
     union.union((ItemsSketch<Integer>) null);
     union.union(emptySk);
     Assert.assertTrue(union.isEmpty());
-    Assert.assertFalse(union.isDirect());
     Assert.assertEquals(union.getMaxK(), DEFAULT_K);
     Assert.assertEquals(union.getEffectiveK(), DEFAULT_K);
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
     union.union(validSk);
 
     union.reset();
@@ -63,16 +62,16 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
 
     // internal sketch is not null again because getResult() instantiated it
     union.union(ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
 
     union.reset();
     // internal sketch is null again
@@ -80,8 +79,8 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
   }
 
   @Test
@@ -117,8 +116,8 @@ public class ItemsUnionTest {
     ItemsUnion<String> union = ItemsUnion.getInstance(sketch);
     union.reset();
     final byte[] byteArr = sketch.toByteArray(serDe);
-    final Memory mem = Memory.wrap(byteArr);
-    union = ItemsUnion.getInstance(String.class, mem, comp, serDe);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    union = ItemsUnion.getInstance(String.class, seg, comp, serDe);
     Assert.assertEquals(byteArr.length, 8);
     union.reset();
   }
@@ -128,8 +127,8 @@ public class ItemsUnionTest {
     final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 128, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) { }
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) { }
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) { }
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) { }
 
     for (int i = 1; i <= 1000; i++) { union.update((long) i); }
     result = union.getResult();
@@ -150,7 +149,7 @@ public class ItemsUnionTest {
     final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Long.class, Comparator.naturalOrder());
     for (int i = 2001; i <= 3000; i++) { sketch2.update((long) i); }
     final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
-    union.union(Memory.wrap(sketch2.toByteArray(serDe)), serDe);
+    union.union(MemorySegment.ofArray(sketch2.toByteArray(serDe)), serDe);
     result = union.getResultAndReset();
     Assert.assertNotNull(result);
     Assert.assertEquals(result.getN(), 3000);
@@ -160,8 +159,8 @@ public class ItemsUnionTest {
 
     result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) { }
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) { }
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) { }
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) { }
   }
 
   @Test
@@ -169,8 +168,8 @@ public class ItemsUnionTest {
     final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 512, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
 
     for (int i = 1; i <= 10000; i++) { union.update((long) i); }
     result = union.getResult();
@@ -193,7 +192,7 @@ public class ItemsUnionTest {
     final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Long.class,128,  Comparator.naturalOrder());
     for (int i = 20001; i <= 30000; i++) { sketch2.update((long) i); }
     final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
-    union.union(Memory.wrap(sketch2.toByteArray(serDe)), serDe);
+    union.union(MemorySegment.ofArray(sketch2.toByteArray(serDe)), serDe);
     result = union.getResultAndReset();
     Assert.assertNotNull(result);
     Assert.assertEquals(result.getK(), 128);
@@ -204,8 +203,8 @@ public class ItemsUnionTest {
 
     result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
   }
 
   @Test
@@ -312,8 +311,8 @@ public class ItemsUnionTest {
     final ItemsSketch<Long> skEmpty1 = buildIS(32, 0);
     final ItemsSketch<Long> skEmpty2 = buildIS(32, 0);
     ItemsMergeImpl.mergeInto(skEmpty1, skEmpty2);
-    try { skEmpty2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { skEmpty2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { skEmpty2.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
+    try { skEmpty2.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
 
     ItemsSketch<Long> skValid1, skValid2;
     int n = 64;
@@ -372,8 +371,8 @@ public class ItemsUnionTest {
     Assert.assertTrue(union.isEmpty());
 
     final byte[] byteArr = buildIS(k, (2 * k) + 5).toByteArray(serDe);
-    final Memory mem = Memory.wrap(byteArr);
-    union = ItemsUnion.getInstance(Long.class, mem, Comparator.naturalOrder(), serDe);
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    union = ItemsUnion.getInstance(Long.class, seg, Comparator.naturalOrder(), serDe);
     bytesOut = union.toByteArray(serDe);
     Assert.assertEquals(bytesOut.length, byteArr.length);
     Assert.assertEquals(bytesOut, byteArr); // assumes consistent internal use of toByteArray()

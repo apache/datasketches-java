@@ -19,14 +19,16 @@
 
 package org.apache.datasketches.hash;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+
+import java.lang.foreign.MemorySegment;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Objects;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
@@ -306,7 +308,7 @@ public final class MurmurHash3 implements Serializable {
 
   //--Hash of ByteBuffer---------------------------------------------------
   /**
-   * Hash the remaining bytes of the given ByteBuffer starting at position().
+   * Hash the remaining bytes of the given ByteBuffer starting at position() ending at limit (exclusive).
    *
    * @param buf The input ByteBuffer. It must be non-null and non-empty.
    * @param seed A long valued seed.
@@ -314,33 +316,25 @@ public final class MurmurHash3 implements Serializable {
    */
   public static long[] hash(final ByteBuffer buf, final long seed) {
     Objects.requireNonNull(buf);
-    final int pos = buf.position();
-    final int rem = buf.remaining();
-    checkPositive(rem);
-    final Memory mem = Memory.wrap(buf, ByteOrder.LITTLE_ENDIAN).region(pos, rem);
-    return hash(mem, seed);
+    final MemorySegment bbSeg = MemorySegment.ofBuffer(buf);
+    return hash(bbSeg, seed);
   }
 
-  //--Hash of Memory-------------------------------------------------------
+  //--Hash of MemorySegment-------------------------------------------------------
   /**
-   * Hash the given Memory.
+   * Hash the given MemorySegment.
    *
-   * <p>Note: if you want to hash only a portion of Memory, convert it to the
-   * appropriate Region first with ByteOrder = Little Endian. If it is not
-   * Little Endian a new region view will be created as Little Endian.
-   * This does not change the underlying data.
+   * <p>Note: if you want to hash only a portion of MemorySegment, convert it to the
+   * appropriate Slice first.
    *
-   * @param mem The input Memory. It must be non-null and non-empty.
+   * @param seg The input MemorySegment. It must be non-null and non-empty.
    * @param seed A long valued seed.
    * @return a 128-bit hash of the input as a long array of size 2.
    */
-  public static long[] hash(final Memory mem, final long seed) {
-    Objects.requireNonNull(mem);
-    final long lengthBytes = mem.getCapacity();
+  public static long[] hash(final MemorySegment seg, final long seed) {
+    Objects.requireNonNull(seg);
+    final long lengthBytes = seg.byteSize();
     checkPositive(lengthBytes);
-
-    final Memory memLE = mem.getTypeByteOrder() == ByteOrder.LITTLE_ENDIAN
-        ? mem : mem.region(0, lengthBytes, ByteOrder.LITTLE_ENDIAN);
 
     final HashState hashState = new HashState(seed, seed);
 
@@ -350,8 +344,8 @@ public final class MurmurHash3 implements Serializable {
 
     // Process the 128-bit blocks (the body) into the hash
     for (long i = 0; i < nblocks; i++ ) { //16 bytes per block
-      final long k1 = memLE.getLong(i << 4);       //0, 16, 32, ...
-      final long k2 = memLE.getLong((i << 4) + 8); //8, 24, 40, ...
+      final long k1 = seg.get(JAVA_LONG_UNALIGNED, i << 4);       //0, 16, 32, ...
+      final long k2 = seg.get(JAVA_LONG_UNALIGNED, (i << 4) + 8); //8, 24, 40, ...
       hashState.blockMix128(k1, k2);
     }
 
@@ -363,11 +357,11 @@ public final class MurmurHash3 implements Serializable {
     final long k1;
     final long k2;
     if (rem > 8) { //k1 -> whole; k2 -> partial
-      k1 = memLE.getLong(tail);
-      k2 = getLong(memLE, tail + 8, rem - 8);
+      k1 = seg.get(JAVA_LONG_UNALIGNED, tail);
+      k2 = getLong(seg, tail + 8, rem - 8);
     }
     else { //k1 -> whole, partial or 0; k2 == 0
-      k1 = rem == 0 ? 0 : getLong(memLE, tail, rem);
+      k1 = rem == 0 ? 0 : getLong(seg, tail, rem);
       k2 = 0;
     }
     // Mix the tail into the hash and return
@@ -399,12 +393,12 @@ public final class MurmurHash3 implements Serializable {
       h1 ^= mixK1(k1);
       h1 = Long.rotateLeft(h1, 27);
       h1 += h2;
-      h1 = h1 * 5 + 0x52dce729;
+      h1 = (h1 * 5) + 0x52dce729;
 
       h2 ^= mixK2(k2);
       h2 = Long.rotateLeft(h2, 31);
       h2 += h1;
-      h2 = h2 * 5 + 0x38495ab5;
+      h2 = (h2 * 5) + 0x38495ab5;
     }
 
     long[] finalMix128(final long k1, final long k2, final long inputLengthBytes) {
@@ -479,7 +473,7 @@ public final class MurmurHash3 implements Serializable {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 1,0
       final int v = intArr[index + i];
-      out ^= (v & 0xFFFFFFFFL) << i * 32; //equivalent to |=
+      out ^= (v & 0xFFFFFFFFL) << (i * 32); //equivalent to |=
     }
     return out;
   }
@@ -498,7 +492,7 @@ public final class MurmurHash3 implements Serializable {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 3,2,1,0
       final char c = charArr[index + i];
-      out ^= (c & 0xFFFFL) << i * 16; //equivalent to |=
+      out ^= (c & 0xFFFFL) << (i * 16); //equivalent to |=
     }
     return out;
   }
@@ -517,28 +511,28 @@ public final class MurmurHash3 implements Serializable {
     long out = 0L;
     for (int i = rem; i-- > 0;) { //i= 7,6,5,4,3,2,1,0
       final byte b = bArr[index + i];
-      out ^= (b & 0xFFL) << i * 8; //equivalent to |=
+      out ^= (b & 0xFFL) << (i * 8); //equivalent to |=
     }
     return out;
   }
 
   /**
-   * Gets a long from the given Memory starting at the given offsetBytes and continuing for
+   * Gets a long from the given MemorySegment starting at the given offsetBytes and continuing for
    * remainder (rem) bytes. The bytes are extracted in little-endian order. There is no limit
    * checking.
    *
-   * @param mem The given input Memory.
-   * @param offsetBytes Zero-based offset in bytes from the start of the Memory.
+   * @param seg The given input MemorySegment.
+   * @param offsetBytes Zero-based offset in bytes from the start of the MemorySegment.
    * @param rem Remainder bytes. An integer in the range [1,8].
    * @return a long
    */
-  private static long getLong(final Memory mem, final long offsetBytes, final int rem) {
+  private static long getLong(final MemorySegment seg, final long offsetBytes, final int rem) {
     long out = 0L;
     if (rem == 8) {
-      return mem.getLong(offsetBytes);
+      return seg.get(JAVA_LONG_UNALIGNED, offsetBytes);
     }
     for (int i = rem; i-- > 0; ) { //i= 7,6,5,4,3,2,1,0
-      final byte b = mem.getByte(offsetBytes + i);
+      final byte b = seg.get(JAVA_BYTE, offsetBytes + i);
       out ^= (b & 0xFFL) << (i << 3); //equivalent to |=
     }
     return out;

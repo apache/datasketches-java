@@ -23,25 +23,25 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 public class DoublesSketchBuilderTest {
 
   @Test
   public void checkBuilder() {
-    int k = 256; //default is 128
+    final int k = 256; //default is 128
     DoublesSketchBuilder bldr = DoublesSketch.builder();
     bldr.setK(k);
     assertEquals(bldr.getK(), k); //confirms new k
     println(bldr.toString());
-    int bytes = DoublesSketch.getUpdatableStorageBytes(k, 0);
-    byte[] byteArr = new byte[bytes];
-    WritableMemory mem = WritableMemory.writableWrap(byteArr);
-    DoublesSketch ds = bldr.build(mem);
-    assertTrue(ds.hasMemory());
-    assertFalse(ds.isDirect());
+    final int bytes = DoublesSketch.getUpdatableStorageBytes(k, 0);
+    final byte[] byteArr = new byte[bytes];
+    final MemorySegment seg = MemorySegment.ofArray(byteArr);
+    final DoublesSketch ds = bldr.build(seg);
+    assertTrue(ds.hasMemorySegment());
+    assertFalse(ds.isOffHeap());
     println(bldr.toString());
 
     bldr = DoublesSketch.builder();
@@ -56,7 +56,7 @@ public class DoublesSketchBuilderTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

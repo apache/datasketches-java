@@ -43,7 +43,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * <p>Given such highly-skewed distributions, using this map is far more efficient space-wise than
  * the alternative of dedicating an HLL sketch per key. Based on our use cases, after
  * subtracting the space required for key storage, the average bytes per key required for unique
- * count estimation ({@link  #getAverageSketchMemoryPerKey()}) is about 10.
+ * count estimation ({@link  #getAverageSketchBytesPerKey()}) is about 10.
  *
  * <p>Internally, this map is implemented as a hierarchy of internal hash maps with progressively
  * increasing storage allocated for unique count estimation. As a key acquires more identifiers it
@@ -209,11 +209,11 @@ public final class UniqueCountMap {
    * Returns total bytes used by all internal maps
    * @return total bytes used by all internal maps
    */
-  public long getMemoryUsageBytes() {
+  public long getTotalUsageBytes() {
     long total = 0;
     for (int i = 0; i < maps_.length; i++) {
       if (maps_[i] != null) {
-        total += maps_[i].getMemoryUsageBytes();
+        total += maps_[i].getTotalUsageBytes();
       }
     }
     return total;
@@ -223,7 +223,7 @@ public final class UniqueCountMap {
    * Returns total bytes used for key storage
    * @return total bytes used for key storage
    */
-  public long getKeyMemoryUsageBytes() {
+  public long getKeyUsageBytes() {
     long total = 0;
     for (int i = 0; i < maps_.length; i++) {
       if (maps_[i] != null) {
@@ -234,11 +234,11 @@ public final class UniqueCountMap {
   }
 
   /**
-   * Returns the average memory storage per key that is dedicated to sketching the unique counts.
-   * @return the average memory storage per key that is dedicated to sketching the unique counts.
+   * Returns the average bytes storage per key that is dedicated to sketching the unique counts.
+   * @return the average bytes storage per key that is dedicated to sketching the unique counts.
    */
-  public double getAverageSketchMemoryPerKey() {
-    return (double) (getMemoryUsageBytes() - getKeyMemoryUsageBytes()) / getActiveEntries();
+  public double getAverageSketchBytesPerKey() {
+    return (double) (getTotalUsageBytes() - getKeyUsageBytes()) / getActiveEntries();
   }
 
   /**
@@ -280,16 +280,16 @@ public final class UniqueCountMap {
   @Override
   public String toString() {
     final long totKeys = getActiveEntries();
-    final long totMem = getMemoryUsageBytes();
-    final long keyMem = getKeyMemoryUsageBytes();
-    final double avgValMemPerKey = getAverageSketchMemoryPerKey();
+    final long totBytes = getTotalUsageBytes();
+    final long keyBytes = getKeyUsageBytes();
+    final double avgValBytesPerKey = getAverageSketchBytesPerKey();
 
     final String ksb = Map.fmtLong(keySizeBytes_);
     final String alvls  = Map.fmtLong(getActiveMaps());
     final String tKeys = Map.fmtLong(totKeys);
-    final String tMem = Map.fmtLong(totMem);
-    final String kMem = Map.fmtLong(keyMem);
-    final String avgValMem = Map.fmtDouble(avgValMemPerKey);
+    final String tBytes = Map.fmtLong(totBytes);
+    final String kBytes = Map.fmtLong(keyBytes);
+    final String avgValBytes = Map.fmtDouble(avgValBytesPerKey);
 
 
     final StringBuilder sb = new StringBuilder();
@@ -298,9 +298,9 @@ public final class UniqueCountMap {
     sb.append("   Key Size Bytes             : ").append(ksb).append(LS);
     sb.append("   Active Map Levels          : ").append(alvls).append(LS);
     sb.append("   Total keys                 : ").append(tKeys).append(LS);
-    sb.append("   Total Memory Bytes         : ").append(tMem).append(LS);
-    sb.append("   Total Key Memory Bytes     : ").append(kMem).append(LS);
-    sb.append("   Avg Sketch Memory Bytes/Key: ").append(avgValMem).append(LS);
+    sb.append("   Total Usage  Bytes         : ").append(tBytes).append(LS);
+    sb.append("   Total Key Usage  Bytes     : ").append(kBytes).append(LS);
+    sb.append("   Avg Sketch Usage Bytes/Key : ").append(avgValBytes).append(LS);
     sb.append(LS);
     for (int i = 0; i < maps_.length; i++) {
       final Map cMap = maps_[i];

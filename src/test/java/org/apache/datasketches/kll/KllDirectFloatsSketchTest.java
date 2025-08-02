@@ -528,7 +528,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void checkGetWritableMemory() {
+  public void checkGetMemorySegment() {
     final KllFloatsSketch sketch = getUpdatableDirectFloatSketch(200, 200);
     assertEquals(sketch.getK(), 200);
     assertEquals(sketch.getN(), 200);

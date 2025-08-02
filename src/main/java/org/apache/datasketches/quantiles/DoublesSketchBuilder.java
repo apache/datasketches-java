@@ -22,7 +22,9 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.TAB;
 
-import org.apache.datasketches.memory.WritableMemory;
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.MemorySegmentRequest;
 
 /**
  * For building a new quantiles DoublesSketch.
@@ -36,7 +38,7 @@ public class DoublesSketchBuilder {
    * Constructor for a new DoublesSketchBuilder. The default configuration is
    * <ul>
    * <li>k: 128. This produces a normalized rank error of about 1.7%</li>
-   * <li>Memory: null</li>
+   * <li>MemorySegment: null</li>
    * </ul>
    */
   public DoublesSketchBuilder() {}
@@ -72,13 +74,24 @@ public class DoublesSketchBuilder {
   }
 
   /**
-   * Returns a quantiles UpdateDoublesSketch with the current configuration of this builder
-   * and the specified backing destination Memory store.
-   * @param dstMem destination memory for use by the sketch
+   * Returns a UpdateDoublesSketch with the current configuration of this builder
+   * and the specified backing destination MemorySegment store that can grow.
+   * @param dstSeg destination MemorySegment for use by the sketch
    * @return an UpdateDoublesSketch
    */
-  public UpdateDoublesSketch build(final WritableMemory dstMem) {
-    return DirectUpdateDoublesSketch.newInstance(bK, dstMem);
+  public UpdateDoublesSketch build(final MemorySegment dstSeg) {
+    return this.build(dstSeg, null);
+  }
+
+  /**
+   * Returns a UpdateDoublesSketch with the current configuration of this builder
+   * and the specified backing destination MemorySegment store that can grow.
+   * @param dstSeg destination MemorySegment for use by the sketch
+   * @param mSegReq a user developed MemorySegmentRequest or null.
+   * @return an UpdateDoublesSketch
+   */
+  public UpdateDoublesSketch build(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
+    return DirectUpdateDoublesSketch.newInstance(bK, dstSeg, mSegReq);
   }
 
   /**

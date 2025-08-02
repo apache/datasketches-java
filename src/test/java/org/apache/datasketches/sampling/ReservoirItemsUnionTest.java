@@ -36,10 +36,10 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 
-import org.apache.datasketches.common.ArrayOfDoublesSerDe2;
-import org.apache.datasketches.common.ArrayOfLongsSerDe2;
-import org.apache.datasketches.common.ArrayOfNumbersSerDe2;
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfDoublesSerDe;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfNumbersSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.sampling.PreambleUtil;
@@ -53,7 +53,7 @@ public class ReservoirItemsUnionTest {
   @Test
   public void checkEmptyUnion() {
     final ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(1024);
-    final byte[] unionBytes = riu.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] unionBytes = riu.toByteArray(new ArrayOfLongsSerDe());
 
     // will intentionally break if changing empty union serialization
     assertEquals(unionBytes.length, 8);
@@ -83,7 +83,7 @@ public class ReservoirItemsUnionTest {
     riu.update(ris);
     assertEquals(riu.getResult().getN(), ris.getN());
 
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] sketchBytes = ris.toByteArray(serDe); // only the gadget is serialized
     final MemorySegment seg = MemorySegment.ofArray(sketchBytes);
     riu = ReservoirItemsUnion.newInstance(ris.getK());
@@ -125,7 +125,7 @@ public class ReservoirItemsUnionTest {
     assertNull(riu.getResult());
 
     // null MemorySegment
-    riu.update(null, new ArrayOfLongsSerDe2());
+    riu.update(null, new ArrayOfLongsSerDe());
     assertNull(riu.getResult());
 
     // null item
@@ -147,7 +147,7 @@ public class ReservoirItemsUnionTest {
       riu.update(i);
     }
 
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final byte[] unionBytes = riu.toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(unionBytes);
     println(PreambleUtil.preambleToString(seg));
@@ -161,7 +161,7 @@ public class ReservoirItemsUnionTest {
   public void checkVersionConversionWithEmptyGadget() {
     final int k = 32768;
     final short encK = ReservoirSize.computeSize(k);
-    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
     final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.newInstance(k);
     final byte[] unionBytesOrig = riu.toByteArray(serDe);
@@ -189,7 +189,7 @@ public class ReservoirItemsUnionTest {
     final long n = 32;
     final int k = 256;
     final short encK = ReservoirSize.computeSize(k);
-    final ArrayOfNumbersSerDe2 serDe = new ArrayOfNumbersSerDe2();
+    final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
 
     final ReservoirItemsUnion<Number> rlu = ReservoirItemsUnion.newInstance(k);
     for (long i = 0; i < n; ++i) {
@@ -223,7 +223,7 @@ public class ReservoirItemsUnionTest {
   //@SuppressWarnings("null") // this is the point of the test
   @Test(expectedExceptions = NullPointerException.class)
   public void checkNullMemorySegmentInstantiation() {
-    ReservoirItemsUnion.heapify(null, new ArrayOfStringsSerDe2());
+    ReservoirItemsUnion.heapify(null, new ArrayOfStringsSerDe());
   }
 
   @Test
@@ -277,22 +277,22 @@ public class ReservoirItemsUnionTest {
 
     // downsample input sketch, use as gadget (exact mode, but irrelevant here)
     final ReservoirItemsSketch<Long> bigKSketch = getBasicSketch(maxK / 2, bigK);
-    final byte[] bigKBytes = bigKSketch.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] bigKBytes = bigKSketch.toByteArray(new ArrayOfLongsSerDe());
     final MemorySegment bigKSeg = MemorySegment.ofArray(bigKBytes);
 
     ReservoirItemsUnion<Long> riu = ReservoirItemsUnion.newInstance(maxK);
-    riu.update(bigKSeg, new ArrayOfLongsSerDe2());
+    riu.update(bigKSeg, new ArrayOfLongsSerDe());
     assertNotNull(riu.getResult());
     assertEquals(riu.getResult().getK(), maxK);
     assertEquals(riu.getResult().getN(), maxK / 2);
 
     // sketch k < maxK but in sampling mode
     final ReservoirItemsSketch<Long> smallKSketch = getBasicSketch(maxK, smallK);
-    final byte[] smallKBytes = smallKSketch.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] smallKBytes = smallKSketch.toByteArray(new ArrayOfLongsSerDe());
     final MemorySegment smallKSeg = MemorySegment.ofArray(smallKBytes);
 
     riu = ReservoirItemsUnion.newInstance(maxK);
-    riu.update(smallKSeg, new ArrayOfLongsSerDe2());
+    riu.update(smallKSeg, new ArrayOfLongsSerDe());
     assertNotNull(riu.getResult());
     assertTrue(riu.getResult().getK() < maxK);
     assertEquals(riu.getResult().getK(), smallK);
@@ -300,11 +300,11 @@ public class ReservoirItemsUnionTest {
 
     // sketch k < maxK and in exact mode
     final ReservoirItemsSketch<Long> smallKExactSketch = getBasicSketch(smallK, smallK);
-    final byte[] smallKExactBytes = smallKExactSketch.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] smallKExactBytes = smallKExactSketch.toByteArray(new ArrayOfLongsSerDe());
     final MemorySegment smallKExactSeg = MemorySegment.ofArray(smallKExactBytes);
 
     riu = ReservoirItemsUnion.newInstance(maxK);
-    riu.update(smallKExactSeg, new ArrayOfLongsSerDe2());
+    riu.update(smallKExactSeg, new ArrayOfLongsSerDe());
     assertNotNull(riu.getResult());
     assertEquals(riu.getResult().getK(), maxK);
     assertEquals(riu.getResult().getN(), smallK);
@@ -353,7 +353,7 @@ public class ReservoirItemsUnionTest {
 
     // creating from MemorySegment should avoid a copy
     final int n3 = 2048;
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final ReservoirItemsSketch<Long> sketch3 = getBasicSketch(n3, k);
     final byte[] sketch3Bytes = sketch3.toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(sketch3Bytes);
@@ -427,7 +427,7 @@ public class ReservoirItemsUnionTest {
 
     riu.update(ris);
 
-    final ArrayOfNumbersSerDe2 serDe = new ArrayOfNumbersSerDe2();
+    final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
     final byte[] sketchBytes = riu.toByteArray(serDe, Number.class);
     final MemorySegment seg = MemorySegment.ofArray(sketchBytes);
 
@@ -452,30 +452,30 @@ public class ReservoirItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
     final ReservoirItemsUnion<Number> riu = ReservoirItemsUnion.newInstance(1024);
-    final MemorySegment seg = MemorySegment.ofArray(riu.toByteArray(new ArrayOfNumbersSerDe2()));
+    final MemorySegment seg = MemorySegment.ofArray(riu.toByteArray(new ArrayOfNumbersSerDe()));
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
-    ReservoirItemsUnion.heapify(seg, new ArrayOfNumbersSerDe2());
+    ReservoirItemsUnion.heapify(seg, new ArrayOfNumbersSerDe());
     fail();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.newInstance(1024);
-    final MemorySegment seg = MemorySegment.ofArray(riu.toByteArray(new ArrayOfStringsSerDe2()));
+    final MemorySegment seg = MemorySegment.ofArray(riu.toByteArray(new ArrayOfStringsSerDe()));
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
-    ReservoirItemsUnion.heapify(seg, new ArrayOfStringsSerDe2());
+    ReservoirItemsUnion.heapify(seg, new ArrayOfStringsSerDe());
     fail();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
     final ReservoirItemsUnion<Double> rlu = ReservoirItemsUnion.newInstance(1024);
-    final MemorySegment seg = MemorySegment.ofArray(rlu.toByteArray(new ArrayOfDoublesSerDe2()));
+    final MemorySegment seg = MemorySegment.ofArray(rlu.toByteArray(new ArrayOfDoublesSerDe()));
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
-    ReservoirItemsUnion.heapify(seg, new ArrayOfDoublesSerDe2());
+    ReservoirItemsUnion.heapify(seg, new ArrayOfDoublesSerDe());
     fail();
   }
 

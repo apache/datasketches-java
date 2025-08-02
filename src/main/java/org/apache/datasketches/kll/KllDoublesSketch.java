@@ -29,7 +29,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Objects;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe2;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
@@ -103,15 +103,15 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * Create a new direct updatable instance of this sketch with a given <em>k</em>.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @param dstSeg the given destination MemorySegment object for use by the sketch
-   * @param memSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
+   * @param mSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
    * @return a new direct instance of this sketch
    */
   public static KllDoublesSketch newDirectInstance(
       final int k,
       final MemorySegment dstSeg,
-      final MemorySegmentRequest memSegReq) {
+      final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(dstSeg, "Parameter 'dstSeg' must not be null");
-    return KllDirectDoublesSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstSeg, memSegReq);
+    return KllDirectDoublesSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstSeg, mSegReq);
   }
 
   //Factory to create an heap instance from a MemorySegment image
@@ -169,13 +169,13 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * but not written to, independent of whether the MemorySegment was created on-heap or off-heap.</p>
    *
    * @param srcSeg a MemorySegment that contains sketch data.
-   * @param memSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
+   * @param mSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
-  public static KllDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest memSegReq) {
+  public static KllDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, DOUBLES_SKETCH);
-    return new KllDirectDoublesSketch(srcSeg, segVal, memSegReq);
+    return new KllDirectDoublesSketch(srcSeg, segVal, mSegReq);
   }
 
   //END of Constructors
@@ -507,7 +507,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  ArrayOfItemsSerDe2<?> getSerDe() { return null; }
+  ArrayOfItemsSerDe<?> getSerDe() { return null; }
 
   @Override
   final byte[] getSingleItemByteArr() {

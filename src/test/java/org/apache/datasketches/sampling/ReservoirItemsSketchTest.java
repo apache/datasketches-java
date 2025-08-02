@@ -37,9 +37,9 @@ import java.lang.foreign.MemorySegment;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-import org.apache.datasketches.common.ArrayOfLongsSerDe2;
-import org.apache.datasketches.common.ArrayOfNumbersSerDe2;
-import org.apache.datasketches.common.ArrayOfStringsSerDe2;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfNumbersSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -65,7 +65,7 @@ public class ReservoirItemsSketchTest {
     final MemorySegment seg = getBasicSerializedLongsRIS();
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
-    ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe2());
+    ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe());
     fail();
   }
 
@@ -80,7 +80,7 @@ public class ReservoirItemsSketchTest {
       assertTrue(e.getMessage().startsWith("Inspecting preamble with Sampling family"));
     }
 
-    ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe2());
+    ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe());
     fail();
   }
 
@@ -89,7 +89,7 @@ public class ReservoirItemsSketchTest {
     final MemorySegment seg = getBasicSerializedLongsRIS();
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
-    ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe2());
+    ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe());
     fail();
   }
 
@@ -117,12 +117,12 @@ public class ReservoirItemsSketchTest {
     final ReservoirItemsSketch<String> ris = ReservoirItemsSketch.newInstance(5);
     assertTrue(ris.getSamples() == null);
 
-    final byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe2());
+    final byte[] sketchBytes = ris.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(sketchBytes);
 
     // only minPreLongs bytes and should deserialize to empty
     assertEquals(sketchBytes.length, Family.RESERVOIR.getMinPreLongs() << 3);
-    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final ReservoirItemsSketch<String> loadedRis = ReservoirItemsSketch.heapify(seg, serDe);
     assertEquals(loadedRis.getNumSamples(), 0);
 
@@ -159,7 +159,7 @@ public class ReservoirItemsSketchTest {
     }
 
     // not using validateSerializeAndDeserialize() to check with a non-Long
-    final ArrayOfStringsSerDe2 serDe = new ArrayOfStringsSerDe2();
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     expectedLength += Family.RESERVOIR.getMaxPreLongs() << 3;
     final byte[] sketchBytes = ris.toByteArray(serDe);
     assertEquals(sketchBytes.length, expectedLength);
@@ -194,7 +194,7 @@ public class ReservoirItemsSketchTest {
 
     println("Full reservoir:");
     println("  Preamble:");
-    final byte[] byteArr = ris.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] byteArr = ris.toByteArray(new ArrayOfLongsSerDe());
     println(ReservoirItemsSketch.toString(byteArr));
     ReservoirItemsSketch.toString(MemorySegment.ofArray(byteArr));
     println("  Sketch:");
@@ -229,7 +229,7 @@ public class ReservoirItemsSketchTest {
     }
 
     // likewise for toByteArray() (which uses getDataSamples() internally for type handling)
-    final ArrayOfNumbersSerDe2 serDe = new ArrayOfNumbersSerDe2();
+    final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
     try {
       ris.toByteArray(serDe);
       fail();
@@ -274,7 +274,7 @@ public class ReservoirItemsSketchTest {
     assertEquals(data.length, 2);
 
     // toByteArray() should fail
-    final ArrayOfNumbersSerDe2 serDe = new ArrayOfNumbersSerDe2();
+    final ArrayOfNumbersSerDe serDe = new ArrayOfNumbersSerDe();
     try {
       ris.toByteArray(serDe, Number.class);
       fail();
@@ -422,7 +422,7 @@ public class ReservoirItemsSketchTest {
     // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
     final int k = 32768;
     final short encK = ReservoirSize.computeSize(k);
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
 
     final ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.newInstance(k);
     final byte[] sketchBytesOrig = ris.toByteArray(serDe);
@@ -605,18 +605,18 @@ public class ReservoirItemsSketchTest {
     assertEquals(ris.getN(), n);
     assertEquals(ris.getK(), k);
 
-    final byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
     return MemorySegment.ofArray(sketchBytes);
   }
 
   private static void validateSerializeAndDeserialize(final ReservoirItemsSketch<Long> ris) {
-    final byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe2());
+    final byte[] sketchBytes = ris.toByteArray(new ArrayOfLongsSerDe());
     assertEquals(sketchBytes.length,
             (Family.RESERVOIR.getMaxPreLongs() + ris.getNumSamples()) << 3);
 
     // ensure full reservoir rebuilds correctly
     final MemorySegment seg = MemorySegment.ofArray(sketchBytes);
-    final ArrayOfLongsSerDe2 serDe = new ArrayOfLongsSerDe2();
+    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     final ReservoirItemsSketch<Long> loadedRis = ReservoirItemsSketch.heapify(seg, serDe);
 
     validateReservoirEquality(ris, loadedRis);

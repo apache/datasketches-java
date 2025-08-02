@@ -64,21 +64,21 @@ import org.apache.datasketches.common.SketchesArgumentException;
  */
 class KllDirectLongsSketch extends KllLongsSketch {
   private MemorySegment wseg;
-  private final MemorySegmentRequest memSegReq;
+  private final MemorySegmentRequest mSegReq;
 
   /**
    * Constructs from MemorySegment already initialized with a sketch image and validated.
-   * @param sketchStructure the given structure.
    * @param wseg the current MemorySegment
    * @param segVal the MemoryValadate object
+   * @param mSegmentRequest the MemorySegmentRequest object.
    */
   KllDirectLongsSketch(
       final MemorySegment wseg,
       final KllMemorySegmentValidate segVal,
-      final MemorySegmentRequest memSegReq) {
+      final MemorySegmentRequest mSegmentRequest) {
     super(segVal);
     this.wseg = wseg;
-    this.memSegReq = memSegReq;
+    mSegReq = mSegmentRequest;
   }
 
   /**
@@ -86,14 +86,14 @@ class KllDirectLongsSketch extends KllLongsSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param m parameter that controls the minimum level width in items.
    * @param dstSeg the given destination MemorySegment object for use by the sketch
-   * @param memSegReq the callback for the sketch to request a larger MemorySegment.
+   * @param mSegReq the callback for the sketch to request a larger MemorySegment.
    * @return a new instance of this sketch
    */
   static KllDirectLongsSketch newDirectUpdatableInstance(
       final int k,
       final int m,
       final MemorySegment dstSeg,
-      final MemorySegmentRequest memSegReq) {
+      final MemorySegmentRequest mSegmentRequest) {
     setMemorySegmentPreInts(dstSeg, UPDATABLE.getPreInts());
     setMemorySegmentSerVer(dstSeg, UPDATABLE.getSerVer());
     setMemorySegmentFamilyID(dstSeg, Family.KLL.getID());
@@ -113,7 +113,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     MemorySegment.copy(new long[k], 0, dstSeg, JAVA_LONG_UNALIGNED, offset, k);
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, LONGS_SKETCH, null);
     final MemorySegment wSeg = dstSeg;
-    return new KllDirectLongsSketch(wSeg, segVal, memSegReq);
+    return new KllDirectLongsSketch(wSeg, segVal, mSegmentRequest);
   }
 
   //End of Constructors
@@ -256,7 +256,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
 
   @Override
   MemorySegmentRequest getMemorySegmentRequest() {
-    return memSegReq;
+    return mSegReq;
   }
 
   @Override
@@ -394,5 +394,5 @@ class KllDirectLongsSketch extends KllLongsSketch {
   void setMemorySegment(final MemorySegment wseg) {
     this.wseg = wseg;
   }
-  
+
 }

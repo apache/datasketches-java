@@ -30,15 +30,16 @@ import java.nio.ByteBuffer;
 import static org.testng.Assert.*;
 
 public class CountMinSketchTest {
+
   @Test
   public void createNewCountMinSketchTest() throws Exception {
     assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 5, 1, 123));
-    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 4, 268435456, 123));
-
+    //2^28 buckets and 4 hashes -> a long[] of 8GB! Set JVM -Xmx > 8g
+    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 4, (1 << 28), 123));
     final byte numHashes = 3;
     final int numBuckets = 5;
     final long seed = 1234567;
-    CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
+    final CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
 
     assertEquals(c.getNumHashes_(), numHashes);
     assertEquals(c.getNumBuckets_(), numBuckets);
@@ -77,7 +78,7 @@ public class CountMinSketchTest {
     final int numBuckets = 5;
     final long seed = 1234567;
     long insertedWeights = 0;
-    CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
+    final CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
     final String x = "x";
 
     assertTrue(c.isEmpty());
@@ -103,7 +104,7 @@ public class CountMinSketchTest {
 
   @Test
   public void frequencyCancellationTest() {
-    CountMinSketch c = new CountMinSketch((byte) 1, 5, 123456);
+    final CountMinSketch c = new CountMinSketch((byte) 1, 5, 123456);
     c.update("x", 1);
     c.update("y", -1);
     assertEquals(c.getTotalWeight_(), 2);
@@ -114,8 +115,8 @@ public class CountMinSketchTest {
   @Test
   public void frequencyEstimates() {
     final int numItems = 10;
-    long[] data = new long[numItems];
-    long[] frequencies = new long[numItems];
+    final long[] data = new long[numItems];
+    final long[] frequencies = new long[numItems];
 
     for (int i = 0; i < numItems; i++) {
       data[i] = i;
@@ -127,7 +128,7 @@ public class CountMinSketchTest {
     final int numBuckets = CountMinSketch.suggestNumBuckets(relativeError);
     final byte numHashes = CountMinSketch.suggestNumHashes(confidence);
 
-    CountMinSketch c = new CountMinSketch(numHashes, numBuckets, 1234567);
+    final CountMinSketch c = new CountMinSketch(numHashes, numBuckets, 1234567);
     for (int i = 0; i < numItems; i++) {
       final long value = data[i];
       final long freq = frequencies[i];
@@ -150,15 +151,15 @@ public class CountMinSketchTest {
     final long seed = 1234567;
     final int numBuckets = CountMinSketch.suggestNumBuckets(relativeError);
     final byte numHashes = CountMinSketch.suggestNumHashes(confidence);
-    CountMinSketch s = new CountMinSketch(numHashes, numBuckets, seed);
+    final CountMinSketch s = new CountMinSketch(numHashes, numBuckets, seed);
 
     assertThrows("Cannot merge a sketch with itself.", SketchesException.class, () -> s.merge(s));
 
-    CountMinSketch s1 = new CountMinSketch((byte) (numHashes + 1), numBuckets, seed);
-    CountMinSketch s2 = new CountMinSketch(numHashes, numBuckets + 1, seed);
-    CountMinSketch s3 = new CountMinSketch(numHashes, numBuckets, seed + 1);
+    final CountMinSketch s1 = new CountMinSketch((byte) (numHashes + 1), numBuckets, seed);
+    final CountMinSketch s2 = new CountMinSketch(numHashes, numBuckets + 1, seed);
+    final CountMinSketch s3 = new CountMinSketch(numHashes, numBuckets, seed + 1);
 
-    CountMinSketch[] sketches = {s1, s2, s3};
+    final CountMinSketch[] sketches = {s1, s2, s3};
     for (final CountMinSketch sk : sketches) {
       assertThrows("Incompatible sketch configuration.", SketchesException.class, () -> s.merge(sk));
     }
@@ -171,12 +172,12 @@ public class CountMinSketchTest {
     final long seed = 123456;
     final int numBuckets = CountMinSketch.suggestNumBuckets(relativeError);
     final byte numHashes = CountMinSketch.suggestNumHashes(confidence);
-    CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
+    final CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
 
     final byte sHashes = c.getNumHashes_();
     final int sBuckets = c.getNumBuckets_();
     final long sSeed = c.getSeed_();
-    CountMinSketch s = new CountMinSketch(sHashes, sBuckets, sSeed);
+    final CountMinSketch s = new CountMinSketch(sHashes, sBuckets, sSeed);
 
     c.merge(s);
     assertEquals(c.getTotalWeight_(), 0);
@@ -201,12 +202,12 @@ public class CountMinSketchTest {
     final byte numHashes = 3;
     final int numBuckets = 32;
     final long seed = 123456;
-    CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
+    final CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
 
     byte[] b = c.toByteArray();
     assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(b, seed - 1));
 
-    CountMinSketch d = CountMinSketch.deserialize(b, seed);
+    final CountMinSketch d = CountMinSketch.deserialize(b, seed);
     assertEquals(d.getNumHashes_(), c.getNumHashes_());
     assertEquals(d.getNumBuckets_(), c.getNumBuckets_());
     assertEquals(d.getSeed_(), c.getSeed_());
@@ -220,7 +221,7 @@ public class CountMinSketchTest {
     final byte numHashes = 5;
     final int numBuckets = 64;
     final long seed = 1234456;
-    CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
+    final CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
     for (long i = 0; i < 10; i++) {
       c.update(i, 10*i*i);
     }

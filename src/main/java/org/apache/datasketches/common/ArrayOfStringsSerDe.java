@@ -19,13 +19,14 @@
 
 package org.apache.datasketches.common;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
 import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
 
+import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-
-import org.apache.datasketches.memory.Memory;
 
 /**
  * Methods of serializing and deserializing arrays of String.
@@ -76,23 +77,23 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  public String[] deserializeFromMemory(final Memory mem, final int numItems) {
-    return deserializeFromMemory(mem, 0, numItems);
+  public String[] deserializeFromMemorySegment(final MemorySegment seg, final int numItems) {
+    return deserializeFromMemorySegment(seg, 0, numItems);
   }
 
   @Override
-  public String[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public String[] deserializeFromMemorySegment(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return new String[0]; }
     final String[] array = new String[numItems];
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
-      Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
-      final int strLength = mem.getInt(offset);
+      Util.checkBounds(offset, Integer.BYTES, seg.byteSize());
+      final int strLength = seg.get(JAVA_INT_UNALIGNED, offset);
       offset += Integer.BYTES;
       final byte[] utf8Bytes = new byte[strLength];
-      Util.checkBounds(offset, strLength, mem.getCapacity());
-      mem.getByteArray(offset, utf8Bytes, 0, strLength);
+      Util.checkBounds(offset, strLength, seg.byteSize());
+      MemorySegment.copy(seg, JAVA_BYTE, offset, utf8Bytes, 0, strLength);
       offset += strLength;
       array[i] = new String(utf8Bytes, StandardCharsets.UTF_8);
     }
@@ -107,16 +108,16 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
-    Objects.requireNonNull(mem, "Memory must not be null");
+  public int sizeOf(final MemorySegment seg, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return 0; }
     long offset = offsetBytes;
-    final long memCap = mem.getCapacity();
+    final long segCap = seg.byteSize();
     for (int i = 0; i < numItems; i++) {
-      Util.checkBounds(offset, Integer.BYTES, memCap);
-      final int itemLenBytes = mem.getInt(offset);
+      Util.checkBounds(offset, Integer.BYTES, segCap);
+      final int itemLenBytes = seg.get(JAVA_INT_UNALIGNED, offset);
       offset += Integer.BYTES;
-      Util.checkBounds(offset, itemLenBytes, memCap);
+      Util.checkBounds(offset, itemLenBytes, segCap);
       offset += itemLenBytes;
     }
     return (int)(offset - offsetBytes);
