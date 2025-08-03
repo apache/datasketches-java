@@ -96,7 +96,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     hashTableThreshold_ = getHashTableThreshold(lgNomLongs, lgArrLongs_);
     curCount_ = 0;
     thetaLong_ = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
-    empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false;
+    empty_ = true; //other flags: reserved = readOnly = compact = ordered = false;
     cache_ = new long[1 << lgArrLongs_];
   }
 

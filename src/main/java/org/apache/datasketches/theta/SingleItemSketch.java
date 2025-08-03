@@ -384,14 +384,14 @@ final class SingleItemSketch extends CompactSketch {
     return (short) (pre0_ >>> 48);
   }
 
-  static final boolean otherCheckForSingleItem(final MemorySegment seg) {
+  static boolean otherCheckForSingleItem(final MemorySegment seg) {
     return otherCheckForSingleItem(extractPreLongs(seg), extractSerVer(seg),
         extractFamilyID(seg), extractFlags(seg) );
   }
 
-  static final boolean otherCheckForSingleItem(final int preLongs, final int serVer,
+  static boolean otherCheckForSingleItem(final int preLongs, final int serVer,
       final int famId, final int flags) {
-    // Flags byte: SI=X, Ordered=T, Compact=T, Empty=F, ReadOnly=T, BigEndian=F = X11010 = 0x1A.
+    // Flags byte: SI=X, Ordered=T, Compact=T, Empty=F, ReadOnly=T, Reserved=F = X11010 = 0x1A.
     // Flags mask will be 0x1F.
     // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
     // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,

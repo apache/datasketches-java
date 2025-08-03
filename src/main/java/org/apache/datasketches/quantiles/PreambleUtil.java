@@ -28,7 +28,6 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 
 //@formatter:off
 
@@ -92,14 +91,11 @@ final class PreambleUtil {
   static final int COMBINED_BUFFER            = 32; //to 39 (Only for DoublesSketch)
 
   // flag bit masks
-  static final int BIG_ENDIAN_FLAG_MASK       = 1;
+  static final int RESERVED_FLAG_MASK         = 1;
   static final int READ_ONLY_FLAG_MASK        = 2;
   static final int EMPTY_FLAG_MASK            = 4;
   static final int COMPACT_FLAG_MASK          = 8;
   static final int ORDERED_FLAG_MASK          = 16;
-
-  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
-      (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
   /**
    * Default K for about 1.7% normalized rank accuracy
@@ -143,8 +139,6 @@ final class PreambleUtil {
     final int familyID = extractFamilyID(srcSeg);
     final String famName = idToFamily(familyID).toString();
     final int flags = extractFlags(srcSeg);
-    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    final String nativeOrder = ByteOrder.nativeOrder().toString();
     final boolean readOnly  = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
@@ -166,8 +160,7 @@ final class PreambleUtil {
     sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
     sb.append("Byte  2: Family               : ").append(famName).append(LS);
     sb.append("Byte  3: Flags Field          : ").append(String.format("%02o", flags)).append(LS);
-    sb.append("  BIG ENDIAN                  : ").append(bigEndian).append(LS);
-    sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
+    sb.append("  RESERVED                    : ").append(LS);
     sb.append("  READ ONLY                   : ").append(readOnly).append(LS);
     sb.append("  EMPTY                       : ").append(empty).append(LS);
     sb.append("  COMPACT                     : ").append(compact).append(LS);

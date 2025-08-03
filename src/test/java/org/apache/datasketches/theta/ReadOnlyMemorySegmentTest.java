@@ -28,12 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -41,18 +35,18 @@ public class ReadOnlyMemorySegmentTest {
 
   @Test
   public void wrapAndTryUpdatingUpdateSketch() {
-    UpdateSketch updateSketch = UpdateSketch.builder().build();
+    final UpdateSketch updateSketch = UpdateSketch.builder().build();
     updateSketch.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    UpdateSketch sketch = (UpdateSketch) Sketch.wrap(seg);
+    final UpdateSketch sketch = (UpdateSketch) Sketch.wrap(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
 
     boolean thrown = false;
     try {
       sketch.update(2);
-    } catch (SketchesReadOnlyException e) {
+    } catch (final SketchesReadOnlyException e) {
       thrown = true;
     }
     Assert.assertTrue(thrown);
@@ -60,34 +54,34 @@ public class ReadOnlyMemorySegmentTest {
 
   @Test
   public void wrapCompactUnorderedSketch() {
-    UpdateSketch updateSketch = UpdateSketch.builder().build();
+    final UpdateSketch updateSketch = UpdateSketch.builder().build();
     updateSketch.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.compact(false, null).toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    Sketch sketch = Sketch.wrap(seg);
+    final Sketch sketch = Sketch.wrap(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }
 
   @Test
   public void wrapCompactOrderedSketch() {
-    UpdateSketch updateSketch = UpdateSketch.builder().build();
+    final UpdateSketch updateSketch = UpdateSketch.builder().build();
     updateSketch.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(ByteBuffer.wrap(updateSketch.compact().toByteArray())
+    final MemorySegment seg = MemorySegment.ofBuffer(ByteBuffer.wrap(updateSketch.compact().toByteArray())
         .asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    Sketch sketch = Sketch.wrap(seg);
+    final Sketch sketch = Sketch.wrap(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }
 
   @Test
   public void heapifyUpdateSketch() {
-    UpdateSketch us1 = UpdateSketch.builder().build();
+    final UpdateSketch us1 = UpdateSketch.builder().build();
     us1.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(us1.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
     // downcasting is not recommended, for testing only
-    UpdateSketch us2 = (UpdateSketch) Sketch.heapify(seg);
+    final UpdateSketch us2 = (UpdateSketch) Sketch.heapify(seg);
     us2.update(2);
     assertEquals(us2.getEstimate(), 2.0);
     assertTrue(seg.isReadOnly());
@@ -95,33 +89,33 @@ public class ReadOnlyMemorySegmentTest {
 
   @Test
   public void heapifyCompactUnorderedSketch() {
-    UpdateSketch updateSketch = UpdateSketch.builder().build();
+    final UpdateSketch updateSketch = UpdateSketch.builder().build();
     updateSketch.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.compact(false, null).toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    Sketch sketch = Sketch.heapify(seg);
+    final Sketch sketch = Sketch.heapify(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }
 
   @Test
   public void heapifyCompactOrderedSketch() {
-    UpdateSketch updateSketch = UpdateSketch.builder().build();
+    final UpdateSketch updateSketch = UpdateSketch.builder().build();
     updateSketch.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.compact().toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    Sketch sketch = Sketch.heapify(seg);
+    final Sketch sketch = Sketch.heapify(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }
 
   @Test
   public void heapifyUnion() {
-    Union u1 = SetOperation.builder().buildUnion();
+    final Union u1 = SetOperation.builder().buildUnion();
     u1.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(u1.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    Union u2 = (Union) SetOperation.heapify(seg);
+    final Union u2 = (Union) SetOperation.heapify(seg);
     u2.update(2);
     Assert.assertEquals(u2.getResult().getEstimate(), 2.0);
     assertTrue(seg.isReadOnly());
@@ -129,13 +123,13 @@ public class ReadOnlyMemorySegmentTest {
 
   @Test
   public void wrapAndTryUpdatingUnion() {
-    Union u1 = SetOperation.builder().buildUnion();
+    final Union u1 = SetOperation.builder().buildUnion();
     u1.update(1);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(u1.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
 
-    Union u2 = (Union) Sketches.wrapSetOperation(seg);
-    Union u3 = Sketches.wrapUnion(seg);
+    final Union u2 = (Union) Sketches.wrapSetOperation(seg);
+    final Union u3 = Sketches.wrapUnion(seg);
     Assert.assertEquals(u2.getResult().getEstimate(), 1.0);
     Assert.assertEquals(u3.getResult().getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
@@ -143,33 +137,33 @@ public class ReadOnlyMemorySegmentTest {
     try {
       u2.update(2);
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final SketchesReadOnlyException e) {
       //expected
     }
 
     try {
       u3.update(2);
       fail();
-    } catch (SketchesReadOnlyException e) {
+    } catch (final SketchesReadOnlyException e) {
       //expected
     }
   }
 
   @Test
   public void heapifyIntersection() {
-    UpdateSketch us1 = UpdateSketch.builder().build();
+    final UpdateSketch us1 = UpdateSketch.builder().build();
     us1.update(1);
     us1.update(2);
-    UpdateSketch us2 = UpdateSketch.builder().build();
+    final UpdateSketch us2 = UpdateSketch.builder().build();
     us2.update(2);
     us2.update(3);
 
-    Intersection i1 = SetOperation.builder().buildIntersection();
+    final Intersection i1 = SetOperation.builder().buildIntersection();
     i1.intersect(us1);
     i1.intersect(us2);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(i1.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    Intersection i2 = (Intersection) SetOperation.heapify(seg);
+    final Intersection i2 = (Intersection) SetOperation.heapify(seg);
     i2.intersect(us1);
     Assert.assertEquals(i2.getResult().getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
@@ -177,25 +171,25 @@ public class ReadOnlyMemorySegmentTest {
 
   @Test
   public void wrapIntersection() {
-    UpdateSketch us1 = UpdateSketch.builder().build();
+    final UpdateSketch us1 = UpdateSketch.builder().build();
     us1.update(1);
     us1.update(2);
-    UpdateSketch us2 = UpdateSketch.builder().build();
+    final UpdateSketch us2 = UpdateSketch.builder().build();
     us2.update(2);
     us2.update(3);
 
-    Intersection i1 = SetOperation.builder().buildIntersection();
+    final Intersection i1 = SetOperation.builder().buildIntersection();
     i1.intersect(us1);
     i1.intersect(us2);
-    MemorySegment seg = MemorySegment.ofBuffer(
+    final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(i1.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    Intersection i2 = (Intersection) SetOperation.wrap(seg);
+    final Intersection i2 = (Intersection) SetOperation.wrap(seg);
     Assert.assertEquals(i2.getResult().getEstimate(), 1.0);
 
     boolean thrown = false;
     try {
       i2.intersect(us1);
-    } catch (SketchesReadOnlyException e) {
+    } catch (final SketchesReadOnlyException e) {
       thrown = true;
     }
     Assert.assertTrue(thrown);
@@ -210,7 +204,7 @@ public class ReadOnlyMemorySegmentTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

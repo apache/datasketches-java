@@ -28,7 +28,6 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
@@ -175,7 +174,7 @@ final class PreambleUtil {
   static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by Union
 
   // flag bit masks
-  static final int BIG_ENDIAN_FLAG_MASK = 1; //SerVer 1, 2, 3
+  static final int RESERVED_FLAG_MASK   = 1; //SerVer 1, 2, 3. Now Reserved, no longer used.
   static final int READ_ONLY_FLAG_MASK  = 2; //Set but not read. Reserved. SerVer 1, 2, 3
   static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
   static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK, 3
@@ -197,9 +196,6 @@ final class PreambleUtil {
   static final int NUM_ENTRIES_BYTES_BYTE_V4 = 4; // number of bytes used for the number of entries
   static final int THETA_LONG_V4             = 8; //8-byte aligned
 
-  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
-      (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
-
   /**
    * Computes the number of bytes required for an updatable sketch using a hash-table cache.
    * This does not apply for compact sketches.
@@ -207,7 +203,7 @@ final class PreambleUtil {
    * @param preambleLongs current preamble size
    * @return the size in bytes
    */
-  static final int getSegBytes(final int lgArrLongs, final int preambleLongs) {
+  static int getSegBytes(final int lgArrLongs, final int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }
 
@@ -248,8 +244,6 @@ final class PreambleUtil {
     final int flags = extractFlags(seg);
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
-    final String nativeOrder = ByteOrder.nativeOrder().toString();
-    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
@@ -290,7 +284,6 @@ final class PreambleUtil {
     final StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("### SKETCH PREAMBLE SUMMARY:").append(LS);
-    sb.append("Native Byte Order             : ").append(nativeOrder).append(LS);
     sb.append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS);
     sb.append("Byte  0: ResizeFactor         : ").append(rfId + ", " + rf.toString()).append(LS);
     sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
@@ -299,7 +292,7 @@ final class PreambleUtil {
     sb.append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS);
     sb.append("Byte  5: Flags Field          : ").append(flagsStr).append(LS);
     sb.append("  Bit Flag Name               : State:").append(LS);
-    sb.append("    0 BIG_ENDIAN_STORAGE      : ").append(bigEndian).append(LS);
+    sb.append("    0 RESERVED                : ").append(LS);
     sb.append("    1 READ_ONLY               : ").append(readOnly).append(LS);
     sb.append("    2 EMPTY                   : ").append(empty).append(LS);
     sb.append("    3 COMPACT                 : ").append(compact).append(LS);
@@ -514,7 +507,7 @@ final class PreambleUtil {
     return preLongs;
   }
 
-  static final short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
+  static short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
     final short seedHashSeg = (short) extractSeedHash(seg);
     Util.checkSeedHashes(seedHashSeg, Util.computeSeedHash(seed)); //throws if bad seedHash
     return seedHashSeg;

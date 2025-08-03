@@ -32,7 +32,6 @@ import static org.apache.datasketches.hll.HllUtil.RESIZE_DENOM;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_NUMER;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
 
@@ -133,7 +132,7 @@ final class PreambleUtil {
   static int HLL_BYTE_ARR_START             = 40;
 
   //Flag bit masks
-  static final int BIG_ENDIAN_FLAG_MASK     = 1; //Set but not read. Reserved.
+  static final int RESERVED_FLAG_MASK       = 1; //Set to 0 but not read.
   static final int READ_ONLY_FLAG_MASK      = 2; //Set but not read. Reserved.
   static final int EMPTY_FLAG_MASK          = 4;
   static final int COMPACT_FLAG_MASK        = 8;
@@ -150,8 +149,6 @@ final class PreambleUtil {
   static final int LIST_PREINTS             = 2;
   static final int HASH_SET_PREINTS         = 3;
   static final int HLL_PREINTS              = 10;
-  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
-      (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
   static String toString(final byte[] byteArr) {
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
@@ -168,8 +165,6 @@ final class PreambleUtil {
     final int flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
     //Flags
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    final String nativeOrder = ByteOrder.nativeOrder().toString();
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     final boolean oooFlag = (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
@@ -219,8 +214,6 @@ final class PreambleUtil {
     }
     //expand byte 5: Flags
     sb.append("Byte 5: Flags:                : ").append(flagsStr).append(LS);
-    sb.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS);
-    sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
     sb.append("  READ_ONLY                   : ").append(readOnly).append(LS);
     sb.append("  EMPTY                       : ").append(empty).append(LS);
     sb.append("  COMPACT                     : ").append(compact).append(LS);
@@ -286,8 +279,7 @@ final class PreambleUtil {
   }
 
   static int extractLgArr(final MemorySegment seg) {
-    final int lgArr = seg.get(JAVA_BYTE, LG_ARR_BYTE) & 0XFF;
-    return lgArr;
+    return seg.get(JAVA_BYTE, LG_ARR_BYTE) & 0XFF;
   }
 
   static void insertLgArr(final MemorySegment wseg, final int lgArr) {

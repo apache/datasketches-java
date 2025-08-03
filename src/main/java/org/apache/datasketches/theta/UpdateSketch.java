@@ -25,7 +25,6 @@ import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
-import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
@@ -433,11 +432,10 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check flags
     final int flags = extractFlags(srcSeg);                             //byte 5
-    final int flagsMask =
-        ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | BIG_ENDIAN_FLAG_MASK;
-    if ((flags & flagsMask) > 0) {
+    final int badFlagsMask = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK;
+    if ((flags & badFlagsMask) > 0) {
       throw new SketchesArgumentException(
-        "Possible corruption: Input srcSeg cannot be: big-endian, compact, ordered, nor read-only");
+        "Possible corruption: Input srcSeg cannot be: compact, ordered, nor read-only");
     }
 
     //Check seed hashes

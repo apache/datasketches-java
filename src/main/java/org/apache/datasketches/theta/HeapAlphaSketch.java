@@ -107,7 +107,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = 0;
     has.thetaLong_ = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
-    has.empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false;
+    has.empty_ = true; //other flags: reserved = readOnly = compact = ordered = false;
     has.cache_ = new long[1 << lgArrLongs];
     return has;
   }
@@ -200,8 +200,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   public int getRetainedEntries(final boolean valid) {
     if (curCount_ > 0) {
       if (valid && isDirty()) {
-        final int curCount = HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
-        return curCount;
+        return HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
       }
     }
     return curCount_;
@@ -262,7 +261,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public final void reset() {
+  public void reset() {
     final int lgArrLongs =
         ThetaUtil.startingSubMultiple(lgNomLongs_ + 1, getResizeFactor().lg(), ThetaUtil.MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
@@ -342,13 +341,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
         //Decrement theta, make dirty, don't bother check size, already not-empty.
         thetaLong_ = (long) (thetaLong_ * alpha_);
         dirty_ = true; //now may have dirty values
-      }
-      else {
-        //inserts (not entries!) <= k. It may not be at tgt size.
-        //Check size, don't decrement theta. cnt already ++, empty_ already false;
-        if (isOutOfSpace(curCount_)) {
-          resizeClean(); //not dirty, not at tgt size.
-        }
+      } else //inserts (not entries!) <= k. It may not be at tgt size.
+      //Check size, don't decrement theta. count already ++, empty_ already false;
+      if (isOutOfSpace(curCount_)) {
+        resizeClean(); //not dirty, not at tgt size.
       }
     }
     else { //r > 0: sketch mode and not dirty (e.g., after a rebuild).
@@ -373,7 +369,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param hash must not be 0. If not a duplicate, it will be inserted into the hash array
    * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  final UpdateReturnState enhancedHashInsert(final long[] hashTable, final long hash) {
+  UpdateReturnState enhancedHashInsert(final long[] hashTable, final long hash) {
     final int arrayMask = (1 << lgArrLongs_) - 1; // arrayLongs -1
     // make odd and independent of curProbe:
     final int stride = (2 * (int) ((hash >>> lgArrLongs_) & STRIDE_MASK)) + 1;
@@ -440,7 +436,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //At tgt size or greater
   //Checks for rare lockup condition
   // Used by hashUpdate(), rebuild()
-  private final void rebuildDirty() {
+  private void rebuildDirty() {
     final int curCountBefore = curCount_;
     forceRebuildDirtyCache(); //changes curCount_ only
     if (curCountBefore == curCount_) {
@@ -452,7 +448,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //curCount > hashTableThreshold
   //Checks for rare lockup condition
   // Used by hashUpdate()
-  private final void resizeClean() {
+  private void resizeClean() {
     //must resize, but are we at tgt size?
     final int lgTgtLongs = lgNomLongs_ + 1;
     if (lgTgtLongs > lgArrLongs_) {
@@ -470,7 +466,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
   //Force resize. Changes lgArrLongs_ only. Theta doesn't change, count doesn't change.
   // Used by rebuildDirty(), resizeClean()
-  private final void forceResizeCleanCache(final int lgResizeFactor) {
+  private void forceResizeCleanCache(final int lgResizeFactor) {
     assert (!dirty_); // Should never be dirty before a resize.
     lgArrLongs_ += lgResizeFactor; // new tgt size
     final long[] tgtArr = new long[1 << lgArrLongs_];
@@ -483,7 +479,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
   //Cache stays the same size. Must be dirty. Theta doesn't change, count will change.
   // Used by rebuildDirtyAtTgtSize()
-  private final void forceRebuildDirtyCache() {
+  private void forceRebuildDirtyCache() {
     final long[] tgtArr = new long[1 << lgArrLongs_];
     curCount_ = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
     cache_ = tgtArr;
@@ -515,7 +511,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return the variance.
    */
   // @formatter:on
-  private static final double getVariance(final double k, final double p, final double alpha,
+  private static double getVariance(final double k, final double p, final double alpha,
       final double theta, final int count) {
     final double kPlus1 = k + 1.0;
     final double y = 1.0 / p;
@@ -551,7 +547,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>.
    * @return R.
    */
-  private static final int getR(final double theta, final double alpha, final double p) {
+  private static int getR(final double theta, final double alpha, final double p) {
     final double split1 = (p * (alpha + 1.0)) / 2.0;
     if (theta > split1) { return 0; }
     if (theta > (alpha * split1)) { return 1; }
@@ -565,7 +561,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * @return the hash table threshold
    */
-  private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
+  private static int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
     final double fraction = (lgArrLongs <= lgNomLongs) ? ThetaUtil.RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }

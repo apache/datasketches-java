@@ -30,7 +30,6 @@ import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
-import java.nio.ByteOrder;
 import java.util.Objects;
 
 import org.apache.datasketches.common.ByteArrayUtil;
@@ -49,7 +48,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private static final byte serialVersionUID = 2;
 
-  private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
+  private enum Flags { IS_RESERVED, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
   private static final int DEFAULT_LG_RESIZE_FACTOR = ResizeFactor.X8.lg();
   private final int nomEntries_;
@@ -245,22 +244,18 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       SerializerDeserializer.validateType(seg.get(JAVA_BYTE, offset++), //byte 3
           SerializerDeserializer.SketchType.QuickSelectSketch);
       final byte flags = seg.get(JAVA_BYTE, offset++); //byte 4
-      final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
-      if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-        throw new SketchesArgumentException("Endian byte order mismatch");
-      }
       myNomEntries = 1 << seg.get(JAVA_BYTE, offset++); //byte 5
       myLgCurrentCapacity = seg.get(JAVA_BYTE, offset++); //byte 6
       myLgResizeFactor = seg.get(JAVA_BYTE, offset++); //byte 7
 
       checkBounds(0, preambleLongs * 8L, seg.byteSize());
-      final boolean isInSamplingMode = (flags & 1 << Flags.IS_IN_SAMPLING_MODE.ordinal()) > 0;
+      final boolean isInSamplingMode = (flags & (1 << Flags.IS_IN_SAMPLING_MODE.ordinal())) > 0;
       mySamplingProbability = isInSamplingMode ? seg.get(JAVA_FLOAT_UNALIGNED, offset) : 1f; //bytes 8 - 11
       if (isInSamplingMode) {
         offset += Float.BYTES;
       }
 
-      final boolean isThetaIncluded = (flags & 1 << Flags.IS_THETA_INCLUDED.ordinal()) > 0;
+      final boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
       if (isThetaIncluded) {
         myThetaLong = seg.get(JAVA_LONG_UNALIGNED, offset);
         offset += Long.BYTES;
@@ -292,7 +287,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
         myRetEntries++;
         myEmpty = false;
       }
-      myEmpty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+      myEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
       myRebuildThreshold = setRebuildThreshold(myHashTable, myNomEntries);
       return myThetaLong;
     }
@@ -460,17 +455,15 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     if (retEntries_ > 0) {
       sizeBytes += Integer.BYTES; // count
     }
-    sizeBytes += Long.BYTES * retEntries_ + summariesBytesLength;
+    sizeBytes += (Long.BYTES * retEntries_) + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
     bytes[offset++] = PREAMBLE_LONGS;
     bytes[offset++] = serialVersionUID;
     bytes[offset++] = (byte) Family.TUPLE.getID();
     bytes[offset++] = (byte) SerializerDeserializer.SketchType.QuickSelectSketch.ordinal();
-    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     bytes[offset++] = (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
-      | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
+        (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
       | (empty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (retEntries_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
@@ -512,7 +505,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   @SuppressWarnings("unchecked")
   void merge(final long hash, final S summary, final SummarySetOperations<S> summarySetOps) {
     empty_ = false;
-    if (hash > 0 && hash < thetaLong_) {
+    if ((hash > 0) && (hash < thetaLong_)) {
       final int index = findOrInsert(hash);
       if (index < 0) {
         insertSummary(~index, (S)summary.copy()); //did not find, so insert
@@ -590,7 +583,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newSize);
     retEntries_ = 0;
     for (int i = 0; i < oldHashTable.length; i++) {
-      if (oldSummaryTable[i] != null && oldHashTable[i] < thetaLong_) {
+      if ((oldSummaryTable[i] != null) && (oldHashTable[i] < thetaLong_)) {
         insert(oldHashTable[i], oldSummaryTable[i]);
       }
     }
