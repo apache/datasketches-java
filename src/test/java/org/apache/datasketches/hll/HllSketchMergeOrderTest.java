@@ -130,7 +130,7 @@ public class HllSketchMergeOrderTest {
     }
 
     private static void println(final Object o) {
-      System.out.println(o.toString());
+      //System.out.println(o.toString());
     }
 
 }
