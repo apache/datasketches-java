@@ -26,9 +26,7 @@ import static org.testng.Assert.fail;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 
-import org.apache.datasketches.common.MemorySegmentRequest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

@@ -154,7 +154,7 @@ final class IntersectionImpl extends Intersection {
     insertFamilyID(dstSeg, Family.INTERSECTION.getID());
     //lgNomLongs not used by Intersection
     //lgArrLongs set by hardReset
-    //flags are already 0: bigEndian = readOnly = compact = ordered = empty = false;
+    //flags are already 0: reserved = readOnly = compact = ordered = empty = false;
     //seedHash loaded and checked in IntersectionImpl constructor
     //Pre1
     //CurCount set by hardReset

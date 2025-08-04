@@ -28,6 +28,7 @@ import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.lang.foreign.MemorySegment;
+import java.nio.ByteOrder;
 import java.util.Comparator;
 
 /**
@@ -37,6 +38,12 @@ import java.util.Comparator;
  */
 @SuppressWarnings("unchecked")
 public final class Util {
+
+  static {
+    if (ByteOrder.nativeOrder() != ByteOrder.LITTLE_ENDIAN) {
+      throw new BigEndianNativeOrderNotSupportedException();
+    }
+  }
 
   /**
    * The java line separator character as a String.
@@ -812,7 +819,7 @@ public final class Util {
   }
 
   /**
-   * Is item1 Less-Than item2
+   * Is item1 Less-Than item2?
    * @param <T> the type
    * @param item1 item one
    * @param item2 item two
@@ -824,7 +831,7 @@ public final class Util {
   }
 
   /**
-   * Is item1 Less-Than-Or-Equal-To item2
+   * Is item1 Less-Than-Or-Equal-To item2?
    * @param <T> the type
    * @param item1 item one
    * @param item2 item two

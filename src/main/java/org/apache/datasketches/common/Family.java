@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.common;
 
+import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -165,19 +166,22 @@ public enum Family {
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
-  private int id_;
-  private String famName_;
-  private int minPreLongs_;
-  private int maxPreLongs_;
+  private final int id_;
+  private final String famName_;
+  private final int minPreLongs_;
+  private final int maxPreLongs_;
 
   static {
     for (final Family f : values()) {
       lookupID.put(f.getID(), f);
       lookupFamName.put(f.getFamilyName().toUpperCase(Locale.US), f);
     }
+    if (ByteOrder.nativeOrder() != ByteOrder.LITTLE_ENDIAN) {
+      throw new BigEndianNativeOrderNotSupportedException();
+    }
   }
 
-  private Family(final int id, final String famName, final int minPreLongs, final int maxPreLongs) {
+  Family(final int id, final String famName, final int minPreLongs, final int maxPreLongs) {
     id_ = id;
     famName_ = famName.toUpperCase(Locale.US);
     minPreLongs_ = minPreLongs;

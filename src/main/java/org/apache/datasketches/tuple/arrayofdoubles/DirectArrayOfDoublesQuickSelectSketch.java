@@ -32,7 +32,6 @@ import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.setBits;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
@@ -107,10 +106,8 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     seg_.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     seg_.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte)
         SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
-    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     seg_.set(JAVA_BYTE, FLAGS_BYTE, (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
-      | (samplingProbability < 1f ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
+      (samplingProbability < 1f ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
       | (1 << Flags.IS_EMPTY.ordinal())
     ));
     seg_.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues);
@@ -147,7 +144,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   DirectArrayOfDoublesQuickSelectSketch(
       final MemorySegment seg,
       final long seed) {
-    this(checkSerVer_Endianness(seg), seg, seed);
+    this(checkSerVer(seg), seg, seed);
     //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
     //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
   }
@@ -173,16 +170,11 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     setRebuildThreshold();
   }
 
-  private static final boolean checkSerVer_Endianness(final MemorySegment seg) {
+  private static final boolean checkSerVer(final MemorySegment seg) {
     final byte version = seg.get(JAVA_BYTE, SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
-    }
-    final boolean isBigEndian =
-        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesArgumentException("Byte order mismatch");
     }
     return true;
   }

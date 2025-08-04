@@ -23,7 +23,6 @@ import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Family.QUICKSELECT;
 import static org.apache.datasketches.common.Util.clear;
-import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -43,7 +42,6 @@ import static org.testng.Assert.fail;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
@@ -51,11 +49,6 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.DirectQuickSelectSketch;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.testng.annotations.Test;
 
@@ -807,7 +800,7 @@ public class DirectQuickSelectSketchTest {
     }
     seg1.set(JAVA_LONG_UNALIGNED, THETA_LONG, Long.MAX_VALUE); //fix theta and
     seg1.set(JAVA_BYTE, LG_ARR_LONGS_BYTE, (byte) 11); //fix lgArrLongs
-    final byte badFlags = (byte) (BIG_ENDIAN_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK);
+    final byte badFlags = (byte) (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK);
     seg1.set(JAVA_BYTE, FLAGS_BYTE, badFlags);
     try {
       usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);

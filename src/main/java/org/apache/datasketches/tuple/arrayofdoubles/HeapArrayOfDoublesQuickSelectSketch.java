@@ -31,7 +31,6 @@ import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
@@ -101,10 +100,6 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
         + serialVersionUID + ", actual: " + version);
     }
     final byte flags = seg.get(JAVA_BYTE, FLAGS_BYTE);
-    final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesArgumentException("Byte order mismatch");
-    }
     checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     lgNomEntries_ = seg.get(JAVA_BYTE, LG_NOM_ENTRIES_BYTE);
@@ -238,10 +233,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     seg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     seg.set(JAVA_BYTE, SKETCH_TYPE_BYTE,
         (byte) SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch.ordinal());
-    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     seg.set(JAVA_BYTE, FLAGS_BYTE, (byte)(
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
-      | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
+        (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
       | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));

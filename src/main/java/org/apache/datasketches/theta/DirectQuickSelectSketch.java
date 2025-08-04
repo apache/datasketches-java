@@ -151,7 +151,6 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     insertFamilyID(dstSeg, family.getID());                //byte 2
     insertLgNomLongs(dstSeg, lgNomLongs);                  //byte 3
     insertLgArrLongs(dstSeg, lgArrLongs);                  //byte 4
-    //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
     insertFlags(dstSeg, EMPTY_FLAG_MASK);                  //byte 5
     insertSeedHash(dstSeg, Util.computeSeedHash(seed));    //bytes 6,7
     insertCurCount(dstSeg, 0);                             //bytes 8-11
@@ -250,7 +249,6 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int preambleLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
     final int preBytes = preambleLongs << 3;
     wseg_.asSlice(preBytes, arrLongs * 8L).fill((byte)0);
-    //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
     wseg_.set(JAVA_BYTE, FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     wseg_.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, 0);
     final float p = wseg_.get(JAVA_FLOAT_UNALIGNED, P_FLOAT);

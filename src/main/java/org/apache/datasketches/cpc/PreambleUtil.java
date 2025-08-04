@@ -31,7 +31,6 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
@@ -142,12 +141,6 @@ final class PreambleUtil {
 
   private PreambleUtil() {}
 
-  static {
-    if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) {
-      throw new SketchesStateException("This sketch will not work on Big Endian CPUs.");
-    }
-  }
-
   private static final String fmt = "%10d%10x";
 
   /**
@@ -156,7 +149,7 @@ final class PreambleUtil {
   static final byte SER_VER = 1;
 
   //Flag bit masks, Byte 5
-  static final int BIG_ENDIAN_FLAG_MASK     = 1; //Reserved.
+  static final int RESERVED_FLAG_MASK       = 1; //Reserved.
   static final int COMPRESSED_FLAG_MASK     = 2;
   static final int HIP_FLAG_MASK            = 4;
   static final int SUP_VAL_FLAG_MASK        = 8; //num Suprising Values > 0
@@ -584,7 +577,6 @@ final class PreambleUtil {
 
     //Flags of the Flags byte
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-    final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final boolean compressed = (flags & COMPRESSED_FLAG_MASK) > 0;
     final boolean hasHip = (flags & HIP_FLAG_MASK) > 0;
     final boolean hasSV = (flags & SUP_VAL_FLAG_MASK) > 0;
@@ -592,8 +584,6 @@ final class PreambleUtil {
 
     final int formatOrdinal = (flags >>> 2) & 0x7;
     final Format format = Format.ordinalToFormat(formatOrdinal);
-
-    final String nativeOrderStr = ByteOrder.nativeOrder().toString();
 
     long numCoupons = 0;
     long numSv = 0;
@@ -616,8 +606,6 @@ final class PreambleUtil {
     sb.append("Byte 3: lgK                     : ").append(lgK).append(LS);
     sb.append("Byte 4: First Interesting Col   : ").append(fiCol).append(LS);
     sb.append("Byte 5: Flags                   : ").append(flagsStr).append(LS);
-    sb.append("  BIG_ENDIAN_STORAGE            : ").append(bigEndian).append(LS);
-    sb.append("  (Native Byte Order)           : ").append(nativeOrderStr).append(LS);
     sb.append("  Compressed                    : ").append(compressed).append(LS);
     sb.append("  Has HIP                       : ").append(hasHip).append(LS);
     sb.append("  Has Surprising Values         : ").append(hasSV).append(LS);

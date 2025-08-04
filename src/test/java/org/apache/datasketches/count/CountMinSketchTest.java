@@ -34,7 +34,6 @@ public class CountMinSketchTest {
   @Test
   public void createNewCountMinSketchTest() throws Exception {
     assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 5, 1, 123));
-    //2^28 buckets and 4 hashes -> a long[] of 8GB! Set JVM -Xmx > 8g
     assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 4, (1 << 28), 123));
     final byte numHashes = 3;
     final int numBuckets = 5;
@@ -204,7 +203,7 @@ public class CountMinSketchTest {
     final long seed = 123456;
     final CountMinSketch c = new CountMinSketch(numHashes, numBuckets, seed);
 
-    byte[] b = c.toByteArray();
+    final byte[] b = c.toByteArray();
     assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(b, seed - 1));
 
     final CountMinSketch d = CountMinSketch.deserialize(b, seed);
@@ -226,10 +225,10 @@ public class CountMinSketchTest {
       c.update(i, 10*i*i);
     }
 
-    byte[] b = c.toByteArray();
+    final byte[] b = c.toByteArray();
 
     assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(b, seed - 1));
-    CountMinSketch d = CountMinSketch.deserialize(b, seed);
+    final CountMinSketch d = CountMinSketch.deserialize(b, seed);
 
     assertEquals(d.getNumHashes_(), c.getNumHashes_());
     assertEquals(d.getNumBuckets_(), c.getNumBuckets_());

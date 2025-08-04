@@ -26,7 +26,6 @@ import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -43,7 +42,7 @@ import org.apache.datasketches.tuple.SerializerDeserializer;
 final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 
   // this value exists only on heap, never serialized
-  private MemorySegment seg_;
+  private final MemorySegment seg_;
 
   /**
    * Converts the given UpdatableArrayOfDoublesSketch to this compact form.
@@ -72,12 +71,10 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     dstSeg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     dstSeg.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte)
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
-    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     isEmpty_ = sketch.isEmpty();
     final int count = sketch.getRetainedEntries();
     dstSeg.set(JAVA_BYTE, FLAGS_BYTE, (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
-      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
+        (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
@@ -115,12 +112,10 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     dstSeg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     dstSeg.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte)
         SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
-    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     isEmpty_ = isEmpty;
     final int count = keys.length;
     dstSeg.set(JAVA_BYTE, FLAGS_BYTE, (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
-      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
+        (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
@@ -150,11 +145,6 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
     }
-    final boolean isBigEndian =
-        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesArgumentException("Byte order mismatch");
-    }
 
     isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = seg_.get(JAVA_LONG_UNALIGNED, THETA_LONG);
@@ -176,11 +166,6 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
-    }
-    final boolean isBigEndian =
-        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesArgumentException("Byte order mismatch");
     }
     Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;

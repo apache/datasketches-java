@@ -39,7 +39,7 @@ public abstract class ArrayOfDoublesSketch {
   // So a sketch can be non-empty, and have no entries.
   // For example, as a result of a sampling, when some data was presented to the sketch, but no
   //  entries were retained.
-  static enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES }
+  enum Flags { IS_RESERVED, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES }
 
   static final int SIZE_OF_KEY_BYTES = Long.BYTES;
   static final int SIZE_OF_VALUE_BYTES = Double.BYTES;

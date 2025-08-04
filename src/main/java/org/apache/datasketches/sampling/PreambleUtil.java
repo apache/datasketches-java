@@ -28,7 +28,6 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 import java.util.Locale;
 
 import org.apache.datasketches.common.Family;
@@ -210,8 +209,6 @@ final class PreambleUtil {
   static final int EBPPS_RHO_DOUBLE      = 32;
 
   // flag bit masks
-  //static final int BIG_ENDIAN_FLAG_MASK = 1;
-  //static final int READ_ONLY_FLAG_MASK  = 2;
   static final int EMPTY_FLAG_MASK      = 4;
   static final int HAS_PARTIAL_ITEM_MASK = 8; // EBPPS only
   static final int GADGET_FLAG_MASK     = 128;
@@ -220,9 +217,6 @@ final class PreambleUtil {
   static final int RESERVOIR_SER_VER    = 2;
   static final int VAROPT_SER_VER       = 2;
   static final int EBPPS_SER_VER        = 1;
-
-  static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
-      (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
   // STRINGS
 
@@ -274,8 +268,6 @@ final class PreambleUtil {
     // Flags
     final int flags = extractFlags(seg);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-    //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    //final String nativeOrder = ByteOrder.nativeOrder().toString();
     //final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean isGadget = (flags & GADGET_FLAG_MASK) > 0;
@@ -304,8 +296,6 @@ final class PreambleUtil {
       .append("Byte  1: Serialization Version: ").append(serVer).append(LS)
       .append("Byte  2: Family               : ").append(family.toString()).append(LS)
       .append("Byte  3: Flags Field          : ").append(flagsStr).append(LS)
-      //.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS)
-      //.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS)
       //.append("  READ_ONLY                   : ").append(readOnly).append(LS)
       .append("  EMPTY                       : ").append(isEmpty).append(LS);
     if (family == Family.VAROPT) {
@@ -344,8 +334,6 @@ final class PreambleUtil {
     // Flags
     final int flags = extractFlags(seg);
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
-    //final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
-    //final String nativeOrder = ByteOrder.nativeOrder().toString();
     //final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
 
@@ -366,8 +354,6 @@ final class PreambleUtil {
             + "Byte  1: Serialization Version    : " + serVer + LS
             + "Byte  2: Family                   : " + family.toString() + LS
             + "Byte  3: Flags Field              : " + flagsStr + LS
-            //+ "  BIG_ENDIAN_STORAGE              : " + bigEndian + LS
-            //+ "  (Native Byte Order)             : " + nativeOrder + LS
             //+ "  READ_ONLY                       : " + readOnly + LS
             + "  EMPTY                           : " + isEmpty + LS
             + "Bytes  4-7: Max Sketch Size (maxK): " + k + LS

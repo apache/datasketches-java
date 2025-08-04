@@ -26,7 +26,6 @@ import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 
 import java.lang.foreign.MemorySegment;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
@@ -127,11 +126,6 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       throw new SketchesArgumentException(
           "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     }
-    final boolean isBigEndian =
-        (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_BIG_ENDIAN.ordinal())) != 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesArgumentException("Byte order mismatch");
-    }
     Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
@@ -152,7 +146,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       return new
           HeapArrayOfDoublesCompactSketch(keys_.clone(), values_.clone(), thetaLong_, isEmpty_, numValues_, seedHash_);
     } else {
-      final byte[] byteArr = this.toByteArray();
+      final byte[] byteArr = toByteArray();
       MemorySegment.copy(byteArr, 0, dstSeg, JAVA_BYTE, 0, byteArr.length);
       return new DirectArrayOfDoublesCompactSketch(dstSeg);
     }
@@ -173,10 +167,8 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     seg.set(JAVA_BYTE, SERIAL_VERSION_BYTE, serialVersionUID);
     seg.set(JAVA_BYTE, FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     seg.set(JAVA_BYTE, SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesCompactSketch.ordinal());
-    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
     seg.set(JAVA_BYTE, FLAGS_BYTE, (byte) (
-      ((isBigEndian ? 1 : 0) << Flags.IS_BIG_ENDIAN.ordinal())
-      | ((isEmpty() ? 1 : 0) << Flags.IS_EMPTY.ordinal())
+        ((isEmpty() ? 1 : 0) << Flags.IS_EMPTY.ordinal())
       | ((count > 0 ? 1 : 0) << Flags.HAS_ENTRIES.ordinal())
     ));
     seg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);

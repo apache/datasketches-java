@@ -96,10 +96,9 @@ under the License.
     <!-- System-wide properties -->
     <maven.version>3.9.10</maven.version>
     <java.version>24</java.version>
-    <jvm-arguments>-Xmx10g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</jvm-arguments>
+    <jvm-arguments>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</jvm-arguments>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <argLine>${jvm-arguments}</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -159,7 +158,7 @@ under the License.
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <compilerArgs>
-              <arg>${jvm-arguments}</arg>
+              <arg></arg>
             </compilerArgs>
           </configuration>
         </plugin>

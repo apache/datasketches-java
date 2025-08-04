@@ -26,7 +26,6 @@ import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
-import java.nio.ByteOrder;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
@@ -52,7 +51,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
 
   private enum FlagsLegacy { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
-  private enum Flags { IS_BIG_ENDIAN, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
+  private enum Flags { IS_RESERVED, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
 
   /**
    * Create a CompactSketch from correct components
@@ -90,19 +89,15 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
       .validateType(seg.get(JAVA_BYTE, offset++), SerializerDeserializer.SketchType.CompactSketch);
     if (version <= serialVersionUIDLegacy) { // legacy serial format
       final byte flags = seg.get(JAVA_BYTE, offset++);
-      final boolean isBigEndian = (flags & 1 << FlagsLegacy.IS_BIG_ENDIAN.ordinal()) > 0;
-      if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-        throw new SketchesArgumentException("Byte order mismatch");
-      }
-      empty_ = (flags & 1 << FlagsLegacy.IS_EMPTY.ordinal()) > 0;
-      final boolean isThetaIncluded = (flags & 1 << FlagsLegacy.IS_THETA_INCLUDED.ordinal()) > 0;
+      empty_ = (flags & (1 << FlagsLegacy.IS_EMPTY.ordinal())) > 0;
+      final boolean isThetaIncluded = (flags & (1 << FlagsLegacy.IS_THETA_INCLUDED.ordinal())) > 0;
       if (isThetaIncluded) {
         thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, offset);
         offset += Long.BYTES;
       } else {
         thetaLong_ = Long.MAX_VALUE;
       }
-      final boolean hasEntries = (flags & 1 << FlagsLegacy.HAS_ENTRIES.ordinal()) > 0;
+      final boolean hasEntries = (flags & (1 << FlagsLegacy.HAS_ENTRIES.ordinal())) > 0;
       if (hasEntries) {
         int classNameLength = 0;
         if (version == serialVersionWithSummaryClassNameUID) {
@@ -130,7 +125,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
       offset++; //skip unused byte
       final byte flags = seg.get(JAVA_BYTE, offset++);
       offset += 2; //skip 2 unused bytes
-      empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+      empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
       thetaLong_ = Long.MAX_VALUE;
       int count = 0;
       if (!empty_) {
@@ -201,7 +196,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
   @Override
   public byte[] toByteArray() {
   final int count = getRetainedEntries();
-    final boolean isSingleItem = count == 1 && !isEstimationMode();
+    final boolean isSingleItem = (count == 1) && !isEstimationMode();
     final int preambleLongs = isEmpty() || isSingleItem ? 1 : isEstimationMode() ? 3 : 2;
 
     int summariesSizeBytes = 0;
@@ -213,7 +208,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
       }
     }
 
-    final int sizeBytes = Long.BYTES * preambleLongs + Long.BYTES * count + summariesSizeBytes;
+    final int sizeBytes = (Long.BYTES * preambleLongs) + (Long.BYTES * count) + summariesSizeBytes;
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
     bytes[offset++] = (byte) preambleLongs;
