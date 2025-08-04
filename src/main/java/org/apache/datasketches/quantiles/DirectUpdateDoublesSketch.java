@@ -100,8 +100,9 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     return new DirectUpdateDoublesSketch(k, dstSeg, mSegReq);
   }
 
-  static DirectUpdateDoublesSketch(final DirectUpdateDoublesSketch skIn) {
-    return null;
+  static HeapUpdateDoublesSketch heapify(final DirectUpdateDoublesSketch skIn) {
+    final MemorySegment segIn = skIn.getMemorySegment();
+    return HeapUpdateDoublesSketch.heapifyInstance(segIn);
   }
 
   /**
@@ -214,6 +215,23 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   }
 
   //Restricted overrides
+
+  @Override
+  HeapUpdateDoublesSketch getSketchAndReset() {
+    final HeapUpdateDoublesSketch skCopy = heapify(this);
+    reset();
+    return skCopy;
+  }
+
+  @Override
+  double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
+    seg_ = growCombinedSegBuffer(itemSpaceNeeded);
+    // copy out any data that was there
+    final double[] newCombBuf = new double[itemSpaceNeeded];
+    MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, newCombBuf, 0, curCombBufItemCap);
+    return newCombBuf;
+  }
+
   //Puts
 
   @Override
@@ -247,15 +265,6 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   @Override
   void putBitPattern(final long bitPattern) {
     //intentionally a no-op, not kept on-heap, always derived.
-  }
-
-  @Override
-  double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
-    seg_ = growCombinedSegBuffer(itemSpaceNeeded);
-    // copy out any data that was there
-    final double[] newCombBuf = new double[itemSpaceNeeded];
-    MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, newCombBuf, 0, curCombBufItemCap);
-    return newCombBuf;
   }
 
   //Direct supporting methods

@@ -160,7 +160,6 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     final double[] combinedBuffer = new double[itemCap];
     MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, combinedBuffer, 0, itemCap);
 
-
     return combinedBuffer;
   }
 
@@ -176,41 +175,46 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     return seg_;
   }
 
+  @Override
+  UpdateDoublesSketch getSketchAndReset() {
+    throw new SketchesReadOnlyException("Call to getResultAndReset() on read-only sketch");
+  }
+
   //Puts
 
   @Override
   void putMinItem(final double minQuantile) {
-    throw new SketchesReadOnlyException("Call to putMinQuantile() on read-only buffer");
+    throw new SketchesReadOnlyException("Call to putMinQuantile() on read-only sketch");
   }
 
   @Override
   void putMaxItem(final double maxQuantile) {
-    throw new SketchesReadOnlyException("Call to putMaxQuantile() on read-only buffer");
+    throw new SketchesReadOnlyException("Call to putMaxQuantile() on read-only sketch");
   }
 
   @Override
   void putN(final long n) {
-    throw new SketchesReadOnlyException("Call to putN() on read-only buffer");
+    throw new SketchesReadOnlyException("Call to putN() on read-only sketch");
   }
 
   @Override
   void putCombinedBuffer(final double[] combinedBuffer) {
-    throw new SketchesReadOnlyException("Call to putCombinedBuffer() on read-only buffer");
+    throw new SketchesReadOnlyException("Call to putCombinedBuffer() on read-only sketch");
   }
 
   @Override
   void putBaseBufferCount(final int baseBufferCount) {
-    throw new SketchesReadOnlyException("Call to putBaseBufferCount() on read-only buffer");
+    throw new SketchesReadOnlyException("Call to putBaseBufferCount() on read-only sketch");
   }
 
   @Override
   void putBitPattern(final long bitPattern) {
-    throw new SketchesReadOnlyException("Call to putBaseBufferCount() on read-only buffer");
+    throw new SketchesReadOnlyException("Call to putBaseBufferCount() on read-only sketch");
   }
 
   @Override
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
-    throw new SketchesReadOnlyException("Call to growCombinedBuffer() on read-only buffer");
+    throw new SketchesReadOnlyException("Call to growCombinedBuffer() on read-only sketch");
   }
 
   //Checks

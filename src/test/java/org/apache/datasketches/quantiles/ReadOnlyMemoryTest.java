@@ -259,7 +259,7 @@ public class ReadOnlyMemoryTest {
     try {
       u.getResultAndReset();
       fail();
-    } catch (final AssertionError e) { //null
+    } catch (final IllegalArgumentException e) { //null
       // expected
     }
   }

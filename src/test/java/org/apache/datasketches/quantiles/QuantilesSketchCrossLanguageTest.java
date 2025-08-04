@@ -129,7 +129,7 @@ public class QuantilesSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] byteArr = Files.readAllBytes(cppPath.resolve("quantiles_string_n" + n + "_cpp.sk"));
-      final ItemsSketch<String> sk = ItemsSketch.getInstance(
+      final ItemsSketch<String> sk = ItemsSketch.heapify(
           String.class,
           MemorySegment.ofArray(byteArr),
           numericOrder,

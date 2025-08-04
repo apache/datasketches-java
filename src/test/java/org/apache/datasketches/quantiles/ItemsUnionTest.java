@@ -42,7 +42,7 @@ public class ItemsUnionTest {
     ItemsUnion<Integer> union = ItemsUnion.getInstance(Integer.class, Comparator.naturalOrder());
     union.union(validSk);
 
-    union = ItemsUnion.getInstance(emptySk);
+    union = ItemsUnion.initialize(emptySk);
     // internal sketch is empty at this point
     union.union((ItemsSketch<Integer>) null);
     union.union(emptySk);
@@ -113,11 +113,11 @@ public class ItemsUnionTest {
     final Comparator<String> comp = Comparator.naturalOrder();
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
     final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, comp);
-    ItemsUnion<String> union = ItemsUnion.getInstance(sketch);
+    ItemsUnion<String> union = ItemsUnion.initialize(sketch);
     union.reset();
     final byte[] byteArr = sketch.toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    union = ItemsUnion.getInstance(String.class, seg, comp, serDe);
+    union = ItemsUnion.initializeWithMemorySegment(String.class, seg, comp, serDe);
     Assert.assertEquals(byteArr.length, 8);
     union.reset();
   }
@@ -372,7 +372,7 @@ public class ItemsUnionTest {
 
     final byte[] byteArr = buildIS(k, (2 * k) + 5).toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    union = ItemsUnion.getInstance(Long.class, seg, Comparator.naturalOrder(), serDe);
+    union = ItemsUnion.initializeWithMemorySegment(Long.class, seg, Comparator.naturalOrder(), serDe);
     bytesOut = union.toByteArray(serDe);
     Assert.assertEquals(bytesOut.length, byteArr.length);
     Assert.assertEquals(bytesOut, byteArr); // assumes consistent internal use of toByteArray()

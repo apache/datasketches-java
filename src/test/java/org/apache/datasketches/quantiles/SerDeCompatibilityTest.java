@@ -60,7 +60,7 @@ public class SerDeCompatibilityTest {
     final byte[] bytes = cs.toByteArray(); // must be compact
 
     //reconstruct with ItemsSketch
-    final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Double.class, MemorySegment.ofArray(bytes),
+    final ItemsSketch<Double> sketch2 = ItemsSketch.heapify(Double.class, MemorySegment.ofArray(bytes),
         Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) { sketch2.update((double) i); }

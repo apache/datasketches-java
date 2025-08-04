@@ -30,7 +30,7 @@ import org.apache.datasketches.common.ArrayOfItemsSerDe;
 /**
  * The API for Union operations for generic ItemsSketches
  *
- * @param <T> type of item
+ * @param <T> The sketch item data type.
  *
  * @author Lee Rhodes
  * @author Alexander Saydakov
@@ -56,11 +56,11 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Create an instance of ItemsUnion with the default k
-   * @param <T> The sketch data type
-   * @param clazz The sketch class type
-   * @param comparator to compare items
-   * @return an instance of ItemsUnion
+   * Create an instance of ItemsUnion with the default k.
+   * @param <T> The sketch item data type.
+   * @param clazz The sketch class type.
+   * @param comparator to compare items.
+   * @return a new instance of ItemsUnion
    */
   public static <T> ItemsUnion<T> getInstance(
       final Class<T> clazz,
@@ -71,14 +71,13 @@ public final class ItemsUnion<T> {
 
   /**
    * Create an instance of ItemsUnion
-   * @param clazz The sketch class type
-   * @param <T> The sketch data type
+   * @param <T> The sketch item data type.
+   * @param clazz The sketch class type.
    * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
-   * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with a
-   * different <i>k</i>.
-   * @param comparator to compare items
-   * @return an instance of ItemsUnion
+   * <i>maxK</i> must be a power of 2 to enable unioning of sketches with a different <i>k</i>.
+   * @param comparator to compare items.
+   * @return an new instance of ItemsUnion
    */
   public static <T> ItemsUnion<T> getInstance(
       final Class<T> clazz,
@@ -89,31 +88,30 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Heapify the given srcSeg into a Union object.
-   * @param clazz The sketch class type
-   * A reference to srcSeg will not be maintained internally.
-   * @param srcSeg the given srcSeg.
-   * @param comparator to compare items
-   * @param serDe an instance of ArrayOfItemsSerDe
-   * @param <T> The sketch data type
-   * @return an instance of ItemsUnion
+   * Initialize a new ItemsUnion with a heapified instance of an ItemsSketch from a MemorySegment.
+   * @param <T> The sketch data type.
+   * @param clazz The sketch class type.
+   * @param srcSeg the given srcSeg, an image of an ItemsSketch. A reference to srcSeg will not be maintained internally.
+   * @param comparator to compare items.
+   * @param serDe an instance of ArrayOfItemsSerDe.
+   * @return an ItemsUnion initialized with a heapified ItemsSketch from a MemorySegment.
    */
-  public static <T> ItemsUnion<T> getInstance(
+  public static <T> ItemsUnion<T> initializeWithMemorySegment(
       final Class<T> clazz,
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> gadget = ItemsSketch.getInstance(clazz, srcSeg, comparator, serDe);
+    final ItemsSketch<T> gadget = ItemsSketch.heapify(clazz, srcSeg, comparator, serDe);
     return new ItemsUnion<>(gadget.getK(), gadget.getComparator(), gadget);
   }
 
   /**
-   * Create an instance of ItemsUnion based on ItemsSketch
+   * Initialize a new ItemsUnion with an instance of ItemsSketch
    * @param <T> The sketch data type
-   * @param sketch the basis of the union
-   * @return an instance of ItemsUnion
+   * @param sketch an instance of ItemsSketch to initialize this union
+   * @return an initialized instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final ItemsSketch<T> sketch) {
+  public static <T> ItemsUnion<T> initialize(final ItemsSketch<T> sketch) {
     return new ItemsUnion<>(sketch.getK(), sketch.getComparator(), ItemsSketch.copy(sketch));
   }
 
@@ -150,7 +148,7 @@ public final class ItemsUnion<T> {
   public void union(
       final MemorySegment srcSeg,
       final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> that = ItemsSketch.getInstance(clazz_, srcSeg, comparator_, serDe);
+    final ItemsSketch<T> that = ItemsSketch.heapify(clazz_, srcSeg, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }
 
@@ -180,16 +178,13 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Gets the result of this Union operation (without a copy) and resets this Union to the
-   * virgin state.
+   * Gets the sketch result of this Union operation and resets this Union to the virgin state.
    *
    * @return the result of this Union operation and reset.
    */
-  public ItemsSketch<T> getResultAndReset() {
+  public ItemsSketch<T> getResultAndReset() { //TODO
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
-    final ItemsSketch<T> hqs = gadget_;
-    gadget_ = null;
-    return hqs;
+    return gadget_.getSketchAndReset();
   }
 
   /**

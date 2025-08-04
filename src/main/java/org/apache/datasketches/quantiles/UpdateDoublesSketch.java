@@ -76,7 +76,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * Returns a copy of this sketch and then resets this sketch with the same value of <i>k</i>.
    * @return a copy of this sketch and then resets this sketch with the same value of <i>k</i>.
    */
-  abstract UpdateDoublesSketch getResultAndReset();
+  abstract UpdateDoublesSketch getSketchAndReset();
 
   /**
    * Grows the combined buffer to the given spaceNeeded
