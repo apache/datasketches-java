@@ -62,6 +62,7 @@ import org.apache.datasketches.common.MemorySegmentRequest;
 final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   private MemorySegmentRequest mSegReq = null;
 
+  //**CONSTRUCTORS**
   private DirectUpdateDoublesSketch(final int k, final MemorySegment seg, final MemorySegmentRequest mSegReq) {
     super(k, seg); //Checks k
     this.mSegReq = mSegReq;
@@ -99,6 +100,10 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     return new DirectUpdateDoublesSketch(k, dstSeg, mSegReq);
   }
 
+  static DirectUpdateDoublesSketch(final DirectUpdateDoublesSketch skIn) {
+    return null;
+  }
+
   /**
    * Wrap this sketch around the given non-compact MemorySegment image of a DoublesSketch.
    *
@@ -129,6 +134,8 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
     return new DirectUpdateDoublesSketch(k, srcSeg, mSegReq);
   }
+
+  //**END CONSTRUCTORS**
 
   @Override
   public boolean isReadOnly() {

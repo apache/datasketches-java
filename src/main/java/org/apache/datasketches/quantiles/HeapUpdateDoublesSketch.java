@@ -96,7 +96,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    */
   private double[] combinedBuffer_;
 
-  //**CONSTRUCTORS**********************************************************
+  //**CONSTRUCTORS**
   private HeapUpdateDoublesSketch(final int k) {
     super(k); //Checks k
   }
@@ -118,6 +118,24 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     huds.minItem_ = Double.NaN;
     huds.maxItem_ = Double.NaN;
     return huds;
+  }
+
+  /**
+   * Returns a copy of the given sketch
+   * @param skIn the given sketch
+   * @return a copy of the given sketch
+   */
+  static HeapUpdateDoublesSketch copy(final HeapUpdateDoublesSketch skIn) {
+    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.newInstance(skIn.k_);
+    if (skIn.n_ > 0) {
+      skCopy.n_ = skIn.n_;
+      skCopy.combinedBuffer_ = skIn.combinedBuffer_.clone();
+      skCopy.baseBufferCount_ = skIn.baseBufferCount_;
+      skCopy.bitPattern_ = skIn.bitPattern_;
+      skCopy.minItem_ = skIn.minItem_;
+      skCopy.maxItem_ = skIn.maxItem_;
+    }
+    return skCopy;
   }
 
   /**
@@ -166,6 +184,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     return huds;
   }
 
+  //**END CONSTRUCTORS**
+
   @Override
   public double getMaxItem() {
     if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
@@ -181,6 +201,13 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   @Override
   public long getN() {
     return n_;
+  }
+
+  @Override
+  HeapUpdateDoublesSketch getResultAndReset() {
+    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.copy(this);
+    reset();
+    return skCopy;
   }
 
   @Override
