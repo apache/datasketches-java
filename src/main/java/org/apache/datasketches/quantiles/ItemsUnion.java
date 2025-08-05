@@ -182,7 +182,7 @@ public final class ItemsUnion<T> {
    *
    * @return the result of this Union operation and reset.
    */
-  public ItemsSketch<T> getResultAndReset() { //TODO
+  public ItemsSketch<T> getResultAndReset() {
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
     return gadget_.getSketchAndReset();
   }

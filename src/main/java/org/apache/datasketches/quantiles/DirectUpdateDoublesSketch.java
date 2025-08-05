@@ -217,7 +217,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   //Restricted overrides
 
   @Override
-  HeapUpdateDoublesSketch getSketchAndReset() {
+  UpdateDoublesSketch getSketchAndReset() {
     final HeapUpdateDoublesSketch skCopy = heapify(this);
     reset();
     return skCopy;
