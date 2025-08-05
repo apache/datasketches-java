@@ -72,7 +72,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  *
  * @see QuantilesAPI
  *
- * @param <T> The sketch data type
+ * @param <T> The sketch item data type.
  */
 public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   final Class<T> clazz;
@@ -124,6 +124,8 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    */
   public static final Random rand = new Random();
 
+  //**Constructors**
+
   private ItemsSketch(
       final int k,
       final Class<T> clazz,
@@ -138,9 +140,9 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   /**
    * Obtains a new instance of an ItemsSketch using the DEFAULT_K.
-   * @param <T> The sketch data type
-   * @param clazz the given class of T
-   * @param comparator to compare items
+   * @param <T> The sketch item data type.
+   * @param clazz the given class of T.
+   * @param comparator to compare items.
    * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
@@ -150,12 +152,12 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Obtains a new instance of an ItemsSketch.
-   * @param <T> The sketch data type
-   * @param clazz the given class of T
+   * Obtains a new instance of an ItemsSketch using the given <i>k</i>.
+   * @param <T> The sketch item data type.
+   * @param clazz the given class of T.
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 2 and less than 65536 and a power of 2.
-   * @param comparator to compare items
+   * @param comparator to compare items.
    * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
@@ -175,15 +177,15 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Heapifies the given srcSeg, which must be a MemorySegment image of a ItemsSketch
-   * @param clazz the given class of T
-   * @param srcSeg a MemorySegment image of a sketch.
-   * @param comparator to compare items
-   * @param serDe an instance of ArrayOfItemsSerDe
-   * @param <T> The sketch data type
-   * @return a ItemSketch&lt;T&gt; on the Java heap.
+   * Heapifies the given srcSeg, which must be a MemorySegment image of a ItemsSketch.
+   * @param <T> The sketch item data type.
+   * @param clazz the given class of T.
+   * @param srcSeg a MemorySegment image of a sketch generated from this class.
+   * @param comparator to compare items.
+   * @param serDe an instance of ArrayOfItemsSerDe.
+   * @return a ItemsSketch&lt;T&gt; on the Java heap.
    */
-  public static <T> ItemsSketch<T> getInstance(
+  public static <T> ItemsSketch<T> heapify(
       final Class<T> clazz,
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
@@ -192,7 +194,6 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     if (segCapBytes < 8) {
       throw new SketchesArgumentException("MemorySegment too small: " + segCapBytes);
     }
-
     final int preambleLongs = extractPreLongs(srcSeg);
     final int serVer = extractSerVer(srcSeg);
     final int familyID = extractFamilyID(srcSeg);
@@ -233,10 +234,10 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Returns a copy of the given sketch
-   * @param <T> The sketch data type
-   * @param sketch the given sketch
-   * @return a copy of the given sketch
+   * Returns a copy of the given sketch.
+   * @param <T> The sketch item data type.
+   * @param sketch the given sketch.
+   * @return a copy of the given sketch.
    */
   static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
     final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.clazz, sketch.k_, sketch.comparator_);
@@ -251,7 +252,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     return qsCopy;
   }
 
-  //END of Constructors
+  //**END of Constructors**
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -579,6 +580,16 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    */
   Object[] getCombinedBuffer() {
     return combinedBuffer_;
+  }
+
+  /**
+   * Returns a copy of this sketch and then resets.
+   * @return a copy of this sketch and then resets.
+   */
+  ItemsSketch<T> getSketchAndReset() {
+    final ItemsSketch<T> skCopy = copy(this);
+    reset();
+    return skCopy;
   }
 
   /**

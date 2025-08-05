@@ -35,7 +35,6 @@ under the License.
       <package name="org.apache.datasketches.kll" />
       <package name="org.apache.datasketches.partitions" />
       <package name="org.apache.datasketches.quantiles" />
-      <package name="org.apache.datasketches.quantiles2" />
       <package name="org.apache.datasketches.quantilescommon" />
       <package name="org.apache.datasketches.req" />
       <package name="org.apache.datasketches.sampling" />
@@ -44,8 +43,8 @@ under the License.
       <package name="org.apache.datasketches.thetacommon" />
       <package name="org.apache.datasketches.tuple.adouble" />
       <package name="org.apache.datasketches.tuple.aninteger" />
-      <package name="org.apache.datasketches.arrayofdoubles" />
-      <package name="org.apache.datasketches.strings" />
+      <package name="org.apache.datasketches.tuple.arrayofdoubles" />
+      <package name="org.apache.datasketches.tuple.strings" />
       <package name="org.apache.datasketches.tuple" />
     </packages>
   </test>

@@ -143,7 +143,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
   @Override
   public UpdateDoublesSketch getResultAndReset() {
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
-    final UpdateDoublesSketch ds = gadget_;
+    final UpdateDoublesSketch ds = gadget_.getSketchAndReset();
     gadget_ = null;
     return ds;
   }

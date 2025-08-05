@@ -96,7 +96,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    */
   private double[] combinedBuffer_;
 
-  //**CONSTRUCTORS**********************************************************
+  //**CONSTRUCTORS**
   private HeapUpdateDoublesSketch(final int k) {
     super(k); //Checks k
   }
@@ -121,15 +121,33 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   /**
+   * Returns a copy of the given sketch
+   * @param skIn the given sketch
+   * @return a copy of the given sketch
+   */
+  static HeapUpdateDoublesSketch copy(final HeapUpdateDoublesSketch skIn) {
+    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.newInstance(skIn.k_);
+    if (skIn.n_ > 0) {
+      skCopy.n_ = skIn.n_;
+      skCopy.combinedBuffer_ = skIn.combinedBuffer_.clone();
+      skCopy.baseBufferCount_ = skIn.baseBufferCount_;
+      skCopy.bitPattern_ = skIn.bitPattern_;
+      skCopy.minItem_ = skIn.minItem_;
+      skCopy.maxItem_ = skIn.maxItem_;
+    }
+    return skCopy;
+  }
+
+  /**
    * Heapifies the given srcSeg, which must be a MemorySegment image of a DoublesSketch and may have data.
    *
-   * @param srcSeg a MemorySegment image of a sketch, which may be in compact or not compact form.
+   * @param srcSeg a MemorySegment image of a sketch, which may be in compact or updatable form.
    * @return a DoublesSketch on the Java heap.
    */
   static HeapUpdateDoublesSketch heapifyInstance(final MemorySegment srcSeg) {
     final long segCapBytes = srcSeg.byteSize();
-    if (segCapBytes < 8) {
-      throw new SketchesArgumentException("Source MemorySegment too small: " + segCapBytes + " < 8");
+    if ((segCapBytes < 8) || (segCapBytes > Integer.MAX_VALUE)) {
+      throw new SketchesArgumentException("Source MemorySegment byteSize must be >= 8 and <= Integer.MAX_VALUE: " + segCapBytes);
     }
 
     final int preLongs = extractPreLongs(srcSeg);
@@ -165,6 +183,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     huds.srcMemorySegmentToCombinedBuffer(srcSeg, serVer, srcIsCompact, combBufCap);
     return huds;
   }
+
+  //**END CONSTRUCTORS**
 
   @Override
   public double getMaxItem() {
@@ -334,8 +354,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  int getCombinedBufferItemCapacity() {
-    return combinedBuffer_.length;
+  long getBitPattern() {
+    return bitPattern_;
   }
 
   @Override
@@ -344,8 +364,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  long getBitPattern() {
-    return bitPattern_;
+  int getCombinedBufferItemCapacity() {
+    return combinedBuffer_.length;
   }
 
   @Override
@@ -353,27 +373,20 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     return null;
   }
 
+  @Override
+  HeapUpdateDoublesSketch getSketchAndReset() {
+    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.copy(this);
+    reset();
+    return skCopy;
+  }
+
+  @Override //the returned array is not always used
+  double[] growCombinedBuffer(final int currentSpace, final int spaceNeeded) {
+    combinedBuffer_ = Arrays.copyOf(combinedBuffer_, spaceNeeded);
+    return combinedBuffer_;
+  }
+
   //Puts
-
-  @Override
-  void putMinItem(final double minItem) {
-    minItem_ = minItem;
-  }
-
-  @Override
-  void putMaxItem(final double maxItem) {
-    maxItem_ = maxItem;
-  }
-
-  @Override
-  void putN(final long n) {
-    n_ = n;
-  }
-
-  @Override
-  void putCombinedBuffer(final double[] combinedBuffer) {
-    combinedBuffer_ = combinedBuffer;
-  }
 
   @Override
   void putBaseBufferCount(final int baseBufferCount) {
@@ -385,10 +398,24 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     bitPattern_ = bitPattern;
   }
 
-  @Override //the returned array is not always used
-  double[] growCombinedBuffer(final int currentSpace, final int spaceNeeded) {
-    combinedBuffer_ = Arrays.copyOf(combinedBuffer_, spaceNeeded);
-    return combinedBuffer_;
+  @Override
+  void putCombinedBuffer(final double[] combinedBuffer) {
+    combinedBuffer_ = combinedBuffer;
+  }
+
+  @Override
+  void putMaxItem(final double maxItem) {
+    maxItem_ = maxItem;
+  }
+
+  @Override
+  void putMinItem(final double minItem) {
+    minItem_ = minItem;
+  }
+
+  @Override
+  void putN(final long n) {
+    n_ = n;
   }
 
   /**

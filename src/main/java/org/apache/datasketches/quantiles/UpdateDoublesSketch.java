@@ -72,15 +72,25 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
     return DirectCompactDoublesSketch.createFromUpdateSketch(this, dstSeg);
   }
 
-  @Override
-  public abstract void update(double item);
+  /**
+   * Returns a copy of this sketch and then resets this sketch with the same value of <i>k</i>.
+   * @return a copy of this sketch and then resets this sketch with the same value of <i>k</i>.
+   */
+  abstract UpdateDoublesSketch getSketchAndReset();
+
+  /**
+   * Grows the combined buffer to the given spaceNeeded
+   *
+   * @param currentSpace the current allocated space
+   * @param spaceNeeded  the space needed
+   * @return the enlarged combined buffer with data from the original combined buffer.
+   */
+  abstract double[] growCombinedBuffer(int currentSpace, int spaceNeeded);
 
   @Override
   boolean isCompact() {
     return false;
   }
-
-  //Puts
 
   /**
    * Puts the minimum item
@@ -124,12 +134,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    */
   abstract void putBitPattern(long bitPattern);
 
-  /**
-   * Grows the combined buffer to the given spaceNeeded
-   *
-   * @param currentSpace the current allocated space
-   * @param spaceNeeded  the space needed
-   * @return the enlarged combined buffer with data from the original combined buffer.
-   */
-  abstract double[] growCombinedBuffer(int currentSpace, int spaceNeeded);
+  @Override
+  public abstract void update(double item);
+
 }
