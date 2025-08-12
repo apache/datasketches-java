@@ -321,7 +321,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       assert seg != null;
       sketch = KllFloatsSketch.heapify(getMemorySegment());
     }
-    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
+    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems);
   }
 
   //SINGLE UPDATE

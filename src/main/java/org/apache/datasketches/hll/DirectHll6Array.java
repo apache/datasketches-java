@@ -40,7 +40,7 @@ final class DirectHll6Array extends DirectHllArray {
 
   //Called by HllSketch.wrap(MemorySegment)
   DirectHll6Array(final int lgConfigK, final MemorySegment seg, final boolean readOnly) {
-    super(lgConfigK, TgtHllType.HLL_6, seg, true);
+    super(lgConfigK, TgtHllType.HLL_6, seg, readOnly);
   }
 
   @Override

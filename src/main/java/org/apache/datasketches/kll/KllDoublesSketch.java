@@ -321,7 +321,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       assert seg != null;
       sketch = KllDoublesSketch.heapify(getMemorySegment());
     }
-    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
+    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems);
   }
 
   //SINGLE UPDATE

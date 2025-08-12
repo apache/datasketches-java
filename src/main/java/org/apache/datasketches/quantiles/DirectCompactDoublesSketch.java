@@ -95,7 +95,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     insertFamilyID(dstSeg, Family.QUANTILES.getID());
     insertK(dstSeg, k);
 
-    final int flags = COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK; // true for all compact sketches
+    final int flags = COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK; // both true for all compact sketches
 
     if (sketch.isEmpty()) {
       insertFlags(dstSeg, flags | EMPTY_FLAG_MASK);
@@ -107,7 +107,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
       final int bbCount = computeBaseBufferItems(k, n);
 
-      final DoublesSketchAccessor inputAccessor = DoublesSketchAccessor.wrap(sketch);
+      final DoublesSketchAccessor inputAccessor = DoublesSketchAccessor.wrap(sketch, false);
       assert bbCount == inputAccessor.numItems();
 
       long dstSegOffset = COMBINED_BUFFER;
@@ -153,13 +153,13 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     final long n = empty ? 0 : extractN(srcSeg);
 
     //VALIDITY CHECKS
-    DirectUpdateDoublesSketchR.checkPreLongs(preLongs);
+    DirectUpdateDoublesSketch.checkPreLongs(preLongs);
     checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkCompact(serVer, flags);
     checkK(k);
     checkDirectSegCapacity(k, n, segCap);
-    DirectUpdateDoublesSketchR.checkEmptyAndN(empty, n);
+    DirectUpdateDoublesSketch.checkEmptyAndN(empty, n);
 
     final DirectCompactDoublesSketch dds = new DirectCompactDoublesSketch(k);
     dds.seg_ = srcSeg;

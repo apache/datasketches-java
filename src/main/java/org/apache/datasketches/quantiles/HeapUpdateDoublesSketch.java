@@ -26,6 +26,7 @@ import static org.apache.datasketches.quantiles.ClassicUtil.checkHeapFlags;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeGrowingBaseBufferCap;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesNotSupportedException;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
@@ -252,8 +254,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final long newN = n_ + 1;
 
     final int combBufItemCap = combinedBuffer_.length;
-    if (newBBCount > combBufItemCap) {
-      growBaseBuffer(); //only changes combinedBuffer when it is only a base buffer
+    if (newBBCount > combBufItemCap) { //newBBCount can never be > 2 * k
+      growBaseBuffer(); //this only changes combinedBuffer when it is only a base buffer
     }
 
     //put the new item in the base buffer
@@ -374,6 +376,11 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
+  void setReadOnly() {
+    throw new SketchesNotSupportedException("Not Supported on a heap sketch. Convert to CompactSketch instead.");
+  }
+
+  @Override
   HeapUpdateDoublesSketch getSketchAndReset() {
     final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.copy(this);
     reset();
@@ -428,7 +435,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final int oldSize = combinedBuffer_.length;
     assert oldSize < (2 * k_);
     final double[] baseBuffer = combinedBuffer_;
-    final int newSize = 2 * Math.max(Math.min(k_, oldSize), MIN_K);
+    final int newSize = computeGrowingBaseBufferCap(k_, oldSize);
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 

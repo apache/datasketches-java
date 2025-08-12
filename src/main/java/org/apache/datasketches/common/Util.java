@@ -41,7 +41,7 @@ public final class Util {
 
   static {
     if (ByteOrder.nativeOrder() != ByteOrder.LITTLE_ENDIAN) {
-      throw new BigEndianNativeOrderNotSupportedException();
+      throw new SketchesNotSupportedException("Machine Native Endianness must be LITTLE_ENDIAN.");
     }
   }
 

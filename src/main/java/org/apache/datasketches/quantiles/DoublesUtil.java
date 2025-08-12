@@ -62,8 +62,8 @@ final class DoublesUtil {
       final int combBufItems = computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
       final double[] combBuf = new double[combBufItems];
       qsCopy.putCombinedBuffer(combBuf);
-      final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
-      final DoublesSketchAccessor copyAccessor = DoublesSketchAccessor.wrap(qsCopy);
+      final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch, false);
+      final DoublesSketchAccessor copyAccessor = DoublesSketchAccessor.wrap(qsCopy, false);
       // start with BB
       copyAccessor.putArray(sketchAccessor.getArray(0, sketchAccessor.numItems()),
               0, 0, sketchAccessor.numItems());
@@ -137,6 +137,7 @@ final class DoublesUtil {
     sb.append(LS).append("### Classic Quantiles ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
     sb.append("    Empty                        : ").append(sk.isEmpty()).append(LS);
     sb.append("    Segment, Capacity bytes      : ").append(sk.hasMemorySegment()).append(", ").append(segCap).append(LS);
+    sb.append("    Segment, ReadOnly            : ").append(sk.hasMemorySegment() ? sk.getMemorySegment().isReadOnly() : false).append(LS);
     sb.append("    Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
     sb.append("    K                            : ").append(kStr).append(LS);
     sb.append("    N                            : ").append(nStr).append(LS);
@@ -159,7 +160,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static <T> String outputLevels(final DoublesSketch sk) {
+  private static String outputLevels(final DoublesSketch sk) {
     final String name = sk.getClass().getSimpleName();
     final int k = sk.getK();
     final long n = sk.getN();
@@ -182,7 +183,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static <T> String outputDataDetail(final DoublesSketch sk) {
+  private static String outputDataDetail(final DoublesSketch sk) {
     final String name = sk.getClass().getSimpleName();
     final int k = sk.getK();
     final long n = sk.getN();
@@ -210,8 +211,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static boolean getValidFromIndex(final int levelNum, final long bitPattern, final int index,
-      final int bbCount) {
+  private static boolean getValidFromIndex(final int levelNum, final long bitPattern, final int index, final int bbCount) {
     return ((levelNum == -1) && (index < bbCount)) || getValidFromLevel(levelNum, bitPattern);
   }
 

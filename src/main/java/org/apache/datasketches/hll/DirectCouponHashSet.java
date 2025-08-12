@@ -55,9 +55,8 @@ final class DirectCouponHashSet extends DirectCouponList {
   }
 
   //Constructs this sketch with read-only data, may be compact.
-  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment seg,
-      final boolean readOnly) {
-    super(lgConfigK, tgtHllType, CurMode.SET, seg, true);
+  DirectCouponHashSet(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment seg, final boolean readOnly) {
+    super(lgConfigK, tgtHllType, CurMode.SET, seg, readOnly);
     assert seg.get(JAVA_BYTE, LG_K_BYTE) > 7;
   }
 

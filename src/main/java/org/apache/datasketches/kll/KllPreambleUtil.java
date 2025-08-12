@@ -135,7 +135,7 @@ import org.apache.datasketches.kll.KllSketch.SketchType;
  *
  *  @author Lee Rhodes
  */
-final class KllPreambleUtil<T> {
+final class KllPreambleUtil {
 
   private KllPreambleUtil() {}
 

@@ -48,7 +48,7 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
   }
 
   /**
-   * Returns a Heap Union object that has been initialized with the data from the given MemorySegment
+   * Returns a Heap Union object that has been initialized with the data from the given MemorySegment that contains an
    * image of a sketch.
    *
    * @param srcSeg A MemorySegment image of a DoublesSketch to be used as a source of data and will not be modified.
@@ -59,13 +59,13 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
   }
 
   /**
-   * Returns an updatable Union object that wraps off-heap data of the given MemorySegment image of
-   * a sketch. The data structures of the Union remain off-heap.
+   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a sketch.
+   * The data structures of the Union remain in the MemorySegment.
    *
-   * @param seg A MemorySegment region to be used as the data structure for the sketch and will be modified.
+   * @param seg A MemorySegment to be used as the data structure for the sketch and will be modified.
    * @return a Union object
    */
-  public static DoublesUnion wrap(final MemorySegment seg) {
+  public static DoublesUnion writableWrap(final MemorySegment seg) {
     return DoublesUnionImpl.wrapInstance(seg);
   }
 

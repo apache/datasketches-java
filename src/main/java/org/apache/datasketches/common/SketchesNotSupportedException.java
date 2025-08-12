@@ -20,16 +20,28 @@
 package org.apache.datasketches.common;
 
 /**
- * The DataSketches Library is not supported on Big Endian machines.
+ * This operation or mode is not supported.
+ *
+ * @author Lee Rhodes
  */
-public class BigEndianNativeOrderNotSupportedException extends SketchesException {
+public class SketchesNotSupportedException extends SketchesException {
   private static final long serialVersionUID = 1L;
+  private static final String baseStr = "This operation or mode is not supported: ";
+
+  //other constructors to be added as needed.
 
   /**
-   * Constructs a new runtime exception with the message:
-   * "The DataSketches Library is not supported on Big Endian machines."
+   * Constructs a new runtime exception with the specified detail message. The cause is not
+   * initialized, and may subsequently be initialized by a call to
+   * Throwable.initCause(java.lang.Throwable).
+   *
+   * @param message the detail message which is appended to the base message:<br>
+   * "This operation or mode is not supported: ".
+   *
+   * <p>The detail message is saved for later retrieval by the Throwable.getMessage() method.</p>
    */
-  public BigEndianNativeOrderNotSupportedException() {
-    super("The DataSketches Library is not supported on Big Endian machines.");
+  public SketchesNotSupportedException(final String message) {
+    super(baseStr + message);
   }
+
 }

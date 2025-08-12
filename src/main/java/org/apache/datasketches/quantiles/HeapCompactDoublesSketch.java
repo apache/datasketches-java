@@ -124,7 +124,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     final int retainedItems = computeRetainedItems(k, n);
     final double[] combinedBuffer = new double[retainedItems];
 
-    final DoublesSketchAccessor accessor = DoublesSketchAccessor.wrap(sketch);
+    final DoublesSketchAccessor accessor = DoublesSketchAccessor.wrap(sketch, false);
     assert hcds.baseBufferCount_ == accessor.numItems();
 
     // copy and sort base buffer

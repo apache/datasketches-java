@@ -53,7 +53,7 @@ final class DirectHll4Array extends DirectHllArray {
 
   //Called by HllSketch.wrap(MemorySegment)
   DirectHll4Array(final int lgConfigK, final MemorySegment seg, final boolean readOnly) {
-    super(lgConfigK, TgtHllType.HLL_4, seg, true);
+    super(lgConfigK, TgtHllType.HLL_4, seg, readOnly);
     final int auxCount = extractAuxCount(seg);
     if (auxCount > 0) {
       final boolean compact = extractCompactFlag(seg);

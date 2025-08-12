@@ -411,7 +411,7 @@ public class HeapUpdateDoublesSketchTest {
     byteArr = qs.toByteArray(false);
     seg = MemorySegment.ofArray(byteArr);
     qs2 = DoublesSketch.heapify(seg);
-    final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(qs2);
+    final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(qs2, false);
     dsa.sort();
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(qs.getQuantile(f), qs2.getQuantile(f), 0.0);
@@ -747,7 +747,7 @@ public class HeapUpdateDoublesSketchTest {
     }
     final int bytes = qs1.getCurrentUpdatableSerializedSizeBytes();
     final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes]);
-    qs1.putMemorySegment(dstSeg, false);
+    qs1.putIntoMemorySegment(dstSeg, false);
     final MemorySegment srcSeg = dstSeg;
     final DoublesSketch qs2 = DoublesSketch.heapify(srcSeg);
     assertEquals(qs1.getMinItem(), qs2.getMinItem(), 0.0);
@@ -762,7 +762,7 @@ public class HeapUpdateDoublesSketchTest {
     }
     final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes-1]); //too small
-    qs1.putMemorySegment(dstSeg);
+    qs1.putIntoMemorySegment(dstSeg);
   }
 
   //Himanshu's case
@@ -774,7 +774,7 @@ public class HeapUpdateDoublesSketchTest {
     final int k = 1024;
     final DoublesSketch qsk = new DoublesSketchBuilder().setK(k).build();
     final DoublesUnion u1 = DoublesUnion.heapify(qsk);
-    u1.getResult().putMemorySegment(seg);
+    u1.getResult().putIntoMemorySegment(seg);
     final DoublesUnion u2 = DoublesUnion.heapify(seg);
     final DoublesSketch qsk2 = u2.getResult();
     assertTrue(qsk2.isEmpty());
@@ -1039,15 +1039,15 @@ public class HeapUpdateDoublesSketchTest {
   /**
    * @param s value to print
    */
-  static void println(final String s) {
-    print(s+LS);
+  static void println(final Object o) {
+    print(o.toString() + LS);
   }
 
   /**
    * @param s value to print
    */
-  static void print(final String s) {
-    //System.err.print(s); //disable here
+  static void print(final Object o) {
+    //System.out.print(o.toString()); //disable here
   }
 
 }

@@ -371,7 +371,7 @@ public class DoublesUnionImplTest {
     union.union(sketch2);
     union.union(sketch1);
     final MemorySegment seg = MemorySegment.ofArray(union.getResult().toByteArray(true));
-    final DoublesSketch result = DoublesSketch.wrap(seg);
+    final DoublesSketch result = DoublesSketch.wrap(seg, null);
     assertEquals(result.getN(), n1 + n2);
     assertEquals(result.getK(), k);
 
@@ -397,7 +397,7 @@ public class DoublesUnionImplTest {
     final DoublesSketch qs1 = buildAndLoadQS(256, 1000);
     final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes]);
-    qs1.putMemorySegment(dstSeg);
+    qs1.putIntoMemorySegment(dstSeg);
     final MemorySegment srcSeg = dstSeg;
 
     final DoublesUnion union = DoublesUnion.builder().build(); //virgin
@@ -415,7 +415,7 @@ public class DoublesUnionImplTest {
     final DoublesSketch qs1 = buildAndLoadDQS(256, 1000);
     final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes]);
-    qs1.putMemorySegment(dstSeg);
+    qs1.putIntoMemorySegment(dstSeg);
     final MemorySegment srcSeg = dstSeg;
 
     final DoublesUnion union = DoublesUnion.builder().build(); //virgin
@@ -685,7 +685,7 @@ public class DoublesUnionImplTest {
 
     final byte[] byteArr = sketch.toByteArray(false);
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    final DoublesUnion union = DoublesUnion.wrap(seg);
+    final DoublesUnion union = DoublesUnion.writableWrap(seg);
     Assert.assertFalse(union.isEmpty());
     assertTrue(union.hasMemorySegment());
     assertFalse(union.isOffHeap());

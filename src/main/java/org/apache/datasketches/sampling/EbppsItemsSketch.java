@@ -269,8 +269,8 @@ public final class EbppsItemsSketch<T> {
    * @param other the sketch to merge into the current object
    */
   public void merge(final EbppsItemsSketch<T> other) {
-    if (other.getCumulativeWeight() == 0.0) {
-    } else if (other.getCumulativeWeight() > cumulativeWt_) {
+    if (other.getCumulativeWeight() == 0.0) { /* do nothing */ }
+    else if (other.getCumulativeWeight() > cumulativeWt_) {
       // need to swap this with other
       // make a copy of other, merge into it, and take the result
       final EbppsItemsSketch<T> copy = new EbppsItemsSketch<>(other);

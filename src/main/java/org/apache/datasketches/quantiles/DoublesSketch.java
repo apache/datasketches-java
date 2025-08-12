@@ -36,6 +36,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -150,18 +151,18 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   /**
-   * Wrap this sketch around the given MemorySegment image of a DoublesSketch, compact or updatable.
-   * A DirectUpdateDoublesSketch can only wrap an updatable array, and a
-   * DirectCompactDoublesSketch can only wrap a compact array.
+   * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch, compact or updatable.
    *
-   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data,
-   * @return a sketch that wraps the given srcSeg
+   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data
+   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment is in updatable form and needs to expand.
+   * Otherwise, it can be null.
+   * @return a sketch that wraps the given srcSeg in read-only mode.
    */
-  public static DoublesSketch wrap(final MemorySegment srcSeg) {
+  public static DoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     if (checkIsMemorySegmentCompact(srcSeg)) {
       return DirectCompactDoublesSketch.wrapInstance(srcSeg);
     }
-    return DirectUpdateDoublesSketchR.wrapInstance(srcSeg);
+    return DirectUpdateDoublesSketch.wrapInstance(srcSeg, mSegReq);
   }
 
   @Override
@@ -466,8 +467,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    *
    * @param dstSeg the given MemorySegment.
    */
-  public void putMemorySegment(final MemorySegment dstSeg) {
-    putMemorySegment(dstSeg, true);
+  public void putIntoMemorySegment(final MemorySegment dstSeg) {
+    putIntoMemorySegment(dstSeg, true);
   }
 
   /**
@@ -478,7 +479,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @param compact if true, compacts and sorts the base buffer, which optimizes merge
    *                performance at the cost of slightly increased serialization time.
    */
-  public void putMemorySegment(final MemorySegment dstSeg, final boolean compact) {
+  public void putIntoMemorySegment(final MemorySegment dstSeg, final boolean compact) {
     if (hasMemorySegment() && (isCompact() == compact)) {
       final MemorySegment srcSeg = getMemorySegment();
       MemorySegment.copy(srcSeg, 0, dstSeg, 0, getSerializedSizeBytes());
@@ -546,8 +547,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   abstract long getBitPattern();
 
   /**
-   * Returns the capacity for the combined base buffer
-   * @return the capacity for the combined base buffer
+   * Returns the capacity for the combined base buffer + levels
+   * @return the capacity for the combined base buffer + levels
    */
   abstract int getCombinedBufferItemCapacity();
 
@@ -562,6 +563,11 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @return the MemorySegment if it exists, otherwise returns null.
    */
   abstract MemorySegment getMemorySegment();
+
+  /**
+   * Sets the internal MemorySegment to Read Only.
+   */
+  abstract void setReadOnly();
 
   //************SORTED VIEW****************************
 
@@ -580,7 +586,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
     final int numQuantiles = getNumRetained();
     final double[] svQuantiles = new double[numQuantiles];
     final long[] svCumWeights = new long[numQuantiles];
-    final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(this);
+    final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(this, false);
 
     // Populate from DoublesSketch:
     //  copy over the "levels" and then the base buffer, all with appropriate weights

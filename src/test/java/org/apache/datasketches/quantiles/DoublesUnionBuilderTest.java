@@ -35,7 +35,7 @@ public class DoublesUnionBuilderTest {
 
     final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes]);
-    qs1.putMemorySegment(dstSeg);
+    qs1.putIntoMemorySegment(dstSeg);
     final MemorySegment srcSeg = dstSeg;
 
     final DoublesUnionBuilder bldr = new DoublesUnionBuilder();
@@ -62,7 +62,7 @@ public void checkDeprecated1() {
 
   final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
   final MemorySegment dstSeg = MemorySegment.ofArray(new byte[bytes]);
-  qs1.putMemorySegment(dstSeg);
+  qs1.putIntoMemorySegment(dstSeg);
   final MemorySegment srcSeg = dstSeg;
 
   final DoublesUnionBuilder bldr = new DoublesUnionBuilder();

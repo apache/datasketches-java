@@ -321,7 +321,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
       assert seg != null;
       sketch = KllLongsSketch.heapify(getMemorySegment());
     }
-    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
+    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems);
   }
 
   //SINGLE UPDATE

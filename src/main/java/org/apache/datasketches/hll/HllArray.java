@@ -197,7 +197,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  void putEmptyFlag(final boolean empty) { }
+  void putEmptyFlag(final boolean empty) { /* meaningless for HllArray classes */ }
 
   @Override
   void putHipAccum(final double value) {

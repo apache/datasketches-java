@@ -26,12 +26,16 @@ import static org.apache.datasketches.quantiles.ClassicUtil.DOUBLES_SER_VER;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantiles.DoublesUtil.checkDoublesSerVer;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
+import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.quantiles.PreambleUtil.MAX_DOUBLE;
 import static org.apache.datasketches.quantiles.PreambleUtil.MIN_DOUBLE;
 import static org.apache.datasketches.quantiles.PreambleUtil.N_LONG;
+import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
+import static org.apache.datasketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
@@ -51,25 +55,31 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentRequest;
+import org.apache.datasketches.common.MemorySegmentStatus;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
- * Implements the DoublesSketch off-heap.
+ * Implements the DoublesSketch in a MemorySegment.
  *
  * @author Kevin Lang
  * @author Lee Rhodes
- *
  */
-final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
-  private MemorySegmentRequest mSegReq = null;
+final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
+  private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
+  private MemorySegmentRequest mSegReq_ = null;
+  private MemorySegment seg_;
 
   //**CONSTRUCTORS**
   private DirectUpdateDoublesSketch(final int k, final MemorySegment seg, final MemorySegmentRequest mSegReq) {
-    super(k, seg); //Checks k
-    this.mSegReq = mSegReq;
+    super(k); //Checks k
+    mSegReq_ = mSegReq;
+    seg_ = seg;
   }
 
   /**
-   * Creates a new Direct instance of a DoublesSketch, which may be off-heap.
+   * Creates a new instance of a DoublesSketch in a MemorySegment.
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
@@ -106,9 +116,11 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   }
 
   /**
-   * Wrap this sketch around the given non-compact MemorySegment image of a DoublesSketch.
+   * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch.
    *
    * @param srcSeg the given non-compact MemorySegment image of a DoublesSketch that may have data
+   * @param mSegReq the MemorySegmentRequest used as a callback for more space if required.
+   * If it is null, the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given srcSeg
    */
   static DirectUpdateDoublesSketch wrapInstance(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
@@ -126,7 +138,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
     checkFamilyID(familyID);
-    DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
+    checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkDirectFlags(flags); //Cannot be compact
     checkK(k);
     checkCompact(serVer, flags);
@@ -139,21 +151,53 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   //**END CONSTRUCTORS**
 
   @Override
+  public double getMaxItem() {
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    return seg_.get(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE);
+  }
+
+  @Override
+  public double getMinItem() {
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
+    return seg_.get(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE);
+  }
+
+  @Override
+  public long getN() {
+    return (seg_.byteSize() < COMBINED_BUFFER) ? 0 : seg_.get(JAVA_LONG_UNALIGNED, N_LONG);
+  }
+
+  @Override
+  public boolean hasMemorySegment() {
+    return (seg_ != null);
+  }
+
+  @Override
+  public boolean isOffHeap() {
+    return (seg_ != null) ? seg_.isNative() : false;
+  }
+
+  @Override
   public boolean isReadOnly() {
-    return false;
+    return seg_.isReadOnly();
+  }
+
+  @Override
+  public boolean isSameResource(final MemorySegment that) {
+    return MemorySegmentStatus.isSameResource(seg_, that);
   }
 
   @Override
   public void update(final double dataItem) {
     if (Double.isNaN(dataItem)) { return; }
-
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
     final int curBBCount = getBaseBufferCount();
     final int newBBCount = curBBCount + 1; //derived, not stored
 
     //must check MemorySegment capacity before we put anything in it
     final int combBufItemCap = getCombinedBufferItemCapacity();
-    if (newBBCount > combBufItemCap) {
-      //only changes combinedBuffer when it is only a base buffer
+    if (newBBCount > combBufItemCap) { //newBBCount can never exceed 2 * k.
+      //unlike the heap sketch, this will grow the base buffer immediately to full size.
       seg_ = growCombinedSegBuffer(2 * getK());
     }
 
@@ -206,6 +250,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   public void reset() {
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
     if (seg_.byteSize() >= COMBINED_BUFFER) {
       seg_.set(JAVA_BYTE, FLAGS_BYTE, (byte) EMPTY_FLAG_MASK); //not compact, not ordered
       seg_.set(JAVA_LONG_UNALIGNED, N_LONG, 0L);
@@ -217,6 +262,44 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   //Restricted overrides
 
   @Override
+  int getBaseBufferCount() {
+    return ClassicUtil.computeBaseBufferItems(getK(), getN());
+  }
+
+  @Override
+  long getBitPattern() {
+    final int k = getK();
+    final long n = getN();
+    return ClassicUtil.computeBitPattern(k, n);
+  }
+
+  @Override
+  double[] getCombinedBuffer() {
+    final int k = getK();
+    if (isEmpty()) { return new double[k << 1]; } //2K
+    final long n = getN();
+    final int itemCap = ClassicUtil.computeCombinedBufferItemCapacity(k, n);
+    final double[] combinedBuffer = new double[itemCap];
+    MemorySegment.copy(seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, combinedBuffer, 0, itemCap);
+    return combinedBuffer;
+  }
+
+  @Override
+  int getCombinedBufferItemCapacity() {
+    return Math.max(0, (int)seg_.byteSize() - COMBINED_BUFFER) / Double.BYTES;
+  }
+
+  @Override
+  MemorySegment getMemorySegment() {
+    return seg_;
+  }
+
+  @Override
+  void setReadOnly() {
+    seg_ = seg_.asReadOnly();
+  }
+
+  @Override
   UpdateDoublesSketch getSketchAndReset() {
     final HeapUpdateDoublesSketch skCopy = heapify(this);
     reset();
@@ -225,6 +308,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   double[] growCombinedBuffer(final int curCombBufItemCap, final int itemSpaceNeeded) {
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
     seg_ = growCombinedSegBuffer(itemSpaceNeeded);
     // copy out any data that was there
     final double[] newCombBuf = new double[itemSpaceNeeded];
@@ -236,35 +320,39 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
   @Override
   void putMinItem(final double minQuantile) {
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
     assert (seg_.byteSize() >= COMBINED_BUFFER);
     seg_.set(JAVA_DOUBLE_UNALIGNED, MIN_DOUBLE, minQuantile);
   }
 
   @Override
   void putMaxItem(final double maxQuantile) {
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
     assert (seg_.byteSize() >= COMBINED_BUFFER);
     seg_.set(JAVA_DOUBLE_UNALIGNED, MAX_DOUBLE, maxQuantile);
   }
 
   @Override
   void putN(final long n) {
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
     assert (seg_.byteSize() >= COMBINED_BUFFER);
     seg_.set(JAVA_LONG_UNALIGNED, N_LONG, n);
   }
 
   @Override
   void putCombinedBuffer(final double[] combinedBuffer) {
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
     MemorySegment.copy(combinedBuffer, 0, seg_, JAVA_DOUBLE_UNALIGNED, COMBINED_BUFFER, combinedBuffer.length);
   }
 
   @Override
   void putBaseBufferCount(final int baseBufferCount) {
-    //intentionally a no-op, not kept on-heap, always derived.
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
   }
 
   @Override
   void putBitPattern(final long bitPattern) {
-    //intentionally a no-op, not kept on-heap, always derived.
+    if (seg_.isReadOnly()) { throw new SketchesReadOnlyException("This sketch is read only."); }
   }
 
   //Direct supporting methods
@@ -274,11 +362,60 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final int needBytes = (itemSpaceNeeded << 3) + COMBINED_BUFFER; //+ preamble + min & max
     assert needBytes > segBytes;
 
-    mSegReq = (mSegReq == null) ? MemorySegmentRequest.DEFAULT : mSegReq;
+    mSegReq_ = (mSegReq_ == null) ? MemorySegmentRequest.DEFAULT : mSegReq_;
 
-    final MemorySegment newSeg = mSegReq.request(seg_, needBytes);
+    final MemorySegment newSeg = mSegReq_.request(seg_, needBytes);
     MemorySegment.copy(seg_, 0, newSeg, 0, segBytes);
-    mSegReq.requestClose(seg_);
+    mSegReq_.requestClose(seg_);
     return newSeg;
+  }
+
+  //Checks
+
+  /**
+   * Checks the validity of the direct MemorySegment capacity assuming n, k.
+   * @param k the given k
+   * @param n the given n
+   * @param segCapBytes the current MemorySegment capacity in bytes
+   */
+  static void checkDirectSegCapacity(final int k, final long n, final long segCapBytes) {
+    final int reqBufBytes = getUpdatableStorageBytes(k, n);
+
+    if (segCapBytes < reqBufBytes) {
+      throw new SketchesArgumentException("Possible corruption: MemorySegment capacity too small: "
+          + segCapBytes + " < " + reqBufBytes);
+    }
+  }
+
+  static void checkCompact(final int serVer, final int flags) {
+    final boolean compact = (serVer == 2) || ((flags & COMPACT_FLAG_MASK) > 0);
+    if (compact) {
+      throw new SketchesArgumentException("Compact MemorySegment is not supported for Wrap Instance.");
+    }
+  }
+
+  static void checkPreLongs(final int preLongs) {
+    if ((preLongs < 1) || (preLongs > 2)) {
+      throw new SketchesArgumentException(
+          "Possible corruption: PreLongs must be 1 or 2: " + preLongs);
+    }
+  }
+
+  static void checkDirectFlags(final int flags) {
+    final int allowedFlags = //Cannot be compact!
+        READ_ONLY_FLAG_MASK | EMPTY_FLAG_MASK | ORDERED_FLAG_MASK;
+    final int flagsMask = ~allowedFlags;
+    if ((flags & flagsMask) > 0) {
+      throw new SketchesArgumentException(
+         "Possible corruption: Invalid flags field: Cannot be compact! "
+             + Integer.toBinaryString(flags));
+    }
+  }
+
+  static void checkEmptyAndN(final boolean empty, final long n) {
+    if (empty && (n > 0)) {
+      throw new SketchesArgumentException(
+          "Possible corruption: Empty Flag = true and N > 0: " + n);
+    }
   }
 }

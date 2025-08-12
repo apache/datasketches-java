@@ -51,7 +51,7 @@ import org.apache.datasketches.tuple.Util;
 class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
   // these values exist only on heap, never serialized
-  private MemorySegment seg_;
+  private final MemorySegment seg_;
   // these can be derived from the seg_ contents, but are kept here for performance
   private int keysOffset_;
   private int valuesOffset_;
@@ -91,7 +91,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   private DirectArrayOfDoublesQuickSelectSketch(
-      final boolean secure, //required part of Finalizer Attack prevention
+      @SuppressWarnings("unused") final boolean secure, //required part of Finalizer Attack prevention
       final int nomEntries,
       final int lgResizeFactor,
       final float samplingProbability,
@@ -150,7 +150,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   private DirectArrayOfDoublesQuickSelectSketch(
-      final boolean secure, //required part of Finalizer Attack prevention
+      @SuppressWarnings("unused") final boolean secure, //required part of Finalizer Attack prevention
       final MemorySegment seg,
       final long seed) {
     super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE), seed);

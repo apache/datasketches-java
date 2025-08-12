@@ -120,7 +120,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
   @Override
   public byte[] toByteArray() {
-    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { /* busy wait till free */ }
     final byte[] res = super.toByteArray();
     sharedPropagationInProgress_.set(false);
     return res;
@@ -163,7 +163,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
   @Override
   public boolean startEagerPropagation() {
-    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { /* busy wait till free */ }
     return (!isEstimationMode());// no eager propagation is allowed in estimation mode
   }
 
@@ -198,7 +198,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  public final void initBgPropagationService() {
+  public void initBgPropagationService() {
     executorService_ = ConcurrentPropagationService.getExecutorService(Thread.currentThread().threadId());
   }
 
@@ -252,11 +252,11 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   /**
    * Advances the epoch while there is no background propagation
    * This ensures a propagation invoked before the reset cannot affect the sketch after the reset
-   * is completed. Ignore AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE and AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE 
+   * is completed. Ignore AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE and AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE
    * SpotBugs warnings, they are False Positive.
    */
 
-  @SuppressFBWarnings(value = {"AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE", "VO_VOLATILE_INCREMENT"}, 
+  @SuppressFBWarnings(value = {"AT_NONATOMIC_OPERATIONS_ON_SHARED_VARIABLE", "VO_VOLATILE_INCREMENT"},
       justification = "Likely False Positive, Fix Later")
   private void advanceEpoch() {
     awaitBgPropagationTermination();

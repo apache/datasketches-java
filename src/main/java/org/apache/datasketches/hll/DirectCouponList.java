@@ -82,7 +82,7 @@ class DirectCouponList extends AbstractCoupons {
       final boolean readOnly) {
     super(lgConfigK, tgtHllType, curMode);
     wseg = null;
-    this.seg = seg;
+    this.seg = readOnly ? seg.asReadOnly() : seg;
     compact = extractCompactFlag(seg);
   }
 

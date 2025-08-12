@@ -29,6 +29,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -96,7 +97,7 @@ public class DirectCompactDoublesSketchTest {
     final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
     final MemorySegment seg
             = MemorySegment.ofBuffer(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
-    final DoublesSketch s2 = DoublesSketch.wrap(seg);
+    final DoublesSketch s2 = DoublesSketch.wrap(seg, MemorySegmentRequest.DEFAULT);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
     assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMinItem()));

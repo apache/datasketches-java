@@ -42,7 +42,7 @@ final class DirectHll8Array extends DirectHllArray {
 
   //Called by HllSketch.wrap(MemorySegment)
   DirectHll8Array(final int lgConfigK, final MemorySegment seg, final boolean readOnly) {
-    super(lgConfigK, TgtHllType.HLL_8, seg, true);
+    super(lgConfigK, TgtHllType.HLL_8, seg, readOnly);
   }
 
   @Override

@@ -302,7 +302,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       assert seg != null;
       sketch = KllItemsSketch.heapify(getMemorySegment(), comparator, serDe);
     }
-    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
+    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems);
   }
 
   @Override
