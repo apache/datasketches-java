@@ -25,6 +25,7 @@ import static org.apache.datasketches.quantiles.DoublesUtil.copyToHeap;
 import java.lang.foreign.MemorySegment;
 import java.util.Objects;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 
@@ -55,19 +56,21 @@ final class DoublesUnionImpl extends DoublesUnion {
   }
 
   /**
-   * Returns a empty DoublesUnion object that refers to the given MemorySegment,
-   * which will be initialized to the empty state.
+   * Returns a empty DoublesUnion object that uses the given MemorySegment for its internal sketch gadget
+   * and will be initialized to the empty state.
    *
    * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
    * different <i>k</i>.
-   * @param dstSeg the MemorySegment to be used by the sketch
+   * @param dstSeg the MemorySegment to be used by the internal sketch and must not be null.
+   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a DoublesUnion object
    */
-  static DoublesUnionImpl directInstance(final int maxK, final MemorySegment dstSeg) {
+  static DoublesUnionImpl directInstance(final int maxK, final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(dstSeg);
-    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstSeg, null);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstSeg, mSegReq);
     final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
     union.maxK_ = maxK;
     union.gadget_ = sketch;
@@ -112,12 +115,14 @@ final class DoublesUnionImpl extends DoublesUnion {
    * image of a updatable DoublesSketch. The data of the Union will remain in the MemorySegment.
    *
    * @param srcSeg A writable MemorySegment image of a updatable DoublesSketch to be used as data for the union.
+   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object
    */
-  static DoublesUnionImpl wrapInstance(final MemorySegment srcSeg) {
+  static DoublesUnionImpl wrapInstance(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg);
     if (srcSeg.isReadOnly()) { throw new SketchesReadOnlyException("Cannot create a Union with a Read Only MemorySegment."); }
-    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
+    final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(srcSeg, mSegReq);
     final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
     return union;
@@ -159,21 +164,21 @@ final class DoublesUnionImpl extends DoublesUnion {
     if (gadget_ == null) {
       return HeapUpdateDoublesSketch.newInstance(maxK_);
     }
-    return DoublesUtil.copyToHeap(gadget_); //can't have any externally owned handles.
+    return DoublesUtil.copyToHeap(gadget_);
   }
 
   @Override
-  public UpdateDoublesSketch getResult(final MemorySegment dstSeg) {
+  public UpdateDoublesSketch getResult(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
     final long segCapBytes = dstSeg.byteSize();
     if (gadget_ == null) {
       if (segCapBytes < DoublesSketch.getUpdatableStorageBytes(0, 0)) {
         throw new SketchesArgumentException("Insufficient capacity for result: " + segCapBytes);
       }
-      return DirectUpdateDoublesSketch.newInstance(maxK_, dstSeg, null);
+      return DirectUpdateDoublesSketch.newInstance(maxK_, dstSeg, mSegReq);
     }
 
     gadget_.putIntoMemorySegment(dstSeg, false);
-    return DirectUpdateDoublesSketch.wrapInstance(dstSeg, null);
+    return DirectUpdateDoublesSketch.wrapInstance(dstSeg, mSegReq);
   }
 
   @Override
@@ -268,14 +273,14 @@ final class DoublesUnionImpl extends DoublesUnion {
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = HeapUpdateDoublesSketch.newInstance(myMaxK);
           // exact mode, only need copy base buffer
-          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other, false); // T/F doesn't matter
+          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other, false);
           for (int i = 0; i < otherAccessor.numItems(); ++i) {
             ret.update(otherAccessor.get(i));
           }
         }
         else { //myQS = null, other is est mode
           ret = (myMaxK < other.getK())
-              ? other.downSampleInternal(other, myMaxK, null) //null seg
+              ? other.downSampleInternal(other, myMaxK, null, null) //null seg, null mSegReq
               : DoublesUtil.copyToHeap(other); //copy required because caller has handle
         }
         break;
@@ -286,7 +291,7 @@ final class DoublesUnionImpl extends DoublesUnion {
         if (!other.isEstimationMode()) { //other is exact, stream items in
           ret = myQS;
           // exact mode, only need copy base buffer
-          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other, false); // T/F doesn't matter
+          final DoublesSketchAccessor otherAccessor = DoublesSketchAccessor.wrap(other, false);
           for (int i = 0; i < otherAccessor.numItems(); ++i) {
             ret.update(otherAccessor.get(i));
           }

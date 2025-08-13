@@ -67,11 +67,12 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  */
 final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
-  private MemorySegment seg_;
+  private final MemorySegment seg_;
 
   //**CONSTRUCTORS**********************************************************
-  private DirectCompactDoublesSketch(final int k) {
+  private DirectCompactDoublesSketch(final int k, final MemorySegment seg) {
     super(k); //Checks k
+    seg_ = seg.asReadOnly();
   }
 
   /**
@@ -128,17 +129,14 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
       }
     }
 
-    final DirectCompactDoublesSketch dcds = new DirectCompactDoublesSketch(k);
-    dcds.seg_ = dstSeg;
-
-    return dcds;
+    return new DirectCompactDoublesSketch(k, dstSeg);
   }
 
   /**
    * Wrap this sketch around the given compact MemorySegment image of a DoublesSketch.
    *
-   * @param srcSeg the given compact MemorySegment image of a DoublesSketch that may have data,
-   * @return a sketch that wraps the given srcSeg
+   * @param srcSeg the given compact MemorySegment image of a DoublesSketch,
+   * @return a sketch that wraps the given srcSeg.
    */
   static DirectCompactDoublesSketch wrapInstance(final MemorySegment srcSeg) {
     final long segCap = srcSeg.byteSize();
@@ -161,9 +159,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     checkDirectSegCapacity(k, n, segCap);
     DirectUpdateDoublesSketch.checkEmptyAndN(empty, n);
 
-    final DirectCompactDoublesSketch dds = new DirectCompactDoublesSketch(k);
-    dds.seg_ = srcSeg;
-    return dds;
+    return  new DirectCompactDoublesSketch(k, srcSeg);
   }
 
   @Override

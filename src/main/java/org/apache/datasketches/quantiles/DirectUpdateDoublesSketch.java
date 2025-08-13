@@ -52,6 +52,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 
 import java.lang.foreign.MemorySegment;
+import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentRequest;
@@ -83,13 +84,15 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
-   * @param dstSeg the destination MemorySegment that will be initialized to hold the data for this sketch.
+   * @param dstSeg the non-null destination MemorySegment that will be initialized to hold the data for this sketch.
    * It must initially be at least (16 * MIN_K + 32) bytes, where MIN_K defaults to 2. As it grows
    * it will request more MemorySegment using the MemorySegmentRequest callback.
+   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a DirectUpdateDoublesSketch
    */
   static DirectUpdateDoublesSketch newInstance(final int k, final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
-    // must be able to hold at least an empty sketch
+    Objects.requireNonNull(dstSeg, "The MemorySegment dstSeg must not be null");
     final long segCap = dstSeg.byteSize();
     checkDirectSegCapacity(k, 0, segCap);
 
@@ -110,20 +113,16 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
     return new DirectUpdateDoublesSketch(k, dstSeg, mSegReq);
   }
 
-  static HeapUpdateDoublesSketch heapify(final DirectUpdateDoublesSketch skIn) {
-    final MemorySegment segIn = skIn.getMemorySegment();
-    return HeapUpdateDoublesSketch.heapifyInstance(segIn);
-  }
-
   /**
    * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch.
    *
-   * @param srcSeg the given non-compact MemorySegment image of a DoublesSketch that may have data
-   * @param mSegReq the MemorySegmentRequest used as a callback for more space if required.
-   * If it is null, the default MemorySegmentRequest will be used.
+   * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
+   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given srcSeg
    */
   static DirectUpdateDoublesSketch wrapInstance(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+    Objects.requireNonNull(srcSeg, "The source MemorySegment must not be null");
     final long segCap = srcSeg.byteSize();
 
     final int preLongs = extractPreLongs(srcSeg);
@@ -295,13 +294,8 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  void setReadOnly() {
-    seg_ = seg_.asReadOnly();
-  }
-
-  @Override
   UpdateDoublesSketch getSketchAndReset() {
-    final HeapUpdateDoublesSketch skCopy = heapify(this);
+    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.heapifyInstance(seg_);
     reset();
     return skCopy;
   }

@@ -220,7 +220,7 @@ public class DirectUpdateDoublesSketchTest {
       sketch1.update(i);
     }
 
-    final UpdateDoublesSketch sketch2 = UpdateDoublesSketch.wrap(seg);
+    final UpdateDoublesSketch sketch2 = UpdateDoublesSketch.wrap(seg, null);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }

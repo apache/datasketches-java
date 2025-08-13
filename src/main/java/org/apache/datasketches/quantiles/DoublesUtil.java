@@ -137,12 +137,11 @@ final class DoublesUtil {
     sb.append(LS).append("### Classic Quantiles ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
     sb.append("    Empty                        : ").append(sk.isEmpty()).append(LS);
     sb.append("    Segment, Capacity bytes      : ").append(sk.hasMemorySegment()).append(", ").append(segCap).append(LS);
-    sb.append("    Segment, ReadOnly            : ").append(sk.hasMemorySegment() ? sk.getMemorySegment().isReadOnly() : false).append(LS);
+    sb.append("    Segment, ReadOnly            : ").append(sk.hasMemorySegment() && sk.getMemorySegment().isReadOnly()).append(LS);
     sb.append("    Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
     sb.append("    K                            : ").append(kStr).append(LS);
     sb.append("    N                            : ").append(nStr).append(LS);
-    sb.append("    Levels (Needed, Total, Valid): ").append(neededLevels + ", " + totalLevels + ", " + validLevels)
-      .append(LS);
+    sb.append("    Levels (Needed, Total, Valid): ").append(neededLevels + ", " + totalLevels + ", " + validLevels).append(LS);
     sb.append("    Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern)).append(LS);
     sb.append("    Base Buffer Count            : ").append(bbCntStr).append(LS);
     sb.append("    Combined Buffer Capacity     : ").append(combBufCapStr).append(LS);
@@ -152,10 +151,8 @@ final class DoublesUtil {
     sb.append("    Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
     sb.append("    Normalized Rank Error        : ").append(epsPctStr).append(LS);
     sb.append("    Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-    sb.append("    Min Item                     : ")
-      .append(String.format("%12.6e", minItem)).append(LS);
-    sb.append("    Max Item                     : ")
-      .append(String.format("%12.6e", maxItem)).append(LS);
+    sb.append("    Min Item                     : ").append(String.format("%12.6e", minItem)).append(LS);
+    sb.append("    Max Item                     : ").append(String.format("%12.6e", maxItem)).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }

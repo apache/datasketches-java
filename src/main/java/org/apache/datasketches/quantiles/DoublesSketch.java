@@ -393,13 +393,14 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @param smallerK the new sketch's K that must be smaller than this K.
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @param dstSeg the destination MemorySegment.  It must not overlap the MemorySegment of this sketch.
-   * If null, a heap sketch will be returned, otherwise it will be off-heap.
-   *
+   * If null, a heap sketch will be returned, otherwise it will be MemorySegment based.
+   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return the new sketch.
    */
-  public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK,
-        final MemorySegment dstSeg) {
-    return downSampleInternal(srcSketch, smallerK, dstSeg);
+  public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK, final MemorySegment dstSeg,
+      final MemorySegmentRequest mSegReq) {
+    return downSampleInternal(srcSketch, smallerK, dstSeg, mSegReq);
   }
 
   @Override
@@ -500,11 +501,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
     return new DoublesSketchIterator(this, getBitPattern());
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * <p>The parameter <i>k</i> will not change.</p>
-   */
   @Override
   public abstract void reset();
 
@@ -516,11 +512,11 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * specifies a DoublesSketch. This lets us be more specific about the type without changing the
    * public API.
    */
-  UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK,
-                                         final MemorySegment dstSeg) {
+  UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK, final MemorySegment dstSeg,
+      final MemorySegmentRequest mSegReq) {
     final UpdateDoublesSketch newSketch = dstSeg == null
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
-            : DirectUpdateDoublesSketch.newInstance(smallerK, dstSeg, null);
+            : DirectUpdateDoublesSketch.newInstance(smallerK, dstSeg, mSegReq);
     if (srcSketch.isEmpty()) { return newSketch; }
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;
@@ -563,11 +559,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @return the MemorySegment if it exists, otherwise returns null.
    */
   abstract MemorySegment getMemorySegment();
-
-  /**
-   * Sets the internal MemorySegment to Read Only.
-   */
-  abstract void setReadOnly();
 
   //************SORTED VIEW****************************
 

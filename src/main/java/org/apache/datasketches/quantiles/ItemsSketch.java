@@ -519,7 +519,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param dstSeg the given MemorySegment.
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void putMemorySegment(final MemorySegment dstSeg, final ArrayOfItemsSerDe<T> serDe) {
+  public void putIntoMemorySegment(final MemorySegment dstSeg, final ArrayOfItemsSerDe<T> serDe) {
     final byte[] byteArr = toByteArray(serDe);
     final long segCap = dstSeg.byteSize();
     if (segCap < byteArr.length) {

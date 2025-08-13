@@ -32,10 +32,10 @@ import org.apache.datasketches.common.SketchesStateException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class ReadOnlyMemoryTest {
+public class DoublesMiscTest {
 
   @Test
-  public void wrapAndTryUpdatingReadOnlySketch() {
+  public void wrapAndUpdating() {
     final UpdateDoublesSketch sk1 = DoublesSketch.builder().build();
     sk1.update(1);
     sk1.update(2);
@@ -53,17 +53,6 @@ public class ReadOnlyMemoryTest {
     //check the size for just 4 elements
     final MemorySegment seg2 = sk2.getMemorySegment();
     assertEquals(seg2.byteSize(), DoublesSketch.getUpdatableStorageBytes(sk2.getK(), sk2.getN()));
-
-    //Now set to read only
-    sk2.setReadOnly();
-    try {
-      //println(sk2.toString(true, true));
-      sk2.update(5);
-      //println(sk2.toString(true, true));
-      fail();
-    } catch (final SketchesReadOnlyException e) {
-      // expected
-    }
   }
 
   @Test
@@ -237,7 +226,7 @@ public class ReadOnlyMemoryTest {
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false)).asReadOnly();
     try {
-      final DoublesUnion u = DoublesUnion.writableWrap(seg);
+      final DoublesUnion u = DoublesUnion.writableWrap(seg, null);
     } catch (final SketchesReadOnlyException e) {
       //expected
     }
@@ -250,7 +239,7 @@ public class ReadOnlyMemoryTest {
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
-    DoublesUnion.writableWrap(seg); //not from compact
+    DoublesUnion.writableWrap(seg, null); //not from compact
     fail();
   }
 
@@ -259,7 +248,7 @@ public class ReadOnlyMemoryTest {
    * @param o object to print
    */
   private static void println(final Object o) {
-    System.out.println(o.toString());
+    //System.out.println(o.toString());
   }
 
 }

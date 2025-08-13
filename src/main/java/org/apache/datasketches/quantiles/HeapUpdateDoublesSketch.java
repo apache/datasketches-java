@@ -29,6 +29,7 @@ import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBuffe
 import static org.apache.datasketches.quantiles.ClassicUtil.computeGrowingBaseBufferCap;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
+import static org.apache.datasketches.quantiles.DoublesUtil.copyToHeap;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.MAX_DOUBLE;
@@ -45,7 +46,6 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.SketchesNotSupportedException;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
@@ -120,24 +120,6 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     huds.minItem_ = Double.NaN;
     huds.maxItem_ = Double.NaN;
     return huds;
-  }
-
-  /**
-   * Returns a copy of the given sketch
-   * @param skIn the given sketch
-   * @return a copy of the given sketch
-   */
-  static HeapUpdateDoublesSketch copy(final HeapUpdateDoublesSketch skIn) {
-    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.newInstance(skIn.k_);
-    if (skIn.n_ > 0) {
-      skCopy.n_ = skIn.n_;
-      skCopy.combinedBuffer_ = skIn.combinedBuffer_.clone();
-      skCopy.baseBufferCount_ = skIn.baseBufferCount_;
-      skCopy.bitPattern_ = skIn.bitPattern_;
-      skCopy.minItem_ = skIn.minItem_;
-      skCopy.maxItem_ = skIn.maxItem_;
-    }
-    return skCopy;
   }
 
   /**
@@ -376,13 +358,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  void setReadOnly() {
-    throw new SketchesNotSupportedException("Not Supported on a heap sketch. Convert to CompactSketch instead.");
-  }
-
-  @Override
   HeapUpdateDoublesSketch getSketchAndReset() {
-    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.copy(this);
+    final HeapUpdateDoublesSketch skCopy = copyToHeap(this);
     reset();
     return skCopy;
   }

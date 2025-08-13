@@ -518,7 +518,7 @@ public class HeapUpdateDoublesSketchTest {
   public void checkBadDownSamplingRatio() {
     final int k1 = 64;
     final DoublesSketch qs1 = buildAndLoadQS(k1, k1);
-    qs1.downSample(qs1, 2*k1, null);//should be smaller
+    qs1.downSample(qs1, 2*k1, null, null);//should be smaller
   }
 
   @Test
@@ -536,7 +536,7 @@ public class HeapUpdateDoublesSketchTest {
       sketch2.update (i);
     }
     final HeapUpdateDoublesSketch downSketch =
-        (HeapUpdateDoublesSketch)sketch1.downSample(sketch1, smallK, null);
+        (HeapUpdateDoublesSketch)sketch1.downSample(sketch1, smallK, null, null);
     println (LS+"Sk1"+LS);
     String s1, s2, down;
     s1 = sketch1.toString(true, true);
@@ -562,12 +562,12 @@ public class HeapUpdateDoublesSketchTest {
     final HeapUpdateDoublesSketch sketch1 = HeapUpdateDoublesSketch.newInstance(8);
     final HeapUpdateDoublesSketch sketch2 = HeapUpdateDoublesSketch.newInstance(2);
     DoublesSketch downSketch;
-    downSketch = sketch1.downSample(sketch1, 2, null);
+    downSketch = sketch1.downSample(sketch1, 2, null, null);
     assertTrue(sameStructurePredicate(sketch2, downSketch));
     for (int i = 0; i < 50; i++) {
       sketch1.update (i);
       sketch2.update (i);
-      downSketch = sketch1.downSample(sketch1, 2, null);
+      downSketch = sketch1.downSample(sketch1, 2, null, null);
       assertTrue (sameStructurePredicate(sketch2, downSketch));
     }
   }
@@ -583,7 +583,7 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 0; i < n; i++) {
       sketch1.update (i);
       sketch2.update (i);
-      downSketch = sketch1.downSample(sketch1, k2, null);
+      downSketch = sketch1.downSample(sketch1, k2, null, null);
       assertTrue (sameStructurePredicate(sketch2, downSketch));
     }
   }
@@ -602,7 +602,7 @@ public class HeapUpdateDoublesSketchTest {
       sketch1.update (i);
       sketch2.update (i);
 
-      downSketch = sketch1.downSample(sketch1, k2, seg);
+      downSketch = sketch1.downSample(sketch1, k2, seg, null);
       assertTrue (sameStructurePredicate(sketch2, downSketch));
     }
 

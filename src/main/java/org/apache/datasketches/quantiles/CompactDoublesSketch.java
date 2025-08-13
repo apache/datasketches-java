@@ -50,9 +50,4 @@ public abstract class CompactDoublesSketch extends DoublesSketch {
     throw new SketchesStateException("Cannot update a compact sketch, which is read-only.");
   }
 
-  @Override
-  void setReadOnly() {
-    //No-op: A Compact Sketch is already read-only.
-  }
-
 }
