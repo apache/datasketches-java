@@ -132,16 +132,13 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   /**
    * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch.
    *
-   * <p>If the given MemorySegment is writable and if the {@link KllSketch.SketchStructure SketchStructure} of the MemorySegment is
-   * {@link #UPDATABLE UPDATABLE}, the sketch will be updated and managed totally within the MemorySegment. If the given source
-   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.<br></p>
+   * <p>The given MemorySegment must be writable and it must contain a <i>KllLongsSketch</i> in updatable form.
+   * The sketch will be updated and managed totally within the MemorySegment. If the given source
+   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
    *
    * <p><b>NOTE:</b>If during updating of the sketch the sketch requires more capacity than the given size of the MemorySegment, the sketch
    * will request more capacity using the {@link MemorySegmentRequest MemorySegmentRequest} interface. The default of this interface will
    * return a new MemorySegment on the heap.</p>
-   *
-   * <p>If the given MemorySegment is read-only or if the SketchStructure is not UPDATABLE, than the sketch can be read but not written to
-   * independent of whether the MemorySegment was created on-heap or off-heap.</p>
    *
    * @param srcSeg a MemorySegment that contains sketch data.
    * @return an instance of this sketch that wraps the given MemorySegment.
@@ -153,23 +150,21 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   }
 
   /**
-   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch and including a user
-   * defined {@link MemorySegmentRequest MemorySegmentRequest}.
+   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch and including an
+   * optional, user defined {@link MemorySegmentRequest MemorySegmentRequest}.
    *
-   * <p>If the given MemorySegment is writable and if the {@link KllSketch.SketchStructure SketchStructure} of the MemorySegment is
-   * {@link #UPDATABLE UPDATABLE}, the sketch will be updated and managed totally within the MemorySegment. If the given source
-   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.<br></p>
+   * <p>The given MemorySegment must be writable and it must contain a <i>KllLongsSketch</i> in updatable form.
+   * The sketch will be updated and managed totally within the MemorySegment. If the given source
+   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
    *
    * <p><b>NOTE:</b>If during updating of the sketch the sketch requires more capacity than the given size of the MemorySegment, the sketch
    * will request more capacity using the {@link MemorySegmentRequest MemorySegmentRequest} interface. The default of this interface will
    * return a new MemorySegment on the heap. It is up to the user to optionally extend this interface if more flexible
    * handling of requests for more capacity is required.</p>
    *
-   * <p>If the given MemorySegment is read-only or if the SketchStructure is not UPDATABLE, than the sketch can be read,
-   * but not written to, independent of whether the MemorySegment was created on-heap or off-heap.</p>
-   *
    * @param srcSeg a MemorySegment that contains sketch data.
-   * @param mSegReq the callback for the sketch to request a larger MemorySegment. It may be null.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
   public static KllLongsSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
