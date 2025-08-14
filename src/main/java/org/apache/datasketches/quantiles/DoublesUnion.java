@@ -60,15 +60,24 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
   }
 
   /**
-   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a sketch.
-   * The data structures of the Union remain in the MemorySegment.
+   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a DoublesSketch.
    *
-   * @param srcSeg A MemorySegment to be used as the data structure for the sketch and will be modified.
+   * @param srcSeg A MemorySegment image of an updatable DoublesSketch to be used as the data structure for the union and will be modified.
+   * @return a Union object
+   */
+  public static DoublesUnion wrap(final MemorySegment srcSeg) {
+    return DoublesUnionImpl.wrapInstance(srcSeg, null);
+  }
+
+  /**
+   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a DoublesSketch.
+   *
+   * @param srcSeg A MemorySegment sketch to be used as the data structure for the union and will be modified.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object
    */
-  public static DoublesUnion writableWrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+  public static DoublesUnion wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     return DoublesUnionImpl.wrapInstance(srcSeg, mSegReq);
   }
 

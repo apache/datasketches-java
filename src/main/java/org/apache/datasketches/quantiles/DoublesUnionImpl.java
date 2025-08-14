@@ -114,7 +114,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * Returns an updatable Union object that wraps the data of the given MemorySegment
    * image of a updatable DoublesSketch. The data of the Union will remain in the MemorySegment.
    *
-   * @param srcSeg A writable MemorySegment image of a updatable DoublesSketch to be used as data for the union.
+   * @param srcSeg A MemorySegment image of an updatable DoublesSketch to be used as the data structure for the union and will be modified.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object

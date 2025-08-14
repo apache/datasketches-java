@@ -226,7 +226,7 @@ public class DoublesMiscTest {
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false)).asReadOnly();
     try {
-      final DoublesUnion u = DoublesUnion.writableWrap(seg, null);
+      final DoublesUnion u = DoublesUnion.wrap(seg, null);
     } catch (final SketchesReadOnlyException e) {
       //expected
     }
@@ -239,7 +239,7 @@ public class DoublesMiscTest {
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
-    DoublesUnion.writableWrap(seg, null); //not from compact
+    DoublesUnion.wrap(seg, null); //not from compact
     fail();
   }
 

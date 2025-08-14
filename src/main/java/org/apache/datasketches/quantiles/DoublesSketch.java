@@ -154,6 +154,19 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch, compact or updatable.
    *
    * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data
+   * @return a sketch that wraps the given srcSeg in read-only mode.
+   */
+  public static DoublesSketch wrap(final MemorySegment srcSeg) {
+    if (checkIsMemorySegmentCompact(srcSeg)) {
+      return DirectCompactDoublesSketch.wrapInstance(srcSeg);
+    }
+    return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
+  }
+
+  /**
+   * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch, compact or updatable.
+   *
+   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given srcSeg in read-only mode.

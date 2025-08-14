@@ -685,7 +685,7 @@ public class DoublesUnionImplTest {
 
     final byte[] byteArr = sketch.toByteArray(false);
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    final DoublesUnion union = DoublesUnion.writableWrap(seg, null);
+    final DoublesUnion union = DoublesUnion.wrap(seg, null);
     Assert.assertFalse(union.isEmpty());
     assertTrue(union.hasMemorySegment());
     assertFalse(union.isOffHeap());
