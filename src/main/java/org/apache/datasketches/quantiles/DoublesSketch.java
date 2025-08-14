@@ -154,8 +154,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch, compact or updatable.
    *
    * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment is in updatable form and needs to expand.
-   * Otherwise, it can be null.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given srcSeg in read-only mode.
    */
   public static DoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
@@ -394,7 +394,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @param dstSeg the destination MemorySegment.  It must not overlap the MemorySegment of this sketch.
    * If null, a heap sketch will be returned, otherwise it will be MemorySegment based.
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return the new sketch.
    */

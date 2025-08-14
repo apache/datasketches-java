@@ -64,7 +64,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
    * different <i>k</i>.
    * @param dstSeg the MemorySegment to be used by the internal sketch and must not be null.
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a DoublesUnion object
    */
@@ -115,7 +115,7 @@ final class DoublesUnionImpl extends DoublesUnion {
    * image of a updatable DoublesSketch. The data of the Union will remain in the MemorySegment.
    *
    * @param srcSeg A writable MemorySegment image of a updatable DoublesSketch to be used as data for the union.
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object
    */

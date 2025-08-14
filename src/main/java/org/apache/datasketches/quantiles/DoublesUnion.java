@@ -64,7 +64,7 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
    * The data structures of the Union remain in the MemorySegment.
    *
    * @param srcSeg A MemorySegment to be used as the data structure for the sketch and will be modified.
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object
    */
@@ -151,7 +151,7 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
    * been changed, which allows further union operations.
    *
    * @param dstSeg the destination MemorySegment for the result
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return the result of this Union operation
    */

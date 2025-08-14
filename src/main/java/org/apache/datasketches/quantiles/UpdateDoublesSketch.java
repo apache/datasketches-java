@@ -37,7 +37,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * Wrap this sketch around the given MemorySegment image of an UpdateDoublesSketch.
    *
    * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given srcSeg
    */

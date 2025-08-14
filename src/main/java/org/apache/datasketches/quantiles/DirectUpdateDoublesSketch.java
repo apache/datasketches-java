@@ -87,7 +87,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
    * @param dstSeg the non-null destination MemorySegment that will be initialized to hold the data for this sketch.
    * It must initially be at least (16 * MIN_K + 32) bytes, where MIN_K defaults to 2. As it grows
    * it will request more MemorySegment using the MemorySegmentRequest callback.
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a DirectUpdateDoublesSketch
    */
@@ -117,7 +117,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
    * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch.
    *
    * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
-   * @param mSegReq the MemorySegmentRequest used if the incoming MemorySegment needs to expand.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given srcSeg
    */
