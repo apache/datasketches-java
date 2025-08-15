@@ -138,7 +138,7 @@ final class DoublesUnionImpl extends DoublesUnion {
   @Override
   public void union(final MemorySegment seg) {
     Objects.requireNonNull(seg);
-    gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(seg, null));
+    gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.writableWrap(seg, null));
     gadget_.doublesSV = null;
   }
 

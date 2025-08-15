@@ -34,22 +34,40 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Wrap this sketch around the given MemorySegment image of an UpdateDoublesSketch.
+   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch.
    *
-   * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
-   * @return a sketch that wraps the given srcSeg
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * The sketch will be updated and managed totally within the MemorySegment. If the given source
+   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
+   *
+   * <p><b>NOTE:</b>If during updating of the sketch the sketch requires more capacity than the given size of the MemorySegment, the sketch
+   * will request more capacity using the {@link MemorySegmentRequest MemorySegmentRequest} interface. The default of this interface will
+   * return a new MemorySegment on the heap.</p>
+   *
+   * @param srcSeg a MemorySegment that contains sketch data.
+   * @return an instance of this sketch that wraps the given MemorySegment.
    */
   public static UpdateDoublesSketch wrap(final MemorySegment srcSeg) {
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
   }
 
   /**
-   * Wrap this sketch around the given MemorySegment image of an UpdateDoublesSketch.
+   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch and including an
+   * optional, user defined {@link MemorySegmentRequest MemorySegmentRequest}.
    *
-   * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * The sketch will be updated and managed totally within the MemorySegment. If the given source
+   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
+   *
+   * <p><b>NOTE:</b>If during updating of the sketch the sketch requires more capacity than the given size of the MemorySegment, the sketch
+   * will request more capacity using the {@link MemorySegmentRequest MemorySegmentRequest} interface. The default of this interface will
+   * return a new MemorySegment on the heap. It is up to the user to optionally extend this interface if more flexible
+   * handling of requests for more capacity is required.</p>
+   *
+   * @param srcSeg a MemorySegment that contains sketch data.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
-   * @return a sketch that wraps the given srcSeg
+   * @return an instance of this sketch that wraps the given MemorySegment.
    */
   public static UpdateDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, mSegReq);
