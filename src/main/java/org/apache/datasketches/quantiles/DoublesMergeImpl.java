@@ -73,7 +73,7 @@ final class DoublesMergeImpl {
     }
     //The remainder of this code is for the case where the k's are equal
 
-    final DoublesSketchAccessor srcSketchBuf = DoublesSketchAccessor.wrap(src);
+    final DoublesSketchAccessor srcSketchBuf = DoublesSketchAccessor.wrap(src, false);
     final long nFinal = tgtN + srcN;
 
     for (int i = 0; i < srcSketchBuf.numItems(); i++) { // update only the base buffer
@@ -158,7 +158,7 @@ final class DoublesMergeImpl {
 
     if (src.isEmpty()) { return; }
 
-    final DoublesSketchAccessor srcSketchBuf = DoublesSketchAccessor.wrap(src);
+    final DoublesSketchAccessor srcSketchBuf = DoublesSketchAccessor.wrap(src, false);
     final long nFinal = tgtN + src.getN();
 
     for (int i = 0; i < srcSketchBuf.numItems(); i++) { // update only the base buffer

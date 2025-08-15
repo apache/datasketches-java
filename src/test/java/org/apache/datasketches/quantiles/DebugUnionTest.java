@@ -63,7 +63,7 @@ public class DebugUnionTest {
     DoublesSketch dSketch;
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = arena.allocate(10_000_000);
-      dUnion = DoublesUnion.builder().setMaxK(8).build(wseg);
+      dUnion = DoublesUnion.builder().setMaxK(8).build(wseg, null);
       for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap
     } catch (final Exception e) {

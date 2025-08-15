@@ -63,7 +63,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
     super(segVal.sketchStructure, comparator, serDe);
-    seg = segVal.srcSeg;
+    seg = segVal.srcSeg.asReadOnly();
     readOnly = true;
     levelsArr = segVal.levelsArr; //always converted to writable form.
   }

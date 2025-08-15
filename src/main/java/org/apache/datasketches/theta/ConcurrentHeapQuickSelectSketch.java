@@ -115,7 +115,7 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
 
   @Override
   public byte[] toByteArray() {
-    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { /* busy wait till free */ }
     final byte[] res = super.toByteArray();
     sharedPropagationInProgress_.set(false);
     return res;
@@ -158,7 +158,7 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
 
   @Override
   public boolean startEagerPropagation() {
-    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { /* busy wait till free */ }
     return (!isEstimationMode());// no eager propagation is allowed in estimation mode
   }
 

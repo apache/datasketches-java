@@ -177,7 +177,7 @@ public enum Family {
       lookupFamName.put(f.getFamilyName().toUpperCase(Locale.US), f);
     }
     if (ByteOrder.nativeOrder() != ByteOrder.LITTLE_ENDIAN) {
-      throw new BigEndianNativeOrderNotSupportedException();
+      throw new SketchesNotSupportedException("Machine Native Endianness must be LITTLE_ENDIAN.");
     }
   }
 

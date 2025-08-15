@@ -46,8 +46,8 @@ final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
     assert (index >= 0) && (index < numItems_);
     assert n_ == ds_.getN();
 
-    final int idxOffset = offset_ + (index << 3);
-    return ds_.getMemorySegment().get(JAVA_DOUBLE_UNALIGNED, idxOffset);
+    final int byteOffset = offset_ + (index << 3);
+    return ds_.getMemorySegment().get(JAVA_DOUBLE_UNALIGNED, byteOffset);
   }
 
   @Override
@@ -56,27 +56,26 @@ final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
     assert n_ == ds_.getN();
     assert !ds_.isCompact(); // can't write to a compact sketch
 
-    final int idxOffset = offset_ + (index << 3);
+    final int byteOffset = offset_ + (index << 3);
     final MemorySegment seg = ds_.getMemorySegment();
-    final double oldVal = seg.get(JAVA_DOUBLE_UNALIGNED, idxOffset);
-    seg.set(JAVA_DOUBLE_UNALIGNED, idxOffset, quantile);
+    final double oldVal = seg.get(JAVA_DOUBLE_UNALIGNED, byteOffset);
+    seg.set(JAVA_DOUBLE_UNALIGNED, byteOffset, quantile);
     return oldVal;
   }
 
   @Override
   double[] getArray(final int fromIdx, final int numItems) {
-    final double[] dstArray = new double[numItems];
-    final int offsetBytes = offset_ + (fromIdx << 3);
-    MemorySegment.copy(ds_.getMemorySegment(), JAVA_DOUBLE_UNALIGNED, offsetBytes, dstArray, 0, numItems);
-    return dstArray;
+    final int byteOffset = offset_ + (fromIdx << 3);
+    final MemorySegment seg = ds_.getMemorySegment();
+    return seg.asSlice(byteOffset, numItems << 3).toArray(JAVA_DOUBLE_UNALIGNED);
   }
 
   @Override
-  void putArray(final double[] srcArray, final int srcIndex,
-                final int dstIndex, final int numItems) {
+  void putArray(final double[] srcArray, final int srcIndex, final int dstIndex, final int numItems) {
     assert !ds_.isCompact(); // can't write to compact sketch
-    final int offsetBytes = offset_ + (dstIndex << 3);
-    MemorySegment.copy(srcArray, srcIndex, ds_.getMemorySegment(), JAVA_DOUBLE_UNALIGNED, offsetBytes, numItems);
+
+    final int byteOffset = offset_ + (dstIndex << 3);
+    MemorySegment.copy(srcArray, srcIndex, ds_.getMemorySegment(), JAVA_DOUBLE_UNALIGNED, byteOffset, numItems);
   }
 
   @Override

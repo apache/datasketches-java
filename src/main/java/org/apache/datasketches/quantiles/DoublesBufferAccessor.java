@@ -20,6 +20,8 @@
 package org.apache.datasketches.quantiles;
 
 /**
+ * The hierarchy of Accessors enable easy access to the data structure of the Classic Quantiles sketches.
+ *
  * @author Jon Malkin
  */
 abstract class DoublesBufferAccessor {

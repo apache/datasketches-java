@@ -28,7 +28,7 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
  * Iterator over DoublesSketch. The order is not defined.
  */
 public final class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
-  private DoublesSketchAccessor sketchAccessor;
+  private final DoublesSketchAccessor sketchAccessor;
   private long bitPattern;
   private int level;
   private long weight;
@@ -36,11 +36,11 @@ public final class DoublesSketchIterator implements QuantilesDoublesSketchIterat
 
   DoublesSketchIterator(final DoublesSketch sketch, final long bitPattern) {
     Objects.requireNonNull(sketch, "sketch must not be null");
-    sketchAccessor = DoublesSketchAccessor.wrap(sketch);
+    sketchAccessor = DoublesSketchAccessor.wrap(sketch, false);
     this.bitPattern = bitPattern;
-    this.level = -1;
-    this.weight = 1;
-    this.index = -1;
+    level = -1;
+    weight = 1;
+    index = -1;
   }
 
   @Override

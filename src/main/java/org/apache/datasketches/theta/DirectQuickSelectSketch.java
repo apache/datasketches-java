@@ -119,7 +119,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   }
 
   private DirectQuickSelectSketch(
-      final boolean secure, //required part of Finalizer Attack prevention
+      @SuppressWarnings("unused") final boolean secure, //required part of Finalizer Attack prevention
       final int lgNomLongs,
       final long seed,
       final float p,

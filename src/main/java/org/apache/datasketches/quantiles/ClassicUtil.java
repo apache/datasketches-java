@@ -99,6 +99,21 @@ public final class ClassicUtil {
   }
 
   /**
+   * Computes the new size of a growing base buffer.
+   * It doubles whatever the current size is until it reaches 2 * k items.
+   * This assumes all items are the same size and the combinedBuffer has no levels above the base buffer.
+   * @param k the given k of the sketch
+   * @param curCombinedBufCap the current capacity of the combined buffer in items.
+   * @return the new size of the base buffer in items.
+   */
+  static int computeGrowingBaseBufferCap(final int k, final int curCombinedBufCap) {
+    if (curCombinedBufCap < (2 * k)) {
+      return 2 * Math.max(Math.min(k, curCombinedBufCap), MIN_K);
+    } 
+    return 2 * k;
+  }
+
+  /**
    * Used by Classic Quantiles.
    * Checks the validity of the given k
    * @param k must be greater than 1 and less than 65536 and a power of 2.
@@ -167,17 +182,16 @@ public final class ClassicUtil {
 
   /**
    * Used by Classic Quantiles.
-   * Checks just the flags field of an input MemorySegment object. Returns true for a compact
+   * Checks just the flags field of an input MemorySegment object. Returns true for a compact or readOnly
    * sketch, false for an update sketch. Does not perform additional checks, including sketch
    * family.
    * @param srcSeg the source MemorySegment containing a sketch
    * @return true if flags indicate a compact sketch, otherwise false
    */
   static boolean checkIsMemorySegmentCompact(final MemorySegment srcSeg) {
-    // only reading so downcast is ok
     final int flags = extractFlags(srcSeg);
-    final int compactFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;
-    return (flags & compactFlags) > 0;
+    final int compactFlags = COMPACT_FLAG_MASK;
+    return ((flags & compactFlags) > 0);
   }
 
   /**

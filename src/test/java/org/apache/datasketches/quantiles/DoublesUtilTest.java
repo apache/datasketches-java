@@ -72,7 +72,7 @@ public class DoublesUtilTest {
 
     // DirectUpdateDoublesSketch
     final MemorySegment seg1 = MemorySegment.ofArray(huds.toByteArray());
-    final DirectUpdateDoublesSketch duds = (DirectUpdateDoublesSketch) UpdateDoublesSketch.wrap(seg1);
+    final DirectUpdateDoublesSketch duds = (DirectUpdateDoublesSketch) UpdateDoublesSketch.wrap(seg1, null);
     final HeapUpdateDoublesSketch target2 = DoublesUtil.copyToHeap(duds);
     DoublesSketchTest.testSketchEquality(huds, duds);
     DoublesSketchTest.testSketchEquality(duds, target2);
@@ -85,7 +85,7 @@ public class DoublesUtilTest {
 
     // DirectCompactDoublesSketch
     final MemorySegment seg2 = MemorySegment.ofArray(hcds.toByteArray());
-    final DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) DoublesSketch.wrap(seg2);
+    final DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) DoublesSketch.wrap(seg2, null);
     final HeapUpdateDoublesSketch target4 = DoublesUtil.copyToHeap(dcds);
     DoublesSketchTest.testSketchEquality(huds, dcds);
     DoublesSketchTest.testSketchEquality(dcds, target4);

@@ -485,7 +485,7 @@ final class KllItemsHelper {
       final int otherPop = KllHelper.currentLevelSizeItems(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
       assert (selfPop >= 0) && (otherPop >= 0);
-      if ((selfPop == 0) && (otherPop == 0)) { }
+      if ((selfPop == 0) && (otherPop == 0)) { /* do nothing for this case */ }
       else if ((selfPop > 0) && (otherPop == 0)) {
         System.arraycopy(myCurItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
       }

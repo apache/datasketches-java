@@ -170,28 +170,28 @@ public class DirectUpdateDoublesSketchTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[8]);
     try {
       final int flags = PreambleUtil.COMPACT_FLAG_MASK;
-      DirectUpdateDoublesSketchR.checkCompact(2, 0);
+      DirectUpdateDoublesSketch.checkCompact(2, 0);
       fail();
     } catch (final SketchesArgumentException e) {} //OK
     try {
       final int flags = PreambleUtil.COMPACT_FLAG_MASK;
-      DirectUpdateDoublesSketchR.checkCompact(3, flags);
+      DirectUpdateDoublesSketch.checkCompact(3, flags);
       fail();
     } catch (final SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketchR.checkPreLongs(3);
+      DirectUpdateDoublesSketch.checkPreLongs(3);
       fail();
     } catch (final SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketchR.checkPreLongs(0);
+      DirectUpdateDoublesSketch.checkPreLongs(0);
       fail();
     } catch (final SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketchR.checkDirectFlags(PreambleUtil.COMPACT_FLAG_MASK);
+      DirectUpdateDoublesSketch.checkDirectFlags(PreambleUtil.COMPACT_FLAG_MASK);
       fail();
     } catch (final SketchesArgumentException e) {} //OK
     try {
-      DirectUpdateDoublesSketchR.checkEmptyAndN(true, 1);
+      DirectUpdateDoublesSketch.checkEmptyAndN(true, 1);
       fail();
     } catch (final SketchesArgumentException e) {} //OK
   }
@@ -199,12 +199,12 @@ public class DirectUpdateDoublesSketchTest {
   @Test
   public void checkCheckDirectSegCapacity() {
     final int k = 128;
-    DirectUpdateDoublesSketchR.checkDirectSegCapacity(k, (2 * k) - 1, (4 + (2 * k)) * 8);
-    DirectUpdateDoublesSketchR.checkDirectSegCapacity(k, (2 * k) + 1, (4 + (3 * k)) * 8);
-    DirectUpdateDoublesSketchR.checkDirectSegCapacity(k, 0, 8);
+    DirectUpdateDoublesSketch.checkDirectSegCapacity(k, (2 * k) - 1, (4 + (2 * k)) * 8);
+    DirectUpdateDoublesSketch.checkDirectSegCapacity(k, (2 * k) + 1, (4 + (3 * k)) * 8);
+    DirectUpdateDoublesSketch.checkDirectSegCapacity(k, 0, 8);
 
     try {
-      DirectUpdateDoublesSketchR.checkDirectSegCapacity(k, 10000, 64);
+      DirectUpdateDoublesSketch.checkDirectSegCapacity(k, 10000, 64);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -220,7 +220,7 @@ public class DirectUpdateDoublesSketchTest {
       sketch1.update(i);
     }
 
-    final UpdateDoublesSketch sketch2 = UpdateDoublesSketch.wrap(seg);
+    final UpdateDoublesSketch sketch2 = UpdateDoublesSketch.wrap(seg, null);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
@@ -230,7 +230,7 @@ public class DirectUpdateDoublesSketchTest {
 
     final byte[] arr2 = sketch2.toByteArray(false);
     assertEquals(arr2.length, sketch2.getSerializedSizeBytes());
-    final DoublesSketch sketch3 = DoublesSketch.wrap(MemorySegment.ofArray(arr2));
+    final DoublesSketch sketch3 = DoublesSketch.wrap(MemorySegment.ofArray(arr2), null);
     assertEquals(sketch3.getMinItem(), 0.0);
     assertEquals(sketch3.getMaxItem(), 1999.0);
     assertEquals(sketch3.getQuantile(0.5), 1000.0, 10.0);

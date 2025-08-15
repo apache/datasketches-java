@@ -87,7 +87,8 @@ public class DoublesSketchBuilder {
    * Returns a UpdateDoublesSketch with the current configuration of this builder
    * and the specified backing destination MemorySegment store that can grow.
    * @param dstSeg destination MemorySegment for use by the sketch
-   * @param mSegReq a user developed MemorySegmentRequest or null.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return an UpdateDoublesSketch
    */
   public UpdateDoublesSketch build(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {

@@ -207,7 +207,7 @@ class ReqCompactor {
   ReqCompactor merge(final ReqCompactor other) {
     assert lgWeight == other.lgWeight;
     state |= other.state;
-    while (ensureEnoughSections()) {}
+    while (ensureEnoughSections()) { /* do nothing */ }
     buf.sort();
     final FloatBuffer otherBuf = new FloatBuffer(other.buf);
     otherBuf.sort();

@@ -21,6 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.MemorySegmentStatus;
 
 /**
@@ -48,7 +49,7 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
   }
 
   /**
-   * Returns a Heap Union object that has been initialized with the data from the given MemorySegment
+   * Returns a Heap Union object that has been initialized with the data from the given MemorySegment that contains an
    * image of a sketch.
    *
    * @param srcSeg A MemorySegment image of a DoublesSketch to be used as a source of data and will not be modified.
@@ -59,14 +60,25 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
   }
 
   /**
-   * Returns an updatable Union object that wraps off-heap data of the given MemorySegment image of
-   * a sketch. The data structures of the Union remain off-heap.
+   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a DoublesSketch.
    *
-   * @param seg A MemorySegment region to be used as the data structure for the sketch and will be modified.
+   * @param srcSeg A MemorySegment image of an updatable DoublesSketch to be used as the data structure for the union and will be modified.
    * @return a Union object
    */
-  public static DoublesUnion wrap(final MemorySegment seg) {
-    return DoublesUnionImpl.wrapInstance(seg);
+  public static DoublesUnion wrap(final MemorySegment srcSeg) {
+    return DoublesUnionImpl.wrapInstance(srcSeg, null);
+  }
+
+  /**
+   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a DoublesSketch.
+   *
+   * @param srcSeg A MemorySegment sketch to be used as the data structure for the union and will be modified.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
+   * @return a Union object
+   */
+  public static DoublesUnion wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+    return DoublesUnionImpl.wrapInstance(srcSeg, mSegReq);
   }
 
   @Override
@@ -148,9 +160,11 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
    * been changed, which allows further union operations.
    *
    * @param dstSeg the destination MemorySegment for the result
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return the result of this Union operation
    */
-  public abstract UpdateDoublesSketch getResult(MemorySegment dstSeg);
+  public abstract UpdateDoublesSketch getResult(MemorySegment dstSeg, MemorySegmentRequest mSegReq);
 
   /**
    * Gets the result of this Union  as an UpdateDoublesSketch, which enables further update

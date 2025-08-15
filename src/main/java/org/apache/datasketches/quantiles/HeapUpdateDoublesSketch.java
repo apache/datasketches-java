@@ -26,8 +26,10 @@ import static org.apache.datasketches.quantiles.ClassicUtil.checkHeapFlags;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeGrowingBaseBufferCap;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
+import static org.apache.datasketches.quantiles.DoublesUtil.copyToHeap;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.MAX_DOUBLE;
@@ -118,24 +120,6 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     huds.minItem_ = Double.NaN;
     huds.maxItem_ = Double.NaN;
     return huds;
-  }
-
-  /**
-   * Returns a copy of the given sketch
-   * @param skIn the given sketch
-   * @return a copy of the given sketch
-   */
-  static HeapUpdateDoublesSketch copy(final HeapUpdateDoublesSketch skIn) {
-    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.newInstance(skIn.k_);
-    if (skIn.n_ > 0) {
-      skCopy.n_ = skIn.n_;
-      skCopy.combinedBuffer_ = skIn.combinedBuffer_.clone();
-      skCopy.baseBufferCount_ = skIn.baseBufferCount_;
-      skCopy.bitPattern_ = skIn.bitPattern_;
-      skCopy.minItem_ = skIn.minItem_;
-      skCopy.maxItem_ = skIn.maxItem_;
-    }
-    return skCopy;
   }
 
   /**
@@ -252,8 +236,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final long newN = n_ + 1;
 
     final int combBufItemCap = combinedBuffer_.length;
-    if (newBBCount > combBufItemCap) {
-      growBaseBuffer(); //only changes combinedBuffer when it is only a base buffer
+    if (newBBCount > combBufItemCap) { //newBBCount can never be > 2 * k
+      growBaseBuffer(); //this only changes combinedBuffer when it is only a base buffer
     }
 
     //put the new item in the base buffer
@@ -375,7 +359,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
   @Override
   HeapUpdateDoublesSketch getSketchAndReset() {
-    final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.copy(this);
+    final HeapUpdateDoublesSketch skCopy = copyToHeap(this);
     reset();
     return skCopy;
   }
@@ -428,7 +412,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final int oldSize = combinedBuffer_.length;
     assert oldSize < (2 * k_);
     final double[] baseBuffer = combinedBuffer_;
-    final int newSize = 2 * Math.max(Math.min(k_, oldSize), MIN_K);
+    final int newSize = computeGrowingBaseBufferCap(k_, oldSize);
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 

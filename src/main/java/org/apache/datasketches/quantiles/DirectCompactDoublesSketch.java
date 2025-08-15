@@ -67,11 +67,12 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  */
 final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
-  private MemorySegment seg_;
+  private final MemorySegment seg_;
 
   //**CONSTRUCTORS**********************************************************
-  private DirectCompactDoublesSketch(final int k) {
+  private DirectCompactDoublesSketch(final int k, final MemorySegment seg) {
     super(k); //Checks k
+    seg_ = seg.asReadOnly();
   }
 
   /**
@@ -95,7 +96,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     insertFamilyID(dstSeg, Family.QUANTILES.getID());
     insertK(dstSeg, k);
 
-    final int flags = COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK; // true for all compact sketches
+    final int flags = COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK; // both true for all compact sketches
 
     if (sketch.isEmpty()) {
       insertFlags(dstSeg, flags | EMPTY_FLAG_MASK);
@@ -107,7 +108,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
       final int bbCount = computeBaseBufferItems(k, n);
 
-      final DoublesSketchAccessor inputAccessor = DoublesSketchAccessor.wrap(sketch);
+      final DoublesSketchAccessor inputAccessor = DoublesSketchAccessor.wrap(sketch, false);
       assert bbCount == inputAccessor.numItems();
 
       long dstSegOffset = COMBINED_BUFFER;
@@ -128,17 +129,14 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
       }
     }
 
-    final DirectCompactDoublesSketch dcds = new DirectCompactDoublesSketch(k);
-    dcds.seg_ = dstSeg;
-
-    return dcds;
+    return new DirectCompactDoublesSketch(k, dstSeg);
   }
 
   /**
    * Wrap this sketch around the given compact MemorySegment image of a DoublesSketch.
    *
-   * @param srcSeg the given compact MemorySegment image of a DoublesSketch that may have data,
-   * @return a sketch that wraps the given srcSeg
+   * @param srcSeg the given compact MemorySegment image of a DoublesSketch,
+   * @return a sketch that wraps the given srcSeg.
    */
   static DirectCompactDoublesSketch wrapInstance(final MemorySegment srcSeg) {
     final long segCap = srcSeg.byteSize();
@@ -153,17 +151,15 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     final long n = empty ? 0 : extractN(srcSeg);
 
     //VALIDITY CHECKS
-    DirectUpdateDoublesSketchR.checkPreLongs(preLongs);
+    DirectUpdateDoublesSketch.checkPreLongs(preLongs);
     checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkCompact(serVer, flags);
     checkK(k);
     checkDirectSegCapacity(k, n, segCap);
-    DirectUpdateDoublesSketchR.checkEmptyAndN(empty, n);
+    DirectUpdateDoublesSketch.checkEmptyAndN(empty, n);
 
-    final DirectCompactDoublesSketch dds = new DirectCompactDoublesSketch(k);
-    dds.seg_ = srcSeg;
-    return dds;
+    return  new DirectCompactDoublesSketch(k, srcSeg);
   }
 
   @Override

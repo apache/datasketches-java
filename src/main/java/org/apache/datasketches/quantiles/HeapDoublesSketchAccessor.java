@@ -25,6 +25,7 @@ import java.util.Arrays;
  * @author Jon Malkin
  */
 final class HeapDoublesSketchAccessor extends DoublesSketchAccessor {
+
   HeapDoublesSketchAccessor(final DoublesSketch ds,
                             final boolean forceSize,
                             final int level) {
@@ -59,13 +60,12 @@ final class HeapDoublesSketchAccessor extends DoublesSketchAccessor {
 
   @Override
   double[] getArray(final int fromIdx, final int numItems) {
-    final int stIdx = offset_ + fromIdx;
-    return Arrays.copyOfRange(ds_.getCombinedBuffer(), stIdx, stIdx + numItems);
+    final int srcIdx = offset_ + fromIdx;
+    return Arrays.copyOfRange(ds_.getCombinedBuffer(), srcIdx, srcIdx + numItems);
   }
 
   @Override
-  void putArray(final double[] srcArray, final int srcIndex,
-                final int dstIndex, final int numItems) {
+  void putArray(final double[] srcArray, final int srcIndex, final int dstIndex, final int numItems) {
     final int tgtIdx = offset_ + dstIndex;
     System.arraycopy(srcArray, srcIndex, ds_.getCombinedBuffer(), tgtIdx, numItems);
   }

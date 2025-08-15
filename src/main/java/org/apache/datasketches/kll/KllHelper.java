@@ -48,7 +48,6 @@ import static org.apache.datasketches.quantilescommon.QuantilesAPI.UNSUPPORTED_M
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.positional.PositionalSegment;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
@@ -500,8 +499,7 @@ final class KllHelper {
     return bytesOut;
   }
 
-  static <T> String toStringImpl(final KllSketch sketch, final boolean withLevels, final boolean withLevelsAndItems,
-      final ArrayOfItemsSerDe<T> serDe) {
+  static String toStringImpl(final KllSketch sketch, final boolean withLevels, final boolean withLevelsAndItems) {
     final StringBuilder sb = new StringBuilder();
     final int k = sketch.getK();
     final int m = sketch.getM();

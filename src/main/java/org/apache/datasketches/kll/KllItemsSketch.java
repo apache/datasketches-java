@@ -124,8 +124,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
    * A reference to the MemorySegment is kept in the sketch and must remain in scope consistent
    * with the temporal scope of this sketch. The amount of data kept on the heap is very small.
    * All of the item data originally collected by the given MemorySegment sketch object remains in the
-   * MemorySegment object
-   * @param srcSeg the MemorySegment object that this sketch will wrap.
+   * MemorySegment object.
+   * @param srcSeg the MemorySegment object that this sketch will wrap. It will not be modified.
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
    * @param <T> The sketch data type
@@ -302,7 +302,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       assert seg != null;
       sketch = KllItemsSketch.heapify(getMemorySegment(), comparator, serDe);
     }
-    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems, getSerDe());
+    return KllHelper.toStringImpl(sketch, withLevels, withLevelsAndItems);
   }
 
   @Override

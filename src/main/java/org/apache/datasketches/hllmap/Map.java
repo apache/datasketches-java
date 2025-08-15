@@ -84,7 +84,7 @@ abstract class Map {
    * @param index the given index
    * @param estimate the given estimate
    */
-  void updateEstimate(final int index, final double estimate) {}
+  void updateEstimate(final int index, final double estimate) { /* overridden by sub-classes */ }
 
   /**
    * Returns the upper bound cardinality with respect to {@link #getEstimate(byte[])} associated
@@ -136,7 +136,7 @@ abstract class Map {
    * Delete the key at the given index
    * @param index the given index
    */
-  void deleteKey(final int index) {}
+  void deleteKey(final int index) { /* overridden by sub-classes */ }
 
   /**
    * Returns <code>true</code> if the two specified sub-arrays of bytes are <i>equal</i> to one another.
@@ -184,7 +184,7 @@ abstract class Map {
   }
 
   static final int getStride(final long hash, final int tableEntries) {
-    return (int) ((hash >>> 1) % (tableEntries - 2L) + 1L);
+    return (int) (((hash >>> 1) % (tableEntries - 2L)) + 1L);
   }
 
   static boolean isBitSet(final byte[] byteArr, final int bitIndex) {

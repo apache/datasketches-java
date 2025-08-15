@@ -50,12 +50,16 @@ public interface MemorySegmentRequest {
    * It is up to the user to override this as appropriate.
    * @param prevSeg the previous MemorySegment to be closed.
    */
-  default void requestClose(final MemorySegment prevSeg) { }
+  default void requestClose(final MemorySegment prevSeg) {
+    //Because the default request goes on the heap, this default is a no-op
+  }
 
   /**
    * This class implements the defaults
    */
-  public static class Default implements MemorySegmentRequest { }
+  public static class Default implements MemorySegmentRequest {
+    //A convenience class that creates the target for the static member DEFAULT.
+  }
 
   /**
    * Create Default as static member.

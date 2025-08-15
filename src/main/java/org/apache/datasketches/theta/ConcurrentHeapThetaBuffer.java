@@ -96,8 +96,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   private boolean propagateToSharedSketch(final long hash) {
     //no inspection StatementWithEmptyBody
-    while (localPropagationInProgress.get()) {
-    } //busy wait until previous propagation completed
+    while (localPropagationInProgress.get()) { /* busy wait until previous propagation completed */ }
     localPropagationInProgress.set(true);
     final boolean res = shared.propagate(localPropagationInProgress, null, hash);
     //in this case the parent empty_ and curCount_ were not touched
@@ -110,8 +109,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   private void propagateToSharedSketch() {
     //no inspection StatementWithEmptyBody
-    while (localPropagationInProgress.get()) {
-    } //busy wait until previous propagation completed
+    while (localPropagationInProgress.get()) { /* busy wait until previous propagation completed */ }
 
     final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);

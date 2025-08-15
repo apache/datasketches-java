@@ -307,7 +307,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
   }
 
   @Override
-  void setMemorySegment(final MemorySegment wseg) { }
+  void setMemorySegment(final MemorySegment wseg) { /* heap does not have MemorySegment */ }
 
   @Override
   public boolean hasMemorySegment() {

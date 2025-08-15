@@ -21,6 +21,8 @@ package org.apache.datasketches.quantiles;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.MemorySegmentRequest;
+
 /**
  * Extends DoubleSketch
  * @author Jon Malkin
@@ -32,13 +34,25 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Wrap this sketch around the given non-compact MemorySegment image of a DoublesSketch.
+   * Wrap this sketch around the given MemorySegment image of an UpdateDoublesSketch.
    *
-   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data,
+   * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
    * @return a sketch that wraps the given srcSeg
    */
   public static UpdateDoublesSketch wrap(final MemorySegment srcSeg) {
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
+  }
+
+  /**
+   * Wrap this sketch around the given MemorySegment image of an UpdateDoublesSketch.
+   *
+   * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
+   * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
+   * Otherwise, it can be null and the default MemorySegmentRequest will be used.
+   * @return a sketch that wraps the given srcSeg
+   */
+  public static UpdateDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+    return DirectUpdateDoublesSketch.wrapInstance(srcSeg, mSegReq);
   }
 
   /**
@@ -61,7 +75,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
 
   /**
    * Returns a compact version of this sketch. If passing in a MemorySegment object, the compact sketch
-   * will use that direct MemorySegment; otherwise, an on-heap sketch will be returned.
+   * will use and load that MemorySegment; otherwise, an on-heap sketch will be returned.
    * @param dstSeg An optional target MemorySegment to hold the sketch.
    * @return A compact version of this sketch
    */
@@ -73,8 +87,8 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   }
 
   /**
-   * Returns a copy of this sketch and then resets this sketch with the same value of <i>k</i>.
-   * @return a copy of this sketch and then resets this sketch with the same value of <i>k</i>.
+   * Returns an on-heap copy of this sketch and then resets this sketch with the same value of <i>k</i>.
+   * @return an on-heap copy of this sketch and then resets this sketch with the same value of <i>k</i>.
    */
   abstract UpdateDoublesSketch getSketchAndReset();
 

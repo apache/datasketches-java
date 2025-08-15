@@ -43,7 +43,7 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    final DoublesSketch directSketch = DoublesSketch.wrap(MemorySegment.ofArray(heapSketch.toByteArray(false)));
+    final DoublesSketch directSketch = DoublesSketch.wrap(MemorySegment.ofArray(heapSketch.toByteArray(false)), null);
 
     assertEquals(directSketch.getMinItem(), 0.0);
     assertEquals(directSketch.getMaxItem(), 999.0);
@@ -91,8 +91,8 @@ public class DoublesSketchTest {
     assertEquals(sketch1.getMinItem(), sketch2.getMinItem());
     assertEquals(sketch1.getMaxItem(), sketch2.getMaxItem());
 
-    final DoublesSketchAccessor accessor1 = DoublesSketchAccessor.wrap(sketch1);
-    final DoublesSketchAccessor accessor2 = DoublesSketchAccessor.wrap(sketch2);
+    final DoublesSketchAccessor accessor1 = DoublesSketchAccessor.wrap(sketch1, false);
+    final DoublesSketchAccessor accessor2 = DoublesSketchAccessor.wrap(sketch2, false);
 
     // Compare base buffers. Already confirmed n and k match.
     for (int i = 0; i < accessor1.numItems(); ++i) {

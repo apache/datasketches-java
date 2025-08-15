@@ -82,7 +82,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   DirectHllArray(final int lgConfigK, final TgtHllType tgtHllType, final MemorySegment seg, final boolean readOnly) {
     super(lgConfigK, tgtHllType, CurMode.HLL);
     wseg = null;
-    this.seg = seg;
+    this.seg = readOnly ? seg.asReadOnly() : seg;
     segObj = seg.toArray(JAVA_BYTE);
     compact = extractCompactFlag(seg);
   }

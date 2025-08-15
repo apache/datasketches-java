@@ -451,7 +451,7 @@ public class ItemsSketchTest {
     }
     final byte[] byteArr = new byte[200];
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    sketch.putMemorySegment(seg, new ArrayOfStringsSerDe());
+    sketch.putIntoMemorySegment(seg, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -462,7 +462,7 @@ public class ItemsSketchTest {
     }
     final byte[] byteArr = new byte[100];
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    sketch.putMemorySegment(seg, new ArrayOfStringsSerDe());
+    sketch.putIntoMemorySegment(seg, new ArrayOfStringsSerDe());
   }
 
   @Test
