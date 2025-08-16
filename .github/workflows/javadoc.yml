@@ -5,6 +5,9 @@ on:
 #    branches: main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   javadoc:
     runs-on: ubuntu-latest
@@ -30,7 +33,7 @@ jobs:
         run: mvn javadoc:javadoc
 
       - name: Deploy JavaDoc
-        uses: JamesIves/github-pages-deploy-action@v4.6.8
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           folder: target/reports/apidocs
