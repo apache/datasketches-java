@@ -432,7 +432,7 @@ public final class Util {
   }
 
   /**
-   * This is a long integer equivalent to <i>Math.ceil(n / (double)(1 << k))</i>
+   * This is a long integer equivalent to <i>Math.ceil(n / (double)(1 &lt;&lt; k))</i>
    * where: <i>0 &lt; k &le; 6</i> and <i>n</i> is a non-negative long.
    * These limits are not checked for speed reasons.
    * @param n the input dividend as a positive long greater than zero.

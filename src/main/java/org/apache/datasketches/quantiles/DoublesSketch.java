@@ -151,29 +151,59 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   /**
-   * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch, compact or updatable.
+   * Wrap this sketch around the given MemorySegment image of a compact, read-only DoublesSketch.
    *
-   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data
-   * @return a sketch that wraps the given srcSeg in read-only mode.
+   * @param srcSeg the given MemorySegment image of a compact, read-only DoublesSketch.
+   * @return a compact, read-only sketch that wraps the given MemorySegment.
    */
   public static DoublesSketch wrap(final MemorySegment srcSeg) {
+    if (!checkIsMemorySegmentCompact(srcSeg)) {
+      throw new SketchesArgumentException("MemorySegment sketch image must be in compact form.");
+    }
+    return DirectCompactDoublesSketch.wrapInstance(srcSeg);
+  }
+
+  /**
+   * Wrap this sketch around the given MemorySegment image of an updatable DoublesSketch.
+   *
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * The sketch will be updated and managed totally within the MemorySegment. If the given source
+   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
+   *
+   * <p><b>NOTE:</b>If during updating of the sketch the sketch requires more capacity than the given size of the MemorySegment, the sketch
+   * will request more capacity using the {@link MemorySegmentRequest MemorySegmentRequest} interface. The default of this interface will
+   * return a new MemorySegment on the heap.</p>
+   *
+   * @param srcSeg the given MemorySegment image of an <i>UpdateDoublesSketch</i>.
+   * @return an updatable sketch that wraps the given MemorySegment.
+   */
+  public static DoublesSketch writableWrap(final MemorySegment srcSeg) {
     if (checkIsMemorySegmentCompact(srcSeg)) {
-      return DirectCompactDoublesSketch.wrapInstance(srcSeg);
+      throw new SketchesArgumentException("MemorySegment sketch image must be in updatable form.");
     }
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
   }
 
   /**
-   * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch, compact or updatable.
+   * Wrap this sketch around the given MemorySegment image of an updatable DoublesSketch.
    *
-   * @param srcSeg the given MemorySegment image of a DoublesSketch that may have data.
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * The sketch will be updated and managed totally within the MemorySegment. If the given source
+   * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
+   *
+   * <p><b>NOTE:</b>If during updating of the sketch the sketch requires more capacity than the given size of the MemorySegment, the sketch
+   * will request more capacity using the {@link MemorySegmentRequest MemorySegmentRequest} interface. The default of this interface will
+   * return a new MemorySegment on the heap. It is up to the user to optionally extend this interface if more flexible
+   * handling of requests for more capacity is required.</p>
+   *
+   * @param srcSeg the given MemorySegment image of a DoublesSketch.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
-   * @return a sketch that wraps the given srcSeg in read-only mode.
+   * @return a sketch that wraps the given MemorySegment.
    */
-  public static DoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+  public static DoublesSketch writableWrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     if (checkIsMemorySegmentCompact(srcSeg)) {
-      return DirectCompactDoublesSketch.wrapInstance(srcSeg);
+      throw new SketchesArgumentException("MemorySegment sketch image must be in updatable form.");
     }
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, mSegReq);
   }

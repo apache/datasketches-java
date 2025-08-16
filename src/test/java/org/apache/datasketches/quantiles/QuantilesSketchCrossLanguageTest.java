@@ -92,7 +92,7 @@ public class QuantilesSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] byteArr = Files.readAllBytes(cppPath.resolve("quantiles_double_n" + n + "_cpp.sk"));
-      final DoublesSketch sk = DoublesSketch.wrap(MemorySegment.ofArray(byteArr), null);
+      final DoublesSketch sk = DoublesSketch.wrap(MemorySegment.ofArray(byteArr));
       assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
       assertTrue(n > 128 ? sk.isEstimationMode() : !sk.isEstimationMode());
       assertEquals(sk.getN(), n);

@@ -27,7 +27,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '24'
           distribution: 'temurin'
 
       - name: Configure C++ build

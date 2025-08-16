@@ -44,7 +44,7 @@ public class DoublesMiscTest {
     Assert.assertEquals(bytes.length, curBytes);
     //convert to MemorySegment
     final MemorySegment seg = MemorySegment.ofArray(bytes);
-    final UpdateDoublesSketch sk2 = (UpdateDoublesSketch) DoublesSketch.wrap(seg, null);
+    final UpdateDoublesSketch sk2 = (UpdateDoublesSketch) DoublesSketch.writableWrap(seg, null);
     assertEquals(seg.byteSize(), curBytes);
     sk2.update(3);
     sk2.update(4);
@@ -60,10 +60,8 @@ public class DoublesMiscTest {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
-    //MemorySegment seg = MemorySegment.ofArray(ByteBuffer.wrap(s1.compact().toByteArray())
-    // .asReadOnlyBuffer().order(ByteOrder.nativeOrder())););
     final MemorySegment seg = MemorySegment.ofArray(s1.compact().toByteArray());
-    final DoublesSketch s2 = DoublesSketch.wrap(seg, null); // compact, so this is ok
+    final DoublesSketch s2 = DoublesSketch.wrap(seg); // compact, so this is ok
     assertEquals(s2.getMinItem(), 1.0);
     assertEquals(s2.getMaxItem(), 2.0);
     assertEquals(s2.getN(), 2);
@@ -123,7 +121,7 @@ public class DoublesMiscTest {
   public void wrapEmptyUpdateSketch() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray()).asReadOnly();
-    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(seg, null);
+    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.writableWrap(seg, null);
     assertTrue(s2.isEmpty());
 
     // ensure the various put calls fail
@@ -189,7 +187,7 @@ public class DoublesMiscTest {
   public void wrapEmptyCompactSketch() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     final MemorySegment seg = MemorySegment.ofArray(s1.compact().toByteArray());
-    final DoublesSketch s2 = DoublesSketch.wrap(seg, null); // compact, so this is ok
+    final DoublesSketch s2 = DoublesSketch.wrap(seg); // compact, so this is ok
     Assert.assertTrue(s2.isEmpty());
   }
 
@@ -207,12 +205,25 @@ public class DoublesMiscTest {
   }
 
   @Test
-  public void heapifyUnionFromCompact() {
+  public void initializeUnionFromCompactSegment() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
     final DoublesUnion u = DoublesUnion.heapify(seg);
+    u.update(3);
+    final DoublesSketch s2 = u.getResult();
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 3.0);
+  }
+
+  @Test
+  public void unionFromUpdatableSegment() {
+    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    s1.update(1);
+    s1.update(2);
+    final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
+    final DoublesUnion u = DoublesUnion.wrap(seg);
     u.update(3);
     final DoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinItem(), 1.0);
@@ -239,7 +250,7 @@ public class DoublesMiscTest {
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
-    DoublesUnion.wrap(seg, null); //not from compact
+    DoublesUnion.wrap(seg, null); //compact seg
     fail();
   }
 

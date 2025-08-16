@@ -43,7 +43,7 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    final DoublesSketch directSketch = DoublesSketch.wrap(MemorySegment.ofArray(heapSketch.toByteArray(false)), null);
+    final DoublesSketch directSketch = DoublesSketch.writableWrap(MemorySegment.ofArray(heapSketch.toByteArray(false)), null);
 
     assertEquals(directSketch.getMinItem(), 0.0);
     assertEquals(directSketch.getMaxItem(), 999.0);

@@ -250,7 +250,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   /**
    * Checks a sketch's serial version and flags to see if the sketch can be wrapped as a
    * DirectCompactDoubleSketch. Throws an exception if the sketch is neither empty nor compact
-   * and ordered, unles the sketch uses serialization version 2.
+   * and ordered, unless the sketch uses serialization version 2.
    * @param serVer the serialization version
    * @param flags Flags from the sketch to evaluate
    */

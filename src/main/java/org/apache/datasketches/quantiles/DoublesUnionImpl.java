@@ -20,6 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkIsMemorySegmentCompact;
 import static org.apache.datasketches.quantiles.DoublesUtil.copyToHeap;
 
 import java.lang.foreign.MemorySegment;
@@ -111,8 +112,8 @@ final class DoublesUnionImpl extends DoublesUnion {
   }
 
   /**
-   * Returns an updatable Union object that wraps the data of the given MemorySegment
-   * image of a updatable DoublesSketch. The data of the Union will remain in the MemorySegment.
+   * Returns an Union object that wraps the data of the given MemorySegment image of a UpdateDoublesSketch.
+   * The data of the Union will remain in the MemorySegment.
    *
    * @param srcSeg A MemorySegment image of an updatable DoublesSketch to be used as the data structure for the union and will be modified.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
@@ -138,7 +139,12 @@ final class DoublesUnionImpl extends DoublesUnion {
   @Override
   public void union(final MemorySegment seg) {
     Objects.requireNonNull(seg);
-    gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(seg, null));
+    if (checkIsMemorySegmentCompact(seg)) {
+      gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(seg));
+    } else {
+      gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.writableWrap(seg, null));
+    }
+
     gadget_.doublesSV = null;
   }
 

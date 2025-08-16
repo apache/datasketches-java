@@ -371,7 +371,7 @@ public class DoublesUnionImplTest {
     union.union(sketch2);
     union.union(sketch1);
     final MemorySegment seg = MemorySegment.ofArray(union.getResult().toByteArray(true));
-    final DoublesSketch result = DoublesSketch.wrap(seg, null);
+    final DoublesSketch result = DoublesSketch.wrap(seg);
     assertEquals(result.getN(), n1 + n2);
     assertEquals(result.getK(), k);
 

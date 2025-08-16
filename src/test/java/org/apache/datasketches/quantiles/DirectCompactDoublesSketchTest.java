@@ -97,7 +97,7 @@ public class DirectCompactDoublesSketchTest {
     final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
     final MemorySegment seg
             = MemorySegment.ofBuffer(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
-    final DoublesSketch s2 = DoublesSketch.wrap(seg, MemorySegmentRequest.DEFAULT);
+    final DoublesSketch s2 = DoublesSketch.wrap(seg);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
     assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMinItem()));
