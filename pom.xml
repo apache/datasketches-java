@@ -232,10 +232,6 @@ under the License.
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
             <doclint>all,-missing</doclint>
-            <!--
-            <additionalJOptions>
-              <additionalJOption>${jvm-arguments}</additionalJOption>
-            </additionalJOptions> -->
           </configuration>
           <executions>
             <execution>
