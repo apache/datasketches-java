@@ -253,7 +253,7 @@ final class CompactOperations {
     }
     if (preLongs > 1) {
       insertCurCount(dstWSeg, curCount);
-      insertP(dstWSeg, (float) 1.0);
+      insertP(dstWSeg, (float) 0.0); //0.0 to be consistent with C++
     }
     if (preLongs > 2) {
       insertThetaLong(dstWSeg, thetaLong);
