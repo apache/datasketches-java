@@ -1,5 +1,7 @@
 org.apache.datasketches
 org.apache.datasketches.common
+org.apache.datasketches.common.positional
+org.apache.datasketches.count
 org.apache.datasketches.cpc
 org.apache.datasketches.fdt
 org.apache.datasketches.filters
