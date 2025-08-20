@@ -384,7 +384,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   static void checkCompact(final int serVer, final int flags) {
     final boolean compact = (serVer == 2) || ((flags & COMPACT_FLAG_MASK) > 0);
     if (compact) {
-      throw new SketchesArgumentException("Compact MemorySegment is not supported for Wrap Instance.");
+      throw new SketchesArgumentException("MemorySegment is in compact form and is not supported for this writableWrap Instance.");
     }
   }
 

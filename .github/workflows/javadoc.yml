@@ -1,9 +1,12 @@
 name: JavaDoc
 
 on:
-#  push:
-#    branches: main
+  push:
+    branches: main
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   javadoc:
@@ -16,7 +19,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: '24'
           distribution: 'temurin'
 
       - name: Echo Java Version
@@ -30,7 +33,7 @@ jobs:
         run: mvn javadoc:javadoc
 
       - name: Deploy JavaDoc
-        uses: JamesIves/github-pages-deploy-action@v4.6.8
+        uses: JamesIves/github-pages-deploy-action@881db5376404c5c8d621010bcbec0310b58d5e29
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           folder: target/reports/apidocs

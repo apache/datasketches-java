@@ -147,7 +147,7 @@
  * arXiv 1708.06839, August 22, 2017, Yahoo Research.
  *
  * <p>[5] MemorySegment Component, See
- * <a href="https://openjdk.org/jeps/454"><i>JEP 454: Foreign Function & Memory API</i></a>
+ * <a href="https://openjdk.org/jeps/454"><i>JEP 454: Foreign Function And Memory API</i></a>
  *
  * <p>[6] MacBook Pro 2.3 GHz 8-Core Intel Core i9
  *

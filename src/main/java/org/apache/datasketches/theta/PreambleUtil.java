@@ -109,6 +109,36 @@ import org.apache.datasketches.common.Util;
  *  3   ||----------------------Start of Compact Long Array----------------------------------|
  *  </pre>
  *
+ * <p>The compressed CompactSketch has 8 bytes of preamble in exact mode because Theta can
+ * be assumed to be 1.0. In estimating mode, the 2nd 8 bytes is Theta as a Long. The following
+ * table assumes estimating mode. In any case the number of retained entries starts immediately
+ * after, followed immediately by the delta encoded compressed byte array.</p>
+ * Unique to this table:
+ * <ul><li>Byte 3: entryBits (entBits): max number of bits for any one 64 bit hash not
+ * including leading zeros. A value in the range [1,63].</li>
+ * <li>Byte 4: numEntriesBytes (numEB): number of bytes required to hold the integer of number
+ * of retained entries not including leading zero bytes. A value in the range [1,4].</li>
+ * <li>The number of retained entries is stored starting at byte 16 (assuming estimating mode)
+ * and may extend through bytes 17, 18 and 19. In any case, the delta encoded compressed array
+ * starts immediately after and could start at byte 17, 18, 19 or 20.</li>
+ * </ul>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||    Seed Hash    | Flags  | numEB  | entBits| FamID  | SerVer |     PreLongs = 3   |
+ *
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||------------------------------THETA_LONG-------------------------------------------|
+ *
+ *      ||        |        |        |  (20)  |  (19)  |  (18)  |  (17)  |    16              |
+ *  2   ||----------------Retained Entries stored as 1 to 4 bytes----------------------------|
+ *
+ *      ||        |        |        |        |        |        |        |                    |
+ *  3   ||------------------Delta encoded compressed byte array------------------------------|
+ *  </pre>
+ *
  * <p>The UpdateSketch and AlphaSketch require 24 bytes of preamble followed by a non-compact
  * array of longs representing a hash table.</p>
  *
