@@ -159,7 +159,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   public static DoublesSketch wrap(final MemorySegment srcSeg) {
     if (!checkIsMemorySegmentCompact(srcSeg)) {
       throw new SketchesArgumentException(
-          "MemorySegment sketch image must be in compact form. " 
+          "MemorySegment sketch image must be in compact form. "
       + "Use {@link #writableWrap(MemorySegment writableWrap(...)} for updatable sketches.");
     }
     return DirectCompactDoublesSketch.wrapInstance(srcSeg);
@@ -182,8 +182,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   public static DoublesSketch writableWrap(final MemorySegment srcSeg) {
     if (checkIsMemorySegmentCompact(srcSeg)) {
       throw new SketchesArgumentException(
-          "MemorySegment sketch image must be in updatable form. " 
-      + "Use {@link #wrap(MemorySegment writableWrap(...)} for compact sketches.");
+          "MemorySegment sketch image must be in updatable form. "
+      + "Use {@link #wrap(MemorySegment wrap(...)} for compact sketches.");
     }
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
   }
