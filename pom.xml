@@ -83,7 +83,6 @@ under the License.
   </developers>
 
   <properties>
-    <datasketches-memory.version>6.1.0-SNAPSHOT</datasketches-memory.version>
 
     <!-- Test -->
     <testng.version>7.11.0</testng.version>
@@ -94,7 +93,7 @@ under the License.
     <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
 
     <!-- System-wide properties -->
-    <maven.version>3.9.10</maven.version>
+    <maven.version>3.9.11</maven.version>
     <java.version>24</java.version>
     <jvm-arguments>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</jvm-arguments>
     <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -184,7 +183,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[24,)</version> <!-- java.version -->
+                    <version>[22,)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},4.0.0)</version>
