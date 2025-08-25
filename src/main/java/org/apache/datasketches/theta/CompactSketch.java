@@ -228,7 +228,7 @@ public abstract class CompactSketch extends Sketch {
   }
 
   /**
-   * Wrap takes the sketch image in the given MemorySegment and refers to it directly.
+   * Wrap takes the sketch image in the given byte array and refers to it directly.
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
@@ -241,20 +241,20 @@ public abstract class CompactSketch extends Sketch {
    * result in heapified forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall space.</p>
    *
-   * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source MemorySegment image.
+   * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source byte array image.
    * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of DEFAULT_UPDATE_SEED.</p>
    *
    * @param bytes a byte array image of a Sketch that was created using the DEFAULT_UPDATE_SEED.
    *
-   * @return a CompactSketch backed by the given MemorySegment except as above.
+   * @return a CompactSketch backed by the given byte array except as above.
    */
   public static CompactSketch wrap(final byte[] bytes) {
     return wrap(bytes, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   /**
-   * Wrap takes the sketch image in the given MemorySegment and refers to it directly.
+   * Wrap takes the sketch image in the given  byte array and refers to it directly.
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
@@ -267,14 +267,14 @@ public abstract class CompactSketch extends Sketch {
    * result in heapified forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall space.</p>
    *
-   * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.
+   * <p>This method checks if the given expectedSeed was used to create the source byte array image.
    * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
    * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
    * @param bytes a byte array image of a Sketch that was created using the given expectedSeed.
-   * @param expectedSeed the seed used to validate the given MemorySegment image.
+   * @param expectedSeed the seed used to validate the given byte array image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a CompactSketch backed by the given MemorySegment except as above.
+   * @return a CompactSketch backed by the given byte array except as above.
    */
   public static CompactSketch wrap(final byte[] bytes, final long expectedSeed) {
     return wrap(bytes, expectedSeed, true);

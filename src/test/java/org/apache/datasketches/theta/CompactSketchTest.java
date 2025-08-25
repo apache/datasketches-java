@@ -582,7 +582,7 @@ public class CompactSketchTest {
   }
 
   @Test
-  public void serializeDeserializeDirectV4() {
+  public void serializeDeserializeDirectV4_segment() {
     final UpdateSketch sk = Sketches.updateSketchBuilder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
@@ -597,6 +597,24 @@ public class CompactSketchTest {
       assertEquals(it2.get(), it2.get());
     }
   }
+
+  @Test
+  public void serializeDeserializeDirectV4_bytes() {
+    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < 10000; i++) {
+      sk.update(i);
+    }
+    final CompactSketch cs1 = sk.compact(true, MemorySegment.ofArray(new byte[sk.getCompactBytes()]));
+    final byte[] bytes = cs1.toByteArrayCompressed();
+    final CompactSketch cs2 = CompactSketch.wrap(bytes);
+    assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
+    final HashIterator it1 = cs1.iterator();
+    final HashIterator it2 = cs2.iterator();
+    while (it1.next() && it2.next()) {
+      assertEquals(it2.get(), it2.get());
+    }
+  }
+
 
   @Test
   public void serializeWrapBytesV3() {
