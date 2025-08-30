@@ -66,8 +66,6 @@ under the License.
   </scm>
 
   <issueManagement>
-    <!-- <system>jira</system>
-      <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
     <system>GitHub</system>
     <url>https://github.com/apache/${project.artifactId}/issues</url>
   </issueManagement>
@@ -105,10 +103,10 @@ under the License.
     <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.6.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
     <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <!-- for surefire, failsafe and surefire-report: -->
@@ -584,25 +582,7 @@ under the License.
       </build>
     </profile>
 
-    <!-- Disable source release assembly for 'apache-release' profile.
-             This is performed from a script outside Maven
-    <profile>
-      <id>apache-release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>${maven-assembly-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>source-release-assembly</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile> -->
+
 
     <profile>
       <id>generate-java-files</id>
