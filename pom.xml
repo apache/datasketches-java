@@ -94,7 +94,7 @@ under the License.
     <!-- System-wide properties -->
     <maven.version>3.9.11</maven.version>
     <java.version>24</java.version>
-    <jvm-arguments>-Xmx4g</jvm-arguments>
+    <jvm-arguments>-Xmx4g</jvm-arguments> <!-- use space to separate args -->
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -275,7 +275,7 @@ under the License.
           <configuration>
             <forkCount>1</forkCount>
             <reuseForks>true</reuseForks>
-            <argLine>${jvm-arguments}</argLine>
+            <argLine>${jvm-arguments}</argLine> <!-- use space to separate args -->
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
