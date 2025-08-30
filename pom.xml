@@ -83,7 +83,6 @@ under the License.
   </developers>
 
   <properties>
-
     <!-- Test -->
     <testng.version>7.11.0</testng.version>
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
@@ -96,8 +95,6 @@ under the License.
     <maven.version>3.9.11</maven.version>
     <java.version>24</java.version>
     <jvm-arguments>-Xmx4g</jvm-arguments>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -156,8 +153,9 @@ under the License.
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
+            <release>${java.version}</release>
             <compilerArgs>
-              <arg></arg>
+              <arg></arg> <!-- comma separated or separate args --> 
             </compilerArgs>
           </configuration>
         </plugin>
@@ -275,6 +273,8 @@ under the License.
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
+            <forkCount>1</forkCount>
+            <reuseForks>true</reuseForks>
             <argLine>${jvm-arguments}</argLine>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
