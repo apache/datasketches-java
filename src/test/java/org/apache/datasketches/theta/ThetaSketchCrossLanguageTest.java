@@ -45,7 +45,7 @@ public class ThetaSketchCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final UpdateSketch sk = UpdateSketch.builder().build();
       for (int i = 0; i < n; i++) {
         sk.update(i);
@@ -57,7 +57,7 @@ public class ThetaSketchCrossLanguageTest {
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingCompressed() throws IOException {
     final int[] nArr = {10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final UpdateSketch sk = UpdateSketch.builder().build();
       for (int i = 0; i < n; i++) {
         sk.update(i);
@@ -76,9 +76,9 @@ public class ThetaSketchCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCpp() throws IOException {
+  public void deserializeFromCppSegment() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_n" + n + "_cpp.sk"));
       final CompactSketch sketch = CompactSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -95,9 +95,28 @@ public class ThetaSketchCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppCompressed() throws IOException {
+  public void deserializeFromCppBytes() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    for (final int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_n" + n + "_cpp.sk"));
+      final CompactSketch sketch = CompactSketch.wrap(bytes);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertEquals(sketch.getEstimate(), n, n * 0.03);
+      assertTrue(sketch.isOrdered());
+      final HashIterator it = sketch.iterator();
+      long previous = 0;
+      while (it.next()) {
+        assertTrue(it.get() < sketch.getThetaLong());
+        assertTrue(it.get() > previous);
+        previous = it.get();
+      }
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void deserializeFromCppCompressedSegment() throws IOException {
     final int[] nArr = {10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
+    for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_compressed_n" + n + "_cpp.sk"));
       final CompactSketch sketch = CompactSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -114,9 +133,36 @@ public class ThetaSketchCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppNonEmptyNoEntries() throws IOException {
+  public void deserializeFromCppCompressedBytes() throws IOException {
+    final int[] nArr = {10, 100, 1000, 10000, 100000, 1000000};
+    for (final int n: nArr) {
+      final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_compressed_n" + n + "_cpp.sk"));
+      final CompactSketch sketch = CompactSketch.wrap(bytes);
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertEquals(sketch.getEstimate(), n, n * 0.03);
+      assertTrue(sketch.isOrdered());
+      final HashIterator it = sketch.iterator();
+      long previous = 0;
+      while (it.next()) {
+        assertTrue(it.get() < sketch.getThetaLong());
+        assertTrue(it.get() > previous);
+        previous = it.get();
+      }
+    }
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void deserializeFromCppNonEmptyNoEntriesSegment() throws IOException {
     final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_non_empty_no_entries_cpp.sk"));
     final CompactSketch sketch = CompactSketch.wrap(MemorySegment.ofArray(bytes));
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getRetainedEntries(), 0);
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void deserializeFromCppNonEmptyNoEntriesBytes() throws IOException {
+    final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_non_empty_no_entries_cpp.sk"));
+    final CompactSketch sketch = CompactSketch.wrap(bytes);
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
   }
