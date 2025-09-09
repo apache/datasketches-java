@@ -63,7 +63,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * was used to create the source MemorySegment image.
    *
    * <p>For Compact Sketches this method assumes that the sketch image was created with the
-   * correct hash seed, so it is not checked.</p>
+   * correct hash seed, so it is not checked. SerialVersion 1 sketches (pre-open-source) cannot be checked.</p>
    *
    * @param srcSeg an image of a Sketch.
    *
@@ -83,8 +83,12 @@ public abstract class Sketch implements MemorySegmentStatus {
    *
    * <p>The resulting sketch will not retain any link to the source MemorySegment.</p>
    *
-   * <p>For Update and Compact Sketches this method checks if the given expectedSeed was used to
-   * create the source MemorySegment image.  However, SerialVersion 1 sketches cannot be checked.</p>
+   * <p>For Update Sketches this method checks if the
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
+   * was used to create the source MemorySegment image.
+   *
+   * <p>For Compact Sketches this method assumes that the sketch image was created with the
+   * correct hash seed, so it is not checked. SerialVersion 1 sketches (pre-open-source) cannot be checked.</p>
    *
    * @param srcSeg an image of a Sketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
@@ -109,8 +113,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
    * been explicitly stored as direct sketches can be wrapped.
    * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
-   * where all data will be copied to the heap. These early versions were never designed to
-   * "wrap".</p>
+   * where all data will be copied to the heap. These early versions were never designed to "wrap".</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in on-heap equivalent forms of empty and single item sketch respectively.
@@ -121,10 +124,10 @@ public abstract class Sketch implements MemorySegmentStatus {
    * was used to create the source MemorySegment image.
    *
    * <p>For Compact Sketches this method assumes that the sketch image was created with the
-   * correct hash seed, so it is not checked.</p>
+   * correct hash seed, so it is not checked.  SerialVersion 1 (pre-open-source) sketches cannot be checked.</p>
    *
-   * @param srcSeg an image of a Sketch.
-   * @return a Sketch backed by the given MemorySegment
+   * @param srcSeg a MemorySegment with an image of a Sketch.
+   * @return a read-only Sketch backed by the given MemorySegment
    */
   public static Sketch wrap(final MemorySegment srcSeg) {
     final int  preLongs = srcSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -154,20 +157,23 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
    * been explicitly stored as direct sketches can be wrapped.
    * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
-   * where all data will be copied to the heap. These early versions were never designed to
-   * "wrap".</p>
+   * where all data will be copied to the heap. These early versions were never designed to "wrap".</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in on-heap equivalent forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall space.</p>
    *
-   * <p>For Update and Compact Sketches this method checks if the given expectedSeed was used to
-   * create the source MemorySegment image.  However, SerialVersion 1 sketches cannot be checked.</p>
+   * <p>For Update Sketches this method checks if the
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
+   * was used to create the source MemorySegment image.
+   *
+   * <p>For Compact Sketches this method assumes that the sketch image was created with the
+   * correct hash seed, so it is not checked.  SerialVersion 1 (pre-open-source) sketches cannot be checked.</p>
    *
    * @param srcSeg a MemorySegment with an image of a Sketch.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a UpdateSketch backed by the given MemorySegment except as above.
+   * @return a read-only Sketch backed by the given MemorySegment.
    */
   public static Sketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
     final int  preLongs = srcSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -203,7 +209,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return this sketch as an ordered CompactSketch.
    */
   public CompactSketch compact() {
-    return (this.isCompact()) ? (CompactSketch)this : compact(true, null);
+    return isCompact() ? (CompactSketch)this : compact(true, null);
   }
 
   /**

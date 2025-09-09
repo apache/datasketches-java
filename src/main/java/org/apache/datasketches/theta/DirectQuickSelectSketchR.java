@@ -51,8 +51,7 @@ import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * The default Theta Sketch using the QuickSelect algorithm.
- * This is the read-only implementation with non-functional methods, which affect the state.
+ * The read-only Theta Sketch using the QuickSelect algorithm.
  *
  * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
  * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
@@ -65,17 +64,16 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   final long seed_; //provided, kept only on heap, never serialized.
   int hashTableThreshold_; //computed, kept only on heap, never serialized.
-  MemorySegment wseg_; //A MemorySegment for child class, but no write methods here
+  MemorySegment wseg_; //This reference is shared with the writable child class, but no write methods here
 
-  //only called by DirectQuickSelectSketch and below
+  //only called by the writable DirectQuickSelectSketch and this class.
   DirectQuickSelectSketchR(final long seed, final MemorySegment wseg) {
     seed_ = seed;
     wseg_ = wseg;
   }
 
   /**
-   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from
-   * this sketch.
+   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch.
    * @param srcSeg the source MemorySegment.
    * The given MemorySegment object must be in hash table form and not read only.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
@@ -89,8 +87,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     UpdateSketch.checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    final DirectQuickSelectSketchR dqssr =
-        new DirectQuickSelectSketchR(seed, srcSeg);
+    final DirectQuickSelectSketchR dqssr = new DirectQuickSelectSketchR(seed, srcSeg);
     dqssr.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqssr;
   }

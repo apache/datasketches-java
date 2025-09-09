@@ -28,7 +28,8 @@ import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Util;
 
 /**
- * Wrapper around a serialized compact compressed read-only sketch. It is not empty, not a single item.
+ * A wrapper around a serialized compact compressed read-only sketch in the form of a byte array.
+ * It is not an empty nor a single item sketch.
  *
  * <p>This sketch can only be associated with a Serialization Version 4 format binary image.</p>
  */
