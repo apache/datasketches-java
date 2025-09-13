@@ -60,8 +60,11 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Lee Rhodes
  */
 public abstract class UpdateSketch extends Sketch {
+  private final long seed_;
 
-  UpdateSketch() {}
+  UpdateSketch(final long seed) {
+    seed_ = seed; //kept only on heap, never serialized. Hoisted here for performance.
+  }
 
   /**
   * Wrap takes the writable sketch image in MemorySegment and refers to it directly. There is no data copying onto
@@ -91,17 +94,17 @@ public abstract class UpdateSketch extends Sketch {
   * @return a UpdateSketch backed by the given MemorySegment
   */
   public static UpdateSketch wrap(final MemorySegment srcWSeg, final long expectedSeed) {
-    Objects.requireNonNull(srcWSeg, "Source MemorySeg e t must not be null");
+    Objects.requireNonNull(srcWSeg, "Source MemorySegment must not be null");
     checkBounds(0, 24, srcWSeg.byteSize()); //need min 24 bytes
-    final int  preLongs = srcWSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int serVer = srcWSeg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
-    final int familyID = srcWSeg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
+    final int  preLongs = srcWSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F; //mask to 6 bits
+    final int serVer = srcWSeg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF; //mask to byte
+    final int familyID = srcWSeg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF; //mask to byte
     final Family family = Family.idToFamily(familyID);
     if (family != Family.QUICKSELECT) {
       throw new SketchesArgumentException(
         "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
     }
-    if ((serVer == 3) && (preLongs == 3)) {
+    if (serVer == 3 && preLongs == 3) {
       return DirectQuickSelectSketch.writableWrap(srcWSeg, expectedSeed);
     } else {
       throw new SketchesArgumentException(
@@ -150,7 +153,7 @@ public abstract class UpdateSketch extends Sketch {
   public int getCompactBytes() {
     final int preLongs = getCompactPreambleLongs();
     final int dataLongs = getRetainedEntries(true);
-    return (preLongs + dataLongs) << 3;
+    return preLongs + dataLongs << 3;
   }
 
   @Override
@@ -160,7 +163,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return ((this instanceof DirectQuickSelectSketchR) &&  ((DirectQuickSelectSketchR)this).hasMemorySegment());
+    return this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).hasMemorySegment();
   }
 
   @Override
@@ -170,7 +173,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean isOffHeap() {
-    return ((this instanceof DirectQuickSelectSketchR) && ((DirectQuickSelectSketchR)this).isOffHeap());
+    return this instanceof DirectQuickSelectSketchR && ((DirectQuickSelectSketchR)this).isOffHeap();
   }
 
   @Override
@@ -180,7 +183,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return (this instanceof final DirectQuickSelectSketchR dqssr) && dqssr.isSameResource(that);
+    return this instanceof final DirectQuickSelectSketchR dqssr && dqssr.isSameResource(that);
   }
 
   //UpdateSketch interface
@@ -210,7 +213,7 @@ public abstract class UpdateSketch extends Sketch {
    * Gets the configured seed
    * @return the configured seed
    */
-  abstract long getSeed();
+  public long getSeed() { return seed_; }
 
   /**
    * Resets this sketch back to a virgin empty state.
@@ -232,8 +235,7 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final long datum) {
-    final long[] data = { datum };
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(datum, seed_)[0] >>> 1);
   }
 
   /**
@@ -248,9 +250,9 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final double datum) {
-    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN & +/- infinity forms
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    final double d = datum == 0.0 ? 0.0 : datum; // canonicalize -0.0, 0.0
+    final long data = Double.doubleToLongBits(d);// canonicalize all NaN & +/- infinity forms
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -267,11 +269,11 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final String datum) {
-    if ((datum == null) || datum.isEmpty()) {
+    if (datum == null || datum.isEmpty()) {
       return RejectedNullOrEmpty;
     }
     final byte[] data = datum.getBytes(UTF_8);
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -283,10 +285,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final byte[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -298,10 +300,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final ByteBuffer buffer) {
-    if ((buffer == null) || !buffer.hasRemaining()) {
+    if (buffer == null || !buffer.hasRemaining()) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(buffer, getSeed())[0] >>> 1);
+    return hashUpdate(hash(buffer, seed_)[0] >>> 1);
   }
 
   /**
@@ -316,10 +318,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final char[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -331,10 +333,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final int[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -346,10 +348,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final long[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   //restricted methods
@@ -455,7 +457,7 @@ public abstract class UpdateSketch extends Sketch {
     final long thetaLong = extractThetaLong(srcSeg);                    //bytes 16-23
     final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     //if (lgArrLongs <= lgNomLongs) the sketch is still resizing, thus theta cannot be < p.
-    if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
+    if (lgArrLongs <= lgNomLongs && theta < p ) {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
@@ -477,7 +479,7 @@ public abstract class UpdateSketch extends Sketch {
     final int lgA = lgArrLongs;
     final int lgR = extractLgResizeFactor(srcSeg);
     if (lgR == 0) { return lgA != lgT; }
-    return (((lgT - lgA) % lgR) != 0);
+    return (lgT - lgA) % lgR != 0;
   }
 
 }

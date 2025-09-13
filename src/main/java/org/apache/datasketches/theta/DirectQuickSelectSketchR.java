@@ -62,13 +62,12 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  */
 class DirectQuickSelectSketchR extends UpdateSketch {
   static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
-  final long seed_; //provided, kept only on heap, never serialized.
   int hashTableThreshold_; //computed, kept only on heap, never serialized.
   MemorySegment wseg_; //This reference is shared with the writable child class, but no write methods here
 
   //only called by the writable DirectQuickSelectSketch and this class.
   DirectQuickSelectSketchR(final long seed, final MemorySegment wseg) {
-    seed_ = seed;
+    super(seed);
     wseg_ = wseg;
   }
 
@@ -100,8 +99,8 @@ class DirectQuickSelectSketchR extends UpdateSketch {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketchR fastReadOnlyWrap(final MemorySegment srcSeg, final long seed) {
-    final int lgNomLongs = srcSeg.get(JAVA_BYTE, LG_NOM_LONGS_BYTE) & 0XFF;
-    final int lgArrLongs = srcSeg.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
+    final int lgNomLongs = srcSeg.get(JAVA_BYTE, LG_NOM_LONGS_BYTE) & 0XFF; //mask to byte
+    final int lgArrLongs = srcSeg.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF; //mask to byte
 
     final DirectQuickSelectSketchR dqss = new DirectQuickSelectSketchR(seed, srcSeg);
     dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
@@ -114,8 +113,8 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   public int getCurrentBytes() {
     //not compact
     final byte lgArrLongs = wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE);
-    final int preLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
-    return (preLongs + (1 << lgArrLongs)) << 3;
+    final int preLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F; //mask to 6 bits
+    return preLongs + (1 << lgArrLongs) << 3;
   }
 
   @Override
@@ -127,7 +126,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public Family getFamily() {
-    final int familyID = wseg_.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
+    final int familyID = wseg_.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF; //mask to byte
     return Family.idToFamily(familyID);
   }
 
@@ -143,7 +142,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return (wseg_ != null) && wseg_.scope().isAlive();
+    return wseg_ != null && wseg_.scope().isAlive();
   }
 
   @Override
@@ -197,11 +196,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  long getSeed() {
-    return seed_;
-  }
-
-  @Override
   public UpdateSketch rebuild() {
     throw new SketchesReadOnlyException();
   }
@@ -215,8 +209,8 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   long[] getCache() {
-    final long lgArrLongs = wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
-    final int preambleLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
+    final long lgArrLongs = wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF; //mask to byte
+    final int preambleLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F; //mask to 6 bits
     final long[] cacheArr = new long[1 << lgArrLongs];
     MemorySegment.copy(wseg_, JAVA_LONG_UNALIGNED, preambleLongs << 3, cacheArr, 0, 1 << lgArrLongs);
     return cacheArr;
@@ -254,11 +248,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   int getLgArrLongs() {
-    return wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF;
+    return wseg_.get(JAVA_BYTE, LG_ARR_LONGS_BYTE) & 0XFF; //mask to byte
   }
 
   int getLgRF() { //only Direct needs this
-    return (wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
+    return wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT & 0X3; //mask to 2 bits
   }
 
   @Override
@@ -277,7 +271,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   protected static final int getOffHeapHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
     //SpotBugs may complain (DB_DUPLICATE_BRANCHES) if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD,
     //but this allows us to tune these constants for different sketches.
-    final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
+    final double fraction = lgArrLongs <= lgNomLongs ? DQS_RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
     return (int) (fraction * (1 << lgArrLongs));
   }
 
