@@ -357,7 +357,7 @@ final class KllHelper {
       if (mSegReq == null) {
         mSegReq = MemorySegmentRequest.DEFAULT;
       }
-      final MemorySegment newSeg = mSegReq.request(oldWseg, requiredSketchBytes);
+      final MemorySegment newSeg = mSegReq.request(requiredSketchBytes);
       MemorySegment.copy(oldWseg, 0, newSeg, 0, DATA_START_ADR); //copy preamble (first 20 bytes)
       mSegReq.requestClose(oldWseg);
       return newSeg;

@@ -27,7 +27,7 @@ import static org.testng.Assert.assertFalse;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.common.MemorySegmentRequestExtension;
+import org.apache.datasketches.common.MemorySegmentRequestExample;
 import org.testng.annotations.Test;
 
 
@@ -49,7 +49,7 @@ public class KllMemorySegmentRequestApp {
     final MemorySegment seg = arena.allocate(numBytes);
 
     //Use the custom extension of the MemorySegmentRequest interface.
-    final MemorySegmentRequestExtension mSegReqExt = new MemorySegmentRequestExtension();
+    final MemorySegmentRequestExample mSegReqExt = new MemorySegmentRequestExample();
 
     //Create a new KllLongsSketch and pass the custom extension
     final KllLongsSketch sk = KllLongsSketch.newDirectInstance(k, seg, mSegReqExt);

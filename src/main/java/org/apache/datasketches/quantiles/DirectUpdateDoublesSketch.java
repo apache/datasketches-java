@@ -358,7 +358,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
 
     mSegReq_ = (mSegReq_ == null) ? MemorySegmentRequest.DEFAULT : mSegReq_;
 
-    final MemorySegment newSeg = mSegReq_.request(seg_, needBytes);
+    final MemorySegment newSeg = mSegReq_.request(needBytes);
     MemorySegment.copy(seg_, 0, newSeg, 0, segBytes);
     mSegReq_.requestClose(seg_);
     return newSeg;
