@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jdk: [ 24 ]
+        jdk: [ 25 ]
 
     env:
       JDK_VERSION: ${{ matrix.jdk }}
