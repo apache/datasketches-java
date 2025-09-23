@@ -118,6 +118,22 @@ public final class UpdateSketchBuilder {
   }
 
   /**
+   * Alternative method of setting the Nominal Entries for this sketch from the log_base2 value,
+   * commonly called LgK.
+   * This value is also used for building a shared concurrent sketch.
+   * The minimum value is 4 and the maximum value is 26.
+   * Be aware that sketches as large as 26 may not have been
+   * thoroughly characterized for performance.
+   *
+   * @param lgK the Log Nominal Entries. Also for the concurrent shared sketch
+   * @return this UpdateSketchBuilder
+   */
+  public UpdateSketchBuilder setLgK(final int lgK) {
+    bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgK);
+    return this;
+  }
+
+  /**
    * Returns Log-base 2 Nominal Entries
    * @return Log-base 2 Nominal Entries
    */

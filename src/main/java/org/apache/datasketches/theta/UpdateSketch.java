@@ -75,6 +75,9 @@ public abstract class UpdateSketch extends Sketch {
   * @param srcWSeg an image of a writable sketch where the image seed hash matches the default seed hash.
   * It must have a size of at least 24 bytes.
   * @return an UpdateSketch backed by the given MemorySegment
+  * @throws SketchesArgumentException if the provided MemorySegment
+  * is invalid, corrupted, or incompatible with this sketch type.
+  * Callers must treat this as a fatal error for that segment.
   */
   public static UpdateSketch wrap(final MemorySegment srcWSeg) {
     return wrap(srcWSeg, Util.DEFAULT_UPDATE_SEED);
@@ -92,6 +95,9 @@ public abstract class UpdateSketch extends Sketch {
   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
   * @return a UpdateSketch backed by the given MemorySegment
+  * @throws SketchesArgumentException if the provided MemorySegment
+  * is invalid, corrupted, or incompatible with this sketch type.
+  * Callers must treat this as a fatal error for that segment.
   */
   public static UpdateSketch wrap(final MemorySegment srcWSeg, final long expectedSeed) {
     Objects.requireNonNull(srcWSeg, "Source MemorySegment must not be null");
@@ -118,6 +124,9 @@ public abstract class UpdateSketch extends Sketch {
    * @param srcSeg the given MemorySegment with a sketch image.
    * It must have a size of at least 24 bytes.
    * @return an UpdateSketch
+   * @throws SketchesArgumentException if the provided MemorySegment
+   * is invalid, corrupted, or incompatible with this sketch type.
+   * Callers must treat this as a fatal error for that segment.
    */
   public static UpdateSketch heapify(final MemorySegment srcSeg) {
     return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
@@ -130,6 +139,9 @@ public abstract class UpdateSketch extends Sketch {
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return an UpdateSketch
+   * @throws SketchesArgumentException if the provided MemorySegment
+   * is invalid, corrupted, or incompatible with this sketch type.
+   * Callers must treat this as a fatal error for that segment.
    */
   public static UpdateSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
     Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
@@ -163,7 +175,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return this instanceof DirectQuickSelectSketchR &&  ((DirectQuickSelectSketchR)this).hasMemorySegment();
+    return this instanceof final DirectQuickSelectSketchR dqssr && dqssr.hasMemorySegment();
   }
 
   @Override
@@ -173,7 +185,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean isOffHeap() {
-    return this instanceof DirectQuickSelectSketchR && ((DirectQuickSelectSketchR)this).isOffHeap();
+    return this instanceof final DirectQuickSelectSketchR dqssr && dqssr.isOffHeap();
   }
 
   @Override

@@ -324,7 +324,7 @@ final class CompactOperations {
    */
 
   /**
-   * This corrects a temporary anomalous condition where compact() is called on an UpdateSketch
+   * This corrects a temporary anomalous condition where compact() or toByteArray() is called on an UpdateSketch
    * that was initialized with p < 1.0 and update() was never called.  In this case Theta < 1.0,
    * curCount = 0, and empty = true.  The correction is to change Theta to 1.0, which makes the
    * returning sketch empty. This should only be used in the compaction or serialization of an
@@ -347,8 +347,8 @@ final class CompactOperations {
    * @param curCount the given current count
    */ //This handles #2 and #6 above
   static void checkIllegalCurCountAndEmpty(final boolean empty, final int curCount) {
-    if (empty && (curCount != 0)) { //this handles #2 and #6 above
-      throw new SketchesStateException("Illegal State: Empty=true and Current Count != 0.");
+    if (empty && curCount != 0) { //this handles #2 and #6 above
+      throw new SketchesStateException("Possible corruption. Illegal State: Empty=true and Current Count != 0.");
     }
   }
 

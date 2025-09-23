@@ -126,17 +126,17 @@ import org.apache.datasketches.common.Util;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||    Seed Hash    | Flags  | numEB  | entBits| FamID  | SerVer |     PreLongs = 3   |
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1     |   0              |
+ *  0   ||    Seed Hash    | Flags  | numEB  | entBits| FamID  | SerVer=4 |   PreLongs = 3   |
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------THETA_LONG-------------------------------------------|
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9     |   8              |
+ *  1   ||------------------------------THETA_LONG-------------------------------------------| (only if estimating)
  *
- *      ||        |        |        |  (20)  |  (19)  |  (18)  |  (17)  |    16              |
- *  2   ||----------------Retained Entries stored as 1 to 4 bytes----------------------------|
+ *      ||        |        |        |   20   |  (19)  |  (18)  |  (17)    |  16              |
+ *  2   ||--------Retained Entries stored as 1 to 4 bytes in bytes 16-19---------------------|
  *
- *      ||        |        |        |        |        |        |        |                    |
- *  3   ||------------------Delta encoded compressed byte array------------------------------|
+ *      ||        |        |        |        |        |        |          |                  |
+ *  3   ||--------Delta encoded compressed byte array starts at bytes 17-20------------------|
  *  </pre>
  *
  * <p>The UpdateSketch and AlphaSketch require 24 bytes of preamble followed by a non-compact
@@ -318,7 +318,7 @@ final class PreambleUtil {
     sb.append("Byte  0: ResizeFactor         : ").append(rfId + ", " + rf.toString()).append(LS);
     sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
     sb.append("Byte  2: Family               : ").append(familyId + ", " + family.toString()).append(LS);
-    sb.append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS);
+    sb.append("Byte  3: LgNomLongs, LgK      : ").append(lgNomLongs).append(LS);
     sb.append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS);
     sb.append("Byte  5: Flags Field          : ").append(flagsStr).append(LS);
     sb.append("  Bit Flag Name               : State:").append(LS);
@@ -351,8 +351,13 @@ final class PreambleUtil {
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
       sb.append("             Theta (long)     : ").append(thetaLong).append(LS);
       sb.append("             Theta (long,hex) : ").append(thetaHex).append(LS);
+      if (serVer == 4) {
+        sb.append(  "TOTAL Storage Bytes         : ").append(seg.byteSize()).append(LS);
+        sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
+        return sb.toString();
+      }
     }
-    else { //preLongs == 4
+    else { //preLongs == 4 (Union)
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
       sb.append("Bytes 12-15: P                : ").append(p).append(LS);
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
@@ -363,9 +368,8 @@ final class PreambleUtil {
       sb.append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
     }
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
-    sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
-    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + curCount) * 8).append(LS);
-    sb.append(  "TOTAL Capacity Bytes          : ").append(seg.byteSize()).append(LS);
+    sb.append(  "Retained Data Bytes           : ").append(curCount * 8).append(LS);
+    sb.append(  "TOTAL Storage Bytes           : ").append(seg.byteSize()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }

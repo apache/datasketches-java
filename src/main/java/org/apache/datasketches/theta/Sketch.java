@@ -334,6 +334,16 @@ public abstract class Sketch implements MemorySegmentStatus {
   }
 
   /**
+   * Returns the maximum number of storage bytes required for an UpdateSketch with the given
+   * log_base2 of the nominal entries.
+   * @param lgNomEntries log_base2 of <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
+   * @return the maximum number of storage bytes required for a UpdateSketch with the given lgNomEntries
+   */
+  public static int getUpdateSketchMaxBytes(final int lgNomEntries) {
+    return (1 << lgNomEntries << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
+  }
+
+  /**
    * Returns the number of valid entries that have been retained by the sketch.
    * @return the number of valid retained entries
    */
@@ -451,7 +461,10 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @param hexMode If true, hashes will be output in hex.
    * @return The result string, which can be very long.
    */
-  public String toString(final boolean sketchSummary, final boolean dataDetail, final int width,
+  public String toString(
+      final boolean sketchSummary,
+      final boolean dataDetail,
+      final int width,
       final boolean hexMode) {
     final StringBuilder sb = new StringBuilder();
 
@@ -554,6 +567,9 @@ public abstract class Sketch implements MemorySegmentStatus {
   /**
    * Gets the internal cache array. For on-heap sketches this will return a reference to the actual
    * cache array. For MemorySegment-based sketches this returns a copy.
+   *
+   * <p>This can be an expensive operation and is intended for diagnostic & test applications.
+   * Use {@link #iterator() iterator()} instead.</p>
    * @return the internal cache array.
    */
   abstract long[] getCache();

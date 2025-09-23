@@ -91,7 +91,7 @@ under the License.
 
     <!-- System-wide properties -->
     <maven.version>3.9.11</maven.version>
-    <java.version>24</java.version>
+    <java.version>25</java.version>
     <!-- removed: g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 -->
     <jvm.options>-Xmx4g</jvm.options> <!-- use space to separate args -->
     <charset.encoding>UTF-8</charset.encoding>
@@ -189,7 +189,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[22,)</version>
+                    <version>[25,)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},)</version>
@@ -288,7 +288,7 @@ under the License.
           <configuration>
             <forkCount>1</forkCount>
             <reuseForks>true</reuseForks>
-            <argLine>${jvm.options}</argLine> <!-- use space to separate args -->
+            <argLine>${argLine} ${jvm.options}</argLine> <!-- use space to separate args -->
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
