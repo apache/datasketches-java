@@ -90,7 +90,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final SharedLocal sl = new SharedLocal(lgK, 4, false, false);
     final UpdateSketch shared = sl.shared;
     final UpdateSketch local = sl.local;
-    assertEquals((sl.bldr.getLocalLgNominalEntries()), 4);
+    assertEquals((sl.bldr.getConCurLgNominalEntries()), 4);
     assertTrue(local.isEmpty());
 
     for (int i = 0; i < u; i++) {
@@ -494,7 +494,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkBuilder() {
     final int lgK = 4;
     final SharedLocal sl = new SharedLocal(lgK);
-    assertEquals(sl.bldr.getLocalLgNominalEntries(), lgK);
+    assertEquals(sl.bldr.getConCurLgNominalEntries(), lgK);
     assertEquals(sl.bldr.getLgNominalEntries(), lgK);
     println(sl.bldr.toString());
   }
@@ -652,11 +652,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
       fail();
     } catch (final SketchesArgumentException e) { }
     try {
-      bldr.setLocalNominalEntries(8);
+      bldr.setConCurNominalEntries(8);
       fail();
     } catch (final SketchesArgumentException e) { }
     try {
-      bldr.setLocalLogNominalEntries(3);
+      bldr.setConCurLogNominalEntries(3);
       fail();
     } catch (final SketchesArgumentException e) { }
     bldr.setNumPoolThreads(4);
@@ -731,7 +731,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
         wseg = null;
       }
       bldr.setLogNominalEntries(sharedLgK);
-      bldr.setLocalLogNominalEntries(localLgK);
+      bldr.setConCurLogNominalEntries(localLgK);
       bldr.setPropagateOrderedCompact(ordered);
       bldr.setSeed(this.seed);
       shared = bldr.buildShared(wseg);

@@ -242,7 +242,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
     final int bytes = shared.getCompactBytes();
-    assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
+    assertEquals(bytes, k*8 + (Family.COMPACT.getMaxPreLongs() << 3));
     final byte[] segArr2 = new byte[bytes];
     final MemorySegment seg2 = MemorySegment.ofArray(segArr2);
 
@@ -462,7 +462,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     waitForBgPropagationToComplete(shared);
 
     final double est = local.getEstimate();
-    assertTrue((est < (u * 1.05)) && (est > (u * 0.95)));
+    assertTrue(est < u * 1.05 && est > u * 0.95);
     assertTrue(shared.getRetainedEntries(false) >= k);
   }
 
@@ -480,7 +480,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     for (int i = 0; i< u; i++) { local.update(i); }
     waitForBgPropagationToComplete(shared);
     final double est = local.getEstimate();
-    assertTrue((est < (u * 1.05)) && (est > (u * 0.95)));
+    assertTrue(est < u * 1.05 && est > u * 0.95);
     assertTrue(shared.getRetainedEntries(false) >= k);
   }
 
@@ -501,7 +501,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     final double est1 = local.getEstimate();
     final int count1 = shared.getRetainedEntries(false);
-    assertTrue((est1 < (u * 1.05)) && (est1 > (u * 0.95)));
+    assertTrue(est1 < u * 1.05 && est1 > u * 0.95);
     assertTrue(count1 >= k);
 
     byte[] serArr;
@@ -576,7 +576,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     final boolean useSeg = true;
     final SharedLocal sl = new SharedLocal(lgK, lgK, useSeg);
     sl.wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.writableWrap(sl.wseg, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(sl.wseg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -607,7 +607,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     final long theta2 = ((ConcurrentSharedThetaSketch)shared).getVolatileTheta();
     final int entries = shared.getRetainedEntries(false);
-    assertTrue((entries > k) || (theta2 < theta1),
+    assertTrue(entries > k || theta2 < theta1,
         "entries="+entries+" k="+k+" theta1="+theta1+" theta2="+theta2);
 
     shared.rebuild();
@@ -658,7 +658,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     sl.wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
     //try to wrap the corrupted seg
-    DirectQuickSelectSketch.writableWrap(sl.wseg, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(sl.wseg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

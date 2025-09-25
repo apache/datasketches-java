@@ -24,11 +24,12 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
 
 /**
  * This is an example of a possible implementation of the MemorySegmentRequest interface
- * where all requested segments are allocated off-heap.  A local ConcurrentHashMap tracks a newly created confined Arena
- * for every new MemorySegment allocated off-heap. This allows individual segments to be freed
+ * where all requested segments are allocated off-heap.  A local ConcurrentHashMap tracks a newly created
+ * confined Arena for every new MemorySegment allocated off-heap. This allows individual segments to be freed
  * immediately upon receiving the {@link #requestClose(MemorySegment) requestClose(MemorySegment)} call.
  */
 public final class MemorySegmentRequestExample implements MemorySegmentRequest {
@@ -50,24 +51,26 @@ public final class MemorySegmentRequestExample implements MemorySegmentRequest {
 
   @Override
   public synchronized void requestClose(final MemorySegment segKey) {
+    Objects.requireNonNull(segKey, "MemorySegment segKey must not be null");
     final Arena arena = map.get(segKey);
-    if (arena == null) { throw new SketchesArgumentException("Given MemorySegment key is not mapped to an Arena!"); }
-    if (arena.scope().isAlive()) {
-      arena.close();
+    if (arena != null) {
+      if (arena.scope().isAlive()) { arena.close(); }
       map.remove(segKey);
+    } else {
+      //ignore or
+      //throw new SketchesArgumentException("Given MemorySegment key is not mapped to an Arena!");
     }
   }
 
   /**
-   * This cleans up any unclosed, off-heap MemorySegments.
+   * This closes any unclosed, off-heap MemorySegments and removes all mappings from the map.
    */
   public synchronized void cleanup() {
-    for (final Enumeration<Arena> e = map.elements(); e.hasMoreElements();) {
+    for (final Enumeration<Arena> e = map.elements(); e.hasMoreElements(); ) {
       final Arena arena = e.nextElement();
-      if (arena.scope().isAlive()) {
-        arena.close();
-      }
+      if (arena.scope().isAlive()) { arena.close(); }
     }
+    map.clear();
   }
 
 }

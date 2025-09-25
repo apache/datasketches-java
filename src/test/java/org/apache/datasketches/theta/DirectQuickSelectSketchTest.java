@@ -187,7 +187,7 @@ public class DirectQuickSelectSketchTest {
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to wrap the corrupted seg
-    DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -354,7 +354,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
       final int bytes = usk.getCompactBytes();
-      assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
+      assertEquals(bytes, k*8 + (Family.COMPACT.getMaxPreLongs() << 3));
       final byte[] segArr2 = new byte[bytes];
       final MemorySegment seg2 = MemorySegment.ofArray(segArr2);
 
@@ -767,7 +767,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk2;
     seg1.set(JAVA_BYTE, FAMILY_BYTE, (byte) 3); //corrupt Family by setting to Compact
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, null, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (final SketchesArgumentException e) {
       //Pass
@@ -775,7 +775,7 @@ public class DirectQuickSelectSketchTest {
     seg1.set(JAVA_BYTE, FAMILY_BYTE, (byte) 2); //fix Family
     seg1.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 1); //corrupt preLongs
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, null, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (final SketchesArgumentException e) {
       //pass
@@ -783,7 +783,7 @@ public class DirectQuickSelectSketchTest {
     seg1.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 3); //fix preLongs
     seg1.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2); //corrupt serVer
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, null, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (final SketchesArgumentException e) {
       //pass
@@ -793,7 +793,7 @@ public class DirectQuickSelectSketchTest {
     seg1.set(JAVA_LONG_UNALIGNED, THETA_LONG, Long.MAX_VALUE >>> 1); //corrupt theta and
     seg1.set(JAVA_BYTE, LG_ARR_LONGS_BYTE, (byte) 10); //corrupt lgArrLongs
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, null, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (final SketchesArgumentException e) {
       //pass
@@ -803,7 +803,7 @@ public class DirectQuickSelectSketchTest {
     final byte badFlags = (byte) (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK);
     seg1.set(JAVA_BYTE, FLAGS_BYTE, badFlags);
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg1, Util.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg1, null, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (final SketchesArgumentException e) {
       //pass
@@ -812,7 +812,7 @@ public class DirectQuickSelectSketchTest {
     final byte[] arr2 = Arrays.copyOfRange(arr1, 0, bytes-1); //corrupt length
     final MemorySegment seg2 = MemorySegment.ofArray(arr2);
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(seg2, Util.DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(seg2, null, Util.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (final SketchesArgumentException e) {
       //pass
@@ -831,14 +831,14 @@ public class DirectQuickSelectSketchTest {
     usk.update(0);
 
     insertLgResizeFactor(seg, 0); // corrupt RF: X1
-    final UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
+    final UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
     assertEquals(dqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
 
   @Test
   public void checkFamilyAndRF() {
     final int k = 16;
-    final MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) + 24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(seg);
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
     assertEquals(sketch.getResizeFactor(), ResizeFactor.X8);
@@ -849,7 +849,7 @@ public class DirectQuickSelectSketchTest {
   public void checkResizeInBigSeg() {
     final int k = 1 << 14;
     final int u = 1 << 20;
-    final MemorySegment seg = MemorySegment.ofArray(new byte[(8*k*16) +24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[8*k*16 +24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(seg);
     for (int i=0; i<u; i++) { sketch.update(i); }
   }
@@ -857,10 +857,10 @@ public class DirectQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadLgNomLongs() {
     final int k = 16;
-    final MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) +24]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 +24]);
     Sketches.updateSketchBuilder().setNominalEntries(k).build(seg);
     seg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test

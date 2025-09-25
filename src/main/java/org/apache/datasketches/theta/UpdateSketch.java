@@ -47,6 +47,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
@@ -80,7 +81,7 @@ public abstract class UpdateSketch extends Sketch {
   * Callers must treat this as a fatal error for that segment.
   */
   public static UpdateSketch wrap(final MemorySegment srcWSeg) {
-    return wrap(srcWSeg, Util.DEFAULT_UPDATE_SEED);
+    return wrap(srcWSeg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -91,6 +92,7 @@ public abstract class UpdateSketch extends Sketch {
   * Java Heap version of the sketch where all data will be copied to the heap.
   * @param srcWSeg an image of a writable sketch where the image seed hash matches the given seed hash.
   * It must have a size of at least 24 bytes.
+  * @param mSegReq an implementation of the MemorySegmentRequest interface or null.
   * @param expectedSeed the seed used to validate the given MemorySegment image.
   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
@@ -99,7 +101,10 @@ public abstract class UpdateSketch extends Sketch {
   * is invalid, corrupted, or incompatible with this sketch type.
   * Callers must treat this as a fatal error for that segment.
   */
-  public static UpdateSketch wrap(final MemorySegment srcWSeg, final long expectedSeed) {
+  public static UpdateSketch wrap(
+      final MemorySegment srcWSeg,
+      final MemorySegmentRequest mSegReq,
+      final long expectedSeed) {
     Objects.requireNonNull(srcWSeg, "Source MemorySegment must not be null");
     checkBounds(0, 24, srcWSeg.byteSize()); //need min 24 bytes
     final int  preLongs = srcWSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F; //mask to 6 bits
@@ -111,7 +116,7 @@ public abstract class UpdateSketch extends Sketch {
         "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
     }
     if (serVer == 3 && preLongs == 3) {
-      return DirectQuickSelectSketch.writableWrap(srcWSeg, expectedSeed);
+      return DirectQuickSelectSketch.writableWrap(srcWSeg, mSegReq, expectedSeed);
     } else {
       throw new SketchesArgumentException(
         "Corrupted: An UpdateSketch image must have SerVer = 3 and preLongs = 3");

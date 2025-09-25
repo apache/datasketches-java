@@ -20,7 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -36,27 +36,24 @@ public class ClassicQuantilesMemorySegmentRequestApp {
    * This demonstrates one example of how to manage a growing off-heap DoublesSketch where the
    * expanded MemorySegments are also off-heap.
    */
-  public void checkMemorySegmentRequestExtension() {
+  public void checkMemorySegmentRequestExample() {
     final int k = 128; //The default is 128
     final int itemsIn = 40 * k; //will force requests for more space
+
+    //Use the custom MemorySegmentRequestExample to do the allocations.
+    final MemorySegmentRequestExample mSegReqEx = new MemorySegmentRequestExample();
 
     //The allocation of the original off-heap MemorySegment for the DoublesSketch
     //Note that this targets the size to only handle 2k values, which is quite small.
     final int initalBytes = DoublesSketch.getUpdatableStorageBytes(k, 2 * k);
-    final Arena arena = Arena.ofConfined();
-    final MemorySegment seg = arena.allocate(initalBytes);
 
-    //Use the custom extension of the MemorySegmentRequest interface.
-    final MemorySegmentRequestExample mSegReqExt = new MemorySegmentRequestExample();
+    final MemorySegment seg = mSegReqEx.request(initalBytes);
 
-    //Create a new KllLongsSketch and pass the custom extension
-    final DoublesSketchBuilder bldr = DoublesSketch.builder().setK(k);
-    final DoublesSketch sk = bldr.build(seg, mSegReqExt);
+    //Create a new KllLongsSketch and pass the mSegReqEx
+    final DoublesSketch sk = DoublesSketch.builder().setK(k).build(seg, mSegReqEx);
 
     //Update the sketch with way more data than the original MemorySegment can handle, forcing it to request larger MemorySegments.
-    for (int n = 1; n <= itemsIn; n++) {
-      sk.update(n);
-    }
+    for (int n = 1; n <= itemsIn; n++) { sk.update(n); }
 
     //Check to make sure the sketch got all the data:
     assertEquals(sk.getMaxItem(), itemsIn);
@@ -64,15 +61,10 @@ public class ClassicQuantilesMemorySegmentRequestApp {
     assertEquals(sk.getN(), itemsIn);
 
     //Confirm that the last MemorySegment used by the sketch is, in fact, not the same as the original one that was allocated.
-    assertFalse(sk.getMemorySegment().equals(seg));
+    assertTrue(sk.getMemorySegment() != seg);
 
     //All done with the sketch. Cleanup any unclosed off-heap MemorySegments.
-    mSegReqExt.cleanup();
-
-    //Close the original off-heap allocated MemorySegment.
-    arena.close();
+    mSegReqEx.cleanup();
   }
-
-  static void println(final Object o) { System.out.println(o.toString()); }
 
 }

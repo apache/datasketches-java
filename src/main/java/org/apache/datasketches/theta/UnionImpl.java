@@ -105,7 +105,7 @@ final class UnionImpl extends Union {
       final ResizeFactor rf,
       final MemorySegment dstSeg) {
     final UpdateSketch gadget = //create with UNION family
-        new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, dstSeg, true);
+        new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, dstSeg, null, true);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
     unionImpl.unionEmpty_ = gadget.isEmpty();
@@ -142,7 +142,7 @@ final class UnionImpl extends Union {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
     final UpdateSketch gadget = srcSeg.isReadOnly()
         ? DirectQuickSelectSketchR.fastReadOnlyWrap(srcSeg, expectedSeed)
-        : DirectQuickSelectSketch.fastWritableWrap(srcSeg, expectedSeed);
+        : DirectQuickSelectSketch.fastWritableWrap(srcSeg, null, expectedSeed);
     final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
@@ -151,17 +151,17 @@ final class UnionImpl extends Union {
 
   /**
    * Wrap a Union object around a Union MemorySegment object containing data.
-   * Called by SetOperation.
    * @param srcSeg The source MemorySegment object.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
+  //Called by SetOperation and Union
   static UnionImpl wrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
     final UpdateSketch gadget = srcSeg.isReadOnly()
         ? DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed)
-        : DirectQuickSelectSketch.writableWrap(srcSeg, expectedSeed);
+        : DirectQuickSelectSketch.writableWrap(srcSeg, null, expectedSeed);
     final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
@@ -269,7 +269,7 @@ final class UnionImpl extends Union {
   public void union(final Sketch sketchIn) {
     //UNION Empty Rule: AND the empty states.
 
-    if ((sketchIn == null) || sketchIn.isEmpty()) {
+    if (sketchIn == null || sketchIn.isEmpty()) {
       //null and empty is interpreted as (Theta = 1.0, count = 0, empty = T).  Nothing changes
       return;
     }
@@ -287,7 +287,7 @@ final class UnionImpl extends Union {
     final HashIterator it = sketchIn.iterator();
     while (it.next()) {
       final long hash = it.get();
-      if ((hash < unionThetaLong_) && (hash < gadget_.getThetaLong())) {
+      if (hash < unionThetaLong_ && hash < gadget_.getThetaLong()) {
         gadget_.hashUpdate(hash); // backdoor update, hash function is bypassed
       } else if (isOrdered) { break; }
     }

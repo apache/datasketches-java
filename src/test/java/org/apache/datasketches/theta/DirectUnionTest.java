@@ -529,7 +529,7 @@ public class DirectUnionTest {
 
     final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     final CompactSketch usk1c = usk1.compact(true, null);
-    MemorySegment v3seg1 = MemorySegment.ofArray(usk1c.toByteArray());
+    final MemorySegment v3seg1 = MemorySegment.ofArray(usk1c.toByteArray());
 
     final MemorySegment v1seg1 = convertSerVer3toSerVer1(usk1c).asReadOnly();
 
@@ -755,7 +755,7 @@ public class DirectUnionTest {
     assertEquals(familyID, Family.UNION.getID());
     assertEquals(preLongs, Family.UNION.getMaxPreLongs());
     PreambleUtil.insertPreLongs(seg, 3); //Corrupt with 3; correct value is 4
-    DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -766,7 +766,7 @@ public class DirectUnionTest {
     println(setOp.toString());
     final MemorySegment seg2 = MemorySegment.ofArray(new byte[32]); //for just preamble
     MemorySegment.copy(seg, 0, seg2, 0, 32); //too small
-    DirectQuickSelectSketch.writableWrap(seg2, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg2, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test

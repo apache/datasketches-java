@@ -26,6 +26,7 @@ import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -44,10 +45,11 @@ public final class UpdateSketchBuilder {
   private ResizeFactor bRF;
   private Family bFam;
   private float bP;
+  private MemorySegmentRequest bMemorySegmentRequest;
 
   //Fields for concurrent theta sketch
   private int bNumPoolThreads;
-  private int bLocalLgNomLongs;
+  private int bConCurLgNomLongs;
   private boolean bPropagateOrderedCompact;
   private double bMaxConcurrencyError;
   private int bMaxNumLocalThreads;
@@ -57,11 +59,12 @@ public final class UpdateSketchBuilder {
    * <ul>
    * <li>Nominal Entries: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}</li>
-   * <li>Input Sampling Probability: 1.0</li>
-   * <li>Family: {@link org.apache.datasketches.common.Family#QUICKSELECT}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
    * For direct sketches, which are targeted for off-heap, this value will
    * be fixed at either {@link ResizeFactor#X1} or {@link ResizeFactor#X2}.</li>
+   * <li>Family: {@link org.apache.datasketches.common.Family#QUICKSELECT}</li>
+   * <li>Input Sampling Probability, p: 1.0</li>
+   * <li>MemorySegmentRequest implementation: null</li>
    * </ul>
    * Parameters unique to the concurrent sketches only:
    * <ul>
@@ -75,19 +78,21 @@ public final class UpdateSketchBuilder {
   public UpdateSketchBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
     bSeed = Util.DEFAULT_UPDATE_SEED;
-    bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bFam = Family.QUICKSELECT;
+    bP = (float) 1.0;
+    bMemorySegmentRequest = null;
+
     // Default values for concurrent sketch
     bNumPoolThreads = ConcurrentPropagationService.NUM_POOL_THREADS;
-    bLocalLgNomLongs = 4; //default is smallest legal QS sketch
+    bConCurLgNomLongs = 4; //default is smallest legal QS sketch
     bPropagateOrderedCompact = true;
     bMaxConcurrencyError = 0;
     bMaxNumLocalThreads = 1;
   }
 
   /**
-   * Sets the Nominal Entries for this sketch.
+   * Sets the local Nominal Entries for this builder.
    * This value is also used for building a shared concurrent sketch.
    * The minimum value is 16 (2^4) and the maximum value is 67,108,864 (2^26).
    * Be aware that sketches as large as this maximum value may not have been
@@ -103,7 +108,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Alternative method of setting the Nominal Entries for this sketch from the log_base2 value.
+   * Alternative method of setting the local Nominal Entries for this builder from the log_base2 value.
    * This value is also used for building a shared concurrent sketch.
    * The minimum value is 4 and the maximum value is 26.
    * Be aware that sketches as large as this maximum value may not have been
@@ -118,14 +123,13 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Alternative method of setting the Nominal Entries for this sketch from the log_base2 value,
-   * commonly called LgK.
+   * Alternative method of setting the Nominal Entries for this builder from the log_base2 value, commonly called LgK.
    * This value is also used for building a shared concurrent sketch.
    * The minimum value is 4 and the maximum value is 26.
    * Be aware that sketches as large as 26 may not have been
    * thoroughly characterized for performance.
    *
-   * @param lgK the Log Nominal Entries. Also for the concurrent shared sketch
+   * @param lgK the Log Nominal Entries. Also for the concurrent shared sketch.
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setLgK(final int lgK) {
@@ -134,7 +138,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns Log-base 2 Nominal Entries
+   * Returns the local Log-base 2 Nominal Entries
    * @return Log-base 2 Nominal Entries
    */
   public int getLgNominalEntries() {
@@ -142,7 +146,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the Nominal Entries for the concurrent local sketch. The minimum value is 16 and the
+   * Sets the local (default) Concurrent Nominal Entries for the concurrent local sketch. The minimum value is 16 and the
    * maximum value is 67,108,864, which is 2^26.
    * Be aware that sketches as large as this maximum
    * value have not been thoroughly tested or characterized for performance.
@@ -151,9 +155,9 @@ public final class UpdateSketchBuilder {
    *                   This will become the ceiling power of 2 if it is not.
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setLocalNominalEntries(final int nomEntries) {
-    bLocalLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
-    if ((bLocalLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
+  public UpdateSketchBuilder setConCurNominalEntries(final int nomEntries) {
+    bConCurLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
+    if (bConCurLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS || bConCurLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
           "Nominal Entries must be >= 16 and <= 67108864: " + nomEntries);
     }
@@ -161,8 +165,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Alternative method of setting the Nominal Entries for a local concurrent sketch from the
-   * log_base2 value.
+   * Alternative method of setting the local (default) Nominal Entries for a local concurrent sketch from the log_base2 value.
    * The minimum value is 4 and the maximum value is 26.
    * Be aware that sketches as large as this maximum
    * value have not been thoroughly tested or characterized for performance.
@@ -170,9 +173,9 @@ public final class UpdateSketchBuilder {
    * @param lgNomEntries the Log Nominal Entries for a concurrent local sketch
    * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setLocalLogNominalEntries(final int lgNomEntries) {
-    bLocalLgNomLongs = lgNomEntries;
-    if ((bLocalLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
+  public UpdateSketchBuilder setConCurLogNominalEntries(final int lgNomEntries) {
+    bConCurLgNomLongs = lgNomEntries;
+    if (bConCurLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS || bConCurLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
           "Log Nominal Entries must be >= 4 and <= 26: " + lgNomEntries);
     }
@@ -180,15 +183,15 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns Log-base 2 Nominal Entries for the concurrent local sketch
+   * Returns local Log-base 2 Nominal Entries for the concurrent local sketch
    * @return Log-base 2 Nominal Entries for the concurrent local sketch
    */
-  public int getLocalLgNominalEntries() {
-    return bLocalLgNomLongs;
+  public int getConCurLgNominalEntries() {
+    return bConCurLgNomLongs;
   }
 
   /**
-   * Sets the long seed value that is required by the hashing function.
+   * Sets the local long seed value that is required by the hashing function.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this UpdateSketchBuilder
    */
@@ -198,7 +201,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns the seed
+   * Returns the local long seed value that is required by the hashing function.
    * @return the seed
    */
   public long getSeed() {
@@ -206,12 +209,12 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the upfront uniform sampling probability, <i>p</i>
+   * Sets the local upfront uniform pre-sampling probability, <i>p</i>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setP(final float p) {
-    if ((p <= 0.0) || (p > 1.0)) {
+    if (p <= 0.0 || p > 1.0) {
       throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
     bP = p;
@@ -219,7 +222,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns the pre-sampling probability <i>p</i>
+   * Returns the local upfront uniform pre-sampling probability <i>p</i>
    * @return the pre-sampling probability <i>p</i>
    */
   public float getP() {
@@ -227,7 +230,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the cache Resize Factor.
+   * Sets the local cache Resize Factor.
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return this UpdateSketchBuilder
    */
@@ -237,7 +240,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns the Resize Factor
+   * Returns the local Resize Factor
    * @return the Resize Factor
    */
   public ResizeFactor getResizeFactor() {
@@ -245,7 +248,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Set the Family.
+   * Set the local Family. Choose either Family.ALPHA or Family.QUICKSELECT.
    * @param family the family for this builder
    * @return this UpdateSketchBuilder
    */
@@ -255,7 +258,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns the Family
+   * Returns the local Family
    * @return the Family
    */
   public Family getFamily() {
@@ -263,7 +266,27 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the number of pool threads used for background propagation in the concurrent sketches.
+   * Sets the local MemorySegmentRequest
+   * @param mSegReq the given MemorySegmentRequest
+   * @return this UpdateSketchBuilder
+   */
+  public UpdateSketchBuilder setMemorySegmentRequest(final MemorySegmentRequest mSegReq) {
+    bMemorySegmentRequest = mSegReq;
+    return this;
+  }
+
+  /**
+   * Returns the local MemorySegmentRequest
+   * @return the local MemorySegmentRequest
+   */
+  public MemorySegmentRequest getMemorySegmentRequest() {
+    return bMemorySegmentRequest;
+  }
+
+  //Concurrent related
+
+  /**
+   * Sets the local number of pool threads used for background propagation in the concurrent sketches.
    * @param numPoolThreads the given number of pool threads
    */
   public void setNumPoolThreads(final int numPoolThreads) {
@@ -271,7 +294,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Gets the number of background pool threads used for propagation in the concurrent sketches.
+   * Gets the local number of background pool threads used for propagation in the concurrent sketches.
    * @return the number of background pool threads
    */
   public int getNumPoolThreads() {
@@ -279,7 +302,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the Propagate Ordered Compact flag to the given value. Used with concurrent sketches.
+   * Sets the local Propagate Ordered Compact flag to the given value. Used with concurrent sketches.
    *
    * @param prop the given value
    * @return this UpdateSketchBuilder
@@ -290,7 +313,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Gets the Propagate Ordered Compact flag used with concurrent sketches.
+   * Gets the local Propagate Ordered Compact flag used with concurrent sketches.
    * @return the Propagate Ordered Compact flag
    */
   public boolean getPropagateOrderedCompact() {
@@ -298,7 +321,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the Maximum Concurrency Error.
+   * Sets the local Maximum Concurrency Error.
    * @param maxConcurrencyError the given Maximum Concurrency Error.
    */
   public void setMaxConcurrencyError(final double maxConcurrencyError) {
@@ -306,7 +329,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Gets the Maximum Concurrency Error
+   * Gets the local Maximum Concurrency Error
    * @return the Maximum Concurrency Error
    */
   public double getMaxConcurrencyError() {
@@ -314,7 +337,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the Maximum Number of Local Threads.
+   * Sets the local Maximum Number of Local Threads.
    * This is used to set the size of the local concurrent buffers.
    * @param maxNumLocalThreads the given Maximum Number of Local Threads
    */
@@ -323,7 +346,7 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Gets the Maximum Number of Local Threads.
+   * Gets the local Maximum Number of Local Threads.
    * @return the Maximum Number of Local Threads.
    */
   public int getMaxNumLocalThreads() {
@@ -343,12 +366,14 @@ public final class UpdateSketchBuilder {
   /**
    * Returns an UpdateSketch with the current configuration of this Builder
    * with the specified backing destination MemorySegment store.
-   * Note: this cannot be used with the Alpha Family of sketches.
+   * Note: this can only be used with the QUICKSELECT Family of sketches
+   * and cannot be used with the Alpha Family of sketches.
    * @param dstSeg The destination MemorySegment.
    * @return an UpdateSketch
    */
   public UpdateSketch build(final MemorySegment dstSeg) {
     UpdateSketch sketch = null;
+    final boolean unionGadget = false;
     switch (bFam) {
       case ALPHA: {
         if (dstSeg == null) {
@@ -361,11 +386,10 @@ public final class UpdateSketchBuilder {
       }
       case QUICKSELECT: {
         if (dstSeg == null) {
-          sketch =  new HeapQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, false);
+          sketch =  new HeapQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, unionGadget);
         }
         else {
-          sketch = new DirectQuickSelectSketch(
-              bLgNomLongs, bSeed, bP, bRF, dstSeg, false);
+          sketch = new DirectQuickSelectSketch(bLgNomLongs, bSeed, bP, bRF, dstSeg, bMemorySegmentRequest, unionGadget);
         }
         break;
       }
@@ -480,10 +504,10 @@ public final class UpdateSketchBuilder {
    * @return an UpdateSketch to be used as a per-thread local buffer.
    */
   public UpdateSketch buildLocal(final UpdateSketch shared) {
-    if ((shared == null) || !(shared instanceof ConcurrentSharedThetaSketch)) {
+    if (shared == null || !(shared instanceof ConcurrentSharedThetaSketch)) {
       throw new SketchesStateException("The concurrent shared sketch must be built first.");
     }
-    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed,
+    return new ConcurrentHeapThetaBuffer(bConCurLgNomLongs, bSeed,
         (ConcurrentSharedThetaSketch) shared, bPropagateOrderedCompact, bMaxNumLocalThreads);
   }
 
@@ -493,8 +517,8 @@ public final class UpdateSketchBuilder {
     sb.append("UpdateSketchBuilder configuration:").append(LS);
     sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
     sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
-    sb.append("LgLocalK:").append(TAB).append(bLocalLgNomLongs).append(LS);
-    sb.append("LocalK:").append(TAB).append(1 << bLocalLgNomLongs).append(LS);
+    sb.append("LgLocalK:").append(TAB).append(bConCurLgNomLongs).append(LS);
+    sb.append("LocalK:").append(TAB).append(1 << bConCurLgNomLongs).append(LS);
     sb.append("Seed:").append(TAB).append(bSeed).append(LS);
     sb.append("p:").append(TAB).append(bP).append(LS);
     sb.append("ResizeFactor:").append(TAB).append(bRF).append(LS);

@@ -340,7 +340,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return the maximum number of storage bytes required for a UpdateSketch with the given lgNomEntries
    */
   public static int getUpdateSketchMaxBytes(final int lgNomEntries) {
-    return (1 << lgNomEntries << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
+    return (16 << lgNomEntries) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
   }
 
   /**

@@ -272,7 +272,7 @@ final class PreambleUtil {
 
     //Flags
     final int flags = extractFlags(seg);
-    final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
+    final String flagsStr = flags + ", 0x" + Integer.toHexString(flags) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
@@ -377,11 +377,11 @@ final class PreambleUtil {
   //@formatter:on
 
   static int extractPreLongs(final MemorySegment seg) {
-    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
+    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F; //for SerVer 1,2,3
   }
 
   static int extractLgResizeFactor(final MemorySegment seg) {
-    return (seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
+    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT & 0X3;
   }
 
   static int extractLgResizeRatioV1(final MemorySegment seg) {
@@ -463,7 +463,7 @@ final class PreambleUtil {
     final int curByte = seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0xFF;
     final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits
     final int mask = 3;
-    final byte newByte = (byte) (((rf & mask) << shift) | (~(mask << shift) & curByte));
+    final byte newByte = (byte) ((rf & mask) << shift | ~(mask << shift) & curByte);
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, newByte);
   }
 
@@ -520,7 +520,7 @@ final class PreambleUtil {
   }
 
   static boolean isEmptyFlag(final MemorySegment seg) {
-    return ((extractFlags(seg) & EMPTY_FLAG_MASK) > 0);
+    return (extractFlags(seg) & EMPTY_FLAG_MASK) > 0;
   }
 
   /**

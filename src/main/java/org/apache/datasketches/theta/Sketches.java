@@ -355,12 +355,12 @@ public final class Sketches {
    * @return {@link UpdateSketch UpdateSketch}
    */
   public static UpdateSketch wrapUpdateSketch(final MemorySegment srcSeg, final long expectedSeed) {
-    return UpdateSketch.wrap(srcSeg, expectedSeed);
+    return UpdateSketch.wrap(srcSeg, null, expectedSeed);
   }
 
   //Restricted static methods
 
-  static void checkIfValidThetaSketch(final MemorySegment srcSeg) {
+  private static void checkIfValidThetaSketch(final MemorySegment srcSeg) {
     final int fam = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
     if (!Sketch.isValidSketchID(fam)) {
      throw new SketchesArgumentException("Source MemorySegment not a valid Sketch. Family: "
@@ -371,7 +371,7 @@ public final class Sketches {
   static boolean getEmpty(final MemorySegment srcSeg) {
     final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
     if (serVer == 1) {
-      return ((getThetaLong(srcSeg) == Long.MAX_VALUE) && (getRetainedEntries(srcSeg) == 0));
+      return getThetaLong(srcSeg) == Long.MAX_VALUE && getRetainedEntries(srcSeg) == 0;
     }
     return (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2 & 3
   }
@@ -384,7 +384,7 @@ public final class Sketches {
     final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
     if (serVer == 1) {
       final int entries = srcSeg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
-      if ((getThetaLong(srcSeg) == Long.MAX_VALUE) && (entries == 0)) {
+      if (getThetaLong(srcSeg) == Long.MAX_VALUE && entries == 0) {
         return 0;
       }
       return entries;
@@ -401,6 +401,6 @@ public final class Sketches {
 
   static long getThetaLong(final MemorySegment srcSeg) {
     final int preLongs = getPreambleLongs(srcSeg);
-    return (preLongs < 3) ? Long.MAX_VALUE : srcSeg.get(JAVA_LONG_UNALIGNED, THETA_LONG); //for SerVer 1,2,3
+    return preLongs < 3 ? Long.MAX_VALUE : srcSeg.get(JAVA_LONG_UNALIGNED, THETA_LONG); //for SerVer 1,2,3
   }
 }

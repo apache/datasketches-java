@@ -60,6 +60,7 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SuppressFBWarnings;
@@ -81,15 +82,19 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   private static final double DQS_RESIZE_THRESHOLD  = 15.0 / 16.0; //tuned for space
   int hashTableThreshold_; //computed and mutable, kept only on heap, never serialized.
+  private final MemorySegmentRequest mSegReq;
 
   /**
-   * Construct this sketch as a result of a wrap operation where the given MemorySegment already has a sketch image.
-   * @param wseg the given MemorySegment that has a sketch image.
+   * Construct this sketch as a result of a wrap operation where the given MemorySegment already has an updatable sketch image.
+   * @param wseg the given MemorySegment that has an updatable sketch image.
+   * @param mSegReq an implementation of the MemorySegmentRequest interface or null.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    */
   private DirectQuickSelectSketch(
       final MemorySegment wseg,
+      final MemorySegmentRequest mSegReq,
       final long seed) {
+    this.mSegReq = mSegReq == null ? MemorySegmentRequest.DEFAULT : mSegReq;
     super(wseg, seed);
   }
 
@@ -105,6 +110,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param dstSeg the given MemorySegment object destination. It cannot be null.
    * It will be cleared prior to use.
+   * @param mSegReq an implementation of the MemorySegmentRequest interface or null.
    * @param unionGadget true if this sketch is implementing the Union gadget function.
    * Otherwise, it is behaving as a normal QuickSelectSketch.
    */
@@ -114,6 +120,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       final float p,
       final ResizeFactor rf,
       final MemorySegment dstSeg,
+      final MemorySegmentRequest mSegReq,
       final boolean unionGadget) {
 
     //Choose family, preambleLongs
@@ -129,7 +136,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final long curSegCapBytes = dstSeg.byteSize();
     if (curSegCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
-        "MemorySegment capacity is too small: " + curSegCapBytes + " < " + minReqBytes);
+        "MemorySegment capacity is less than minimum required: " + curSegCapBytes + " < " + minReqBytes);
     }
 
     //@formatter:off
@@ -153,17 +160,22 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     //clear hash table area
     dstSeg.asSlice(preambleLongs << 3, Long.BYTES << lgArrLongs).fill((byte)0);
     hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
+    this.mSegReq = mSegReq == null ? MemorySegmentRequest.DEFAULT : mSegReq;
     super(dstSeg, seed);
   }
 
   /**
-   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from
-   * this sketch.
+   * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch.
    * @param srcSeg The given MemorySegment object must be in hash table form and not read only.
+   * @param mSegReq an implementation of the MemorySegmentRequest interface or null.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return instance of this sketch
    */
-  static DirectQuickSelectSketch writableWrap(final MemorySegment srcSeg, final long seed) {
+  //called from UnionImpl and UpdateSketch
+  static DirectQuickSelectSketch writableWrap(
+      final MemorySegment srcSeg,
+      final MemorySegmentRequest mSegReq,
+      final long seed) {
     final int preambleLongs = extractPreLongs(srcSeg);                  //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
@@ -176,7 +188,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       insertLgResizeFactor(srcSeg, ResizeFactor.X2.lg());
     }
 
-    final DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(srcSeg, seed);
+    final DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(srcSeg, mSegReq, seed);
     dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
@@ -185,14 +197,19 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * Fast-wrap a sketch around the given source MemorySegment containing sketch data that originated from
    * this sketch.  This does NO validity checking of the given MemorySegment.
    * @param srcSeg The given MemorySegment must be in hash table form and not read only.
+   * @param mSegReq an implementation of the MemorySegmentRequest interface or null.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return instance of this sketch
    */
-  static DirectQuickSelectSketch fastWritableWrap(final MemorySegment srcSeg, final long seed) {
+  //called from UnionImpl <- Union
+  static DirectQuickSelectSketch fastWritableWrap(
+      final MemorySegment srcSeg,
+      final MemorySegmentRequest mSegReq,
+      final long seed) {
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 
-    final DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(srcSeg, seed);
+    final DirectQuickSelectSketch dqss = new DirectQuickSelectSketch(srcSeg, mSegReq, seed);
     dqss.hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, lgArrLongs);
     return dqss;
   }
@@ -205,7 +222,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
   public UpdateSketch rebuild() {
     final int lgNomLongs = getLgNomLongs();
     final int preambleLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
-    if (getRetainedEntries(true) > (1 << lgNomLongs)) {
+    if (getRetainedEntries(true) > 1 << lgNomLongs) {
       quickSelectAndRebuild(wseg_, preambleLongs, lgNomLongs);
     }
     return this;
@@ -279,10 +296,13 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           tgtLgArrLongs = Math.min(lgArrLongs + lgRF, lgNomLongs + 1);
           final int tgtArrBytes = 8 << tgtLgArrLongs;
           final int reqBytes = tgtArrBytes + preBytes;
-          final MemorySegment newDstSeg = MemorySegment.ofArray(new byte[reqBytes]); //always on-heap //TODO ADD MemSegReq
+
+          final MemorySegment newDstSeg = mSegReq.request(reqBytes);
 
           moveAndResize(wseg_, preambleLongs, lgArrLongs, newDstSeg, tgtLgArrLongs, thetaLong);
+          final MemorySegment oldSeg = wseg_;
           wseg_ = newDstSeg;
+          mSegReq.requestClose(oldSeg);
 
           hashTableThreshold_ = getOffHeapHashTableThreshold(lgNomLongs, tgtLgArrLongs);
           return InsertedCountIncrementedResized;
