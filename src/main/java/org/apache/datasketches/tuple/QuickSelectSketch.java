@@ -135,8 +135,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       final float samplingProbability,
       final SummaryFactory<S> summaryFactory,
       final int startingSize) {
+      final long thetaLong = (long) (Long.MAX_VALUE * (double) samplingProbability);
     super(
-        (long) (Long.MAX_VALUE * (double) samplingProbability),
+        thetaLong,
         true,
         summaryFactory);
     nomEntries_ = ceilingPowerOf2(nomEntries);
@@ -182,23 +183,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       final MemorySegment seg,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    this(new Validate<>(), seg, deserializer, summaryFactory);
-  }
-
-  /*
-   * This private constructor is used to protect against "Finalizer attacks".
-   * The private static inner class Validate performs validation and deserialization
-   * from the input MemorySegment and may throw exceptions. In order to protect against the attack, we must
-   * perform this validation prior to the constructor's super reaches the Object class.
-   * Making QuickSelectSketch final won't work here because UpdatableSketch is a subclass.
-   * Using an empty final finalizer() is not recommended and is deprecated as of Java9.
-   */
-  private QuickSelectSketch(
-      final Validate<S> val,
-      final MemorySegment seg,
-      final SummaryDeserializer<S> deserializer,
-      final SummaryFactory<S> summaryFactory) {
-    super(val.validate(seg, deserializer), val.myEmpty, summaryFactory);
+    //this(new Validate<>(), seg, deserializer, summaryFactory);
+    final Validate<S> val = new Validate<>();
+    final long thetaLong = val.validate(seg, deserializer);
     nomEntries_ = val.myNomEntries;
     lgResizeFactor_ = val.myLgResizeFactor;
     samplingProbability_ = val.mySamplingProbability;
@@ -207,6 +194,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     rebuildThreshold_ = val.myRebuildThreshold;
     hashTable_ = val.myHashTable;
     summaryTable_ = val.mySummaryTable;
+    super(thetaLong, val.myEmpty, summaryFactory);
   }
 
   private static final class Validate<S> {
