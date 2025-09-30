@@ -1,13 +1,13 @@
 name: "CodeQL"
 
 on:
-#  push:
-#    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
-#    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
-#  pull_request:
-#    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
+  push:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+  pull_request:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
     # The branches below must be a subset of the branches above
-#    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
   workflow_dispatch:
 
 jobs:
@@ -28,10 +28,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           cache: 'maven'
