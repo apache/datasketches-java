@@ -31,19 +31,12 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
-import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.IntersectionImpl;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 /**
@@ -471,7 +464,7 @@ public class DirectIntersectionTest {
     MemorySegment iSeg = MemorySegment.ofArray(new byte[segBytes]);
 
     inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin off-heap
-    inter2 = Sketches.wrapIntersection(iSeg); //virgin off-heap, identical to inter1
+    inter2 = Intersection.wrap(iSeg); //virgin off-heap, identical to inter1
     //both in virgin state, empty = false
     //note: both inter1 and inter2 are tied to the same MemorySegment,
     // so an intersect to one also affects the other.  Don't do what I do!
@@ -493,7 +486,7 @@ public class DirectIntersectionTest {
 
     //test the path via toByteArray, now in a different state
     iSeg = MemorySegment.ofArray(inter1.toByteArray());
-    inter2 = Sketches.wrapIntersection(iSeg);
+    inter2 = Intersection.wrap(iSeg);
     assertTrue(inter2.hasResult()); //still true
 
     //test the compaction path
@@ -514,7 +507,7 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin
-    inter2 = Sketches.wrapIntersection(iSeg);
+    inter2 = Intersection.wrap(iSeg);
     //both in virgin state, empty = false
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
@@ -525,7 +518,7 @@ public class DirectIntersectionTest {
     //remains empty = false.
 
     inter1.intersect(sk1);
-    inter2 = Sketches.wrapIntersection(iSeg);
+    inter2 = Intersection.wrap(iSeg);
     assertTrue(inter1.hasResult());
     assertTrue(inter2.hasResult());
     final CompactSketch comp = inter2.getResult(true, null);
@@ -579,7 +572,7 @@ public class DirectIntersectionTest {
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 2);//RF not used = 0
-    Sketches.wrapIntersection(seg);
+    Intersection.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -596,18 +589,19 @@ public class DirectIntersectionTest {
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2);
-    Sketches.wrapIntersection(seg); //throws in SetOperations
+    Intersection.wrap(seg); //throws in SetOperations
   }
 
-  @Test(expectedExceptions = ClassCastException.class)
-  public void checkFamilyID() {
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkIncorrectWrap() {
     final int k = 32;
     Union union;
 
     union = SetOperation.builder().setNominalEntries(k).buildUnion();
     final byte[] byteArray = union.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
-    Sketches.wrapIntersection(seg);
+    Intersection.wrap(seg); //wrong sketch Family
+    //Sketches.wrapIntersection(seg);
   }
 
   @Test
@@ -637,7 +631,7 @@ public class DirectIntersectionTest {
 
     final byte[] segArr2 = inter.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(segArr2);
-    inter2 = Sketches.wrapIntersection(srcSeg);
+    inter2 = Intersection.wrap(srcSeg);
 
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().setNominalEntries(k).build();
@@ -656,7 +650,7 @@ public class DirectIntersectionTest {
 
     final byte[] segArr3 = inter2.toByteArray();
     final MemorySegment srcSeg2 = MemorySegment.ofArray(segArr3);
-    inter3 = Sketches.wrapIntersection(srcSeg2);
+    inter3 = Intersection.wrap(srcSeg2);
     resultComp2 = inter3.getResult(false, null);
     est2 = resultComp2.getEstimate();
     println("Est2: "+est2);
@@ -683,13 +677,13 @@ public class DirectIntersectionTest {
   @Test
   public void checkGetResult() {
     final int k = 1024;
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection(iSeg);
+    final Intersection inter = SetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk);
     final CompactSketch csk = inter.getResult();
     assertEquals(csk.getCompactBytes(), 8);
@@ -732,8 +726,8 @@ public class DirectIntersectionTest {
   public void checkOverlappedDirect() {
     final int k = 1 << 4;
     final int segBytes = 2*k*16 +PREBYTES; //plenty of room
-    final UpdateSketch sk1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    final UpdateSketch sk2 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sk1.update(i);
       sk2.update(k-2 +i); //overlap by 2
@@ -744,7 +738,7 @@ public class DirectIntersectionTest {
     final MemorySegment segComp = MemorySegment.ofArray(new byte[segBytes]);
     final CompactSketch csk1 = sk1.compact(true, segIn1);
     final CompactSketch csk2 = sk2.compact(true, segIn2);
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection(segInter);
+    final Intersection inter = SetOperation.builder().buildIntersection(segInter);
     inter.intersect(csk1);
     inter.intersect(csk2);
     final CompactSketch cskOut = inter.getResult(true, segComp);

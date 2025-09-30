@@ -22,6 +22,8 @@ package org.apache.datasketches.theta;
 import static java.lang.Math.min;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
+import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.clearEmpty;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
@@ -34,6 +36,7 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.HashOperations;
 
@@ -279,7 +282,7 @@ final class UnionImpl extends Union {
       gadget_.hashUpdate(sketchIn.getCache()[0]);
       return;
     }
-    Sketch.checkSketchAndMemorySegmentFlags(sketchIn);
+    UnionImpl.checkSketchAndMemorySegmentFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
     unionEmpty_ = false;
@@ -370,6 +373,24 @@ final class UnionImpl extends Union {
   @Override
   boolean isEmpty() {
     return gadget_.isEmpty() && unionEmpty_;
+  }
+
+  /**
+   * Checks Ordered and Compact flags for integrity between sketch and its MemorySegment
+   * @param sketch the given sketch
+   */
+  private static final void checkSketchAndMemorySegmentFlags(final Sketch sketch) {
+    final MemorySegment seg = sketch.getMemorySegment();
+    if (seg == null) { return; }
+    final int flags = PreambleUtil.extractFlags(seg);
+    if ((flags & COMPACT_FLAG_MASK) > 0 ^ sketch.isCompact()) {
+      throw new SketchesArgumentException("Possible corruption: "
+          + "MemorySegment Compact Flag inconsistent with Sketch");
+    }
+    if ((flags & ORDERED_FLAG_MASK) > 0 ^ sketch.isOrdered()) {
+      throw new SketchesArgumentException("Possible corruption: "
+          + "MemorySegment Ordered Flag inconsistent with Sketch");
+    }
   }
 
 }

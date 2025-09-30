@@ -34,13 +34,6 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.SetOperationBuilder;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -561,9 +554,9 @@ public class HeapUnionTest {
   @Test
   public void checkGetResult() {
     final int k = 1024;
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
 
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(sk);
     final CompactSketch csk = union.getResult();
     assertEquals(csk.getCompactBytes(), 8);
@@ -573,11 +566,11 @@ public class HeapUnionTest {
   public void checkTrimToK() {
     final int hiK = 1024;
     final int loK = 512;
-    final UpdateSketch hiSk = Sketches.updateSketchBuilder().setNominalEntries(hiK).build();
+    final UpdateSketch hiSk = UpdateSketch.builder().setNominalEntries(hiK).build();
     for (int i = 0; i < 3749; i++) { hiSk.update(i); } //count = 1920
-    final UpdateSketch loSk = Sketches.updateSketchBuilder().setNominalEntries(loK).build();
+    final UpdateSketch loSk = UpdateSketch.builder().setNominalEntries(loK).build();
     for (int i = 0; i < 1783; i++) { loSk.update(i + 10000); } //count = 960
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(hiK).buildUnion();
+    final Union union = SetOperation.builder().setNominalEntries(hiK).buildUnion();
     CompactSketch csk = union.union(hiSk, loSk);
     println(csk.toString());
     assertEquals(csk.getRetainedEntries(), 1024);
@@ -586,7 +579,7 @@ public class HeapUnionTest {
   @Test
   public void checkPrimitiveUpdates() {
     final int k = 32;
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
     union.update(1L);   //#1 long
     union.update(1.5);  //#2 double

@@ -26,6 +26,7 @@ import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.apache.datasketches.common.Util.clearBits;
+import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.common.Util.setBits;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -41,8 +42,10 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.clearEmpty;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
+import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
+import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.insertFamilyID;
@@ -81,17 +84,17 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Kevin Lang
  */
 final class IntersectionImpl extends Intersection {
-  protected final short seedHash_;
-  protected final boolean readOnly_; //True if this sketch is to be treated as read only
-  protected final MemorySegment wseg_;
-  protected final int maxLgArrLongs_; //only used with MemorySegment, not serialized
+  private final short seedHash_;
+  private final boolean readOnly_; //True if this sketch is to be treated as read only
+  private final MemorySegment wseg_;
+  private final int maxLgArrLongs_; //only used with MemorySegment, not serialized
 
   //Note: Intersection does not use lgNomLongs or k, per se.
-  protected int lgArrLongs_; //current size of hash table
-  protected int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
-  protected long thetaLong_;
-  protected boolean empty_; //A virgin intersection represents the Universal Set, so empty is FALSE!
-  protected long[] hashTable_; //retained entries of the intersection, on-heap only.
+  private int lgArrLongs_; //current size of hash table
+  private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
+  private long thetaLong_;
+  private boolean empty_; //A virgin intersection represents the Universal Set, so empty is FALSE!
+  private long[] hashTable_; //retained entries of the intersection, on-heap only.
 
   /**
    * Constructor: Sets the class finals and computes, sets and checks the seedHash.
@@ -100,14 +103,14 @@ final class IntersectionImpl extends Intersection {
    * @param dstSegFlag The given MemorySegment is a Destination (new offHeap) MemorySegment.
    * @param readOnly True if MemorySegment is to be treated as read only.
    */
-  protected IntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstSegFlag,
+  private IntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstSegFlag,
       final boolean readOnly) {
     readOnly_ = readOnly;
     if (wseg != null) {
       wseg_ = wseg;
       if (dstSegFlag) { //DstSeg: compute & store seedHash, no seedHash checking
-        checkMinSizeMemorySegment(wseg);
-        maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wseg) : 0; //Only Off Heap
+        IntersectionImpl.checkMinSizeMemorySegment(wseg);
+        maxLgArrLongs_ = !readOnly ? IntersectionImpl.getMaxLgArrLongs(wseg) : 0; //Only Off Heap
         seedHash_ = Util.computeSeedHash(seed);
         wseg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
       } else { //SrcSeg:gets and stores the seedHash, checks seg_seedHash against the seed
@@ -179,8 +182,8 @@ final class IntersectionImpl extends Intersection {
   static IntersectionImpl heapifyInstance(final MemorySegment srcSeg, final long seed) {
     final boolean dstSegFlag = false;
     final boolean readOnly = false;
+    IntersectionImpl.segChecks(srcSeg);
     final IntersectionImpl impl = new IntersectionImpl(null, seed, dstSegFlag, readOnly);
-    segChecks(srcSeg);
 
     //Initialize
     impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
@@ -207,8 +210,8 @@ final class IntersectionImpl extends Intersection {
       final long seed,
       final boolean readOnly) {
     final boolean dstSegFlag = false;
+    IntersectionImpl.segChecks(srcSeg);
     final IntersectionImpl impl = new IntersectionImpl(srcSeg, seed, dstSegFlag, readOnly);
-    segChecks(srcSeg);
     impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
     impl.curCount_ = extractCurCount(srcSeg);
     impl.thetaLong_ = extractThetaLong(srcSeg);
@@ -333,7 +336,7 @@ final class IntersectionImpl extends Intersection {
     } else {
       hashTable = hashTable_;
     }
-    compactCache = compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
+    compactCache = IntersectionImpl.compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
     srcCompact = true;
     srcOrdered = dstOrdered;
     return CompactOperations.componentsToCompact(
@@ -561,4 +564,83 @@ final class IntersectionImpl extends Intersection {
     thetaLong_ = Long.MAX_VALUE;
     hashTable_ = null;
   }
+
+  /**
+   * Compact first 2^lgArrLongs of given array
+   * @param srcCache anything
+   * @param lgArrLongs The correct
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">lgArrLongs</a>.
+   * @param curCount must be correct
+   * @param thetaLong The correct
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param dstOrdered true if output array must be sorted
+   * @return the compacted array
+   */ //used in Test
+  static final long[] compactCachePart(final long[] srcCache, final int lgArrLongs,
+      final int curCount, final long thetaLong, final boolean dstOrdered) {
+    if (curCount == 0) {
+      return new long[0];
+    }
+    final long[] cacheOut = new long[curCount];
+    final int len = 1 << lgArrLongs;
+    int j = 0;
+    for (int i = 0; i < len; i++) {
+      final long v = srcCache[i];
+      if (v <= 0L || v >= thetaLong ) { continue; }
+      cacheOut[j++] = v;
+    }
+    assert curCount == j;
+    if (dstOrdered) {
+      Arrays.sort(cacheOut);
+    }
+    return cacheOut;
+  }
+
+  private static void checkMinSizeMemorySegment(final MemorySegment seg) {
+    final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << ThetaUtil.MIN_LG_ARR_LONGS);//280
+    final long cap = seg.byteSize();
+    if (cap < minBytes) {
+      throw new SketchesArgumentException(
+          "MemorySegment must be at least " + minBytes + " bytes. Actual capacity: " + cap);
+    }
+  }
+
+  /**
+   * Returns the maximum lgArrLongs given the capacity of the MemorySegment.
+   * @param dstSeg the given MemorySegment
+   * @return the maximum lgArrLongs given the capacity of the MemorySegment
+   */
+  private static int getMaxLgArrLongs(final MemorySegment dstSeg) {
+    final int preBytes = CONST_PREAMBLE_LONGS << 3;
+    final long cap = dstSeg.byteSize();
+    return Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
+  }
+
+  private static void segChecks(final MemorySegment srcSeg) {
+    //Get Preamble
+    //Note: Intersection does not use lgNomLongs (or k), per se.
+    //seedHash loaded and checked in private constructor
+    final int preLongs = Sketch.getPreambleLongs(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
+    final int famID = extractFamilyID(srcSeg);
+    final boolean empty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) > 0;
+    final int curCount = extractCurCount(srcSeg);
+    //Checks
+    if (preLongs != CONST_PREAMBLE_LONGS) {
+      throw new SketchesArgumentException(
+          "MemorySegment PreambleLongs must equal " + CONST_PREAMBLE_LONGS + ": " + preLongs);
+    }
+    if (serVer != SER_VER) {
+      throw new SketchesArgumentException("Serialization Version must equal " + SER_VER);
+    }
+    Family.INTERSECTION.checkFamilyID(famID);
+    if (empty) {
+      if (curCount != 0) {
+        throw new SketchesArgumentException(
+            "srcSeg empty state inconsistent with curCount: " + empty + "," + curCount);
+      }
+      //empty = true AND curCount_ = 0: OK
+    } //else empty = false, curCount could be anything
+  }
+
 }

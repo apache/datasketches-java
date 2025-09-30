@@ -28,16 +28,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.EmptyCompactSketch;
-import org.apache.datasketches.theta.HeapCompactSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.SingleItemSketch;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -71,7 +64,7 @@ public class ForwardCompatibilityTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkSerVer1_tooSmall() {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch usk = UpdateSketch.builder().build();
     usk.update(1);
     usk.update(2);
     final CompactSketch csk = usk.compact(true, null);
@@ -83,7 +76,7 @@ public class ForwardCompatibilityTest {
 
   @Test
   public void checkSerVer1_1Value() {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch usk = UpdateSketch.builder().build();
     usk.update(1);
     final CompactSketch csk = usk.compact(true, null);
     final MemorySegment srcSeg = convertSerVer3toSerVer1(csk).asReadOnly();
@@ -114,7 +107,7 @@ public class ForwardCompatibilityTest {
 
   @Test
   public void checkSerVer2_2PreLongs_Empty() {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
+    final UpdateSketch usk = UpdateSketch.builder().setLogNominalEntries(4).build();
     for (int i = 0; i < 2; i++) { usk.update(i); } //exact mode
     final CompactSketch csk = usk.compact(true, null);
     final MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
@@ -131,7 +124,7 @@ public class ForwardCompatibilityTest {
 
   @Test
   public void checkSerVer2_3PreLongs_Empty() {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
+    final UpdateSketch usk = UpdateSketch.builder().setLogNominalEntries(4).build();
     for (int i = 0; i < 32; i++) { usk.update(i); } //est mode
     final CompactSketch csk = usk.compact(true, null);
     final MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
@@ -149,7 +142,7 @@ public class ForwardCompatibilityTest {
 
   @Test
   public void checkSerVer2_2PreLongs_1Value() {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
+    final UpdateSketch usk = UpdateSketch.builder().setLogNominalEntries(4).build();
     usk.update(1); //exact mode
     final CompactSketch csk = usk.compact(true, null);
     final MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
@@ -166,7 +159,7 @@ public class ForwardCompatibilityTest {
 
   @Test
   public void checkSerVer2_3PreLongs_1Value() {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
+    final UpdateSketch usk = UpdateSketch.builder().setLogNominalEntries(4).build();
     for (int i = 0; i < 32; i++) { usk.update(i); } //est mode
     final CompactSketch csk = usk.compact(true, null);
     final MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();
@@ -190,7 +183,7 @@ public class ForwardCompatibilityTest {
 
   @Test
   public void checkSerVer2_3PreLongs_1Value_ThLessthan1() {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().setLogNominalEntries(4).build();
+    final UpdateSketch usk = UpdateSketch.builder().setLogNominalEntries(4).build();
     for (int i = 0; i < 32; i++) { usk.update(i); } //est mode
     final CompactSketch csk = usk.compact(true, null);
     final MemorySegment srcSeg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED).asReadOnly();

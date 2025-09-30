@@ -26,7 +26,6 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
@@ -385,7 +384,7 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   static boolean otherCheckForSingleItem(final MemorySegment seg) {
-    return otherCheckForSingleItem(extractPreLongs(seg), extractSerVer(seg),
+    return otherCheckForSingleItem(Sketch.getPreambleLongs(seg), extractSerVer(seg),
         extractFamilyID(seg), extractFlags(seg) );
   }
 

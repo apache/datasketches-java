@@ -33,15 +33,6 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.ConcurrentDirectQuickSelectSketch;
-import org.apache.datasketches.theta.ConcurrentHeapThetaBuffer;
-import org.apache.datasketches.theta.ConcurrentSharedThetaSketch;
-import org.apache.datasketches.theta.DirectQuickSelectSketch;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.theta.ConcurrentHeapQuickSelectSketchTest.SharedLocal;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.testng.annotations.Test;
@@ -79,7 +70,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
 
     //This sharedHeap is not linked to the concurrent local buffer
-    final UpdateSketch sharedHeap = Sketches.heapifyUpdateSketch(sl.wseg);
+    final UpdateSketch sharedHeap = UpdateSketch.heapify(sl.wseg);
     assertEquals(sharedHeap.getClass().getSimpleName(), "HeapQuickSelectSketch");
 
     checkMemorySegmentDirectProxyMethods(local, shared);
@@ -509,7 +500,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     serArr = shared.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(serArr);
-    final UpdateSketch recoveredShared = Sketches.wrapUpdateSketch(seg);
+    final UpdateSketch recoveredShared = UpdateSketch.wrap(seg);
 
     //reconstruct to Native/Direct
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);

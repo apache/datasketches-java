@@ -25,16 +25,10 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.AnotB;
-import org.apache.datasketches.theta.AnotBimpl;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -295,19 +289,18 @@ public class AnotBimplTest {
 
   @Test
   public void checkAnotBsimple() {
-    final UpdateSketch skA = Sketches.updateSketchBuilder().build();
-    final UpdateSketch skB = Sketches.updateSketchBuilder().build();
-    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final UpdateSketch skA = UpdateSketch.builder().build();
+    final UpdateSketch skB =UpdateSketch.builder().build();
+    final AnotB aNotB = SetOperation.builder().buildANotB();
     final CompactSketch csk = aNotB.aNotB(skA, skB);
     assertEquals(csk.getCurrentBytes(), 8);
   }
 
   @Test
   public void checkGetResult() {
-    final UpdateSketch skA = Sketches.updateSketchBuilder().build();
-    final UpdateSketch skB = Sketches.updateSketchBuilder().build();
-
-    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final UpdateSketch skA = UpdateSketch.builder().build();
+    final UpdateSketch skB = UpdateSketch.builder().build();
+    final AnotB aNotB = SetOperation.builder().buildANotB();
     final CompactSketch csk = aNotB.aNotB(skA, skB);
     assertEquals(csk.getCurrentBytes(), 8);
   }
@@ -321,7 +314,7 @@ public class AnotBimplTest {
 
   @Test
   public void checkGetMaxBytes() {
-    final int bytes = Sketches.getMaxAnotBResultBytes(10);
+    final int bytes = SetOperation.getMaxAnotBResultBytes(10);
     assertEquals(bytes, 16 * 15 + 24);
   }
 

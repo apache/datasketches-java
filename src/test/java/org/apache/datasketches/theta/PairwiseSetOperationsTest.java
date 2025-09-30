@@ -28,7 +28,6 @@ import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.Intersection;
 import org.apache.datasketches.theta.SetOperation;
 import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.Union;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
@@ -52,7 +51,7 @@ public class PairwiseSetOperationsTest {
 
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    Intersection inter = SetOperation.builder().buildIntersection();
     Sketch rsk = inter.intersect(csk1, csk2);
     assertEquals(rsk.getEstimate(), 0.0);
   }
@@ -64,7 +63,7 @@ public class PairwiseSetOperationsTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    Intersection inter = SetOperation.builder().buildIntersection();
 
     for (int i=0; i<k; i++) { //<k so est is exact
       usk1.update(i);
@@ -124,7 +123,7 @@ public class PairwiseSetOperationsTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-    AnotB anotb = Sketches.setOperationBuilder().buildANotB();
+    AnotB anotb = SetOperation.builder().buildANotB();
 
     for (int i=0; i<k; i++) {
       usk1.update(i);
@@ -145,7 +144,7 @@ public class PairwiseSetOperationsTest {
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-    AnotB anotb = Sketches.setOperationBuilder().buildANotB();
+    AnotB anotb = SetOperation.builder().buildANotB();
 
     for (int i=0; i<k; i++) {
       usk1.update(i);
@@ -203,7 +202,7 @@ public class PairwiseSetOperationsTest {
 
    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-   Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+   Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
    for (int i=0; i<k; i++) {
      usk1.update(i);
@@ -229,7 +228,7 @@ public class PairwiseSetOperationsTest {
 
    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-   Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+   Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 
    for (int i=0; i<k; i++) {
      usk1.update(i);

@@ -20,23 +20,13 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static org.apache.datasketches.common.Util.floorPowerOf2;
-import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
-import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
-import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
 import java.lang.foreign.MemorySegment;
-import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The API for intersection operations
@@ -162,86 +152,6 @@ public abstract class Intersection extends SetOperation {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
     return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
-  }
-
-  // Restricted
-
-  /**
-   * Returns the maximum lgArrLongs given the capacity of the MemorySegment.
-   * @param dstSeg the given MemorySegment
-   * @return the maximum lgArrLongs given the capacity of the MemorySegment
-   */
-  protected static int getMaxLgArrLongs(final MemorySegment dstSeg) {
-    final int preBytes = CONST_PREAMBLE_LONGS << 3;
-    final long cap = dstSeg.byteSize();
-    return Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
-  }
-
-  protected static void checkMinSizeMemorySegment(final MemorySegment seg) {
-    final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << ThetaUtil.MIN_LG_ARR_LONGS);//280
-    final long cap = seg.byteSize();
-    if (cap < minBytes) {
-      throw new SketchesArgumentException(
-          "MemorySegment must be at least " + minBytes + " bytes. Actual capacity: " + cap);
-    }
-  }
-
-  /**
-   * Compact first 2^lgArrLongs of given array
-   * @param srcCache anything
-   * @param lgArrLongs The correct
-   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">lgArrLongs</a>.
-   * @param curCount must be correct
-   * @param thetaLong The correct
-   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
-   * @param dstOrdered true if output array must be sorted
-   * @return the compacted array
-   */ //Only used in IntersectionImpl & Test
-  static final long[] compactCachePart(final long[] srcCache, final int lgArrLongs,
-      final int curCount, final long thetaLong, final boolean dstOrdered) {
-    if (curCount == 0) {
-      return new long[0];
-    }
-    final long[] cacheOut = new long[curCount];
-    final int len = 1 << lgArrLongs;
-    int j = 0;
-    for (int i = 0; i < len; i++) {
-      final long v = srcCache[i];
-      if (v <= 0L || v >= thetaLong ) { continue; }
-      cacheOut[j++] = v;
-    }
-    assert curCount == j;
-    if (dstOrdered) {
-      Arrays.sort(cacheOut);
-    }
-    return cacheOut;
-  }
-
-  protected static void segChecks(final MemorySegment srcSeg) {
-    //Get Preamble
-    //Note: Intersection does not use lgNomLongs (or k), per se.
-    //seedHash loaded and checked in private constructor
-    final int preLongs = extractPreLongs(srcSeg);
-    final int serVer = extractSerVer(srcSeg);
-    final int famID = extractFamilyID(srcSeg);
-    final boolean empty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) > 0;
-    final int curCount = extractCurCount(srcSeg);
-    //Checks
-    if (preLongs != CONST_PREAMBLE_LONGS) {
-      throw new SketchesArgumentException(
-          "MemorySegment PreambleLongs must equal " + CONST_PREAMBLE_LONGS + ": " + preLongs);
-    }
-    if (serVer != SER_VER) {
-      throw new SketchesArgumentException("Serialization Version must equal " + SER_VER);
-    }
-    Family.INTERSECTION.checkFamilyID(famID);
-    if (empty) {
-      if (curCount != 0) {
-        throw new SketchesArgumentException(
-            "srcSeg empty state inconsistent with curCount: " + empty + "," + curCount);
-      }
-      //empty = true AND curCount_ = 0: OK
-    } //else empty = false, curCount could be anything
   }
 
 }

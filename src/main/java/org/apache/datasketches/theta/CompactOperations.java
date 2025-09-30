@@ -33,7 +33,6 @@ import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
@@ -122,7 +121,7 @@ final class CompactOperations {
       final MemorySegment dstWSeg)
   {
     //extract Pre0 fields and Flags from srcMem
-    final int srcPreLongs = extractPreLongs(srcSeg);
+    final int srcPreLongs = Sketch.getPreambleLongs(srcSeg);
     final int srcSerVer = extractSerVer(srcSeg); //not used
     final int srcFamId = extractFamilyID(srcSeg);
     final int srcLgArrLongs = extractLgArrLongs(srcSeg);

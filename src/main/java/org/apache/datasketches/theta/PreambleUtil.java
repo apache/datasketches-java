@@ -233,7 +233,7 @@ final class PreambleUtil {
    * @param preambleLongs current preamble size
    * @return the size in bytes
    */
-  static int getSegBytes(final int lgArrLongs, final int preambleLongs) {
+  static int getUpdatableSegBytes(final int lgArrLongs, final int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }
 

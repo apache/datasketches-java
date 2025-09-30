@@ -26,24 +26,12 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.DirectCompactSketch;
-import org.apache.datasketches.theta.EmptyCompactSketch;
-import org.apache.datasketches.theta.HashIterator;
-import org.apache.datasketches.theta.HeapCompactSketch;
-import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.SingleItemSketch;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.WrappedCompactCompressedSketch;
-import org.apache.datasketches.theta.WrappedCompactSketch;
 import org.testng.annotations.Test;
-
-import java.lang.foreign.Arena;
 
 /**
  * @author Lee Rhodes
@@ -186,7 +174,7 @@ public class CompactSketchTest {
 
   @Test
   public void checkDirectSingleItemSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
     final int bytes = sk.getCompactBytes();
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
@@ -230,7 +218,7 @@ public class CompactSketchTest {
   @Test
   public void checkCompactCachePart() {
     //phony values except for curCount = 0.
-    final long[] result = Intersection.compactCachePart(null, 4, 0, 0L, false);
+    final long[] result = IntersectionImpl.compactCachePart(null, 4, 0, 0L, false);
     assertEquals(result.length, 0);
   }
 
@@ -250,7 +238,7 @@ public class CompactSketchTest {
    * Empty, segment-based Compact sketches are always ordered
    */
   public void checkEmptyMemorySegmentCompactSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
 
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[16]);
     final CompactSketch csk1 = sk.compact(false, wseg1); //the first parameter is ignored when empty
@@ -290,7 +278,7 @@ public class CompactSketchTest {
    * Single-Item, segment-based Compact sketches are always ordered:
    */
   public void checkSingleItemMemorySegmentCompactSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
 
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[16]);
@@ -321,7 +309,7 @@ public class CompactSketchTest {
 
   @Test
   public void checkMultipleItemMemorySegmentCompactSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     //This sequence is naturally out-of-order by the hash values.
     sk.update(1);
     sk.update(2);
@@ -360,7 +348,7 @@ public class CompactSketchTest {
    * All empty, heap-based, compact sketches point to the same static, final constant of 8 bytes.
    */
   public void checkEmptyHeapCompactSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
 
     final CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when empty
     final State state1 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
@@ -390,7 +378,7 @@ public class CompactSketchTest {
    * Single-Item, heap-based Compact sketches are always ordered.
    */
   public void checkSingleItemHeapCompactSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
 
     final CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when single item
@@ -418,7 +406,7 @@ public class CompactSketchTest {
 
   @Test
   public void checkMultipleItemHeapCompactSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     //This sequence is naturally out-of-order by the hash values.
     sk.update(1);
     sk.update(2);
@@ -453,9 +441,9 @@ public class CompactSketchTest {
 
   @Test
   public void checkHeapifySingleItemSketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
-    final int bytes = Sketches.getMaxCompactSketchBytes(2); //1 more than needed
+    final int bytes = Sketch.getMaxCompactSketchBytes(2); //1 more than needed
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     sk.compact(false, wseg);
     final Sketch csk = Sketch.heapify(wseg);
@@ -464,7 +452,7 @@ public class CompactSketchTest {
 
   @Test
   public void checkHeapifyEmptySketch() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     final MemorySegment wseg = MemorySegment.ofArray(new byte[16]); //empty, but extra bytes
     final CompactSketch csk = sk.compact(false, wseg); //ignores order because it is empty
     assertTrue(csk instanceof DirectCompactSketch);
@@ -474,7 +462,7 @@ public class CompactSketchTest {
 
   @Test
   public void checkGetCache() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().setP((float).5).build();
+    final UpdateSketch sk = UpdateSketch.builder().setP((float).5).build();
     sk.update(7);
     final int bytes = sk.getCompactBytes();
     final CompactSketch csk = sk.compact(true, MemorySegment.ofArray(new byte[bytes]));
@@ -484,7 +472,7 @@ public class CompactSketchTest {
 
   @Test
   public void checkHeapCompactSketchCompact() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
     sk.update(2);
     final CompactSketch csk = sk.compact();
@@ -506,7 +494,7 @@ public class CompactSketchTest {
     final int lgK = 6;
 
     //empty
-    final UpdateSketch sk = Sketches.updateSketchBuilder().setLogNominalEntries(lgK).build();
+    final UpdateSketch sk = UpdateSketch.builder().setLogNominalEntries(lgK).build();
     bytes = sk.getCompactBytes();         //empty, 8 bytes
     wseg1 = MemorySegment.ofArray(new byte[bytes]);
     wseg2 = MemorySegment.ofArray(new byte[bytes]);
@@ -566,7 +554,7 @@ public class CompactSketchTest {
 
   @Test
   public void serializeDeserializeHeapV4() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
@@ -583,7 +571,7 @@ public class CompactSketchTest {
 
   @Test
   public void serializeDeserializeDirectV4_segment() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
@@ -600,7 +588,7 @@ public class CompactSketchTest {
 
   @Test
   public void serializeDeserializeDirectV4_bytes() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
@@ -618,7 +606,7 @@ public class CompactSketchTest {
 
   @Test
   public void serializeWrapBytesV3() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
@@ -636,7 +624,7 @@ public class CompactSketchTest {
 
   @Test
   public void serializeWrapBytesV4() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }

@@ -20,16 +20,24 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
+import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
+import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
+import static org.apache.datasketches.theta.PreambleUtil.getAndCheckPreLongs;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
@@ -70,12 +78,12 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return a Sketch on the heap.
    */
   public static Sketch heapify(final MemorySegment srcSeg) {
-    final byte familyID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
-    final Family family = idToFamily(familyID);
-    if (family == Family.COMPACT) {
-      return CompactSketch.heapify(srcSeg);
+//    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
+    final int familyID = extractFamilyID(srcSeg);
+    if (familyID == Family.COMPACT.getID()) {
+      return CompactSketch.heapify(srcSeg);//, Util.DEFAULT_UPDATE_SEED);
     }
-    return heapifyUpdateFromMemorySegment(srcSeg, Util.DEFAULT_UPDATE_SEED);
+    return heapifyUpdateSketchFromMemorySegment(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -83,12 +91,13 @@ public abstract class Sketch implements MemorySegmentStatus {
    *
    * <p>The resulting sketch will not retain any link to the source MemorySegment.</p>
    *
-   * <p>For Update Sketches this method checks if the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
-   * was used to create the source MemorySegment image.
+   * <p>For Update Sketches this method checks if the expectedSeed
+   * was used to create the source MemorySegment image.</p>
    *
    * <p>For Compact Sketches this method assumes that the sketch image was created with the
    * correct hash seed, so it is not checked. SerialVersion 1 sketches (pre-open-source) cannot be checked.</p>
+   *
+   * <p><b>Note:</b> This assumes only SerVer 3 and later.</p>
    *
    * @param srcSeg an image of a Sketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
@@ -102,7 +111,7 @@ public abstract class Sketch implements MemorySegmentStatus {
     if (family == Family.COMPACT) {
       return CompactSketch.heapify(srcSeg, expectedSeed);
     }
-    return heapifyUpdateFromMemorySegment(srcSeg, expectedSeed);
+    return heapifyUpdateSketchFromMemorySegment(srcSeg, expectedSeed);
   }
 
   /**
@@ -276,6 +285,20 @@ public abstract class Sketch implements MemorySegmentStatus {
   public abstract double getEstimate();
 
   /**
+   * Gets the estimate from the given MemorySegment
+   * @param srcSeg the given MemorySegment
+   * @return the result estimate
+   */
+  public static double getEstimate(final MemorySegment srcSeg) {
+    final int famId = extractFamilyID(srcSeg);
+    if (!isValidSketchID(famId)) {
+      throw new SketchesArgumentException("Source MemorySegment not a valid Sketch. Family: "
+          + Family.idToFamily(famId).toString());
+    }
+    return Sketch.estimate(extractThetaLong(srcSeg), getRetainedEntries(srcSeg));
+  }
+
+  /**
    * Returns the Family that this sketch belongs to
    * @return the Family that this sketch belongs to
    */
@@ -352,6 +375,30 @@ public abstract class Sketch implements MemorySegmentStatus {
   }
 
   /**
+   * Returns the number of valid entries that have been retained by the sketch from the given MemorySegment
+   * @param srcSeg the given MemorySegment that has an image of a Sketch
+   * @return the number of valid retained entries
+   */
+  public static int getRetainedEntries(final MemorySegment srcSeg) {
+    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
+    if (serVer == 1) {
+      final int entries = srcSeg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
+      if (Sketch.getThetaLong(srcSeg) == Long.MAX_VALUE && entries == 0) {
+        return 0;
+      }
+      return entries;
+    }
+    //SerVer 2 or 3
+    final int preLongs = Sketch.getPreambleLongs(srcSeg);
+    final boolean empty = (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2 & 3
+    if (preLongs == 1) {
+      return empty ? 0 : 1;
+    }
+    //preLongs > 1
+    return srcSeg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT); //for SerVer 1,2,3
+  }
+
+  /**
    * Returns the number of entries that have been retained by the sketch.
    * @param valid if true, returns the number of valid entries, which are less than theta and used
    * for estimation.
@@ -416,7 +463,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return estMode(getThetaLong(), isEmpty());
+    return getThetaLong() < Long.MAX_VALUE && !isEmpty();
   }
 
   /**
@@ -606,6 +653,23 @@ public abstract class Sketch implements MemorySegmentStatus {
    */
   abstract short getSeedHash();
 
+  static boolean getEmpty(final MemorySegment srcSeg) {
+    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
+    if (serVer == 1) {
+      return getThetaLong(srcSeg) == Long.MAX_VALUE && getRetainedEntries(srcSeg) == 0;
+    }
+    return (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2,3,4
+  }
+
+  static int getPreambleLongs(final MemorySegment srcSeg) {
+    return getAndCheckPreLongs(srcSeg); //for SerVer 1,2,3,4
+  }
+
+  static long getThetaLong(final MemorySegment srcSeg) {
+    final int preLongs = Sketch.getPreambleLongs(srcSeg);
+    return preLongs < 3 ? Long.MAX_VALUE : srcSeg.get(JAVA_LONG_UNALIGNED, THETA_LONG); //for SerVer 1,2,3,4
+  }
+
   /**
    * Returns true if given Family id is one of the theta sketches
    * @param id the given Family id
@@ -617,42 +681,47 @@ public abstract class Sketch implements MemorySegmentStatus {
         || id == Family.COMPACT.getID();
   }
 
-  /**
-   * Checks Ordered and Compact flags for integrity between sketch and a MemorySegment
-   * @param sketch the given sketch
-   */
-  static final void checkSketchAndMemorySegmentFlags(final Sketch sketch) {
-    final MemorySegment seg = sketch.getMemorySegment();
-    if (seg == null) { return; }
-    final int flags = PreambleUtil.extractFlags(seg);
-    if ((flags & COMPACT_FLAG_MASK) > 0 ^ sketch.isCompact()) {
-      throw new SketchesArgumentException("Possible corruption: "
-          + "MemorySegment Compact Flag inconsistent with Sketch");
-    }
-    if ((flags & ORDERED_FLAG_MASK) > 0 ^ sketch.isOrdered()) {
-      throw new SketchesArgumentException("Possible corruption: "
-          + "MemorySegment Ordered Flag inconsistent with Sketch");
-    }
-  }
-
   static final double estimate(final long thetaLong, final int curCount) {
     return curCount * (LONG_MAX_VALUE_AS_DOUBLE / thetaLong);
   }
 
-  static final double lowerBound(final int curCount, final long thetaLong, final int numStdDev,
-      final boolean empty) {
+  /**
+   * Gets the approximate lower error bound from a valid MemorySegment image of a Sketch
+   * given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param srcSeg the source MemorySegment
+   * @return the lower bound.
+   */
+  public static double getLowerBound(final int numStdDev, final MemorySegment srcSeg) {
+    return lowerBound(getRetainedEntries(srcSeg), Sketch.getThetaLong(srcSeg), numStdDev, Sketch.getEmpty(srcSeg));
+  }
+
+  static final double lowerBound(final int curCount, final long thetaLong, final int numStdDev, final boolean empty) {
     final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     return BinomialBoundsN.getLowerBound(curCount, theta, numStdDev, empty);
+  }
+
+  /**
+   * Gets the approximate upper error bound from a valid MemorySegment image of a Sketch
+   * given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param srcSeg the source MemorySegment
+   * @return the upper bound.
+   */
+  public static double getUpperBound(final int numStdDev, final MemorySegment srcSeg) {
+    return upperBound(getRetainedEntries(srcSeg), Sketch.getThetaLong(srcSeg), numStdDev, Sketch.getEmpty(srcSeg));
   }
 
   static final double upperBound(final int curCount, final long thetaLong, final int numStdDev,
       final boolean empty) {
     final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     return BinomialBoundsN.getUpperBound(curCount, theta, numStdDev, empty);
-  }
-
-  private static final boolean estMode(final long thetaLong, final boolean empty) {
-    return thetaLong < Long.MAX_VALUE && !empty;
   }
 
   /**
@@ -662,7 +731,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Sketch
    */
-  private static final Sketch heapifyUpdateFromMemorySegment(final MemorySegment srcSeg, final long expectedSeed) {
+  private static final Sketch heapifyUpdateSketchFromMemorySegment(final MemorySegment srcSeg, final long expectedSeed) {
     final long cap = srcSeg.byteSize();
     if (cap < 8) {
       throw new SketchesArgumentException(

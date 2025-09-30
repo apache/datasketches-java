@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 
 import java.lang.foreign.MemorySegment;
@@ -56,7 +55,7 @@ final class ForwardCompatibility {
    */
   static final CompactSketch heapify1to3(final MemorySegment srcSeg, final short seedHash) {
     final int segCap = (int) srcSeg.byteSize();
-    final int preLongs = extractPreLongs(srcSeg); //always 3 for serVer 1
+    final int preLongs = Sketch.getPreambleLongs(srcSeg); //always 3 for serVer 1
     if (preLongs != 3) {
       throw new SketchesArgumentException("PreLongs must be 3 for SerVer 1: " + preLongs);
     }
@@ -97,7 +96,7 @@ final class ForwardCompatibility {
    */
   static final CompactSketch heapify2to3(final MemorySegment srcSeg, final short seedHash) {
     final int segCap = (int) srcSeg.byteSize();
-    final int preLongs = extractPreLongs(srcSeg); //1,2 or 3
+    final int preLongs = Sketch.getPreambleLongs(srcSeg); //1,2 or 3
     final int familyId = extractFamilyID(srcSeg); //1,2,3,4
     if ((familyId < 1) || (familyId > 4)) {
       throw new SketchesArgumentException("Family (Sketch Type) must be 1 to 4: " + familyId);

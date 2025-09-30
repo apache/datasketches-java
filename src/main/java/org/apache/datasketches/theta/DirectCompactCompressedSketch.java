@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.extractEntryBitsV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractNumEntriesBytesV4;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLongV4;
 import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
@@ -70,12 +69,12 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
       MemorySegment.copy(seg_, 0, dstSeg, 0, getCurrentBytes());
       return new DirectCompactSketch(dstSeg);
     }
-    return CompactSketch.heapify(seg_);
+    return CompactSketch.heapify(seg_, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Override
   public int getCurrentBytes() {
-    final int preLongs = extractPreLongs(seg_);
+    final int preLongs = Sketch.getPreambleLongs(seg_);
     final int entryBits = extractEntryBitsV4(seg_);
     final int numEntriesBytes = extractNumEntriesBytesV4(seg_);
     return preLongs * Long.BYTES + numEntriesBytes + wholeBytesToHoldBits(getRetainedEntries() * entryBits);
@@ -89,7 +88,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
     // number of entries is stored using variable length encoding
     // most significant bytes with all zeros are not stored
     // one byte in the preamble has the number of non-zero bytes used
-    final int preLongs = extractPreLongs(seg_); // if > 1 then the second long has theta
+    final int preLongs = Sketch.getPreambleLongs(seg_); // if > 1 then the second long has theta
     final int numEntriesBytes = extractNumEntriesBytesV4(seg_);
     int offsetBytes = preLongs > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE;
     int numEntries = 0;
@@ -101,7 +100,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
 
   @Override
   public long getThetaLong() {
-    final int preLongs = extractPreLongs(seg_);
+    final int preLongs = Sketch.getPreambleLongs(seg_);
     return (preLongs > 1) ? extractThetaLongV4(seg_) : Long.MAX_VALUE;
   }
 
@@ -119,7 +118,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
   public HashIterator iterator() {
     return new MemorySegmentCompactCompressedHashIterator(
       seg_,
-      (extractPreLongs(seg_) > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE)
+      (Sketch.getPreambleLongs(seg_) > 1 ? START_PACKED_DATA_ESTIMATION_MODE : START_PACKED_DATA_EXACT_MODE)
         + extractNumEntriesBytesV4(seg_),
       extractEntryBitsV4(seg_),
       getRetainedEntries()

@@ -37,15 +37,6 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.DirectQuickSelectSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.SetOperationBuilder;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -190,7 +181,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.0);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.0);
   }
@@ -219,7 +210,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
   }
@@ -255,7 +246,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -295,7 +286,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -335,7 +326,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -375,7 +366,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -635,10 +626,10 @@ public class DirectUnionTest {
     sk2.update("c");
     sk2.update("d");
 
-    Union union = Sketches.wrapUnion(uSeg);
+    Union union = Union.wrap(uSeg);
     union.union(sk1);
 
-    union = Sketches.wrapUnion(uSeg);
+    union = Union.wrap(uSeg);
     union.union(sk2);
 
     final CompactSketch sketch = union.getResult(true, null);
@@ -680,13 +671,13 @@ public class DirectUnionTest {
   @Test
   public void checkGetResult() {
     final int k = 1024;
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
 
     final int segBytes = getMaxUnionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(iSeg);
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(iSeg);
     union.union(sk);
     final CompactSketch csk = union.getResult();
     assertEquals(csk.getCompactBytes(), 8);
@@ -751,7 +742,7 @@ public class DirectUnionTest {
     final SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
     println(setOp.toString());
     final int familyID = PreambleUtil.extractFamilyID(seg);
-    final int preLongs = PreambleUtil.extractPreLongs(seg);
+    final int preLongs = Sketch.getPreambleLongs(seg);
     assertEquals(familyID, Family.UNION.getID());
     assertEquals(preLongs, Family.UNION.getMaxPreLongs());
     PreambleUtil.insertPreLongs(seg, 3); //Corrupt with 3; correct value is 4

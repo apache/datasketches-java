@@ -29,18 +29,9 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.AnotB;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.DirectCompactSketch;
-import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.SingleItemSketch;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -51,7 +42,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void check1() {
-    final Union union = Sketches.setOperationBuilder().buildUnion();
+    final Union union = SetOperation.builder().buildUnion();
     union.union(SingleItemSketch.create(1));
     union.union(SingleItemSketch.create(1.0));
     union.union(SingleItemSketch.create(0.0));
@@ -91,7 +82,7 @@ public class SingleItemSketchTest {
   @Test
   public void check2() {
     final long seed = Util.DEFAULT_UPDATE_SEED;
-    final Union union = Sketches.setOperationBuilder().buildUnion();
+    final Union union = SetOperation.builder().buildUnion();
     union.union(SingleItemSketch.create(1, seed));
     union.union(SingleItemSketch.create(1.0, seed));
     union.union(SingleItemSketch.create(0.0, seed));
@@ -166,7 +157,7 @@ public class SingleItemSketchTest {
     final SingleItemSketch sis3 = SingleItemSketch.heapify(seg , defaultSeedHash);
     assertEquals(sis3.getEstimate(), 1.0);
 
-    final Union union = Sketches.setOperationBuilder().buildUnion();
+    final Union union = SetOperation.builder().buildUnion();
     union.union(sis);
     union.union(sis2);
     union.union(sis3);
@@ -185,7 +176,7 @@ public class SingleItemSketchTest {
   @Test
   public void unionWrapped() {
     final Sketch sketch = SingleItemSketch.create(1);
-    final Union union = Sketches.setOperationBuilder().buildUnion();
+    final Union union = SetOperation.builder().buildUnion();
     final MemorySegment seg  = MemorySegment.ofArray(sketch.toByteArray());
     union.union(seg );
     assertEquals(union.getResult().getEstimate(), 1, 0);
@@ -197,7 +188,7 @@ public class SingleItemSketchTest {
     CompactSketch csk;
     int bytes;
     //On-heap
-    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     csk = sk1.compact(true, null);
     assertTrue(csk instanceof SingleItemSketch);
@@ -205,16 +196,16 @@ public class SingleItemSketchTest {
     assertTrue(csk instanceof SingleItemSketch);
 
     //Off-heap
-    bytes = Sketches.getMaxUpdateSketchBytes(32);
+    bytes = Sketch.getMaxUpdateSketchBytes(32);
     MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
-    sk1= Sketches.updateSketchBuilder().setNominalEntries(32).build(wseg );
+    sk1= UpdateSketch.builder().setNominalEntries(32).build(wseg );
     sk1.update(1);
     csk = sk1.compact(true, null);
     assertTrue(csk instanceof SingleItemSketch);
     csk = sk1.compact(false, null);
     assertTrue(csk instanceof SingleItemSketch);
 
-    bytes = Sketches.getMaxCompactSketchBytes(1);
+    bytes = Sketch.getMaxCompactSketchBytes(1);
     wseg  = MemorySegment.ofArray(new byte[bytes]);
     csk = sk1.compact(true, wseg );
     assertTrue(csk.isOrdered());
@@ -228,21 +219,21 @@ public class SingleItemSketchTest {
     CompactSketch csk;
     int bytes;
     //Intersection on-heap
-    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
-    sk2 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
+    sk2 = UpdateSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     sk1.update(2);
     sk2.update(1);
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    Intersection inter = SetOperation.builder().buildIntersection();
     inter.intersect(sk1);
     inter.intersect(sk2);
     csk = inter.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
 
     //Intersection off-heap
-    bytes = Sketches.getMaxIntersectionBytes(32);
+    bytes = SetOperation.getMaxIntersectionBytes(32);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
-    inter = Sketches.setOperationBuilder().buildIntersection(wseg );
+    inter = SetOperation.builder().buildIntersection(wseg );
     inter.intersect(sk1);
     inter.intersect(sk2);
     csk = inter.getResult(true, null);
@@ -257,20 +248,20 @@ public class SingleItemSketchTest {
     CompactSketch csk;
     int bytes;
     //Union on-heap
-    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
-    sk2 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
+    sk2 = UpdateSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     sk2.update(1);
-    Union union = Sketches.setOperationBuilder().buildUnion();
+    Union union = SetOperation.builder().buildUnion();
     union.union(sk1);
     union.union(sk2);
     csk = union.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
 
     //Union off-heap
-    bytes = Sketches.getMaxUnionBytes(32);
+    bytes = SetOperation.getMaxUnionBytes(32);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
-    union = Sketches.setOperationBuilder().buildUnion(wseg );
+    union = SetOperation.builder().buildUnion(wseg );
     union.union(sk1);
     union.union(sk2);
     csk = union.getResult(true, null);
@@ -284,11 +275,11 @@ public class SingleItemSketchTest {
     UpdateSketch sk1, sk2;
     CompactSketch csk;
     //AnotB on-heap
-    sk1 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
-    sk2 = Sketches.updateSketchBuilder().setNominalEntries(32).build();
+    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
+    sk2 = UpdateSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     sk2.update(2);
-    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final AnotB aNotB = SetOperation.builder().buildANotB();
     aNotB.setA(sk1);
     aNotB.notB(sk2);
     csk = aNotB.getResult(true, null, true);
@@ -302,13 +293,13 @@ public class SingleItemSketchTest {
     sk1.update(1);
     final UpdateSketch sk2 = new UpdateSketchBuilder().build();
     sk2.update(1);
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final Intersection inter = SetOperation.builder().buildIntersection();
     inter.intersect(sk1);
     inter.intersect(sk2);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
     final CompactSketch csk = inter.getResult(false, wseg );
     assertTrue(csk.isOrdered());
-    final Sketch csk2 = Sketches.heapifySketch(wseg );
+    final Sketch csk2 = Sketch.heapify(wseg );
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));
   }

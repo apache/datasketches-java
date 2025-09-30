@@ -38,7 +38,7 @@ final class MemorySegmentHashIterator implements HashIterator {
     this.seg = srcSeg;
     this.arrLongs = arrLongs;
     this.thetaLong = thetaLong;
-    offsetBytes = PreambleUtil.extractPreLongs(srcSeg) << 3;
+    offsetBytes = Sketch.getPreambleLongs(srcSeg) << 3;
     index = -1;
     hash = 0;
   }

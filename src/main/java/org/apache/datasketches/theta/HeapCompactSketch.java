@@ -57,6 +57,7 @@ final class HeapCompactSketch extends CompactSketch {
    * @param curCount correct value
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param ordered true if cache is ordered.
    */
   HeapCompactSketch(final long[] cache, final boolean empty, final short seedHash,
       final int curCount, final long thetaLong, final boolean ordered) {

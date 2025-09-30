@@ -39,7 +39,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.getSegBytes;
+import static org.apache.datasketches.theta.PreambleUtil.getUpdatableSegBytes;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 
 import java.lang.foreign.MemorySegment;
@@ -162,8 +162,16 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
-    return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
-        false, false, dstOrdered, dstWSeg, getCache());
+    return componentsToCompact(
+        getThetaLong(),
+        getRetainedEntries(true),
+        getSeedHash(),
+        isEmpty(),
+        false, //is src compact
+        false, //is src ordered
+        dstOrdered,
+        dstWSeg,
+        getCache());
   }
 
   @Override
@@ -463,7 +471,7 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check seg capacity, lgArrLongs
     final long curCapBytes = srcSeg.byteSize();
-    final int minReqBytes = getSegBytes(lgArrLongs, preambleLongs);
+    final int minReqBytes = getUpdatableSegBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
           "Possible corruption: Current MemorySegment size < min required size: "

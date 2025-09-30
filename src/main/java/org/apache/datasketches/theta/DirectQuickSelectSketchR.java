@@ -37,7 +37,6 @@ import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
@@ -103,7 +102,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketchR readOnlyWrap(final MemorySegment srcSeg, final long seed) {
-    final int preambleLongs = extractPreLongs(srcSeg);                  //byte 0
+    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);                  //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 
@@ -240,7 +239,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   int getCurrentPreambleLongs() {
-    return PreambleUtil.extractPreLongs(wseg_);
+    return Sketch.getPreambleLongs(wseg_);
   }
 
   @Override

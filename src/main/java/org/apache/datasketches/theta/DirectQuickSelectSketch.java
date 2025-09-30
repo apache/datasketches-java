@@ -33,8 +33,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.theta.PreambleUtil.getSegBytes;
+import static org.apache.datasketches.theta.PreambleUtil.getUpdatableSegBytes;
 import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.insertFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.insertFlags;
@@ -132,7 +131,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int lgArrLongs = lgRF == 0 ? lgNomLongs + 1 : ThetaUtil.MIN_LG_ARR_LONGS;
 
     //check Segment capacity
-    final int minReqBytes = getSegBytes(lgArrLongs, preambleLongs);
+    final int minReqBytes = getUpdatableSegBytes(lgArrLongs, preambleLongs);
     final long curSegCapBytes = dstSeg.byteSize();
     if (curSegCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
@@ -176,7 +175,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       final MemorySegment srcSeg,
       final MemorySegmentRequest mSegReq,
       final long seed) {
-    final int preambleLongs = extractPreLongs(srcSeg);                  //byte 0
+    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);                  //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 

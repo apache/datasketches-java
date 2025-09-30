@@ -41,7 +41,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.theta.CompactOperations;
 import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -154,14 +153,14 @@ public class UpdateSketchTest {
 
   @Test
   public void checkCompact() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     final CompactSketch csk = sk.compact();
     assertEquals(csk.getCompactBytes(), 8);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIncompatibleFamily() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
     final MemorySegment wseg = MemorySegment.ofArray(sk.compact().toByteArray());
     UpdateSketch.wrap(wseg, null, Util.DEFAULT_UPDATE_SEED);
@@ -169,7 +168,7 @@ public class UpdateSketchTest {
 
   @Test
   public void checkCorruption() {
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
     final MemorySegment wseg = MemorySegment.ofArray(sk.toByteArray());
     try {
@@ -212,7 +211,7 @@ public class UpdateSketchTest {
     MemorySegment skwseg, cskwseg1, cskwseg2, cskwseg3;
     CompactSketch csk1, csk2, csk3;
     final int lgK = 6;
-    final UpdateSketch sk = Sketches.updateSketchBuilder().setLogNominalEntries(lgK).build();
+    final UpdateSketch sk = UpdateSketch.builder().setLogNominalEntries(lgK).build();
     final int n = 1 << lgK + 1;
     for (int i = 2; i < n; i++) { sk.update(i); }
     final int cbytes = sk.getCompactBytes();

@@ -34,17 +34,6 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.ConcurrentHeapQuickSelectSketch;
-import org.apache.datasketches.theta.ConcurrentHeapThetaBuffer;
-import org.apache.datasketches.theta.ConcurrentPropagationService;
-import org.apache.datasketches.theta.ConcurrentSharedThetaSketch;
-import org.apache.datasketches.theta.HeapQuickSelectSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -173,7 +162,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final byte[]  serArr = shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
-    final Sketch recoveredShared = Sketches.heapifyUpdateSketch(srcSeg);
+    final Sketch recoveredShared = UpdateSketch.heapify(srcSeg);
 
     //reconstruct to Native/Direct
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);

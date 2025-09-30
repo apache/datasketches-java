@@ -29,16 +29,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.theta.AnotB;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.DirectCompactSketch;
-import org.apache.datasketches.theta.EmptyCompactSketch;
-import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 
@@ -51,9 +41,9 @@ public class EmptyTest {
 
   @Test
   public void checkEmpty() {
-    final UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
-    final UpdateSketch sk2 = Sketches.updateSketchBuilder().build();
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final UpdateSketch sk1 = UpdateSketch.builder().build();
+    final UpdateSketch sk2 = UpdateSketch.builder().build();
+    final Intersection inter = SetOperation.builder().buildIntersection();
 
     final int u = 100;
     for (int i = 0; i < u; i++) { //disjoint
@@ -68,7 +58,7 @@ public class EmptyTest {
     println(csk.toString());
     assertTrue(csk.isEmpty());
 
-    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final AnotB aNotB = SetOperation.builder().buildANotB();
     final CompactSketch csk2 = aNotB.aNotB(csk, sk1);
     //The AnotB of an empty, T == 1.0 sketch with another exact-mode sketch is empty, T == 1.0
     assertTrue(csk2.isEmpty());
@@ -76,9 +66,9 @@ public class EmptyTest {
 
   @Test
   public void checkNotEmpty() {
-    final UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
-    final UpdateSketch sk2 = Sketches.updateSketchBuilder().build();
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final UpdateSketch sk1 = UpdateSketch.builder().build();
+    final UpdateSketch sk2 = UpdateSketch.builder().build();
+    final Intersection inter = SetOperation.builder().buildIntersection();
 
     final int u = 10000; //estimating
     for (int i = 0; i < u; i++) { //disjoint
@@ -93,14 +83,14 @@ public class EmptyTest {
     //The intersection of two disjoint, est-mode sketches is not-empty, T < 1.0.
     assertFalse(csk.isEmpty());
 
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    AnotB aNotB = SetOperation.builder().buildANotB();
     final CompactSketch csk2 = aNotB.aNotB(csk, sk1); //empty, T < 1.0; with est-mode sketch
     println(csk2.toString());
     //The AnotB of an empty, T < 1.0 sketch with another exact-mode sketch is not-empty.
     assertFalse(csk2.isEmpty());
 
-    final UpdateSketch sk3 = Sketches.updateSketchBuilder().build();
-    aNotB = Sketches.setOperationBuilder().buildANotB();
+    final UpdateSketch sk3 = UpdateSketch.builder().build();
+    aNotB = SetOperation.builder().buildANotB();
     final CompactSketch csk3 = aNotB.aNotB(sk3, sk1); //empty, T == 1.0; with est-mode sketch
     println(csk3.toString());
     //the AnotB of an empty, T == 1.0 sketch with another est-mode sketch is empty, T < 1.0
@@ -109,7 +99,7 @@ public class EmptyTest {
 
   @Test
   public void checkPsampling() {
-    final UpdateSketch sk1 = Sketches.updateSketchBuilder().setP(.5F).build();
+    final UpdateSketch sk1 = UpdateSketch.builder().setP(.5F).build();
     assertTrue(sk1.isEmpty());
     //An empty P-sampling sketch where T < 1.0 and has never seen data is also empty
     // and will have a full preamble of 24 bytes.  But when compacted, theta returns to 1.0, so
@@ -122,10 +112,10 @@ public class EmptyTest {
   @Test
   public void checkBackwardCompatibility1() {
     final int k = 16;
-    final int bytes = Sketches.getMaxUnionBytes(k); //288
+    final int bytes = SetOperation.getMaxUnionBytes(k); //288
     final Union union = SetOperation.builder().buildUnion(MemorySegment.ofArray(new byte[bytes]));
     final MemorySegment seg = badEmptySk();
-    final Sketch wsk = Sketches.wrapSketch(seg);
+    final Sketch wsk = Sketch.wrap(seg);
     union.union(wsk); //union has segment
   }
 
@@ -133,19 +123,19 @@ public class EmptyTest {
   public void checkBackwardCompatibility2() {
     final Union union = SetOperation.builder().setNominalEntries(16).buildUnion();
     final MemorySegment seg = badEmptySk();
-    final Sketch wsk = Sketches.wrapSketch(seg);
+    final Sketch wsk = Sketch.wrap(seg);
     union.union(wsk); //heap union
   }
 
   @Test
   public void checkBackwardCompatibility3() {
     final MemorySegment seg = badEmptySk();
-    Sketches.heapifySketch(seg);
+    Sketch.heapify(seg);
   }
 
   @Test
   public void checkEmptyToCompact() {
-    final UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk1 = UpdateSketch.builder().build();
     final CompactSketch csk = sk1.compact();
     assertTrue(csk instanceof EmptyCompactSketch);
     final CompactSketch csk2 = csk.compact();

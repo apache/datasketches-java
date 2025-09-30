@@ -35,7 +35,6 @@ import static org.apache.datasketches.theta.PreambleUtil.extractEntryBitsV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractNumEntriesBytesV4;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLongV4;
@@ -78,7 +77,8 @@ public abstract class CompactSketch extends Sketch {
    * @return a CompactSketch on the heap.
    */
   public static CompactSketch heapify(final MemorySegment srcSeg) {
-    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED, false);
+    //final boolean checkSeedHash = extractSerVer(srcSeg) != 1;
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED, false); //false for SerVer 1 only
   }
 
   /**
@@ -459,7 +459,7 @@ public abstract class CompactSketch extends Sketch {
   }
 
   private static CompactSketch heapifyV4(final MemorySegment srcSeg, final long seed, final boolean enforceSeed) {
-    final int preLongs = extractPreLongs(srcSeg);
+    final int preLongs = Sketch.getPreambleLongs(srcSeg);
     final int entryBits = extractEntryBitsV4(srcSeg);
     final int numEntriesBytes = extractNumEntriesBytesV4(srcSeg);
     final short seedHash = (short) extractSeedHash(srcSeg);

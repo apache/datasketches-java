@@ -34,16 +34,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.AnotB;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.SetOperationBuilder;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -190,7 +180,7 @@ public class SetOperationTest {
     }
     final byte[] byteArray = usk1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
-    Sketches.wrapIntersection(seg);
+    Intersection.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -219,7 +209,7 @@ public class SetOperationTest {
 
   @Test
   public void checkBuildSetOps() {
-    final SetOperationBuilder bldr = Sketches.setOperationBuilder();
+    final SetOperationBuilder bldr = SetOperation.builder();
     bldr.buildUnion();
     bldr.buildIntersection();
     bldr.buildANotB();
@@ -283,15 +273,15 @@ public class SetOperationTest {
   public void setOpsExample() {
     println("Set Operations Example:");
     final int k = 4096;
-    final UpdateSketch skA = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    final UpdateSketch skB = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    final UpdateSketch skC = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch skA = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch skB = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch skC = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i=1;  i<=10; i++) { skA.update(i); }
     for (int i=1;  i<=20; i++) { skB.update(i); }
     for (int i=6;  i<=15; i++) { skC.update(i); } //overlapping set
 
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(skA);
     union.union(skB);
     // ... continue to iterate on the input sketches to union
@@ -301,7 +291,7 @@ public class SetOperationTest {
 
     //Intersection is similar
 
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final Intersection inter = SetOperation.builder().buildIntersection();
     inter.intersect(unionSk);
     inter.intersect(skC);
     // ... continue to iterate on the input sketches to intersect
@@ -311,7 +301,7 @@ public class SetOperationTest {
 
     //The AnotB operation is a little different as it is stateless:
 
-    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final AnotB aNotB = SetOperation.builder().buildANotB();
     final CompactSketch not = aNotB.aNotB(skA, skC);
 
     println("A \\ C      : "+not.getEstimate()); //the estimate of the AnotB operation
@@ -322,15 +312,15 @@ public class SetOperationTest {
     final int k = 16;
     final MemorySegment wseg = MemorySegment.ofArray(new byte[k*16 + 32]);//288
     final MemorySegment emptySeg = MemorySegment.ofArray(new byte[8]);
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(wseg);
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(wseg);
     assertTrue(union.isSameResource(wseg));
     assertFalse(union.isSameResource(emptySeg));
 
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection(wseg);
+    final Intersection inter = SetOperation.builder().buildIntersection(wseg);
     assertTrue(inter.isSameResource(wseg));
     assertFalse(inter.isSameResource(emptySeg));
 
-    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final AnotB aNotB = SetOperation.builder().buildANotB();
 
     assertFalse(aNotB.isSameResource(emptySeg));
   }
@@ -404,7 +394,7 @@ public class SetOperationTest {
     union.union(sk2);
 
     //Let's recover the union and the 3rd sketch
-    union = Sketches.wrapUnion(unionSeg);
+    union = Union.wrap(unionSeg);
     union.union(Sketch.wrap(sketch3seg));
 
     final Sketch resSk = union.getResult(true, resultSeg);

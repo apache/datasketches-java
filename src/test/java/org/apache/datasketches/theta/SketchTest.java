@@ -50,7 +50,6 @@ import org.apache.datasketches.theta.DirectCompactSketch;
 import org.apache.datasketches.theta.PreambleUtil;
 import org.apache.datasketches.theta.SetOperation;
 import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.Union;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -332,7 +331,7 @@ public class SketchTest {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) + 24]); //280
     final MemorySegment cseg = MemorySegment.ofArray(new byte[32]);
-    final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(seg);
+    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(seg);
     sketch.update(1);
     sketch.update(2);
     assertTrue(sketch.isSameResource(seg));
@@ -358,7 +357,7 @@ public class SketchTest {
   }
 
   private static MemorySegment createCompactSketchMemorySegment(final int k, final int u) {
-    final UpdateSketch usk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < u; i++) { usk.update(i); }
     final int bytes = Sketch.getMaxCompactSketchBytes(usk.getRetainedEntries(true));
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
@@ -420,7 +419,7 @@ public class SketchTest {
   @Test
   public void check2Methods() {
     final int k = 16;
-    final Sketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final Sketch sk = UpdateSketch.builder().setNominalEntries(k).build();
     final int bytes1 = sk.getCompactBytes();
     final int bytes2 = sk.getCurrentBytes();
     assertEquals(bytes1, 8);
