@@ -122,7 +122,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * This is actually faster and consumes less overall space.</p>
    *
    * <p>This method checks if the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>
    * was used to create the source MemorySegment image.</p>
    *
    * @param srcSeg a MemorySegment with an image of a Sketch.
