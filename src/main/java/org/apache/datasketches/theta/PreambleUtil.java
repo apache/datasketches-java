@@ -190,10 +190,10 @@ final class PreambleUtil {
 
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
-  static final int PREAMBLE_LONGS_BYTE        = 0; //lower 6 bits in byte.
-  static final int LG_RESIZE_FACTOR_BIT       = 6; //upper 2 bits in byte. Not used by compact, direct
+  static final int PREAMBLE_LONGS_BYTE        = 0; //lower 6 bits in byte 0.
+  static final int LG_RESIZE_FACTOR_BIT       = 6; //upper 2 bits in byte 0. Used by Update, Alpha, not used by compact, direct
   static final int SER_VER_BYTE               = 1;
-  static final int FAMILY_BYTE                = 2; //SerVer1,2 was SKETCH_TYPE_BYTE
+  static final int FAMILY_BYTE                = 2;
   static final int LG_NOM_LONGS_BYTE          = 3; //not used by compact
   static final int LG_ARR_LONGS_BYTE          = 4; //not used by compact
   static final int FLAGS_BYTE                 = 5;
@@ -203,28 +203,23 @@ final class PreambleUtil {
   static final int THETA_LONG                 = 16; //8-byte aligned
   static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by Union
 
-  // flag bit masks
-  static final int RESERVED_FLAG_MASK   = 1; //SerVer 1, 2, 3. Now Reserved, no longer used.
-  static final int READ_ONLY_FLAG_MASK  = 2; //Set but not read. Reserved. SerVer 1, 2, 3
-  static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
-  static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK, 3
-  static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK, 3
-  static final int SINGLEITEM_FLAG_MASK = 32;//SerVer 3
-  //The last 2 bits of the flags byte are reserved and assumed to be zero, for now.
-
-  //Backward compatibility: SerVer1 preamble always 3 longs, SerVer2 preamble: 1, 2, 3 longs
-  //               SKETCH_TYPE_BYTE             2  //SerVer1, SerVer2
-  //  V1, V2 types:  Alpha = 1, QuickSelect = 2, SetSketch = 3; V3 only: Buffered QS = 4
-  static final int LG_RESIZE_RATIO_BYTE_V1    = 5; //used by SerVer 1
-  static final int FLAGS_BYTE_V1              = 6; //used by SerVer 1
+  // flag byte bit masks
+  static final int RESERVED_FLAG_MASK   = 1; //Bit 0: Reserved, no longer used.
+  static final int READ_ONLY_FLAG_MASK  = 2; //Bit 1: Reserved, Set but not read.
+  static final int EMPTY_FLAG_MASK      = 4; //Bit 2:
+  static final int COMPACT_FLAG_MASK    = 8; //Bit 3:
+  static final int ORDERED_FLAG_MASK    = 16;//Bit 4:
+  static final int SINGLEITEM_FLAG_MASK = 32;//Bit 5:
+  //The last 2 bits (Bit 6,7) of the flags byte are reserved and assumed to be zero.
 
   //Other constants
   static final int SER_VER                    = 3;
+  static final int SER_VER_COMPRESSED         = 4;
 
   // serial version 4 compressed ordered sketch, not empty, not single item
-  static final int ENTRY_BITS_BYTE_V4   = 3; // number of bits packed in deltas between hashes
-  static final int NUM_ENTRIES_BYTES_BYTE_V4 = 4; // number of bytes used for the number of entries
-  static final int THETA_LONG_V4             = 8; //8-byte aligned
+  static final int ENTRY_BITS_BYTE_V4         = 3; // number of bits packed in deltas between hashes
+  static final int NUM_ENTRIES_BYTES_BYTE_V4  = 4; // number of bytes used for the number of entries
+  static final int THETA_LONG_V4              = 8; //8-byte aligned
 
   /**
    * Computes the number of bytes required for an updatable sketch using a hash-table cache.
@@ -377,15 +372,11 @@ final class PreambleUtil {
   //@formatter:on
 
   static int extractPreLongs(final MemorySegment seg) {
-    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F; //for SerVer 1,2,3
+    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
   }
 
   static int extractLgResizeFactor(final MemorySegment seg) {
     return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT & 0X3;
-  }
-
-  static int extractLgResizeRatioV1(final MemorySegment seg) {
-    return seg.get(JAVA_BYTE, LG_RESIZE_RATIO_BYTE_V1) & 0X3;
   }
 
   static int extractSerVer(final MemorySegment seg) {
@@ -406,10 +397,6 @@ final class PreambleUtil {
 
   static int extractFlags(final MemorySegment seg) {
     return seg.get(JAVA_BYTE, FLAGS_BYTE) & 0XFF;
-  }
-
-  static int extractFlagsV1(final MemorySegment seg) {
-    return seg.get(JAVA_BYTE, FLAGS_BYTE_V1) & 0XFF;
   }
 
   static int extractSeedHash(final MemorySegment seg) {

@@ -78,12 +78,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return a Sketch on the heap.
    */
   public static Sketch heapify(final MemorySegment srcSeg) {
-//    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
-    final int familyID = extractFamilyID(srcSeg);
-    if (familyID == Family.COMPACT.getID()) {
-      return CompactSketch.heapify(srcSeg);//, Util.DEFAULT_UPDATE_SEED);
-    }
-    return heapifyUpdateSketchFromMemorySegment(srcSeg, Util.DEFAULT_UPDATE_SEED);
+    return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -96,8 +91,6 @@ public abstract class Sketch implements MemorySegmentStatus {
    *
    * <p>For Compact Sketches this method assumes that the sketch image was created with the
    * correct hash seed, so it is not checked. SerialVersion 1 sketches (pre-open-source) cannot be checked.</p>
-   *
-   * <p><b>Note:</b> This assumes only SerVer 3 and later.</p>
    *
    * @param srcSeg an image of a Sketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
@@ -119,7 +112,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
-   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * <p>Only "Direct" sketches that have
    * been explicitly stored as direct sketches can be wrapped.
    * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
    * where all data will be copied to the heap. These early versions were never designed to "wrap".</p>
@@ -128,34 +121,15 @@ public abstract class Sketch implements MemorySegmentStatus {
    * result in on-heap equivalent forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall space.</p>
    *
-   * <p>For Update Sketches this method checks if the
+   * <p>This method checks if the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
-   * was used to create the source MemorySegment image.
-   *
-   * <p>For Compact Sketches this method assumes that the sketch image was created with the
-   * correct hash seed, so it is not checked.  SerialVersion 1 (pre-open-source) sketches cannot be checked.</p>
+   * was used to create the source MemorySegment image.</p>
    *
    * @param srcSeg a MemorySegment with an image of a Sketch.
    * @return a read-only Sketch backed by the given MemorySegment
    */
   public static Sketch wrap(final MemorySegment srcSeg) {
-    final int  preLongs = srcSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
-    final int familyID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
-    final Family family = Family.idToFamily(familyID);
-    if (family == Family.QUICKSELECT) {
-      if (serVer == 3 && preLongs == 3) {
-        return DirectQuickSelectSketchR.readOnlyWrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
-      } else {
-        throw new SketchesArgumentException(
-            "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
-      }
-    }
-    if (family == Family.COMPACT) {
-      return CompactSketch.wrap(srcSeg);
-    }
-    throw new SketchesArgumentException(
-        "Cannot wrap family: " + family + " as a Sketch");
+    return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -163,7 +137,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
-   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * <p>Only "Direct" sketches that have
    * been explicitly stored as direct sketches can be wrapped.
    * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
    * where all data will be copied to the heap. These early versions were never designed to "wrap".</p>
@@ -172,12 +146,8 @@ public abstract class Sketch implements MemorySegmentStatus {
    * result in on-heap equivalent forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall space.</p>
    *
-   * <p>For Update Sketches this method checks if the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
-   * was used to create the source MemorySegment image.
-   *
-   * <p>For Compact Sketches this method assumes that the sketch image was created with the
-   * correct hash seed, so it is not checked.  SerialVersion 1 (pre-open-source) sketches cannot be checked.</p>
+   * <p>This method checks if the given expectedSeed
+   * was used to create the source MemorySegment image.</p>
    *
    * @param srcSeg a MemorySegment with an image of a Sketch.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
@@ -388,14 +358,14 @@ public abstract class Sketch implements MemorySegmentStatus {
       }
       return entries;
     }
-    //SerVer 2 or 3
+
     final int preLongs = Sketch.getPreambleLongs(srcSeg);
-    final boolean empty = (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2 & 3
+    final boolean empty = (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
     if (preLongs == 1) {
       return empty ? 0 : 1;
     }
     //preLongs > 1
-    return srcSeg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT); //for SerVer 1,2,3
+    return srcSeg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
   }
 
   /**
@@ -658,16 +628,16 @@ public abstract class Sketch implements MemorySegmentStatus {
     if (serVer == 1) {
       return getThetaLong(srcSeg) == Long.MAX_VALUE && getRetainedEntries(srcSeg) == 0;
     }
-    return (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2,3,4
+    return (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
   }
 
   static int getPreambleLongs(final MemorySegment srcSeg) {
-    return getAndCheckPreLongs(srcSeg); //for SerVer 1,2,3,4
+    return getAndCheckPreLongs(srcSeg);
   }
 
   static long getThetaLong(final MemorySegment srcSeg) {
     final int preLongs = Sketch.getPreambleLongs(srcSeg);
-    return preLongs < 3 ? Long.MAX_VALUE : srcSeg.get(JAVA_LONG_UNALIGNED, THETA_LONG); //for SerVer 1,2,3,4
+    return preLongs < 3 ? Long.MAX_VALUE : srcSeg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
   /**
@@ -725,7 +695,7 @@ public abstract class Sketch implements MemorySegmentStatus {
   }
 
   /**
-   * Instantiates a Heap Update Sketch from MemorySegment. Only SerVer3. SerVer 1 & 2 already handled.
+   * Instantiates a Heap Update Sketch from MemorySegment.
    * @param srcSeg the source MemorySegment
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.

@@ -23,11 +23,9 @@ import static org.apache.datasketches.theta.PreambleUtil.clearEmpty;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
-import static org.apache.datasketches.theta.PreambleUtil.extractFlagsV1;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
-import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeRatioV1;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
@@ -59,12 +57,6 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -191,12 +183,10 @@ public class PreambleUtilTest {
 
     insertFlags(wseg, 3);
     assertEquals(extractFlags(wseg), 3);
-    assertEquals(extractLgResizeRatioV1(wseg), 3); //also at byte 5, limited to 2 bits
     insertFlags(wseg, 0);
 
     insertSeedHash(wseg, ++v);
     assertEquals(extractSeedHash(wseg), v);
-    assertEquals(extractFlagsV1(wseg), v); //also at byte 6
     insertSeedHash(wseg, 0);
 
     insertCurCount(wseg, ++v);

@@ -29,7 +29,7 @@ import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("resource")
-public class HeapifyWrapSerVer1and2Test {
+public class HeapifyWrapSerVer3Test {
   private static final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
 
   //Heapify CompactSketch
@@ -46,14 +46,13 @@ public class HeapifyWrapSerVer1and2Test {
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
-    //SerialVersion3 test
-    cskResult = CompactSketch.heapify(cskSeg); //don't check seedHash here
+    cskResult = CompactSketch.heapify(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash); //check seedHash here
+    assertEquals(cskResult.getSeedHash(), seedHash);
   }
 
-  @Test //Compact Assumed Different Seed
-  public void checkHeapifyCompactSketchAssumedDifferentSeed() {
+  @Test
+  public void checkHeapifyCompactSketchDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
@@ -64,44 +63,7 @@ public class HeapifyWrapSerVer1and2Test {
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
-    //SerialVersion3 test
-    cskResult = CompactSketch.heapify(cskSeg); //don't check seedHash here
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash); //check seedHash here
-  }
-
-  @Test //Compact Given Default Seed
-  public void checkHeapifyCompactSketchGivenDefaultSeed() {
-    final int k = 64;
-    final long seed = Util.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-
-    final CompactSketch csk = usk.compact();
-    final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
-
-    //SerialVersion3 test
-    cskResult = CompactSketch.heapify(cskSeg, seed); //check seedHash here
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash); //check seedHash here
-  }
-
-  @Test //Compact Given Different Seed
-  public void checkHeapifyCompactSketchGivenDifferentSeed() {
-    final int k = 64;
-    final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-
-    final CompactSketch csk = usk.compact();
-    final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
-
-    //SerialVersion3 test
-    cskResult = CompactSketch.heapify(cskSeg, seed); //check seedHash here
+    cskResult = CompactSketch.heapify(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -120,14 +82,13 @@ public class HeapifyWrapSerVer1and2Test {
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
-    //SerialVersion3 test
     cskResult = (CompactSketch) Sketch.heapify(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
 
   @Test
-  public void checkHeapifySketchAssumedDifferentSeed() {
+  public void checkHeapifySketchDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
@@ -138,43 +99,6 @@ public class HeapifyWrapSerVer1and2Test {
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
     CompactSketch cskResult;
 
-    //SerialVersion3 test
-    cskResult = (CompactSketch) Sketch.heapify(cskSeg);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-  }
-
-  @Test
-  public void checkHeapifySketchGivenDefaultSeed() {
-    final int k = 64;
-    final long seed = Util.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-
-    final CompactSketch csk = usk.compact();
-    final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
-
-    //SerialVersion3 test
-    cskResult = (CompactSketch) Sketch.heapify(cskSeg, seed);
-    assertEquals(cskResult.getEstimate(), usk.getEstimate());
-    assertEquals(cskResult.getSeedHash(), seedHash);
-  }
-
-  @Test
-  public void checkHeapifySketchGivenDifferentSeed() {
-    final int k = 64;
-    final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-
-    final CompactSketch csk = usk.compact();
-    final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
-
-    //SerialVersion3 test
     cskResult = (CompactSketch) Sketch.heapify(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
@@ -193,7 +117,6 @@ public class HeapifyWrapSerVer1and2Test {
     MemorySegment offHeap;
     final CompactSketch csk = usk.compact();
 
-    //SerialVersion3 test
     try(Arena arena = Arena.ofConfined()) {
       offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
       cskResult = CompactSketch.wrap(offHeap);
@@ -204,7 +127,7 @@ public class HeapifyWrapSerVer1and2Test {
   }
 
   @Test
-  public void checkWrapCompactSketchAssumedDifferentSeed() {
+  public void checkWrapCompactSketchDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
@@ -214,49 +137,6 @@ public class HeapifyWrapSerVer1and2Test {
     MemorySegment offHeap;
     final CompactSketch csk = usk.compact();
 
-    //SerialVersion3 test
-    try(Arena arena = Arena.ofConfined()) {
-      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = CompactSketch.wrap(offHeap);
-      assertEquals(cskResult.getEstimate(), usk.getEstimate());
-      assertEquals(cskResult.getSeedHash(), seedHash);
-      assertTrue(cskResult.isOffHeap());
-    }
-  }
-
-  @Test
-  public void checkWrapCompactSketchGivenDefaultSeed() {
-    final int k = 64;
-    final long seed = Util.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
-    MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
-
-    //SerialVersion3 test
-    try(Arena arena = Arena.ofConfined()) {
-      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = CompactSketch.wrap(offHeap, seed);
-      assertEquals(cskResult.getEstimate(), usk.getEstimate());
-      assertEquals(cskResult.getSeedHash(), seedHash);
-      assertTrue(cskResult.isOffHeap());
-    }
-  }
-
-  @Test
-  public void checkWrapCompactSketchGivenDifferentSeed() {
-    final int k = 64;
-    final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
-    MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
-
-    //SerialVersion3 test
     try(Arena arena = Arena.ofConfined()) {
       offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
       cskResult = CompactSketch.wrap(offHeap, seed);
@@ -290,49 +170,7 @@ public class HeapifyWrapSerVer1and2Test {
   }
 
   @Test
-  public void checkWrapSketchAssumedDifferentSeed() {
-    final int k = 64;
-    final long seed = 128L;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
-    MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
-
-    //SerialVersion3 test
-    try(Arena arena = Arena.ofConfined()) {
-      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = (CompactSketch) Sketch.wrap(offHeap);
-      assertEquals(cskResult.getEstimate(), usk.getEstimate());
-      assertEquals(cskResult.getSeedHash(), seedHash);
-      assertTrue(cskResult.isOffHeap());
-    }
-  }
-
-  @Test
-  public void checkWrapSketchGivenDefaultSeed() {
-    final int k = 64;
-    final long seed = Util.DEFAULT_UPDATE_SEED;
-    final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
-    for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
-    MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
-
-    //SerialVersion3 test
-    try(Arena arena = Arena.ofConfined()) {
-      offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = (CompactSketch) Sketch.wrap(offHeap, seed);
-      assertEquals(cskResult.getEstimate(), usk.getEstimate());
-      assertEquals(cskResult.getSeedHash(), seedHash);
-      assertTrue(cskResult.isOffHeap());
-    }
-  }
-
-  @Test
-  public void checkWrapSketchGivenDifferentSeed() {
+  public void checkWrapSketchDifferentSeed() {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
