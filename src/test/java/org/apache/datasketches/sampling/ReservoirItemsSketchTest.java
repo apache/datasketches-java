@@ -530,8 +530,6 @@ public class ReservoirItemsSketchTest {
   @Test
   public void checkEstimateSubsetSum() {
     final int k = 10;
-    SampleSubsetSummary ss = null;
-    double itemCount = 0.0;
 
     //trial loop for probabilistic testing
     int passLB = 0;
@@ -540,12 +538,12 @@ public class ReservoirItemsSketchTest {
       final ReservoirItemsSketch<Long> sketch = ReservoirItemsSketch.newInstance(k);
 
       // empty sketch -- all zeros
-      ss = sketch.estimateSubsetSum(item -> true);
+      SampleSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
       assertEquals(ss.getEstimate(), 0.0);
       assertEquals(ss.getTotalSketchWeight(), 0.0);
 
       // add items, keeping in exact mode
-      itemCount = 0.0;
+      double itemCount = 0.0;
       for (long i = 1; i <= (k - 1); ++i) {
         sketch.update(i);
         itemCount += 1.0;
@@ -591,10 +589,9 @@ public class ReservoirItemsSketchTest {
       // allow pretty generous bounds when testing
       if(ss.getLowerBound() < (itemCount / 1.4)) { passLB++; }
       if(ss.getUpperBound() > (itemCount / 2.6)) { passUB++; }
+      assertEquals(ss.getTotalSketchWeight(), itemCount);
     } //End trial loop
     assertTrue(passLB >= 2 && passUB >= 2); //2 out of 3 must pass for LB and UB
-
-    assertEquals(ss.getTotalSketchWeight(), itemCount);
   }
 
   private static MemorySegment getBasicSerializedLongsRIS() {
