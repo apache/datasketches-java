@@ -20,8 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
@@ -139,32 +137,6 @@ public class SketchMiscTest {
 
     final int maxSkBytes = Sketch.getMaxUpdateSketchBytes(k);
     assertEquals(24+2*k*8, maxSkBytes);
-  }
-
-  @Test
-  public void checkStaticEstimators() {
-    final int k = 4096;
-    final int u = 4*k;
-    final CompactSketch csk = getCompactSketch(k, 0, u);
-    final MemorySegment srcSeg = getMemorySegmentFromCompactSketch(csk);
-    final double est = Sketch.getEstimate(srcSeg);
-    assertEquals(est, u, 0.05*u);
-    final double rse = 1.0/Math.sqrt(k);
-    final double ub = Sketch.getUpperBound(1, srcSeg);
-    assertEquals(ub, est+rse, 0.05*u);
-    final double lb = Sketch.getLowerBound(1, srcSeg);
-    assertEquals(lb, est-rse, 0.05*u);
-    final MemorySegment segV1 = BackwardConversions.convertSerVer3toSerVer1(csk);
-    boolean empty = Sketch.getEmpty(segV1);
-    assertFalse(empty);
-
-    final CompactSketch csk2 = getCompactSketch(k, 0, 0);
-    final MemorySegment emptySegV3 = getMemorySegmentFromCompactSketch(csk2);
-    assertEquals(Sketch.getRetainedEntries(emptySegV3), 0);
-    assertEquals(Sketch.getThetaLong(emptySegV3), Long.MAX_VALUE);
-    final MemorySegment emptySegV1 = BackwardConversions.convertSerVer3toSerVer1(csk2);
-    empty = Sketch.getEmpty(emptySegV1);
-    assertTrue(empty);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

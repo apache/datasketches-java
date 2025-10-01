@@ -26,32 +26,24 @@ import static org.apache.datasketches.common.ResizeFactor.X1;
 import static org.apache.datasketches.common.ResizeFactor.X2;
 import static org.apache.datasketches.common.ResizeFactor.X4;
 import static org.apache.datasketches.common.ResizeFactor.X8;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
+import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.Sketch.getMaxCompactSketchBytes;
-import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.DirectCompactSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -266,7 +258,6 @@ public class SketchTest {
     //corrupt:
     Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.wrap(seg);
-
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -299,31 +290,6 @@ public class SketchTest {
     assertTrue(Sketch.isValidSketchID(ALPHA.getID()));
     assertTrue(Sketch.isValidSketchID(QUICKSELECT.getID()));
     assertTrue(Sketch.isValidSketchID(COMPACT.getID()));
-  }
-
-  @Test
-  public void checkWrapToHeapifyConversion1() {
-    final int k = 512;
-    final UpdateSketch sketch1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i = 0; i < k; i++) {
-      sketch1.update(i);
-    }
-    final double uest1 = sketch1.getEstimate();
-
-    final CompactSketch csk = sketch1.compact();
-    assertEquals(csk.getEstimate(), uest1);
-
-    final MemorySegment v1seg = convertSerVer3toSerVer1(csk);
-    Sketch csk2 = Sketch.wrap(v1seg); //fails
-    assertFalse(csk2.isOffHeap());
-    assertFalse(csk2.hasMemorySegment());
-    assertEquals(uest1, csk2.getEstimate(), 0.0);
-
-    final MemorySegment v2seg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
-    csk2 = Sketch.wrap(v2seg);
-    assertFalse(csk2.isOffHeap());
-    assertFalse(csk2.hasMemorySegment());
-    assertEquals(uest1, csk2.getEstimate(), 0.0);
   }
 
   @Test

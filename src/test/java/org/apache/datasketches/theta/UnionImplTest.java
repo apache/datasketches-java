@@ -20,8 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -144,47 +142,6 @@ public class UnionImplTest {
 
     seg.set(JAVA_BYTE, PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
-    union.union(seg);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkVer2FamilyException() {
-    final int k = 16;
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) {
-      sketch.update(i);
-    }
-    final CompactSketch csk = sketch.compact(true, null);
-    final MemorySegment v2seg = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
-
-    v2seg.set(JAVA_BYTE, PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
-
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
-    union.union(v2seg);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkVer1FamilyException() {
-    final int k = 16;
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) {
-      sketch.update(i);
-    }
-    final CompactSketch csk = sketch.compact(true, null);
-    final MemorySegment v1seg = convertSerVer3toSerVer1(csk);
-
-    v1seg.set(JAVA_BYTE, PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
-
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
-    union.union(v1seg);
-  }
-
-  @Test
-  public void checkVer2EmptyHandling() {
-    final int k = 16;
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build();
-    final MemorySegment seg = convertSerVer3toSerVer2(sketch.compact(), Util.DEFAULT_UPDATE_SEED);
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(seg);
   }

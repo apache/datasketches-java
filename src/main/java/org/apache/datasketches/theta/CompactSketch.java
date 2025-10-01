@@ -117,15 +117,7 @@ public abstract class CompactSketch extends Sketch {
       if (enforceSeed && !empty) { PreambleUtil.checkSegmentSeedHash(srcSeg, seed); }
       return CompactOperations.segmentToCompact(srcSeg, srcOrdered, null);
     }
-    //not SerVer 3, assume compact stored form
-    final short seedHash = Util.computeSeedHash(seed);
-    if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(srcSeg, seedHash);
-    }
-    if (serVer == 2) {
-      return ForwardCompatibility.heapify2to3(srcSeg,
-          enforceSeed ? seedHash : (short) extractSeedHash(srcSeg));
-    }
+    //not SerVer 3 or 4
     throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
   }
 
@@ -191,13 +183,6 @@ public abstract class CompactSketch extends Sketch {
     final short seedHash = Util.computeSeedHash(seed);
 
     switch (serVer) {
-      case 1: {
-        return ForwardCompatibility.heapify1to3(srcSeg, seedHash);
-      }
-      case 2: {
-        return ForwardCompatibility.heapify2to3(srcSeg,
-            enforceSeed ? seedHash : (short) extractSeedHash(srcSeg));
-      }
       case 3: {
         if (PreambleUtil.isEmptyFlag(srcSeg)) {
           return EmptyCompactSketch.getHeapInstance(srcSeg);
@@ -294,13 +279,6 @@ public abstract class CompactSketch extends Sketch {
     final short seedHash = Util.computeSeedHash(seed);
 
     switch (serVer) {
-      case 1: {
-        return ForwardCompatibility.heapify1to3(MemorySegment.ofArray(bytes), seedHash);
-      }
-      case 2: {
-        return ForwardCompatibility.heapify2to3(MemorySegment.ofArray(bytes),
-            enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
-      }
       case 3: {
         final int flags = bytes[FLAGS_BYTE];
         if ((flags & EMPTY_FLAG_MASK) > 0) {

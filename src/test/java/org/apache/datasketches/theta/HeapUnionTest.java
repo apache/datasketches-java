@@ -21,19 +21,15 @@ package org.apache.datasketches.theta;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 /**
@@ -406,99 +402,6 @@ public class HeapUnionTest {
   }
 
   @Test
-  public void checkSerVer1Handling() {
-    final int lgK = 12; //4096
-    final int k = 1 << lgK;
-    final int u1 = 2*k;
-    final int u2 = 1024; //smaller exact sketch forces early stop
-    final int totU = u1+u2;
-
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-
-    for (int i=0; i<u1; i++) {
-      usk1.update(i); //2*k
-    }
-    for (int i=u1; i<totU; i++) {
-      usk2.update(i); //2*k + 1024 no overlap
-    }
-
-    final MemorySegment v1seg1 = convertSerVer3toSerVer1(usk1.compact(true, null));
-    final MemorySegment v1seg2 = convertSerVer3toSerVer1(usk2.compact(true, null));
-
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
-
-    union.union(v1seg1);
-    union.union(v1seg2);
-
-    final CompactSketch cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), totU, .05*k);
-  }
-
-  @Test
-  public void checkSerVer2Handling() {
-    final int lgK = 12; //4096
-    final int k = 1 << lgK;
-    final int u1 = 2*k;
-    final int u2 = 1024; //smaller exact sketch forces early stop
-    final int totU = u1+u2;
-
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-
-    for (int i=0; i<u1; i++) {
-      usk1.update(i); //2*k
-    }
-    for (int i=u1; i<totU; i++) {
-      usk2.update(i); //2*k + 1024 no overlap
-    }
-
-    final MemorySegment v2seg1 = convertSerVer3toSerVer2(usk1.compact(true, null), Util.DEFAULT_UPDATE_SEED);
-    final MemorySegment v2seg2 = convertSerVer3toSerVer2(usk2.compact(true, null), Util.DEFAULT_UPDATE_SEED);
-
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
-
-    union.union(v2seg1);
-    union.union(v2seg2);
-
-    final CompactSketch cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), totU, .05*k);
-  }
-
-  @Test
-  public void checkUpdateSegmentSpecialCases() {
-    final int lgK = 12; //4096
-    final int k = 1 << lgK;
-
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final CompactSketch usk1c = usk1.compact(true, null);
-    MemorySegment v3seg1 = MemorySegment.ofArray(usk1c.toByteArray());
-
-    final MemorySegment v1seg1 = convertSerVer3toSerVer1(usk1.compact(true, null));
-
-    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
-    union.union(v1seg1);
-    CompactSketch cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-
-    final MemorySegment v2seg1 = convertSerVer3toSerVer2(usk1.compact(true, null), Util.DEFAULT_UPDATE_SEED);
-
-    union = SetOperation.builder().setNominalEntries(k).buildUnion();
-    union.union(v2seg1);
-    cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-
-    union = SetOperation.builder().setNominalEntries(k).buildUnion();
-    union.union(v3seg1);
-    cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-
-    union = SetOperation.builder().setNominalEntries(k).buildUnion();
-    cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-  }
-
-  @Test
   public void checkUpdateSegmentSpecialCases2() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
@@ -530,25 +433,6 @@ public class HeapUnionTest {
 
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(v3seg1);
-  }
-
-  @Test
-  public void checkEmptySerVer2and3() {
-    final UpdateSketch usk1 = UpdateSketch.builder().build();
-    final CompactSketch usk1c = usk1.compact(true, null);
-    final byte[] skArr = usk1c.toByteArray();
-    final byte[] skArr2 = Arrays.copyOf(skArr, skArr.length * 2);
-    final MemorySegment v3seg1 = MemorySegment.ofArray(skArr2);
-
-    Union union = SetOperation.builder().buildUnion();
-    union.union(v3seg1);
-
-    final MemorySegment v2seg1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED);
-    final MemorySegment v2seg2 = MemorySegment.ofArray(new byte[16]);
-    MemorySegment.copy(v2seg1, 0, v2seg2, 0, 8);
-
-    union = SetOperation.builder().buildUnion();
-    union.union(v2seg2);
   }
 
   @Test
