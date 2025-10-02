@@ -19,19 +19,15 @@
 
 package org.apache.datasketches.theta;
 
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
-import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
-import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.checkSegmentSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
@@ -106,12 +102,11 @@ public abstract class UpdateSketch extends Sketch {
       final MemorySegmentRequest mSegReq,
       final long expectedSeed) {
     Objects.requireNonNull(srcWSeg, "Source MemorySegment must not be null");
-    checkBounds(0, 24, srcWSeg.byteSize()); //need min 24 bytes
-    final int  preLongs = srcWSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F; //mask to 6 bits
-    final int serVer = srcWSeg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF; //mask to byte
-    final int familyID = srcWSeg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF; //mask to byte
-    final Family family = Family.idToFamily(familyID);
-    if (family != Family.QUICKSELECT) {
+    final int preLongs = checkSegPreambleCap(srcWSeg) & 0X3F; //mask to 6 bits;
+    final int serVer = extractSerVer(srcWSeg);
+    final int familyID = extractFamilyID(srcWSeg);
+    if (familyID != Family.QUICKSELECT.getID()) {
+      final Family family = Family.idToFamily(familyID);
       throw new SketchesArgumentException(
         "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
     }
@@ -150,9 +145,9 @@ public abstract class UpdateSketch extends Sketch {
    */
   public static UpdateSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
     Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
-    checkBounds(0, 24, srcSeg.byteSize()); //need min 24 bytes
-    final Family family = Family.idToFamily(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
-    if (family.equals(Family.ALPHA)) {
+    checkSegPreambleCap(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    if (familyID == Family.ALPHA.getID()) {
       return HeapAlphaSketch.heapifyInstance(srcSeg, expectedSeed);
     }
     return HeapQuickSelectSketch.heapifyInstance(srcSeg, expectedSeed);
@@ -418,23 +413,23 @@ public abstract class UpdateSketch extends Sketch {
    */
   abstract boolean isOutOfSpace(int numEntries);
 
-  static void checkUnionQuickSelectFamily(final MemorySegment seg, final int preambleLongs,
-      final int lgNomLongs) {
+  static void checkUnionAndQuickSelectFamily(final MemorySegment seg, final int preambleLongs, final int lgNomLongs) {
+
     //Check Family
     final int familyID = extractFamilyID(seg);                       //byte 2
-    final Family family = Family.idToFamily(familyID);
-    if (family.equals(Family.UNION)) {
+    if (familyID == Family.UNION.getID()) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
         throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for UNION: " + preambleLongs);
       }
     }
-    else if (family.equals(Family.QUICKSELECT)) {
+    else if (familyID == Family.QUICKSELECT.getID()) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
         throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " + preambleLongs);
       }
     } else {
+      final Family family = Family.idToFamily(familyID);
       throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
     }

@@ -28,7 +28,6 @@ import static org.apache.datasketches.theta.CompactOperations.computeCompactPreL
 import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
-//import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BIT;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.P_FLOAT;
@@ -38,6 +37,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
 import java.lang.foreign.MemorySegment;
@@ -102,12 +102,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
    * @return instance of this sketch
    */
   static DirectQuickSelectSketchR readOnlyWrap(final MemorySegment srcSeg, final long seed) {
-    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);                  //byte 0
+    final int preambleLongs = checkSegPreambleCap(srcSeg);                  //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
-
-    UpdateSketch.checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    UpdateSketch.checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     return new DirectQuickSelectSketchR(seed, srcSeg);
   }
 
@@ -147,7 +146,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //always valid for theta
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     return wseg_.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
   }
 

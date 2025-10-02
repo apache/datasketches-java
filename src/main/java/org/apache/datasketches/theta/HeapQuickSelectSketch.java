@@ -111,7 +111,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     final int lgNomLongs = extractLgNomLongs(srcSeg);             //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
-    checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
+    checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final float p = extractP(srcSeg);                             //bytes 12-15
@@ -149,7 +149,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     return curCount_;
   }
 

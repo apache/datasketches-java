@@ -19,9 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
-import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.Util.LS;
@@ -29,15 +26,12 @@ import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
+import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
+import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.getAndCheckPreLongs;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
@@ -70,9 +64,6 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
    * was used to create the source MemorySegment image.
    *
-   * <p>For Compact Sketches this method assumes that the sketch image was created with the
-   * correct hash seed, so it is not checked. SerialVersion 1 sketches (pre-open-source) cannot be checked.</p>
-   *
    * @param srcSeg an image of a Sketch.
    *
    * @return a Sketch on the heap.
@@ -89,9 +80,6 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <p>For Update Sketches this method checks if the expectedSeed
    * was used to create the source MemorySegment image.</p>
    *
-   * <p>For Compact Sketches this method assumes that the sketch image was created with the
-   * correct hash seed, so it is not checked. SerialVersion 1 sketches (pre-open-source) cannot be checked.</p>
-   *
    * @param srcSeg an image of a Sketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    *  <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -99,9 +87,9 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return a Sketch on the heap.
    */
   public static Sketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
-    final byte familyID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
-    final Family family = idToFamily(familyID);
-    if (family == Family.COMPACT) {
+    checkSegPreambleCap(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    if (familyID == Family.COMPACT.getID()) {
       return CompactSketch.heapify(srcSeg, expectedSeed);
     }
     return heapifyUpdateSketchFromMemorySegment(srcSeg, expectedSeed);
@@ -112,10 +100,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
-   * <p>Only "Direct" sketches that have
-   * been explicitly stored as direct sketches can be wrapped.
-   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
-   * where all data will be copied to the heap. These early versions were never designed to "wrap".</p>
+   * <p>Only sketches that have been explicitly stored as direct sketches can be wrapped.</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in on-heap equivalent forms of empty and single item sketch respectively.
@@ -137,10 +122,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
-   * <p>Only "Direct" sketches that have
-   * been explicitly stored as direct sketches can be wrapped.
-   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
-   * where all data will be copied to the heap. These early versions were never designed to "wrap".</p>
+   * <p>Only sketches that have been explicitly stored as direct sketches can be wrapped.</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in on-heap equivalent forms of empty and single item sketch respectively.
@@ -155,21 +137,15 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return a read-only Sketch backed by the given MemorySegment.
    */
   public static Sketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
-    final int  preLongs = srcSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
-    final int familyID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
-    final Family family = Family.idToFamily(familyID);
-    if (family == Family.QUICKSELECT) {
-      if (serVer == 3 && preLongs == 3) {
-        return DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed);
-      } else {
-        throw new SketchesArgumentException(
-            "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
-      }
+    checkSegPreambleCap(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    if (familyID == Family.QUICKSELECT.getID()) {
+      return DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed);
     }
-    if (family == Family.COMPACT) {
+    if (familyID == Family.COMPACT.getID()) {
       return CompactSketch.wrap(srcSeg, expectedSeed);
     }
+    final Family family = Family.idToFamily(familyID);
     throw new SketchesArgumentException(
         "Cannot wrap family: " + family + " as a Sketch");
   }
@@ -260,10 +236,11 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return the result estimate
    */
   public static double getEstimate(final MemorySegment srcSeg) {
-    final int famId = extractFamilyID(srcSeg);
-    if (!isValidSketchID(famId)) {
-      throw new SketchesArgumentException("Source MemorySegment not a valid Sketch. Family: "
-          + Family.idToFamily(famId).toString());
+    checkSegPreambleCap(srcSeg);
+    final int familyId = extractFamilyID(srcSeg);
+    if (!isValidSketchID(familyId)) {
+      throw new SketchesArgumentException("Source MemorySegment not a valid Sketch Family: "
+          + Family.idToFamily(familyId).toString());
     }
     return Sketch.estimate(extractThetaLong(srcSeg), getRetainedEntries(srcSeg));
   }
@@ -338,11 +315,22 @@ public abstract class Sketch implements MemorySegmentStatus {
 
   /**
    * Returns the number of valid entries that have been retained by the sketch.
-   * @return the number of valid retained entries
+   * For the Alpha Sketch this returns only valid entries.
+   * @return the number of valid retained entries.
    */
   public int getRetainedEntries() {
     return getRetainedEntries(true);
   }
+
+  /**
+   * Returns the number of entries that have been retained by the sketch.
+   * @param valid This parameter is only relevant for the Alpha Sketch.
+   * if true, returns the number of valid entries, which are less than theta and used
+   * for estimation. Otherwise, return the number of all entries, valid or not, that are currently in the
+   * internal sketch cache.
+   * @return the number of retained entries
+   */
+  public abstract int getRetainedEntries(final boolean valid);
 
   /**
    * Returns the number of valid entries that have been retained by the sketch from the given MemorySegment
@@ -350,33 +338,10 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return the number of valid retained entries
    */
   public static int getRetainedEntries(final MemorySegment srcSeg) {
-    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
-    if (serVer == 1) {
-      final int entries = srcSeg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
-      if (Sketch.getThetaLong(srcSeg) == Long.MAX_VALUE && entries == 0) {
-        return 0;
-      }
-      return entries;
-    }
-
-    final int preLongs = Sketch.getPreambleLongs(srcSeg);
-    final boolean empty = (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
-    if (preLongs == 1) {
-      return empty ? 0 : 1;
-    }
-    //preLongs > 1
-    return srcSeg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
+    final int preLongs = checkSegPreambleCap(srcSeg);
+    final boolean empty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) != 0;
+    return (preLongs == 1) ? (empty ? 0 : 1) : extractCurCount(srcSeg);
   }
-
-  /**
-   * Returns the number of entries that have been retained by the sketch.
-   * @param valid if true, returns the number of valid entries, which are less than theta and used
-   * for estimation.
-   * Otherwise, return the number of all entries, valid or not, that are currently in the internal
-   * sketch cache.
-   * @return the number of retained entries
-   */
-  public abstract int getRetainedEntries(boolean valid);
 
   /**
    * Returns the serialization version from the given MemorySegment
@@ -384,7 +349,8 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return the serialization version from the MemorySegment
    */
   public static int getSerializationVersion(final MemorySegment seg) {
-    return seg.get(JAVA_BYTE, SER_VER_BYTE);
+    checkSegPreambleCap(seg);
+    return extractSerVer(seg);
   }
 
   /**
@@ -624,20 +590,21 @@ public abstract class Sketch implements MemorySegmentStatus {
   abstract short getSeedHash();
 
   static boolean getEmpty(final MemorySegment srcSeg) {
-    final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
+    checkSegPreambleCap(srcSeg);
+    final int serVer = extractSerVer(srcSeg);
     if (serVer == 1) {
       return getThetaLong(srcSeg) == Long.MAX_VALUE && getRetainedEntries(srcSeg) == 0;
     }
-    return (srcSeg.get(JAVA_BYTE, FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
+    return (extractFlags(srcSeg) & EMPTY_FLAG_MASK) != 0;
   }
 
   static int getPreambleLongs(final MemorySegment srcSeg) {
-    return getAndCheckPreLongs(srcSeg);
+    return checkSegPreambleCap(srcSeg);
   }
 
   static long getThetaLong(final MemorySegment srcSeg) {
-    final int preLongs = Sketch.getPreambleLongs(srcSeg);
-    return preLongs < 3 ? Long.MAX_VALUE : srcSeg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
+    final int preLongs = checkSegPreambleCap(srcSeg);
+    return preLongs < 3 ? Long.MAX_VALUE : extractThetaLong(srcSeg);
   }
 
   /**
@@ -702,20 +669,14 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return a Sketch
    */
   private static final Sketch heapifyUpdateSketchFromMemorySegment(final MemorySegment srcSeg, final long expectedSeed) {
-    final long cap = srcSeg.byteSize();
-    if (cap < 8) {
-      throw new SketchesArgumentException(
-          "Corrupted: valid sketch must be at least 8 bytes.");
-    }
-    final byte familyID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
-    final Family family = idToFamily(familyID);
+    final Family family = idToFamily(extractFamilyID(srcSeg));
 
     if (family == Family.ALPHA) {
-      final int flags = PreambleUtil.extractFlags(srcSeg);
+      final int flags = extractFlags(srcSeg);
       final boolean compactFlag = (flags & COMPACT_FLAG_MASK) != 0;
       if (compactFlag) {
         throw new SketchesArgumentException(
-            "Corrupted: ALPHA family image: cannot be compact");
+            "Corrupted: An ALPHA family image cannot be compact");
       }
       return HeapAlphaSketch.heapifyInstance(srcSeg, expectedSeed);
     }

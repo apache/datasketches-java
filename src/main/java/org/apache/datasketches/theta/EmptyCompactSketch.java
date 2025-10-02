@@ -86,7 +86,7 @@ final class EmptyCompactSketch extends CompactSketch {
   public double getEstimate() { return 0; }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     return 0;
   }
 

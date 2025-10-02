@@ -204,7 +204,7 @@ final class PreambleUtil {
   static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by Union
 
   // flag byte bit masks
-  static final int RESERVED_FLAG_MASK   = 1; //Bit 0: Reserved, no longer used.
+  static final int RESERVED_FLAG_MASK   = 1; //Bit 0: Reserved, no longer used. Was BigEndian
   static final int READ_ONLY_FLAG_MASK  = 2; //Bit 1: Reserved, Set but not read.
   static final int EMPTY_FLAG_MASK      = 4; //Bit 2:
   static final int COMPACT_FLAG_MASK    = 8; //Bit 3:
@@ -256,7 +256,7 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   static String preambleToString(final MemorySegment seg) {
-    final int preLongs = getAndCheckPreLongs(seg);
+    final int preLongs = checkSegPreambleCap(seg);
     final int rfId = extractLgResizeFactor(seg);
     final ResizeFactor rf = ResizeFactor.getRF(rfId);
     final int serVer = extractSerVer(seg);
@@ -515,17 +515,16 @@ final class PreambleUtil {
    * @param seg the given MemorySegment
    * @return the extracted prelongs value.
    */
-  static int getAndCheckPreLongs(final MemorySegment seg) {
-    final long cap = seg.byteSize();
-    if (cap < 8) {
-      throwNotBigEnough(cap, 8);
+  static int checkSegPreambleCap(final MemorySegment seg) {
+    try {
+      final int preLongs = extractPreLongs(seg);
+      final int required = Math.max(preLongs << 3, 8);
+      final long cap = seg.byteSize();
+      if (cap < required) { throwNotBigEnough(cap, required); }
+      return preLongs;
+    } catch (IndexOutOfBoundsException e) { //thrown by MemorySegment
+      throw new SketchesArgumentException("Possible Corruption: Given MemorySegment is empty.");
     }
-    final int preLongs = extractPreLongs(seg);
-    final int required = Math.max(preLongs << 3, 8);
-    if (cap < required) {
-      throwNotBigEnough(cap, required);
-    }
-    return preLongs;
   }
 
   static short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
@@ -534,10 +533,10 @@ final class PreambleUtil {
     return seedHashSeg;
   }
 
-  private static void throwNotBigEnough(final long cap, final int required) {
+  private static void throwNotBigEnough(final long cap, final long required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: Size of byte array or MemorySegment not large enough: Size: " + cap
-        + ", Required: " + required);
+        "Possible Corruption: Size of MemorySegment not large enough: Size: " + cap
+          + " < Required: " + required);
   }
 
   static int wholeBytesToHoldBits(final int bits) {

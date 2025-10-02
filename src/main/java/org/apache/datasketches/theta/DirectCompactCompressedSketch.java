@@ -84,7 +84,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
   private static final int START_PACKED_DATA_ESTIMATION_MODE = 16;
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //compact is always valid
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     // number of entries is stored using variable length encoding
     // most significant bytes with all zeros are not stored
     // one byte in the preamble has the number of non-zero bytes used

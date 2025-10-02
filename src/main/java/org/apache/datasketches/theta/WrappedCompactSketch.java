@@ -80,7 +80,7 @@ class WrappedCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //compact is always valid
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     final int preLongs = bytes_[PREAMBLE_LONGS_BYTE];
     return (preLongs == 1) ? 0 : getIntLE(bytes_, RETAINED_ENTRIES_INT);
   }

@@ -88,7 +88,7 @@ final class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     return curCount_;
   }
 

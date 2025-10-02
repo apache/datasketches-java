@@ -29,6 +29,7 @@ import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
@@ -121,7 +122,7 @@ final class CompactOperations {
       final MemorySegment dstWSeg)
   {
     //extract Pre0 fields and Flags from srcMem
-    final int srcPreLongs = Sketch.getPreambleLongs(srcSeg);
+    final int srcPreLongs = checkSegPreambleCap(srcSeg);
     final int srcSerVer = extractSerVer(srcSeg); //not used
     final int srcFamId = extractFamilyID(srcSeg);
     final int srcLgArrLongs = extractLgArrLongs(srcSeg);
@@ -136,7 +137,7 @@ final class CompactOperations {
     final boolean srcSingleFlag = (srcFlags & SINGLEITEM_FLAG_MASK) > 0;
 
     final boolean single = srcSingleFlag
-        || SingleItemSketch.otherCheckForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
+        || SingleItemSketch.checkForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
 
     //extract pre1 and pre2 fields
     final int curCount = single ? 1 : (srcPreLongs > 1) ? extractCurCount(srcSeg) : 0;
@@ -318,7 +319,7 @@ final class CompactOperations {
    *                                   This is checked in all compacting operations.
    *  7   <1.0    !0      F     OK     This corresponds to a sketch in estimation mode
    * </pre>
-   * #4 is handled by <i>correctThetaOnCompat(boolean, int)</i> (below).
+   * #4 is handled by <i>correctThetaOnCompact(boolean, int)</i> (below).
    * #2 & #6 handled by <i>checkIllegalCurCountAndEmpty(boolean, int)</i>
    */
 

@@ -24,6 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
@@ -44,13 +45,13 @@ final class SingleItemSketch extends CompactSketch {
   private static final long DEFAULT_SEED_HASH = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED) & 0xFFFFL;
 
   // For backward compatibility, a candidate pre0_ long must have:
-  // Flags (byte 5): Ordered, Compact, NOT Empty, Read Only, LittleEndian = 11010 = 0x1A.
+  // Flags (byte 5): Ordered, Compact, NOT Empty, Read Only, NOT BigEndian = 11010 = 0x1A. (without SI flag)
   // Flags mask will be 0x1F.
   // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
   // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
   // and the hash seed matches, it is virtually guaranteed that we have a SingleItem Sketch.
 
-  private static final long PRE0_LO6_SI   = 0X00_00_3A_00_00_03_03_01L; //with SI flag
+  private static final long PRE0_LO6_SI   = 0X00_00_3A_00_00_03_03_01L; //low 6 bytes, with SI flag
   private long pre0_ = 0;
   private long hash_ = 0;
 
@@ -83,7 +84,7 @@ final class SingleItemSketch extends CompactSketch {
    */ //does not override Sketch
   static SingleItemSketch heapify(final MemorySegment srcSeg, final short expectedSeedHash) {
     Util.checkSeedHashes((short) extractSeedHash(srcSeg), expectedSeedHash);
-    final boolean singleItem = otherCheckForSingleItem(srcSeg);
+    final boolean singleItem = checkForSingleItem(srcSeg);
     if (singleItem) { return new SingleItemSketch(srcSeg.get(JAVA_LONG_UNALIGNED, 8), expectedSeedHash); }
     throw new SketchesArgumentException("Input MemorySegment is not a SingleItemSketch.");
   }
@@ -329,7 +330,7 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     return 1;
   }
 
@@ -383,25 +384,28 @@ final class SingleItemSketch extends CompactSketch {
     return (short) (pre0_ >>> 48);
   }
 
-  static boolean otherCheckForSingleItem(final MemorySegment seg) {
-    return otherCheckForSingleItem(Sketch.getPreambleLongs(seg), extractSerVer(seg),
-        extractFamilyID(seg), extractFlags(seg) );
+  static boolean checkForSingleItem(final MemorySegment seg) {
+    final int preLongs = checkSegPreambleCap(seg);
+    return checkForSingleItem(preLongs, extractSerVer(seg), extractFamilyID(seg), extractFlags(seg) );
   }
 
-  static boolean otherCheckForSingleItem(final int preLongs, final int serVer,
-      final int famId, final int flags) {
-    // Flags byte: SI=X, Ordered=T, Compact=T, Empty=F, ReadOnly=T, Reserved=F = X11010 = 0x1A.
+  static boolean checkForSingleItem(
+      final int preLongs,
+      final int serVer,
+      final int famId,
+      final int flags) {
+    // Flags byte: SI=X, Ordered=T, Compact=T, Empty=F, ReadOnly=T, Reserved(BE)=F = X11010 = 0x1A.
     // Flags mask will be 0x1F.
     // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
     // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
     // and the hash seed matches (not done here), it is virtually guaranteed that we have a
     // SingleItem Sketch.
-    final boolean numPreLongs = preLongs == 1;
-    final boolean numSerVer = serVer >= 3;
-    final boolean numFamId = famId == Family.COMPACT.getID();
-    final boolean numFlags =  (flags & 0x1F) == 0x1A; //no SI, yet
-    final boolean singleFlag = (flags & SINGLEITEM_FLAG_MASK) > 0;
-    return (numPreLongs && numSerVer && numFamId && numFlags) || singleFlag;
+    final boolean preLongsOK = preLongs == 1;
+    final boolean serVerOK = serVer >= 3;
+    final boolean famIdOK = famId == Family.COMPACT.getID();
+    final boolean flagsOK =  (flags & 0x1F) == 0x1A; //no SI, yet
+    final boolean singleFlagOK = (flags & SINGLEITEM_FLAG_MASK) > 0;
+    return (preLongsOK && serVerOK && famIdOK && flagsOK) || singleFlagOK;
   }
 
 }

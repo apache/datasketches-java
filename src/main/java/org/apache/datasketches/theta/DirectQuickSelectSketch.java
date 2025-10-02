@@ -179,7 +179,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 
-    UpdateSketch.checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
+    UpdateSketch.checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     if (isResizeFactorIncorrect(srcSeg, lgNomLongs, lgArrLongs)) {

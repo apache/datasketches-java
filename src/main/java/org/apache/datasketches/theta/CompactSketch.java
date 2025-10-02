@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
-import static org.apache.datasketches.common.ByteArrayUtil.getShortLE;
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
@@ -30,7 +29,6 @@ import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static org.apache.datasketches.theta.PreambleUtil.extractEntryBitsV4;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
@@ -39,7 +37,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLongV4;
 import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
-import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
+import static org.apache.datasketches.theta.SingleItemSketch.checkForSingleItem;
 
 import java.lang.foreign.MemorySegment;
 
@@ -160,7 +158,7 @@ public abstract class CompactSketch extends Sketch {
       if (PreambleUtil.isEmptyFlag(srcSeg)) {
         return EmptyCompactSketch.getHeapInstance(srcSeg);
       }
-      if (otherCheckForSingleItem(srcSeg)) {
+      if (checkForSingleItem(srcSeg)) {
         return SingleItemSketch.heapify(srcSeg, seedHash);
       }
       //not empty & not singleItem
@@ -190,25 +188,20 @@ public abstract class CompactSketch extends Sketch {
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
-   * <p>Only "Direct" Serialization Versions 3 and 4 (i.e, OpenSource) sketches that have
-   * been explicitly stored as direct sketches can be wrapped.
-   * Wrapping earlier serial version sketches will result in a heapify operation.
-   * These early versions were never designed to "wrap".</p>
+   * <p>Only sketches that have been explicitly stored as direct sketches can be wrapped.</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall space.</p>
    *
-   * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source byte array image.
-   * Note that SerialVersion 1 (pre-open-source) sketches cannot be checked as they don't have a seedHash field,
-   * so the resulting heapified CompactSketch will be given the hash of DEFAULT_UPDATE_SEED.</p>
+   * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source byte array image.</p>
    *
    * @param bytes a byte array image of a Sketch that was created using the DEFAULT_UPDATE_SEED.
    *
    * @return a CompactSketch backed by the given byte array except as above.
    */
   public static CompactSketch wrap(final byte[] bytes) {
-    return wrap(bytes, Util.DEFAULT_UPDATE_SEED, false);
+    return wrap(bytes, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -216,18 +209,13 @@ public abstract class CompactSketch extends Sketch {
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
-   * <p>Only "Direct" Serialization Versions 3 and 4 (i.e, OpenSource) sketches that have
-   * been explicitly stored as direct sketches can be wrapped.
-   * Wrapping earlier serial version sketches will result in a heapify operation.
-   * These early versions were never designed to "wrap".</p>
+   * <p>Only sketches that have been explicitly stored as direct sketches can be wrapped.</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in heapified forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall space.</p>
    *
-   * <p>This method checks if the given expectedSeed was used to create the source byte array image.
-   * Note that SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
-   * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
+   * <p>This method checks if the given expectedSeed was used to create the source byte array image.</p>
    *
    * @param bytes a byte array image of a Sketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given byte array image.
@@ -235,18 +223,13 @@ public abstract class CompactSketch extends Sketch {
    * @return a CompactSketch backed by the given byte array except as above.
    */
   public static CompactSketch wrap(final byte[] bytes, final long expectedSeed) {
-    return wrap(bytes, expectedSeed, true);
-  }
-
-  private static CompactSketch wrap(final byte[] bytes, final long seed, final boolean enforceSeed) {
     final int serVer = bytes[PreambleUtil.SER_VER_BYTE];
     final int familyId = bytes[PreambleUtil.FAMILY_BYTE];
     final Family family = Family.idToFamily(familyId);
     if (family != Family.COMPACT) {
       throw new SketchesArgumentException("Corrupted: " + family + " is not Compact!");
     }
-    final short seedHash = Util.computeSeedHash(seed);
-
+    final short seedHash = Util.computeSeedHash(expectedSeed);
 
     if (serVer == 3) {
       final int flags = bytes[FLAGS_BYTE];
@@ -254,8 +237,8 @@ public abstract class CompactSketch extends Sketch {
         return EmptyCompactSketch.getHeapInstance(MemorySegment.ofArray(bytes));
       }
       final int preLongs = bytes[PREAMBLE_LONGS_BYTE];
-      if (otherCheckForSingleItem(preLongs, serVer, familyId, flags)) {
-        return SingleItemSketch.heapify(MemorySegment.ofArray(bytes), enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
+      if (checkForSingleItem(preLongs, serVer, familyId, flags)) {
+        return SingleItemSketch.heapify(MemorySegment.ofArray(bytes), seedHash);
       }
       //not empty & not singleItem
       final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
@@ -268,8 +251,7 @@ public abstract class CompactSketch extends Sketch {
         throw new SketchesArgumentException(
             "Corrupted: COMPACT family sketch image must have Read-Only flag set");
       }
-      return WrappedCompactSketch.wrapInstance(bytes,
-          enforceSeed ? seedHash : getShortLE(bytes, SEED_HASH_SHORT));
+      return WrappedCompactSketch.wrapInstance(bytes, seedHash);
     }
     if (serVer ==4) {
       return WrappedCompactCompressedSketch.wrapInstance(bytes, seedHash);
@@ -277,8 +259,6 @@ public abstract class CompactSketch extends Sketch {
     //not SerVer 3 or 4
     throw new SketchesArgumentException(
           "Corrupted: Serialization Version " + serVer + " not recognized.");
-
-
   }
 
   //Sketch Overrides

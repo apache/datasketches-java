@@ -208,7 +208,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     if (curCount_ > 0) {
       if (valid && isDirty()) {
         return HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
