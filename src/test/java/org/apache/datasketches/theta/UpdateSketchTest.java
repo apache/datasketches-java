@@ -212,7 +212,7 @@ public class UpdateSketchTest {
     CompactSketch csk1, csk2, csk3;
     final int lgK = 6;
     final UpdateSketch sk = UpdateSketch.builder().setLogNominalEntries(lgK).build();
-    final int n = 1 << lgK + 1;
+    final int n = 1 << (lgK + 1);
     for (int i = 2; i < n; i++) { sk.update(i); }
     final int cbytes = sk.getCompactBytes();
     final byte[] byteArr = sk.toByteArray();

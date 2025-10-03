@@ -450,7 +450,7 @@ final class PreambleUtil {
     final int curByte = seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0xFF;
     final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits
     final int mask = 3;
-    final byte newByte = (byte) ((rf & mask) << shift | ~(mask << shift) & curByte);
+    final byte newByte = (byte) (((rf & mask) << shift) | (~(mask << shift) & curByte));
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, newByte);
   }
 

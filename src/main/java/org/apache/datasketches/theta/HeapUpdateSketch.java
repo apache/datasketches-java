@@ -96,7 +96,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
     checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
-    final int preBytes = preLongs << 3 & 0X3F; //24 bytes; mask to 6 bits
+    final int preBytes = (preLongs << 3) & 0X3F; //24 bytes; mask to 6 bits
     final int dataBytes = getCurrentDataLongs() << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
 

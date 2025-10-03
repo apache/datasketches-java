@@ -173,7 +173,7 @@ public abstract class UpdateSketch extends Sketch {
   public int getCompactBytes() {
     final int preLongs = getCompactPreambleLongs();
     final int dataLongs = getRetainedEntries(true);
-    return preLongs + dataLongs << 3;
+    return (preLongs + dataLongs) << 3;
   }
 
   @Override
