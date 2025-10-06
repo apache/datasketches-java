@@ -19,43 +19,23 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
-import static org.apache.datasketches.theta.Sketches.getCompactSketchMaxBytes;
-import static org.apache.datasketches.theta.Sketches.getMaxCompactSketchBytes;
-import static org.apache.datasketches.theta.Sketches.getMaxIntersectionBytes;
-import static org.apache.datasketches.theta.Sketches.getMaxUnionBytes;
-import static org.apache.datasketches.theta.Sketches.getMaxUpdateSketchBytes;
-import static org.apache.datasketches.theta.Sketches.getSerializationVersion;
-import static org.apache.datasketches.theta.Sketches.heapifySetOperation;
-import static org.apache.datasketches.theta.Sketches.heapifySketch;
-import static org.apache.datasketches.theta.Sketches.setOperationBuilder;
-import static org.apache.datasketches.theta.Sketches.updateSketchBuilder;
-import static org.apache.datasketches.theta.Sketches.wrapSetOperation;
-import static org.apache.datasketches.theta.Sketches.wrapSketch;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.SetOperationBuilder;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
-public class SketchesTest {
+public class SketchMiscTest {
 
   private static MemorySegment getCompactSketchMemorySegment(final int k, final int from, final int to) {
-    final UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=from; i<to; i++) {
       sk1.update(i);
     }
@@ -72,7 +52,7 @@ public class SketchesTest {
   }
 
   private static CompactSketch getCompactSketch(final int k, final int from, final int to) {
-    final UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=from; i<to; i++) {
       sk1.update(i);
     }
@@ -84,16 +64,16 @@ public class SketchesTest {
     final int k = 1024;
     final MemorySegment seg = getCompactSketchMemorySegment(k, 0, k);
 
-    CompactSketch csk2 = (CompactSketch)heapifySketch(seg);
+    CompactSketch csk2 = (CompactSketch) Sketch.heapify(seg);
     assertEquals((int)csk2.getEstimate(), k);
 
-    csk2 = (CompactSketch)heapifySketch(seg, Util.DEFAULT_UPDATE_SEED);
+    csk2 = (CompactSketch) Sketch.heapify(seg, Util.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);
 
-    csk2 = (CompactSketch)wrapSketch(seg);
+    csk2 = (CompactSketch) Sketch.wrap(seg);
     assertEquals((int)csk2.getEstimate(), k);
 
-    csk2 = (CompactSketch)wrapSketch(seg, Util.DEFAULT_UPDATE_SEED);
+    csk2 = (CompactSketch) Sketch.wrap(seg, Util.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);
   }
 
@@ -103,7 +83,7 @@ public class SketchesTest {
     final MemorySegment seg1 = getCompactSketchMemorySegment(k, 0, k);
     final MemorySegment seg2 = getCompactSketchMemorySegment(k, k/2, 3*k/2);
 
-    final SetOperationBuilder bldr = setOperationBuilder();
+    final SetOperationBuilder bldr = SetOperation.builder();
     final Union union = bldr.setNominalEntries(2 * k).buildUnion();
 
     union.union(seg1);
@@ -116,23 +96,23 @@ public class SketchesTest {
     final byte[] ubytes = union.toByteArray();
     final MemorySegment uSeg = MemorySegment.ofArray(ubytes);
 
-    Union union2 = (Union)heapifySetOperation(uSeg);
+    Union union2 = (Union) SetOperation.heapify(uSeg);
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
-    union2 = (Union)heapifySetOperation(uSeg, Util.DEFAULT_UPDATE_SEED);
+    union2 = (Union) SetOperation.heapify(uSeg, Util.DEFAULT_UPDATE_SEED);
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
-    union2 = (Union)wrapSetOperation(uSeg);
+    union2 = (Union) SetOperation.wrap(uSeg);
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
-    union2 = (Union)wrapSetOperation(uSeg, Util.DEFAULT_UPDATE_SEED);
+    union2 = (Union) SetOperation.wrap(uSeg, Util.DEFAULT_UPDATE_SEED);
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
-    final int serVer = getSerializationVersion(uSeg);
+    final int serVer = Sketch.getSerializationVersion(uSeg);
     assertEquals(serVer, 3);
   }
 
@@ -141,56 +121,30 @@ public class SketchesTest {
     final int lgK = 10;
     final int k = 1 << lgK;
 
-    final int maxUnionBytes = getMaxUnionBytes(k);
+    final int maxUnionBytes = SetOperation.getMaxUnionBytes(k);
     assertEquals(2*k*8+32, maxUnionBytes);
 
-    final int maxInterBytes = getMaxIntersectionBytes(k);
+    final int maxInterBytes = SetOperation.getMaxIntersectionBytes(k);
     assertEquals(2*k*8+24, maxInterBytes);
 
-    final int maxCompSkBytes = getMaxCompactSketchBytes(k+1);
+    final int maxCompSkBytes = Sketch.getMaxCompactSketchBytes(k+1);
     assertEquals(24+(k+1)*8, maxCompSkBytes);
 
-    final int compSkMaxBytes = getCompactSketchMaxBytes(lgK); {
+    final int compSkMaxBytes = Sketch.getCompactSketchMaxBytes(lgK); {
         int bytes = (int)((2 << lgK) * ThetaUtil.REBUILD_THRESHOLD + Family.QUICKSELECT.getMaxPreLongs()) * Long.BYTES;
         assertEquals(compSkMaxBytes, bytes);
     }
 
-    final int maxSkBytes = getMaxUpdateSketchBytes(k);
+    final int maxSkBytes = Sketch.getMaxUpdateSketchBytes(k);
     assertEquals(24+2*k*8, maxSkBytes);
-  }
-
-  @Test
-  public void checkStaticEstimators() {
-    final int k = 4096;
-    final int u = 4*k;
-    final CompactSketch csk = getCompactSketch(k, 0, u);
-    final MemorySegment srcSeg = getMemorySegmentFromCompactSketch(csk);
-    final double est = Sketches.getEstimate(srcSeg);
-    assertEquals(est, u, 0.05*u);
-    final double rse = 1.0/Math.sqrt(k);
-    final double ub = Sketches.getUpperBound(1, srcSeg);
-    assertEquals(ub, est+rse, 0.05*u);
-    final double lb = Sketches.getLowerBound(1, srcSeg);
-    assertEquals(lb, est-rse, 0.05*u);
-    final MemorySegment segV1 = convertSerVer3toSerVer1(csk);
-    boolean empty = Sketches.getEmpty(segV1);
-    assertFalse(empty);
-
-    final CompactSketch csk2 = getCompactSketch(k, 0, 0);
-    final MemorySegment emptySegV3 = getMemorySegmentFromCompactSketch(csk2);
-    assertEquals(Sketches.getRetainedEntries(emptySegV3), 0);
-    assertEquals(Sketches.getThetaLong(emptySegV3), Long.MAX_VALUE);
-    final MemorySegment emptySegV1 = convertSerVer3toSerVer1(csk2);
-    empty = Sketches.getEmpty(emptySegV1);
-    assertTrue(empty);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSketchFamily() {
-    final Union union = setOperationBuilder().buildUnion();
+    final Union union = SetOperation.builder().buildUnion();
     final byte[] byteArr = union.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArr);
-    Sketches.getEstimate(srcSeg); //Union is not a Theta Sketch, it is an operation
+    Sketch.getEstimate(srcSeg); //Union is not a Theta Sketch, it is an operation
   }
 
   @Test

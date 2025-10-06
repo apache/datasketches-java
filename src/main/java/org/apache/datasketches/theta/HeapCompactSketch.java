@@ -57,6 +57,7 @@ final class HeapCompactSketch extends CompactSketch {
    * @param curCount correct value
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param ordered true if cache is ordered.
    */
   HeapCompactSketch(final long[] cache, final boolean empty, final short seedHash,
       final int curCount, final long thetaLong, final boolean ordered) {
@@ -87,7 +88,7 @@ final class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     return curCount_;
   }
 

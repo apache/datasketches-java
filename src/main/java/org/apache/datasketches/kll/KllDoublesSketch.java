@@ -144,9 +144,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
   public static KllDoublesSketch wrap(final MemorySegment srcSeg) {
-    Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, DOUBLES_SKETCH);
-    return new KllDirectDoublesSketch(srcSeg, segVal, null);
+    return wrap(srcSeg, null);
   }
 
   /**
@@ -386,6 +384,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   /**
    * Vector update. Updates this sketch with the given array (vector) of items, starting at the items
    * offset for a length number of items. This is not supported for direct sketches.
+   * <p>Note: a single occurrence of a NaN in the array will force this method to use the conventional update path
+   * rather than the fast update path.</p>
    * @param items the vector of items
    * @param offset the starting index of the items[] array
    * @param length the number of items

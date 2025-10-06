@@ -34,17 +34,6 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.ConcurrentHeapQuickSelectSketch;
-import org.apache.datasketches.theta.ConcurrentHeapThetaBuffer;
-import org.apache.datasketches.theta.ConcurrentPropagationService;
-import org.apache.datasketches.theta.ConcurrentSharedThetaSketch;
-import org.apache.datasketches.theta.HeapQuickSelectSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -90,7 +79,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final SharedLocal sl = new SharedLocal(lgK, 4, false, false);
     final UpdateSketch shared = sl.shared;
     final UpdateSketch local = sl.local;
-    assertEquals((sl.bldr.getLocalLgNominalEntries()), 4);
+    assertEquals((sl.bldr.getConCurLgNominalEntries()), 4);
     assertTrue(local.isEmpty());
 
     for (int i = 0; i < u; i++) {
@@ -173,7 +162,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final byte[]  serArr = shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
-    final Sketch recoveredShared = Sketches.heapifyUpdateSketch(srcSeg);
+    final Sketch recoveredShared = UpdateSketch.heapify(srcSeg);
 
     //reconstruct to Native/Direct
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);
@@ -494,7 +483,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkBuilder() {
     final int lgK = 4;
     final SharedLocal sl = new SharedLocal(lgK);
-    assertEquals(sl.bldr.getLocalLgNominalEntries(), lgK);
+    assertEquals(sl.bldr.getConCurLgNominalEntries(), lgK);
     assertEquals(sl.bldr.getLgNominalEntries(), lgK);
     println(sl.bldr.toString());
   }
@@ -652,11 +641,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
       fail();
     } catch (final SketchesArgumentException e) { }
     try {
-      bldr.setLocalNominalEntries(8);
+      bldr.setConCurNominalEntries(8);
       fail();
     } catch (final SketchesArgumentException e) { }
     try {
-      bldr.setLocalLogNominalEntries(3);
+      bldr.setConCurLogNominalEntries(3);
       fail();
     } catch (final SketchesArgumentException e) { }
     bldr.setNumPoolThreads(4);
@@ -731,7 +720,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
         wseg = null;
       }
       bldr.setLogNominalEntries(sharedLgK);
-      bldr.setLocalLogNominalEntries(localLgK);
+      bldr.setConCurLogNominalEntries(localLgK);
       bldr.setPropagateOrderedCompact(ordered);
       bldr.setSeed(this.seed);
       shared = bldr.buildShared(wseg);

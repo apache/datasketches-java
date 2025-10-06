@@ -21,8 +21,6 @@ package org.apache.datasketches.theta;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
-import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.apache.datasketches.theta.HeapUnionTest.testAllCompactForms;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.SetOperation.getMaxUnionBytes;
@@ -32,20 +30,10 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.DirectQuickSelectSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.SetOperationBuilder;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -190,7 +178,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.0);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.0);
   }
@@ -219,7 +207,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
   }
@@ -255,7 +243,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -295,7 +283,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -335,7 +323,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -375,7 +363,7 @@ public class DirectUnionTest {
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Sketches.wrapUnion(MemorySegment.ofArray(union.toByteArray()));
+    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -461,105 +449,6 @@ public class DirectUnionTest {
   }
 
   @Test
-  public void checkSerVer1Handling() {
-    final int lgK = 12; //4096
-    final int k = 1 << lgK;
-    final int u1 = 2*k;
-    final int u2 = 1024; //smaller exact sketch forces early stop
-    final int totU = u1+u2;
-
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-
-    for (int i=0; i<u1; i++) {
-      usk1.update(i); //2*k
-    }
-    for (int i=u1; i<totU; i++) {
-      usk2.update(i); //2*k + 1024 no overlap
-    }
-
-    final MemorySegment v1seg1 = convertSerVer3toSerVer1(usk1.compact(true, null)).asReadOnly();
-    final MemorySegment v1seg2 = convertSerVer3toSerVer1(usk2.compact(true, null)).asReadOnly();
-
-    final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-
-    union.union(v1seg1);
-    union.union(v1seg2);
-
-    final CompactSketch cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), totU, .05*k);
-  }
-
-  @Test
-  public void checkSerVer2Handling() {
-    final int lgK = 12; //4096
-    final int k = 1 << lgK;
-    final int u1 = 2*k;
-    final int u2 = 1024; //smaller exact sketch forces early stop
-    final int totU = u1+u2;
-
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-
-    for (int i=0; i<u1; i++) {
-      usk1.update(i); //2*k
-    }
-    for (int i=u1; i<totU; i++) {
-      usk2.update(i); //2*k + 1024 no overlap
-    }
-
-    final MemorySegment v2seg1 = convertSerVer3toSerVer2(usk1.compact(true, null), Util.DEFAULT_UPDATE_SEED).asReadOnly();
-    final MemorySegment v2seg2 = convertSerVer3toSerVer2(usk2.compact(true, null), Util.DEFAULT_UPDATE_SEED).asReadOnly();
-
-    final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-
-    union.union(v2seg1);
-    union.union(v2seg2);
-
-    final CompactSketch cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), totU, .05*k);
-  }
-
-  @Test
-  public void checkUpdateSegmentSpecialCases() {
-    final int lgK = 12; //4096
-    final int k = 1 << lgK;
-
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final CompactSketch usk1c = usk1.compact(true, null);
-    MemorySegment v3seg1 = MemorySegment.ofArray(usk1c.toByteArray());
-
-    final MemorySegment v1seg1 = convertSerVer3toSerVer1(usk1c).asReadOnly();
-
-    MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-    union.union(v1seg1);
-    CompactSketch cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-
-    final MemorySegment v2seg1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED).asReadOnly();
-
-    uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-    union.union(v2seg1);
-    cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-
-    uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-    union.union(v3seg1);
-    cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-
-    uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-    cOut = union.getResult(true, null);
-    assertEquals(cOut.getEstimate(), 0.0, 0.0);
-  }
-
-  @Test
   public void checkUpdateSegmentSpecialCases2() {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
@@ -597,29 +486,6 @@ public class DirectUnionTest {
     union.union(v3seg1);
   }
 
-  @Test
-  public void checkEmptySerVer2and3() {
-    final int lgK = 12; //4096
-    final int k = 1 << lgK;
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final CompactSketch usk1c = usk1.compact(true, null);
-    final byte[] skArr = usk1c.toByteArray();
-    final byte[] skArr2 = Arrays.copyOf(skArr, skArr.length * 2);
-    final MemorySegment v3seg1 = MemorySegment.ofArray(skArr2);
-
-    MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-    union.union(v3seg1);
-
-    final MemorySegment v2seg1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED).asReadOnly();
-    final MemorySegment v2seg2 = MemorySegment.ofArray(new byte[16]);
-    MemorySegment.copy(v2seg1, 0, v2seg2, 0, 8);
-
-    uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
-    union.union(v2seg2);
-  }
-
   //Special DirectUnion cases
   @Test //Himanshu's issue
   public void checkDirectWrap() {
@@ -635,10 +501,10 @@ public class DirectUnionTest {
     sk2.update("c");
     sk2.update("d");
 
-    Union union = Sketches.wrapUnion(uSeg);
+    Union union = Union.wrap(uSeg);
     union.union(sk1);
 
-    union = Sketches.wrapUnion(uSeg);
+    union = Union.wrap(uSeg);
     union.union(sk2);
 
     final CompactSketch sketch = union.getResult(true, null);
@@ -680,13 +546,13 @@ public class DirectUnionTest {
   @Test
   public void checkGetResult() {
     final int k = 1024;
-    final UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk = UpdateSketch.builder().build();
 
     final int segBytes = getMaxUnionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(iSeg);
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(iSeg);
     union.union(sk);
     final CompactSketch csk = union.getResult();
     assertEquals(csk.getCompactBytes(), 8);
@@ -751,11 +617,11 @@ public class DirectUnionTest {
     final SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
     println(setOp.toString());
     final int familyID = PreambleUtil.extractFamilyID(seg);
-    final int preLongs = PreambleUtil.extractPreLongs(seg);
+    final int preLongs = Sketch.getPreambleLongs(seg);
     assertEquals(familyID, Family.UNION.getID());
     assertEquals(preLongs, Family.UNION.getMaxPreLongs());
     PreambleUtil.insertPreLongs(seg, 3); //Corrupt with 3; correct value is 4
-    DirectQuickSelectSketch.writableWrap(seg, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -766,7 +632,7 @@ public class DirectUnionTest {
     println(setOp.toString());
     final MemorySegment seg2 = MemorySegment.ofArray(new byte[32]); //for just preamble
     MemorySegment.copy(seg, 0, seg2, 0, 32); //too small
-    DirectQuickSelectSketch.writableWrap(seg2, Util.DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(seg2, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test

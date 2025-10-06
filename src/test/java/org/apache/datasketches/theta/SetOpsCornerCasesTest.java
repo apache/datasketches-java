@@ -35,7 +35,6 @@ import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.Intersection;
 import org.apache.datasketches.theta.SetOperation;
 import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.Union;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.Assert;
@@ -58,8 +57,8 @@ public class SetOpsCornerCasesTest {
   }
 
   private static void compareSetOpsRandom(final int k, final int loA, final int hiA, final int loB, final int hiB) {
-    final UpdateSketch tskA = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    final UpdateSketch tskB = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch tskA = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch tskB = UpdateSketch.builder().setNominalEntries(k).build();
 
     for (int i = loA; i < hiA; i++) { tskA.update(i); }
     for (int i = loB; i < hiB; i++) { tskB.update(i); }
@@ -171,36 +170,36 @@ public class SetOpsCornerCasesTest {
   }
 
   private static CompactSketch doStdUnion(final Sketch tskA, final Sketch tskB, final int k, final MemorySegment wseg) {
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(tskA);
     union.union(tskB);
     return union.getResult(true, wseg);
   }
 
   private static CompactSketch doStdPairUnion(final Sketch tskA, final Sketch tskB, final int k, final MemorySegment wseg) {
-    final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     return union.union(tskA, tskB, true, wseg);
   }
 
   private static CompactSketch doStdIntersection(final Sketch tskA, final Sketch tskB, final MemorySegment wseg) {
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final Intersection inter = SetOperation.builder().buildIntersection();
     inter.intersect(tskA);
     inter.intersect(tskB);
     return inter.getResult(true, wseg);
   }
 
   private static CompactSketch doStdPairIntersection(final Sketch tskA, final Sketch tskB, final MemorySegment wseg) {
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final Intersection inter = SetOperation.builder().buildIntersection();
     return inter.intersect(tskA, tskB, true, wseg);
   }
 
   private static CompactSketch doStdAnotB(final Sketch tskA, final Sketch tskB, final MemorySegment wseg) {
-    final AnotB anotb = Sketches.setOperationBuilder().buildANotB();
+    final AnotB anotb = SetOperation.builder().buildANotB();
     return anotb.aNotB(tskA, tskB, true, wseg);
   }
 
   private static CompactSketch doStdStatefulAnotB(final Sketch tskA, final Sketch tskB, final MemorySegment wseg) {
-    final AnotB anotb = Sketches.setOperationBuilder().buildANotB();
+    final AnotB anotb = SetOperation.builder().buildANotB();
     anotb.setA(tskA);
     anotb.notB(tskB);
     anotb.getResult(false);
@@ -265,12 +264,12 @@ public class SetOpsCornerCasesTest {
   @Test
   public void checkSeedHash() {
     final int k = 64;
-    final UpdateSketch tmp1 = Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build();
+    final UpdateSketch tmp1 = UpdateSketch.builder().setNominalEntries(k).setSeed(123).build();
     tmp1.update(1);
     tmp1.update(3);
     final CompactSketch skSmallSeed2A = tmp1.compact(true, null);
 
-    final UpdateSketch tmp2 = Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build();
+    final UpdateSketch tmp2 = UpdateSketch.builder().setNominalEntries(k).setSeed(123).build();
     tmp2.update(1);
     tmp2.update(2);
     final CompactSketch skSmallSeed2B = tmp2.compact(true, null);
@@ -452,17 +451,17 @@ public class SetOpsCornerCasesTest {
         break;
       }
       case EMPTY : { //results in EmptyCompactSketch
-        csk = Sketches.updateSketchBuilder().setNominalEntries(k).build().compact(true, null);
+        csk = UpdateSketch.builder().setNominalEntries(k).build().compact(true, null);
         break;
       }
       case SINGLE : { //results in SingleItemSketches most of the time
-        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+        sk = UpdateSketch.builder().setNominalEntries(k).build();
         sk.update(1);
         csk = sk.compact(true, null);
         break;
       }
       case EXACT : {
-        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+        sk = UpdateSketch.builder().setNominalEntries(k).build();
         for (int i = 0; i < k; i++) {
           sk.update(i);
         }
@@ -470,7 +469,7 @@ public class SetOpsCornerCasesTest {
         break;
       }
       case EST_HEAP : {
-        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+        sk = UpdateSketch.builder().setNominalEntries(k).build();
         for (int i = 0; i < (4 * k); i++) {
           sk.update(i);
         }
@@ -478,20 +477,20 @@ public class SetOpsCornerCasesTest {
         break;
       }
       case THLT1_CNT0_FALSE : {
-        sk = Sketches.updateSketchBuilder().setP((float)0.5).setNominalEntries(k).build();
+        sk = UpdateSketch.builder().setP((float)0.5).setNominalEntries(k).build();
         sk.update(7); //above theta
         assert(sk.getRetainedEntries(true) == 0);
         csk = sk.compact(true, null); //compact as {Th < 1.0, 0, F}
         break;
       }
       case THEQ1_CNT0_TRUE : {
-        sk = Sketches.updateSketchBuilder().setP((float)0.5).setNominalEntries(k).build();
+        sk = UpdateSketch.builder().setP((float)0.5).setNominalEntries(k).build();
         assert(sk.getRetainedEntries(true) == 0);
         csk = sk.compact(true, null); //compact as {Th < 1.0, 0, T}
         break;
       }
       case EST_SEGMENT_UNORDERED : {
-        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+        sk = UpdateSketch.builder().setNominalEntries(k).build();
         for (int i = 0; i < (4 * k); i++) {
           sk.update(i);
         }

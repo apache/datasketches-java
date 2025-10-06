@@ -19,19 +19,15 @@
 
 package org.apache.datasketches.theta;
 
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
-import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
-import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.checkSegmentSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
@@ -39,7 +35,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.getSegBytes;
+import static org.apache.datasketches.theta.PreambleUtil.getUpdatableSegBytes;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 
 import java.lang.foreign.MemorySegment;
@@ -47,6 +43,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
@@ -60,8 +57,11 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Lee Rhodes
  */
 public abstract class UpdateSketch extends Sketch {
+  private final long seed_;
 
-  UpdateSketch() {}
+  UpdateSketch(final long seed) {
+    seed_ = seed; //kept only on heap, never serialized. Hoisted here for performance.
+  }
 
   /**
   * Wrap takes the writable sketch image in MemorySegment and refers to it directly. There is no data copying onto
@@ -72,9 +72,12 @@ public abstract class UpdateSketch extends Sketch {
   * @param srcWSeg an image of a writable sketch where the image seed hash matches the default seed hash.
   * It must have a size of at least 24 bytes.
   * @return an UpdateSketch backed by the given MemorySegment
+  * @throws SketchesArgumentException if the provided MemorySegment
+  * is invalid, corrupted, or incompatible with this sketch type.
+  * Callers must treat this as a fatal error for that segment.
   */
   public static UpdateSketch wrap(final MemorySegment srcWSeg) {
-    return wrap(srcWSeg, Util.DEFAULT_UPDATE_SEED);
+    return wrap(srcWSeg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -85,24 +88,30 @@ public abstract class UpdateSketch extends Sketch {
   * Java Heap version of the sketch where all data will be copied to the heap.
   * @param srcWSeg an image of a writable sketch where the image seed hash matches the given seed hash.
   * It must have a size of at least 24 bytes.
+  * @param mSegReq an implementation of the MemorySegmentRequest interface or null.
   * @param expectedSeed the seed used to validate the given MemorySegment image.
   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
   * @return a UpdateSketch backed by the given MemorySegment
+  * @throws SketchesArgumentException if the provided MemorySegment
+  * is invalid, corrupted, or incompatible with this sketch type.
+  * Callers must treat this as a fatal error for that segment.
   */
-  public static UpdateSketch wrap(final MemorySegment srcWSeg, final long expectedSeed) {
-    Objects.requireNonNull(srcWSeg, "Source MemorySeg e t must not be null");
-    checkBounds(0, 24, srcWSeg.byteSize()); //need min 24 bytes
-    final int  preLongs = srcWSeg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int serVer = srcWSeg.get(JAVA_BYTE, SER_VER_BYTE) & 0XFF;
-    final int familyID = srcWSeg.get(JAVA_BYTE, FAMILY_BYTE) & 0XFF;
-    final Family family = Family.idToFamily(familyID);
-    if (family != Family.QUICKSELECT) {
+  public static UpdateSketch wrap(
+      final MemorySegment srcWSeg,
+      final MemorySegmentRequest mSegReq,
+      final long expectedSeed) {
+    Objects.requireNonNull(srcWSeg, "Source MemorySegment must not be null");
+    final int preLongs = checkSegPreambleCap(srcWSeg) & 0X3F; //mask to 6 bits;
+    final int serVer = extractSerVer(srcWSeg);
+    final int familyID = extractFamilyID(srcWSeg);
+    if (familyID != Family.QUICKSELECT.getID()) {
+      final Family family = Family.idToFamily(familyID);
       throw new SketchesArgumentException(
         "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
     }
-    if ((serVer == 3) && (preLongs == 3)) {
-      return DirectQuickSelectSketch.writableWrap(srcWSeg, expectedSeed);
+    if (serVer == 3 && preLongs == 3) {
+      return DirectQuickSelectSketch.writableWrap(srcWSeg, mSegReq, expectedSeed);
     } else {
       throw new SketchesArgumentException(
         "Corrupted: An UpdateSketch image must have SerVer = 3 and preLongs = 3");
@@ -115,6 +124,9 @@ public abstract class UpdateSketch extends Sketch {
    * @param srcSeg the given MemorySegment with a sketch image.
    * It must have a size of at least 24 bytes.
    * @return an UpdateSketch
+   * @throws SketchesArgumentException if the provided MemorySegment
+   * is invalid, corrupted, or incompatible with this sketch type.
+   * Callers must treat this as a fatal error for that segment.
    */
   public static UpdateSketch heapify(final MemorySegment srcSeg) {
     return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
@@ -127,12 +139,15 @@ public abstract class UpdateSketch extends Sketch {
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return an UpdateSketch
+   * @throws SketchesArgumentException if the provided MemorySegment
+   * is invalid, corrupted, or incompatible with this sketch type.
+   * Callers must treat this as a fatal error for that segment.
    */
   public static UpdateSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
     Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
-    checkBounds(0, 24, srcSeg.byteSize()); //need min 24 bytes
-    final Family family = Family.idToFamily(srcSeg.get(JAVA_BYTE, FAMILY_BYTE));
-    if (family.equals(Family.ALPHA)) {
+    checkSegPreambleCap(srcSeg);
+    final int familyID = extractFamilyID(srcSeg);
+    if (familyID == Family.ALPHA.getID()) {
       return HeapAlphaSketch.heapifyInstance(srcSeg, expectedSeed);
     }
     return HeapQuickSelectSketch.heapifyInstance(srcSeg, expectedSeed);
@@ -142,8 +157,16 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
-    return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
-        false, false, dstOrdered, dstWSeg, getCache());
+    return componentsToCompact(
+        getThetaLong(),
+        getRetainedEntries(true),
+        getSeedHash(),
+        isEmpty(),
+        false, //is src compact
+        false, //is src ordered
+        dstOrdered,
+        dstWSeg,
+        getCache());
   }
 
   @Override
@@ -160,7 +183,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean hasMemorySegment() {
-    return ((this instanceof DirectQuickSelectSketchR) &&  ((DirectQuickSelectSketchR)this).hasMemorySegment());
+    return this instanceof final DirectQuickSelectSketchR dqssr && dqssr.hasMemorySegment();
   }
 
   @Override
@@ -170,7 +193,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean isOffHeap() {
-    return ((this instanceof DirectQuickSelectSketchR) && ((DirectQuickSelectSketchR)this).isOffHeap());
+    return this instanceof final DirectQuickSelectSketchR dqssr && dqssr.isOffHeap();
   }
 
   @Override
@@ -180,7 +203,7 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public boolean isSameResource(final MemorySegment that) {
-    return (this instanceof final DirectQuickSelectSketchR dqssr) && dqssr.isSameResource(that);
+    return this instanceof final DirectQuickSelectSketchR dqssr && dqssr.isSameResource(that);
   }
 
   //UpdateSketch interface
@@ -210,7 +233,7 @@ public abstract class UpdateSketch extends Sketch {
    * Gets the configured seed
    * @return the configured seed
    */
-  abstract long getSeed();
+  public long getSeed() { return seed_; }
 
   /**
    * Resets this sketch back to a virgin empty state.
@@ -232,8 +255,7 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final long datum) {
-    final long[] data = { datum };
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(datum, seed_)[0] >>> 1);
   }
 
   /**
@@ -248,9 +270,9 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final double datum) {
-    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN & +/- infinity forms
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    final double d = datum == 0.0 ? 0.0 : datum; // canonicalize -0.0, 0.0
+    final long data = Double.doubleToLongBits(d);// canonicalize all NaN & +/- infinity forms
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -267,11 +289,11 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final String datum) {
-    if ((datum == null) || datum.isEmpty()) {
+    if (datum == null || datum.isEmpty()) {
       return RejectedNullOrEmpty;
     }
     final byte[] data = datum.getBytes(UTF_8);
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -283,10 +305,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final byte[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -298,10 +320,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final ByteBuffer buffer) {
-    if ((buffer == null) || !buffer.hasRemaining()) {
+    if (buffer == null || !buffer.hasRemaining()) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(buffer, getSeed())[0] >>> 1);
+    return hashUpdate(hash(buffer, seed_)[0] >>> 1);
   }
 
   /**
@@ -316,10 +338,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final char[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -331,10 +353,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final int[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   /**
@@ -346,10 +368,10 @@ public abstract class UpdateSketch extends Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final long[] data) {
-    if ((data == null) || (data.length == 0)) {
+    if (data == null || data.length == 0) {
       return RejectedNullOrEmpty;
     }
-    return hashUpdate(hash(data, getSeed())[0] >>> 1);
+    return hashUpdate(hash(data, seed_)[0] >>> 1);
   }
 
   //restricted methods
@@ -391,23 +413,23 @@ public abstract class UpdateSketch extends Sketch {
    */
   abstract boolean isOutOfSpace(int numEntries);
 
-  static void checkUnionQuickSelectFamily(final MemorySegment seg, final int preambleLongs,
-      final int lgNomLongs) {
+  static void checkUnionAndQuickSelectFamily(final MemorySegment seg, final int preambleLongs, final int lgNomLongs) {
+
     //Check Family
     final int familyID = extractFamilyID(seg);                       //byte 2
-    final Family family = Family.idToFamily(familyID);
-    if (family.equals(Family.UNION)) {
+    if (familyID == Family.UNION.getID()) {
       if (preambleLongs != Family.UNION.getMinPreLongs()) {
         throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for UNION: " + preambleLongs);
       }
     }
-    else if (family.equals(Family.QUICKSELECT)) {
+    else if (familyID == Family.QUICKSELECT.getID()) {
       if (preambleLongs != Family.QUICKSELECT.getMinPreLongs()) {
         throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for QUICKSELECT: " + preambleLongs);
       }
     } else {
+      final Family family = Family.idToFamily(familyID);
       throw new SketchesArgumentException(
           "Possible corruption: Invalid Family: " + family.toString());
     }
@@ -444,7 +466,7 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check seg capacity, lgArrLongs
     final long curCapBytes = srcSeg.byteSize();
-    final int minReqBytes = getSegBytes(lgArrLongs, preambleLongs);
+    final int minReqBytes = getUpdatableSegBytes(lgArrLongs, preambleLongs);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
           "Possible corruption: Current MemorySegment size < min required size: "
@@ -455,7 +477,7 @@ public abstract class UpdateSketch extends Sketch {
     final long thetaLong = extractThetaLong(srcSeg);                    //bytes 16-23
     final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     //if (lgArrLongs <= lgNomLongs) the sketch is still resizing, thus theta cannot be < p.
-    if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
+    if (lgArrLongs <= lgNomLongs && theta < p ) {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
@@ -477,7 +499,7 @@ public abstract class UpdateSketch extends Sketch {
     final int lgA = lgArrLongs;
     final int lgR = extractLgResizeFactor(srcSeg);
     if (lgR == 0) { return lgA != lgT; }
-    return (((lgT - lgA) % lgR) != 0);
+    return (lgT - lgA) % lgR != 0;
   }
 
 }

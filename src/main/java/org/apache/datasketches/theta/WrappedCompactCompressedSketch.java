@@ -28,7 +28,8 @@ import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Util;
 
 /**
- * Wrapper around a serialized compact compressed read-only sketch. It is not empty, not a single item.
+ * A wrapper around a serialized compact compressed read-only sketch in the form of a byte array.
+ * It is not an empty nor a single item sketch.
  *
  * <p>This sketch can only be associated with a Serialization Version 4 format binary image.</p>
  */
@@ -68,7 +69,7 @@ final class WrappedCompactCompressedSketch extends WrappedCompactSketch {
   private static final int START_PACKED_DATA_ESTIMATION_MODE = 16;
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //compact is always valid
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     // number of entries is stored using variable length encoding
     // most significant bytes with all zeros are not stored
     // one byte in the preamble has the number of non-zero bytes used

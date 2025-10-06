@@ -60,7 +60,7 @@ public enum TgtHllType {
    */
   HLL_6,
   /**
-   * An Hll Sketch with a bin size of 8 bits
+   * An HLL Sketch with a bin size of 8 bits
    */
   HLL_8;
 

@@ -29,11 +29,11 @@ import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
@@ -122,7 +122,7 @@ final class CompactOperations {
       final MemorySegment dstWSeg)
   {
     //extract Pre0 fields and Flags from srcMem
-    final int srcPreLongs = extractPreLongs(srcSeg);
+    final int srcPreLongs = checkSegPreambleCap(srcSeg);
     final int srcSerVer = extractSerVer(srcSeg); //not used
     final int srcFamId = extractFamilyID(srcSeg);
     final int srcLgArrLongs = extractLgArrLongs(srcSeg);
@@ -137,7 +137,7 @@ final class CompactOperations {
     final boolean srcSingleFlag = (srcFlags & SINGLEITEM_FLAG_MASK) > 0;
 
     final boolean single = srcSingleFlag
-        || SingleItemSketch.otherCheckForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
+        || SingleItemSketch.checkForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
 
     //extract pre1 and pre2 fields
     final int curCount = single ? 1 : (srcPreLongs > 1) ? extractCurCount(srcSeg) : 0;
@@ -319,12 +319,12 @@ final class CompactOperations {
    *                                   This is checked in all compacting operations.
    *  7   <1.0    !0      F     OK     This corresponds to a sketch in estimation mode
    * </pre>
-   * #4 is handled by <i>correctThetaOnCompat(boolean, int)</i> (below).
+   * #4 is handled by <i>correctThetaOnCompact(boolean, int)</i> (below).
    * #2 & #6 handled by <i>checkIllegalCurCountAndEmpty(boolean, int)</i>
    */
 
   /**
-   * This corrects a temporary anomalous condition where compact() is called on an UpdateSketch
+   * This corrects a temporary anomalous condition where compact() or toByteArray() is called on an UpdateSketch
    * that was initialized with p < 1.0 and update() was never called.  In this case Theta < 1.0,
    * curCount = 0, and empty = true.  The correction is to change Theta to 1.0, which makes the
    * returning sketch empty. This should only be used in the compaction or serialization of an
@@ -347,8 +347,8 @@ final class CompactOperations {
    * @param curCount the given current count
    */ //This handles #2 and #6 above
   static void checkIllegalCurCountAndEmpty(final boolean empty, final int curCount) {
-    if (empty && (curCount != 0)) { //this handles #2 and #6 above
-      throw new SketchesStateException("Illegal State: Empty=true and Current Count != 0.");
+    if (empty && curCount != 0) { //this handles #2 and #6 above
+      throw new SketchesStateException("Possible corruption. Illegal State: Empty=true and Current Count != 0.");
     }
   }
 

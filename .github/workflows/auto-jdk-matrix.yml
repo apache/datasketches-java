@@ -20,14 +20,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jdk: [ 24 ]
+        jdk: [ 25 ]
 
     env:
       JDK_VERSION: ${{ matrix.jdk }}
 
     steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
@@ -43,7 +43,7 @@ jobs:
           restore-keys: build-${{ runner.os }}-maven-
 
       - name: Install Matrix JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ matrix.jdk }}
           distribution: 'temurin'
@@ -67,7 +67,7 @@ jobs:
           -Dgpg.skip=true
 
 # Architecture options: x86, x64, armv7, aarch64, ppc64le
-# setup-java@v4 has a "with cache" option
+# setup-java@v5 has a "with cache" option
 # Lifecycle: validate, compile, test, package, verify, install, deploy
 # -B batch mode, never stops for user input
 # -V show Version without stopping

@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.cpc;
 
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.invPow2;
@@ -81,7 +81,7 @@ public final class CpcSketch {
   byte[] slidingWindow; //either null or size K bytes
   PairTable pairTable; //for sparse and surprising values, either null or variable size
 
-  //The following variables are only valid in HIP varients
+  //The following variables are only valid in HIP variants
   double kxp;                  //used with HIP
   double hipEstAccum;          //used with HIP
 

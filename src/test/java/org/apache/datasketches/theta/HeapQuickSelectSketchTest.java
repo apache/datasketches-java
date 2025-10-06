@@ -38,19 +38,13 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
-import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.HeapQuickSelectSketch;
-import org.apache.datasketches.theta.PreambleUtil;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -144,7 +138,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(bytes, byteArray.length);
 
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    final UpdateSketch usk2 = Sketches.heapifyUpdateSketch(srcSeg, seed);
+    final UpdateSketch usk2 = UpdateSketch.heapify(srcSeg, seed);
     assertEquals(usk2.getEstimate(), u, 0.0);
     assertEquals(usk2.getLowerBound(2), u, 0.0);
     assertEquals(usk2.getUpperBound(2), u, 0.0);
@@ -548,7 +542,7 @@ public class HeapQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMinReqBytes() {
     final int k = 16;
-    final UpdateSketch s1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch s1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < (4 * k); i++) { s1.update(i); }
     final byte[] byteArray = s1.toByteArray();
     final byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24);
@@ -559,7 +553,7 @@ public class HeapQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkThetaAndLgArrLongs() {
     final int k = 16;
-    final UpdateSketch s1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    final UpdateSketch s1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < k; i++) { s1.update(i); }
     final byte[] badArray = s1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(badArray);
@@ -570,7 +564,7 @@ public class HeapQuickSelectSketchTest {
 
   @Test
   public void checkFamily() {
-    final UpdateSketch sketch = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sketch = UpdateSketch.builder().build();
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
   }
 

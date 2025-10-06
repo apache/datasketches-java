@@ -75,7 +75,9 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
       final double maxConcurrencyError, final MemorySegment dstSeg) {
     super(lgNomLongs, seed, 1.0F, //p
       ResizeFactor.X1, //rf,
-      dstSeg, false); //unionGadget
+      dstSeg,
+      null,
+      false); //unionGadget
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
@@ -91,6 +93,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     super(sketch.getLgNomLongs(), seed, 1.0F, //p
         ResizeFactor.X1, //rf,
         dstSeg,
+        null,
         false); //unionGadget
 
     exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(),
@@ -115,7 +118,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
   @Override
   public boolean isEstimationMode() {
-    return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
+    return getRetainedEntries(false) > exactLimit_ || super.isEstimationMode();
   }
 
   @Override
@@ -164,7 +167,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   @Override
   public boolean startEagerPropagation() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) { /* busy wait till free */ }
-    return (!isEstimationMode());// no eager propagation is allowed in estimation mode
+    return !isEstimationMode();// no eager propagation is allowed in estimation mode
   }
 
   @Override
@@ -206,8 +209,8 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   public boolean propagate(final AtomicBoolean localPropagationInProgress,
                            final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
-    if ((singleHash != NOT_SINGLE_HASH)                   // namely, is a single hash and
-        && (getRetainedEntries(false) < exactLimit_)) {   // a small sketch then propagate myself (blocking)
+    if (singleHash != NOT_SINGLE_HASH                   // namely, is a single hash and
+        && getRetainedEntries(false) < exactLimit_) {   // a small sketch then propagate myself (blocking)
       if (!startEagerPropagation()) {
         endPropagation(localPropagationInProgress, true);
         return false;

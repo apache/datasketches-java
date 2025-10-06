@@ -128,8 +128,8 @@ public class ReadOnlyMemorySegmentTest {
     final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(u1.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
 
-    final Union u2 = (Union) Sketches.wrapSetOperation(seg);
-    final Union u3 = Sketches.wrapUnion(seg);
+    final Union u2 = (Union) SetOperation.wrap(seg);
+    final Union u3 = Union.wrap(seg);
     Assert.assertEquals(u2.getResult().getEstimate(), 1.0);
     Assert.assertEquals(u3.getResult().getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());

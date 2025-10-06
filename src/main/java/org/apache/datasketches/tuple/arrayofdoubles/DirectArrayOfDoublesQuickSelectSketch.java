@@ -79,25 +79,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       final int numValues,
       final long seed,
       final MemorySegment dstSeg) {
-    this(checkMemorySegment(nomEntries, lgResizeFactor, numValues, dstSeg),
-    //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
-    //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
-        nomEntries,
-        lgResizeFactor,
-        samplingProbability,
-        numValues,
-        seed,
-        dstSeg);
-  }
-
-  private DirectArrayOfDoublesQuickSelectSketch(
-      @SuppressWarnings("unused") final boolean secure, //required part of Finalizer Attack prevention
-      final int nomEntries,
-      final int lgResizeFactor,
-      final float samplingProbability,
-      final int numValues,
-      final long seed,
-      final MemorySegment dstSeg) {
+    checkMemorySegment(nomEntries, lgResizeFactor, numValues, dstSeg);
     super(numValues, seed);
     seg_ = dstSeg;
     final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
@@ -126,14 +108,13 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     setRebuildThreshold();
   }
 
-  private static final boolean checkMemorySegment(
+  private static final void checkMemorySegment(
       final int nomEntries,
       final int lgResizeFactor,
       final int numValues,
       final MemorySegment dstSeg) {
     final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
     checkMemorySegmentSize(dstSeg, startingCapacity, numValues);
-    return true;
   }
 
   /**
@@ -144,15 +125,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   DirectArrayOfDoublesQuickSelectSketch(
       final MemorySegment seg,
       final long seed) {
-    this(checkSerVer(seg), seg, seed);
-    //SpotBugs CT_CONSTRUCTOR_THROW is false positive.
-    //this construction scheme is compliant with SEI CERT Oracle Coding Standard for Java / OBJ11-J
-  }
-
-  private DirectArrayOfDoublesQuickSelectSketch(
-      @SuppressWarnings("unused") final boolean secure, //required part of Finalizer Attack prevention
-      final MemorySegment seg,
-      final long seed) {
+    checkSerVer(seg);
     super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE), seed);
     seg_ = seg;
     SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),
@@ -170,13 +143,12 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     setRebuildThreshold();
   }
 
-  private static final boolean checkSerVer(final MemorySegment seg) {
+  private static final void checkSerVer(final MemorySegment seg) {
     final byte version = seg.get(JAVA_BYTE, SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
     }
-    return true;
   }
 
   @Override

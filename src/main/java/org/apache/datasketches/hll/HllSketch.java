@@ -238,7 +238,7 @@ public class HllSketch extends BaseHllSketch {
    * <p>The given <i>dstSeg</i> is checked for the required capacity as determined by
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param srcWseg an writable image of a valid source sketch with data.
-   * @return an HllSketch where the sketch data is in the given dstSeg.
+   * @return an HllSketch where the sketch data is in the given srcWseg.
    */
   public static final HllSketch writableWrap(final MemorySegment srcWseg) {
     if (srcWseg.isReadOnly()) { return wrap(srcWseg); }
@@ -251,7 +251,7 @@ public class HllSketch extends BaseHllSketch {
     checkBounds(0, 8, srcWseg.byteSize()); //need min 8 bytes
     if (extractCompactFlag(srcWseg)) {
       throw new SketchesArgumentException(
-          "Cannot perform a writableWrap of a writable sketch image that is in compact form. "
+          "Cannot perform a writableWrap of a sketch image that is in compact form. "
           + "Compact sketches are by definition immutable.");
     }
     final int lgConfigK = extractLgK(srcWseg);

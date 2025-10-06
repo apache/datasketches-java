@@ -144,9 +144,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
   public static KllLongsSketch wrap(final MemorySegment srcSeg) {
-    Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, LONGS_SKETCH);
-    return new KllDirectLongsSketch(srcSeg, segVal, null);
+    return wrap(srcSeg, null);
   }
 
   /**
@@ -364,7 +362,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
 
   /**
    * Weighted update. Updates this sketch with the given item the number of times specified by the given integer weight.
-   * @param item the item to be repeated. NaNs are ignored.
+   * @param item the item to be repeated.
    * @param weight the number of times the update of item is to be repeated. It must be &ge; one.
    */
   public void update(final long item, final long weight) {
@@ -397,6 +395,8 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
       longsSV = null;
   }
   /* Align with KllDoublesSketch & KllFloatsSketch
+
+
 
 
 

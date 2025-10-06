@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
 
       matrix:
-        jdk: [ 24 ]
+        jdk: [ 25 ]
         os: [ windows-latest, ubuntu-latest, macos-latest ]
         include:
           - os: windows-latest
@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
@@ -53,7 +53,7 @@ jobs:
           restore-keys: build-${{ runner.os }}-maven-
 
       - name: Install Matrix JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ matrix.jdk }}
           distribution: 'temurin'

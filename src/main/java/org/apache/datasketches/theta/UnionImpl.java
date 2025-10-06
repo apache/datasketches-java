@@ -22,6 +22,8 @@ package org.apache.datasketches.theta;
 import static java.lang.Math.min;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static org.apache.datasketches.common.QuickSelect.selectExcludingZeros;
+import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.clearEmpty;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
@@ -34,6 +36,7 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.HashOperations;
 
@@ -105,7 +108,7 @@ final class UnionImpl extends Union {
       final ResizeFactor rf,
       final MemorySegment dstSeg) {
     final UpdateSketch gadget = //create with UNION family
-        new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, dstSeg, true);
+        new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, dstSeg, null, true);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
     unionImpl.unionEmpty_ = gadget.isEmpty();
@@ -142,7 +145,7 @@ final class UnionImpl extends Union {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
     final UpdateSketch gadget = srcSeg.isReadOnly()
         ? DirectQuickSelectSketchR.fastReadOnlyWrap(srcSeg, expectedSeed)
-        : DirectQuickSelectSketch.fastWritableWrap(srcSeg, expectedSeed);
+        : DirectQuickSelectSketch.fastWritableWrap(srcSeg, null, expectedSeed);
     final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
@@ -151,17 +154,17 @@ final class UnionImpl extends Union {
 
   /**
    * Wrap a Union object around a Union MemorySegment object containing data.
-   * Called by SetOperation.
    * @param srcSeg The source MemorySegment object.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
+  //Called by SetOperation and Union
   static UnionImpl wrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
     final UpdateSketch gadget = srcSeg.isReadOnly()
         ? DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed)
-        : DirectQuickSelectSketch.writableWrap(srcSeg, expectedSeed);
+        : DirectQuickSelectSketch.writableWrap(srcSeg, null, expectedSeed);
     final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
@@ -269,7 +272,7 @@ final class UnionImpl extends Union {
   public void union(final Sketch sketchIn) {
     //UNION Empty Rule: AND the empty states.
 
-    if ((sketchIn == null) || sketchIn.isEmpty()) {
+    if (sketchIn == null || sketchIn.isEmpty()) {
       //null and empty is interpreted as (Theta = 1.0, count = 0, empty = T).  Nothing changes
       return;
     }
@@ -279,7 +282,7 @@ final class UnionImpl extends Union {
       gadget_.hashUpdate(sketchIn.getCache()[0]);
       return;
     }
-    Sketch.checkSketchAndMemorySegmentFlags(sketchIn);
+    UnionImpl.checkSketchAndMemorySegmentFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
     unionEmpty_ = false;
@@ -287,7 +290,7 @@ final class UnionImpl extends Union {
     final HashIterator it = sketchIn.iterator();
     while (it.next()) {
       final long hash = it.get();
-      if ((hash < unionThetaLong_) && (hash < gadget_.getThetaLong())) {
+      if (hash < unionThetaLong_ && hash < gadget_.getThetaLong()) {
         gadget_.hashUpdate(hash); // backdoor update, hash function is bypassed
       } else if (isOrdered) { break; }
     }
@@ -370,6 +373,24 @@ final class UnionImpl extends Union {
   @Override
   boolean isEmpty() {
     return gadget_.isEmpty() && unionEmpty_;
+  }
+
+  /**
+   * Checks Ordered and Compact flags for integrity between sketch and its MemorySegment
+   * @param sketch the given sketch
+   */
+  private static final void checkSketchAndMemorySegmentFlags(final Sketch sketch) {
+    final MemorySegment seg = sketch.getMemorySegment();
+    if (seg == null) { return; }
+    final int flags = PreambleUtil.extractFlags(seg);
+    if ((flags & COMPACT_FLAG_MASK) > 0 ^ sketch.isCompact()) {
+      throw new SketchesArgumentException("Possible corruption: "
+          + "MemorySegment Compact Flag inconsistent with Sketch");
+    }
+    if ((flags & ORDERED_FLAG_MASK) > 0 ^ sketch.isOrdered()) {
+      throw new SketchesArgumentException("Possible corruption: "
+          + "MemorySegment Ordered Flag inconsistent with Sketch");
+    }
   }
 
 }

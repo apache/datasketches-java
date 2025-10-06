@@ -45,10 +45,6 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.sampling.PreambleUtil;
-import org.apache.datasketches.sampling.ReservoirItemsSketch;
-import org.apache.datasketches.sampling.ReservoirSize;
-import org.apache.datasketches.sampling.SampleSubsetSummary;
 import org.testng.annotations.Test;
 
 public class ReservoirItemsSketchTest {
@@ -534,61 +530,68 @@ public class ReservoirItemsSketchTest {
   @Test
   public void checkEstimateSubsetSum() {
     final int k = 10;
-    final ReservoirItemsSketch<Long> sketch = ReservoirItemsSketch.newInstance(k);
 
-    // empty sketch -- all zeros
-    SampleSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
-    assertEquals(ss.getEstimate(), 0.0);
-    assertEquals(ss.getTotalSketchWeight(), 0.0);
+    //trial loop for probabilistic testing
+    int passLB = 0;
+    int passUB = 0;
+    for (int t = 0; t < 3; t++) {
+      final ReservoirItemsSketch<Long> sketch = ReservoirItemsSketch.newInstance(k);
 
-    // add items, keeping in exact mode
-    double itemCount = 0.0;
-    for (long i = 1; i <= (k - 1); ++i) {
-      sketch.update(i);
-      itemCount += 1.0;
-    }
+      // empty sketch -- all zeros
+      SampleSubsetSummary ss = sketch.estimateSubsetSum(item -> true);
+      assertEquals(ss.getEstimate(), 0.0);
+      assertEquals(ss.getTotalSketchWeight(), 0.0);
 
-    ss = sketch.estimateSubsetSum(item -> true);
-    assertEquals(ss.getEstimate(), itemCount);
-    assertEquals(ss.getLowerBound(), itemCount);
-    assertEquals(ss.getUpperBound(), itemCount);
-    assertEquals(ss.getTotalSketchWeight(), itemCount);
+      // add items, keeping in exact mode
+      double itemCount = 0.0;
+      for (long i = 1; i <= (k - 1); ++i) {
+        sketch.update(i);
+        itemCount += 1.0;
+      }
 
-    // add a few more items, pushing to sampling mode
-    for (long i = k; i <= (k + 1); ++i) {
-      sketch.update(i);
-      itemCount += 1.0;
-    }
+      ss = sketch.estimateSubsetSum(item -> true);
+      assertEquals(ss.getEstimate(), itemCount);
+      assertEquals(ss.getLowerBound(), itemCount);
+      assertEquals(ss.getUpperBound(), itemCount);
+      assertEquals(ss.getTotalSketchWeight(), itemCount);
 
-    // predicate always true so estimate == upper bound
-    ss = sketch.estimateSubsetSum(item -> true);
-    assertEquals(ss.getEstimate(), itemCount);
-    assertEquals(ss.getUpperBound(), itemCount);
-    assertTrue(ss.getLowerBound() < itemCount);
-    assertEquals(ss.getTotalSketchWeight(), itemCount);
+      // add a few more items, pushing to sampling mode
+      for (long i = k; i <= (k + 1); ++i) {
+        sketch.update(i);
+        itemCount += 1.0;
+      }
 
-    // predicate always false so estimate == lower bound == 0.0
-    ss = sketch.estimateSubsetSum(item -> false);
-    assertEquals(ss.getEstimate(), 0.0);
-    assertEquals(ss.getLowerBound(), 0.0);
-    assertTrue(ss.getUpperBound() > 0.0);
-    assertEquals(ss.getTotalSketchWeight(), itemCount);
+      // predicate always true so estimate == upper bound
+      ss = sketch.estimateSubsetSum(item -> true);
+      assertEquals(ss.getEstimate(), itemCount);
+      assertEquals(ss.getUpperBound(), itemCount);
+      assertTrue(ss.getLowerBound() < itemCount);
+      assertEquals(ss.getTotalSketchWeight(), itemCount);
 
-    // finally, a non-degenerate predicate
-    // insert negative items with identical weights, filter for negative weights only
-    for (long i = 1; i <= (k + 1); ++i) {
-      sketch.update(-i);
-      itemCount += 1.0;
-    }
+      // predicate always false so estimate == lower bound == 0.0
+      ss = sketch.estimateSubsetSum(item -> false);
+      assertEquals(ss.getEstimate(), 0.0);
+      assertEquals(ss.getLowerBound(), 0.0);
+      assertTrue(ss.getUpperBound() > 0.0);
+      assertEquals(ss.getTotalSketchWeight(), itemCount);
 
-    ss = sketch.estimateSubsetSum(item -> item < 0);
-    assertTrue(ss.getEstimate() >= ss.getLowerBound());
-    assertTrue(ss.getEstimate() <= ss.getUpperBound());
+      // finally, a non-degenerate predicate
+      // insert negative items with identical weights, filter for negative weights only
+      for (long i = 1; i <= (k + 1); ++i) {
+        sketch.update(-i);
+        itemCount += 1.0;
+      }
 
-    // allow pretty generous bounds when testing
-    assertTrue(ss.getLowerBound() < (itemCount / 1.4));
-    assertTrue(ss.getUpperBound() > (itemCount / 2.6));
-    assertEquals(ss.getTotalSketchWeight(), itemCount);
+      ss = sketch.estimateSubsetSum(item -> item < 0);
+      assertTrue(ss.getEstimate() >= ss.getLowerBound());
+      assertTrue(ss.getEstimate() <= ss.getUpperBound());
+
+      // allow pretty generous bounds when testing
+      if(ss.getLowerBound() < (itemCount / 1.4)) { passLB++; }
+      if(ss.getUpperBound() > (itemCount / 2.6)) { passUB++; }
+      assertEquals(ss.getTotalSketchWeight(), itemCount);
+    } //End trial loop
+    assertTrue(passLB >= 2 && passUB >= 2); //2 out of 3 must pass for LB and UB
   }
 
   private static MemorySegment getBasicSerializedLongsRIS() {

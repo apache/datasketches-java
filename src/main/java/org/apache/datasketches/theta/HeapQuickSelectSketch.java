@@ -30,7 +30,6 @@ import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncrementedRebuilt;
@@ -108,11 +107,11 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapQuickSelectSketch heapifyInstance(final MemorySegment srcSeg, final long seed) {
-    final int preambleLongs = extractPreLongs(srcSeg);            //byte 0
+    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);            //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);             //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
-    checkUnionQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
+    checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final float p = extractP(srcSeg);                             //bytes 12-15
@@ -150,7 +149,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     return curCount_;
   }
 

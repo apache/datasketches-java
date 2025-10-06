@@ -126,17 +126,17 @@ import org.apache.datasketches.common.Util;
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
- *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||    Seed Hash    | Flags  | numEB  | entBits| FamID  | SerVer |     PreLongs = 3   |
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1     |   0              |
+ *  0   ||    Seed Hash    | Flags  | numEB  | entBits| FamID  | SerVer=4 |   PreLongs = 3   |
  *
- *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
- *  1   ||------------------------------THETA_LONG-------------------------------------------|
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9     |   8              |
+ *  1   ||------------------------------THETA_LONG-------------------------------------------| (only if estimating)
  *
- *      ||        |        |        |  (20)  |  (19)  |  (18)  |  (17)  |    16              |
- *  2   ||----------------Retained Entries stored as 1 to 4 bytes----------------------------|
+ *      ||        |        |        |   20   |  (19)  |  (18)  |  (17)    |  16              |
+ *  2   ||--------Retained Entries stored as 1 to 4 bytes in bytes 16-19---------------------|
  *
- *      ||        |        |        |        |        |        |        |                    |
- *  3   ||------------------Delta encoded compressed byte array------------------------------|
+ *      ||        |        |        |        |        |        |          |                  |
+ *  3   ||--------Delta encoded compressed byte array starts at bytes 17-20------------------|
  *  </pre>
  *
  * <p>The UpdateSketch and AlphaSketch require 24 bytes of preamble followed by a non-compact
@@ -190,10 +190,10 @@ final class PreambleUtil {
 
   // ###### DO NOT MESS WITH THIS FROM HERE ...
   // Preamble byte Addresses
-  static final int PREAMBLE_LONGS_BYTE        = 0; //lower 6 bits in byte.
-  static final int LG_RESIZE_FACTOR_BIT       = 6; //upper 2 bits in byte. Not used by compact, direct
+  static final int PREAMBLE_LONGS_BYTE        = 0; //lower 6 bits in byte 0.
+  static final int LG_RESIZE_FACTOR_BIT       = 6; //upper 2 bits in byte 0. Used by Update, Alpha, not used by compact, direct
   static final int SER_VER_BYTE               = 1;
-  static final int FAMILY_BYTE                = 2; //SerVer1,2 was SKETCH_TYPE_BYTE
+  static final int FAMILY_BYTE                = 2;
   static final int LG_NOM_LONGS_BYTE          = 3; //not used by compact
   static final int LG_ARR_LONGS_BYTE          = 4; //not used by compact
   static final int FLAGS_BYTE                 = 5;
@@ -203,28 +203,23 @@ final class PreambleUtil {
   static final int THETA_LONG                 = 16; //8-byte aligned
   static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by Union
 
-  // flag bit masks
-  static final int RESERVED_FLAG_MASK   = 1; //SerVer 1, 2, 3. Now Reserved, no longer used.
-  static final int READ_ONLY_FLAG_MASK  = 2; //Set but not read. Reserved. SerVer 1, 2, 3
-  static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
-  static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK, 3
-  static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK, 3
-  static final int SINGLEITEM_FLAG_MASK = 32;//SerVer 3
-  //The last 2 bits of the flags byte are reserved and assumed to be zero, for now.
-
-  //Backward compatibility: SerVer1 preamble always 3 longs, SerVer2 preamble: 1, 2, 3 longs
-  //               SKETCH_TYPE_BYTE             2  //SerVer1, SerVer2
-  //  V1, V2 types:  Alpha = 1, QuickSelect = 2, SetSketch = 3; V3 only: Buffered QS = 4
-  static final int LG_RESIZE_RATIO_BYTE_V1    = 5; //used by SerVer 1
-  static final int FLAGS_BYTE_V1              = 6; //used by SerVer 1
+  // flag byte bit masks
+  static final int RESERVED_FLAG_MASK   = 1; //Bit 0: Reserved, no longer used. Was BigEndian
+  static final int READ_ONLY_FLAG_MASK  = 2; //Bit 1: Reserved, Set but not read.
+  static final int EMPTY_FLAG_MASK      = 4; //Bit 2:
+  static final int COMPACT_FLAG_MASK    = 8; //Bit 3:
+  static final int ORDERED_FLAG_MASK    = 16;//Bit 4:
+  static final int SINGLEITEM_FLAG_MASK = 32;//Bit 5:
+  //The last 2 bits (Bit 6,7) of the flags byte are reserved and assumed to be zero.
 
   //Other constants
   static final int SER_VER                    = 3;
+  static final int SER_VER_COMPRESSED         = 4;
 
   // serial version 4 compressed ordered sketch, not empty, not single item
-  static final int ENTRY_BITS_BYTE_V4   = 3; // number of bits packed in deltas between hashes
-  static final int NUM_ENTRIES_BYTES_BYTE_V4 = 4; // number of bytes used for the number of entries
-  static final int THETA_LONG_V4             = 8; //8-byte aligned
+  static final int ENTRY_BITS_BYTE_V4         = 3; // number of bits packed in deltas between hashes
+  static final int NUM_ENTRIES_BYTES_BYTE_V4  = 4; // number of bytes used for the number of entries
+  static final int THETA_LONG_V4              = 8; //8-byte aligned
 
   /**
    * Computes the number of bytes required for an updatable sketch using a hash-table cache.
@@ -233,7 +228,7 @@ final class PreambleUtil {
    * @param preambleLongs current preamble size
    * @return the size in bytes
    */
-  static int getSegBytes(final int lgArrLongs, final int preambleLongs) {
+  static int getUpdatableSegBytes(final int lgArrLongs, final int preambleLongs) {
     return (8 << lgArrLongs) + (preambleLongs << 3);
   }
 
@@ -261,7 +256,7 @@ final class PreambleUtil {
    * @return the summary preamble string.
    */
   static String preambleToString(final MemorySegment seg) {
-    final int preLongs = getAndCheckPreLongs(seg);
+    final int preLongs = checkSegPreambleCap(seg);
     final int rfId = extractLgResizeFactor(seg);
     final ResizeFactor rf = ResizeFactor.getRF(rfId);
     final int serVer = extractSerVer(seg);
@@ -272,7 +267,7 @@ final class PreambleUtil {
 
     //Flags
     final int flags = extractFlags(seg);
-    final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
+    final String flagsStr = flags + ", 0x" + Integer.toHexString(flags) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
@@ -318,7 +313,7 @@ final class PreambleUtil {
     sb.append("Byte  0: ResizeFactor         : ").append(rfId + ", " + rf.toString()).append(LS);
     sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
     sb.append("Byte  2: Family               : ").append(familyId + ", " + family.toString()).append(LS);
-    sb.append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS);
+    sb.append("Byte  3: LgNomLongs, LgK      : ").append(lgNomLongs).append(LS);
     sb.append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS);
     sb.append("Byte  5: Flags Field          : ").append(flagsStr).append(LS);
     sb.append("  Bit Flag Name               : State:").append(LS);
@@ -351,8 +346,13 @@ final class PreambleUtil {
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
       sb.append("             Theta (long)     : ").append(thetaLong).append(LS);
       sb.append("             Theta (long,hex) : ").append(thetaHex).append(LS);
+      if (serVer == 4) {
+        sb.append(  "TOTAL Storage Bytes         : ").append(seg.byteSize()).append(LS);
+        sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
+        return sb.toString();
+      }
     }
-    else { //preLongs == 4
+    else { //preLongs == 4 (Union)
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
       sb.append("Bytes 12-15: P                : ").append(p).append(LS);
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
@@ -363,9 +363,8 @@ final class PreambleUtil {
       sb.append("             ThetaU (long,hex): ").append(thetaUHex).append(LS);
     }
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
-    sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
-    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + curCount) * 8).append(LS);
-    sb.append(  "TOTAL Capacity Bytes          : ").append(seg.byteSize()).append(LS);
+    sb.append(  "Retained Data Bytes           : ").append(curCount * 8).append(LS);
+    sb.append(  "TOTAL Storage Bytes           : ").append(seg.byteSize()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
@@ -377,11 +376,7 @@ final class PreambleUtil {
   }
 
   static int extractLgResizeFactor(final MemorySegment seg) {
-    return (seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
-  }
-
-  static int extractLgResizeRatioV1(final MemorySegment seg) {
-    return seg.get(JAVA_BYTE, LG_RESIZE_RATIO_BYTE_V1) & 0X3;
+    return seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT & 0X3;
   }
 
   static int extractSerVer(final MemorySegment seg) {
@@ -402,10 +397,6 @@ final class PreambleUtil {
 
   static int extractFlags(final MemorySegment seg) {
     return seg.get(JAVA_BYTE, FLAGS_BYTE) & 0XFF;
-  }
-
-  static int extractFlagsV1(final MemorySegment seg) {
-    return seg.get(JAVA_BYTE, FLAGS_BYTE_V1) & 0XFF;
   }
 
   static int extractSeedHash(final MemorySegment seg) {
@@ -516,7 +507,7 @@ final class PreambleUtil {
   }
 
   static boolean isEmptyFlag(final MemorySegment seg) {
-    return ((extractFlags(seg) & EMPTY_FLAG_MASK) > 0);
+    return (extractFlags(seg) & EMPTY_FLAG_MASK) > 0;
   }
 
   /**
@@ -524,17 +515,16 @@ final class PreambleUtil {
    * @param seg the given MemorySegment
    * @return the extracted prelongs value.
    */
-  static int getAndCheckPreLongs(final MemorySegment seg) {
-    final long cap = seg.byteSize();
-    if (cap < 8) {
-      throwNotBigEnough(cap, 8);
+  static int checkSegPreambleCap(final MemorySegment seg) {
+    try {
+      final int preLongs = extractPreLongs(seg);
+      final int required = Math.max(preLongs << 3, 8);
+      final long cap = seg.byteSize();
+      if (cap < required) { throwNotBigEnough(cap, required); }
+      return preLongs;
+    } catch (IndexOutOfBoundsException e) { //thrown by MemorySegment
+      throw new SketchesArgumentException("Possible Corruption: Given MemorySegment is empty.");
     }
-    final int preLongs = extractPreLongs(seg);
-    final int required = Math.max(preLongs << 3, 8);
-    if (cap < required) {
-      throwNotBigEnough(cap, required);
-    }
-    return preLongs;
   }
 
   static short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
@@ -543,10 +533,10 @@ final class PreambleUtil {
     return seedHashSeg;
   }
 
-  private static void throwNotBigEnough(final long cap, final int required) {
+  private static void throwNotBigEnough(final long cap, final long required) {
     throw new SketchesArgumentException(
-        "Possible Corruption: Size of byte array or MemorySegment not large enough: Size: " + cap
-        + ", Required: " + required);
+        "Possible Corruption: Size of MemorySegment not large enough: Size: " + cap
+          + " < Required: " + required);
   }
 
   static int wholeBytesToHoldBits(final int bits) {

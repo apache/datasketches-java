@@ -23,6 +23,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
@@ -31,7 +32,6 @@ import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountNotIncremented;
@@ -116,6 +116,17 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * Heapify a sketch from a MemorySegment object containing sketch data.
    * @param srcSeg The source MemorySegment object.
    * It must have a size of at least 24 bytes.
+   * The assumed seed is {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED DEFAULT_UPDATE_SEED}
+   * @return instance of this sketch
+   */
+  static HeapAlphaSketch heapifyInstance(final MemorySegment srcSeg) {
+    return heapifyInstance(srcSeg, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify a sketch from a MemorySegment object containing sketch data.
+   * @param srcSeg The source MemorySegment object.
+   * It must have a size of at least 24 bytes.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
@@ -123,7 +134,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   static HeapAlphaSketch heapifyInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
     checkBounds(0, 24, srcSeg.byteSize());
-    final int preambleLongs = extractPreLongs(srcSeg);            //byte 0
+    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);            //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);             //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
@@ -197,7 +208,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) {
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     if (curCount_ > 0) {
       if (valid && isDirty()) {
         return HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
@@ -234,14 +245,14 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * <pre>
    * Long || Start Byte Adr:
    * Adr:
-   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |        0           |
-   *  0   ||    Seed Hash    | Flags  |  LgArr | LgNom  | FamID  | SerVer | lgRF | PreLongs=3  |
+   *      ||    7   |    6   |    5   |    4   |    3   |    2     |    1     |        0           |
+   *  0   ||    Seed Hash    | Flags  |  LgArr | LgNom  | FamID=1  | SerVer=3 | lgRF | PreLongs=3  |
    *
-   *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
-   *  1   ||-----------------p-----------------|----------Retained Entries Count---------------|
+   *      ||   15   |   14   |   13   |   12   |   11   |   10     |    9     |     8              |
+   *  1   ||-----------------p-----------------|----------Retained Entries Count-------------------|
    *
-   *      ||   23   |   22   |   21    |  20   |   19   |   18   |   17   |    16              |
-   *  2   ||---------------------------------Theta---------------------------------------------|
+   *      ||   23   |   22   |   21    |  20   |   19   |   18     |   17     |    16              |
+   *  2   ||---------------------------------Theta-------------------------------------------------|
    * </pre>
    */
 

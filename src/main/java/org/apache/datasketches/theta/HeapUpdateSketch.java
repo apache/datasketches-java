@@ -49,13 +49,12 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  */
 abstract class HeapUpdateSketch extends UpdateSketch {
   final int lgNomLongs_;
-  private final long seed_;
   private final float p_;
   private final ResizeFactor rf_;
 
   HeapUpdateSketch(final int lgNomLongs, final long seed, final float p, final ResizeFactor rf) {
+    super(seed);
     lgNomLongs_ = Math.max(lgNomLongs, ThetaUtil.MIN_LG_NOM_LONGS);
-    seed_ = seed;
     p_ = p;
     rf_ = rf;
   }
@@ -66,7 +65,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   public int getCurrentBytes() {
     final int preLongs = getCurrentPreambleLongs();
     final int dataLongs = getCurrentDataLongs();
-    return (preLongs + dataLongs) << 3;
+    return preLongs + dataLongs << 3;
   }
 
   //UpdateSketch
@@ -86,11 +85,6 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return rf_;
   }
 
-  @Override
-  long getSeed() {
-    return seed_;
-  }
-
   //restricted methods
 
   @Override
@@ -102,14 +96,14 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
     checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
-    final int preBytes = (preLongs << 3) & 0X3F; //24 bytes
+    final int preBytes = (preLongs << 3) & 0X3F; //24 bytes; mask to 6 bits
     final int dataBytes = getCurrentDataLongs() << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
 
     final MemorySegment segOut = MemorySegment.ofArray(byteArrOut);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
-    final int lgRf = getResizeFactor().lg() & 0x3;
+    final int lgRf = getResizeFactor().lg() & 0x3; //mask to 2 bits
     insertPreLongs(segOut, preLongs);          //byte 0 low  6 bits
     insertLgResizeFactor(segOut, lgRf);        //byte 0 high 2 bits
     insertSerVer(segOut, SER_VER);             //byte 1

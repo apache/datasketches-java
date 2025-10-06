@@ -66,8 +66,6 @@ under the License.
   </scm>
 
   <issueManagement>
-    <!-- <system>jira</system>
-      <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
     <system>GitHub</system>
     <url>https://github.com/apache/${project.artifactId}/issues</url>
   </issueManagement>
@@ -83,8 +81,6 @@ under the License.
   </developers>
 
   <properties>
-    <datasketches-memory.version>6.1.0-SNAPSHOT</datasketches-memory.version>
-
     <!-- Test -->
     <testng.version>7.11.0</testng.version>
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
@@ -94,11 +90,10 @@ under the License.
     <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
 
     <!-- System-wide properties -->
-    <maven.version>3.9.10</maven.version>
-    <java.version>24</java.version>
-    <jvm-arguments>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</jvm-arguments>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <maven.version>3.9.11</maven.version>
+    <java.version>25</java.version>
+    <!-- removed: g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 -->
+    <jvm.options>-Xmx4g</jvm.options> <!-- use space to separate args -->
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -108,11 +103,12 @@ under the License.
     <!--  org.apache.maven plugins -->
     <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.6.0</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
     <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <!-- for surefire, failsafe and surefire-report: -->
@@ -148,6 +144,7 @@ under the License.
       <plugins>
 
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
           <version>${maven-assembly-plugin.version}</version>
         </plugin>
@@ -157,10 +154,18 @@ under the License.
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
+            <fork>true</fork>
+            <release>${java.version}</release>
             <compilerArgs>
-              <arg></arg>
+              <arg>-J${jvm.options}</arg> <!-- comma separated or separate args --> 
             </compilerArgs>
           </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>${maven-dependency-plugin.version}</version>
         </plugin>
 
         <plugin>
@@ -184,11 +189,12 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[24,)</version> <!-- java.version -->
+                    <version>[25,)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
-                    <version>[${maven.version},4.0.0)</version>
+                    <version>[${maven.version},)</version>
                   </requireMavenVersion>
+                  <!-- <dependencyConvergence /> -->
                   <bannedDependencies>
                     <excludes>
                       <!--LGPL licensed library-->
@@ -232,6 +238,10 @@ under the License.
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
             <doclint>all,-missing</doclint>
+            <release>${java.version}</release>
+            <additionalJOptions> <!-- requires -J prefix -->
+              <additionalJOption>-J${jvm.options}</additionalJOption> 
+          </additionalJOptions>
           </configuration>
           <executions>
             <execution>
@@ -276,7 +286,9 @@ under the License.
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
-            <argLine>${jvm-arguments}</argLine>
+            <forkCount>1</forkCount>
+            <reuseForks>true</reuseForks>
+            <argLine>${argLine} ${jvm.options}</argLine> <!-- use space to separate args -->
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -383,6 +395,18 @@ under the License.
       </plugins>
     </pluginManagement>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
@@ -585,25 +609,7 @@ under the License.
       </build>
     </profile>
 
-    <!-- Disable source release assembly for 'apache-release' profile.
-             This is performed from a script outside Maven
-    <profile>
-      <id>apache-release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>${maven-assembly-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>source-release-assembly</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile> -->
+
 
     <profile>
       <id>generate-java-files</id>

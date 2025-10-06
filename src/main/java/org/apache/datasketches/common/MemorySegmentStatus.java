@@ -20,6 +20,7 @@
 package org.apache.datasketches.common;
 
 import java.lang.foreign.MemorySegment;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -66,6 +67,8 @@ public interface MemorySegmentStatus {
    * @return true if the two given MemorySegments have to the same backing resource.
    */
   static boolean isSameResource(final MemorySegment seg1, final MemorySegment seg2) {
+    Objects.requireNonNull(seg1, "MemorySegment seg1 must be non-null.");
+    Objects.requireNonNull(seg2, "MemorySegment seg2 must be non-null.");
     final Optional<MemorySegment> opt = seg1.asOverlappingSlice(seg2);
     return opt.isPresent();
   }

@@ -41,15 +41,11 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.HeapAlphaSketch;
-import org.apache.datasketches.theta.Sketch;
-import org.apache.datasketches.theta.Sketches;
-import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -670,7 +666,7 @@ public class HeapAlphaSketchTest {
 
   @Test
   public void checkFamily() {
-    UpdateSketch sketch = Sketches.updateSketchBuilder().setFamily(ALPHA).build();
+    UpdateSketch sketch = UpdateSketch.builder().setFamily(ALPHA).build();
     assertEquals(sketch.getFamily(), Family.ALPHA);
   }
 
@@ -678,13 +674,13 @@ public class HeapAlphaSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void corruptionLgNomLongs() {
     final int k = 512;
-    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k)
+    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k)
         .setFamily(ALPHA).build();
     for (int i = 0; i < k; i++) { sketch.update(i); }
     byte[] byteArr = sketch.toByteArray();
     MemorySegment wseg = MemorySegment.ofArray(byteArr);
     wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 8); //corrupt LgNomLongs
-    UpdateSketch sk = Sketches.heapifyUpdateSketch(wseg);
+    UpdateSketch sk = UpdateSketch.heapify(wseg);
   }
 
   @Test

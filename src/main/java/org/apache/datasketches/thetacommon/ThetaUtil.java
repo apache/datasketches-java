@@ -71,8 +71,7 @@ public final class ThetaUtil {
    * @param lgMin Log2 of the minimum allowed starting size
    * @return The Log2 of the starting size
    */
-  public static int startingSubMultiple(final int lgTarget, final int lgRF,
-      final int lgMin) {
+  public static int startingSubMultiple(final int lgTarget, final int lgRF, final int lgMin) {
     return lgTarget <= lgMin ? lgMin : lgRF == 0 ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
   }
 

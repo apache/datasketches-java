@@ -25,22 +25,21 @@ import static org.testng.Assert.assertTrue;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.Sketches;
+import org.apache.datasketches.theta.SetOperation;
 import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets;
 import org.testng.annotations.Test;
 
 public class BoundsOnRatiosInThetaSketchedSetsTest {
 
   @Test
   public void checkNormalReturns() {
-    final UpdateSketch skA = Sketches.updateSketchBuilder().build(); //4K
-    final UpdateSketch skC = Sketches.updateSketchBuilder().build();
+    final UpdateSketch skA = UpdateSketch.builder().build(); //4K
+    final UpdateSketch skC = UpdateSketch.builder().build();
     final int uA = 10000;
     final int uC = 100000;
     for (int i = 0; i < uA; i++) { skA.update(i); }
     for (int i = 0; i < uC; i++) { skC.update(i + (uA / 2)); }
-    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final Intersection inter = SetOperation.builder().buildIntersection();//SetOperation.builder().buildIntersection();
     inter.intersect(skA);
     inter.intersect(skC);
     final CompactSketch skB = inter.getResult();
@@ -72,8 +71,8 @@ public class BoundsOnRatiosInThetaSketchedSetsTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAbnormalReturns() {
-    final UpdateSketch skA = Sketches.updateSketchBuilder().build(); //4K
-    final UpdateSketch skC = Sketches.updateSketchBuilder().build();
+    final UpdateSketch skA = UpdateSketch.builder().build(); // 4K
+    final UpdateSketch skC = UpdateSketch.builder().build();
     final int uA = 100000;
     final int uC = 10000;
     for (int i = 0; i < uA; i++) { skA.update(i); }

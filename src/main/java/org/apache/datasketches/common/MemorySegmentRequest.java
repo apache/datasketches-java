@@ -29,15 +29,13 @@ import java.lang.foreign.MemorySegment;
 public interface MemorySegmentRequest {
 
   /**
-   * Request a new MemorySegment with the given <i>newByteSize</i>.
+   * Request a new heap MemorySegment with the given <i>newByteSize</i>.
    * Because we do not have a reference to an Arena, the default here is to
    * allocate a new MemorySegment on the heap.  It is up to the user to override this as appropriate.
-   * @param prevSeg the previous MemorySegment to be possibly closed here or by using the separate
-   * {@link #requestClose requestClose} method. This is included for convenience, it may be null.
    * @param newByteSize The new <i>byteSize</i> being requested.
    * @return new MemorySegment with the requested <i>byteSize</i>.
    */
-  default MemorySegment request(final MemorySegment prevSeg, final long newByteSize) {
+  default MemorySegment request(final long newByteSize) {
     if (newByteSize > Integer.MAX_VALUE) {
       throw new SketchesArgumentException("Requested size in bytes exceeds Integer.MAX_VALUE.");
     }
