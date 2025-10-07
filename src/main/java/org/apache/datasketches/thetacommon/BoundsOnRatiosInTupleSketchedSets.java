@@ -85,7 +85,7 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    */
   public static <S extends Summary> double getLowerBoundForBoverA(
       final Sketch<S> sketchA,
-      final org.apache.datasketches.theta.Sketch sketchB) {
+      final org.apache.datasketches.theta.ThetaSketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
@@ -133,7 +133,7 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    */
   public static <S extends Summary> double getUpperBoundForBoverA(
       final Sketch<S> sketchA,
-      final org.apache.datasketches.theta.Sketch sketchB) {
+      final org.apache.datasketches.theta.ThetaSketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
@@ -181,7 +181,7 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    */
   public static <S extends Summary> double getEstimateOfBoverA(
       final Sketch<S> sketchA,
-      final org.apache.datasketches.theta.Sketch sketchB) {
+      final org.apache.datasketches.theta.ThetaSketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);

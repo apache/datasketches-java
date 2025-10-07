@@ -81,7 +81,7 @@ class DirectCompactSketch extends CompactSketch {
   @Override
   public int getCurrentBytes() {
     if (checkForSingleItem(seg_)) { return 16; }
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
     return (preLongs + curCount) << 3;
   }
@@ -89,13 +89,13 @@ class DirectCompactSketch extends CompactSketch {
   @Override
   public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
     if (checkForSingleItem(seg_)) { return 1; }
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     return (preLongs == 1) ? 0 : extractCurCount(seg_);
   }
 
   @Override
   public long getThetaLong() {
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     return (preLongs > 2) ? extractThetaLong(seg_) : Long.MAX_VALUE;
   }
 
@@ -147,7 +147,7 @@ class DirectCompactSketch extends CompactSketch {
   @Override
   long[] getCache() {
     if (checkForSingleItem(seg_)) { return new long[] { seg_.get(JAVA_LONG_UNALIGNED, 8) }; }
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
     if (curCount > 0) {
       final long[] cache = new long[curCount];
@@ -159,12 +159,12 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   int getCompactPreambleLongs() {
-    return Sketch.getPreambleLongs(seg_);
+    return ThetaSketch.getPreambleLongs(seg_);
   }
 
   @Override
   int getCurrentPreambleLongs() {
-    return Sketch.getPreambleLongs(seg_);
+    return ThetaSketch.getPreambleLongs(seg_);
   }
 
   @Override

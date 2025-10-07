@@ -43,7 +43,7 @@ public abstract class Intersection extends SetOperation {
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.
    * This does not disturb the underlying data structure of this intersection.
-   * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
+   * The {@link #intersect(ThetaSketch)} method must have been called at least once, otherwise an
    * exception will be thrown. This is because a virgin Intersection object represents the
    * Universal Set, which has an infinite number of values.
    * @return the result of this operation as an ordered CompactSketch on the Java heap
@@ -55,7 +55,7 @@ public abstract class Intersection extends SetOperation {
   /**
    * Gets the result of this operation as a CompactSketch in the given dstSeg.
    * This does not disturb the underlying data structure of this intersection.
-   * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
+   * The {@link #intersect(ThetaSketch)} method must have been called at least once, otherwise an
    * exception will be thrown. This is because a virgin Intersection object represents the
    * Universal Set, which has an infinite number of values.
    *
@@ -102,7 +102,7 @@ public abstract class Intersection extends SetOperation {
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
    */
-  public abstract void intersect(Sketch sketchIn);
+  public abstract void intersect(ThetaSketch sketchIn);
 
   /**
    * Perform intersect set operation on the two given sketch arguments and return the result as an
@@ -111,7 +111,7 @@ public abstract class Intersection extends SetOperation {
    * @param b The second sketch argument
    * @return an ordered CompactSketch on the heap
    */
-  public CompactSketch intersect(final Sketch a, final Sketch b) {
+  public CompactSketch intersect(final ThetaSketch a, final ThetaSketch b) {
     return intersect(a, b, true, null);
   }
 
@@ -125,7 +125,7 @@ public abstract class Intersection extends SetOperation {
    * @param dstSeg the destination MemorySegment.
    * @return the result as a CompactSketch.
    */
-  public abstract CompactSketch intersect(Sketch a, Sketch b, boolean dstOrdered,
+  public abstract CompactSketch intersect(ThetaSketch a, ThetaSketch b, boolean dstOrdered,
       MemorySegment dstSeg);
 
   /**

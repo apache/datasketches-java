@@ -54,7 +54,7 @@ public final class JaccardSimilarity {
    * @return a double array {LowerBound, Estimate, UpperBound} of the Jaccard index.
    * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
    */
-  public static double[] jaccard(final Sketch sketchA, final Sketch sketchB) {
+  public static double[] jaccard(final ThetaSketch sketchA, final ThetaSketch sketchB) {
     //Corner case checks
     if (sketchA == null || sketchB == null) { return ZEROS.clone(); }
     if (sketchA == sketchB) { return ONES.clone(); }
@@ -72,7 +72,7 @@ public final class JaccardSimilarity {
         SetOperation.builder().setNominalEntries(newK).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
-    final Sketch unionAB = union.getResult(false, null);
+    final ThetaSketch unionAB = union.getResult(false, null);
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
@@ -89,7 +89,7 @@ public final class JaccardSimilarity {
     inter.intersect(sketchA);
     inter.intersect(sketchB);
     inter.intersect(unionAB); //ensures that intersection is a subset of the union
-    final Sketch interABU = inter.getResult(false, null);
+    final ThetaSketch interABU = inter.getResult(false, null);
 
     final double lb = getLowerBoundForBoverA(unionAB, interABU);
     final double est = getEstimateOfBoverA(unionAB, interABU);
@@ -105,7 +105,7 @@ public final class JaccardSimilarity {
    * @return true if the two given sketches have exactly the same hash values and the same
    * theta values.
    */
-  public static boolean exactlyEqual(final Sketch sketchA, final Sketch sketchB) {
+  public static boolean exactlyEqual(final ThetaSketch sketchA, final ThetaSketch sketchB) {
     //Corner case checks
     if (sketchA == null || sketchB == null) { return false; }
     if (sketchA == sketchB) { return true; }
@@ -120,7 +120,7 @@ public final class JaccardSimilarity {
         SetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
-    final Sketch unionAB = union.getResult();
+    final ThetaSketch unionAB = union.getResult();
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
@@ -147,7 +147,7 @@ public final class JaccardSimilarity {
    * @return if true, the similarity of the two sketches is greater than the given threshold
    * with at least 97.7% confidence.
    */
-  public static boolean similarityTest(final Sketch measured, final Sketch expected,
+  public static boolean similarityTest(final ThetaSketch measured, final ThetaSketch expected,
       final double threshold) {
       //index 0: the lower bound
       //index 1: the mean estimate
@@ -169,7 +169,7 @@ public final class JaccardSimilarity {
    * @return if true, the dissimilarity of the two sketches is greater than the given threshold
    * with at least 97.7% confidence.
    */
-  public static boolean dissimilarityTest(final Sketch measured, final Sketch expected,
+  public static boolean dissimilarityTest(final ThetaSketch measured, final ThetaSketch expected,
       final double threshold) {
       //index 0: the lower bound
       //index 1: the mean estimate

@@ -49,9 +49,9 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public abstract class Sketch implements MemorySegmentStatus {
+public abstract class ThetaSketch implements MemorySegmentStatus {
 
-  Sketch() {}
+  ThetaSketch() {}
 
   //public static factory constructor-type methods
 
@@ -68,7 +68,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    *
    * @return a Sketch on the heap.
    */
-  public static Sketch heapify(final MemorySegment srcSeg) {
+  public static ThetaSketch heapify(final MemorySegment srcSeg) {
     return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
@@ -86,7 +86,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a Sketch on the heap.
    */
-  public static Sketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
+  public static ThetaSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
     checkSegPreambleCap(srcSeg);
     final int familyID = extractFamilyID(srcSeg);
     if (familyID == Family.COMPACT.getID()) {
@@ -113,7 +113,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @param srcSeg a MemorySegment with an image of a Sketch.
    * @return a read-only Sketch backed by the given MemorySegment
    */
-  public static Sketch wrap(final MemorySegment srcSeg) {
+  public static ThetaSketch wrap(final MemorySegment srcSeg) {
     return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
@@ -136,7 +136,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a read-only Sketch backed by the given MemorySegment.
    */
-  public static Sketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
+  public static ThetaSketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
     checkSegPreambleCap(srcSeg);
     final int familyID = extractFamilyID(srcSeg);
     if (familyID == Family.QUICKSELECT.getID()) {
@@ -242,7 +242,7 @@ public abstract class Sketch implements MemorySegmentStatus {
       throw new SketchesArgumentException("Source MemorySegment not a valid Sketch Family: "
           + Family.idToFamily(familyId).toString());
     }
-    return Sketch.estimate(extractThetaLong(srcSeg), getRetainedEntries(srcSeg));
+    return ThetaSketch.estimate(extractThetaLong(srcSeg), getRetainedEntries(srcSeg));
   }
 
   /**
@@ -633,7 +633,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return the lower bound.
    */
   public static double getLowerBound(final int numStdDev, final MemorySegment srcSeg) {
-    return lowerBound(getRetainedEntries(srcSeg), Sketch.getThetaLong(srcSeg), numStdDev, Sketch.getEmpty(srcSeg));
+    return lowerBound(getRetainedEntries(srcSeg), ThetaSketch.getThetaLong(srcSeg), numStdDev, ThetaSketch.getEmpty(srcSeg));
   }
 
   static final double lowerBound(final int curCount, final long thetaLong, final int numStdDev, final boolean empty) {
@@ -652,7 +652,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * @return the upper bound.
    */
   public static double getUpperBound(final int numStdDev, final MemorySegment srcSeg) {
-    return upperBound(getRetainedEntries(srcSeg), Sketch.getThetaLong(srcSeg), numStdDev, Sketch.getEmpty(srcSeg));
+    return upperBound(getRetainedEntries(srcSeg), ThetaSketch.getThetaLong(srcSeg), numStdDev, ThetaSketch.getEmpty(srcSeg));
   }
 
   static final double upperBound(final int curCount, final long thetaLong, final int numStdDev,
@@ -668,7 +668,7 @@ public abstract class Sketch implements MemorySegmentStatus {
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Sketch
    */
-  private static final Sketch heapifyUpdateSketchFromMemorySegment(final MemorySegment srcSeg, final long expectedSeed) {
+  private static final ThetaSketch heapifyUpdateSketchFromMemorySegment(final MemorySegment srcSeg, final long expectedSeed) {
     final Family family = idToFamily(extractFamilyID(srcSeg));
 
     if (family == Family.ALPHA) {

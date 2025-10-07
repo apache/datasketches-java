@@ -65,7 +65,7 @@ final class AnotBimpl extends AnotB {
   }
 
   @Override
-  public void setA(final Sketch skA) {
+  public void setA(final ThetaSketch skA) {
     if (skA == null) {
       reset();
       throw new SketchesArgumentException("The input argument <i>A</i> must not be null");
@@ -85,7 +85,7 @@ final class AnotBimpl extends AnotB {
   }
 
   @Override
-  public void notB(final Sketch skB) {
+  public void notB(final ThetaSketch skB) {
     if (empty_ || (skB == null) || skB.isEmpty()) { return; }
     //local and skB is not empty
     Util.checkSeedHashes(seedHash_, skB.getSeedHash());
@@ -113,7 +113,7 @@ final class AnotBimpl extends AnotB {
   }
 
   @Override
-  public CompactSketch aNotB(final Sketch skA, final Sketch skB, final boolean dstOrdered,
+  public CompactSketch aNotB(final ThetaSketch skA, final ThetaSketch skB, final boolean dstOrdered,
       final MemorySegment dstSeg) {
     if ((skA == null) || (skB == null)) {
       throw new SketchesArgumentException("Neither argument may be null");
@@ -152,7 +152,7 @@ final class AnotBimpl extends AnotB {
 
   //restricted
 
-  private static long[] getHashArrA(final Sketch skA) { //returns a new array
+  private static long[] getHashArrA(final ThetaSketch skA) { //returns a new array
     //Get skA cache as array
     final CompactSketch cskA = skA.compact(false, null); //sorting not required
     return cskA.getCache().clone();
@@ -162,7 +162,7 @@ final class AnotBimpl extends AnotB {
       final long minThetaLong,
       final int countA,
       final long[] hashArrA,
-      final Sketch skB) {
+      final ThetaSketch skB) {
 
     // Rebuild or get hashtable of skB
     final long[] hashTableB; //read only
@@ -192,7 +192,7 @@ final class AnotBimpl extends AnotB {
   }
 
   private static long[] convertToHashTable(
-      final Sketch sketch,
+      final ThetaSketch sketch,
       final long thetaLong,
       final double rebuildThreshold) {
     final int lgArrLongs = minLgHashTableSize(sketch.getRetainedEntries(true), rebuildThreshold);

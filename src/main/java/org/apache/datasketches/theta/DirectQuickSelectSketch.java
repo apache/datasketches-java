@@ -175,7 +175,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       final MemorySegment srcSeg,
       final MemorySegmentRequest mSegReq,
       final long seed) {
-    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);                  //byte 0
+    final int preambleLongs = ThetaSketch.getPreambleLongs(srcSeg);                  //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 

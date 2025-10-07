@@ -134,7 +134,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   static HeapAlphaSketch heapifyInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
     checkBounds(0, 24, srcSeg.byteSize());
-    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);            //byte 0
+    final int preambleLongs = ThetaSketch.getPreambleLongs(srcSeg);            //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);             //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
@@ -179,7 +179,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public double getEstimate() {
     return (thetaLong_ > split1_)
-        ? Sketch.estimate(thetaLong_, curCount_)
+        ? ThetaSketch.estimate(thetaLong_, curCount_)
         : (1 << lgNomLongs_) * (LONG_MAX_VALUE_AS_DOUBLE / thetaLong_);
   }
 

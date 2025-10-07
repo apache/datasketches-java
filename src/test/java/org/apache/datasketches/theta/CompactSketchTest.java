@@ -63,14 +63,14 @@ public class CompactSketchTest {
     CompactSketch refSk = usk.compact(ordered, null);
     final byte[] barr = refSk.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(barr);
-    CompactSketch testSk = (CompactSketch) Sketch.heapify(srcSeg);
+    CompactSketch testSk = (CompactSketch) ThetaSketch.heapify(srcSeg);
 
     checkByRange(refSk, testSk, u, ordered);
 
     /**Via byte[]**/
     final byte[] byteArray = refSk.toByteArray();
     final MemorySegment heapROSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    testSk = (CompactSketch)Sketch.heapify(heapROSeg);
+    testSk = (CompactSketch)ThetaSketch.heapify(heapROSeg);
 
     checkByRange(refSk, testSk, u, ordered);
 
@@ -83,19 +83,19 @@ public class CompactSketchTest {
 
       /**Via CompactSketch.compact**/
       refSk = usk.compact(ordered, directSeg);
-      testSk = (CompactSketch)Sketch.wrap(directSeg);
+      testSk = (CompactSketch)ThetaSketch.wrap(directSeg);
 
       checkByRange(refSk, testSk, u, ordered);
 
       /**Via CompactSketch.compact**/
-      testSk = (CompactSketch)Sketch.wrap(directSeg);
+      testSk = (CompactSketch)ThetaSketch.wrap(directSeg);
       checkByRange(refSk, testSk, u, ordered);
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private static void checkByRange(final Sketch refSk, final Sketch testSk, final int u, final boolean ordered) {
+  private static void checkByRange(final ThetaSketch refSk, final ThetaSketch testSk, final int u, final boolean ordered) {
     if (u == 0) {
       checkEmptySketch(testSk);
     } else if (u == 1) {
@@ -105,7 +105,7 @@ public class CompactSketchTest {
     }
   }
 
-  private static void checkEmptySketch(final Sketch testSk) {
+  private static void checkEmptySketch(final ThetaSketch testSk) {
     assertEquals(testSk.getFamily(), Family.COMPACT);
     assertTrue(testSk instanceof EmptyCompactSketch);
     assertTrue(testSk.isEmpty());
@@ -123,7 +123,7 @@ public class CompactSketchTest {
     assertEquals(testSk.getCompactPreambleLongs(), 1);
   }
 
-  private static void checkSingleItemSketch(final Sketch testSk, final Sketch refSk) {
+  private static void checkSingleItemSketch(final ThetaSketch testSk, final ThetaSketch refSk) {
     assertEquals(testSk.getFamily(), Family.COMPACT);
     assertTrue(testSk instanceof SingleItemSketch);
     assertFalse(testSk.isEmpty());
@@ -141,7 +141,7 @@ public class CompactSketchTest {
     assertEquals(testSk.getCompactPreambleLongs(), 1);
   }
 
-  private static void checkOtherCompactSketch(final Sketch testSk, final Sketch refSk, final boolean ordered) {
+  private static void checkOtherCompactSketch(final ThetaSketch testSk, final ThetaSketch refSk, final boolean ordered) {
     assertEquals(testSk.getFamily(), Family.COMPACT);
     assertFalse(testSk.isEmpty());
     assertNotNull(testSk.iterator());
@@ -179,7 +179,7 @@ public class CompactSketchTest {
     final int bytes = sk.getCompactBytes();
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     sk.compact(true, wseg);
-    final Sketch csk2 = Sketch.heapify(wseg);
+    final ThetaSketch csk2 = ThetaSketch.heapify(wseg);
     assertTrue(csk2 instanceof SingleItemSketch);
   }
 
@@ -443,10 +443,10 @@ public class CompactSketchTest {
   public void checkHeapifySingleItemSketch() {
     final UpdateSketch sk = UpdateSketch.builder().build();
     sk.update(1);
-    final int bytes = Sketch.getMaxCompactSketchBytes(2); //1 more than needed
+    final int bytes = ThetaSketch.getMaxCompactSketchBytes(2); //1 more than needed
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     sk.compact(false, wseg);
-    final Sketch csk = Sketch.heapify(wseg);
+    final ThetaSketch csk = ThetaSketch.heapify(wseg);
     assertTrue(csk instanceof SingleItemSketch);
   }
 
@@ -456,7 +456,7 @@ public class CompactSketchTest {
     final MemorySegment wseg = MemorySegment.ofArray(new byte[16]); //empty, but extra bytes
     final CompactSketch csk = sk.compact(false, wseg); //ignores order because it is empty
     assertTrue(csk instanceof DirectCompactSketch);
-    final Sketch csk2 = Sketch.heapify(wseg);
+    final ThetaSketch csk2 = ThetaSketch.heapify(wseg);
     assertTrue(csk2 instanceof EmptyCompactSketch);
   }
 

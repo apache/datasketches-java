@@ -78,7 +78,7 @@ public final class AnotB<S extends Summary> {
 
   static {
     try {
-      GET_CACHE = org.apache.datasketches.theta.Sketch.class.getDeclaredMethod("getCache");
+      GET_CACHE = org.apache.datasketches.theta.ThetaSketch.class.getDeclaredMethod("getCache");
       GET_CACHE.setAccessible(true);
     } catch (final Exception e) {
       throw new SketchesStateException("Could not reflect getCache(): " + e);
@@ -199,7 +199,7 @@ public final class AnotB<S extends Summary> {
    * second (or <i>n+1</i>th) argument <i>B</i> of <i>A-AND-NOT-B</i>.
    * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
    * Calls to this method can be intermingled with calls to
-   * {@link #notB(org.apache.datasketches.theta.Sketch)}.
+   * {@link #notB(org.apache.datasketches.theta.ThetaSketch)}.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -213,7 +213,7 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
    */
-  public void notB(final org.apache.datasketches.theta.Sketch skB) {
+  public void notB(final org.apache.datasketches.theta.ThetaSketch skB) {
     if (skB == null) { return; } //ignore
 
     final long thetaLongB = skB.getThetaLong();
@@ -268,7 +268,7 @@ public final class AnotB<S extends Summary> {
   /**
    * Gets the result of the multistep, stateful operation AnotB that have been executed with calls
    * to {@link #setA(Sketch)} and ({@link #notB(Sketch)} or
-   * {@link #notB(org.apache.datasketches.theta.Sketch)}).
+   * {@link #notB(org.apache.datasketches.theta.ThetaSketch)}).
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
@@ -291,7 +291,7 @@ public final class AnotB<S extends Summary> {
    *
    * <p>This a stateless operation and has no impact on the internal state of this operator.
    * Thus, this is not an accumulating update and is independent of the {@link #setA(Sketch)},
-   * {@link #notB(Sketch)}, {@link #notB(org.apache.datasketches.theta.Sketch)}, and
+   * {@link #notB(Sketch)}, {@link #notB(org.apache.datasketches.theta.ThetaSketch)}, and
    * {@link #getResult(boolean)} methods.</p>
    *
    * <p>If either argument is null an exception is thrown.</p>
@@ -383,7 +383,7 @@ public final class AnotB<S extends Summary> {
    *
    * <p>This a stateless operation and has no impact on the internal state of this operator.
    * Thus, this is not an accumulating update and is independent of the {@link #setA(Sketch)},
-   * {@link #notB(Sketch)}, {@link #notB(org.apache.datasketches.theta.Sketch)}, and
+   * {@link #notB(Sketch)}, {@link #notB(org.apache.datasketches.theta.ThetaSketch)}, and
    * {@link #getResult(boolean)} methods.</p>
    *
    * <p>If either argument is null an exception is thrown.</p>
@@ -406,7 +406,7 @@ public final class AnotB<S extends Summary> {
       justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
   public static <S extends Summary> CompactSketch<S> aNotB(
       final Sketch<S> skA,
-      final org.apache.datasketches.theta.Sketch skB) {
+      final org.apache.datasketches.theta.ThetaSketch skB) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
@@ -553,7 +553,7 @@ public final class AnotB<S extends Summary> {
       final int countA,
       final long[] hashArrA,
       final S[] summaryArrA,
-      final org.apache.datasketches.theta.Sketch skB) {
+      final org.apache.datasketches.theta.ThetaSketch skB) {
     final DataArrays<S> daB = new DataArrays<>();
 
     //Rebuild/get hashtable of skB

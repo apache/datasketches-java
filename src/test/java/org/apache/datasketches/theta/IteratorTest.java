@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.HashIterator;
-import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.ThetaSketch;
 
 import org.apache.datasketches.theta.UpdateSketch;
 
@@ -39,7 +39,7 @@ public class IteratorTest {
   @Test
   public void checkDirectCompactSketch() {
     int k = 16;
-    int maxBytes = Sketch.getMaxUpdateSketchBytes(k);
+    int maxBytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     MemorySegment wseg = MemorySegment.ofArray(new byte[maxBytes]);
     UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build(wseg);
     println(sk1.getClass().getSimpleName());
@@ -52,7 +52,7 @@ public class IteratorTest {
     assertEquals(count, k/2);
 
     println("");
-    Sketch sk2 = sk1.compact();
+    ThetaSketch sk2 = sk1.compact();
     println(sk2.getClass().getSimpleName());
     HashIterator itr2 = sk2.iterator();
     count = 0;
@@ -62,7 +62,7 @@ public class IteratorTest {
     assertEquals(count, k/2);
 
     println("");
-    Sketch sk3 = sk1.compact(false, MemorySegment.ofArray(new byte[maxBytes]));
+    ThetaSketch sk3 = sk1.compact(false, MemorySegment.ofArray(new byte[maxBytes]));
     println(sk3.getClass().getSimpleName());
     HashIterator itr3 = sk3.iterator();
     count = 0;

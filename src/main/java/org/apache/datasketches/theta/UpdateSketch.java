@@ -56,7 +56,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public abstract class UpdateSketch extends Sketch {
+public abstract class UpdateSketch extends ThetaSketch {
   private final long seed_;
 
   UpdateSketch(final long seed) {

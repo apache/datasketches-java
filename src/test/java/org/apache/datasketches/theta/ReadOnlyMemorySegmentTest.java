@@ -39,7 +39,7 @@ public class ReadOnlyMemorySegmentTest {
     updateSketch.update(1);
     final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    final UpdateSketch sketch = (UpdateSketch) Sketch.wrap(seg);
+    final UpdateSketch sketch = (UpdateSketch) ThetaSketch.wrap(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
 
@@ -58,7 +58,7 @@ public class ReadOnlyMemorySegmentTest {
     updateSketch.update(1);
     final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.compact(false, null).toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    final Sketch sketch = Sketch.wrap(seg);
+    final ThetaSketch sketch = ThetaSketch.wrap(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }
@@ -69,7 +69,7 @@ public class ReadOnlyMemorySegmentTest {
     updateSketch.update(1);
     final MemorySegment seg = MemorySegment.ofBuffer(ByteBuffer.wrap(updateSketch.compact().toByteArray())
         .asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    final Sketch sketch = Sketch.wrap(seg);
+    final ThetaSketch sketch = ThetaSketch.wrap(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }
@@ -81,7 +81,7 @@ public class ReadOnlyMemorySegmentTest {
     final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(us1.toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
     // downcasting is not recommended, for testing only
-    final UpdateSketch us2 = (UpdateSketch) Sketch.heapify(seg);
+    final UpdateSketch us2 = (UpdateSketch) ThetaSketch.heapify(seg);
     us2.update(2);
     assertEquals(us2.getEstimate(), 2.0);
     assertTrue(seg.isReadOnly());
@@ -93,7 +93,7 @@ public class ReadOnlyMemorySegmentTest {
     updateSketch.update(1);
     final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.compact(false, null).toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    final Sketch sketch = Sketch.heapify(seg);
+    final ThetaSketch sketch = ThetaSketch.heapify(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }
@@ -104,7 +104,7 @@ public class ReadOnlyMemorySegmentTest {
     updateSketch.update(1);
     final MemorySegment seg = MemorySegment.ofBuffer(
         ByteBuffer.wrap(updateSketch.compact().toByteArray()).asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
-    final Sketch sketch = Sketch.heapify(seg);
+    final ThetaSketch sketch = ThetaSketch.heapify(seg);
     assertEquals(sketch.getEstimate(), 1.0);
     assertTrue(seg.isReadOnly());
   }

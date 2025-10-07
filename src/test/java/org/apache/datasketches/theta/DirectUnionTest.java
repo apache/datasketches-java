@@ -435,8 +435,8 @@ public class DirectUnionTest {
     final MemorySegment skSeg1 = MemorySegment.ofArray(usk1.compact(false, null).toByteArray()).asReadOnly();
     final MemorySegment skSeg2 = MemorySegment.ofArray(usk2.compact(true, null).toByteArray()).asReadOnly();
 
-    final CompactSketch csk1 = (CompactSketch)Sketch.wrap(skSeg1);
-    final CompactSketch csk2 = (CompactSketch)Sketch.wrap(skSeg2);
+    final CompactSketch csk1 = (CompactSketch)ThetaSketch.wrap(skSeg1);
+    final CompactSketch csk2 = (CompactSketch)ThetaSketch.wrap(skSeg2);
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
@@ -518,7 +518,7 @@ public class DirectUnionTest {
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    final MemorySegment seg = MemorySegment.ofArray(new byte[Sketch.getMaxCompactSketchBytes(0)]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[ThetaSketch.getMaxCompactSketchBytes(0)]);
     final CompactSketch csk = union.getResult(false, seg); //DirectCompactSketch
     assertTrue(csk.isEmpty());
   }
@@ -530,7 +530,7 @@ public class DirectUnionTest {
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    final MemorySegment seg = MemorySegment.ofArray(new byte[Sketch.getMaxCompactSketchBytes(0)]);
+    final MemorySegment seg = MemorySegment.ofArray(new byte[ThetaSketch.getMaxCompactSketchBytes(0)]);
     final CompactSketch csk = union.getResult(true, seg); //DirectCompactSketch
     assertTrue(csk.isEmpty());
   }
@@ -617,7 +617,7 @@ public class DirectUnionTest {
     final SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
     println(setOp.toString());
     final int familyID = PreambleUtil.extractFamilyID(seg);
-    final int preLongs = Sketch.getPreambleLongs(seg);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg);
     assertEquals(familyID, Family.UNION.getID());
     assertEquals(preLongs, Family.UNION.getMaxPreLongs());
     PreambleUtil.insertPreLongs(seg, 3); //Corrupt with 3; correct value is 4
@@ -644,7 +644,7 @@ public class DirectUnionTest {
     }
     usk.rebuild(); //optional but created the symptom
 
-    final Sketch s = usk.compact();
+    final ThetaSketch s = usk.compact();
 
     //create empty target union in off-heap segment
     final MemorySegment seg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);

@@ -89,7 +89,7 @@ public class Intersection<S extends Summary> {
    */
   public CompactSketch<S> intersect(
       final Sketch<S> tupleSketch,
-      final org.apache.datasketches.theta.Sketch
+      final org.apache.datasketches.theta.ThetaSketch
       thetaSketch, final S summary) {
     reset();
     intersect(tupleSketch);
@@ -148,7 +148,7 @@ public class Intersection<S extends Summary> {
    * @param summary the given proxy summary for the theta sketch, which doesn't have one.
    * It will be copied for each matching index. It must not be null.
    */
-  public void intersect(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+  public void intersect(final org.apache.datasketches.theta.ThetaSketch thetaSketch, final S summary) {
     if (thetaSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
     if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
     final boolean firstCall = firstCall_;
@@ -173,7 +173,7 @@ public class Intersection<S extends Summary> {
     // input sketch will have valid entries > 0
 
     if (firstCall) {
-      final org.apache.datasketches.theta.Sketch firstSketch = thetaSketch;
+      final org.apache.datasketches.theta.ThetaSketch firstSketch = thetaSketch;
       //Copy firstSketch data into local instance hashTables_
       hashTables_.fromSketch(firstSketch, summary);
     }

@@ -20,7 +20,7 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.common.ResizeFactor.X4;
-import static org.apache.datasketches.theta.Sketch.getMaxUpdateSketchBytes;
+import static org.apache.datasketches.theta.ThetaSketch.getMaxUpdateSketchBytes;
 import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -347,7 +347,7 @@ public class SetOperationTest {
     final int[] heapLayout = new int[6];
     final int unionBytes = SetOperation.getMaxUnionBytes(unionNomEntries);
     final int sketchBytes = getMaxUpdateSketchBytes(sketchNomEntries);
-    final int resultBytes = Sketch.getMaxCompactSketchBytes(unionNomEntries);
+    final int resultBytes = ThetaSketch.getMaxCompactSketchBytes(unionNomEntries);
     heapLayout[0] = 0;                             //offset for Union
     heapLayout[1] = unionBytes;                    //offset for sketch1
     heapLayout[2] = unionBytes + sketchBytes;      //offset for sketch2
@@ -395,9 +395,9 @@ public class SetOperationTest {
 
     //Let's recover the union and the 3rd sketch
     union = Union.wrap(unionSeg);
-    union.union(Sketch.wrap(sketch3seg));
+    union.union(ThetaSketch.wrap(sketch3seg));
 
-    final Sketch resSk = union.getResult(true, resultSeg);
+    final ThetaSketch resSk = union.getResult(true, resultSeg);
     final double est = resSk.getEstimate();
 
     return est;
@@ -413,9 +413,9 @@ public class SetOperationTest {
     final MemorySegment resultSeg = heapSeg.asSlice(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Recover the 3 sketches
-    final UpdateSketch sk1 = (UpdateSketch) Sketch.wrap(sketch1seg);
-    final UpdateSketch sk2 = (UpdateSketch) Sketch.wrap(sketch2seg);
-    final UpdateSketch sk3 = (UpdateSketch) Sketch.wrap(sketch3seg);
+    final UpdateSketch sk1 = (UpdateSketch) ThetaSketch.wrap(sketch1seg);
+    final UpdateSketch sk2 = (UpdateSketch) ThetaSketch.wrap(sketch2seg);
+    final UpdateSketch sk3 = (UpdateSketch) ThetaSketch.wrap(sketch3seg);
 
     //confirm that each of these 3 sketches is exact.
     assertEquals(sk1.getEstimate(), sketchNomEntries, 0.0);
@@ -429,7 +429,7 @@ public class SetOperationTest {
     union.union(sk2);
     union.union(sk3);
 
-    final Sketch resSk = union.getResult(true, resultSeg);
+    final ThetaSketch resSk = union.getResult(true, resultSeg);
     final double est = resSk.getEstimate();
 
     return est;

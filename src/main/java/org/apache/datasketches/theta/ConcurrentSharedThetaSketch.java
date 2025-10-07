@@ -86,7 +86,7 @@ interface ConcurrentSharedThetaSketch extends MemorySegmentStatus {
    * @param singleHash a single hash value
    * @return true if propagation successfully started
    */
-  boolean propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
+  boolean propagate(final AtomicBoolean localPropagationInProgress, final ThetaSketch sketchIn,
     final long singleHash);
 
   /**

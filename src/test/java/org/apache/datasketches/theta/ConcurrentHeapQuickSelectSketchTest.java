@@ -64,11 +64,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final byte[]  serArr = shared.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(serArr);
-    final Sketch sk = Sketch.heapify(seg, sl.seed);
+    final ThetaSketch sk = ThetaSketch.heapify(seg, sl.seed);
     assertTrue(sk instanceof HeapQuickSelectSketch); //Intentional promotion to Parent
 
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
-    Sketch.heapify(seg, sl.seed);
+    ThetaSketch.heapify(seg, sl.seed);
   }
 
   @Test
@@ -115,7 +115,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to heapify the corrupted seg
-    Sketch.heapify(seg, sl.seed);
+    ThetaSketch.heapify(seg, sl.seed);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -126,7 +126,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final SharedLocal sl = new SharedLocal(lgK, lgK, seed);
     final byte[] byteArray = sl.shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
-    Sketch.heapify(srcSeg, seed2);
+    ThetaSketch.heapify(srcSeg, seed2);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -136,7 +136,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[]  serArr = sl.shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr);
     srcSeg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
+    ThetaSketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -162,10 +162,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final byte[]  serArr = shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
-    final Sketch recoveredShared = UpdateSketch.heapify(srcSeg);
+    final ThetaSketch recoveredShared = UpdateSketch.heapify(srcSeg);
 
     //reconstruct to Native/Direct
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     shared = sl.bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wseg);
     final UpdateSketch local2 = sl.bldr.buildLocal(shared);
@@ -203,7 +203,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
     final UpdateSketch recoveredShared = UpdateSketch.heapify(srcSeg, sl.seed);
 
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     shared = sl.bldr.buildSharedFromSketch(recoveredShared, wseg);
     final UpdateSketch local2 = sl.bldr.buildLocal(shared);
@@ -242,7 +242,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
     final UpdateSketch recoveredShared = UpdateSketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
 
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     shared = sl.bldr.buildSharedFromSketch(recoveredShared, wseg);
     final UpdateSketch local2 = sl.bldr.buildLocal(shared);
@@ -577,7 +577,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[] byteArray = sl.shared.toByteArray();
     final byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24); //corrupt no. bytes
     final MemorySegment seg = MemorySegment.ofArray(badBytes).asReadOnly();
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -591,7 +591,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final MemorySegment seg = MemorySegment.ofArray(badArray);
     PreambleUtil.insertLgArrLongs(seg, 4); //corrupt
     PreambleUtil.insertThetaLong(seg, Long.MAX_VALUE / 2); //corrupt
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test

@@ -27,7 +27,7 @@ import org.apache.datasketches.theta.AnotB;
 import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.Intersection;
 import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.ThetaSketch;
 import org.apache.datasketches.theta.Union;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
@@ -52,7 +52,7 @@ public class PairwiseSetOperationsTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
     Intersection inter = SetOperation.builder().buildIntersection();
-    Sketch rsk = inter.intersect(csk1, csk2);
+    ThetaSketch rsk = inter.intersect(csk1, csk2);
     assertEquals(rsk.getEstimate(), 0.0);
   }
 
@@ -73,7 +73,7 @@ public class PairwiseSetOperationsTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
 
-    Sketch rsk = inter.intersect(csk1, csk2);
+    ThetaSketch rsk = inter.intersect(csk1, csk2);
     assertEquals(rsk.getEstimate(), k, 0.0);
   }
 
@@ -98,7 +98,7 @@ public class PairwiseSetOperationsTest {
 
       CompactSketch csk1 = usk1.compact(true, null);
       CompactSketch csk2 = usk2.compact(true, null);
-      Sketch rsk = inter.intersect(csk1, csk2);
+      ThetaSketch rsk = inter.intersect(csk1, csk2);
       double result1 = rsk.getEstimate();
 
       inter.intersect(csk1);
@@ -133,7 +133,7 @@ public class PairwiseSetOperationsTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
 
-    Sketch rsk = anotb.aNotB(csk1, csk2);
+    ThetaSketch rsk = anotb.aNotB(csk1, csk2);
     assertEquals(rsk.getEstimate(), k, 0.0);
   }
 
@@ -154,7 +154,7 @@ public class PairwiseSetOperationsTest {
     CompactSketch csk1 = usk1.compact(true, null);
     CompactSketch csk2 = usk2.compact(true, null);
 
-    Sketch rsk = anotb.aNotB(csk1, csk2);
+    ThetaSketch rsk = anotb.aNotB(csk1, csk2);
     assertEquals(rsk.getEstimate(), 0.0, 0.0);
   }
 
@@ -180,7 +180,7 @@ public class PairwiseSetOperationsTest {
       CompactSketch csk1 = usk1.compact(true, null);
       CompactSketch csk2 = usk2.compact(true, null);
 
-      Sketch rsk = aNotB.aNotB(csk1, csk2);
+      ThetaSketch rsk = aNotB.aNotB(csk1, csk2);
       double result1 = rsk.getEstimate();
 
       CompactSketch csk3 = aNotB.aNotB(csk1, csk2);
@@ -214,9 +214,9 @@ public class PairwiseSetOperationsTest {
 
    union.union(csk1);
    union.union(csk2);
-   Sketch stdSk = union.getResult(true, null);
+   ThetaSketch stdSk = union.getResult(true, null);
 
-   Sketch rsk = union.union(csk1, csk2);
+   ThetaSketch rsk = union.union(csk1, csk2);
 
    assertEquals(rsk.getEstimate(), stdSk.getEstimate(), 0.0);
  }
@@ -238,7 +238,7 @@ public class PairwiseSetOperationsTest {
    CompactSketch csk1 = usk1.compact(true, null);
    CompactSketch csk2 = usk2.compact(true, null);
 
-   Sketch rsk = union.union(csk1, csk2);
+   ThetaSketch rsk = union.union(csk1, csk2);
    assertEquals(rsk.getEstimate(), k, 0.0);
  }
 
@@ -264,7 +264,7 @@ public class PairwiseSetOperationsTest {
      CompactSketch csk1 = usk1.compact(true, null);
      CompactSketch csk2 = usk2.compact(true, null);
 
-     Sketch pwSk = union.union(csk1, csk2);
+     ThetaSketch pwSk = union.union(csk1, csk2);
      double pwEst = pwSk.getEstimate();
 
      union.union(csk1);
@@ -298,7 +298,7 @@ public class PairwiseSetOperationsTest {
    CompactSketch csk1 = usk1.compact(true, null);
    CompactSketch csk2 = usk2.compact(true, null);
 
-   Sketch pwSk = union.union(csk1, csk2);
+   ThetaSketch pwSk = union.union(csk1, csk2);
    double pwEst = pwSk.getEstimate();
 
    union.union(csk1);

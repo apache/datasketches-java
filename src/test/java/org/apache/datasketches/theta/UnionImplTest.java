@@ -150,7 +150,7 @@ public class UnionImplTest {
   public void checkMoveAndResizeOffHeap() {
     final int k = 1 << 12;
     final int u = 2 * k;
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     MemorySegment skWseg, uWseg;
     try (Arena arena = Arena.ofConfined()) {
       skWseg = arena.allocate(bytes / 2); //we never populate the sketch so this size is not relevant
@@ -203,7 +203,7 @@ public class UnionImplTest {
     for (int i = 0; i < k; i++) { sk.update(i); }
     final double est1 = sk.getEstimate();
 
-    final int bytes = Sketch.getCompactSketchMaxBytes(lgK);
+    final int bytes = ThetaSketch.getCompactSketchMaxBytes(lgK);
     try (Arena arena = Arena.ofConfined()) {
         final MemorySegment wseg = arena.allocate(bytes);
 
@@ -220,7 +220,7 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCompactFlagCorruption() {
     final int k = 1 << 12;
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[bytes]);
     final UpdateSketch sk = UpdateSketch.builder().setNominalEntries(k).build(wseg1);
     for (int i = 0; i < k; i++) { sk.update(i); }

@@ -389,8 +389,8 @@ public class HeapUnionTest {
     final MemorySegment skSeg1 = MemorySegment.ofArray(usk1.compact(false, null).toByteArray());
     final MemorySegment skSeg2 = MemorySegment.ofArray(usk2.compact(true, null).toByteArray());
 
-    final CompactSketch csk1 = (CompactSketch)Sketch.wrap(skSeg1);
-    final CompactSketch csk2 = (CompactSketch)Sketch.wrap(skSeg2);
+    final CompactSketch csk1 = (CompactSketch)ThetaSketch.wrap(skSeg1);
+    final CompactSketch csk2 = (CompactSketch)ThetaSketch.wrap(skSeg2);
 
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
 

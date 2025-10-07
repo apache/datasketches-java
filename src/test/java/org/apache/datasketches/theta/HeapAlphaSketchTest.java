@@ -78,7 +78,7 @@ public class HeapAlphaSketchTest {
     MemorySegment seg = MemorySegment.ofArray(byteArray);
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
 
-    Sketch.heapify(seg, seed);
+    ThetaSketch.heapify(seg, seed);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -115,7 +115,7 @@ public class HeapAlphaSketchTest {
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to heapify the corrupted seg
-    Sketch.heapify(seg, seed);
+    ThetaSketch.heapify(seg, seed);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -127,7 +127,7 @@ public class HeapAlphaSketchTest {
         .setNominalEntries(k).build();
     byte[] byteArray = usk.toByteArray();
     MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    Sketch.heapify(srcSeg, seed2);
+    ThetaSketch.heapify(srcSeg, seed2);
   }
 
   @Test
@@ -147,7 +147,7 @@ public class HeapAlphaSketchTest {
     assertEquals(bytes, byteArray.length);
 
     MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
-    UpdateSketch usk2 = (UpdateSketch)Sketch.heapify(srcSeg, seed);
+    UpdateSketch usk2 = (UpdateSketch)ThetaSketch.heapify(srcSeg, seed);
     assertEquals(usk2.getEstimate(), u, 0.0);
     assertEquals(usk2.getLowerBound(2), u, 0.0);
     assertEquals(usk2.getUpperBound(2), u, 0.0);
@@ -177,7 +177,7 @@ public class HeapAlphaSketchTest {
     byte[] byteArray = usk.toByteArray();
 
     MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    UpdateSketch usk2 = (UpdateSketch)Sketch.heapify(srcSeg, seed);
+    UpdateSketch usk2 = (UpdateSketch)ThetaSketch.heapify(srcSeg, seed);
     assertEquals(usk2.getEstimate(), uskEst);
     assertEquals(usk2.getLowerBound(2), uskLB);
     assertEquals(usk2.getUpperBound(2), uskUB);
@@ -208,7 +208,7 @@ public class HeapAlphaSketchTest {
     byte[] byteArray = sk1.toByteArray();
     MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
 
-    UpdateSketch sk2 = (UpdateSketch)Sketch.heapify(seg, Util.DEFAULT_UPDATE_SEED);
+    UpdateSketch sk2 = (UpdateSketch)ThetaSketch.heapify(seg, Util.DEFAULT_UPDATE_SEED);
 
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
@@ -545,40 +545,40 @@ public class HeapAlphaSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits0() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
+    ThetaSketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getLowerBound(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits0() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
+    ThetaSketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getUpperBound(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkLBlimits4() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
+    ThetaSketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getLowerBound(4);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkUBlimits4() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
+    ThetaSketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     alpha.getUpperBound(4);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreambleLongs() {
     int k = 512;
-    Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
+    ThetaSketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = alpha.toByteArray();
     MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 4);
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

@@ -220,7 +220,7 @@ final class IntersectionImpl extends Intersection {
   }
 
   @Override
-  public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactSketch intersect(final ThetaSketch a, final ThetaSketch b, final boolean dstOrdered, final MemorySegment dstSeg) {
     if ((wseg_ != null) && readOnly_) { throw new SketchesReadOnlyException(); }
     hardReset();
     intersect(a);
@@ -231,7 +231,7 @@ final class IntersectionImpl extends Intersection {
   }
 
   @Override
-  public void intersect(final Sketch sketchIn) {
+  public void intersect(final ThetaSketch sketchIn) {
     if (sketchIn == null) {
       throw new SketchesArgumentException("Intersection argument must not be null.");
     }
@@ -439,7 +439,7 @@ final class IntersectionImpl extends Intersection {
     return thetaLong_;
   }
 
-  private void performIntersect(final Sketch sketchIn) {
+  private void performIntersect(final ThetaSketch sketchIn) {
     // curCount and input data are nonzero, match against HT
     assert (curCount_ > 0) && !empty_;
     final long[] hashTable;
@@ -507,7 +507,7 @@ final class IntersectionImpl extends Intersection {
     assert tmpCnt == count : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
   }
 
-  private void moveDataToTgt(final Sketch sketch) {
+  private void moveDataToTgt(final ThetaSketch sketch) {
     final int count = sketch.getRetainedEntries();
     int tmpCnt = 0;
     if (wseg_ != null) { //Off Heap puts directly into mem
@@ -620,7 +620,7 @@ final class IntersectionImpl extends Intersection {
     //Get Preamble
     //Note: Intersection does not use lgNomLongs (or k), per se.
     //seedHash loaded and checked in private constructor
-    final int preLongs = Sketch.getPreambleLongs(srcSeg);
+    final int preLongs = ThetaSketch.getPreambleLongs(srcSeg);
     final int serVer = extractSerVer(srcSeg);
     final int famID = extractFamilyID(srcSeg);
     final boolean empty = (extractFlags(srcSeg) & EMPTY_FLAG_MASK) > 0;

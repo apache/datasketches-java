@@ -74,7 +74,7 @@ public class PreambleUtilTest {
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
 
     final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(seg);
-    println(Sketch.toString(byteArray));
+    println(ThetaSketch.toString(byteArray));
 
     Assert.assertTrue(quick1.isEmpty());
 
@@ -103,14 +103,14 @@ public class PreambleUtilTest {
       quick1.update(i);
     }
     final byte[] bytes = quick1.compact().toByteArray();
-    println(Sketch.toString(bytes));
+    println(ThetaSketch.toString(bytes));
   }
 
   @Test
   public void checkPreambleToStringExceptions() {
     byte[] byteArr = new byte[7];
     try { //check preLongs < 8 fails
-      Sketch.toString(byteArr);
+      ThetaSketch.toString(byteArr);
       fail("Did not throw SketchesArgumentException.");
     } catch (final SketchesArgumentException e) {
       //expected
@@ -118,7 +118,7 @@ public class PreambleUtilTest {
     byteArr = new byte[8];
     byteArr[0] = (byte) 2; //needs min capacity of 16
     try { //check preLongs == 2 fails
-      Sketch.toString(MemorySegment.ofArray(byteArr).asReadOnly());
+      ThetaSketch.toString(MemorySegment.ofArray(byteArr).asReadOnly());
       fail("Did not throw SketchesArgumentException.");
     } catch (final SketchesArgumentException e) {
       //expected
@@ -136,19 +136,19 @@ public class PreambleUtilTest {
     final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
     CompactSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
-    println(Sketch.toString(byteArr)); //PreLongs = 1
+    println(ThetaSketch.toString(byteArr)); //PreLongs = 1
 
     sketch.update(1);
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(Sketch.toString(byteArr)); //PreLongs = 2
+    println(ThetaSketch.toString(byteArr)); //PreLongs = 2
 
     for (int i=2; i<=32; i++) {
       sketch.update(i);
     }
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(Sketch.toString(MemorySegment.ofArray(byteArr).asReadOnly())); //PreLongs = 3
+    println(ThetaSketch.toString(MemorySegment.ofArray(byteArr).asReadOnly())); //PreLongs = 3
   }
 
   @Test

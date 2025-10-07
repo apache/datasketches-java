@@ -175,7 +175,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void unionWrapped() {
-    final Sketch sketch = SingleItemSketch.create(1);
+    final ThetaSketch sketch = SingleItemSketch.create(1);
     final Union union = SetOperation.builder().buildUnion();
     final MemorySegment seg  = MemorySegment.ofArray(sketch.toByteArray());
     union.union(seg );
@@ -196,7 +196,7 @@ public class SingleItemSketchTest {
     assertTrue(csk instanceof SingleItemSketch);
 
     //Off-heap
-    bytes = Sketch.getMaxUpdateSketchBytes(32);
+    bytes = ThetaSketch.getMaxUpdateSketchBytes(32);
     MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
     sk1= UpdateSketch.builder().setNominalEntries(32).build(wseg );
     sk1.update(1);
@@ -205,7 +205,7 @@ public class SingleItemSketchTest {
     csk = sk1.compact(false, null);
     assertTrue(csk instanceof SingleItemSketch);
 
-    bytes = Sketch.getMaxCompactSketchBytes(1);
+    bytes = ThetaSketch.getMaxCompactSketchBytes(1);
     wseg  = MemorySegment.ofArray(new byte[bytes]);
     csk = sk1.compact(true, wseg );
     assertTrue(csk.isOrdered());
@@ -299,7 +299,7 @@ public class SingleItemSketchTest {
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
     final CompactSketch csk = inter.getResult(false, wseg );
     assertTrue(csk.isOrdered());
-    final Sketch csk2 = Sketch.heapify(wseg );
+    final ThetaSketch csk2 = ThetaSketch.heapify(wseg );
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));
   }
@@ -320,10 +320,10 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkDirectUnionSingleItem2() {
-    Sketch sk = Sketch.wrap(siSkWoutSiFlag24Bytes());
+    ThetaSketch sk = ThetaSketch.wrap(siSkWoutSiFlag24Bytes());
     assertEquals(sk.getEstimate(), 1.0, 0.0);
     //println(sk.toString());
-    sk = Sketch.wrap(siSkWithSiFlag24Bytes());
+    sk = ThetaSketch.wrap(siSkWithSiFlag24Bytes());
     assertEquals(sk.getEstimate(), 1.0, 0.0);
     //println(sk.toString());
   }

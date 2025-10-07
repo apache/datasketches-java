@@ -76,7 +76,7 @@ public class HeapQuickSelectSketchTest {
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
 
-    Sketch.heapify(seg, seed);
+    ThetaSketch.heapify(seg, seed);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -100,7 +100,7 @@ public class HeapQuickSelectSketchTest {
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to heapify the corrupted seg
-    Sketch.heapify(seg, seed);
+    ThetaSketch.heapify(seg, seed);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -111,7 +111,7 @@ public class HeapQuickSelectSketchTest {
     final UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed1).setNominalEntries(k).build();
     final byte[] byteArray = usk.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    Sketch.heapify(srcSeg, seed2);
+    ThetaSketch.heapify(srcSeg, seed2);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -119,7 +119,7 @@ public class HeapQuickSelectSketchTest {
     final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(16).build();
     final MemorySegment srcSeg = MemorySegment.ofArray(usk.toByteArray());
     srcSeg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
+    ThetaSketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -547,7 +547,7 @@ public class HeapQuickSelectSketchTest {
     final byte[] byteArray = s1.toByteArray();
     final byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24);
     final MemorySegment seg = MemorySegment.ofArray(badBytes);
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -559,7 +559,7 @@ public class HeapQuickSelectSketchTest {
     final MemorySegment seg = MemorySegment.ofArray(badArray);
     PreambleUtil.insertLgArrLongs(seg, 4);
     PreambleUtil.insertThetaLong(seg, Long.MAX_VALUE / 2);
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test

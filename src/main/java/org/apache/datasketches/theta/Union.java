@@ -154,7 +154,7 @@ public abstract class Union extends SetOperation {
    * @param sketchB The second argument
    * @return the result ordered CompactSketch on the heap.
    */
-  public CompactSketch union(final Sketch sketchA, final Sketch sketchB) {
+  public CompactSketch union(final ThetaSketch sketchA, final ThetaSketch sketchB) {
     return union(sketchA, sketchB, true, null);
   }
 
@@ -170,7 +170,7 @@ public abstract class Union extends SetOperation {
    * @param dstSeg If not null, the returned CompactSketch will be placed in this MemorySegment.
    * @return the result CompactSketch.
    */
-  public abstract CompactSketch union(Sketch sketchA, Sketch sketchB, boolean dstOrdered,
+  public abstract CompactSketch union(ThetaSketch sketchA, ThetaSketch sketchB, boolean dstOrdered,
       MemorySegment dstSeg);
 
   /**
@@ -183,7 +183,7 @@ public abstract class Union extends SetOperation {
    *
    * @param sketchIn The incoming sketch.
    */
-  public abstract void union(Sketch sketchIn);
+  public abstract void union(ThetaSketch sketchIn);
 
   /**
    * Perform a Union operation with <i>this</i> union and the given MemorySegment image of any sketch of the

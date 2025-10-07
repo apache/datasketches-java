@@ -23,7 +23,7 @@ import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 
 import org.apache.datasketches.common.BoundsOnRatiosInSampledSets;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.theta.Sketch;
+import org.apache.datasketches.theta.ThetaSketch;
 
 /**
  * This class is used to compute the bounds on the estimate of the ratio <i>B / A</i>, where:
@@ -56,7 +56,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @param sketchB the sketch B
    * @return the approximate lower bound for B over A
    */
-  public static double getLowerBoundForBoverA(final Sketch sketchA, final Sketch sketchB) {
+  public static double getLowerBoundForBoverA(final ThetaSketch sketchA, final ThetaSketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
@@ -77,7 +77,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @param sketchB the sketch B
    * @return the approximate upper bound for B over A
    */
-  public static double getUpperBoundForBoverA(final Sketch sketchA, final Sketch sketchB) {
+  public static double getUpperBoundForBoverA(final ThetaSketch sketchA, final ThetaSketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
@@ -98,7 +98,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @param sketchB the sketch B
    * @return the estimate for B over A
    */
-  public static double getEstimateOfBoverA(final Sketch sketchA, final Sketch sketchB) {
+  public static double getEstimateOfBoverA(final ThetaSketch sketchA, final ThetaSketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);

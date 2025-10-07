@@ -89,7 +89,7 @@ public class Union<S extends Summary> {
    * @return the result ordered CompactSketch on the heap.
    */
   public CompactSketch<S> union(final Sketch<S> tupleSketch,
-      final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+      final org.apache.datasketches.theta.ThetaSketch thetaSketch, final S summary) {
     reset();
     union(tupleSketch);
     union(thetaSketch, summary);
@@ -120,7 +120,7 @@ public class Union<S extends Summary> {
    * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
    * not be null.
    */
-  public void union(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+  public void union(final org.apache.datasketches.theta.ThetaSketch thetaSketch, final S summary) {
     if (summary == null) {
       throw new SketchesArgumentException("Summary cannot be null."); }
     if (thetaSketch == null || thetaSketch.isEmpty()) { return; }

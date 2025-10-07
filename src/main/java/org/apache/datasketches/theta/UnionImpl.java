@@ -258,7 +258,7 @@ final class UnionImpl extends Union {
   }
 
   @Override //Stateless Union
-  public CompactSketch union(final Sketch sketchA, final Sketch sketchB, final boolean dstOrdered,
+  public CompactSketch union(final ThetaSketch sketchA, final ThetaSketch sketchB, final boolean dstOrdered,
       final MemorySegment dstSeg) {
     reset();
     union(sketchA);
@@ -269,7 +269,7 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public void union(final Sketch sketchIn) {
+  public void union(final ThetaSketch sketchIn) {
     //UNION Empty Rule: AND the empty states.
 
     if (sketchIn == null || sketchIn.isEmpty()) {
@@ -305,7 +305,7 @@ final class UnionImpl extends Union {
   @Override
   public void union(final MemorySegment seg) {
     Objects.requireNonNull(seg, "MemorySegment must be non-null");
-    union(Sketch.wrap(seg.asReadOnly()));
+    union(ThetaSketch.wrap(seg.asReadOnly()));
   }
 
   @Override
@@ -379,7 +379,7 @@ final class UnionImpl extends Union {
    * Checks Ordered and Compact flags for integrity between sketch and its MemorySegment
    * @param sketch the given sketch
    */
-  private static final void checkSketchAndMemorySegmentFlags(final Sketch sketch) {
+  private static final void checkSketchAndMemorySegmentFlags(final ThetaSketch sketch) {
     final MemorySegment seg = sketch.getMemorySegment();
     if (seg == null) { return; }
     final int flags = PreambleUtil.extractFlags(seg);

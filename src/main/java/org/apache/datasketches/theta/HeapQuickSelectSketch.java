@@ -107,7 +107,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @return instance of this sketch
    */
   static HeapQuickSelectSketch heapifyInstance(final MemorySegment srcSeg, final long seed) {
-    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);            //byte 0
+    final int preambleLongs = ThetaSketch.getPreambleLongs(srcSeg);            //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);             //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);             //byte 4
 
@@ -140,7 +140,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
 
   @Override
   public double getEstimate() {
-    return Sketch.estimate(thetaLong_, curCount_);
+    return ThetaSketch.estimate(thetaLong_, curCount_);
   }
 
   @Override

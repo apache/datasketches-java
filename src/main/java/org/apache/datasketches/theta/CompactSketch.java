@@ -58,7 +58,7 @@ import org.apache.datasketches.common.Util;
  *
  * @author Lee Rhodes
  */
-public abstract class CompactSketch extends Sketch {
+public abstract class CompactSketch extends ThetaSketch {
 
   /**
    * Heapify takes a CompactSketch image in a MemorySegment and instantiates an on-heap CompactSketch.
@@ -303,7 +303,7 @@ public abstract class CompactSketch extends Sketch {
 
   @Override
   public double getEstimate() {
-    return Sketch.estimate(getThetaLong(), getRetainedEntries());
+    return ThetaSketch.estimate(getThetaLong(), getRetainedEntries());
   }
 
   /**
@@ -386,7 +386,7 @@ public abstract class CompactSketch extends Sketch {
   }
 
   private static CompactSketch heapifyV4(final MemorySegment srcSeg, final long seed) {
-    final int preLongs = Sketch.getPreambleLongs(srcSeg);
+    final int preLongs = ThetaSketch.getPreambleLongs(srcSeg);
     final int entryBits = extractEntryBitsV4(srcSeg);
     final int numEntriesBytes = extractNumEntriesBytesV4(srcSeg);
     final short seedHash = (short) extractSeedHash(srcSeg);

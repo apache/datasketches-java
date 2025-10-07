@@ -136,7 +136,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   public double getEstimate() {
     final int curCount = extractCurCount(wseg_);
     final long thetaLong = extractThetaLong(wseg_);
-    return Sketch.estimate(thetaLong, curCount);
+    return ThetaSketch.estimate(thetaLong, curCount);
   }
 
   @Override
@@ -238,7 +238,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   int getCurrentPreambleLongs() {
-    return Sketch.getPreambleLongs(wseg_);
+    return ThetaSketch.getPreambleLongs(wseg_);
   }
 
   @Override

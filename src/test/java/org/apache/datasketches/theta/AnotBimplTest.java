@@ -215,7 +215,7 @@ public class AnotBimplTest {
     final UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { cU.update(i); } //third 256
 
-    final int segBytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int segBytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     CompactSketch result1, result2, result3;
 
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[segBytes]);
@@ -259,7 +259,7 @@ public class AnotBimplTest {
     final UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { c.update(i); }  //third 256
 
-    final int segBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
+    final int segBytes = ThetaSketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
     final MemorySegment seg = MemorySegment.ofArray(new byte[segBytes]);
 
     CompactSketch result1, result2;

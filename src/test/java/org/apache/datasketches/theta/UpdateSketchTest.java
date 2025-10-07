@@ -173,13 +173,13 @@ public class UpdateSketchTest {
     final MemorySegment wseg = MemorySegment.ofArray(sk.toByteArray());
     try {
       wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2);
-      Sketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
+      ThetaSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (final SketchesArgumentException e) { }
     try {
       wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 3);
       wseg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 2);
-      Sketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
+      ThetaSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (final SketchesArgumentException e) { }
   }

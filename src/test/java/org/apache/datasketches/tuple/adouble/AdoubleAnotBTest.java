@@ -49,7 +49,7 @@ public class AdoubleAnotBTest {
       final AnotB<DoubleSummary> aNotB,
       final Sketch<DoubleSummary> skA,
       final Sketch<DoubleSummary> skB,
-      final org.apache.datasketches.theta.Sketch skThetaB,
+      final org.apache.datasketches.theta.ThetaSketch skThetaB,
       final Results results)
   {
     CompactSketch<DoubleSummary> result;
