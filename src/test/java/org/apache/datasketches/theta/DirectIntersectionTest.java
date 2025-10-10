@@ -369,15 +369,12 @@ public class DirectIntersectionTest {
     println("Est: "+est);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkOverflow() {
     final int lgK = 9; //512
     final int k = 1<<lgK;
     ThetaIntersection inter;
     UpdatableThetaSketch sk1;
-    final UpdatableThetaSketch sk2;
-    final CompactThetaSketch comp1;
     final double est;
 
     final int reqBytes = getMaxIntersectionBytes(k);

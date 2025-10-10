@@ -670,7 +670,6 @@ public class HeapAlphaSketchTest {
     assertEquals(sketch.getFamily(), Family.ALPHA);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void corruptionLgNomLongs() {
     final int k = 512;
@@ -680,7 +679,7 @@ public class HeapAlphaSketchTest {
     byte[] byteArr = sketch.toByteArray();
     MemorySegment wseg = MemorySegment.ofArray(byteArr);
     wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 8); //corrupt LgNomLongs
-    UpdatableThetaSketch sk = UpdatableThetaSketch.heapify(wseg);
+    UpdatableThetaSketch.heapify(wseg);
   }
 
   @Test

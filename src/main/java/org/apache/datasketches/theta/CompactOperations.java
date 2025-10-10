@@ -113,6 +113,7 @@ final class CompactOperations {
    * @param srcSeg the given input source MemorySegment image. Can be Read Only.
    * @param dstOrdered the desired ordering of the resulting CompactThetaSketch
    * @param dstWSeg Used for the target CompactThetaSketch if it is MemorySegment-based. Must be Writable.
+   * If null, return on-heap.
    * @return a CompactThetaSketch of the correct form.
    */
   @SuppressWarnings("unused")

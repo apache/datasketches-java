@@ -39,10 +39,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactOperations;
-import org.apache.datasketches.theta.CompactThetaSketch;
-import org.apache.datasketches.theta.UpdatableThetaSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -204,8 +200,6 @@ public class UpdateSketchTest {
     }
   }
 
-
-  @SuppressWarnings("unused")
   @Test
   public void checkCompactOpsMemorySegmentToCompact() {
     MemorySegment skwseg, cskwseg1, cskwseg2, cskwseg3;
@@ -216,15 +210,18 @@ public class UpdateSketchTest {
     for (int i = 2; i < n; i++) { sk.update(i); }
     final int cbytes = sk.getCompactBytes();
     final byte[] byteArr = sk.toByteArray();
-    skwseg = MemorySegment.ofArray(byteArr);
-    cskwseg1 = MemorySegment.ofArray(new byte[cbytes]);
-    cskwseg2 = MemorySegment.ofArray(new byte[cbytes]);
-    cskwseg3 = MemorySegment.ofArray(new byte[cbytes]);
-    csk1 = sk.compact(true, cskwseg1);
-    csk2 = CompactOperations.segmentToCompact(skwseg, true, cskwseg2);
+    skwseg = MemorySegment.ofArray(byteArr); //updatable seg
+    cskwseg1 = MemorySegment.ofArray(new byte[cbytes]); //empty
+    cskwseg2 = MemorySegment.ofArray(new byte[cbytes]); //empty
+    cskwseg3 = MemorySegment.ofArray(new byte[cbytes]); //empty
+    csk1 = sk.compact(true, cskwseg1); //cskwseg1 has compact sk image, csk1 is the sketch
+    csk2 = CompactOperations.segmentToCompact(skwseg, true, cskwseg2); //cskwseg2 has compact skwseg image
     csk3 = CompactOperations.segmentToCompact(cskwseg1, true, cskwseg3);
     assertTrue(equalContents(cskwseg1,cskwseg2));
     assertTrue(equalContents(cskwseg1, cskwseg3));
+    assertTrue(csk1.hasMemorySegment());
+    assertTrue(csk2.hasMemorySegment());
+    assertTrue(csk3.hasMemorySegment());
   }
 
   @Test
