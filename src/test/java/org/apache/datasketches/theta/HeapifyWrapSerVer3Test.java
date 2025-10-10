@@ -32,21 +32,21 @@ import org.testng.annotations.Test;
 public class HeapifyWrapSerVer3Test {
   private static final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
 
-  //Heapify CompactSketch
+  //Heapify CompactThetaSketch
 
   @Test
   public void checkHeapifyCompactSketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
 
-    cskResult = CompactSketch.heapify(cskSeg);
+    cskResult = CompactThetaSketch.heapify(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -56,33 +56,33 @@ public class HeapifyWrapSerVer3Test {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
 
-    cskResult = CompactSketch.heapify(cskSeg, seed);
+    cskResult = CompactThetaSketch.heapify(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
 
-  //Heapify Sketch
+  //Heapify ThetaSketch
 
   @Test
   public void checkHeapifySketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
 
-    cskResult = (CompactSketch) Sketch.heapify(cskSeg);
+    cskResult = (CompactThetaSketch) ThetaSketch.heapify(cskSeg);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
@@ -92,34 +92,34 @@ public class HeapifyWrapSerVer3Test {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
 
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
     final MemorySegment cskSeg = MemorySegment.ofArray(csk.toByteArray()).asReadOnly();
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
 
-    cskResult = (CompactSketch) Sketch.heapify(cskSeg, seed);
+    cskResult = (CompactThetaSketch) ThetaSketch.heapify(cskSeg, seed);
     assertEquals(cskResult.getEstimate(), usk.getEstimate());
     assertEquals(cskResult.getSeedHash(), seedHash);
   }
 
-  //Wrap CompactSketch
+  //Wrap CompactThetaSketch
 
   @Test
   public void checkWrapCompactSketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
     MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
 
     try(Arena arena = Arena.ofConfined()) {
       offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = CompactSketch.wrap(offHeap);
+      cskResult = CompactThetaSketch.wrap(offHeap);
       assertEquals(cskResult.getEstimate(), usk.getEstimate());
       assertEquals(cskResult.getSeedHash(), seedHash);
       assertTrue(cskResult.isOffHeap());
@@ -131,38 +131,38 @@ public class HeapifyWrapSerVer3Test {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
     MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
 
     try(Arena arena = Arena.ofConfined()) {
       offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = CompactSketch.wrap(offHeap, seed);
+      cskResult = CompactThetaSketch.wrap(offHeap, seed);
       assertEquals(cskResult.getEstimate(), usk.getEstimate());
       assertEquals(cskResult.getSeedHash(), seedHash);
       assertTrue(cskResult.isOffHeap());
     }
   }
 
-  //Wrap Sketch
+  //Wrap ThetaSketch
 
   @Test
   public void checkWrapSketchAssumedDefaultSeed() {
     final int k = 64;
     final long seed = Util.DEFAULT_UPDATE_SEED;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
     MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
 
     //SerialVersion3 test
     try(Arena arena = Arena.ofConfined()) {
       offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = (CompactSketch) Sketch.wrap(offHeap);
+      cskResult = (CompactThetaSketch) ThetaSketch.wrap(offHeap);
       assertEquals(cskResult.getEstimate(), usk.getEstimate());
       assertEquals(cskResult.getSeedHash(), seedHash);
       assertTrue(cskResult.isOffHeap());
@@ -174,16 +174,16 @@ public class HeapifyWrapSerVer3Test {
     final int k = 64;
     final long seed = 128L;
     final short seedHash = Util.computeSeedHash(seed);
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setSeed(seed).build();
     for (int i = 0; i < k; i++) { usk.update(i); }
-    CompactSketch cskResult;
+    CompactThetaSketch cskResult;
     MemorySegment offHeap;
-    final CompactSketch csk = usk.compact();
+    final CompactThetaSketch csk = usk.compact();
 
     //SerialVersion3 test
     try(Arena arena = Arena.ofConfined()) {
       offHeap = putOffHeap(MemorySegment.ofArray(csk.toByteArray()), arena);
-      cskResult = (CompactSketch) Sketch.wrap(offHeap, seed);
+      cskResult = (CompactThetaSketch) ThetaSketch.wrap(offHeap, seed);
       assertEquals(cskResult.getEstimate(), usk.getEstimate());
       assertEquals(cskResult.getSeedHash(), seedHash);
       assertTrue(cskResult.isOffHeap());

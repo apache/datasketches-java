@@ -47,7 +47,7 @@ import org.apache.datasketches.common.Util;
  *
  * @author Lee Rhodes
  */
-class DirectCompactSketch extends CompactSketch {
+class DirectCompactSketch extends CompactThetaSketch {
   final MemorySegment seg_;
 
   /**
@@ -59,7 +59,7 @@ class DirectCompactSketch extends CompactSketch {
   }
 
   /**
-   * Wraps the given MemorySegment, which must be a SerVer 3, CompactSketch image.
+   * Wraps the given MemorySegment, which must be a SerVer 3, CompactThetaSketch image.
    * Must check the validity of the MemorySegment before calling. The order bit must be set properly.
    * @param srcSeg the given MemorySegment
    * @param seedHash The update seedHash.
@@ -71,31 +71,31 @@ class DirectCompactSketch extends CompactSketch {
     return new DirectCompactSketch(srcSeg);
   }
 
-  //Sketch Overrides
+  //ThetaSketch Overrides
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
     return segmentToCompact(seg_, dstOrdered, dstSeg);
   }
 
   @Override
   public int getCurrentBytes() {
     if (checkForSingleItem(seg_)) { return 16; }
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
     return (preLongs + curCount) << 3;
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     if (checkForSingleItem(seg_)) { return 1; }
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     return (preLongs == 1) ? 0 : extractCurCount(seg_);
   }
 
   @Override
   public long getThetaLong() {
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     return (preLongs > 2) ? extractThetaLong(seg_) : Long.MAX_VALUE;
   }
 
@@ -147,7 +147,7 @@ class DirectCompactSketch extends CompactSketch {
   @Override
   long[] getCache() {
     if (checkForSingleItem(seg_)) { return new long[] { seg_.get(JAVA_LONG_UNALIGNED, 8) }; }
-    final int preLongs = Sketch.getPreambleLongs(seg_);
+    final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     final int curCount = (preLongs == 1) ? 0 : extractCurCount(seg_);
     if (curCount > 0) {
       final long[] cache = new long[curCount];
@@ -159,12 +159,12 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   int getCompactPreambleLongs() {
-    return Sketch.getPreambleLongs(seg_);
+    return ThetaSketch.getPreambleLongs(seg_);
   }
 
   @Override
   int getCurrentPreambleLongs() {
-    return Sketch.getPreambleLongs(seg_);
+    return ThetaSketch.getPreambleLongs(seg_);
   }
 
   @Override

@@ -58,7 +58,7 @@ class HashTables<S extends Summary> {
   }
 
   //must have valid entries
-  void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
+  void fromSketch(final org.apache.datasketches.theta.ThetaSketch sketch, final S summary) {
     numKeys = sketch.getRetainedEntries(true);
     lgTableSize = getLgTableSize(numKeys);
 
@@ -123,7 +123,7 @@ class HashTables<S extends Summary> {
 
   //For Theta Sketches
   HashTables<S> getIntersectHashTables(
-      final org.apache.datasketches.theta.Sketch nextThetaSketch,
+      final org.apache.datasketches.theta.ThetaSketch nextThetaSketch,
       final long thetaLong,
       final SummarySetOperations<S> summarySetOps,
       final S summary) {

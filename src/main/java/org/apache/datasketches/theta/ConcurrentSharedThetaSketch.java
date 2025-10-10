@@ -86,7 +86,7 @@ interface ConcurrentSharedThetaSketch extends MemorySegmentStatus {
    * @param singleHash a single hash value
    * @return true if propagation successfully started
    */
-  boolean propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
+  boolean propagate(final AtomicBoolean localPropagationInProgress, final ThetaSketch sketchIn,
     final long singleHash);
 
   /**
@@ -124,11 +124,11 @@ interface ConcurrentSharedThetaSketch extends MemorySegmentStatus {
   //well as the methods below.
   //
   //For the external user all of the below methods can be obtained by casting the shared
-  //sketch to UpdateSketch.  However, these methods here also act as an alias so that an
+  //sketch to UpdatableThetaSketch.  However, these methods here also act as an alias so that an
   //attempt to access these methods from the local buffer will be diverted to the shared
   //sketch.
 
-  //From Sketch and MemoryStatus
+  //From ThetaSketch and MemoryStatus
 
   int getCompactBytes();
 
@@ -148,11 +148,11 @@ interface ConcurrentSharedThetaSketch extends MemorySegmentStatus {
 
   int getRetainedEntries(boolean valid);
 
-  CompactSketch compact();
+  CompactThetaSketch compact();
 
-  CompactSketch compact(boolean ordered, MemorySegment wseg);
+  CompactThetaSketch compact(boolean ordered, MemorySegment wseg);
 
-  UpdateSketch rebuild();
+  UpdatableThetaSketch rebuild();
 
   void reset();
 }

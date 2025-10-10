@@ -29,7 +29,7 @@ public enum UpdateReturnState {
   /**
    * The hash was accepted into the sketch and the retained count was incremented.
    */
-  InsertedCountIncremented, //all UpdateSketches
+  InsertedCountIncremented, //all UpdatableThetaSketches
 
   /**
    * The hash was accepted into the sketch, the retained count was incremented.
@@ -63,17 +63,17 @@ public enum UpdateReturnState {
   /**
    * The hash was rejected as a duplicate.
    */
-  RejectedDuplicate, //all UpdateSketches hashUpdate(), enhancedHashInsert
+  RejectedDuplicate, //all UpdatableThetaSketches hashUpdate(), enhancedHashInsert
 
   /**
    * The hash was rejected because it was null or empty.
    */
-  RejectedNullOrEmpty, //UpdateSketch.update(arr[])
+  RejectedNullOrEmpty, //UpdatableThetaSketch.update(arr[])
 
   /**
    * The hash was rejected because the value was negative, zero or
    * greater than theta.
    */
-  RejectedOverTheta; //all UpdateSketches.hashUpdate()
+  RejectedOverTheta; //all UpdatableThetaSketches hashUpdate()
 
 }

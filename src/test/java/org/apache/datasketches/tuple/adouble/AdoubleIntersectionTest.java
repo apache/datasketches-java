@@ -23,7 +23,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
@@ -193,10 +193,10 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void checkExactIntersectionWithTheta() {
-    final UpdateSketch thSkNull = null;
-    final UpdateSketch thSkEmpty = new UpdateSketchBuilder().build();
-    final UpdateSketch thSk10 = new UpdateSketchBuilder().build();
-    final UpdateSketch thSk15 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch thSkNull = null;
+    final UpdatableThetaSketch thSkEmpty = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch thSk10 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch thSk15 = new UpdateSketchBuilder().build();
     for (int i = 0; i < 10; i++) { thSk10.update(i); }
     for (int i = 0; i < 10; i++) { thSk15.update(i + 5); } //overlap = 5
 
@@ -240,8 +240,8 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void checkExactIntersectionWithThetaDisjoint() {
-    final UpdateSketch thSkA = new UpdateSketchBuilder().setLogNominalEntries(10).build();
-    final UpdateSketch thSkB = new UpdateSketchBuilder().setLogNominalEntries(10).build();
+    final UpdatableThetaSketch thSkA = new UpdateSketchBuilder().setLogNominalEntries(10).build();
+    final UpdatableThetaSketch thSkB = new UpdateSketchBuilder().setLogNominalEntries(10).build();
     int key = 0;
     for (int i = 0; i < 32;  i++) { thSkA.update(key++); }
     for (int i = 0; i < 32; i++) { thSkB.update(key++); }
@@ -265,8 +265,8 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void checkEstimatingIntersectionWithThetaOverlapping() {
-    final UpdateSketch thSkA = new UpdateSketchBuilder().setLogNominalEntries(4).build();
-    final UpdateSketch thSkB = new UpdateSketchBuilder().setLogNominalEntries(10).build();
+    final UpdatableThetaSketch thSkA = new UpdateSketchBuilder().setLogNominalEntries(4).build();
+    final UpdatableThetaSketch thSkB = new UpdateSketchBuilder().setLogNominalEntries(10).build();
     for (int i = 0; i < 64;  i++) { thSkA.update(i); } //dense mode, low theta
     for (int i = 32; i < 96; i++) { thSkB.update(i); } //exact overlapping
 

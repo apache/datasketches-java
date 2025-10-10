@@ -68,7 +68,7 @@ import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * The default Theta Sketch using the QuickSelect algorithm.
+ * The UpdatableThetaSketch using the QuickSelect algorithm in a MemorySegment.
  * This subclass implements methods, which affect the state (update, rebuild, reset)
  *
  * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
@@ -110,8 +110,8 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @param dstSeg the given MemorySegment object destination. It cannot be null.
    * It will be cleared prior to use.
    * @param mSegReq an implementation of the MemorySegmentRequest interface or null.
-   * @param unionGadget true if this sketch is implementing the Union gadget function.
-   * Otherwise, it is behaving as a normal QuickSelectSketch.
+   * @param unionGadget true if this sketch is implementing the ThetaUnion gadget function.
+   * Otherwise, it is behaving as a normal QuickSelectThetaSketch.
    */
   DirectQuickSelectSketch(
       final int lgNomLongs,
@@ -170,16 +170,16 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return instance of this sketch
    */
-  //called from UnionImpl and UpdateSketch
+  //called from ThetaUnionImpl and UpdatableThetaSketch
   static DirectQuickSelectSketch writableWrap(
       final MemorySegment srcSeg,
       final MemorySegmentRequest mSegReq,
       final long seed) {
-    final int preambleLongs = Sketch.getPreambleLongs(srcSeg);                  //byte 0
+    final int preambleLongs = ThetaSketch.getPreambleLongs(srcSeg);                  //byte 0
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
 
-    UpdateSketch.checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
+    UpdatableThetaSketch.checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     if (isResizeFactorIncorrect(srcSeg, lgNomLongs, lgArrLongs)) {
@@ -200,7 +200,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return instance of this sketch
    */
-  //called from UnionImpl <- Union
+  //called from ThetaUnionImpl <- ThetaUnion
   static DirectQuickSelectSketch fastWritableWrap(
       final MemorySegment srcSeg,
       final MemorySegmentRequest mSegReq,
@@ -213,12 +213,12 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     return dqss;
   }
 
-  //Sketch
+  //ThetaSketch
 
-  //UpdateSketch
+  //UpdatableThetaSketch
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdatableThetaSketch rebuild() {
     final int lgNomLongs = getLgNomLongs();
     final int preambleLongs = wseg_.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE) & 0X3F;
     if (getRetainedEntries(true) > 1 << lgNomLongs) {

@@ -31,7 +31,7 @@ import static org.apache.datasketches.theta.CompactOperations.computeCompactPreL
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static org.apache.datasketches.theta.Sketch.getMaxCompactSketchBytes;
+import static org.apache.datasketches.theta.ThetaSketch.getMaxCompactSketchBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -62,14 +62,14 @@ public class SketchTest {
     final int k = 64;
     final int lowQSPreLongs = Family.QUICKSELECT.getMinPreLongs();
     final int lowCompPreLongs = Family.COMPACT.getMinPreLongs();
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(); // QS Sketch
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(k).build(); // QuickSelectThetaSketch
     assertEquals(sketch.getCurrentPreambleLongs(), lowQSPreLongs);
     assertEquals(sketch.getCompactPreambleLongs(), 1); //compact form
     assertEquals(sketch.getCurrentDataLongs(), k*2);
     assertEquals(sketch.getCurrentBytes(), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCompactBytes(), lowCompPreLongs << 3);
 
-    final CompactSketch compSk = sketch.compact(false, null);
+    final CompactThetaSketch compSk = sketch.compact(false, null);
     assertEquals(compSk.getCompactBytes(), 8);
     assertEquals(compSk.getCurrentBytes(), 8);
     assertEquals(compSk.getCurrentDataLongs(), 0);
@@ -108,7 +108,7 @@ public class SketchTest {
     assertEquals(compPreLongs, 3);
 
     for (int i=0; i<3; i++) {
-      final int maxCompBytes = Sketch.getMaxCompactSketchBytes(i);
+      final int maxCompBytes = ThetaSketch.getMaxCompactSketchBytes(i);
       if (i == 0) { assertEquals(maxCompBytes,  8); }
       if (i == 1) { assertEquals(maxCompBytes, 16); }
       if (i > 1) { assertEquals(maxCompBytes, 24 + (i * 8)); } //assumes maybe estimation mode
@@ -124,7 +124,7 @@ public class SketchTest {
     final ResizeFactor rf = X4;
     final Family fam = Family.ALPHA;
 
-    UpdateSketch sk1 = UpdateSketch.builder().setSeed(seed)
+    UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setSeed(seed)
         .setP(p).setResizeFactor(rf).setFamily(fam).setNominalEntries(k).build();
     String nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapAlphaSketch");
@@ -134,7 +134,7 @@ public class SketchTest {
 
     //check reset of defaults
 
-    sk1 = UpdateSketch.builder().build();
+    sk1 = UpdatableThetaSketch.builder().build();
     nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapQuickSelectSketch");
     assertEquals(sk1.getLgNomLongs(), Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES));
@@ -146,14 +146,14 @@ public class SketchTest {
   @Test
   public void checkBuilderNonPowerOf2() {
     final int k = 1000;
-    final UpdateSketch sk = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     assertEquals(sk.getLgNomLongs(), 10);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderIllegalP() {
     final float p = (float)1.5;
-    UpdateSketch.builder().setP(p).build();
+    UpdatableThetaSketch.builder().setP(p).build();
   }
 
   @Test
@@ -179,27 +179,27 @@ public class SketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapBadFamily() {
-    final UpdateSketch sketch = UpdateSketch.builder().setFamily(Family.ALPHA).setNominalEntries(1024).build();
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setFamily(Family.ALPHA).setNominalEntries(1024).build();
     final byte[] byteArr = sketch.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArr);
-    Sketch.wrap(srcSeg);
+    ThetaSketch.wrap(srcSeg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
-    UpdateSketch.builder().setFamily(Family.INTERSECTION).setNominalEntries(1024).build();
+    UpdatableThetaSketch.builder().setFamily(Family.INTERSECTION).setNominalEntries(1024).build();
   }
 
   @SuppressWarnings("static-access")
   @Test
   public void checkSerVer() {
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(1024).build();
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(1024).build();
     final byte[] sketchArray = sketch.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(sketchArray);
-    int serVer = Sketch.getSerializationVersion(seg);
+    int serVer = ThetaSketch.getSerializationVersion(seg);
     assertEquals(serVer, 3);
     final MemorySegment wseg = MemorySegment.ofArray(sketchArray);
-    final UpdateSketch sk2 = UpdateSketch.wrap(wseg);
+    final UpdatableThetaSketch sk2 = UpdatableThetaSketch.wrap(wseg);
     serVer = sk2.getSerializationVersion(wseg);
     assertEquals(serVer, 3);
   }
@@ -207,89 +207,89 @@ public class SketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyAlphaCompactExcep() {
     final int k = 512;
-    final Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
+    final ThetaSketch sketch1 = UpdatableThetaSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     final byte[] byteArray = sketch1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyQSCompactExcep() {
     final int k = 512;
-    final Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
+    final ThetaSketch sketch1 = UpdatableThetaSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     final byte[] byteArray = sketch1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyNotCompactExcep() {
     final int k = 512;
-    final UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
-    final int bytes = Sketch.getMaxCompactSketchBytes(0);
+    final UpdatableThetaSketch sketch1 = UpdatableThetaSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
+    final int bytes = ThetaSketch.getMaxCompactSketchBytes(0);
     final byte[] byteArray = new byte[bytes];
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     sketch1.compact(false, seg);
     //corrupt:
     Util.clearBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyFamilyExcep() {
     final int k = 512;
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion();
     final byte[] byteArray = union.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //Improper use
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapAlphaCompactExcep() {
     final int k = 512;
-    final Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
+    final ThetaSketch sketch1 = UpdatableThetaSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     final byte[] byteArray = sketch1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.wrap(seg);
+    ThetaSketch.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapQSCompactExcep() {
     final int k = 512;
-    final Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
+    final ThetaSketch sketch1 = UpdatableThetaSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     final byte[] byteArray = sketch1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     Util.setBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.wrap(seg);
+    ThetaSketch.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapNotCompactExcep() {
     final int k = 512;
-    final UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
-    final int bytes = Sketch.getMaxCompactSketchBytes(0);
+    final UpdatableThetaSketch sketch1 = UpdatableThetaSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
+    final int bytes = ThetaSketch.getMaxCompactSketchBytes(0);
     final byte[] byteArray = new byte[bytes];
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     sketch1.compact(false, seg);
     //corrupt:
     Util.clearBits(seg, FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
-    Sketch.wrap(seg);
+    ThetaSketch.wrap(seg);
   }
 
   @Test
   public void checkValidSketchID() {
-    assertFalse(Sketch.isValidSketchID(0));
-    assertTrue(Sketch.isValidSketchID(ALPHA.getID()));
-    assertTrue(Sketch.isValidSketchID(QUICKSELECT.getID()));
-    assertTrue(Sketch.isValidSketchID(COMPACT.getID()));
+    assertFalse(ThetaSketch.isValidSketchID(0));
+    assertTrue(ThetaSketch.isValidSketchID(ALPHA.getID()));
+    assertTrue(ThetaSketch.isValidSketchID(QUICKSELECT.getID()));
+    assertTrue(ThetaSketch.isValidSketchID(COMPACT.getID()));
   }
 
   @Test
@@ -297,7 +297,7 @@ public class SketchTest {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) + 24]); //280
     final MemorySegment cseg = MemorySegment.ofArray(new byte[32]);
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(seg);
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
     sketch.update(1);
     sketch.update(2);
     assertTrue(sketch.isSameResource(seg));
@@ -313,7 +313,7 @@ public class SketchTest {
   @Test
   public void checkCountLessThanTheta() {
     final int k = 512;
-    final UpdateSketch sketch1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch sketch1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < (2*k); i++) { sketch1.update(i); }
 
     final double theta = sketch1.rebuild().getTheta();
@@ -323,9 +323,9 @@ public class SketchTest {
   }
 
   private static MemorySegment createCompactSketchMemorySegment(final int k, final int u) {
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < u; i++) { usk.update(i); }
-    final int bytes = Sketch.getMaxCompactSketchBytes(usk.getRetainedEntries(true));
+    final int bytes = ThetaSketch.getMaxCompactSketchBytes(usk.getRetainedEntries(true));
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     usk.compact(true, wseg);
     return wseg;
@@ -334,27 +334,27 @@ public class SketchTest {
   @Test
   public void checkCompactFlagsOnWrap() {
     final MemorySegment wseg = createCompactSketchMemorySegment(16, 32);
-    Sketch sk = Sketch.wrap(wseg);
-    assertTrue(sk instanceof CompactSketch);
+    ThetaSketch sk = ThetaSketch.wrap(wseg);
+    assertTrue(sk instanceof CompactThetaSketch);
     final int flags = PreambleUtil.extractFlags(wseg);
 
     final int flagsNoCompact = flags & ~COMPACT_FLAG_MASK;
     PreambleUtil.insertFlags(wseg, flagsNoCompact);
     try {
-      sk = Sketch.wrap(wseg);
+      sk = ThetaSketch.wrap(wseg);
       fail();
     } catch (final SketchesArgumentException e) { }
 
     final int flagsNoReadOnly = flags & ~READ_ONLY_FLAG_MASK;
     PreambleUtil.insertFlags(wseg, flagsNoReadOnly);
     try {
-      sk = Sketch.wrap(wseg);
+      sk = ThetaSketch.wrap(wseg);
       fail();
     } catch (final SketchesArgumentException e) { }
     PreambleUtil.insertFlags(wseg, flags); //repair to original
     PreambleUtil.insertSerVer(wseg, 5);
     try {
-      sk = Sketch.wrap(wseg);
+      sk = ThetaSketch.wrap(wseg);
       fail();
     } catch (final SketchesArgumentException e) { }
   }
@@ -362,14 +362,14 @@ public class SketchTest {
   @Test
   public void checkCompactSizeAndFlagsOnHeapify() {
     MemorySegment wseg = createCompactSketchMemorySegment(16, 32);
-    Sketch sk = Sketch.heapify(wseg);
-    assertTrue(sk instanceof CompactSketch);
+    ThetaSketch sk = ThetaSketch.heapify(wseg);
+    assertTrue(sk instanceof CompactThetaSketch);
     final int flags = PreambleUtil.extractFlags(wseg);
 
     final int flagsNoCompact = flags & ~READ_ONLY_FLAG_MASK;
     PreambleUtil.insertFlags(wseg, flagsNoCompact);
     try {
-      sk = Sketch.heapify(wseg);
+      sk = ThetaSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { }
 
@@ -377,7 +377,7 @@ public class SketchTest {
     PreambleUtil.insertSerVer(wseg, 3);
     //PreambleUtil.insertFamilyID(wseg, 3);
     try {
-      sk = Sketch.heapify(wseg);
+      sk = ThetaSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { }
   }
@@ -385,7 +385,7 @@ public class SketchTest {
   @Test
   public void check2Methods() {
     final int k = 16;
-    final Sketch sk = UpdateSketch.builder().setNominalEntries(k).build();
+    final ThetaSketch sk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     final int bytes1 = sk.getCompactBytes();
     final int bytes2 = sk.getCurrentBytes();
     assertEquals(bytes1, 8);

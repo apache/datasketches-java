@@ -41,35 +41,35 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.HashOperations;
 
 /**
- * Shared code for the HeapUnion and DirectUnion implementations.
+ * Shared code for the heap union and direct union implementations.
  *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class UnionImpl extends Union {
+final class ThetaUnionImpl extends ThetaUnion {
 
   /**
-   * Although the gadget object is initially an UpdateSketch, in the context of a Union it is used
-   * as a specialized buffer that happens to leverage much of the machinery of an UpdateSketch.
+   * Although the gadget object is initially an UpdatableThetaSketch, in the context of a union it is used
+   * as a specialized buffer that happens to leverage much of the machinery of an UpdatableThetaSketch.
    * However, in this context some of the key invariants of the sketch algorithm are intentionally
-   * violated as an optimization. As a result this object can not be considered as an UpdateSketch
-   * and should never be exported as an UpdateSketch. It's internal state is not necessarily
+   * violated as an optimization. As a result this object can not be considered as an UpdatableThetaSketch
+   * and should never be exported as an UpdatableThetaSketch. It's internal state is not necessarily
    * finalized and may contain garbage. Also its internal concept of "nominal entries" or "k" can
    * be meaningless. It is private for very good reasons.
    */
-  private final UpdateSketch gadget_;
+  private final UpdatableThetaSketch gadget_;
   private final short expectedSeedHash_; //eliminates having to compute the seedHash on every union.
   private long unionThetaLong_; //when on-heap, this is the only copy
   private boolean unionEmpty_;  //when on-heap, this is the only copy
 
-  private UnionImpl(final UpdateSketch gadget, final long seed) {
+  private ThetaUnionImpl(final UpdatableThetaSketch gadget, final long seed) {
     gadget_ = gadget;
     expectedSeedHash_ = Util.computeSeedHash(seed);
   }
 
   /**
-   * Construct a new Union SetOperation on the java heap.
-   * Called by SetOperationBuilder.
+   * Construct a new ThetaUnion on the java heap.
+   * Called by ThetaSetOperationBuilder.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -77,22 +77,22 @@ final class UnionImpl extends Union {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return instance of this sketch
    */
-  static UnionImpl initNewHeapInstance(
+  static ThetaUnionImpl initNewHeapInstance(
       final int lgNomLongs,
       final long seed,
       final float p,
       final ResizeFactor rf) {
-    final UpdateSketch gadget = //create with UNION family
+    final UpdatableThetaSketch gadget = //create with UNION family
         new HeapQuickSelectSketch(lgNomLongs, seed, p, rf, true);
-    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    final ThetaUnionImpl unionImpl = new ThetaUnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
     unionImpl.unionEmpty_ = gadget.isEmpty();
     return unionImpl;
   }
 
   /**
-   * Construct a new Direct Union in the destination MemorySegment.
-   * Called by SetOperationBuilder.
+   * Construct a new direct union in the destination MemorySegment.
+   * Called by ThetaSetOperationBuilder.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -101,71 +101,71 @@ final class UnionImpl extends Union {
    * @param dstSeg the given MemorySegment object destination. It will be cleared prior to use.
    * @return this class
    */
-  static UnionImpl initNewDirectInstance(
+  static ThetaUnionImpl initNewDirectInstance(
       final int lgNomLongs,
       final long seed,
       final float p,
       final ResizeFactor rf,
       final MemorySegment dstSeg) {
-    final UpdateSketch gadget = //create with UNION family
+    final UpdatableThetaSketch gadget = //create with UNION family
         new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, dstSeg, null, true);
-    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    final ThetaUnionImpl unionImpl = new ThetaUnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
     unionImpl.unionEmpty_ = gadget.isEmpty();
     return unionImpl;
   }
 
   /**
-   * Heapify a Union from a MemorySegment Union object containing data.
-   * Called by SetOperation.
-   * @param srcSeg The source MemorySegment Union object.
+   * Heapify a ThetaUnion from a MemorySegment object containing data.
+   * Called by ThetaSetOperation.
+   * @param srcSeg The source MemorySegment ThetaUnion object.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl heapifyInstance(final MemorySegment srcSeg, final long expectedSeed) {
+  static ThetaUnionImpl heapifyInstance(final MemorySegment srcSeg, final long expectedSeed) {
     final MemorySegment srcSegRO = srcSeg.asReadOnly();
     Family.UNION.checkFamilyID(extractFamilyID(srcSegRO));
-    final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcSegRO, expectedSeed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
+    final UpdatableThetaSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcSegRO, expectedSeed);
+    final ThetaUnionImpl unionImpl = new ThetaUnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSegRO);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSegRO);
     return unionImpl;
   }
 
   /**
-   * Fast-wrap a Union object around a Union MemorySegment object containing data.
+   * Fast-wrap a ThetaUnion object around a MemorySegment object containing data.
    * This does NO validity checking of the given MemorySegment.
    * @param srcSeg The source MemorySegment object.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl fastWrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
+  static ThetaUnionImpl fastWrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
-    final UpdateSketch gadget = srcSeg.isReadOnly()
+    final UpdatableThetaSketch gadget = srcSeg.isReadOnly()
         ? DirectQuickSelectSketchR.fastReadOnlyWrap(srcSeg, expectedSeed)
         : DirectQuickSelectSketch.fastWritableWrap(srcSeg, null, expectedSeed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
+    final ThetaUnionImpl unionImpl = new ThetaUnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
     return unionImpl;
   }
 
   /**
-   * Wrap a Union object around a Union MemorySegment object containing data.
+   * Wrap a ThetaUnion object around a MemorySegment object containing data.
    * @param srcSeg The source MemorySegment object.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  //Called by SetOperation and Union
-  static UnionImpl wrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
+  //Called by ThetaSetOperation and ThetaUnion
+  static ThetaUnionImpl wrapInstance(final MemorySegment srcSeg, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcSeg));
-    final UpdateSketch gadget = srcSeg.isReadOnly()
+    final UpdatableThetaSketch gadget = srcSeg.isReadOnly()
         ? DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed)
         : DirectQuickSelectSketch.writableWrap(srcSeg, null, expectedSeed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
+    final ThetaUnionImpl unionImpl = new ThetaUnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcSeg);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcSeg);
     return unionImpl;
@@ -188,12 +188,12 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public CompactSketch getResult() {
+  public CompactThetaSketch getResult() {
     return getResult(true, null);
   }
 
   @Override
-  public CompactSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg) {
     final int gadgetCurCount = gadget_.getRetainedEntries(true);
     final int k = 1 << gadget_.getLgNomLongs();
     final long[] gadgetCacheCopy =
@@ -257,19 +257,19 @@ final class UnionImpl extends Union {
     return gadgetByteArr;
   }
 
-  @Override //Stateless Union
-  public CompactSketch union(final Sketch sketchA, final Sketch sketchB, final boolean dstOrdered,
+  @Override //Stateless ThetaUnion
+  public CompactThetaSketch union(final ThetaSketch sketchA, final ThetaSketch sketchB, final boolean dstOrdered,
       final MemorySegment dstSeg) {
     reset();
     union(sketchA);
     union(sketchB);
-    final CompactSketch csk = getResult(dstOrdered, dstSeg);
+    final CompactThetaSketch csk = getResult(dstOrdered, dstSeg);
     reset();
     return csk;
   }
 
   @Override
-  public void union(final Sketch sketchIn) {
+  public void union(final ThetaSketch sketchIn) {
     //UNION Empty Rule: AND the empty states.
 
     if (sketchIn == null || sketchIn.isEmpty()) {
@@ -282,7 +282,7 @@ final class UnionImpl extends Union {
       gadget_.hashUpdate(sketchIn.getCache()[0]);
       return;
     }
-    UnionImpl.checkSketchAndMemorySegmentFlags(sketchIn);
+    ThetaUnionImpl.checkSketchAndMemorySegmentFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
     unionEmpty_ = false;
@@ -305,7 +305,7 @@ final class UnionImpl extends Union {
   @Override
   public void union(final MemorySegment seg) {
     Objects.requireNonNull(seg, "MemorySegment must be non-null");
-    union(Sketch.wrap(seg.asReadOnly()));
+    union(ThetaSketch.wrap(seg.asReadOnly()));
   }
 
   @Override
@@ -379,17 +379,17 @@ final class UnionImpl extends Union {
    * Checks Ordered and Compact flags for integrity between sketch and its MemorySegment
    * @param sketch the given sketch
    */
-  private static final void checkSketchAndMemorySegmentFlags(final Sketch sketch) {
+  private static final void checkSketchAndMemorySegmentFlags(final ThetaSketch sketch) {
     final MemorySegment seg = sketch.getMemorySegment();
     if (seg == null) { return; }
     final int flags = PreambleUtil.extractFlags(seg);
     if ((flags & COMPACT_FLAG_MASK) > 0 ^ sketch.isCompact()) {
       throw new SketchesArgumentException("Possible corruption: "
-          + "MemorySegment Compact Flag inconsistent with Sketch");
+          + "MemorySegment Compact Flag inconsistent with ThetaSketch Compact Flag");
     }
     if ((flags & ORDERED_FLAG_MASK) > 0 ^ sketch.isOrdered()) {
       throw new SketchesArgumentException("Possible corruption: "
-          + "MemorySegment Ordered Flag inconsistent with Sketch");
+          + "MemorySegment Ordered Flag inconsistent with ThetaSketch Ordered Flag");
     }
   }
 

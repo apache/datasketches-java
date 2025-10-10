@@ -125,7 +125,7 @@ public final class JaccardSimilarity {
    */
   public static <S extends Summary> double[] jaccard(
       final Sketch<S> sketchA,
-      final org.apache.datasketches.theta.Sketch sketchB,
+      final org.apache.datasketches.theta.ThetaSketch sketchB,
       final S summary, final SummarySetOperations<S> summarySetOps) {
     // Null case checks
     if (summary == null) {
@@ -227,7 +227,7 @@ public final class JaccardSimilarity {
    */
   public static <S extends Summary> boolean exactlyEqual(
       final Sketch<S> sketchA,
-      final org.apache.datasketches.theta.Sketch sketchB,
+      final org.apache.datasketches.theta.ThetaSketch sketchB,
       final S summary, final SummarySetOperations<S> summarySetOps) {
     // Null case checks
     if (summary == null) {
@@ -303,7 +303,7 @@ public final class JaccardSimilarity {
    * with at least 97.7% confidence.
    */
   public static <S extends Summary> boolean similarityTest(
-      final Sketch<S> measured, final org.apache.datasketches.theta.Sketch expected,
+      final Sketch<S> measured, final org.apache.datasketches.theta.ThetaSketch expected,
       final S summary, final SummarySetOperations<S> summarySetOps,
       final double threshold) {
     //index 0: the lower bound
@@ -357,7 +357,7 @@ public final class JaccardSimilarity {
    * with at least 97.7% confidence.
    */
   public static <S extends Summary> boolean dissimilarityTest(
-      final Sketch<S> measured, final org.apache.datasketches.theta.Sketch expected,
+      final Sketch<S> measured, final org.apache.datasketches.theta.ThetaSketch expected,
       final S summary, final SummarySetOperations<S> summarySetOps,
       final double threshold) {
     //index 0: the lower bound

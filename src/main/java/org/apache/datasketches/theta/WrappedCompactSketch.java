@@ -42,7 +42,7 @@ import org.apache.datasketches.common.Util;
  *
  * <p>This sketch can only be associated with a Serialization Version 3 binary image format.</p>
  */
-class WrappedCompactSketch extends CompactSketch {
+class WrappedCompactSketch extends CompactThetaSketch {
   final byte[] bytes_;
 
   /**
@@ -54,8 +54,8 @@ class WrappedCompactSketch extends CompactSketch {
   }
 
   /**
-   * Wraps the given byteArray, which must be a SerVer 3 CompactSketch image.
-   * @param bytes representation of serialized compressed compact sketch.
+   * Wraps the given byteArray, which must be a SerVer 3 CompactThetaSketch image.
+   * @param bytes representation of serialized CompactThetaSketch.
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
    * @return this sketch
@@ -65,10 +65,10 @@ class WrappedCompactSketch extends CompactSketch {
     return new WrappedCompactSketch(bytes);
   }
 
-  //Sketch Overrides
+  //ThetaSketch Overrides
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
     return segmentToCompact(MemorySegment.ofArray(bytes_), dstOrdered, dstSeg);
   }
 
@@ -80,7 +80,7 @@ class WrappedCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     final int preLongs = bytes_[PREAMBLE_LONGS_BYTE];
     return (preLongs == 1) ? 0 : getIntLE(bytes_, RETAINED_ENTRIES_INT);
   }

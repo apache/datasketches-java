@@ -27,11 +27,11 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
- * Singleton empty CompactSketch.
+ * Singleton empty CompactThetaSketch.
  *
  * @author Lee Rhodes
  */
-final class EmptyCompactSketch extends CompactSketch {
+final class EmptyCompactSketch extends CompactThetaSketch {
 
   //For backward compatibility, a candidate long must have Flags= compact, read-only,
   //  COMPACT-Family=3, SerVer=3, PreLongs=1, and be exactly 8 bytes long. The seedHash is ignored.
@@ -64,7 +64,7 @@ final class EmptyCompactSketch extends CompactSketch {
   // This returns with ordered flag = true independent of dstOrdered.
   // This is required for fast detection.
   // The hashSeed is ignored and set == 0.
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
     if (dstWSeg == null) { return EmptyCompactSketch.getInstance(); }
     //dstWSeg.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
     MemorySegment.copy(EMPTY_COMPACT_SKETCH_ARR, 0, dstWSeg, JAVA_BYTE, 0, 8);
@@ -86,7 +86,7 @@ final class EmptyCompactSketch extends CompactSketch {
   public double getEstimate() { return 0; }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     return 0;
   }
 
@@ -111,7 +111,7 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   /**
-   * Returns 8 bytes representing a CompactSketch that the following flags set:
+   * Returns 8 bytes representing a CompactThetaSketch that the following flags set:
    * ordered, compact, empty, readOnly. The SerVer is 3, the Family is COMPACT(3),
    * and the PreLongs = 1. The seedHash is zero.
    */

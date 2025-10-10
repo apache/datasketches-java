@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple.adouble;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
@@ -157,7 +157,7 @@ public class AdoubleUnionTest {
   @Test
   public void checkUnionUpdateWithTheta() {
     final Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
-    UpdateSketch usk = null;
+    UpdatableThetaSketch usk = null;
     DoubleSummary dsum = null;
 
     try { union.union(usk, dsum); fail(); }

@@ -25,7 +25,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.theta.JaccardSimilarity;
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -47,8 +47,8 @@ public class JaccardSimilarityTest {
     state = exactlyEqual(null, null);
     assertFalse(state);
 
-    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(minK).build();
-    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(minK).build();
+    UpdatableThetaSketch measured = UpdatableThetaSketch.builder().setNominalEntries(minK).build();
+    UpdatableThetaSketch expected = UpdatableThetaSketch.builder().setNominalEntries(minK).build();
 
     //check both empty
     jResults = jaccard(measured, expected);
@@ -82,8 +82,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Exact Mode, minK: " + k + "\t Th: " + threshold);
 
-    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(k).build();
-    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch measured = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch expected = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i = 0; i < (u-1); i++) { //one short
       measured.update(i);
@@ -118,8 +118,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Estimation Mode, minK: " + k + "\t Th: " + threshold);
 
-    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(k).build();
-    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch measured = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch expected = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i = 0; i < u; i++) {
       measured.update(i);
@@ -162,8 +162,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.943;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(minK).build();
-    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(minK).build();
+    UpdatableThetaSketch expected = UpdatableThetaSketch.builder().setNominalEntries(minK).build();
+    UpdatableThetaSketch measured = UpdatableThetaSketch.builder().setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i);
@@ -195,8 +195,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.061;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    UpdateSketch expected = UpdateSketch.builder().setNominalEntries(minK).build();
-    UpdateSketch measured = UpdateSketch.builder().setNominalEntries(minK).build();
+    UpdatableThetaSketch expected = UpdatableThetaSketch.builder().setNominalEntries(minK).build();
+    UpdatableThetaSketch measured = UpdatableThetaSketch.builder().setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i);
@@ -221,8 +221,8 @@ public class JaccardSimilarityTest {
 
   @Test
   public void checkMinK() {
-    UpdateSketch skA = UpdateSketch.builder().build(); //4096
-    UpdateSketch skB = UpdateSketch.builder().build(); //4096
+    UpdatableThetaSketch skA = UpdatableThetaSketch.builder().build(); //4096
+    UpdatableThetaSketch skB = UpdatableThetaSketch.builder().build(); //4096
     skA.update(1);
     skB.update(1);
     double[] result = JaccardSimilarity.jaccard(skA, skB);

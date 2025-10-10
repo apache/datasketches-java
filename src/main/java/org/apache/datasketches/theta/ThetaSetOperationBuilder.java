@@ -32,18 +32,18 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * For building a new SetOperation.
+ * For building a new ThetaSetOperation.
  *
  * @author Lee Rhodes
  */
-public final class SetOperationBuilder {
+public final class ThetaSetOperationBuilder {
   private int bLgNomLongs;
   private long bSeed;
   private ResizeFactor bRF;
   private float bP;
 
   /**
-   * Constructor for building a new SetOperation.  The default configuration is
+   * Constructor for building a new ThetaSetOperation.  The default configuration is
    * <ul>
    * <li>Max Nominal Entries (max K):
    *   {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
@@ -53,7 +53,7 @@ public final class SetOperationBuilder {
    * <li>MemorySegment: null</li>
    * </ul>
    */
-  public SetOperationBuilder() {
+  public ThetaSetOperationBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
     bSeed = Util.DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
@@ -66,9 +66,9 @@ public final class SetOperationBuilder {
    * The minimum value is 16 and the maximum value is 67,108,864, which is 2^26.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not a power of 2.
-   * @return this SetOperationBuilder
+   * @return this ThetaSetOperationBuilder
    */
-  public SetOperationBuilder setNominalEntries(final int nomEntries) {
+  public ThetaSetOperationBuilder setNominalEntries(final int nomEntries) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     if ((bLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
@@ -84,9 +84,9 @@ public final class SetOperationBuilder {
    * thoroughly characterized for performance.
    *
    * @param lgNomEntries the log_base2 Nominal Entries.
-   * @return this SetOperationBuilder
+   * @return this ThetaSetOperationBuilder
    */
-  public SetOperationBuilder setLogNominalEntries(final int lgNomEntries) {
+  public ThetaSetOperationBuilder setLogNominalEntries(final int lgNomEntries) {
     bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgNomEntries);
     return this;
   }
@@ -102,9 +102,9 @@ public final class SetOperationBuilder {
   /**
    * Sets the long seed value that is require by the hashing function.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @return this SetOperationBuilder
+   * @return this ThetaSetOperationBuilder
    */
-  public SetOperationBuilder setSeed(final long seed) {
+  public ThetaSetOperationBuilder setSeed(final long seed) {
     bSeed = seed;
     return this;
   }
@@ -119,12 +119,12 @@ public final class SetOperationBuilder {
 
   /**
    * Sets the upfront uniform sampling probability, <i>p</i>. Although this functionality is
-   * implemented for Unions only, it rarely makes sense to use it. The proper use of upfront
+   * implemented for ThetaUnions only, it rarely makes sense to use it. The proper use of upfront
    * sampling is when building the sketches.
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @return this SetOperationBuilder
+   * @return this ThetaSetOperationBuilder
    */
-  public SetOperationBuilder setP(final float p) {
+  public ThetaSetOperationBuilder setP(final float p) {
     if ((p <= 0.0) || (p > 1.0)) {
       throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
@@ -143,9 +143,9 @@ public final class SetOperationBuilder {
   /**
    * Sets the cache Resize Factor
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @return this SetOperationBuilder
+   * @return this ThetaSetOperationBuilder
    */
-  public SetOperationBuilder setResizeFactor(final ResizeFactor rf) {
+  public ThetaSetOperationBuilder setResizeFactor(final ResizeFactor rf) {
     bRF = rf;
     return this;
   }
@@ -159,106 +159,106 @@ public final class SetOperationBuilder {
   }
 
   /**
-   * Returns a SetOperation with the current configuration of this Builder and the given Family.
-   * @param family the chosen SetOperation family
-   * @return a SetOperation
+   * Returns a ThetaSetOperation with the current configuration of this Builder and the given Family.
+   * @param family the chosen ThetaSetOperation family
+   * @return a ThetaSetOperation
    */
-  public SetOperation build(final Family family) {
+  public ThetaSetOperation build(final Family family) {
     return build(family, null);
   }
 
   /**
-   * Returns a SetOperation with the current configuration of this Builder, the given Family
-   * and the given destination MemorySegment. Note that the destination MemorySegment cannot be used with AnotB.
-   * @param family the chosen SetOperation family
+   * Returns a ThetaSetOperation with the current configuration of this Builder, the given Family
+   * and the given destination MemorySegment. Note that the destination MemorySegment cannot be used with ThetaAnotB.
+   * @param family the chosen ThetaSetOperation family
    * @param dstSeg The destination MemorySegment.
-   * @return a SetOperation
+   * @return a ThetaSetOperation
    */
-  public SetOperation build(final Family family, final MemorySegment dstSeg) {
-    SetOperation setOp = null;
+  public ThetaSetOperation build(final Family family, final MemorySegment dstSeg) {
+    ThetaSetOperation setOp = null;
     switch (family) {
       case UNION: {
         if (dstSeg == null) {
-          setOp = UnionImpl.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF);
+          setOp = ThetaUnionImpl.initNewHeapInstance(bLgNomLongs, bSeed, bP, bRF);
         }
         else {
-          setOp = UnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, dstSeg);
+          setOp = ThetaUnionImpl.initNewDirectInstance(bLgNomLongs, bSeed, bP, bRF, dstSeg);
         }
         break;
       }
       case INTERSECTION: {
         if (dstSeg == null) {
-          setOp = IntersectionImpl.initNewHeapInstance(bSeed);
+          setOp = ThetaIntersectionImpl.initNewHeapInstance(bSeed);
         }
         else {
-          setOp = IntersectionImpl.initNewDirectInstance(bSeed, dstSeg);
+          setOp = ThetaIntersectionImpl.initNewDirectInstance(bSeed, dstSeg);
         }
         break;
       }
       case A_NOT_B: {
         if (dstSeg == null) {
-          setOp = new AnotBimpl(bSeed);
+          setOp = new ThetaAnotBimpl(bSeed);
         }
         else {
           throw new SketchesArgumentException(
-            "AnotB can not be persisted.");
+            "ThetaAnotB can not be persisted.");
         }
         break;
       }
       default:
         throw new SketchesArgumentException(
-            "Given Family cannot be built as a SetOperation: " + family.toString());
+            "Given Family cannot be built as a ThetaSetOperation: " + family.toString());
     }
     return setOp;
   }
 
   /**
-   * Convenience method, returns a configured SetOperation Union with
+   * Convenience method, returns a configured ThetaSetOperation ThetaUnion with
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-   * @return a Union object
+   * @return a ThetaUnion object
    */
-  public Union buildUnion() {
-    return (Union) build(Family.UNION);
+  public ThetaUnion buildUnion() {
+    return (ThetaUnion) build(Family.UNION);
   }
 
   /**
-   * Convenience method, returns a configured SetOperation Union with
-   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-   * and the given destination MemorySegment.
-   * @param dstSeg The destination MemorySegment.
-   * @return a Union object
-   */
-  public Union buildUnion(final MemorySegment dstSeg) {
-    return (Union) build(Family.UNION, dstSeg);
-  }
-
-  /**
-   * Convenience method, returns a configured SetOperation Intersection with
-   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
-   * @return an Intersection object
-   */
-  public Intersection buildIntersection() {
-    return (Intersection) build(Family.INTERSECTION);
-  }
-
-  /**
-   * Convenience method, returns a configured SetOperation Intersection with
+   * Convenience method, returns a configured ThetaSetOperation ThetaUnion with
    * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
    * and the given destination MemorySegment.
    * @param dstSeg The destination MemorySegment.
-   * @return an Intersection object
+   * @return a ThetaUnion object
    */
-  public Intersection buildIntersection(final MemorySegment dstSeg) {
-    return (Intersection) build(Family.INTERSECTION, dstSeg);
+  public ThetaUnion buildUnion(final MemorySegment dstSeg) {
+    return (ThetaUnion) build(Family.UNION, dstSeg);
   }
 
   /**
-   * Convenience method, returns a configured SetOperation ANotB with
+   * Convenience method, returns a configured ThetaIntersection with
+   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+   * @return a ThetaIntersection object
+   */
+  public ThetaIntersection buildIntersection() {
+    return (ThetaIntersection) build(Family.INTERSECTION);
+  }
+
+  /**
+   * Convenience method, returns a configured ThetaIntersection with
+   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">Default Nominal Entries</a>
+   * and the given destination MemorySegment.
+   * @param dstSeg The destination MemorySegment.
+   * @return a ThetaIntersection object
+   */
+  public ThetaIntersection buildIntersection(final MemorySegment dstSeg) {
+    return (ThetaIntersection) build(Family.INTERSECTION, dstSeg);
+  }
+
+  /**
+   * Convenience method, returns a configured ThetaSetOperation ANotB with
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>
-   * @return an ANotB object
+   * @return a ThetaANotB object
    */
-  public AnotB buildANotB() {
-    return (AnotB) build(Family.A_NOT_B);
+  public ThetaAnotB buildANotB() {
+    return (ThetaAnotB) build(Family.A_NOT_B);
   }
 
   @Override

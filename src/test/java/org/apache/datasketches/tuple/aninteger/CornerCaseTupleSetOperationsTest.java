@@ -24,7 +24,7 @@ import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
@@ -76,7 +76,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void emptyEmpty() {
     IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
     IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -97,7 +97,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void emptyExact() {
     IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
     IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -118,7 +118,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void EmptyDegenerate() {
     IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
     IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -139,7 +139,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void emptyEstimation() {
     IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
     IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -162,7 +162,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void exactEmpty() {
     IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -183,7 +183,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void exactExact() {
     IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -204,7 +204,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void exactDegenerate() {
     IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -225,7 +225,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void exactEstimation() {
     IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -248,7 +248,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void estimationEmpty() {
     IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -269,7 +269,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void estimationExact() {
     IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -290,7 +290,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void estimationDegenerate() {
     IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -311,7 +311,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void estimationEstimation() {
     IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -334,7 +334,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void degenerateEmpty() {
     IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
     IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -355,7 +355,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void degenerateExact() {
     IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
     IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -376,7 +376,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void degenerateDegenerate() {
     IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_V); //entries = 0
     IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -397,7 +397,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void degenerateEstimation() {
     IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_V); //entries = 0
     IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -420,7 +420,7 @@ public class CornerCaseTupleSetOperationsTest {
   private void checks(
       IntegerSketch tupleA,
       IntegerSketch tupleB,
-      UpdateSketch  thetaB,
+      UpdatableThetaSketch  thetaB,
       double expectedIntersectTheta,
       int expectedIntersectCount,
       boolean expectedIntersectEmpty,
@@ -580,7 +580,7 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   //NOTE: p and value arguments are used for every case
-  private static UpdateSketch getThetaSketch(
+  private static UpdatableThetaSketch getThetaSketch(
       SkType skType,
       float p,
       long updateKey) {
@@ -588,7 +588,7 @@ public class CornerCaseTupleSetOperationsTest {
     bldr.setLogNominalEntries(4);
     bldr.setResizeFactor(ResizeFactor.X4);
 
-    UpdateSketch sk;
+    UpdatableThetaSketch sk;
     switch(skType) {
       case EMPTY: { // { 1.0,  0, T} p and value are not used
         sk = bldr.build();
