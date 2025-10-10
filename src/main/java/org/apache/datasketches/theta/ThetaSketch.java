@@ -45,7 +45,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The top-level class for all theta sketches. This class is never constructed directly.
- * Use the UpdateSketch.builder() methods to create UpdateSketches.
+ * Use the UpdatableThetaSketch.builder() methods to create UpdatableThetaSketches.
  *
  * @author Lee Rhodes
  */
@@ -56,41 +56,41 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   //public static factory constructor-type methods
 
   /**
-   * Heapify takes the sketch image in MemorySegment and instantiates an on-heap Sketch.
+   * Heapify takes the sketch image in MemorySegment and instantiates an on-heap ThetaSketch.
    *
    * <p>The resulting sketch will not retain any link to the source MemorySegment.</p>
    *
-   * <p>For Update Sketches this method checks if the
+   * <p>For UpdatableThetaSketches this method checks if the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
    * was used to create the source MemorySegment image.
    *
-   * @param srcSeg an image of a Sketch.
+   * @param srcSeg an image of a ThetaSketch.
    *
-   * @return a Sketch on the heap.
+   * @return a ThetaSketch on the heap.
    */
   public static ThetaSketch heapify(final MemorySegment srcSeg) {
     return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify takes the sketch image in MemorySegment and instantiates an on-heap Sketch.
+   * Heapify takes the sketch image in MemorySegment and instantiates an on-heap ThetaSketch.
    *
    * <p>The resulting sketch will not retain any link to the source MemorySegment.</p>
    *
-   * <p>For Update Sketches this method checks if the expectedSeed
+   * <p>For UpdatableThetaSketches this method checks if the expectedSeed
    * was used to create the source MemorySegment image.</p>
    *
-   * @param srcSeg an image of a Sketch that was created using the given expectedSeed.
+   * @param srcSeg an image of a ThetaSketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    *  <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-   * @return a Sketch on the heap.
+   * @return a ThetaSketch on the heap.
    */
   public static ThetaSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
     checkSegPreambleCap(srcSeg);
     final int familyID = extractFamilyID(srcSeg);
     if (familyID == Family.COMPACT.getID()) {
-      return CompactSketch.heapify(srcSeg, expectedSeed);
+      return CompactThetaSketch.heapify(srcSeg, expectedSeed);
     }
     return heapifyUpdateSketchFromMemorySegment(srcSeg, expectedSeed);
   }
@@ -110,8 +110,8 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>
    * was used to create the source MemorySegment image.</p>
    *
-   * @param srcSeg a MemorySegment with an image of a Sketch.
-   * @return a read-only Sketch backed by the given MemorySegment
+   * @param srcSeg a MemorySegment with an image of a ThetaSketch.
+   * @return a read-only ThetaSketch backed by the given MemorySegment
    */
   public static ThetaSketch wrap(final MemorySegment srcSeg) {
     return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
@@ -131,10 +131,10 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
    * <p>This method checks if the given expectedSeed
    * was used to create the source MemorySegment image.</p>
    *
-   * @param srcSeg a MemorySegment with an image of a Sketch.
+   * @param srcSeg a MemorySegment with an image of a ThetaSketch.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a read-only Sketch backed by the given MemorySegment.
+   * @return a read-only ThetaSketch backed by the given MemorySegment.
    */
   public static ThetaSketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
     checkSegPreambleCap(srcSeg);
@@ -143,45 +143,45 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
       return DirectQuickSelectSketchR.readOnlyWrap(srcSeg, expectedSeed);
     }
     if (familyID == Family.COMPACT.getID()) {
-      return CompactSketch.wrap(srcSeg, expectedSeed);
+      return CompactThetaSketch.wrap(srcSeg, expectedSeed);
     }
     final Family family = Family.idToFamily(familyID);
     throw new SketchesArgumentException(
-        "Cannot wrap family: " + family + " as a Sketch");
+        "Cannot wrap family: " + family + " as a ThetaSketch");
   }
 
-  //Sketch interface
+  //ThetaSketch interface
 
   /**
-   * Converts this sketch to a ordered CompactSketch.
+   * Converts this sketch to a ordered CompactThetaSketch.
    *
    * <p>If <i>this.isCompact() == true</i> this method returns <i>this</i>,
    * otherwise, this method is equivalent to
    * {@link #compact(boolean, MemorySegment) compact(true, null)}.
    *
-   * <p>A CompactSketch is always immutable.</p>
+   * <p>A CompactThetaSketch is always immutable.</p>
    *
-   * @return this sketch as an ordered CompactSketch.
+   * @return this sketch as an ordered CompactThetaSketch.
    */
-  public CompactSketch compact() {
-    return isCompact() ? (CompactSketch)this : compact(true, null);
+  public CompactThetaSketch compact() {
+    return isCompact() ? (CompactThetaSketch)this : compact(true, null);
   }
 
   /**
-   * Convert this sketch to a <i>CompactSketch</i>.
+   * Convert this sketch to a <i>CompactThetaSketch</i>.
    *
-   * <p>If this sketch is a type of <i>UpdateSketch</i>, the compacting process converts the hash table
-   * of the <i>UpdateSketch</i> to a simple list of the valid hash values.
+   * <p>If this sketch is a type of <i>UpdatableThetaSketch</i>, the compacting process converts the hash table
+   * of the <i>UpdatableThetaketch</i> to a simple list of the valid hash values.
    * Any hash values of zero or equal-to or greater than theta will be discarded.
-   * The number of valid values remaining in the <i>CompactSketch</i> depends on a number of factors,
+   * The number of valid values remaining in the <i>CompactThetaSketch</i> depends on a number of factors,
    * but may be larger or smaller than <i>Nominal Entries</i> (or <i>k</i>).
    * It will never exceed 2<i>k</i>.
    * If it is critical to always limit the size to no more than <i>k</i>,
-   * then <i>rebuild()</i> should be called on the <i>UpdateSketch</i> prior to calling this method.</p>
+   * then <i>rebuild()</i> should be called on the <i>UpdatableThetaSketch</i> prior to calling this method.</p>
    *
-   * <p>A <i>CompactSketch</i> is always immutable.</p>
+   * <p>A <i>CompactThetaSketch</i> is always immutable.</p>
    *
-   * <p>A new <i>CompactSketch</i> object is created:</p>
+   * <p>A new <i>CompactThetaSketch</i> object is created:</p>
    * <ul><li>if <i>dstSeg!= null</i></li>
    * <li>if <i>dstSeg == null</i> and <i>this.hasMemorySegment() == true</i></li>
    * <li>if <i>dstSeg == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
@@ -196,12 +196,12 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
    * @param dstSeg
    * <a href="{@docRoot}/resources/dictionary.html#dstSeg">See Destination MemorySegment</a>.
    *
-   * @return this sketch as a <i>CompactSketch</i>.
+   * @return this sketch as a <i>CompactThetaSketch</i>.
    */
-  public abstract CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg);
+  public abstract CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg);
 
   /**
-   * Returns the number of storage bytes required for this Sketch if its current state were
+   * Returns the number of storage bytes required for this ThetaSketch if its current state were
    * compacted. It this sketch is already in the compact form this is equivalent to
    * calling {@link #getCurrentBytes()}.
    * @return number of compact bytes
@@ -239,7 +239,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
     checkSegPreambleCap(srcSeg);
     final int familyId = extractFamilyID(srcSeg);
     if (!isValidSketchID(familyId)) {
-      throw new SketchesArgumentException("Source MemorySegment not a valid Sketch Family: "
+      throw new SketchesArgumentException("Source MemorySegment is not a valid ThetaSketch Family: "
           + Family.idToFamily(familyId).toString());
     }
     return ThetaSketch.estimate(extractThetaLong(srcSeg), getRetainedEntries(srcSeg));
@@ -266,10 +266,10 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Returns the maximum number of storage bytes required for a CompactSketch with the given
+   * Returns the maximum number of storage bytes required for a CompactThetaSketch with the given
    * number of actual entries.
    * @param numberOfEntries the actual number of retained entries stored in the sketch.
-   * @return the maximum number of storage bytes required for a CompactSketch with the given number
+   * @return the maximum number of storage bytes required for a CompactThetaSketch with the given number
    * of retained entries.
    */
   public static int getMaxCompactSketchBytes(final int numberOfEntries) {
@@ -279,10 +279,10 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Returns the maximum number of storage bytes required for a CompactSketch given the configured
+   * Returns the maximum number of storage bytes required for a CompactThetaSketch given the configured
    * log_base2 of the number of nominal entries, which is a power of 2.
    * @param lgNomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
-   * @return the maximum number of storage bytes required for a CompactSketch with the given
+   * @return the maximum number of storage bytes required for a CompactThetaSketch with the given
    * lgNomEntries.
    */
   public static int getCompactSketchMaxBytes(final int lgNomEntries) {
@@ -291,11 +291,11 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Returns the maximum number of storage bytes required for an UpdateSketch with the given
+   * Returns the maximum number of storage bytes required for an UpdatableThetaSketch with the given
    * number of nominal entries (power of 2).
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not.
-   * @return the maximum number of storage bytes required for a UpdateSketch with the given
+   * @return the maximum number of storage bytes required for a UpdatableThetaSketch with the given
    * nomEntries
    */
   public static int getMaxUpdateSketchBytes(final int nomEntries) {
@@ -304,10 +304,10 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Returns the maximum number of storage bytes required for an UpdateSketch with the given
+   * Returns the maximum number of storage bytes required for an UpdatableThetaSketch with the given
    * log_base2 of the nominal entries.
    * @param lgNomEntries log_base2 of <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
-   * @return the maximum number of storage bytes required for a UpdateSketch with the given lgNomEntries
+   * @return the maximum number of storage bytes required for a UpdatableThetaSketch with the given lgNomEntries
    */
   public static int getUpdateSketchMaxBytes(final int lgNomEntries) {
     return (16 << lgNomEntries) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
@@ -315,7 +315,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
 
   /**
    * Returns the number of valid entries that have been retained by the sketch.
-   * For the Alpha Sketch this returns only valid entries.
+   * For the AlphaSketch this returns only valid entries.
    * @return the number of valid retained entries.
    */
   public int getRetainedEntries() {
@@ -324,7 +324,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
 
   /**
    * Returns the number of entries that have been retained by the sketch.
-   * @param valid This parameter is only relevant for the Alpha Sketch.
+   * @param valid This parameter is only relevant for the AlphaSketch.
    * if true, returns the number of valid entries, which are less than theta and used
    * for estimation. Otherwise, return the number of all entries, valid or not, that are currently in the
    * internal sketch cache.
@@ -334,7 +334,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
 
   /**
    * Returns the number of valid entries that have been retained by the sketch from the given MemorySegment
-   * @param srcSeg the given MemorySegment that has an image of a Sketch
+   * @param srcSeg the given MemorySegment that has an image of a ThetaSketch
    * @return the number of valid retained entries
    */
   public static int getRetainedEntries(final MemorySegment srcSeg) {
@@ -425,7 +425,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   /**
    * Returns a human readable summary of the sketch.  This method is equivalent to the parameterized
    * call:<br>
-   * <i>Sketch.toString(sketch, true, false, 8, true);</i>
+   * <i>ThetaSketch.toString(ThetaSketch, true, false, 8, true);</i>
    * @return summary
    */
   @Override
@@ -455,13 +455,13 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
     int arrLongs = 0;
     float p = 0;
     int rf = 0;
-    final boolean updateSketch = this instanceof UpdateSketch;
+    final boolean updateSketch = this instanceof UpdatableThetaSketch;
 
     final long thetaLong = getThetaLong();
     final int curCount = this.getRetainedEntries(true);
 
     if (updateSketch) {
-      final UpdateSketch uis = (UpdateSketch)this;
+      final UpdatableThetaSketch uis = (UpdatableThetaSketch)this;
       nomLongs = 1 << uis.getLgNomLongs();
       arrLongs = 1 << uis.getLgArrLongs();
       p = uis.getP();
@@ -528,18 +528,18 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Returns a human readable string of the preamble of a byte array image of a Theta Sketch.
+   * Returns a human readable string of the preamble of a byte array image of a ThetaSketch.
    * @param byteArr the given byte array
-   * @return a human readable string of the preamble of a byte array image of a Theta Sketch.
+   * @return a human readable string of the preamble of a byte array image of a ThetaSketch.
    */
   public static String toString(final byte[] byteArr) {
     return PreambleUtil.preambleToString(byteArr);
   }
 
   /**
-   * Returns a human readable string of the preamble of a MemorySegment image of a Theta Sketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of a ThetaSketch.
    * @param seg the given MemorySegment object
-   * @return a human readable string of the preamble of a MemorySegment image of a Theta Sketch.
+   * @return a human readable string of the preamble of a MemorySegment image of a ThetaSketch.
    */
   public static String toString(final MemorySegment seg) {
     return PreambleUtil.preambleToString(seg);
@@ -623,7 +623,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Gets the approximate lower error bound from a valid MemorySegment image of a Sketch
+   * Gets the approximate lower error bound from a valid MemorySegment image of a ThetaSketch
    * given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
    *
@@ -642,7 +642,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Gets the approximate upper error bound from a valid MemorySegment image of a Sketch
+   * Gets the approximate upper error bound from a valid MemorySegment image of a ThetaSketch
    * given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
    *
@@ -662,11 +662,11 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   }
 
   /**
-   * Instantiates a Heap Update Sketch from MemorySegment.
+   * Instantiates a Heap UpdatableThetaSketch from MemorySegment.
    * @param srcSeg the source MemorySegment
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a Sketch
+   * @return a ThetaSketch
    */
   private static final ThetaSketch heapifyUpdateSketchFromMemorySegment(final MemorySegment srcSeg, final long expectedSeed) {
     final Family family = idToFamily(extractFamilyID(srcSeg));
@@ -684,7 +684,7 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
       return HeapQuickSelectSketch.heapifyInstance(srcSeg, expectedSeed);
     }
     throw new SketchesArgumentException(
-        "Sketch cannot heapify family: " + family + " as a Sketch");
+        "Cannot heapify family: " + family + " as a ThetaSketch");
   }
 
 }

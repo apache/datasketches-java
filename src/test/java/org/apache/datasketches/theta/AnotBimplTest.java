@@ -40,8 +40,8 @@ public class AnotBimplTest {
   public void checkExactAnotB_AvalidNoOverlap() {
     final int k = 512;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k/2; i++) {
       usk1.update(i);
@@ -50,7 +50,7 @@ public class AnotBimplTest {
       usk2.update(i);
     }
 
-    final AnotB aNb = SetOperation.builder().buildANotB();
+    final ThetaAnotB aNb = ThetaSetOperation.builder().buildANotB();
     assertTrue(aNb.isEmpty());  //only applies to stateful
     assertTrue(aNb.getCache().length == 0); //only applies to stateful
     assertEquals(aNb.getThetaLong(), Long.MAX_VALUE); //only applies to stateful
@@ -60,7 +60,7 @@ public class AnotBimplTest {
     aNb.notB(usk2);
     assertEquals(aNb.getRetainedEntries(), k/2);
 
-    CompactSketch rsk1;
+    CompactThetaSketch rsk1;
 
     rsk1 = aNb.getResult(false, null, true); //not ordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
@@ -87,30 +87,30 @@ public class AnotBimplTest {
   @Test
   public void checkCombinations() {
     final int k = 512;
-    final UpdateSketch aNull = null;
-    final UpdateSketch bNull = null;
-    final UpdateSketch aEmpty = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch bEmpty = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch aNull = null;
+    final UpdatableThetaSketch bNull = null;
+    final UpdatableThetaSketch aEmpty = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch bEmpty = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
-    final UpdateSketch aHT = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch aHT = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       aHT.update(i);
     }
-    final CompactSketch aC = aHT.compact(false, null);
-    final CompactSketch aO = aHT.compact(true,  null);
+    final CompactThetaSketch aC = aHT.compact(false, null);
+    final CompactThetaSketch aO = aHT.compact(true,  null);
 
-    final UpdateSketch bHT = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch bHT = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<k+k/2; i++) {
       bHT.update(i); //overlap is k/2
     }
-    final CompactSketch bC = bHT.compact(false, null);
-    final CompactSketch bO = bHT.compact(true,  null);
+    final CompactThetaSketch bC = bHT.compact(false, null);
+    final CompactThetaSketch bO = bHT.compact(true,  null);
 
-    CompactSketch result;
-    AnotB aNb;
+    CompactThetaSketch result;
+    ThetaAnotB aNb;
     final boolean ordered = true;
 
-    aNb = SetOperation.builder().buildANotB();
+    aNb = ThetaSetOperation.builder().buildANotB();
 
     try { aNb.setA(aNull); fail();} catch (final SketchesArgumentException e) {}
 
@@ -206,23 +206,23 @@ public class AnotBimplTest {
     final int k = 1024;
     final boolean ordered = true;
 
-    final UpdateSketch aU = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch aU = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { aU.update(i); }  //All 1024
 
-    final UpdateSketch bU = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch bU = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k/2; i++) { bU.update(i); } //first 512
 
-    final UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch cU = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { cU.update(i); } //third 256
 
     final int segBytes = ThetaSketch.getMaxUpdateSketchBytes(k);
-    CompactSketch result1, result2, result3;
+    CompactThetaSketch result1, result2, result3;
 
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[segBytes]);
     final MemorySegment wseg2 = MemorySegment.ofArray(new byte[segBytes]);
     final MemorySegment wseg3 = MemorySegment.ofArray(new byte[segBytes]);
 
-    final AnotB aNb = SetOperation.builder().buildANotB();
+    final ThetaAnotB aNb = ThetaSetOperation.builder().buildANotB();
 
     //Note: stateful and stateless operations can be interleaved, they are independent.
 
@@ -250,20 +250,20 @@ public class AnotBimplTest {
     final int k = 1024;
     final boolean ordered = true;
 
-    final UpdateSketch a = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch a = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { a.update(i); }       //All 1024
 
-    final UpdateSketch b = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch b = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k/2; i++) { b.update(i); }     //first 512
 
-    final UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch c = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=k/2; i<3*k/4; i++) { c.update(i); }  //third 256
 
     final int segBytes = ThetaSketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
     final MemorySegment seg = MemorySegment.ofArray(new byte[segBytes]);
 
-    CompactSketch result1, result2;
-    final AnotB aNb = SetOperation.builder().buildANotB();
+    CompactThetaSketch result1, result2;
+    final ThetaAnotB aNb = ThetaSetOperation.builder().buildANotB();
 
     //Note: stateful and stateless operations can be interleaved, they are independent.
 
@@ -289,32 +289,32 @@ public class AnotBimplTest {
 
   @Test
   public void checkAnotBsimple() {
-    final UpdateSketch skA = UpdateSketch.builder().build();
-    final UpdateSketch skB =UpdateSketch.builder().build();
-    final AnotB aNotB = SetOperation.builder().buildANotB();
-    final CompactSketch csk = aNotB.aNotB(skA, skB);
+    final UpdatableThetaSketch skA = UpdatableThetaSketch.builder().build();
+    final UpdatableThetaSketch skB =UpdatableThetaSketch.builder().build();
+    final ThetaAnotB aNotB = ThetaSetOperation.builder().buildANotB();
+    final CompactThetaSketch csk = aNotB.aNotB(skA, skB);
     assertEquals(csk.getCurrentBytes(), 8);
   }
 
   @Test
   public void checkGetResult() {
-    final UpdateSketch skA = UpdateSketch.builder().build();
-    final UpdateSketch skB = UpdateSketch.builder().build();
-    final AnotB aNotB = SetOperation.builder().buildANotB();
-    final CompactSketch csk = aNotB.aNotB(skA, skB);
+    final UpdatableThetaSketch skA = UpdatableThetaSketch.builder().build();
+    final UpdatableThetaSketch skB = UpdatableThetaSketch.builder().build();
+    final ThetaAnotB aNotB = ThetaSetOperation.builder().buildANotB();
+    final CompactThetaSketch csk = aNotB.aNotB(skA, skB);
     assertEquals(csk.getCurrentBytes(), 8);
   }
 
   @Test
   public void checkGetFamily() {
     //cheap trick
-    final AnotBimpl anotb = new AnotBimpl(Util.DEFAULT_UPDATE_SEED);
+    final ThetaAnotBimpl anotb = new ThetaAnotBimpl(Util.DEFAULT_UPDATE_SEED);
     assertEquals(anotb.getFamily(), Family.A_NOT_B);
   }
 
   @Test
   public void checkGetMaxBytes() {
-    final int bytes = SetOperation.getMaxAnotBResultBytes(10);
+    final int bytes = ThetaSetOperation.getMaxAnotBResultBytes(10);
     assertEquals(bytes, 16 * 15 + 24);
   }
 

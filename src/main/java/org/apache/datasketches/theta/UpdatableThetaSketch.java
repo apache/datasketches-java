@@ -50,16 +50,16 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * The parent class for the  Update Sketch families, such as QuickSelect and Alpha.
- * The primary task of an Update Sketch is to consider datums presented via the update() methods
+ * The parent class for the  UpdatableThetaSketch families, such as QuickSelectThetaSketch and AlphaSketch.
+ * The primary task of an UpdatableThetaSketch is to consider datums presented via the update() methods
  * for inclusion in its internal cache. This is the sketch building process.
  *
  * @author Lee Rhodes
  */
-public abstract class UpdateSketch extends ThetaSketch {
+public abstract class UpdatableThetaSketch extends ThetaSketch {
   private final long seed_;
 
-  UpdateSketch(final long seed) {
+  UpdatableThetaSketch(final long seed) {
     seed_ = seed; //kept only on heap, never serialized. Hoisted here for performance.
   }
 
@@ -71,12 +71,12 @@ public abstract class UpdateSketch extends ThetaSketch {
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcWSeg an image of a writable sketch where the image seed hash matches the default seed hash.
   * It must have a size of at least 24 bytes.
-  * @return an UpdateSketch backed by the given MemorySegment
+  * @return an UpdatableThetaSketch backed by the given MemorySegment
   * @throws SketchesArgumentException if the provided MemorySegment
   * is invalid, corrupted, or incompatible with this sketch type.
   * Callers must treat this as a fatal error for that segment.
   */
-  public static UpdateSketch wrap(final MemorySegment srcWSeg) {
+  public static UpdatableThetaSketch wrap(final MemorySegment srcWSeg) {
     return wrap(srcWSeg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
@@ -92,12 +92,12 @@ public abstract class UpdateSketch extends ThetaSketch {
   * @param expectedSeed the seed used to validate the given MemorySegment image.
   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-  * @return a UpdateSketch backed by the given MemorySegment
+  * @return a UpdatableThetaSketch backed by the given MemorySegment
   * @throws SketchesArgumentException if the provided MemorySegment
   * is invalid, corrupted, or incompatible with this sketch type.
   * Callers must treat this as a fatal error for that segment.
   */
-  public static UpdateSketch wrap(
+  public static UpdatableThetaSketch wrap(
       final MemorySegment srcWSeg,
       final MemorySegmentRequest mSegReq,
       final long expectedSeed) {
@@ -108,42 +108,42 @@ public abstract class UpdateSketch extends ThetaSketch {
     if (familyID != Family.QUICKSELECT.getID()) {
       final Family family = Family.idToFamily(familyID);
       throw new SketchesArgumentException(
-        "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
+        "A " + family + " sketch cannot be wrapped as an UpdatableThetaSketch.");
     }
     if (serVer == 3 && preLongs == 3) {
       return DirectQuickSelectSketch.writableWrap(srcWSeg, mSegReq, expectedSeed);
     } else {
       throw new SketchesArgumentException(
-        "Corrupted: An UpdateSketch image must have SerVer = 3 and preLongs = 3");
+        "Corrupted: An UpdatableThetaSketch image must have SerVer = 3 and preLongs = 3");
     }
   }
 
   /**
-   * Instantiates an on-heap UpdateSketch from a MemorySegment. This method assumes the
+   * Instantiates an on-heap UpdatableThetaSketch from a MemorySegment. This method assumes the
    * {@link org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}.
    * @param srcSeg the given MemorySegment with a sketch image.
    * It must have a size of at least 24 bytes.
-   * @return an UpdateSketch
+   * @return an UpdatableThetaSketch
    * @throws SketchesArgumentException if the provided MemorySegment
    * is invalid, corrupted, or incompatible with this sketch type.
    * Callers must treat this as a fatal error for that segment.
    */
-  public static UpdateSketch heapify(final MemorySegment srcSeg) {
+  public static UpdatableThetaSketch heapify(final MemorySegment srcSeg) {
     return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Instantiates an on-heap UpdateSketch from a MemorySegment.
+   * Instantiates an on-heap UpdatableThetaSketch from a MemorySegment.
    * @param srcSeg the given MemorySegment.
    * It must have a size of at least 24 bytes.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return an UpdateSketch
+   * @return an UpdatableThetaSketch
    * @throws SketchesArgumentException if the provided MemorySegment
    * is invalid, corrupted, or incompatible with this sketch type.
    * Callers must treat this as a fatal error for that segment.
    */
-  public static UpdateSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
+  public static UpdatableThetaSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
     Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
     checkSegPreambleCap(srcSeg);
     final int familyID = extractFamilyID(srcSeg);
@@ -153,10 +153,10 @@ public abstract class UpdateSketch extends ThetaSketch {
     return HeapQuickSelectSketch.heapifyInstance(srcSeg, expectedSeed);
   }
 
-  //Sketch interface
+  //ThetaSketch interface
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstWSeg) {
     return componentsToCompact(
         getThetaLong(),
         getRetainedEntries(true),
@@ -206,7 +206,7 @@ public abstract class UpdateSketch extends ThetaSketch {
     return this instanceof final DirectQuickSelectSketchR dqssr && dqssr.isSameResource(that);
   }
 
-  //UpdateSketch interface
+  //UpdatableThetaSketch interface
 
   /**
    * Returns a new builder
@@ -245,7 +245,7 @@ public abstract class UpdateSketch extends ThetaSketch {
    * to nominal entries.
    * @return this sketch
    */
-  public abstract UpdateSketch rebuild();
+  public abstract UpdatableThetaSketch rebuild();
 
   /**
    * Present this sketch with a long.

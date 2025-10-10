@@ -563,7 +563,7 @@ public final class AnotB<S extends Summary> {
     try { hashCacheB = (long[])GET_CACHE.invoke(skB);
     } catch (final Exception e) { throw new SketchesStateException("Reflection Exception " + e); }
 
-    if (skB instanceof org.apache.datasketches.theta.CompactSketch) {
+    if (skB instanceof org.apache.datasketches.theta.CompactThetaSketch) {
       final int countB = skB.getRetainedEntries(true);
       hashTableB = convertToHashTable(hashCacheB, countB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {

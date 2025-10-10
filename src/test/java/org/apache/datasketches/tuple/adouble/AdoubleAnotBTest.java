@@ -24,7 +24,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
@@ -154,7 +154,7 @@ public class AdoubleAnotBTest {
     return new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
   }
 
-  private static UpdateSketch buildUpdateTheta() {
+  private static UpdatableThetaSketch buildUpdateTheta() {
     return new UpdateSketchBuilder().build();
   }
 
@@ -168,7 +168,7 @@ public class AdoubleAnotBTest {
     results.set(0, true, 0.0, 0.0, 0.0).check(result);
 
     final UpdatableSketch<Double, DoubleSummary> sketch = buildUpdatableTuple();
-    final UpdateSketch skTheta = buildUpdateTheta();
+    final UpdatableThetaSketch skTheta = buildUpdateTheta();
 
     threeMethodsWithTheta(aNotB, null, null, null, results);
     threeMethodsWithTheta(aNotB, sketch, null, null, results);
@@ -199,7 +199,7 @@ public class AdoubleAnotBTest {
     final UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
     sketchB.update(1, 1.0);
     sketchB.update(2, 1.0);
-    final UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdatableThetaSketch skThetaB = buildUpdateTheta();
     skThetaB.update(1);
     skThetaB.update(2);
 
@@ -214,7 +214,7 @@ public class AdoubleAnotBTest {
     sketchA.update(1, 1.0);
     sketchA.update(2, 1.0);
     final UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
-    final UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdatableThetaSketch skThetaB = buildUpdateTheta();
 
     final AnotB<DoubleSummary> aNotB = new AnotB<>();
     results.set(2, false, 2.0, 0.0, 1.0);
@@ -238,7 +238,7 @@ public class AdoubleAnotBTest {
     sketchB.update(3, 1.0);
     sketchB.update(3, 1.0);
 
-    final UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdatableThetaSketch skThetaB = buildUpdateTheta();
     skThetaB.update(2);
     skThetaB.update(3);
 
@@ -259,7 +259,7 @@ public class AdoubleAnotBTest {
       sketchB.update(i, 1.0);
     }
 
-    final UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdatableThetaSketch skThetaB = buildUpdateTheta();
     for (int i = 0; i < 4096; i++) {
       skThetaB.update(i);
     }
@@ -284,7 +284,7 @@ public class AdoubleAnotBTest {
       sketchB.update(i + 8000, 1.0);
     }
 
-    final UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdatableThetaSketch skThetaB = buildUpdateTheta();
     for (int i = 0; i < 100_000; i++) {
       skThetaB.update(i + 8000);
     }

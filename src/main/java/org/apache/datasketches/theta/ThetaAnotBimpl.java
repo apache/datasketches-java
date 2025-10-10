@@ -38,7 +38,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class AnotBimpl extends AnotB {
+final class ThetaAnotBimpl extends ThetaAnotB {
   private final short seedHash_;
   private boolean empty_;
   private long thetaLong_;
@@ -46,20 +46,20 @@ final class AnotBimpl extends AnotB {
   private int curCount_;
 
   /**
-   * Construct a new AnotB SetOperation on the java heap.  Called by SetOperation.Builder.
+   * Construct a new ThetaAnotB on the java heap.  Called by ThetaSetOperationBuilder.
    *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
-  AnotBimpl(final long seed) {
+  ThetaAnotBimpl(final long seed) {
     this(Util.computeSeedHash(seed));
   }
 
   /**
-   * Construct a new AnotB SetOperation on the java heap.
+   * Construct a new ThetaAnotB on the java heap.
    *
    * @param seedHash 16 bit hash of the chosen update seed.
    */
-  private AnotBimpl(final short seedHash) {
+  private ThetaAnotBimpl(final short seedHash) {
     seedHash_ = seedHash;
     reset();
   }
@@ -99,21 +99,21 @@ final class AnotBimpl extends AnotB {
   }
 
   @Override
-  public CompactSketch getResult(final boolean reset) {
+  public CompactThetaSketch getResult(final boolean reset) {
     return getResult(true, null, reset);
   }
 
   @Override
-  public CompactSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg,
+  public CompactThetaSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg,
       final boolean reset) {
-    final CompactSketch result = CompactOperations.componentsToCompact(
+    final CompactThetaSketch result = CompactOperations.componentsToCompact(
       thetaLong_, curCount_, seedHash_, empty_, true, false, dstOrdered, dstSeg, hashArr_.clone());
     if (reset) { reset(); }
     return result;
   }
 
   @Override
-  public CompactSketch aNotB(final ThetaSketch skA, final ThetaSketch skB, final boolean dstOrdered,
+  public CompactThetaSketch aNotB(final ThetaSketch skA, final ThetaSketch skB, final boolean dstOrdered,
       final MemorySegment dstSeg) {
     if ((skA == null) || (skB == null)) {
       throw new SketchesArgumentException("Neither argument may be null");
@@ -154,7 +154,7 @@ final class AnotBimpl extends AnotB {
 
   private static long[] getHashArrA(final ThetaSketch skA) { //returns a new array
     //Get skA cache as array
-    final CompactSketch cskA = skA.compact(false, null); //sorting not required
+    final CompactThetaSketch cskA = skA.compact(false, null); //sorting not required
     return cskA.getCache().clone();
   }
 
@@ -166,7 +166,7 @@ final class AnotBimpl extends AnotB {
 
     // Rebuild or get hashtable of skB
     final long[] hashTableB; //read only
-    if (skB instanceof CompactSketch) {
+    if (skB instanceof CompactThetaSketch) {
       hashTableB = convertToHashTable(skB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {
       hashTableB = skB.getCache();

@@ -23,7 +23,7 @@ import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.theta.HeapUnionTest.testAllCompactForms;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.SetOperation.getMaxUnionBytes;
+import static org.apache.datasketches.theta.ThetaSetOperation.getMaxUnionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -47,8 +47,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //256
@@ -60,10 +60,10 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1); //update with heap UpdateSketch
-    union.union(usk2); //update with heap UpdateSketch
+    union.union(usk1); //update with heap UpdatableThetaSketch
+    union.union(usk2); //update with heap UpdatableThetaSketch
 
     testAllCompactForms(union, u, 0.0);
   }
@@ -74,8 +74,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = 4*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //2*k
@@ -85,10 +85,10 @@ public class DirectUnionTest {
     }
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1); //update with heap UpdateSketch
-    union.union(usk2); //update with heap UpdateSketch
+    union.union(usk1); //update with heap UpdatableThetaSketch
+    union.union(usk2); //update with heap UpdatableThetaSketch
 
     testAllCompactForms(union, u, 0.05);
   }
@@ -99,8 +99,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //256
@@ -112,10 +112,10 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate()/2, 0.0); //exact, overlapped
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1); //update with heap UpdateSketch
-    union.union(usk2); //update with heap UpdateSketch
+    union.union(usk1); //update with heap UpdatableThetaSketch
+    union.union(usk2); //update with heap UpdatableThetaSketch
 
     testAllCompactForms(union, u, 0.0);
   }
@@ -126,8 +126,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //256
@@ -139,14 +139,14 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1); //update with heap UpdateSketch
-    union.union(usk2); //update with heap UpdateSketch
+    union.union(usk1); //update with heap UpdatableThetaSketch
+    union.union(usk2); //update with heap UpdatableThetaSketch
 
     testAllCompactForms(union, u, 0.0);
 
-    final Union union2 = (Union)SetOperation.heapify(MemorySegment.ofArray(union.toByteArray()));
+    final ThetaUnion union2 = (ThetaUnion)ThetaSetOperation.heapify(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.0);
   }
@@ -158,8 +158,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //256
@@ -171,14 +171,14 @@ public class DirectUnionTest {
     assertEquals(u, usk1.getEstimate() + usk2.getEstimate(), 0.0); //exact, no overlap
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1); //update with heap UpdateSketch
-    union.union(usk2); //update with heap UpdateSketch
+    union.union(usk1); //update with heap UpdatableThetaSketch
+    union.union(usk2); //update with heap UpdatableThetaSketch
 
     testAllCompactForms(union, u, 0.0);
 
-    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
+    final ThetaUnion union2 = ThetaUnion.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.0);
   }
@@ -189,8 +189,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = 4*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();   //2k estimating
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(2 * k).build(); //2k exact
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //2k
@@ -200,14 +200,14 @@ public class DirectUnionTest {
     }
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1); //update with heap UpdateSketch
-    union.union(usk2); //update with heap UpdateSketch, early stop not possible
+    union.union(usk1); //update with heap UpdatableThetaSketch
+    union.union(usk2); //update with heap UpdatableThetaSketch, early stop not possible
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
+    final ThetaUnion union2 = ThetaUnion.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
   }
@@ -218,8 +218,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = 4*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();   //2k estimating
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //2k estimating
@@ -228,22 +228,22 @@ public class DirectUnionTest {
       usk2.update(i); //2k no overlap, exact, will force early stop
     }
 
-    final CompactSketch cosk2 = usk2.compact(true, null);
+    final CompactThetaSketch cosk2 = usk2.compact(true, null);
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1);  //update with heap UpdateSketch
+    union.union(usk1);  //update with heap UpdatableThetaSketch
     union.union(cosk2); //update with heap Compact, Ordered input, early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch emptySketch = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     union.union(emptySketch); //updates with empty
     emptySketch = null;
     union.union(emptySketch); //updates with null
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
+    final ThetaUnion union2 = ThetaUnion.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -257,8 +257,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = 4*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build(); //2k estimating
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build(); //2k estimating
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i); //2k estimating
@@ -268,22 +268,22 @@ public class DirectUnionTest {
     }
 
     final MemorySegment cskSeg2 = MemorySegment.ofArray(new byte[usk2.getCompactBytes()]);
-    final CompactSketch cosk2 = usk2.compact(true, cskSeg2); //ordered, loads the cskSeg2 as ordered
+    final CompactThetaSketch cosk2 = usk2.compact(true, cskSeg2); //ordered, loads the cskSeg2 as ordered
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1);      //updates with heap UpdateSketch
-    union.union(cosk2);     //updates with direct CompactSketch, ordered, use early stop
+    union.union(usk1);      //updates with heap UpdatableThetaSketch
+    union.union(cosk2);     //updates with direct CompactThetaSketch, ordered, use early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch emptySketch = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     union.union(emptySketch); //updates with empty sketch
     emptySketch = null;
     union.union(emptySketch); //updates with null sketch
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
+    final ThetaUnion union2 = ThetaUnion.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -297,8 +297,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = 4*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();   //2k estimating
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i);  //2k estimating
@@ -311,19 +311,19 @@ public class DirectUnionTest {
     usk2.compact(true, cskSeg2); //ordered, loads the cskSeg2 as ordered
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1);        //updates with heap UpdateSketch
-    union.union(cskSeg2);     //updates with direct CompactSketch, ordered, use early stop
+    union.union(usk1);        //updates with heap UpdatableThetaSketch
+    union.union(cskSeg2);     //updates with direct CompactThetaSketch, ordered, use early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch emptySketch = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     union.union(emptySketch); //updates with empty sketch
     emptySketch = null;
     union.union(emptySketch); //updates with null sketch
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
+    final ThetaUnion union2 = ThetaUnion.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -337,8 +337,8 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = 4*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();   //2k estimating
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
     for (int i=0; i<u/2; i++) {
       usk1.update(i);  //2k estimating
@@ -351,19 +351,19 @@ public class DirectUnionTest {
     usk2.compact(false, cskSeg2); //unordered, loads the cskSeg2 as unordered
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1);        //updates with heap UpdateSketch
-    union.union(cskSeg2);     //updates with direct CompactSketch, ordered, use early stop
+    union.union(usk1);        //updates with heap UpdatableThetaSketch
+    union.union(cskSeg2);     //updates with direct CompactThetaSketch, ordered, use early stop
 
-    UpdateSketch emptySketch = UpdateSketch.builder().setNominalEntries(k).build();
+    UpdatableThetaSketch emptySketch = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     union.union(emptySketch); //updates with empty sketch
     emptySketch = null;
     union.union(emptySketch); //updates with null sketch
 
     testAllCompactForms(union, u, 0.05);
 
-    final Union union2 = Union.wrap(MemorySegment.ofArray(union.toByteArray()));
+    final ThetaUnion union2 = ThetaUnion.wrap(MemorySegment.ofArray(union.toByteArray()));
 
     testAllCompactForms(union2, u, 0.05);
 
@@ -376,10 +376,10 @@ public class DirectUnionTest {
     final int lgK = 13; //8192
     final int k = 1 << lgK;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk3 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk4 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk3 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk4 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     int v=0;
     int u = 1000000;
@@ -402,14 +402,14 @@ public class DirectUnionTest {
     v += u;
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
-    union.union(usk1); //updates with heap UpdateSketch
-    union.union(usk2); //updates with heap UpdateSketch
-    union.union(usk3); //updates with heap UpdateSketch
-    union.union(usk4); //updates with heap UpdateSketch
+    union.union(usk1); //updates with heap UpdatableThetaSketch
+    union.union(usk2); //updates with heap UpdatableThetaSketch
+    union.union(usk3); //updates with heap UpdatableThetaSketch
+    union.union(usk4); //updates with heap UpdatableThetaSketch
 
-    final CompactSketch csk = union.getResult(true, null);
+    final CompactThetaSketch csk = union.getResult(true, null);
     final double est = csk.getEstimate();
     assertEquals(est, v, .01*v);
   }
@@ -422,8 +422,8 @@ public class DirectUnionTest {
     final int u2 = 1024; //smaller exact sketch forces early stop
     final int totU = u1+u2;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u1; i++) {
       usk1.update(i); //2*k
@@ -435,16 +435,16 @@ public class DirectUnionTest {
     final MemorySegment skSeg1 = MemorySegment.ofArray(usk1.compact(false, null).toByteArray()).asReadOnly();
     final MemorySegment skSeg2 = MemorySegment.ofArray(usk2.compact(true, null).toByteArray()).asReadOnly();
 
-    final CompactSketch csk1 = (CompactSketch)ThetaSketch.wrap(skSeg1);
-    final CompactSketch csk2 = (CompactSketch)ThetaSketch.wrap(skSeg2);
+    final CompactThetaSketch csk1 = (CompactThetaSketch)ThetaSketch.wrap(skSeg1);
+    final CompactThetaSketch csk2 = (CompactThetaSketch)ThetaSketch.wrap(skSeg2);
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
     union.union(csk1);
     union.union(csk2);
 
-    final CompactSketch cOut = union.getResult(true, null);
+    final CompactThetaSketch cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), totU, .05*k);
   }
 
@@ -454,16 +454,16 @@ public class DirectUnionTest {
     final int k = 1 << lgK;
     final int u = 2*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++)
      {
       usk1.update(i); //force prelongs to 3
     }
-    final CompactSketch usk1c = usk1.compact(true, null);
+    final CompactThetaSketch usk1c = usk1.compact(true, null);
     final MemorySegment v3seg1 = MemorySegment.ofArray(usk1c.toByteArray());
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
     union.union(v3seg1);
   }
 
@@ -472,16 +472,16 @@ public class DirectUnionTest {
     final int lgK = 12; //4096
     final int k = 1 << lgK;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     usk1.update(1);
     usk1.update(2);
-    final CompactSketch usk1c = usk1.compact(true, null);
+    final CompactThetaSketch usk1c = usk1.compact(true, null);
     final MemorySegment v3seg1 = MemorySegment.ofArray(usk1c.toByteArray());
     //corrupt SerVer
     v3seg1.set(JAVA_BYTE, SER_VER_BYTE, (byte)0);
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
     union.union(v3seg1);
   }
@@ -491,23 +491,23 @@ public class DirectUnionTest {
   public void checkDirectWrap() {
     final int nomEntries = 16;
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(nomEntries)]);
-    SetOperation.builder().setNominalEntries(nomEntries).buildUnion(uSeg);
+    ThetaSetOperation.builder().setNominalEntries(nomEntries).buildUnion(uSeg);
 
-    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(nomEntries).build();
+    final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(nomEntries).build();
     sk1.update("a");
     sk1.update("b");
 
-    final UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(nomEntries).build();
+    final UpdatableThetaSketch sk2 = UpdatableThetaSketch.builder().setNominalEntries(nomEntries).build();
     sk2.update("c");
     sk2.update("d");
 
-    Union union = Union.wrap(uSeg);
+    ThetaUnion union = ThetaUnion.wrap(uSeg);
     union.union(sk1);
 
-    union = Union.wrap(uSeg);
+    union = ThetaUnion.wrap(uSeg);
     union.union(sk2);
 
-    final CompactSketch sketch = union.getResult(true, null);
+    final CompactThetaSketch sketch = union.getResult(true, null);
     assertEquals(4.0, sketch.getEstimate(), 0.0);
   }
 
@@ -516,10 +516,10 @@ public class DirectUnionTest {
     final int k = 64;
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
     final MemorySegment seg = MemorySegment.ofArray(new byte[ThetaSketch.getMaxCompactSketchBytes(0)]);
-    final CompactSketch csk = union.getResult(false, seg); //DirectCompactSketch
+    final CompactThetaSketch csk = union.getResult(false, seg); //DirectCompactSketch
     assertTrue(csk.isEmpty());
   }
 
@@ -528,10 +528,10 @@ public class DirectUnionTest {
     final int k = 64;
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
     final MemorySegment seg = MemorySegment.ofArray(new byte[ThetaSketch.getMaxCompactSketchBytes(0)]);
-    final CompactSketch csk = union.getResult(true, seg); //DirectCompactSketch
+    final CompactThetaSketch csk = union.getResult(true, seg); //DirectCompactSketch
     assertTrue(csk.isEmpty());
   }
 
@@ -540,21 +540,21 @@ public class DirectUnionTest {
     final int k = 64;
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]); //union segment
-    SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
   }
 
   @Test
   public void checkGetResult() {
     final int k = 1024;
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
 
     final int segBytes = getMaxUnionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(iSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(iSeg);
     union.union(sk);
-    final CompactSketch csk = union.getResult();
+    final CompactThetaSketch csk = union.getResult();
     assertEquals(csk.getCompactBytes(), 8);
   }
 
@@ -562,7 +562,7 @@ public class DirectUnionTest {
   public void checkPrimitiveUpdates() {
     final int k = 32;
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
 
     union.update(1L);
     union.update(1.5); //#1 double
@@ -594,7 +594,7 @@ public class DirectUnionTest {
     union.update(longArr); //empty long[]
     final long[] longArr2 = { 6, 7, 8, 9 };
     union.update(longArr2); //#6 actual long[]
-    final CompactSketch comp = union.getResult();
+    final CompactThetaSketch comp = union.getResult();
     final double est = comp.getEstimate();
     final boolean empty = comp.isEmpty();
     assertEquals(est, 8.0, 0.0);
@@ -605,7 +605,7 @@ public class DirectUnionTest {
   public void checkGetFamily() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 +32]);
-    final SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
+    final ThetaSetOperation setOp = new ThetaSetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
     assertEquals(setOp.getFamily(), Family.UNION);
   }
 
@@ -614,7 +614,7 @@ public class DirectUnionTest {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 +32]);
 
-    final SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
+    final ThetaSetOperation setOp = new ThetaSetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
     println(setOp.toString());
     final int familyID = PreambleUtil.extractFamilyID(seg);
     final int preLongs = ThetaSketch.getPreambleLongs(seg);
@@ -628,7 +628,7 @@ public class DirectUnionTest {
   public void checkSizeTooSmall() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 +32]); //initialized
-    final SetOperation setOp = new SetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
+    final ThetaSetOperation setOp = new ThetaSetOperationBuilder().setNominalEntries(k).build(Family.UNION, seg);
     println(setOp.toString());
     final MemorySegment seg2 = MemorySegment.ofArray(new byte[32]); //for just preamble
     MemorySegment.copy(seg, 0, seg2, 0, 32); //too small
@@ -638,7 +638,7 @@ public class DirectUnionTest {
   @Test
   public void checkForDruidBug() {
     final int k = 16384;
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < 100000; i++) {
       usk.update(Integer.toString(i));
     }
@@ -648,11 +648,11 @@ public class DirectUnionTest {
 
     //create empty target union in off-heap segment
     final MemorySegment seg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union1 = SetOperation.builder().setNominalEntries(k).buildUnion(seg);
+    final ThetaUnion union1 = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(seg);
 
     union1.union(s);
 
-    final CompactSketch csk = union1.getResult();
+    final CompactThetaSketch csk = union1.getResult();
 
     assertTrue(csk.getTheta() < 0.2);
     assertEquals(csk.getRetainedEntries(true), 16384);
@@ -664,7 +664,7 @@ public class DirectUnionTest {
   @Test
   public void checkForDruidBug2() { //update union with just sketch segment reference
     final int k = 16384;
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < 100000; i++) {
       usk.update(Integer.toString(i));
     }
@@ -674,11 +674,11 @@ public class DirectUnionTest {
 
     //create empty target union in off-heap segment
     final MemorySegment seg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union1 = SetOperation.builder().setNominalEntries(k).buildUnion(seg);
+    final ThetaUnion union1 = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(seg);
 
     union1.union(segIn);
 
-    final CompactSketch csk = union1.getResult();
+    final CompactThetaSketch csk = union1.getResult();
 
     assertTrue(csk.getTheta() < 0.2);
     assertEquals(csk.getRetainedEntries(true), 16384);

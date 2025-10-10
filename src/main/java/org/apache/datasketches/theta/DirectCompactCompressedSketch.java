@@ -49,7 +49,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
   }
 
   /**
-   * Wraps the given MemorySegment, which must be a SerVer 4 compressed CompactSketch image.
+   * Wraps the given MemorySegment, which must be a SerVer 4 compressed CompactThetaSketch image.
    * Must check the validity of the MemorySegment before calling.
    * @param srcSeg The source MemorySegment
    * @param seedHash The update seedHash.
@@ -61,15 +61,15 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
     return new DirectCompactCompressedSketch(srcSeg);
   }
 
-  //Sketch Overrides
+  //ThetaSketch Overrides
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
     if (dstSeg != null) {
       MemorySegment.copy(seg_, 0, dstSeg, 0, getCurrentBytes());
       return new DirectCompactSketch(dstSeg);
     }
-    return CompactSketch.heapify(seg_, Util.DEFAULT_UPDATE_SEED);
+    return CompactThetaSketch.heapify(seg_, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Override
@@ -84,7 +84,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
   private static final int START_PACKED_DATA_ESTIMATION_MODE = 16;
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     // number of entries is stored using variable length encoding
     // most significant bytes with all zeros are not stored
     // one byte in the preamble has the number of non-zero bytes used

@@ -35,62 +35,62 @@ import org.apache.datasketches.common.Util;
  *
  * @author Lee Rhodes
  */
-public abstract class Union extends SetOperation {
+public abstract class ThetaUnion extends ThetaSetOperation {
 
   /**
-   * Wrap a Union object around a Union MemorySegment object containing data.
+   * Wrap a ThetaUnion object around a ThetaUnion MemorySegment object containing data.
    * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * This does NO validity checking of the given MemorySegment.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned ThetaUnion object will also be read-only.
    * @param srcSeg The source MemorySegment object.
    * @return this class
    */
-  public static Union fastWrap(final MemorySegment srcSeg) {
+  public static ThetaUnion fastWrap(final MemorySegment srcSeg) {
     return fastWrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap a Union object around a Union MemorySegment object containing data.
+   * Wrap a ThetaUnion object around a ThetaUnion MemorySegment object containing data.
    * This does NO validity checking of the given MemorySegment.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned ThetaUnion object will also be read-only.
    * @param srcSeg The source MemorySegment object.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  public static Union fastWrap(final MemorySegment srcSeg, final long expectedSeed) {
+  public static ThetaUnion fastWrap(final MemorySegment srcSeg, final long expectedSeed) {
     final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
-    return UnionImpl.fastWrapInstance(srcSeg, expectedSeed);
+    return ThetaUnionImpl.fastWrapInstance(srcSeg, expectedSeed);
   }
 
   /**
-   * Wrap a Union object around a Union MemorySegment object containing data.
+   * Wrap a ThetaUnion object around a ThetaUnion MemorySegment object containing data.
    * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned ThetaUnion object will also be read-only.
    * @param srcSeg The source MemorySegment object.
    * @return this class
    */
-  public static Union wrap(final MemorySegment srcSeg) {
+  public static ThetaUnion wrap(final MemorySegment srcSeg) {
     return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap a Union object around a Union MemorySegment object containing data.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * Wrap a ThetaUnion object around a ThetaUnion MemorySegment object containing data.
+   * If the given source MemorySegment is read-only, the returned ThetaUnion object will also be read-only.
    * @param srcSeg The source MemorySegment object.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  public static Union wrap(final MemorySegment srcSeg, final long expectedSeed) {
+  public static ThetaUnion wrap(final MemorySegment srcSeg, final long expectedSeed) {
     final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
-    return UnionImpl.wrapInstance(srcSeg, expectedSeed);
+    return ThetaUnionImpl.wrapInstance(srcSeg, expectedSeed);
   }
 
   /**
@@ -112,15 +112,15 @@ public abstract class Union extends SetOperation {
   public abstract int getMaxUnionBytes();
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * Gets the result of this operation as an ordered CompactThetaSketch on the Java heap.
    * This does not disturb the underlying data structure of the union.
    * Therefore, it is OK to continue updating the union after this operation.
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   * @return the result of this operation as an ordered CompactThetaSketch on the Java heap
    */
-  public abstract CompactSketch getResult();
+  public abstract CompactThetaSketch getResult();
 
   /**
-   * Gets the result of this operation as a CompactSketch of the chosen form.
+   * Gets the result of this operation as a CompactThetaSketch of the chosen form.
    * This does not disturb the underlying data structure of the union.
    * Therefore, it is OK to continue updating the union after this operation.
    *
@@ -129,18 +129,18 @@ public abstract class Union extends SetOperation {
    *
    * @param dstSeg destination MemorySegment
    *
-   * @return the result of this operation as a CompactSketch of the chosen form
+   * @return the result of this operation as a CompactThetaSketch of the chosen form
    */
-  public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg);
+  public abstract CompactThetaSketch getResult(boolean dstOrdered, MemorySegment dstSeg);
 
   /**
-   * Resets this Union. The seed remains intact, everything else reverts back to its virgin state.
+   * Resets this ThetaUnion. The seed remains intact, everything else reverts back to its virgin state.
    */
   public abstract void reset();
 
   /**
-   * Returns a byte array image of this Union object
-   * @return a byte array image of this Union object
+   * Returns a byte array image of this ThetaUnion object
+   * @return a byte array image of this ThetaUnion object
    */
   public abstract byte[] toByteArray();
 
@@ -152,30 +152,29 @@ public abstract class Union extends SetOperation {
    *
    * @param sketchA The first argument
    * @param sketchB The second argument
-   * @return the result ordered CompactSketch on the heap.
+   * @return the result ordered CompactThetaSketch on the heap.
    */
-  public CompactSketch union(final ThetaSketch sketchA, final ThetaSketch sketchB) {
+  public CompactThetaSketch union(final ThetaSketch sketchA, final ThetaSketch sketchB) {
     return union(sketchA, sketchB, true, null);
   }
 
   /**
    * This implements a stateless, pair-wise union operation. The returned sketch will be cut back to
-   * k if required, similar to the regular Union operation.
+   * k if required, similar to the regular ThetaUnion operation.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
    * @param sketchA The first argument
    * @param sketchB The second argument
-   * @param dstOrdered If true, the returned CompactSketch will be ordered.
-   * @param dstSeg If not null, the returned CompactSketch will be placed in this MemorySegment.
-   * @return the result CompactSketch.
+   * @param dstOrdered If true, the returned CompactThetaSketch will be ordered.
+   * @param dstSeg If not null, the returned CompactThetaSketch will be placed in this MemorySegment.
+   * @return the result CompactThetaSketch.
    */
-  public abstract CompactSketch union(ThetaSketch sketchA, ThetaSketch sketchB, boolean dstOrdered,
+  public abstract CompactThetaSketch union(ThetaSketch sketchA, ThetaSketch sketchB, boolean dstOrdered,
       MemorySegment dstSeg);
 
   /**
-   * Perform a Union operation with <i>this</i> union and the given on-heap sketch of the Theta Family.
-   * This method is not valid for the older SetSketch, which was prior to Open Source (August, 2015).
+   * Perform a union operation with <i>this</i> ThetaUnion and the given on-heap sketch of the Theta Family.
    *
    * <p>This method can be repeatedly called.
    *
@@ -186,9 +185,8 @@ public abstract class Union extends SetOperation {
   public abstract void union(ThetaSketch sketchIn);
 
   /**
-   * Perform a Union operation with <i>this</i> union and the given MemorySegment image of any sketch of the
-   * Theta Family. The input image may be from earlier versions of the Theta Compact Sketch,
-   * called the SetSketch (circa 2014), which was prior to Open Source and are compact and ordered.
+   * Perform a union operation with <i>this</i> ThetaUnion and the given MemorySegment image of any sketch of the
+   * Theta Family.
    *
    * <p>This method can be repeatedly called.
    *
@@ -225,7 +223,7 @@ public abstract class Union extends SetOperation {
    * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
    * </p>
    *
-   * <p>Note: this is not a Sketch Union operation. This treats the given string as a data item.</p>
+   * <p>Note: this is not a union operation. This treats the given string as a data item.</p>
    *
    * @param datum The given String.
    */
@@ -235,7 +233,7 @@ public abstract class Union extends SetOperation {
    * Update <i>this</i> union with the given byte array item.
    * If the byte array is null or empty no update attempt is made and the method returns.
    *
-   * <p>Note: this is not a Sketch Union operation. This treats the given byte array as a data
+   * <p>Note: this is not a union operation. This treats the given byte array as a data
    * item.</p>
    *
    * @param data The given byte array.
@@ -246,7 +244,7 @@ public abstract class Union extends SetOperation {
    * Update <i>this</i> union with the given ByteBuffer item.
    * If the ByteBuffer is null or empty no update attempt is made and the method returns.
    *
-   * <p>Note: this is not a Sketch Union operation. This treats the given ByteBuffer as a data
+   * <p>Note: this is not a union operation. This treats the given ByteBuffer as a data
    * item.</p>
    *
    * @param data The given ByteBuffer.
@@ -257,7 +255,7 @@ public abstract class Union extends SetOperation {
    * Update <i>this</i> union with the given integer array item.
    * If the integer array is null or empty no update attempt is made and the method returns.
    *
-   * <p>Note: this is not a Sketch Union operation. This treats the given integer array as a data
+   * <p>Note: this is not a union operation. This treats the given integer array as a data
    * item.</p>
    *
    * @param data The given int array.
@@ -271,7 +269,7 @@ public abstract class Union extends SetOperation {
    * <p>Note: this will not produce the same output hash values as the {@link #update(String)}
    * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
    *
-   * <p>Note: this is not a Sketch Union operation. This treats the given char array as a data
+   * <p>Note: this is not a union operation. This treats the given char array as a data
    * item.</p>
    *
    * @param data The given char array.
@@ -282,7 +280,7 @@ public abstract class Union extends SetOperation {
    * Update <i>this</i> union with the given long array item.
    * If the long array is null or empty no update attempt is made and the method returns.
    *
-   * <p>Note: this is not a Sketch Union operation. This treats the given char array as a data
+   * <p>Note: this is not a union operation. This treats the given char array as a data
    * item.</p>
    *
    * @param data The given long array.

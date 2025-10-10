@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple;
 
 import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
@@ -45,7 +45,7 @@ public class TupleExamplesTest {
   private final IntegerSummarySetOperations isso = new IntegerSummarySetOperations(umode, imode);
   private final IntegerSummaryFactory ufactory = new IntegerSummaryFactory(umode);
   private final IntegerSummaryFactory ifactory = new IntegerSummaryFactory(imode);
-  private final UpdateSketchBuilder thetaBldr = UpdateSketch.builder();
+  private final UpdateSketchBuilder thetaBldr = UpdatableThetaSketch.builder();
   private final UpdatableSketchBuilder<Integer, IntegerSummary> tupleBldr =
       new UpdatableSketchBuilder<>(ufactory);
 
@@ -54,7 +54,7 @@ public class TupleExamplesTest {
   public void example1() {
     //Load source sketches
     final UpdatableSketch<Integer, IntegerSummary> tupleSk = tupleBldr.build();
-    final UpdateSketch thetaSk = thetaBldr.build();
+    final UpdatableThetaSketch thetaSk = thetaBldr.build();
     for (int i = 1; i <= 12; i++) {
       tupleSk.update(i, 1);
       thetaSk.update(i + 3);
@@ -143,7 +143,7 @@ public class TupleExamplesTest {
   public void example3() {
     //Load source sketches
     final UpdatableSketch<Integer, IntegerSummary> tupleSk = tupleBldr.build();
-    final UpdateSketch thetaSk = thetaBldr.build();
+    final UpdatableThetaSketch thetaSk = thetaBldr.build();
     for (int i = 1; i <= 12; i++) {
       tupleSk.update(i, 1);
       thetaSk.update(i + 3);

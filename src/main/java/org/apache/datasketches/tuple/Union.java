@@ -26,8 +26,8 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * Compute the union of two or more generic tuple sketches or generic tuple sketches combined with
- * theta sketches. A new instance represents an empty set.
+ * Compute the union of two or more generic tuple sketches or generic TupleSketches combined with
+ * ThetaSketches. A new instance represents an empty set.
  * @param <S> Type of Summary
  */
 public class Union<S extends Summary> {
@@ -77,14 +77,14 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Perform a stateless, pair-wise union operation between a tupleSketch and a thetaSketch.
+   * Perform a stateless, pair-wise union operation between a tupleSketch and a ThetaSketch.
    * The returned sketch will be cut back to the smaller of the two k values if required.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
    * @param tupleSketch The first argument
    * @param thetaSketch The second argument
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one.
    * This may not be null.
    * @return the result ordered CompactSketch on the heap.
    */
@@ -98,7 +98,7 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Performs a stateful union of the internal set with the given tupleSketch.
+   * Performs a stateful union of the internal set with the given TupleSketch.
    * @param tupleSketch input tuple sketch to merge with the internal set.
    * Nulls and empty sketches are ignored.
    */
@@ -114,10 +114,10 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Performs a stateful union of the internal set with the given thetaSketch by combining entries
-   * using the hashes from the theta sketch and summary values from the given summary.
-   * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
+   * Performs a stateful union of the internal set with the given ThetaSketch by combining entries
+   * using the hashes from the ThetaSketch and summary values from the given summary.
+   * @param thetaSketch the given ThetaSketch input. If null or empty, it is ignored.
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one. This may
    * not be null.
    */
   public void union(final org.apache.datasketches.theta.ThetaSketch thetaSketch, final S summary) {

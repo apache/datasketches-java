@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple;
 
   import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
@@ -47,7 +47,7 @@ import org.testng.annotations.Test;
     private final DoubleSummarySetOperations dsso2 = new DoubleSummarySetOperations(umode, imode);
     private final DoubleSummaryFactory ufactory = new DoubleSummaryFactory(umode);
     private final DoubleSummaryFactory ifactory = new DoubleSummaryFactory(imode);
-    private final UpdateSketchBuilder thetaBldr = UpdateSketch.builder();
+    private final UpdateSketchBuilder thetaBldr = UpdatableThetaSketch.builder();
     private final UpdatableSketchBuilder<Double, DoubleSummary> tupleBldr =
         new UpdatableSketchBuilder<>(ufactory);
 
@@ -56,7 +56,7 @@ import org.testng.annotations.Test;
     public void example1() { // stateful: tuple, theta, use dsso2
       //Load source sketches
       final UpdatableSketch<Double, DoubleSummary> tupleSk = tupleBldr.build();
-      final UpdateSketch thetaSk = thetaBldr.build();
+      final UpdatableThetaSketch thetaSk = thetaBldr.build();
       for (int i = 1; i <= 12; i++) {
         tupleSk.update(i, 1.0);
         thetaSk.update(i + 3);
@@ -145,7 +145,7 @@ import org.testng.annotations.Test;
     public void example3() { //stateless: tuple1, tuple2, use dsso2
       //Load source sketches
       final UpdatableSketch<Double, DoubleSummary> tupleSk = tupleBldr.build();
-      final UpdateSketch thetaSk = thetaBldr.build();
+      final UpdatableThetaSketch thetaSk = thetaBldr.build();
       for (int i = 1; i <= 12; i++) {
         tupleSk.update(i, 1.0);
         thetaSk.update(i + 3);
@@ -189,7 +189,7 @@ import org.testng.annotations.Test;
     public void example4() { //stateful: tuple, theta, Mode=sum for both, use dsso0
       //Load source sketches
       final UpdatableSketch<Double, DoubleSummary> tupleSk = tupleBldr.build();
-      final UpdateSketch thetaSk = thetaBldr.build();
+      final UpdatableThetaSketch thetaSk = thetaBldr.build();
       for (int i = 1; i <= 12; i++) {
         tupleSk.update(i, 1.0);
         thetaSk.update(i + 3);
@@ -235,7 +235,7 @@ import org.testng.annotations.Test;
     public void example5() { //stateful, tuple, theta, Mode=sum for both, use dsso1
       //Load source sketches
       final UpdatableSketch<Double, DoubleSummary> tupleSk = tupleBldr.build();
-      final UpdateSketch thetaSk = thetaBldr.build();
+      final UpdatableThetaSketch thetaSk = thetaBldr.build();
       for (int i = 1; i <= 12; i++) {
         tupleSk.update(i, 1.0);
         thetaSk.update(i + 3);

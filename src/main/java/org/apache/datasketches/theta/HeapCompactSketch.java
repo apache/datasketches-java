@@ -34,11 +34,11 @@ import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import java.lang.foreign.MemorySegment;
 
 /**
- * Parent class of the Heap Compact Sketches.
+ * Parent class of the HeapCompactThetaSketches.
  *
  * @author Lee Rhodes
  */
-final class HeapCompactSketch extends CompactSketch {
+final class HeapCompactSketch extends CompactThetaSketch {
   private final long thetaLong_; //computed
   private final int curCount_;
   private final int preLongs_; //computed
@@ -73,10 +73,10 @@ final class HeapCompactSketch extends CompactSketch {
     checkIllegalCurCountAndEmpty(empty, curCount);
   }
 
-  //Sketch
+  //ThetaSketch
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
     if ((dstSeg == null) && (!dstOrdered || (ordered_ == dstOrdered))) { return this; }
     return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
         true, ordered_, dstOrdered, dstSeg, getCache().clone());
@@ -88,7 +88,7 @@ final class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     return curCount_;
   }
 

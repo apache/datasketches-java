@@ -24,30 +24,30 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Family;
 
 /**
- * Computes a set difference, A-AND-NOT-B, of two theta sketches.
+ * Computes a set difference, A-AND-NOT-B, of two ThetaSketches.
  * This class includes both stateful and stateless operations.
  *
  * <p>The stateful operation is as follows:</p>
  * <pre><code>
- * AnotB anotb = SetOperationBuilder.buildAnotB();
+ * ThetaAnotB anotb = ThetaSetOperationBuilder.buildAnotB();
  *
- * anotb.setA(Sketch skA); //The first argument.
- * anotb.notB(Sketch skB); //The second (subtraction) argument.
- * anotb.notB(Sketch skC); // ...any number of additional subtractions...
+ * anotb.setA(ThetaSketch skA); //The first argument.
+ * anotb.notB(ThetaSketch skB); //The second (subtraction) argument.
+ * anotb.notB(ThetaSketch skC); // ...any number of additional subtractions...
  * anotb.getResult(false); //Get an interim result.
- * anotb.notB(Sketch skD); //Additional subtractions.
- * anotb.getResult(true);  //Final result and resets the AnotB operator.
+ * anotb.notB(ThetaSketch skD); //Additional subtractions.
+ * anotb.getResult(true);  //Final result and resets the ThetaAnotB operator.
  * </code></pre>
  *
  * <p>The stateless operation is as follows:</p>
  * <pre><code>
- * AnotB anotb = SetOperationBuilder.buildAnotB();
+ * ThetaAnotB anotb = ThetaSetOperationBuilder.buildAnotB();
  *
- * CompactSketch csk = anotb.aNotB(Sketch skA, Sketch skB);
+ * CompactThetaSketch csk = anotb.aNotB(ThetaSketch skA, ThetaSketch skB);
  * </code></pre>
  *
  * <p>Calling the <i>setA</i> operation a second time essentially clears the internal state and loads
- * the new sketch.</p>
+ * the new ThetaSketch.</p>
  *
  * <p>The stateless and stateful operations are independent of each other with the exception of
  * sharing the same update hash seed loaded as the default seed or specified by the user as an
@@ -55,12 +55,12 @@ import org.apache.datasketches.common.Family;
  *
  * @author Lee Rhodes
  */
-public abstract class AnotB extends SetOperation {
+public abstract class ThetaAnotB extends ThetaSetOperation {
 
   /**
    * Constructor
    */
-  AnotB() {}
+  ThetaAnotB() {}
 
   @Override
   public Family getFamily() {
@@ -68,9 +68,9 @@ public abstract class AnotB extends SetOperation {
   }
 
   /**
-   * This is part of a multistep, stateful AnotB operation and sets the given Theta sketch as the
+   * This is part of a multistep, stateful ThetaAnotB operation and sets the given ThetaSketch as the
    * first argument <i>A</i> of <i>A-AND-NOT-B</i>. This overwrites the internal state of this
-   * AnotB operator with the contents of the given sketch.
+   * ThetaAnotB operator with the contents of the given sketch.
    * This sets the stage for multiple following <i>notB</i> steps.
    *
    * <p>An input argument of null will throw an exception.</p>
@@ -95,9 +95,9 @@ public abstract class AnotB extends SetOperation {
   public abstract void setA(ThetaSketch skA);
 
   /**
-   * This is part of a multistep, stateful AnotB operation and sets the given Theta sketch as the
+   * This is part of a multistep, stateful ThetaAnotB operation and sets the given ThetaSketch as the
    * second (or <i>n+1</i>th) argument <i>B</i> of <i>A-AND-NOT-B</i>.
-   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
+   * Performs an <i>AND NOT</i> operation with the existing internal state of this ThetaAnotB operator.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -109,28 +109,28 @@ public abstract class AnotB extends SetOperation {
    *
    * <p>Use {@link #getResult(boolean)} to obtain the result.</p>
    *
-   * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
+   * @param skB The incoming ThetaSketch for the second (or following) argument <i>B</i>.
    */
   public abstract void notB(ThetaSketch skB);
 
   /**
-   * Gets the result of the multistep, stateful operation AnotB that have been executed with calls
+   * Gets the result of the multistep, stateful operation ThetaAnotB that have been executed with calls
    * to {@link #setA(ThetaSketch)} and ({@link #notB(ThetaSketch)} or
    * {@link #notB(org.apache.datasketches.theta.ThetaSketch)}).
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    *
-   * @return the result of this operation as an ordered, on-heap {@link CompactSketch}.
+   * @return the result of this operation as an ordered, on-heap {@link CompactThetaSketch}.
    */
-  public abstract CompactSketch getResult(boolean reset);
+  public abstract CompactThetaSketch getResult(boolean reset);
 
   /**
-   * Gets the result of the multistep, stateful operation AnotB that have been executed with calls
+   * Gets the result of the multistep, stateful operation ThetaAnotB that have been executed with calls
    * to {@link #setA(ThetaSketch)} and ({@link #notB(ThetaSketch)} or
    * {@link #notB(org.apache.datasketches.theta.ThetaSketch)}).
    *
-   * @param dstOrdered If <i>true</i>, the result will be an ordered {@link CompactSketch}.
+   * @param dstOrdered If <i>true</i>, the result will be an ordered {@link CompactThetaSketch}.
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    *
    * @param dstSeg if not <i>null</i> the given MemorySegment will be the target location of the result.
@@ -138,13 +138,13 @@ public abstract class AnotB extends SetOperation {
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    *
-   * @return the result of this operation as a {@link CompactSketch} in the given dstSeg.
+   * @return the result of this operation as a {@link CompactThetaSketch} in the given dstSeg.
    */
-  public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg, boolean reset);
+  public abstract CompactThetaSketch getResult(boolean dstOrdered, MemorySegment dstSeg, boolean reset);
 
   /**
    * Perform A-and-not-B set operation on the two given sketches and return the result as an
-   * ordered CompactSketch on the heap.
+   * ordered CompactThetaSketch on the heap.
    *
    * <p>This a stateless operation and has no impact on the internal state of this operator.
    * Thus, this is not an accumulating update and does not interact with the {@link #setA(ThetaSketch)},
@@ -164,15 +164,15 @@ public abstract class AnotB extends SetOperation {
    *
    * @param skA The incoming sketch for the first argument. It must not be null.
    * @param skB The incoming sketch for the second argument. It must not be null.
-   * @return an ordered CompactSketch on the heap
+   * @return an ordered CompactThetaSketch on the heap
    */
-  public CompactSketch aNotB(final ThetaSketch skA, final ThetaSketch skB) {
+  public CompactThetaSketch aNotB(final ThetaSketch skA, final ThetaSketch skB) {
     return aNotB(skA, skB, true, null);
   }
 
   /**
    * Perform A-and-not-B set operation on the two given sketches and return the result as a
-   * CompactSketch.
+   * CompactThetaSketch.
    *
    * <p>This a stateless operation and has no impact on the internal state of this operator.
    * Thus, this is not an accumulating update and does not interact with the {@link #setA(ThetaSketch)},
@@ -195,9 +195,9 @@ public abstract class AnotB extends SetOperation {
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    * @param dstSeg the destination MemorySegment
-   * @return the result as a CompactSketch.
+   * @return the result as a CompactThetaSketch.
    */
-  public abstract CompactSketch aNotB(ThetaSketch skA, ThetaSketch skB, boolean dstOrdered,
+  public abstract CompactThetaSketch aNotB(ThetaSketch skA, ThetaSketch skB, boolean dstOrdered,
       MemorySegment dstSeg);
 
 }

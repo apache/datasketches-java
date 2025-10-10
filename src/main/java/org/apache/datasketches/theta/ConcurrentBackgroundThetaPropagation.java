@@ -39,7 +39,7 @@ final class ConcurrentBackgroundThetaPropagation implements Runnable {
   // local buffer.  Updated when the propagation completes.
   private final AtomicBoolean localPropagationInProgress;
 
-  // Sketch to be propagated to shared sketch. Can be null if only a single hash is propagated
+  // ThetaSketch to be propagated to shared sketch. Can be null if only a single hash is propagated
   private final ThetaSketch sketchIn;
 
   // Hash of the datum to be propagated to shared sketch. Can be ConcurrentSharedThetaSketch.NOT_SINGLE_HASH

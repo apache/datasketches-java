@@ -47,7 +47,7 @@ import org.apache.datasketches.common.Util;
  *
  * @author Lee Rhodes
  */
-class DirectCompactSketch extends CompactSketch {
+class DirectCompactSketch extends CompactThetaSketch {
   final MemorySegment seg_;
 
   /**
@@ -59,7 +59,7 @@ class DirectCompactSketch extends CompactSketch {
   }
 
   /**
-   * Wraps the given MemorySegment, which must be a SerVer 3, CompactSketch image.
+   * Wraps the given MemorySegment, which must be a SerVer 3, CompactThetaSketch image.
    * Must check the validity of the MemorySegment before calling. The order bit must be set properly.
    * @param srcSeg the given MemorySegment
    * @param seedHash The update seedHash.
@@ -71,10 +71,10 @@ class DirectCompactSketch extends CompactSketch {
     return new DirectCompactSketch(srcSeg);
   }
 
-  //Sketch Overrides
+  //ThetaSketch Overrides
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
     return segmentToCompact(seg_, dstOrdered, dstSeg);
   }
 
@@ -87,7 +87,7 @@ class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     if (checkForSingleItem(seg_)) { return 1; }
     final int preLongs = ThetaSketch.getPreambleLongs(seg_);
     return (preLongs == 1) ? 0 : extractCurCount(seg_);

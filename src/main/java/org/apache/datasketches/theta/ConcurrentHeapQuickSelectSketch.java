@@ -27,7 +27,7 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SuppressFBWarnings;
 
 /**
- * A concurrent shared sketch that is based on HeapQuickSelectSketch.
+ * A concurrent shared sketch that is based on HeapQuickSelectThetaSketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
  * any time.
  * Background propagation threads are used to propagate data from thread local buffers into this
@@ -82,7 +82,7 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     initBgPropagationService();
   }
 
-  ConcurrentHeapQuickSelectSketch(final UpdateSketch sketch, final long seed,
+  ConcurrentHeapQuickSelectSketch(final UpdatableThetaSketch sketch, final long seed,
       final double maxConcurrencyError) {
     super(sketch.getLgNomLongs(), seed, 1.0F, //p
         ResizeFactor.X1, //rf,
@@ -101,7 +101,7 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     updateEstimationSnapshot();
   }
 
-  //Sketch overrides
+  //ThetaSketch overrides
 
   @Override
   public double getEstimate() {
@@ -121,10 +121,10 @@ final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     return res;
   }
 
-  //UpdateSketch overrides
+  //UpdatableThetaSketch overrides
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdatableThetaSketch rebuild() {
     super.rebuild();
     updateEstimationSnapshot();
     return this;

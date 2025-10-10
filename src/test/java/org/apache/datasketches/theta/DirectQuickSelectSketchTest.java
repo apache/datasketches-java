@@ -63,7 +63,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
         final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
       assertTrue(usk.isEmpty());
@@ -88,7 +88,7 @@ public class DirectQuickSelectSketchTest {
     final int k = 8;
     try (Arena arena = Arena.ofConfined()) {
         final MemorySegment wseg = makeNativeMemorySegment(k, arena);
-      UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
     } catch (final Exception e) {
       if (e instanceof SketchesArgumentException) {}
       else { throw new RuntimeException(e); }
@@ -100,7 +100,7 @@ public class DirectQuickSelectSketchTest {
     final int k = 16;
     try (Arena arena = Arena.ofConfined()) {
         final MemorySegment wseg = makeNativeMemorySegment(k/2, arena);
-      UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
     } catch (final Exception e) {
       if (e instanceof SketchesArgumentException) {}
       else { throw new RuntimeException(e); }
@@ -112,12 +112,12 @@ public class DirectQuickSelectSketchTest {
     final int k = 512;
     final int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     final MemorySegment seg = MemorySegment.ofArray(new byte[bytes]);
-    UpdateSketch.builder().setNominalEntries(k).build(seg);
+    UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
 
     seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Family ID byte
 
     //try to heapify the corrupted seg
-    ThetaSketch.heapify(seg); //catch in Sketch.constructHeapSketch
+    ThetaSketch.heapify(seg); //catch in ThetaSketch.constructHeapSketch
   }
 
   @Test
@@ -126,7 +126,7 @@ public class DirectQuickSelectSketchTest {
     final int u = 2*k; //thus estimating
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
-      final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       for (int i=0; i<u; i++) { sk1.update(i); }
 
       final double sk1est = sk1.getEstimate();
@@ -141,7 +141,7 @@ public class DirectQuickSelectSketchTest {
       assertTrue(sk1.hasMemorySegment());
       assertEquals(sk1.getCurrentPreambleLongs(), 3);
 
-      final UpdateSketch sk2 = UpdateSketch.heapify(wseg);
+      final UpdatableThetaSketch sk2 = UpdatableThetaSketch.heapify(wseg);
       assertEquals(sk2.getEstimate(), sk1est);
       assertEquals(sk2.getLowerBound(2), sk1lb);
       assertEquals(sk2.getUpperBound(2), sk1ub);
@@ -168,12 +168,12 @@ public class DirectQuickSelectSketchTest {
     final int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     final MemorySegment seg = MemorySegment.ofArray(new byte[maxBytes]);
 
-    UpdateSketch.builder().setNominalEntries(k).build(seg);
+    UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
 
-    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
+    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the FamilyID byte
 
     //try to wrap the corrupted seg
-    ThetaSketch.wrap(seg); //catch in Sketch.constructDirectSketch
+    ThetaSketch.wrap(seg); //catch in ThetaSketch.constructDirectSketch
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -182,9 +182,9 @@ public class DirectQuickSelectSketchTest {
     final int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     final MemorySegment seg = MemorySegment.ofArray(new byte[maxBytes]);
 
-    UpdateSketch.builder().setNominalEntries(k).build(seg);
+    UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
 
-    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
+    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the FamilyID byte
 
     //try to wrap the corrupted seg
     DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
@@ -197,7 +197,7 @@ public class DirectQuickSelectSketchTest {
     final long seed2 = Util.DEFAULT_UPDATE_SEED;
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
-      final UpdateSketch usk = UpdateSketch.builder().setSeed(seed1).setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setSeed(seed1).setNominalEntries(k).build(wseg);
       final byte[] byteArray = usk.toByteArray();
       final MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
       ThetaSketch.heapify(srcSeg, seed2);
@@ -213,7 +213,7 @@ public class DirectQuickSelectSketchTest {
 
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
-      UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       wseg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
       ThetaSketch.heapify(wseg, Util.DEFAULT_UPDATE_SEED);
     } catch (final Exception e) {
@@ -228,7 +228,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
 
       for (int i=0; i< k; i++) { usk.update(i); }
 
@@ -260,7 +260,7 @@ public class DirectQuickSelectSketchTest {
     final int u = 2*k;
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
 
       for (int i=0; i<u; i++) { usk.update(i); }
 
@@ -289,7 +289,7 @@ public class DirectQuickSelectSketchTest {
     final int u = 2*k; //thus estimating
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
-      final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       for (int i=0; i<u; i++) { sk1.update(i); }
 
       final double sk1est = sk1.getEstimate();
@@ -316,7 +316,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
       assertEquals(usk.getClass().getSimpleName(), "DirectQuickSelectSketch");
@@ -335,7 +335,7 @@ public class DirectQuickSelectSketchTest {
       final double uskUB  = usk.getUpperBound(2);
       assertTrue(usk.isEstimationMode());
 
-      CompactSketch csk;
+      CompactThetaSketch csk;
 
       csk = usk.compact(false,  null);
       assertEquals(csk.getEstimate(), uskEst);
@@ -386,7 +386,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
 
       //empty
       usk.toString(false, true, 0, false); //exercise toString
@@ -401,7 +401,7 @@ public class DirectQuickSelectSketchTest {
       final byte[] segArr2 = new byte[bytes];
       final MemorySegment seg2 = MemorySegment.ofArray(segArr2);
 
-      final CompactSketch csk2 = usk.compact(false,  seg2);
+      final CompactThetaSketch csk2 = usk.compact(false,  seg2);
       assertEquals(csk2.getEstimate(), uskEst);
       assertEquals(csk2.getLowerBound(2), uskLB);
       assertEquals(csk2.getUpperBound(2), uskUB);
@@ -409,7 +409,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk2.isEstimationMode(), false);
       assertEquals(csk2.getClass().getSimpleName(), "DirectCompactSketch");
 
-      final CompactSketch csk3 = usk.compact(true, seg2);
+      final CompactThetaSketch csk3 = usk.compact(true, seg2);
       csk3.toString(false, true, 0, false);
       csk3.toString();
       assertEquals(csk3.getEstimate(), uskEst);
@@ -432,7 +432,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
       assertTrue(usk.isEmpty());
@@ -453,7 +453,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setP(p).setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setP(p).setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
       for (int i = 0; i < k; i++ ) { usk.update(i); }
@@ -479,7 +479,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
 
       //Exact mode
       for (int i = 0; i < k; i++ ) { usk.update(i); }
@@ -515,7 +515,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setP(p).setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setP(p).setNominalEntries(k).build(wseg);
       DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
       assertTrue(usk.isEmpty());
@@ -527,7 +527,7 @@ public class DirectQuickSelectSketchTest {
       p = (float)0.001;
       final byte[] segArr2 = new byte[(int) wseg.byteSize()];
       final MemorySegment seg2 = MemorySegment.ofArray(segArr2);
-      final UpdateSketch usk2 = UpdateSketch.builder().setP(p).setNominalEntries(k).build(seg2);
+      final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setP(p).setNominalEntries(k).build(seg2);
       sk1 = (DirectQuickSelectSketch)usk2;
 
       assertTrue(usk2.isEmpty());
@@ -555,7 +555,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
 
       for (int i = 0; i < u; i++ ) { usk.update(i); }
 
@@ -576,7 +576,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
       assertTrue(usk.isEmpty());
@@ -605,7 +605,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
 
       assertTrue(usk.isEmpty());
@@ -636,7 +636,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
       assertTrue(usk.isEmpty());
 
@@ -657,7 +657,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
       assertTrue(usk.isEmpty());
 
@@ -679,7 +679,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(segCapacity, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       final DirectQuickSelectSketch sk1 = (DirectQuickSelectSketch)usk; //for internal checks
       assertTrue(usk.isEmpty());
 
@@ -700,7 +700,7 @@ public class DirectQuickSelectSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = makeNativeMemorySegment(k, arena);
 
-      final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       assertTrue(usk.isEmpty());
 
       for (int i = 0; i< u; i++) { usk.update(i); } //force estimation
@@ -719,7 +719,7 @@ public class DirectQuickSelectSketchTest {
       final MemorySegment seg2 = MemorySegment.ofArray(serArr);
 
       //reconstruct to Native/Direct
-      final UpdateSketch usk2 = UpdateSketch.wrap(seg2);
+      final UpdatableThetaSketch usk2 = UpdatableThetaSketch.wrap(seg2);
 
       est2 = usk2.getEstimate();
       count2 = usk2.getRetainedEntries(false);
@@ -733,21 +733,21 @@ public class DirectQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesReadOnlyException.class)
   public void updateAfterReadOnlyWrap() {
-    final UpdateSketch usk1 = UpdateSketch.builder().build();
-    final UpdateSketch usk2 = (UpdateSketch) ThetaSketch.wrap(MemorySegment.ofArray(usk1.toByteArray()));
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().build();
+    final UpdatableThetaSketch usk2 = (UpdatableThetaSketch) ThetaSketch.wrap(MemorySegment.ofArray(usk1.toByteArray()));
     usk2.update(0);
   }
 
   public void updateAfterWritableWrap() {
-    final UpdateSketch usk1 = UpdateSketch.builder().build();
-    final UpdateSketch usk2 = UpdateSketch.wrap(MemorySegment.ofArray(usk1.toByteArray()));
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.wrap(MemorySegment.ofArray(usk1.toByteArray()));
     usk2.update(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
     final int k = 512;
-    final UpdateSketch qs = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
+    final UpdatableThetaSketch qs = UpdatableThetaSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     qs.hashUpdate(-1L);
   }
 
@@ -760,11 +760,11 @@ public class DirectQuickSelectSketchTest {
     final byte[] arr1 = new byte[bytes];
     final MemorySegment seg1 = MemorySegment.ofArray(arr1);
     final ResizeFactor rf = ResizeFactor.X1; //0
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).setResizeFactor(rf).build(seg1);
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).setResizeFactor(rf).build(seg1);
     for (int i=0; i<u; i++) { usk1.update(i); }
     //println(PreambleUtil.toString(seg1));
     @SuppressWarnings("unused")
-    UpdateSketch usk2;
+    UpdatableThetaSketch usk2;
     seg1.set(JAVA_BYTE, FAMILY_BYTE, (byte) 3); //corrupt Family by setting to Compact
     try {
       usk2 = DirectQuickSelectSketch.writableWrap(seg1, null, Util.DEFAULT_UPDATE_SEED);
@@ -827,11 +827,11 @@ public class DirectQuickSelectSketchTest {
     final byte[] arr = new byte[bytes];
     final MemorySegment seg = MemorySegment.ofArray(arr);
     final ResizeFactor rf = ResizeFactor.X8; // 3
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).setResizeFactor(rf).build(seg);
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).setResizeFactor(rf).build(seg);
     usk.update(0);
 
     insertLgResizeFactor(seg, 0); // corrupt RF: X1
-    final UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
+    final UpdatableThetaSketch dqss = DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
     assertEquals(dqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
 
@@ -839,7 +839,7 @@ public class DirectQuickSelectSketchTest {
   public void checkFamilyAndRF() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 + 24]);
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(seg);
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
     assertEquals(sketch.getFamily(), Family.QUICKSELECT);
     assertEquals(sketch.getResizeFactor(), ResizeFactor.X8);
   }
@@ -850,7 +850,7 @@ public class DirectQuickSelectSketchTest {
     final int k = 1 << 14;
     final int u = 1 << 20;
     final MemorySegment seg = MemorySegment.ofArray(new byte[8*k*16 +24]);
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(seg);
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
     for (int i=0; i<u; i++) { sketch.update(i); }
   }
 
@@ -858,7 +858,7 @@ public class DirectQuickSelectSketchTest {
   public void checkBadLgNomLongs() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 +24]);
-    UpdateSketch.builder().setNominalEntries(k).build(seg);
+    UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
     seg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
     DirectQuickSelectSketch.writableWrap(seg, null, Util.DEFAULT_UPDATE_SEED);
   }
@@ -871,7 +871,7 @@ public class DirectQuickSelectSketchTest {
     MemorySegment wseg;
     try (Arena arena = Arena.ofConfined()) {
       wseg = arena.allocate(bytes / 2);
-      final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       assertTrue(sketch.isSameResource(wseg));
       for (int i = 0; i < u; i++) { sketch.update(i); }
       assertFalse(sketch.isSameResource(wseg));
@@ -887,12 +887,12 @@ public class DirectQuickSelectSketchTest {
     MemorySegment wseg;
     try (Arena arena = Arena.ofConfined()) {
       wseg = arena.allocate(bytes / 2);
-      final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(wseg);
+      final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(k).build(wseg);
       for (int i = 0; i < u; i++) { sketch.update(i); }
       final double est1 = sketch.getEstimate();
       final byte[] serBytes = sketch.toByteArray();
       final MemorySegment seg = MemorySegment.ofArray(serBytes).asReadOnly();
-      final UpdateSketch roSketch = (UpdateSketch) ThetaSketch.wrap(seg);
+      final UpdatableThetaSketch roSketch = (UpdatableThetaSketch) ThetaSketch.wrap(seg);
       final double est2 = roSketch.getEstimate();
       assertEquals(est2, est1);
       try {

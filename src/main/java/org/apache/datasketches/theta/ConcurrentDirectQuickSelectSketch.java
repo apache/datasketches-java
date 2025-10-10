@@ -88,7 +88,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     initBgPropagationService();
   }
 
-  ConcurrentDirectQuickSelectSketch(final UpdateSketch sketch, final long seed,
+  ConcurrentDirectQuickSelectSketch(final UpdatableThetaSketch sketch, final long seed,
       final double maxConcurrencyError, final MemorySegment dstSeg) {
     super(sketch.getLgNomLongs(), seed, 1.0F, //p
         ResizeFactor.X1, //rf,
@@ -109,7 +109,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     updateEstimationSnapshot();
   }
 
-  //Sketch overrides
+  //ThetaSketch overrides
 
   @Override
   public double getEstimate() {
@@ -129,10 +129,10 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     return res;
   }
 
-  //UpdateSketch overrides
+  //UpdatableThetaSketch overrides
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdatableThetaSketch rebuild() {
     super.rebuild();
     updateEstimationSnapshot();
     return this;

@@ -44,8 +44,8 @@ final class WrappedCompactCompressedSketch extends WrappedCompactSketch {
   }
 
   /**
-   * Wraps the given bytes, which must be a SerVer 4 compressed CompactSketch image.
-   * @param bytes representation of serialized compressed compact sketch.
+   * Wraps the given bytes, which must be a SerVer 4 compressed CompactThetaSketch image.
+   * @param bytes representation of serialized compressed CompactThetaSketch.
    * @param seedHash The update seedHash.
    * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
    * @return this sketch
@@ -55,7 +55,7 @@ final class WrappedCompactCompressedSketch extends WrappedCompactSketch {
     return new WrappedCompactCompressedSketch(bytes);
   }
 
-  //Sketch Overrides
+  //ThetaSketch Overrides
 
   @Override
   public int getCurrentBytes() {
@@ -69,7 +69,7 @@ final class WrappedCompactCompressedSketch extends WrappedCompactSketch {
   private static final int START_PACKED_DATA_ESTIMATION_MODE = 16;
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     // number of entries is stored using variable length encoding
     // most significant bytes with all zeros are not stored
     // one byte in the preamble has the number of non-zero bytes used

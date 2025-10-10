@@ -46,7 +46,7 @@ import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.isEmptyFlag;
 import static org.apache.datasketches.theta.PreambleUtil.setEmpty;
-import static org.apache.datasketches.theta.SetOperation.getMaxUnionBytes;
+import static org.apache.datasketches.theta.ThetaSetOperation.getMaxUnionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -73,7 +73,7 @@ public class PreambleUtilTest {
     final byte[] byteArray = new byte[bytes];
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
 
-    final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(seg);
+    final UpdatableThetaSketch quick1 = UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
     println(ThetaSketch.toString(byteArray));
 
     Assert.assertTrue(quick1.isEmpty());
@@ -89,7 +89,7 @@ public class PreambleUtilTest {
     println(PreambleUtil.preambleToString(seg));
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
     union.union(quick1);
     println(PreambleUtil.preambleToString(uSeg));
   }
@@ -98,7 +98,7 @@ public class PreambleUtilTest {
   public void checkToStringWithPrelongsOf2() {
     final int k = 16;
     final int u = k;
-    final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch quick1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i< u; i++) {
       quick1.update(i);
     }
@@ -133,8 +133,8 @@ public class PreambleUtilTest {
 
   @Test
   public void checkPreLongs() {
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
-    CompactSketch comp = sketch.compact(false, null);
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(16).build();
+    CompactThetaSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
     println(ThetaSketch.toString(byteArr)); //PreLongs = 1
 

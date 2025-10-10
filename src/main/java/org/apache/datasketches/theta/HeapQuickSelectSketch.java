@@ -74,8 +74,8 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @param unionGadget true if this sketch is implementing the Union gadget function.
-   * Otherwise, it is behaving as a normal QuickSelectSketch.
+   * @param unionGadget true if this sketch is implementing the ThetaUnion gadget function.
+   * Otherwise, it is behaving as a normal QuickSelectThetaSketch.
    */
   HeapQuickSelectSketch(final int lgNomLongs, final long seed, final float p,
       final ResizeFactor rf, final boolean unionGadget) {
@@ -100,7 +100,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   /**
-   * Heapify a sketch from a MemorySegment UpdateSketch or Union object
+   * Heapify a sketch from a MemorySegment UpdatableThetaSketch or ThetaUnion object
    * containing sketch data.
    * @param srcSeg The source MemorySegment object.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -136,7 +136,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     return hqss;
   }
 
-  //Sketch
+  //ThetaSketch
 
   @Override
   public double getEstimate() {
@@ -149,7 +149,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     return curCount_;
   }
 
@@ -173,10 +173,10 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     return toByteArray(preambleLongs_, (byte) MY_FAMILY.getID());
   }
 
-  //UpdateSketch
+  //UpdatableThetaSketch
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdatableThetaSketch rebuild() {
     if (getRetainedEntries(true) > (1 << getLgNomLongs())) {
       quickSelectAndRebuild();
     }

@@ -47,8 +47,8 @@ public class SetOperationTest {
     final int k = 2048;
     final long seed = 1021;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setSeed(seed).setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<k/2; i++) {
       usk1.update(i); //256
@@ -59,21 +59,21 @@ public class SetOperationTest {
 
     final ResizeFactor rf = X4;
     //use default size
-    final Union union = SetOperation.builder().setSeed(seed).setResizeFactor(rf).buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().setSeed(seed).setResizeFactor(rf).buildUnion();
 
     union.union(usk1);
     union.union(usk2);
 
     final double exactUnionAnswer = k;
 
-    final CompactSketch comp1 = union.getResult(false, null); //ordered: false
+    final CompactThetaSketch comp1 = union.getResult(false, null); //ordered: false
     final double compEst = comp1.getEstimate();
     assertEquals(compEst, exactUnionAnswer, 0.0);
   }
 
   @Test
   public void checkBuilder2() {
-    final SetOperationBuilder bldr = SetOperation.builder();
+    final ThetaSetOperationBuilder bldr = ThetaSetOperation.builder();
 
     final long seed = 12345L;
     bldr.setSeed(seed);
@@ -97,36 +97,36 @@ public class SetOperationTest {
 
   @Test
   public void checkBuilderNonPowerOf2() {
-    SetOperation.builder().setNominalEntries(1000).buildUnion();
+    ThetaSetOperation.builder().setNominalEntries(1000).buildUnion();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderBadFamily() {
-    SetOperation.builder().build(Family.ALPHA);
+    ThetaSetOperation.builder().build(Family.ALPHA);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderIllegalPhi() {
     final float p = (float)1.5;
-    SetOperation.builder().setP(p).buildUnion();
+    ThetaSetOperation.builder().setP(p).buildUnion();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderIllegalPlo() {
     final float p = 0;
-    SetOperation.builder().setP(p).buildUnion();
+    ThetaSetOperation.builder().setP(p).buildUnion();
   }
 
   @Test
   public void checkBuilderValidP() {
     final float p = (float).5;
-    SetOperation.builder().setP(p).buildUnion();
+    ThetaSetOperation.builder().setP(p).buildUnion();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderAnotB_noSeg() {
     final MemorySegment seg = MemorySegment.ofArray(new byte[64]);
-    SetOperation.builder().build(Family.A_NOT_B, seg);
+    ThetaSetOperation.builder().build(Family.A_NOT_B, seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -134,8 +134,8 @@ public class SetOperationTest {
     final int k = 2048;
     final long seed = 1021;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setSeed(seed).setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k/2; i++) {
       usk1.update(i); //256
@@ -146,7 +146,7 @@ public class SetOperationTest {
 
     final ResizeFactor rf = X4;
 
-    final Union union = SetOperation.builder().setSeed(seed).setResizeFactor(rf).setNominalEntries(k).buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().setSeed(seed).setResizeFactor(rf).setNominalEntries(k).buildUnion();
 
     union.union(usk1);
     union.union(usk2); //throws seed exception here
@@ -155,61 +155,61 @@ public class SetOperationTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderNomEntries() {
     final int k = 1 << 27;
-    final SetOperationBuilder bldr = SetOperation.builder();
+    final ThetaSetOperationBuilder bldr = ThetaSetOperation.builder();
     bldr.setNominalEntries(k);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpHeapify() {
     final int k = 64;
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
     final byte[] byteArray = usk1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
-    SetOperation.heapify(seg);
+    ThetaSetOperation.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpWrap() {
     final int k = 64;
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
     final byte[] byteArray = usk1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray).asReadOnly();
-    Intersection.wrap(seg);
+    ThetaIntersection.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpWrap2() {
     final int k = 64;
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
     final MemorySegment wseg = MemorySegment.ofArray(usk1.toByteArray());
     PreambleUtil.insertSerVer(wseg, 2); //corrupt
     final MemorySegment seg = wseg.asReadOnly();
-    SetOperation.wrap(seg);
+    ThetaSetOperation.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSetOpWrap3() {
     final int k = 64;
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
     final MemorySegment wseg = MemorySegment.ofArray(usk1.toByteArray());
-    SetOperation.wrap(wseg);
+    ThetaSetOperation.wrap(wseg);
   }
 
   @Test
   public void checkBuildSetOps() {
-    final SetOperationBuilder bldr = SetOperation.builder();
+    final ThetaSetOperationBuilder bldr = ThetaSetOperation.builder();
     bldr.buildUnion();
     bldr.buildIntersection();
     bldr.buildANotB();
@@ -222,18 +222,18 @@ public class SetOperationTest {
   }
 
   /**
-   * The objective is to union 3 16K sketches into a union SetOperation and get the result.
+   * The objective is to union 3 16K sketches into a union ThetaSetOperation and get the result.
    * All operations are to be performed within a single direct ByteBuffer as the backing store.
    * First we will make the union size large enough so that its answer will be exact (with this
    * specific example).
-   * <p> Next, we recover the Union SetOp and the 3 sketches and the space for the result. Then
-   * recompute the union using a Union of the same size as the input sketches, where the end result
+   * <p> Next, we recover the ThetaUnion SetOp and the 3 sketches and the space for the result. Then
+   * recompute the union using a ThetaUnion of the same size as the input sketches, where the end result
    * will be an estimate.
    */
   @Test
   public void checkDirectUnionExample() {
     //The first task is to compute how much off-heap space we need and set the heap large enough.
-    //For the first trial, we will set the Union large enough for an exact result for THIS example.
+    //For the first trial, we will set the ThetaUnion large enough for an exact result for THIS example.
     final int sketchNomEntries = 1 << 14; //16K
     int unionNomEntries = 1 << 15;  //32K
     final int[] heapLayout = getHeapLayout(sketchNomEntries, unionNomEntries);
@@ -273,38 +273,38 @@ public class SetOperationTest {
   public void setOpsExample() {
     println("Set Operations Example:");
     final int k = 4096;
-    final UpdateSketch skA = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch skB = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch skC = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch skA = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch skB = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch skC = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=1;  i<=10; i++) { skA.update(i); }
     for (int i=1;  i<=20; i++) { skB.update(i); }
     for (int i=6;  i<=15; i++) { skC.update(i); } //overlapping set
 
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion();
     union.union(skA);
     union.union(skB);
     // ... continue to iterate on the input sketches to union
 
-    final CompactSketch unionSk = union.getResult();   //the result union sketch
+    final CompactThetaSketch unionSk = union.getResult();   //the result union sketch
     println("A U B      : "+unionSk.getEstimate());   //the estimate of the union
 
-    //Intersection is similar
+    //ThetaIntersection is similar
 
-    final Intersection inter = SetOperation.builder().buildIntersection();
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
     inter.intersect(unionSk);
     inter.intersect(skC);
     // ... continue to iterate on the input sketches to intersect
 
-    final CompactSketch interSk = inter.getResult();  //the result intersection sketch
+    final CompactThetaSketch interSk = inter.getResult();  //the result intersection sketch
     println("(A U B) ^ C: "+interSk.getEstimate());  //the estimate of the intersection
 
-    //The AnotB operation is a little different as it is stateless:
+    //The ThetaAnotB operation is a little different as it is stateless:
 
-    final AnotB aNotB = SetOperation.builder().buildANotB();
-    final CompactSketch not = aNotB.aNotB(skA, skC);
+    final ThetaAnotB aNotB = ThetaSetOperation.builder().buildANotB();
+    final CompactThetaSketch not = aNotB.aNotB(skA, skC);
 
-    println("A \\ C      : "+not.getEstimate()); //the estimate of the AnotB operation
+    println("A \\ C      : "+not.getEstimate()); //the estimate of the ThetaAnotB operation
   }
 
   @Test
@@ -312,15 +312,15 @@ public class SetOperationTest {
     final int k = 16;
     final MemorySegment wseg = MemorySegment.ofArray(new byte[k*16 + 32]);//288
     final MemorySegment emptySeg = MemorySegment.ofArray(new byte[8]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(wseg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(wseg);
     assertTrue(union.isSameResource(wseg));
     assertFalse(union.isSameResource(emptySeg));
 
-    final Intersection inter = SetOperation.builder().buildIntersection(wseg);
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection(wseg);
     assertTrue(inter.isSameResource(wseg));
     assertFalse(inter.isSameResource(emptySeg));
 
-    final AnotB aNotB = SetOperation.builder().buildANotB();
+    final ThetaAnotB aNotB = ThetaSetOperation.builder().buildANotB();
 
     assertFalse(aNotB.isSameResource(emptySeg));
   }
@@ -338,17 +338,17 @@ public class SetOperationTest {
   }
 
   /**
-   * Compute offsets for MyHeap for Union, sketch1, sketch2, sketch3, resultSketch, total layout.
+   * Compute offsets for MyHeap for ThetaUnion, sketch1, sketch2, sketch3, resultSketch, total layout.
    * @param sketchNomEntries the configured nominal entries of the sketch
    * @param unionNomEntries configured nominal entries of the union
-   * @return array of offsets for Union, sketch1, sketch2, sketch3, resultSketch, total layout
+   * @return array of offsets for ThetaUnion, sketch1, sketch2, sketch3, resultSketch, total layout
    */
   private static int[] getHeapLayout(final int sketchNomEntries, final int unionNomEntries) {
     final int[] heapLayout = new int[6];
-    final int unionBytes = SetOperation.getMaxUnionBytes(unionNomEntries);
+    final int unionBytes = ThetaSetOperation.getMaxUnionBytes(unionNomEntries);
     final int sketchBytes = getMaxUpdateSketchBytes(sketchNomEntries);
     final int resultBytes = ThetaSketch.getMaxCompactSketchBytes(unionNomEntries);
-    heapLayout[0] = 0;                             //offset for Union
+    heapLayout[0] = 0;                             //offset for ThetaUnion
     heapLayout[1] = unionBytes;                    //offset for sketch1
     heapLayout[2] = unionBytes + sketchBytes;      //offset for sketch2
     heapLayout[3] = unionBytes + 2*sketchBytes;    //offset for sketch3
@@ -364,7 +364,7 @@ public class SetOperationTest {
     final int bytes = heapLayout[1] - offset;
     final MemorySegment unionSeg = heapSeg.asSlice(offset, bytes);
 
-    Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionSeg);
+    ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionSeg);
 
     final MemorySegment sketch1seg = heapSeg.asSlice(heapLayout[1], heapLayout[2]-heapLayout[1]);
     final MemorySegment sketch2seg = heapSeg.asSlice(heapLayout[2], heapLayout[3]-heapLayout[2]);
@@ -372,9 +372,9 @@ public class SetOperationTest {
     final MemorySegment resultSeg = heapSeg.asSlice(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Initialize the 3 sketches
-    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch1seg);
-    final UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch2seg);
-    final UpdateSketch sk3 = UpdateSketch.builder().setNominalEntries(sketchNomEntries).build(sketch3seg);
+    final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(sketchNomEntries).build(sketch1seg);
+    final UpdatableThetaSketch sk2 = UpdatableThetaSketch.builder().setNominalEntries(sketchNomEntries).build(sketch2seg);
+    final UpdatableThetaSketch sk3 = UpdatableThetaSketch.builder().setNominalEntries(sketchNomEntries).build(sketch3seg);
 
     //This little trial has sk1 and sk2 distinct and sk2 overlap both.
     //Build the sketches.
@@ -394,7 +394,7 @@ public class SetOperationTest {
     union.union(sk2);
 
     //Let's recover the union and the 3rd sketch
-    union = Union.wrap(unionSeg);
+    union = ThetaUnion.wrap(unionSeg);
     union.union(ThetaSketch.wrap(sketch3seg));
 
     final ThetaSketch resSk = union.getResult(true, resultSeg);
@@ -413,9 +413,9 @@ public class SetOperationTest {
     final MemorySegment resultSeg = heapSeg.asSlice(heapLayout[4], heapLayout[5]-heapLayout[4]);
 
     //Recover the 3 sketches
-    final UpdateSketch sk1 = (UpdateSketch) ThetaSketch.wrap(sketch1seg);
-    final UpdateSketch sk2 = (UpdateSketch) ThetaSketch.wrap(sketch2seg);
-    final UpdateSketch sk3 = (UpdateSketch) ThetaSketch.wrap(sketch3seg);
+    final UpdatableThetaSketch sk1 = (UpdatableThetaSketch) ThetaSketch.wrap(sketch1seg);
+    final UpdatableThetaSketch sk2 = (UpdatableThetaSketch) ThetaSketch.wrap(sketch2seg);
+    final UpdatableThetaSketch sk3 = (UpdatableThetaSketch) ThetaSketch.wrap(sketch3seg);
 
     //confirm that each of these 3 sketches is exact.
     assertEquals(sk1.getEstimate(), sketchNomEntries, 0.0);
@@ -424,7 +424,7 @@ public class SetOperationTest {
 
     //Create a new union in the same space with a smaller size.
     Util.clear(unionSeg);
-    final Union union = SetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(unionNomEntries).buildUnion(unionSeg);
     union.union(sk1);
     union.union(sk2);
     union.union(sk3);

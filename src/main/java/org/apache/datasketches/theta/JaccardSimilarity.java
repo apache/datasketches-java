@@ -29,7 +29,7 @@ import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedS
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * Jaccard similarity of two Theta Sketches.
+ * Jaccard similarity of two ThetaSketches.
  *
  * @author Lee Rhodes
  */
@@ -64,12 +64,12 @@ public final class JaccardSimilarity {
     final int countA = sketchA.getRetainedEntries(true);
     final int countB = sketchB.getRetainedEntries(true);
 
-    //Create the Union
+    //Create the ThetaUnion
     final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
     final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
     final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
-    final Union union =
-        SetOperation.builder().setNominalEntries(newK).buildUnion();
+    final ThetaUnion union =
+        ThetaSetOperation.builder().setNominalEntries(newK).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
     final ThetaSketch unionAB = union.getResult(false, null);
@@ -84,8 +84,8 @@ public final class JaccardSimilarity {
       return ONES.clone();
     }
 
-    //Create the Intersection
-    final Intersection inter = SetOperation.builder().buildIntersection();
+    //Create the ThetaIntersection
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
     inter.intersect(sketchA);
     inter.intersect(sketchB);
     inter.intersect(unionAB); //ensures that intersection is a subset of the union
@@ -115,9 +115,9 @@ public final class JaccardSimilarity {
     final int countA = sketchA.getRetainedEntries(true);
     final int countB = sketchB.getRetainedEntries(true);
 
-    //Create the Union
-    final Union union =
-        SetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
+    //Create the ThetaUnion
+    final ThetaUnion union =
+        ThetaSetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
     final ThetaSketch unionAB = union.getResult();
@@ -135,7 +135,7 @@ public final class JaccardSimilarity {
   }
 
   /**
-   * Tests similarity of a measured Sketch against an expected Sketch.
+   * Tests similarity of a measured ThetaSketch against an expected ThetaSketch.
    * Computes the lower bound of the Jaccard index <i>J<sub>LB</sub></i> of the measured and
    * expected sketches.
    * if <i>J<sub>LB</sub> &ge; threshold</i>, then the sketches are considered to be
@@ -157,7 +157,7 @@ public final class JaccardSimilarity {
   }
 
   /**
-   * Tests dissimilarity of a measured Sketch against an expected Sketch.
+   * Tests dissimilarity of a measured ThetaSketch against an expected ThetaSketch.
    * Computes the upper bound of the Jaccard index <i>J<sub>UB</sub></i> of the measured and
    * expected sketches.
    * if <i>J<sub>UB</sub> &le; threshold</i>, then the sketches are considered to be

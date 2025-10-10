@@ -42,7 +42,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void check1() {
-    final Union union = SetOperation.builder().buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().buildUnion();
     union.union(SingleItemSketch.create(1));
     union.union(SingleItemSketch.create(1.0));
     union.union(SingleItemSketch.create(0.0));
@@ -82,7 +82,7 @@ public class SingleItemSketchTest {
   @Test
   public void check2() {
     final long seed = Util.DEFAULT_UPDATE_SEED;
-    final Union union = SetOperation.builder().buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().buildUnion();
     union.union(SingleItemSketch.create(1, seed));
     union.union(SingleItemSketch.create(1.0, seed));
     union.union(SingleItemSketch.create(0.0, seed));
@@ -157,11 +157,11 @@ public class SingleItemSketchTest {
     final SingleItemSketch sis3 = SingleItemSketch.heapify(seg , defaultSeedHash);
     assertEquals(sis3.getEstimate(), 1.0);
 
-    final Union union = SetOperation.builder().buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().buildUnion();
     union.union(sis);
     union.union(sis2);
     union.union(sis3);
-    final CompactSketch csk = union.getResult();
+    final CompactThetaSketch csk = union.getResult();
     assertTrue(csk instanceof SingleItemSketch);
     assertEquals(union.getResult().getEstimate(), 1.0);
   }
@@ -176,7 +176,7 @@ public class SingleItemSketchTest {
   @Test
   public void unionWrapped() {
     final ThetaSketch sketch = SingleItemSketch.create(1);
-    final Union union = SetOperation.builder().buildUnion();
+    final ThetaUnion union = ThetaSetOperation.builder().buildUnion();
     final MemorySegment seg  = MemorySegment.ofArray(sketch.toByteArray());
     union.union(seg );
     assertEquals(union.getResult().getEstimate(), 1, 0);
@@ -184,11 +184,11 @@ public class SingleItemSketchTest {
 
   @Test
   public void buildAndCompact() {
-    UpdateSketch sk1;
-    CompactSketch csk;
+    UpdatableThetaSketch sk1;
+    CompactThetaSketch csk;
     int bytes;
     //On-heap
-    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     csk = sk1.compact(true, null);
     assertTrue(csk instanceof SingleItemSketch);
@@ -198,7 +198,7 @@ public class SingleItemSketchTest {
     //Off-heap
     bytes = ThetaSketch.getMaxUpdateSketchBytes(32);
     MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
-    sk1= UpdateSketch.builder().setNominalEntries(32).build(wseg );
+    sk1= UpdatableThetaSketch.builder().setNominalEntries(32).build(wseg );
     sk1.update(1);
     csk = sk1.compact(true, null);
     assertTrue(csk instanceof SingleItemSketch);
@@ -215,25 +215,25 @@ public class SingleItemSketchTest {
 
   @Test
   public void intersection() {
-    UpdateSketch sk1, sk2;
-    CompactSketch csk;
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch csk;
     int bytes;
-    //Intersection on-heap
-    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
-    sk2 = UpdateSketch.builder().setNominalEntries(32).build();
+    //ThetaIntersection on-heap
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(32).build();
+    sk2 = UpdatableThetaSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     sk1.update(2);
     sk2.update(1);
-    Intersection inter = SetOperation.builder().buildIntersection();
+    ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
     inter.intersect(sk1);
     inter.intersect(sk2);
     csk = inter.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
 
-    //Intersection off-heap
-    bytes = SetOperation.getMaxIntersectionBytes(32);
+    //ThetaIntersection off-heap
+    bytes = ThetaSetOperation.getMaxIntersectionBytes(32);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
-    inter = SetOperation.builder().buildIntersection(wseg );
+    inter = ThetaSetOperation.builder().buildIntersection(wseg );
     inter.intersect(sk1);
     inter.intersect(sk2);
     csk = inter.getResult(true, null);
@@ -244,24 +244,24 @@ public class SingleItemSketchTest {
 
   @Test
   public void union() {
-    UpdateSketch sk1, sk2;
-    CompactSketch csk;
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch csk;
     int bytes;
-    //Union on-heap
-    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
-    sk2 = UpdateSketch.builder().setNominalEntries(32).build();
+    //ThetaUnion on-heap
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(32).build();
+    sk2 = UpdatableThetaSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     sk2.update(1);
-    Union union = SetOperation.builder().buildUnion();
+    ThetaUnion union = ThetaSetOperation.builder().buildUnion();
     union.union(sk1);
     union.union(sk2);
     csk = union.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
 
-    //Union off-heap
-    bytes = SetOperation.getMaxUnionBytes(32);
+    //ThetaUnion off-heap
+    bytes = ThetaSetOperation.getMaxUnionBytes(32);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[bytes]);
-    union = SetOperation.builder().buildUnion(wseg );
+    union = ThetaSetOperation.builder().buildUnion(wseg );
     union.union(sk1);
     union.union(sk2);
     csk = union.getResult(true, null);
@@ -272,32 +272,32 @@ public class SingleItemSketchTest {
 
   @Test
   public void aNotB() {
-    UpdateSketch sk1, sk2;
-    CompactSketch csk;
-    //AnotB on-heap
-    sk1 = UpdateSketch.builder().setNominalEntries(32).build();
-    sk2 = UpdateSketch.builder().setNominalEntries(32).build();
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch csk;
+    //ThetaAnotB on-heap
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(32).build();
+    sk2 = UpdatableThetaSketch.builder().setNominalEntries(32).build();
     sk1.update(1);
     sk2.update(2);
-    final AnotB aNotB = SetOperation.builder().buildANotB();
+    final ThetaAnotB aNotB = ThetaSetOperation.builder().buildANotB();
     aNotB.setA(sk1);
     aNotB.notB(sk2);
     csk = aNotB.getResult(true, null, true);
     assertTrue(csk instanceof SingleItemSketch);
-    //not AnotB off-heap form
+    //not ThetaAnotB off-heap form
   }
 
   @Test
   public void checkHeapifyInstance() {
-    final UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
-    final UpdateSketch sk2 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk2 = new UpdateSketchBuilder().build();
     sk2.update(1);
-    final Intersection inter = SetOperation.builder().buildIntersection();
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
     inter.intersect(sk1);
     inter.intersect(sk2);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
-    final CompactSketch csk = inter.getResult(false, wseg );
+    final CompactThetaSketch csk = inter.getResult(false, wseg );
     assertTrue(csk.isOrdered());
     final ThetaSketch csk2 = ThetaSketch.heapify(wseg );
     assertTrue(csk2 instanceof SingleItemSketch);
@@ -307,7 +307,7 @@ public class SingleItemSketchTest {
   @Test
   public void checkSingleItemBadFlags() {
     final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
-    final UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
     sk1.compact(true, wseg );
@@ -330,13 +330,13 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkSingleItemCompact() {
-    final UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
-    final CompactSketch csk = sk1.compact();
+    final CompactThetaSketch csk = sk1.compact();
     assertTrue(csk instanceof SingleItemSketch);
-    final CompactSketch csk2 = csk.compact();
+    final CompactThetaSketch csk2 = csk.compact();
     assertEquals(csk, csk2);
-    final CompactSketch csk3 = csk.compact(true, MemorySegment.ofArray(new byte[16]));
+    final CompactThetaSketch csk3 = csk.compact(true, MemorySegment.ofArray(new byte[16]));
     assertTrue(csk3 instanceof DirectCompactSketch);
     assertEquals(csk2.getCurrentPreambleLongs(), 1);
     assertEquals(csk3.getCurrentPreambleLongs(), 1);

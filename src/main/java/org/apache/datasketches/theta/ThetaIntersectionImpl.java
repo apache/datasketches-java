@@ -73,7 +73,7 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * Intersection operation for Theta Sketches.
+ * The intersection operation for ThetaSketches.
  *
  * <p>This implementation uses data either on-heap or off-heap in a given MemorySegment
  * that is owned and managed by the caller.
@@ -83,13 +83,13 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class IntersectionImpl extends Intersection {
+final class ThetaIntersectionImpl extends ThetaIntersection {
   private final short seedHash_;
   private final boolean readOnly_; //True if this sketch is to be treated as read only
   private final MemorySegment wseg_;
   private final int maxLgArrLongs_; //only used with MemorySegment, not serialized
 
-  //Note: Intersection does not use lgNomLongs or k, per se.
+  //Note: intersection operation does not use lgNomLongs or k, per se.
   private int lgArrLongs_; //current size of hash table
   private int curCount_; //curCount of HT, if < 0 means Universal Set (US) is true
   private long thetaLong_;
@@ -103,14 +103,14 @@ final class IntersectionImpl extends Intersection {
    * @param dstSegFlag The given MemorySegment is a Destination (new offHeap) MemorySegment.
    * @param readOnly True if MemorySegment is to be treated as read only.
    */
-  private IntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstSegFlag,
+  private ThetaIntersectionImpl(final MemorySegment wseg, final long seed, final boolean dstSegFlag,
       final boolean readOnly) {
     readOnly_ = readOnly;
     if (wseg != null) {
       wseg_ = wseg;
       if (dstSegFlag) { //DstSeg: compute & store seedHash, no seedHash checking
-        IntersectionImpl.checkMinSizeMemorySegment(wseg);
-        maxLgArrLongs_ = !readOnly ? IntersectionImpl.getMaxLgArrLongs(wseg) : 0; //Only Off Heap
+        ThetaIntersectionImpl.checkMinSizeMemorySegment(wseg);
+        maxLgArrLongs_ = !readOnly ? ThetaIntersectionImpl.getMaxLgArrLongs(wseg) : 0; //Only Off Heap
         seedHash_ = Util.computeSeedHash(seed);
         wseg_.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
       } else { //SrcSeg:gets and stores the seedHash, checks seg_seedHash against the seed
@@ -126,36 +126,36 @@ final class IntersectionImpl extends Intersection {
   }
 
   /**
-   * Factory: Construct a new Intersection target on the java heap.
-   * Called by SetOperationBuilder, test.
+   * Factory: Construct a new ThetaIntersection target on the java heap.
+   * Called by ThetaSetOperationBuilder, test.
    *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
    * @return a new IntersectionImpl on the Java heap
    */
-  static IntersectionImpl initNewHeapInstance(final long seed) {
+  static ThetaIntersectionImpl initNewHeapInstance(final long seed) {
     final boolean dstSegFlag = false;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstSegFlag, readOnly);
+    final ThetaIntersectionImpl impl = new ThetaIntersectionImpl(null, seed, dstSegFlag, readOnly);
     impl.hardReset();
     return impl;
   }
 
   /**
-   * Factory: Construct a new Intersection target direct to the given destination MemorySegment.
-   * Called by SetOperationBuilder, test.
+   * Factory: Construct a new ThetaIntersection target direct to the given destination MemorySegment.
+   * Called by ThetaSetOperationBuilder, test.
    *
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Seed</a>
    * @param dstSeg destination MemorySegment
    * @return a new IntersectionImpl that may be off-heap
    */
-  static IntersectionImpl initNewDirectInstance(final long seed, final MemorySegment dstSeg) {
+  static ThetaIntersectionImpl initNewDirectInstance(final long seed, final MemorySegment dstSeg) {
     //Load Preamble
     //Pre0
     dstSeg.asSlice(0, CONST_PREAMBLE_LONGS << 3).fill((byte)0);
     insertPreLongs(dstSeg, CONST_PREAMBLE_LONGS); //RF not used = 0
     insertSerVer(dstSeg, SER_VER);
     insertFamilyID(dstSeg, Family.INTERSECTION.getID());
-    //lgNomLongs not used by Intersection
+    //lgNomLongs not used by this intersection operation
     //lgArrLongs set by hardReset
     //flags are already 0: reserved = readOnly = compact = ordered = empty = false;
     //seedHash loaded and checked in IntersectionImpl constructor
@@ -168,7 +168,7 @@ final class IntersectionImpl extends Intersection {
     //Initialize
     final boolean dstSegFlag = true;
     final boolean readOnly = false;
-    final IntersectionImpl impl = new IntersectionImpl(dstSeg, seed, dstSegFlag, readOnly);
+    final ThetaIntersectionImpl impl = new ThetaIntersectionImpl(dstSeg, seed, dstSegFlag, readOnly);
     impl.hardReset();
     return impl;
   }
@@ -179,11 +179,11 @@ final class IntersectionImpl extends Intersection {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return a IntersectionImpl instance on the Java heap
    */
-  static IntersectionImpl heapifyInstance(final MemorySegment srcSeg, final long seed) {
+  static ThetaIntersectionImpl heapifyInstance(final MemorySegment srcSeg, final long seed) {
     final boolean dstSegFlag = false;
     final boolean readOnly = false;
-    IntersectionImpl.segChecks(srcSeg);
-    final IntersectionImpl impl = new IntersectionImpl(null, seed, dstSegFlag, readOnly);
+    ThetaIntersectionImpl.segChecks(srcSeg);
+    final ThetaIntersectionImpl impl = new ThetaIntersectionImpl(null, seed, dstSegFlag, readOnly);
 
     //Initialize
     impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
@@ -198,20 +198,20 @@ final class IntersectionImpl extends Intersection {
   }
 
   /**
-   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * Factory: Wrap a ThetaIntersection target around the given source MemorySegment containing intersection data.
    * If the given source MemorySegment is read-only, the returned object will also be read-only.
    * @param srcSeg The source MemorySegment image.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param readOnly True if MemorySegment is to be treated as read only
-   * @return a IntersectionImpl that wraps a source MemorySegment that contains an Intersection image
+   * @return a IntersectionImpl that wraps a source MemorySegment that contains a ThetaIntersection image
    */
-  static IntersectionImpl wrapInstance(
+  static ThetaIntersectionImpl wrapInstance(
       final MemorySegment srcSeg,
       final long seed,
       final boolean readOnly) {
     final boolean dstSegFlag = false;
-    IntersectionImpl.segChecks(srcSeg);
-    final IntersectionImpl impl = new IntersectionImpl(srcSeg, seed, dstSegFlag, readOnly);
+    ThetaIntersectionImpl.segChecks(srcSeg);
+    final ThetaIntersectionImpl impl = new ThetaIntersectionImpl(srcSeg, seed, dstSegFlag, readOnly);
     impl.lgArrLongs_ = extractLgArrLongs(srcSeg);
     impl.curCount_ = extractCurCount(srcSeg);
     impl.thetaLong_ = extractThetaLong(srcSeg);
@@ -220,12 +220,12 @@ final class IntersectionImpl extends Intersection {
   }
 
   @Override
-  public CompactSketch intersect(final ThetaSketch a, final ThetaSketch b, final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch intersect(final ThetaSketch a, final ThetaSketch b, final boolean dstOrdered, final MemorySegment dstSeg) {
     if ((wseg_ != null) && readOnly_) { throw new SketchesReadOnlyException(); }
     hardReset();
     intersect(a);
     intersect(b);
-    final CompactSketch csk = getResult(dstOrdered, dstSeg);
+    final CompactThetaSketch csk = getResult(dstOrdered, dstSeg);
     hardReset();
     return csk;
   }
@@ -233,7 +233,7 @@ final class IntersectionImpl extends Intersection {
   @Override
   public void intersect(final ThetaSketch sketchIn) {
     if (sketchIn == null) {
-      throw new SketchesArgumentException("Intersection argument must not be null.");
+      throw new SketchesArgumentException("The input argument must not be null.");
     }
     if ((wseg_ != null) && readOnly_) { throw new SketchesReadOnlyException(); }
     if (empty_ || sketchIn.isEmpty()) { //empty rule
@@ -311,7 +311,7 @@ final class IntersectionImpl extends Intersection {
   MemorySegment getMemorySegment() { return wseg_; }
 
   @Override
-  public CompactSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg) {
     if (curCount_ < 0) {
       throw new SketchesStateException(
           "Calling getResult() with no intervening intersections would represent the infinite set, "
@@ -336,7 +336,7 @@ final class IntersectionImpl extends Intersection {
     } else {
       hashTable = hashTable_;
     }
-    compactCache = IntersectionImpl.compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
+    compactCache = ThetaIntersectionImpl.compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
     srcCompact = true;
     srcOrdered = dstOrdered;
     return CompactOperations.componentsToCompact(
@@ -504,7 +504,7 @@ final class IntersectionImpl extends Intersection {
         tmpCnt++;
       }
     }
-    assert tmpCnt == count : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
+    assert tmpCnt == count : "ThetaIntersection Count Check: got: " + tmpCnt + ", expected: " + count;
   }
 
   private void moveDataToTgt(final ThetaSketch sketch) {
@@ -530,7 +530,7 @@ final class IntersectionImpl extends Intersection {
         tmpCnt++;
       }
     }
-    assert tmpCnt == count : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
+    assert tmpCnt == count : "ThetaIntersection Count Check: got: " + tmpCnt + ", expected: " + count;
   }
 
   private void hardReset() {
@@ -618,7 +618,7 @@ final class IntersectionImpl extends Intersection {
 
   private static void segChecks(final MemorySegment srcSeg) {
     //Get Preamble
-    //Note: Intersection does not use lgNomLongs (or k), per se.
+    //Note: This intersection operation does not use lgNomLongs (or k), per se.
     //seedHash loaded and checked in private constructor
     final int preLongs = ThetaSketch.getPreambleLongs(srcSeg);
     final int serVer = extractSerVer(srcSeg);

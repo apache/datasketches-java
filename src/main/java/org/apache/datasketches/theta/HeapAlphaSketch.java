@@ -50,7 +50,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * This sketch uses the
- * <a href="{@docRoot}/resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>
+ * <a href="{@docRoot}/resources/dictionary.html#thetaSketch">ThetaSketch Framework</a>
  * and the
  * <a href="{@docRoot}/resources/dictionary.html#alphaTCF">Alpha TCF</a> algorithm
  * with a single cache.
@@ -164,7 +164,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     return has;
   }
 
-  //Sketch
+  //ThetaSketch
 
   @Override
   public Family getFamily() {
@@ -208,7 +208,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     if (curCount_ > 0) {
       if (valid && isDirty()) {
         return HashOperations.countPart(getCache(), getLgArrLongs(), getThetaLong());
@@ -241,7 +241,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   }
 
   /*
-   * Alpha Sketch Preamble Layout ( same as Theta UpdateSketch )
+   * AlphaSketch Preamble Layout ( same as UpdatableThetaSketch )
    * <pre>
    * Long || Start Byte Adr:
    * Adr:
@@ -261,10 +261,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     return toByteArray(Family.ALPHA.getMinPreLongs(), (byte) Family.ALPHA.getID());
   }
 
-  //UpdateSketch
+  //UpdatableThetaSketch
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdatableThetaSketch rebuild() {
     if (isDirty()) {
       rebuildDirty();
     }
@@ -348,7 +348,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     if (r == 0) { //not yet sketch mode (has not seen k+1 inserts), but could be sampling
       if (curCount_ > (1 << lgNomLongs_)) { // > k
         //Reached the k+1 insert. Must be at tgt size or larger.
-        //Transition to Sketch Mode. Happens only once.
+        //Transition to ThetaSketch Mode. Happens only once.
         //Decrement theta, make dirty, don't bother check size, already not-empty.
         thetaLong_ = (long) (thetaLong_ * alpha_);
         dirty_ = true; //now may have dirty values
@@ -507,12 +507,12 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * Table of sketch states and how Upper and Lower Bounds are computed
    *
    * Theta P    Count  Empty  EstMode Est   UB  LB   Comments
-   * 1.0   1.0  0      T      F       0     0   0    Empty Sketch-mode only sketch
-   * 1.0   1.0  N      F      F       N     N   N    Degenerate Sketch-mode only sketch
-   * &lt;1.0  1.0  -      F      T       est   HIP HIP  Normal Sketch-mode only sketch
-   *  P    &lt;1.0 0      T      F       0     0   0    Virgin sampling sketch
-   *  P    &lt;1.0 N      F      T       est   HIP HIP  Degenerate sampling sketch
-   *  &lt;P   &lt;1.0 N      F      T       est   HIP HIP  Sampling sketch also in sketch-mode
+   * 1.0   1.0  0      T      F       0     0   0    Empty sketch-mode only ThetaSketch
+   * 1.0   1.0  N      F      F       N     N   N    Degenerate sketch-mode only ThetaSketch
+   * &lt;1.0  1.0  -      F      T       est   HIP HIP  Normal sketch-mode only ThetaSketch
+   *  P    &lt;1.0 0      T      F       0     0   0    Virgin sampling ThetaSketch
+   *  P    &lt;1.0 N      F      T       est   HIP HIP  Degenerate sampling ThetaSketch
+   *  &lt;P   &lt;1.0 N      F      T       est   HIP HIP  Sampling ThetaSketch also in sketch-mode
    * </pre>
    * @param k alias for nominal entries.
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>.
