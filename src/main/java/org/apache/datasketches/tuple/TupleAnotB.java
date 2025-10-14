@@ -30,32 +30,34 @@ import java.util.Arrays;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.SuppressFBWarnings;
+import org.apache.datasketches.theta.CompactThetaSketch;
+import org.apache.datasketches.theta.ThetaSketch;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * Computes a set difference, A-AND-NOT-B, of two generic tuple sketches.
+ * Computes a set difference, A-AND-NOT-B, of two generic TupleSketches.
  * This class includes both stateful and stateless operations.
  *
- * <p>The stateful operation is as follows:</p>
+ * <p>The stateful operation is as in the following example:</p>
  * <pre><code>
- * AnotB anotb = new AnotB();
+ * TupleAnotB anotb = new TupleAnotB();
  *
- * anotb.setA(Sketch skA); //The first argument.
- * anotb.notB(Sketch skB); //The second (subtraction) argument.
- * anotb.notB(Sketch skC); // ...any number of additional subtractions...
+ * anotb.setA(TupleSketch skA); //The first argument.
+ * anotb.notB(TupleSketch skB); //The second (subtraction) argument.
+ * anotb.notB(TupleSketch skC); // ...any number of additional subtractions...
  * anotb.getResult(false); //Get an interim result.
- * anotb.notB(Sketch skD); //Additional subtractions.
- * anotb.getResult(true);  //Final result and resets the AnotB operator.
+ * anotb.notB(TupleSketch skD); //Additional subtractions.
+ * anotb.getResult(true);  //Final result and resets the TupleAnotB operator.
  * </code></pre>
  *
- * <p>The stateless operation is as follows:</p>
+ * <p>The stateless operation is as in the following example:</p>
  * <pre><code>
- * AnotB anotb = new AnotB();
+ * TupleAnotB anotb = new TupleAnotB();
  *
- * CompactSketch csk = anotb.aNotB(Sketch skA, Sketch skB);
+ * CompactTupleSketch csk = anotb.aNotB(TupleSketch skA, TupleSketch skB);
  * </code></pre>
  *
  * <p>Calling the <i>setA</i> operation a second time essentially clears the internal state and loads
@@ -67,7 +69,7 @@ import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
  *
  * @author Lee Rhodes
  */
-public final class AnotB<S extends Summary> {
+public final class TupleAnotB<S extends Summary> {
   private boolean empty_ = true;
   private long thetaLong_ = Long.MAX_VALUE;
   private long[] hashArr_ = null;   //always in compact form, not necessarily sorted
@@ -78,7 +80,7 @@ public final class AnotB<S extends Summary> {
 
   static {
     try {
-      GET_CACHE = org.apache.datasketches.theta.ThetaSketch.class.getDeclaredMethod("getCache");
+      GET_CACHE = ThetaSketch.class.getDeclaredMethod("getCache");
       GET_CACHE.setAccessible(true);
     } catch (final Exception e) {
       throw new SketchesStateException("Could not reflect getCache(): " + e);
@@ -86,9 +88,9 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
+   * This is part of a multistep, stateful TupleAnotB operation and sets the given TupleSketch as the
    * first argument <i>A</i> of <i>A-AND-NOT-B</i>. This overwrites the internal state of this
-   * AnotB operator with the contents of the given sketch.
+   * TupleAnotB operator with the contents of the given sketch.
    * This sets the stage for multiple following <i>notB</i> steps.
    *
    * <p>An input argument of null will throw an exception.</p>
@@ -110,7 +112,7 @@ public final class AnotB<S extends Summary> {
    *
    * @param skA The incoming sketch for the first argument, <i>A</i>.
    */
-  public void setA(final Sketch<S> skA) {
+  public void setA(final TupleSketch<S> skA) {
     if (skA == null) {
       reset();
       throw new SketchesArgumentException("The input argument <i>A</i> may not be null");
@@ -125,9 +127,9 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
+   * This is part of a multistep, stateful TupleAnotB operation and sets the given TupleSketch as the
    * second (or <i>n+1</i>th) argument <i>B</i> of <i>A-AND-NOT-B</i>.
-   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
+   * Performs an <i>AND NOT</i> operation with the existing internal state of this TupleAnotB operator.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -141,7 +143,7 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
    */
-  public void notB(final Sketch<S> skB) {
+  public void notB(final TupleSketch<S> skB) {
     if (skB == null) { return; } //ignore
 
     final long thetaLongB = skB.getThetaLong();
@@ -195,11 +197,11 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * This is part of a multistep, stateful AnotB operation and sets the given Theta sketch as the
+   * This is part of a multistep, stateful TupleAnotB operation and sets the given ThetaSketch as the
    * second (or <i>n+1</i>th) argument <i>B</i> of <i>A-AND-NOT-B</i>.
-   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
+   * Performs an <i>AND NOT</i> operation with the existing internal state of this TupleAnotB operator.
    * Calls to this method can be intermingled with calls to
-   * {@link #notB(org.apache.datasketches.theta.ThetaSketch)}.
+   * {@link #notB(ThetaSketch)}.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -211,9 +213,9 @@ public final class AnotB<S extends Summary> {
    *
    * <p>Use {@link #getResult(boolean)} to obtain the result.</p>
    *
-   * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
+   * @param skB The incoming ThetaSketch for the second (or following) argument <i>B</i>.
    */
-  public void notB(final org.apache.datasketches.theta.ThetaSketch skB) {
+  public void notB(final ThetaSketch skB) {
     if (skB == null) { return; } //ignore
 
     final long thetaLongB = skB.getThetaLong();
@@ -266,32 +268,32 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * Gets the result of the multistep, stateful operation AnotB that have been executed with calls
-   * to {@link #setA(Sketch)} and ({@link #notB(Sketch)} or
-   * {@link #notB(org.apache.datasketches.theta.ThetaSketch)}).
+   * Gets the result of the multistep, stateful operation TupleAnotB that have been executed with calls
+   * to {@link #setA(TupleSketch)} and ({@link #notB(TupleSketch)} or
+   * {@link #notB(ThetaSketch)}).
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
-   * @return the result of this operation as an unordered {@link CompactSketch}.
+   * @return the result of this operation as an unordered {@link CompactTupleSketch}.
    */
-  public CompactSketch<S> getResult(final boolean reset) {
-    final CompactSketch<S> result;
+  public CompactTupleSketch<S> getResult(final boolean reset) {
+    final CompactTupleSketch<S> result;
     if (curCount_ == 0) {
-      result = new CompactSketch<>(null, null, thetaLong_, thetaLong_ == Long.MAX_VALUE);
+      result = new CompactTupleSketch<>(null, null, thetaLong_, thetaLong_ == Long.MAX_VALUE);
     } else {
 
-      result = new CompactSketch<>(hashArr_, Util.copySummaryArray(summaryArr_), thetaLong_, false);
+      result = new CompactTupleSketch<>(hashArr_, Util.copySummaryArray(summaryArr_), thetaLong_, false);
     }
     if (reset) { reset(); }
     return result;
   }
 
   /**
-   * Returns the A-and-not-B set operation on the two given Tuple sketches.
+   * Returns the A-and-not-B set operation on the two given TupleSketches.
    *
    * <p>This a stateless operation and has no impact on the internal state of this operator.
-   * Thus, this is not an accumulating update and is independent of the {@link #setA(Sketch)},
-   * {@link #notB(Sketch)}, {@link #notB(org.apache.datasketches.theta.ThetaSketch)}, and
+   * Thus, this is not an accumulating update and is independent of the {@link #setA(TupleSketch)},
+   * {@link #notB(TupleSketch)}, {@link #notB(ThetaSketch)}, and
    * {@link #getResult(boolean)} methods.</p>
    *
    * <p>If either argument is null an exception is thrown.</p>
@@ -304,16 +306,16 @@ public final class AnotB<S extends Summary> {
    * no following possible viable arguments for the second argument.
    * Since it is very likely that a <i>null</i> is a programming error, we throw an exception.</p>
    *
-   * @param skA The incoming Tuple sketch for the first argument
-   * @param skB The incoming Tuple sketch for the second argument
+   * @param skA The incoming TupleSketch for the first argument
+   * @param skB The incoming TupleSketch for the second argument
    * @param <S> Type of Summary
-   * @return the result as an unordered {@link CompactSketch}
+   * @return the result as an unordered {@link CompactTupleSketch}
    */
   @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
       justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
-  public static <S extends Summary> CompactSketch<S> aNotB(
-      final Sketch<S> skA,
-      final Sketch<S> skB) {
+  public static <S extends Summary> CompactTupleSketch<S> aNotB(
+      final TupleSketch<S> skA,
+      final TupleSketch<S> skB) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
@@ -331,20 +333,20 @@ public final class AnotB<S extends Summary> {
     final CornerCase cCase = CornerCase.caseIdToCornerCase(id);
     final AnotbAction anotbAction = cCase.getAnotbAction();
 
-    CompactSketch<S> result = null;
+    CompactTupleSketch<S> result = null;
 
     switch (anotbAction) {
       case EMPTY_1_0_T: {
-        result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
+        result = new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
         break;
       }
       case DEGEN_MIN_0_F: {
         final long thetaLong = min(thetaLongA, thetaLongB);
-        result = new CompactSketch<>(null, null, thetaLong, false);
+        result = new CompactTupleSketch<>(null, null, thetaLong, false);
         break;
       }
       case DEGEN_THA_0_F: {
-        result = new CompactSketch<>(null, null, thetaLongA, false);
+        result = new CompactTupleSketch<>(null, null, thetaLongA, false);
         break;
       }
       case TRIM_A: {
@@ -353,12 +355,12 @@ public final class AnotB<S extends Summary> {
         final S[] summaryArrA = daA.summaryArr;
         final long minThetaLong =  min(thetaLongA, thetaLongB);
         final DataArrays<S> da = trimAndCopyDataArrays(hashArrA, summaryArrA, minThetaLong, false);
-        result = new CompactSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
+        result = new CompactTupleSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
         break;
       }
       case SKETCH_A: {
         final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
-        result = new CompactSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
+        result = new CompactTupleSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
         break;
       }
       case FULL_ANOTB: { //both A and B should have valid entries.
@@ -368,9 +370,9 @@ public final class AnotB<S extends Summary> {
             getCopyOfResultArraysTuple(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
         final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
         if (countR == 0) {
-          result = new CompactSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
+          result = new CompactTupleSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
         } else {
-          result = new CompactSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
+          result = new CompactTupleSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
         }
       }
       //default: not possible
@@ -379,11 +381,11 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * Returns the A-and-not-B set operation on a Tuple sketch and a Theta sketch.
+   * Returns the A-and-not-B set operation on a TupleSketch and a ThetaSketch.
    *
    * <p>This a stateless operation and has no impact on the internal state of this operator.
-   * Thus, this is not an accumulating update and is independent of the {@link #setA(Sketch)},
-   * {@link #notB(Sketch)}, {@link #notB(org.apache.datasketches.theta.ThetaSketch)}, and
+   * Thus, this is not an accumulating update and is independent of the {@link #setA(TupleSketch)},
+   * {@link #notB(TupleSketch)}, {@link #notB(ThetaSketch)}, and
    * {@link #getResult(boolean)} methods.</p>
    *
    * <p>If either argument is null an exception is thrown.</p>
@@ -397,16 +399,16 @@ public final class AnotB<S extends Summary> {
    * Since it is very likely that a <i>null</i> is a programming error for either argument
    * we throw a an exception.</p>
    *
-   * @param skA The incoming Tuple sketch for the first argument
-   * @param skB The incoming Theta sketch for the second argument
+   * @param skA The incoming TupleSketch for the first argument
+   * @param skB The incoming ThetaSketch for the second argument
    * @param <S> Type of Summary
-   * @return the result as an unordered {@link CompactSketch}
+   * @return the result as an unordered {@link CompactTupleSketch}
    */
   @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
       justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
-  public static <S extends Summary> CompactSketch<S> aNotB(
-      final Sketch<S> skA,
-      final org.apache.datasketches.theta.ThetaSketch skB) {
+  public static <S extends Summary> CompactTupleSketch<S> aNotB(
+      final TupleSketch<S> skA,
+      final ThetaSketch skB) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
@@ -424,20 +426,20 @@ public final class AnotB<S extends Summary> {
     final CornerCase cCase = CornerCase.caseIdToCornerCase(id);
     final AnotbAction anotbAction = cCase.getAnotbAction();
 
-    CompactSketch<S> result = null;
+    CompactTupleSketch<S> result = null;
 
     switch (anotbAction) {
       case EMPTY_1_0_T: {
-        result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
+        result = new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
         break;
       }
       case DEGEN_MIN_0_F: {
         final long thetaLong = min(thetaLongA, thetaLongB);
-        result = new CompactSketch<>(null, null, thetaLong, false);
+        result = new CompactTupleSketch<>(null, null, thetaLong, false);
         break;
       }
       case DEGEN_THA_0_F: {
-        result = new CompactSketch<>(null, null, thetaLongA, false);
+        result = new CompactTupleSketch<>(null, null, thetaLongA, false);
         break;
       }
       case TRIM_A: {
@@ -446,12 +448,12 @@ public final class AnotB<S extends Summary> {
         final S[] summaryArrA = daA.summaryArr;
         final long minThetaLong = min(thetaLongA, thetaLongB);
         final DataArrays<S> da = trimAndCopyDataArrays(hashArrA, summaryArrA, minThetaLong, false);
-        result = new CompactSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
+        result = new CompactTupleSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
         break;
       }
       case SKETCH_A: {
         final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
-        result = new CompactSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
+        result = new CompactTupleSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
         break;
       }
       case FULL_ANOTB: { //both A and B have valid entries.
@@ -463,9 +465,9 @@ public final class AnotB<S extends Summary> {
             getCopyOfResultArraysTheta(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
         final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
         if (countR == 0) {
-          result = new CompactSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
+          result = new CompactTupleSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
         } else {
-          result = new CompactSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
+          result = new CompactTupleSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
         }
       }
       //default: not possible
@@ -483,11 +485,11 @@ public final class AnotB<S extends Summary> {
   }
 
   private static <S extends Summary> DataArrays<S> getCopyOfDataArraysTuple(
-      final Sketch<S> sk) {
-    final CompactSketch<S> csk;
+      final TupleSketch<S> sk) {
+    final CompactTupleSketch<S> csk;
     final DataArrays<S> da = new DataArrays<>();
-    if (sk instanceof CompactSketch) {
-      csk = (CompactSketch<S>) sk;
+    if (sk instanceof CompactTupleSketch) {
+      csk = (CompactTupleSketch<S>) sk;
     } else {
       csk = ((QuickSelectSketch<S>)sk).compact();
     }
@@ -509,14 +511,14 @@ public final class AnotB<S extends Summary> {
       final int countA,
       final long[] hashArrA,
       final S[] summaryArrA,
-      final Sketch<S> skB) {
+      final TupleSketch<S> skB) {
     final DataArrays<S> daR = new DataArrays<>();
 
     //Rebuild/get hashtable of skB
     final long[] hashTableB;
 
-    if (skB instanceof CompactSketch) {
-      final CompactSketch<S> cskB = (CompactSketch<S>) skB;
+    if (skB instanceof CompactTupleSketch) {
+      final CompactTupleSketch<S> cskB = (CompactTupleSketch<S>) skB;
       final int countB = skB.getRetainedEntries();
       hashTableB = convertToHashTable(cskB.getHashArr(), countB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {
@@ -553,7 +555,7 @@ public final class AnotB<S extends Summary> {
       final int countA,
       final long[] hashArrA,
       final S[] summaryArrA,
-      final org.apache.datasketches.theta.ThetaSketch skB) {
+      final ThetaSketch skB) {
     final DataArrays<S> daB = new DataArrays<>();
 
     //Rebuild/get hashtable of skB
@@ -563,7 +565,7 @@ public final class AnotB<S extends Summary> {
     try { hashCacheB = (long[])GET_CACHE.invoke(skB);
     } catch (final Exception e) { throw new SketchesStateException("Reflection Exception " + e); }
 
-    if (skB instanceof org.apache.datasketches.theta.CompactThetaSketch) {
+    if (skB instanceof CompactThetaSketch) {
       final int countB = skB.getRetainedEntries(true);
       hashTableB = convertToHashTable(hashCacheB, countB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {

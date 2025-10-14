@@ -635,7 +635,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test
   public void checkBuilderExceptions() {
-    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    final UpdatableThetaSketchBuilder bldr = new UpdatableThetaSketchBuilder();
     try {
       bldr.setNominalEntries(8);
       fail();
@@ -683,7 +683,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int localLgK;
     final long seed;
     final MemorySegment wseg;
-    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    final UpdatableThetaSketchBuilder bldr = new UpdatableThetaSketchBuilder();
 
     SharedLocal() {
       this(9, 9, DefaultSeed, false, true, 1);

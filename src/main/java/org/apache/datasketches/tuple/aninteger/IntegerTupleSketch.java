@@ -22,13 +22,13 @@ package org.apache.datasketches.tuple.aninteger;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
 
 /**
- * Extends UpdatableSketch&lt;Integer, IntegerSummary&gt;
+ * Extends UpdatableTupleSketch&lt;Integer, IntegerSummary&gt;
  * @author Lee Rhodes
  */
-public class IntegerSketch extends UpdatableSketch<Integer, IntegerSummary> {
+public class IntegerTupleSketch extends UpdatableTupleSketch<Integer, IntegerSummary> {
 
   /**
    * Constructs this sketch with given <i>lgK</i>.
@@ -36,7 +36,7 @@ public class IntegerSketch extends UpdatableSketch<Integer, IntegerSummary> {
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">See Nominal Entries</a>
    * @param mode The IntegerSummary mode to be used
    */
-  public IntegerSketch(final int lgK, final IntegerSummary.Mode mode) {
+  public IntegerTupleSketch(final int lgK, final IntegerSummary.Mode mode) {
     this(lgK, ResizeFactor.X8.ordinal(), 1.0F, mode);
   }
 
@@ -54,22 +54,22 @@ public class IntegerSketch extends UpdatableSketch<Integer, IntegerSummary> {
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param mode The IntegerSummary mode to be used
    */
-  public IntegerSketch(final int lgK, final int lgResizeFactor, final float samplingProbability,
+  public IntegerTupleSketch(final int lgK, final int lgResizeFactor, final float samplingProbability,
       final IntegerSummary.Mode mode) {
     super(1 << lgK, lgResizeFactor, samplingProbability, new IntegerSummaryFactory(mode));
   }
 
   /**
-   * Constructs this sketch from a MemorySegment image, which must be from an IntegerSketch, and
+   * Constructs this sketch from a MemorySegment image, which must be from an IntegerTupleSketch, and
    * usually with data.
    * @param seg the given MemorySegment
    * @param mode The IntegerSummary mode to be used
-   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * @deprecated As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
-   * Heapifying a CompactSketch is not deprecated.
+   * Heapifying a CompactTupleSketch is not deprecated.
    */
   @Deprecated
-  public IntegerSketch(final MemorySegment seg, final IntegerSummary.Mode mode) {
+  public IntegerTupleSketch(final MemorySegment seg, final IntegerSummary.Mode mode) {
     super(seg, new IntegerSummaryDeserializer(), new IntegerSummaryFactory(mode));
   }
 

@@ -33,9 +33,9 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases;
-import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two ArrayOfDoublesSketches.
@@ -43,7 +43,7 @@ import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
  * <p>This class includes a stateless operation as follows:</p>
  *
  * <pre><code>
- * CompactSketch csk = anotb.aNotB(ArrayOfDoublesSketch skA, ArrayOfDoublesSketch skB);
+ * CompactTupleSketch csk = anotb.aNotB(ArrayOfDoublesSketch skA, ArrayOfDoublesSketch skB);
  * </code></pre>
  *
  * @author Lee Rhodes

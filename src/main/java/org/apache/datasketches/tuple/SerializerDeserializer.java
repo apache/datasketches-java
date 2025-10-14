@@ -37,8 +37,8 @@ public final class SerializerDeserializer {
   public static enum SketchType {
     /** QuickSelectSketch */
     QuickSelectSketch,
-    /** CompactSketch */
-    CompactSketch,
+    /** CompactTupleSketch */
+    CompactTupleSketch,
     /** ArrayOfDoublesQuickSelectSketch */
     ArrayOfDoublesQuickSelectSketch,
     /** ArrayOfDoublesCompactSketch */

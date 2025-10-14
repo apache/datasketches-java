@@ -27,7 +27,6 @@ import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketches;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
@@ -66,7 +65,7 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(values[2][0], 3.0);
 
     final MemorySegment wseg = MemorySegment.ofArray(union.toByteArray());
-    final ArrayOfDoublesUnion wrappedUnion = ArrayOfDoublesSketches.wrapUnion(wseg);
+    final ArrayOfDoublesUnion wrappedUnion = ArrayOfDoublesSketch.wrapUnion(wseg);
     result = wrappedUnion.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
     values = result.getValues();
@@ -468,7 +467,7 @@ public class ArrayOfDoublesUnionTest {
     // as Druid wraps MemorySegment
     MemorySegment seg2 = MemorySegment.ofArray(new byte[1_000_000]);
     ArrayOfDoublesCompactSketch dcsk = sketch.compact(seg2);
-    ArrayOfDoublesUnion union = ArrayOfDoublesSketches.wrapUnion(seg); //empty union
+    ArrayOfDoublesUnion union = ArrayOfDoublesSketch.wrapUnion(seg); //empty union
     union.union(dcsk);
     //ArrayOfDoublesSketches.wrapUnion(seg).union(sketch.compact(MemorySegment.ofArray(new byte[1_000_000])));
 
@@ -490,7 +489,7 @@ public class ArrayOfDoublesUnionTest {
       sketch1.update(key++, new double[] {1.0});
     }
     // as Druid wraps MemorySegment
-    ArrayOfDoublesSketches.wrapUnion(seg).union(sketch1.compact(MemorySegment.ofArray(new byte[1000000])));
+    ArrayOfDoublesSketch.wrapUnion(seg).union(sketch1.compact(MemorySegment.ofArray(new byte[1000000])));
 
     final int n2 = 1000000; // estimation mode
     final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
@@ -498,7 +497,7 @@ public class ArrayOfDoublesUnionTest {
       sketch2.update(key++, new double[] {1.0});
     }
     // as Druid wraps MemorySegment
-    ArrayOfDoublesSketches.wrapUnion(seg).union(sketch2.compact(MemorySegment.ofArray(new byte[1000000])));
+    ArrayOfDoublesSketch.wrapUnion(seg).union(sketch2.compact(MemorySegment.ofArray(new byte[1000000])));
 
     // build one sketch that must be the same as union
     key = 0; // reset to have the same keys

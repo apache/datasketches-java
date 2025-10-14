@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.Math.min;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
-import static java.lang.Math.min;
 
 import java.lang.foreign.MemorySegment;
 
@@ -51,7 +51,7 @@ public abstract class ArrayOfDoublesUnion {
   long unionThetaLong_;
 
   /**
-   * Constructs this Union initializing it with the given sketch, which can be on-heap or off-heap.
+   * Constructs this TupleUnion initializing it with the given sketch, which can be on-heap or off-heap.
    * @param sketch the given sketch.
    */
   ArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch) {
@@ -80,7 +80,7 @@ public abstract class ArrayOfDoublesUnion {
 
   /**
    * Wrap the given MemorySegment as an ArrayOfDoublesUnion.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @return an ArrayOfDoublesUnion
    */
@@ -90,7 +90,7 @@ public abstract class ArrayOfDoublesUnion {
 
   /**
    * Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
    * @param srcSeg the given source MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
@@ -101,7 +101,7 @@ public abstract class ArrayOfDoublesUnion {
 
   /**
    * Updates the union by adding a set of entries from a given sketch, which can be on-heap or off-heap.
-   * Both the given tupleSketch and the internal state of the Union must have the same <i>numValues</i>.
+   * Both the given tupleSketch and the internal state of the TupleUnion must have the same <i>numValues</i>.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
@@ -171,7 +171,7 @@ public abstract class ArrayOfDoublesUnion {
   //      ||    7   |    6   |    5   |    4   |    3    |    2   |    1   |     0              |
   //  0   ||  Seed Hash=0    | #Dbls=0|Flags=0 | SkType  | FamID  | SerVer |  Preamble_Longs    |
   //      ||   15   |   14   |   13   |   12   |   11    |   10   |    9   |     8              |
-  //  1   ||---------------------------Union Theta Long-----------------------------------------|
+  //  1   ||---------------------------TupleUnion Theta Long------------------------------------|
   /**
    * Returns a byte array representation of this object
    * @return a byte array representation of this object

@@ -34,8 +34,8 @@ public class SerializerDeserializerTest {
   @Test
   public void validSketchType() {
     byte[] bytes = new byte[4];
-    bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal();
-    Assert.assertEquals(SerializerDeserializer.getSketchType(MemorySegment.ofArray(bytes)), SerializerDeserializer.SketchType.CompactSketch);
+    bytes[SerializerDeserializer.TYPE_BYTE_OFFSET] = (byte) SerializerDeserializer.SketchType.CompactTupleSketch.ordinal();
+    Assert.assertEquals(SerializerDeserializer.getSketchType(MemorySegment.ofArray(bytes)), SerializerDeserializer.SketchType.CompactTupleSketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

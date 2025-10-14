@@ -466,7 +466,7 @@ public class CornerCaseThetaSetOperationsTest {
   }
 
   private static UpdatableThetaSketch getSketch(SkType skType, float p, long value) {
-    UpdateSketchBuilder bldr = UpdatableThetaSketch.builder();
+    UpdatableThetaSketchBuilder bldr = UpdatableThetaSketch.builder();
     bldr.setLogNominalEntries(4);
     UpdatableThetaSketch sk;
     switch(skType) {

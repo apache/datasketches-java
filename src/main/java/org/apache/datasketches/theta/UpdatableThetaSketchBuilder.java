@@ -39,7 +39,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
-public final class UpdateSketchBuilder {
+public final class UpdatableThetaSketchBuilder {
   private int bLgNomLongs;
   private long bSeed;
   private ResizeFactor bRF;
@@ -75,7 +75,7 @@ public final class UpdateSketchBuilder {
    * <li>Concurrent MaxNumLocalThreads: 1</li>
    * </ul>
    */
-  public UpdateSketchBuilder() {
+  public UpdatableThetaSketchBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
     bSeed = Util.DEFAULT_UPDATE_SEED;
     bRF = ResizeFactor.X8;
@@ -102,7 +102,7 @@ public final class UpdateSketchBuilder {
    * This will become the ceiling power of 2 if the given value is not.
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setNominalEntries(final int nomEntries) {
+  public UpdatableThetaSketchBuilder setNominalEntries(final int nomEntries) {
     bLgNomLongs = ThetaUtil.checkNomLongs(nomEntries);
     return this;
   }
@@ -117,7 +117,7 @@ public final class UpdateSketchBuilder {
    * @param lgNomEntries the Log Nominal Entries. Also for the concurrent shared sketch
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setLogNominalEntries(final int lgNomEntries) {
+  public UpdatableThetaSketchBuilder setLogNominalEntries(final int lgNomEntries) {
     bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgNomEntries);
     return this;
   }
@@ -132,7 +132,7 @@ public final class UpdateSketchBuilder {
    * @param lgK the Log Nominal Entries. Also for the concurrent shared sketch.
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setLgK(final int lgK) {
+  public UpdatableThetaSketchBuilder setLgK(final int lgK) {
     bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgK);
     return this;
   }
@@ -155,7 +155,7 @@ public final class UpdateSketchBuilder {
    *                   This will become the ceiling power of 2 if it is not.
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setConCurNominalEntries(final int nomEntries) {
+  public UpdatableThetaSketchBuilder setConCurNominalEntries(final int nomEntries) {
     bConCurLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     if (bConCurLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS || bConCurLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
@@ -173,7 +173,7 @@ public final class UpdateSketchBuilder {
    * @param lgNomEntries the Log Nominal Entries for a concurrent local sketch
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setConCurLogNominalEntries(final int lgNomEntries) {
+  public UpdatableThetaSketchBuilder setConCurLogNominalEntries(final int lgNomEntries) {
     bConCurLgNomLongs = lgNomEntries;
     if (bConCurLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS || bConCurLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
@@ -195,7 +195,7 @@ public final class UpdateSketchBuilder {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setSeed(final long seed) {
+  public UpdatableThetaSketchBuilder setSeed(final long seed) {
     bSeed = seed;
     return this;
   }
@@ -213,7 +213,7 @@ public final class UpdateSketchBuilder {
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setP(final float p) {
+  public UpdatableThetaSketchBuilder setP(final float p) {
     if (p <= 0.0 || p > 1.0) {
       throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
@@ -234,7 +234,7 @@ public final class UpdateSketchBuilder {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setResizeFactor(final ResizeFactor rf) {
+  public UpdatableThetaSketchBuilder setResizeFactor(final ResizeFactor rf) {
     bRF = rf;
     return this;
   }
@@ -252,7 +252,7 @@ public final class UpdateSketchBuilder {
    * @param family the family for this builder
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setFamily(final Family family) {
+  public UpdatableThetaSketchBuilder setFamily(final Family family) {
     bFam = family;
     return this;
   }
@@ -270,7 +270,7 @@ public final class UpdateSketchBuilder {
    * @param mSegReq the given MemorySegmentRequest
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setMemorySegmentRequest(final MemorySegmentRequest mSegReq) {
+  public UpdatableThetaSketchBuilder setMemorySegmentRequest(final MemorySegmentRequest mSegReq) {
     bMemorySegmentRequest = mSegReq;
     return this;
   }
@@ -307,7 +307,7 @@ public final class UpdateSketchBuilder {
    * @param prop the given value
    * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setPropagateOrderedCompact(final boolean prop) {
+  public UpdatableThetaSketchBuilder setPropagateOrderedCompact(final boolean prop) {
     bPropagateOrderedCompact = prop;
     return this;
   }
@@ -514,7 +514,7 @@ public final class UpdateSketchBuilder {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("UpdateSketchBuilder configuration:").append(LS);
+    sb.append("UpdatableThetaSketchBuilder configuration:").append(LS);
     sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
     sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
     sb.append("LgLocalK:").append(TAB).append(bConCurLgNomLongs).append(LS);

@@ -24,14 +24,13 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.theta.UpdatableThetaSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.Sketches;
+import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
+import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleIntersection;
+import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
@@ -47,14 +46,14 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void intersectionNotEmptyNoEntries() {
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>
           (new DoubleSummaryFactory(mode)).setSamplingProbability(0.01f).build();
     sketch1.update("a", 1.0); // this happens to get rejected because of sampling with low probability
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.intersect(sketch1);
-    final CompactSketch<DoubleSummary> result = intersection.getResult();
+    final CompactTupleSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 0.0);
@@ -64,19 +63,19 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void intersectionExactWithEmpty() {
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
     sketch1.update(3, 1.0);
 
-    final Sketch<DoubleSummary> sketch2 = Sketches.createEmptySketch();
+    final TupleSketch<DoubleSummary> sketch2 = TupleSketch.createEmptySketch();
 
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.intersect(sketch1);
     intersection.intersect(sketch2);
-    final CompactSketch<DoubleSummary> result = intersection.getResult();
+    final CompactTupleSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 0.0);
@@ -86,25 +85,25 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void intersectionExactMode() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
     sketch1.update(2, 1.0);
 
-    final UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch2 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch2.update(2, 1.0);
     sketch2.update(2, 1.0);
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
 
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.intersect(sketch1);
     intersection.intersect(sketch2);
-    final CompactSketch<DoubleSummary> result = intersection.getResult();
+    final CompactTupleSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 1);
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 1.0);
@@ -126,23 +125,23 @@ public class AdoubleIntersectionTest {
   @Test
   public void intersectionDisjointEstimationMode() {
     int key = 0;
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, 1.0);
     }
 
-    final UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch2 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, 1.0);
     }
 
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.intersect(sketch1);
     intersection.intersect(sketch2);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
+    CompactTupleSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 0.0);
@@ -162,24 +161,24 @@ public class AdoubleIntersectionTest {
   @Test
   public void intersectionEstimationMode() {
     int key = 0;
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, 1.0);
     }
 
     key -= 4096; // overlap half of the entries
-    final UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch2 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, 1.0);
     }
 
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.intersect(sketch1);
     intersection.intersect(sketch2);
-    final CompactSketch<DoubleSummary> result = intersection.getResult();
+    final CompactTupleSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertFalse(result.isEmpty());
     // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03);
@@ -194,16 +193,16 @@ public class AdoubleIntersectionTest {
   @Test
   public void checkExactIntersectionWithTheta() {
     final UpdatableThetaSketch thSkNull = null;
-    final UpdatableThetaSketch thSkEmpty = new UpdateSketchBuilder().build();
-    final UpdatableThetaSketch thSk10 = new UpdateSketchBuilder().build();
-    final UpdatableThetaSketch thSk15 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch thSkEmpty = new UpdatableThetaSketchBuilder().build();
+    final UpdatableThetaSketch thSk10 = new UpdatableThetaSketchBuilder().build();
+    final UpdatableThetaSketch thSk15 = new UpdatableThetaSketchBuilder().build();
     for (int i = 0; i < 10; i++) { thSk10.update(i); }
     for (int i = 0; i < 10; i++) { thSk15.update(i + 5); } //overlap = 5
 
     DoubleSummary dsum = new DoubleSummaryFactory(mode).newSummary();
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    CompactSketch<DoubleSummary> result;
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
+    CompactTupleSketch<DoubleSummary> result;
 
     try { intersection.getResult(); fail(); }
     catch (final SketchesStateException e ) { } //OK.
@@ -240,16 +239,16 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void checkExactIntersectionWithThetaDisjoint() {
-    final UpdatableThetaSketch thSkA = new UpdateSketchBuilder().setLogNominalEntries(10).build();
-    final UpdatableThetaSketch thSkB = new UpdateSketchBuilder().setLogNominalEntries(10).build();
+    final UpdatableThetaSketch thSkA = new UpdatableThetaSketchBuilder().setLogNominalEntries(10).build();
+    final UpdatableThetaSketch thSkB = new UpdatableThetaSketchBuilder().setLogNominalEntries(10).build();
     int key = 0;
     for (int i = 0; i < 32;  i++) { thSkA.update(key++); }
     for (int i = 0; i < 32; i++) { thSkB.update(key++); }
 
     final DoubleSummary dsum = new DoubleSummaryFactory(mode).newSummary();
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    CompactSketch<DoubleSummary> result;
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
+    CompactTupleSketch<DoubleSummary> result;
 
     intersection.intersect(thSkA, dsum);
     intersection.intersect(thSkB, dsum);
@@ -265,15 +264,15 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void checkEstimatingIntersectionWithThetaOverlapping() {
-    final UpdatableThetaSketch thSkA = new UpdateSketchBuilder().setLogNominalEntries(4).build();
-    final UpdatableThetaSketch thSkB = new UpdateSketchBuilder().setLogNominalEntries(10).build();
+    final UpdatableThetaSketch thSkA = new UpdatableThetaSketchBuilder().setLogNominalEntries(4).build();
+    final UpdatableThetaSketch thSkB = new UpdatableThetaSketchBuilder().setLogNominalEntries(10).build();
     for (int i = 0; i < 64;  i++) { thSkA.update(i); } //dense mode, low theta
     for (int i = 32; i < 96; i++) { thSkB.update(i); } //exact overlapping
 
     final DoubleSummary dsum = new DoubleSummaryFactory(mode).newSummary();
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    CompactSketch<DoubleSummary> result;
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
+    CompactTupleSketch<DoubleSummary> result;
 
     intersection.intersect(thSkA, dsum);
     intersection.intersect(thSkB, dsum);
@@ -292,12 +291,12 @@ public class AdoubleIntersectionTest {
 
   @Test
   public void intersectionEmpty() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    final Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final TupleIntersection<DoubleSummary> intersection =
+        new TupleIntersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.intersect(sketch);
-    final CompactSketch<DoubleSummary> result = intersection.getResult();
+    final CompactTupleSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 0.0);

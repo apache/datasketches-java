@@ -61,7 +61,7 @@ public class ExamplesTest {
   @Test
   public void theta2dot0Examples() {
     //Load source sketches
-    final UpdateSketchBuilder bldr = UpdatableThetaSketch.builder();
+    final UpdatableThetaSketchBuilder bldr = UpdatableThetaSketch.builder();
     final UpdatableThetaSketch skA = bldr.build();
     final UpdatableThetaSketch skB = bldr.build();
     for (int i = 1; i <= 1000; i++) {

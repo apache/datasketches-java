@@ -33,7 +33,7 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
- * Direct Compact Sketch of type ArrayOfDoubles.
+ * Direct CompactTupleSketch of type ArrayOfDoubles.
  *
  * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
  * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for

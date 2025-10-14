@@ -41,12 +41,12 @@ public enum Family {
    * 30% improvement (~1/sqrt(2*k)) in its error distribution as compared to the QuickSelect
    * (or similar KMV-derived) sketches.
    *
-   * <p>If the AlphaSketch is fed into any SetOperation, the error distribution reverts back to the
+   * <p>If the AlphaSketch is fed into any ThetaSetOperation, the error distribution reverts back to the
    * normal QuickSelect/KMV error distribution (~1/sqrt(k)).  For this reason, the AlphaSketch
-   * does not have a sister class for off-heap operation. The Alpha Sketch has a roughly 30% faster
+   * does not have a sister class for off-heap operation. The AlphaSketch has a roughly 30% faster
    * overall update time as compared to the QuickSelect sketch family.</p>
    *
-   * <p>The Alpha Sketch is created using the UpdateSketch.builder().
+   * <p>The AlphaSketch is created using the UpdatableThetaSketchBuilder().
    * <a href="{@docRoot}/resources/dictionary.html#alphaTCF">See Alpha TCF</a> and
    * <a href="{@docRoot}/resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>
    */
@@ -56,35 +56,35 @@ public enum Family {
    * The QuickSelect Sketch family is a member of the Theta Sketch Framework of sketches and
    * is the workhorse of the Theta Sketch Families and can be constructed for either on-heap or
    * off-heap operation.
-   * The QuickSelect Sketch is created using the UpdateSketch.builder().
+   * The QuickSelect Sketch is created using the UpdatableThetaSketchBuilder().
    * <a href="{@docRoot}/resources/dictionary.html#quickSelectTCF">See Quick Select TCF</a>
    */
   QUICKSELECT(2, "QuickSelect", 3, 3),
 
   /**
    * The Compact Sketch family is a member of the Theta Sketch Framework of sketches.
-   * The are read-only and cannot be updated, but can participate in any of the Set Operations.
-   * The compact sketches are never created directly with a constructor or Builder.
+   * They are read-only and cannot be updated, but can participate in any of the Set Operations.
+   * The compact sketches are never created directly with a constructor or builder.
    * Instead they are created as a result of the compact()
-   * method of an UpdateSketch or as a result of a getSketchSamples() of a SetOperation.
+   * method of an UpdatableThetaSketch or as a result of a getSketchSamples() of a ThetaSetOperation.
    */
   COMPACT(3, "Compact", 1, 3),
 
   /**
    * The Union family is an operation for the Theta Sketch Framework of sketches.
-   * The Union is constructed using the SetOperation.builder().
+   * The Union is constructed using the ThetaSetOperationBuilder().
    */
   UNION(4, "Union", 4, 4),
 
   /**
    * The Intersection family is an operation for the Theta Sketch Framework of sketches.
-   * The Intersection is constructed using the SetOperation.builder().
+   * The ThetaIntersection is constructed using the ThetaSetOperationBuilder().
    */
   INTERSECTION(5, "Intersection", 3, 3),
 
   /**
    * The A and not B family is an operation for the Theta Sketch Framework of sketches.
-   * The AnotB operation is constructed using the SetOperation.builder().
+   * The ThetaAnotB operation is constructed using the ThetaSetOperationBuilder().
    */
   A_NOT_B(6, "AnotB", 3, 3),
 

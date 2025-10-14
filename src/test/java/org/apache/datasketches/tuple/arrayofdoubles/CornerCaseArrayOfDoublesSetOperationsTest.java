@@ -24,20 +24,12 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesAnotB;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCombiner;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesIntersection;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.annotations.Test;
 
 public class CornerCaseArrayOfDoublesSetOperationsTest {
-  //Stateful Intersection with intersect(sketch A, combiner), followed by getResult()
-  //Essentially Stateless AnotB with update(Sketch A, Sketch B), followed by getResult()
-  //Stateful Union with union(Sketch A), followed by getResult()
+  //Stateful TupleIntersection with intersect(sketch A, combiner), followed by getResult()
+  //Essentially Stateless TupleAnotB with update(TupleSketch A, TupleSketch B), followed by getResult()
+  //Stateful TupleUnion with union(TupleSketch A), followed by getResult()
 
   /* Hashes and Hash Equivalents
    *               Top8bits  Hex               Decimal
@@ -433,14 +425,14 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
     ArrayOfDoublesAnotB anotb = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
 
-    //Intersection Tuple, Tuple Updatable Stateful
+    //TupleIntersection Tuple, Tuple Updatable Stateful
     inter.intersect(tupleA, minCombiner);
     inter.intersect(tupleB, minCombiner);
     csk = inter.getResult();
     inter.reset();
     checkResult("Intersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
-    //Intersection Tuple, Tuple Compact Stateful
+    //TupleIntersection Tuple, Tuple Compact Stateful
     inter.intersect(tupleA.compact(), minCombiner);
     inter.intersect(tupleB.compact(), minCombiner);
     csk = inter.getResult();
@@ -448,27 +440,27 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
     checkResult("Intersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
 
-    //AnotB Stateless Tuple, Tuple Updatable
+    //TupleAnotB Stateless Tuple, Tuple Updatable
     anotb.update(tupleA, tupleB);
     csk = anotb.getResult();
-    checkResult("AnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateless Tuple, Tuple Compact
+    checkResult("TupleAnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateless Tuple, Tuple Compact
     anotb.update(tupleA, tupleB);
     csk = anotb.getResult();
-    checkResult("AnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    checkResult("TupleAnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
 
-    //Union Stateful Tuple, Tuple Updatable
+    //TupleUnion Stateful Tuple, Tuple Updatable
     union.union(tupleA);
     union.union(tupleB);
     csk = union.getResult();
     union.reset();
-    checkResult("Union Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //Union Stateful Tuple, Tuple Compact
+    checkResult("TupleUnion Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //TupleUnion Stateful Tuple, Tuple Compact
     union.union(tupleA.compact());
     union.union(tupleB.compact());
     csk = union.getResult();
     union.reset();
-    checkResult("Union Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    checkResult("TupleUnion Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
   }
 
   private static void checkResult(

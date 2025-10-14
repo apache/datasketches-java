@@ -237,7 +237,7 @@ public class UnionImplTest {
     final int num = 2;
     final UpdatableThetaSketch[] skArr = new UpdatableThetaSketch[num];
     for (int i = 0; i < num; i++) {
-      skArr[i] = new UpdateSketchBuilder().build();
+      skArr[i] = new UpdatableThetaSketchBuilder().build();
     }
     for (int i = 0; i < (num/2); i++) {
       skArr[i].update(i);

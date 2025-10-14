@@ -24,19 +24,19 @@ import static org.apache.datasketches.tuple.Util.stringArrHash;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
 
 /**
- * Extends UpdatableSketch&lt;String[], ArrayOfStringsSummary&gt;
+ * Extends UpdatableTupleSketch&lt;String[], ArrayOfStringsSummary&gt;
  * @author Lee Rhodes
  */
-public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStringsSummary> {
+public class ArrayOfStringsTupleSketch extends UpdatableTupleSketch<String[], ArrayOfStringsSummary> {
 
   /**
    * Constructs new sketch with default <i>K</i> = 4096 (<i>lgK</i> = 12), default ResizeFactor=X8,
    * and default <i>p</i> = 1.0.
    */
-  public ArrayOfStringsSketch() {
+  public ArrayOfStringsTupleSketch() {
     this(12);
   }
 
@@ -45,7 +45,7 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
    * @param lgK Log_base2 of <i>Nominal Entries</i>.
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">See Nominal Entries</a>
    */
-  public ArrayOfStringsSketch(final int lgK) {
+  public ArrayOfStringsTupleSketch(final int lgK) {
     this(lgK, ResizeFactor.X8, 1.0F);
   }
 
@@ -58,20 +58,20 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
    * @param p sampling probability
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    */
-  public ArrayOfStringsSketch(final int lgK, final ResizeFactor rf, final float p) {
+  public ArrayOfStringsTupleSketch(final int lgK, final ResizeFactor rf, final float p) {
     super(1 << lgK, rf.lg(), p, new ArrayOfStringsSummaryFactory());
   }
 
   /**
-   * Constructs this sketch from a MemorySegment image, which must be from an ArrayOfStringsSketch, and
+   * Constructs this sketch from a MemorySegment image, which must be from an ArrayOfStringsTupleSketch, and
    * usually with data.
    * @param seg the given MemorySegment
-   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * @deprecated As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
-   * Heapifying a CompactSketch is not deprecated.
+   * Heapifying a CompactTupleSketch is not deprecated.
    */
   @Deprecated
-  public ArrayOfStringsSketch(final MemorySegment seg) {
+  public ArrayOfStringsTupleSketch(final MemorySegment seg) {
     super(seg, new ArrayOfStringsSummaryDeserializer(), new ArrayOfStringsSummaryFactory());
   }
 
@@ -79,7 +79,7 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
    * Copy Constructor
    * @param sketch the sketch to copy
    */
-  public ArrayOfStringsSketch(final ArrayOfStringsSketch sketch) {
+  public ArrayOfStringsTupleSketch(final ArrayOfStringsTupleSketch sketch) {
     super(sketch);
   }
 
@@ -87,8 +87,8 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
    * @return a deep copy of this sketch
    */
   @Override
-  public ArrayOfStringsSketch copy() {
-    return new ArrayOfStringsSketch(this);
+  public ArrayOfStringsTupleSketch copy() {
+    return new ArrayOfStringsTupleSketch(this);
   }
 
   /**

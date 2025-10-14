@@ -45,7 +45,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The top-level class for all theta sketches. This class is never constructed directly.
- * Use the UpdatableThetaSketch.builder() methods to create UpdatableThetaSketches.
+ * Use the UpdatableThetaSketchBuilder() methods to create UpdatableThetaSketches.
  *
  * @author Lee Rhodes
  */

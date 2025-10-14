@@ -22,13 +22,13 @@ package org.apache.datasketches.tuple.adouble;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
 
 /**
- * Extends UpdatableSketch&lt;Double, DoubleSummary&gt;
+ * Extends UpdatableTupleSketch&lt;Double, DoubleSummary&gt;
  * @author Lee Rhodes
  */
-public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {
+public class DoubleTupleSketch extends UpdatableTupleSketch<Double, DoubleSummary> {
 
   /**
    * Constructs this sketch with given <i>lgK</i>.
@@ -36,7 +36,7 @@ public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">See Nominal Entries</a>
    * @param mode The DoubleSummary mode to be used
    */
-  public DoubleSketch(final int lgK, final DoubleSummary.Mode mode) {
+  public DoubleTupleSketch(final int lgK, final DoubleSummary.Mode mode) {
     this(lgK, ResizeFactor.X8.ordinal(), 1.0F, mode);
   }
 
@@ -54,22 +54,22 @@ public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param mode The DoubleSummary mode to be used
    */
-  public DoubleSketch(final int lgK, final int lgResizeFactor, final float samplingProbability,
+  public DoubleTupleSketch(final int lgK, final int lgResizeFactor, final float samplingProbability,
       final DoubleSummary.Mode mode) {
     super(1 << lgK, lgResizeFactor, samplingProbability, new DoubleSummaryFactory(mode));
   }
 
   /**
-   * Constructs this sketch from a MemorySegment image, which must be from an DoubleSketch, and
+   * Constructs this sketch from a MemorySegment image, which must be from an DoubleTupleSketch, and
    * usually with data.
    * @param seg the given MemorySegment
    * @param mode The DoubleSummary mode to be used
-   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * @deprecated As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
-   * Heapifying a CompactSketch is not deprecated.
+   * Heapifying a CompactTupleSketch is not deprecated.
    */
   @Deprecated
-  public DoubleSketch(final MemorySegment seg, final DoubleSummary.Mode mode) {
+  public DoubleTupleSketch(final MemorySegment seg, final DoubleSummary.Mode mode) {
     super(seg, new DoubleSummaryDeserializer(), new DoubleSummaryFactory(mode));
   }
 

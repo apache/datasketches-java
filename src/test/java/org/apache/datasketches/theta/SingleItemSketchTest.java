@@ -289,9 +289,9 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkHeapifyInstance() {
-    final UpdatableThetaSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk1 = new UpdatableThetaSketchBuilder().build();
     sk1.update(1);
-    final UpdatableThetaSketch sk2 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk2 = new UpdatableThetaSketchBuilder().build();
     sk2.update(1);
     final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
     inter.intersect(sk1);
@@ -307,7 +307,7 @@ public class SingleItemSketchTest {
   @Test
   public void checkSingleItemBadFlags() {
     final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
-    final UpdatableThetaSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk1 = new UpdatableThetaSketchBuilder().build();
     sk1.update(1);
     final MemorySegment wseg  = MemorySegment.ofArray(new byte[16]);
     sk1.compact(true, wseg );
@@ -330,7 +330,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkSingleItemCompact() {
-    final UpdatableThetaSketch sk1 = new UpdateSketchBuilder().build();
+    final UpdatableThetaSketch sk1 = new UpdatableThetaSketchBuilder().build();
     sk1.update(1);
     final CompactThetaSketch csk = sk1.compact();
     assertTrue(csk instanceof SingleItemSketch);

@@ -212,8 +212,8 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * Returns a new builder
    * @return a new builder
    */
-  public static final UpdateSketchBuilder builder() {
-    return new UpdateSketchBuilder();
+  public static final UpdatableThetaSketchBuilder builder() {
+    return new UpdatableThetaSketchBuilder();
   }
 
   /**

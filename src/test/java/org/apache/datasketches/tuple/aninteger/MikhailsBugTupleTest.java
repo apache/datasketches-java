@@ -19,38 +19,35 @@
 
 package org.apache.datasketches.tuple.aninteger;
 
-import org.apache.datasketches.tuple.AnotB;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.aninteger.IntegerSketch;
-import org.apache.datasketches.tuple.aninteger.IntegerSummary;
-import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
+import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleIntersection;
+import org.apache.datasketches.tuple.TupleAnotB;
 import org.testng.annotations.Test;
 
 /**
  * Issue #368, from Mikhail Lavrinovich 12 OCT 2021
- * The failure was AnotB(estimating {&lt;1.0,1,F}, Intersect(estimating{&lt;1.0,1,F}, newDegenerative{&lt;1.0,0,T},
- * Which should be equal to AnotB(estimating{&lt;1.0,1,F}, new{1.0,0,T} = estimating{&lt;1.0, 1, F}. The AnotB
- * threw a null pointer exception because it was not properly handling sketches with zero entries.
+ * The failure was TupleAnotB(estimating {&lt;1.0,1,F}, TupleIntersect(estimating{&lt;1.0,1,F}, newDegenerative{&lt;1.0,0,T},
+ * Which should be equal to TupleAnotB(estimating{&lt;1.0,1,F}, new{1.0,0,T} = estimating{&lt;1.0, 1, F}.
+ * The TupleAnotB threw a null pointer exception because it was not properly handling sketches with zero entries.
  */
 public class MikhailsBugTupleTest {
 
   @Test
   public void mikhailsBug() {
-    IntegerSketch x = new IntegerSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
-    IntegerSketch y = new IntegerSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
+    IntegerTupleSketch x = new IntegerTupleSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
+    IntegerTupleSketch y = new IntegerTupleSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
     x.update(1L, 1);
     IntegerSummarySetOperations setOperations =
         new IntegerSummarySetOperations(IntegerSummary.Mode.Min, IntegerSummary.Mode.Min);
-    Intersection<IntegerSummary> intersection = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> intersect = intersection.intersect(x, y);
-    AnotB.aNotB(x, intersect); // NPE was here
+    TupleIntersection<IntegerSummary> intersection = new TupleIntersection<>(setOperations);
+    CompactTupleSketch<IntegerSummary> intersect = intersection.intersect(x, y);
+    TupleAnotB.aNotB(x, intersect); // NPE was here
   }
 
   //@Test
   public void withTuple() {
-    IntegerSketch x = new IntegerSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
-    IntegerSketch y = new IntegerSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
+    IntegerTupleSketch x = new IntegerTupleSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
+    IntegerTupleSketch y = new IntegerTupleSketch(12, 2, 0.1f, IntegerSummary.Mode.Min);
     x.update(1L, 1);
     println("Tuple x: Estimating {<1.0,1,F}");
     println(x.toString());
@@ -58,12 +55,12 @@ public class MikhailsBugTupleTest {
     println(y.toString());
     IntegerSummarySetOperations setOperations =
         new IntegerSummarySetOperations(IntegerSummary.Mode.Min, IntegerSummary.Mode.Min);
-    Intersection<IntegerSummary> intersection = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> intersect = intersection.intersect(x, y);
-    println("Tuple Intersect(Estimating, NewDegen) = new {1.0, 0, T}");
+    TupleIntersection<IntegerSummary> intersection = new TupleIntersection<>(setOperations);
+    CompactTupleSketch<IntegerSummary> intersect = intersection.intersect(x, y);
+    println("TupleIntersect(Estimating, NewDegen) = new {1.0, 0, T}");
     println(intersect.toString());
-    CompactSketch<IntegerSummary> csk = AnotB.aNotB(x, intersect);
-    println("Tuple AnotB(Estimating, New) = estimating {<1.0, 1, F}");
+    CompactTupleSketch<IntegerSummary> csk = TupleAnotB.aNotB(x, intersect);
+    println("TupleAnotB(Estimating, New) = estimating {<1.0, 1, F}");
     println(csk.toString());
   }
 

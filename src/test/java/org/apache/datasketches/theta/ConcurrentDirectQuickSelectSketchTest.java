@@ -514,7 +514,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
   @Test
   public void checkNullMemorySegment() {
-    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    final UpdatableThetaSketchBuilder bldr = new UpdatableThetaSketchBuilder();
     final UpdatableThetaSketch sk = bldr.build();
     for (int i = 0; i < 1000; i++) { sk.update(i); }
     final UpdatableThetaSketch shared = bldr.buildSharedFromSketch(sk, null);
@@ -546,7 +546,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     final int lgK = 4;
     final int k = 1 << lgK;
     final MemorySegment wseg = MemorySegment.ofArray(new byte[k/2]);
-    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    final UpdatableThetaSketchBuilder bldr = new UpdatableThetaSketchBuilder();
     bldr.setLogNominalEntries(lgK);
     bldr.buildShared(wseg);
   }

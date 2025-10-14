@@ -68,7 +68,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * Value of X1 means that the maximum capacity is allocated from the start.
    * Default resize factor is X8.
    * @param resizeFactor value of X1, X2, X4 or X8
-   * @return this UpdatableSketchBuilder
+   * @return this UpdatableTupleSketchBuilder
    */
   public ArrayOfDoublesUpdatableSketchBuilder setResizeFactor(final ResizeFactor resizeFactor) {
     resizeFactor_ = resizeFactor;

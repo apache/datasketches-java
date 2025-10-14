@@ -114,7 +114,7 @@ public class UpdateSketchTest {
 
   @Test
   public void checkBuilder() {
-    final UpdateSketchBuilder bldr = UpdatableThetaSketch.builder();
+    final UpdatableThetaSketchBuilder bldr = UpdatableThetaSketch.builder();
 
     final long seed = 12345L;
     bldr.setSeed(seed);
@@ -142,7 +142,7 @@ public class UpdateSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderNomEntries() {
-    final UpdateSketchBuilder bldr = UpdatableThetaSketch.builder();
+    final UpdatableThetaSketchBuilder bldr = UpdatableThetaSketch.builder();
     final int k = 1 << 27;
     bldr.setNominalEntries(k);
   }

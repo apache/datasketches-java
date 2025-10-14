@@ -25,10 +25,10 @@ import static java.lang.Math.round;
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.AlwaysOne;
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
 
-import org.apache.datasketches.tuple.CompactSketch;
+import org.apache.datasketches.tuple.CompactTupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.Union;
-import org.apache.datasketches.tuple.aninteger.IntegerSketch;
+import org.apache.datasketches.tuple.TupleUnion;
+import org.apache.datasketches.tuple.aninteger.IntegerTupleSketch;
 import org.apache.datasketches.tuple.aninteger.IntegerSummary;
 import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
 import org.testng.annotations.Test;
@@ -45,9 +45,9 @@ public class EngagementTest {
     final int K = 1 << lgK;
     final int days = 30;
     int v = 0;
-    final IntegerSketch[] skArr = new IntegerSketch[days];
+    final IntegerTupleSketch[] skArr = new IntegerTupleSketch[days];
     for (int i = 0; i < days; i++) {
-      skArr[i] = new IntegerSketch(lgK, AlwaysOne);
+      skArr[i] = new IntegerTupleSketch(lgK, AlwaysOne);
     }
     for (int i = 0; i <= days; i++) { //31 generating indices for symmetry
       final int numIds = numIDs(days, i);
@@ -75,15 +75,15 @@ public class EngagementTest {
     return (int)round(exp((d - i) * log(d) / d));
   }
 
-  private static void unionOps(final int K, final IntegerSummary.Mode mode, final IntegerSketch ... sketches) {
+  private static void unionOps(final int K, final IntegerSummary.Mode mode, final IntegerTupleSketch ... sketches) {
     final IntegerSummarySetOperations setOps = new IntegerSummarySetOperations(mode, mode);
-    final Union<IntegerSummary> union = new Union<>(K, setOps);
+    final TupleUnion<IntegerSummary> union = new TupleUnion<>(K, setOps);
     final int len = sketches.length;
 
-    for (final IntegerSketch isk : sketches) {
+    for (final IntegerTupleSketch isk : sketches) {
       union.union(isk);
     }
-    final CompactSketch<IntegerSummary> result = union.getResult();
+    final CompactTupleSketch<IntegerSummary> result = union.getResult();
     final TupleSketchIterator<IntegerSummary> itr = result.iterator();
 
     final int[] numDaysArr = new int[len + 1]; //zero index is ignored

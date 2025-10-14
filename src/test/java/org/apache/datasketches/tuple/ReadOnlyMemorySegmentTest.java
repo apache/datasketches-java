@@ -24,7 +24,6 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketches;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
@@ -38,7 +37,7 @@ public class ReadOnlyMemorySegmentTest {
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1});
     final ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch)
-        ArrayOfDoublesSketches.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()));
+        ArrayOfDoublesSketch.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()));
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     sketch2.toByteArray();
     boolean thrown = false;
@@ -61,7 +60,7 @@ public class ReadOnlyMemorySegmentTest {
     sketch1.update(1, new double[] {1});
     // downcasting is not recommended, for testing only
     final ArrayOfDoublesUpdatableSketch sketch2 = (ArrayOfDoublesUpdatableSketch)
-        ArrayOfDoublesSketches.heapifySketch(MemorySegment.ofArray(sketch1.toByteArray()));
+        ArrayOfDoublesSketch.heapifySketch(MemorySegment.ofArray(sketch1.toByteArray()));
     sketch2.update(2, new double[] {1});
     Assert.assertEquals(sketch2.getEstimate(), 2.0);
   }
@@ -76,7 +75,7 @@ public class ReadOnlyMemorySegmentTest {
     }
     final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union1.union(sketch1);
-    final ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.wrapUnion(MemorySegment.ofArray(union1.toByteArray()).asReadOnly());
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesSketch.wrapUnion(MemorySegment.ofArray(union1.toByteArray()).asReadOnly());
     final ArrayOfDoublesSketch resultSketch = union2.getResult();
     Assert.assertTrue(resultSketch.isEstimationMode());
     Assert.assertEquals(resultSketch.getEstimate(), numUniques, numUniques * 0.04);
@@ -106,7 +105,7 @@ public class ReadOnlyMemorySegmentTest {
     }
     final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union1.union(sketch1);
-    final ArrayOfDoublesUnion union2 = ArrayOfDoublesSketches.heapifyUnion(MemorySegment.ofArray(union1.toByteArray()));
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesSketch.heapifyUnion(MemorySegment.ofArray(union1.toByteArray()));
     final ArrayOfDoublesSketch resultSketch = union2.getResult();
     Assert.assertTrue(resultSketch.isEstimationMode());
     Assert.assertEquals(resultSketch.getEstimate(), numUniques, numUniques * 0.04);

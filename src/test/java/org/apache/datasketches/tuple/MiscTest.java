@@ -23,8 +23,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.Util;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
@@ -39,10 +39,10 @@ public class MiscTest {
   @Test
   public void checkUpdatableSketchBuilderReset() {
     final DoubleSummary.Mode mode = Mode.Sum;
-    final UpdatableSketchBuilder<Double, DoubleSummary> bldr =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode));
+    final UpdatableTupleSketchBuilder<Double, DoubleSummary> bldr =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode));
     bldr.reset();
-    final UpdatableSketch<Double,DoubleSummary> sk = bldr.build();
+    final UpdatableTupleSketch<Double,DoubleSummary> sk = bldr.build();
     assertTrue(sk.isEmpty());
   }
 
@@ -76,13 +76,13 @@ public class MiscTest {
   @Test
   public void checkCopyCtor() {
     final DoubleSummary.Mode mode = Mode.Sum;
-    final UpdatableSketchBuilder<Double, DoubleSummary> bldr =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode));
+    final UpdatableTupleSketchBuilder<Double, DoubleSummary> bldr =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode));
     bldr.reset();
-    final UpdatableSketch<Double,DoubleSummary> sk = bldr.build();
+    final UpdatableTupleSketch<Double,DoubleSummary> sk = bldr.build();
     sk.update(1.0, 1.0);
     assertEquals(sk.getRetainedEntries(), 1);
-    final  UpdatableSketch<Double,DoubleSummary> sk2 = sk.copy();
+    final  UpdatableTupleSketch<Double,DoubleSummary> sk2 = sk.copy();
     assertEquals(sk2.getRetainedEntries(), 1);
   }
 

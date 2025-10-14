@@ -22,17 +22,11 @@ package org.apache.datasketches.tuple;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.theta.UpdatableThetaSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.Union;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
 import org.apache.datasketches.tuple.aninteger.IntegerSummary;
+import org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode;
 import org.apache.datasketches.tuple.aninteger.IntegerSummaryFactory;
 import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
-import org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode;
 import org.testng.annotations.Test;
 
 /**
@@ -45,28 +39,28 @@ public class TupleExamplesTest {
   private final IntegerSummarySetOperations isso = new IntegerSummarySetOperations(umode, imode);
   private final IntegerSummaryFactory ufactory = new IntegerSummaryFactory(umode);
   private final IntegerSummaryFactory ifactory = new IntegerSummaryFactory(imode);
-  private final UpdateSketchBuilder thetaBldr = UpdatableThetaSketch.builder();
-  private final UpdatableSketchBuilder<Integer, IntegerSummary> tupleBldr =
-      new UpdatableSketchBuilder<>(ufactory);
+  private final UpdatableThetaSketchBuilder thetaBldr = UpdatableThetaSketch.builder();
+  private final UpdatableTupleSketchBuilder<Integer, IntegerSummary> tupleBldr =
+      new UpdatableTupleSketchBuilder<>(ufactory);
 
 
   @Test
   public void example1() {
     //Load source sketches
-    final UpdatableSketch<Integer, IntegerSummary> tupleSk = tupleBldr.build();
+    final UpdatableTupleSketch<Integer, IntegerSummary> tupleSk = tupleBldr.build();
     final UpdatableThetaSketch thetaSk = thetaBldr.build();
     for (int i = 1; i <= 12; i++) {
       tupleSk.update(i, 1);
       thetaSk.update(i + 3);
     }
 
-    //Union stateful: tuple, theta
-    final Union<IntegerSummary> union = new Union<>(isso);
+    //TupleUnion stateful: tuple, theta
+    final TupleUnion<IntegerSummary> union = new TupleUnion<>(isso);
     union.union(tupleSk);
     union.union(thetaSk, ufactory.newSummary().update(1));
-    final CompactSketch<IntegerSummary> ucsk = union.getResult();
+    final CompactTupleSketch<IntegerSummary> ucsk = union.getResult();
     int entries = ucsk.getRetainedEntries();
-    println("Union Stateful: tuple, theta: " + entries);
+    println("TupleUnion Stateful: tuple, theta: " + entries);
     final TupleSketchIterator<IntegerSummary> uiter = ucsk.iterator();
     int counter = 1;
     int twos = 0;
@@ -80,13 +74,13 @@ public class TupleExamplesTest {
     assertEquals(ones, 6);
     assertEquals(twos, 9);
 
-    //Intersection stateful: tuple, theta
-    final Intersection<IntegerSummary> inter = new Intersection<>(isso);
+    //TupleIntersection stateful: tuple, theta
+    final TupleIntersection<IntegerSummary> inter = new TupleIntersection<>(isso);
     inter.intersect(tupleSk);
     inter.intersect(thetaSk, ifactory.newSummary().update(1));
-    final CompactSketch<IntegerSummary> icsk = inter.getResult();
+    final CompactTupleSketch<IntegerSummary> icsk = inter.getResult();
     entries = icsk.getRetainedEntries();
-    println("Intersection Stateful: tuple, theta: " + entries);
+    println("TupleIntersection Stateful: tuple, theta: " + entries);
     final TupleSketchIterator<IntegerSummary> iiter = icsk.iterator();
     counter = 1;
     while (iiter.next()) {
@@ -99,19 +93,19 @@ public class TupleExamplesTest {
   @Test
   public void example2() {
     //Load source sketches
-    final UpdatableSketch<Integer, IntegerSummary> tupleSk1 = tupleBldr.build();
-    final UpdatableSketch<Integer, IntegerSummary> tupleSk2 = tupleBldr.build();
+    final UpdatableTupleSketch<Integer, IntegerSummary> tupleSk1 = tupleBldr.build();
+    final UpdatableTupleSketch<Integer, IntegerSummary> tupleSk2 = tupleBldr.build();
 
     for (int i = 1; i <= 12; i++) {
       tupleSk1.update(i, 1);
       tupleSk2.update(i + 3, 1);
     }
 
-    //Union, stateless: tuple1, tuple2
-    final Union<IntegerSummary> union = new Union<>(isso);
-    final CompactSketch<IntegerSummary> ucsk = union.union(tupleSk1, tupleSk2);
+    //TupleUnion, stateless: tuple1, tuple2
+    final TupleUnion<IntegerSummary> union = new TupleUnion<>(isso);
+    final CompactTupleSketch<IntegerSummary> ucsk = union.union(tupleSk1, tupleSk2);
     int entries = ucsk.getRetainedEntries();
-    println("Union: " + entries);
+    println("TupleUnion: " + entries);
     final TupleSketchIterator<IntegerSummary> uiter = ucsk.iterator();
     int counter = 1;
     int twos = 0;
@@ -125,11 +119,11 @@ public class TupleExamplesTest {
     assertEquals(ones, 6);
     assertEquals(twos, 9);
 
-    //Intersection stateless: tuple1, tuple2
-    final Intersection<IntegerSummary> inter = new Intersection<>(isso);
-    final CompactSketch<IntegerSummary> icsk = inter.intersect(tupleSk1, tupleSk2);
+    //TupleIntersection stateless: tuple1, tuple2
+    final TupleIntersection<IntegerSummary> inter = new TupleIntersection<>(isso);
+    final CompactTupleSketch<IntegerSummary> icsk = inter.intersect(tupleSk1, tupleSk2);
     entries = icsk.getRetainedEntries();
-    println("Intersection: " + entries);
+    println("TupleIntersection: " + entries);
     final TupleSketchIterator<IntegerSummary> iiter = icsk.iterator();
     counter = 1;
     while (iiter.next()) {
@@ -142,19 +136,19 @@ public class TupleExamplesTest {
   @Test
   public void example3() {
     //Load source sketches
-    final UpdatableSketch<Integer, IntegerSummary> tupleSk = tupleBldr.build();
+    final UpdatableTupleSketch<Integer, IntegerSummary> tupleSk = tupleBldr.build();
     final UpdatableThetaSketch thetaSk = thetaBldr.build();
     for (int i = 1; i <= 12; i++) {
       tupleSk.update(i, 1);
       thetaSk.update(i + 3);
     }
 
-    //Union, stateless: tuple1, tuple2
-    final Union<IntegerSummary> union = new Union<>(isso);
-    final CompactSketch<IntegerSummary> ucsk =
+    //TupleUnion, stateless: tuple1, tuple2
+    final TupleUnion<IntegerSummary> union = new TupleUnion<>(isso);
+    final CompactTupleSketch<IntegerSummary> ucsk =
         union.union(tupleSk, thetaSk, ufactory.newSummary().update(1));
     int entries = ucsk.getRetainedEntries();
-    println("Union: " + entries);
+    println("TupleUnion: " + entries);
     final TupleSketchIterator<IntegerSummary> uiter = ucsk.iterator();
     int counter = 1;
     int twos = 0;
@@ -168,12 +162,12 @@ public class TupleExamplesTest {
     assertEquals(ones, 6);
     assertEquals(twos, 9);
 
-    //Intersection stateless: tuple1, tuple2
-    final Intersection<IntegerSummary> inter = new Intersection<>(isso);
-    final CompactSketch<IntegerSummary> icsk =
+    //TupleIntersection stateless: tuple1, tuple2
+    final TupleIntersection<IntegerSummary> inter = new TupleIntersection<>(isso);
+    final CompactTupleSketch<IntegerSummary> icsk =
         inter.intersect(tupleSk, thetaSk, ufactory.newSummary().update(1));
     entries = icsk.getRetainedEntries();
-    println("Intersection: " + entries);
+    println("TupleIntersection: " + entries);
     final TupleSketchIterator<IntegerSummary> iiter = icsk.iterator();
     counter = 1;
     while (iiter.next()) {

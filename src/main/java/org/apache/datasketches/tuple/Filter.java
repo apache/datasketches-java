@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.function.Predicate;
 
 /**
- * Class for filtering entries from a {@link Sketch} given a {@link Summary}
+ * Class for filtering entries from a {@link TupleSketch} given a {@link Summary}
  *
  * @param <T> Summary type against which apply the {@link Predicate}
  */
@@ -35,22 +35,22 @@ public class Filter<T extends Summary> {
      * Filter constructor with a {@link Predicate}
      *  @param predicate Predicate to use in this filter. If the Predicate returns False, the
      *  element is discarded. If the Predicate returns True, then the element is kept in the
-     *  {@link Sketch}
+     *  {@link TupleSketch}
      */
     public Filter(final Predicate<T> predicate) {
         this.predicate = predicate;
     }
 
     /**
-     * Filters elements on the provided {@link Sketch}
+     * Filters elements on the provided {@link TupleSketch}
      *
-     * @param sketchIn The sketch against which apply the {@link Predicate}
-     * @return A new Sketch with some of the entries filtered out based on the {@link Predicate}
+     * @param sketchIn The sketch against which to apply the {@link Predicate}
+     * @return A new CompactTupleSketch with some of the entries filtered out based on the {@link Predicate}
      */
     @SuppressWarnings("unchecked")
-    public CompactSketch<T> filter(final Sketch<T> sketchIn) {
+    public CompactTupleSketch<T> filter(final TupleSketch<T> sketchIn) {
         if (sketchIn == null) {
-            return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
+            return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
         }
         final long[] hashes = new long[sketchIn.getRetainedEntries()];
         T[] summaries = null; // lazy init to get class from the first entry
@@ -66,11 +66,11 @@ public class Filter<T extends Summary> {
               summaries[i++] = (T) summary.copy();
             }
         }
-        final boolean isEmpty = i == 0 && !sketchIn.isEstimationMode(); 
+        final boolean isEmpty = i == 0 && !sketchIn.isEstimationMode();
         if (i == 0) {
-          return new CompactSketch<>(null, null, sketchIn.getThetaLong(), isEmpty);
+          return new CompactTupleSketch<>(null, null, sketchIn.getThetaLong(), isEmpty);
         }
-        return new CompactSketch<>(Arrays.copyOf(hashes, i), Arrays.copyOf(summaries, i), sketchIn.getThetaLong(), isEmpty);
+        return new CompactTupleSketch<>(Arrays.copyOf(hashes, i), Arrays.copyOf(summaries, i), sketchIn.getThetaLong(), isEmpty);
     }
 }
 
