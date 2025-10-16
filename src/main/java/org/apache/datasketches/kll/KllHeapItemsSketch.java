@@ -111,7 +111,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
     super(SketchStructure.UPDATABLE, comparator, serDe);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.ITEMS_SKETCH, serDe);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.KLL_ITEMS_SKETCH, serDe);
     k = segVal.k;
     m = segVal.m;
     levelsArr = segVal.levelsArr;

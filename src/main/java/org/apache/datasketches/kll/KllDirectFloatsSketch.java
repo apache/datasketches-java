@@ -44,7 +44,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 
@@ -111,7 +111,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     offset += 2 * ITEM_BYTES;
     //new empty items array
     MemorySegment.copy(new float[k], 0, dstSeg, JAVA_FLOAT_UNALIGNED, offset, k);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, FLOATS_SKETCH, null);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, KLL_FLOATS_SKETCH, null);
     final MemorySegment wSeg = dstSeg;
     return new KllDirectFloatsSketch(wSeg, segVal, mSegmentRequest);
   }

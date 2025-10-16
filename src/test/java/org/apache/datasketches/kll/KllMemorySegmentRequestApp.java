@@ -45,7 +45,7 @@ public class KllMemorySegmentRequestApp {
 
     //The allocation of the original off-heap MemorySegment for the KllLongsSketch
     //Note that this targets the size to only handle k values, which is quite small.
-    final int numBytes = KllSketch.getMaxSerializedSizeBytes(k, k, KllSketch.SketchType.LONGS_SKETCH, true);
+    final int numBytes = KllSketch.getMaxSerializedSizeBytes(k, k, KllSketch.SketchType.KLL_LONGS_SKETCH, true);
 
     final MemorySegment seg = mSegReqEx.request(numBytes);
 

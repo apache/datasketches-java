@@ -44,7 +44,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 
@@ -111,7 +111,7 @@ class KllDirectLongsSketch extends KllLongsSketch {
     offset += 2 * ITEM_BYTES;
     //new empty items array
     MemorySegment.copy(new long[k], 0, dstSeg, JAVA_LONG_UNALIGNED, offset, k);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, LONGS_SKETCH, null);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, KLL_LONGS_SKETCH, null);
     final MemorySegment wSeg = dstSeg;
     return new KllDirectLongsSketch(wSeg, segVal, mSegmentRequest);
   }

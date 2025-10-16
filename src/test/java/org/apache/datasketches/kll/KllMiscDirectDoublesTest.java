@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -328,13 +328,13 @@ public class KllMiscDirectDoublesTest {
     for (int i = 1; i <= (k + 1); i++) { sk.update(i); }
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, DOUBLES_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
     sk2 = KllDoublesSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, DOUBLES_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_DOUBLES_SKETCH, true);
     println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -343,13 +343,13 @@ public class KllMiscDirectDoublesTest {
     sk = getDirectDoublesSketch(k, 0);
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, DOUBLES_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
     sk2 = KllDoublesSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, DOUBLES_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_DOUBLES_SKETCH, true);
     println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -359,13 +359,13 @@ public class KllMiscDirectDoublesTest {
     sk.update(1);
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, DOUBLES_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
     sk2 = KllDoublesSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, DOUBLES_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_DOUBLES_SKETCH, true);
     println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);

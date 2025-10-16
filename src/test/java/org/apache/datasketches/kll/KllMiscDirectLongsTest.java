@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -328,13 +328,13 @@ public class KllMiscDirectLongsTest {
     for (int i = 1; i <= (k + 1); i++) { sk.update(i); }
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_LONGS_SKETCH, true);
     println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
     sk2 = KllLongsSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_LONGS_SKETCH, true);
     println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -343,13 +343,13 @@ public class KllMiscDirectLongsTest {
     sk = getDirectLongsSketch(k, 0);
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_LONGS_SKETCH, true);
     println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
     sk2 = KllLongsSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_LONGS_SKETCH, true);
     println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -359,13 +359,13 @@ public class KllMiscDirectLongsTest {
     sk.update(1);
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_LONGS_SKETCH, true);
     println("step 1: sketch to byte[]/MemorySegment & analyze MemorySegment");
     println(s);
     sk2 = KllLongsSketch.wrap(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, LONGS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_LONGS_SKETCH, true);
     println("step 2: MemorySegment to heap sketch, to byte[]/MemorySegment & analyze MemorySegment. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);

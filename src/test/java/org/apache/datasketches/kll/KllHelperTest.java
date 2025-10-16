@@ -223,35 +223,35 @@ public class KllHelperTest {
   @Test
   public void getMaxCompactDoublesSerializedSizeBytes() {
     final int sizeBytes =
-        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, DOUBLES_SKETCH, false);
+        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, KLL_DOUBLES_SKETCH, false);
     assertEquals(sizeBytes, 5704);
   }
 
   @Test
   public void getMaxCompactFloatsSerializedSizeBytes() {
     final int sizeBytes =
-        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, FLOATS_SKETCH, false);
+        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, KLL_FLOATS_SKETCH, false);
     assertEquals(sizeBytes, 2908);
   }
 
   @Test
   public void getMaxUpdatableDoubleSerializedSizeBytes() {
     final int sizeBytes =
-        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, DOUBLES_SKETCH, true);
+        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, KLL_DOUBLES_SKETCH, true);
     assertEquals(sizeBytes, 5708);
   }
 
   @Test
   public void getMaxUpdatableFloatsSerializedSizeBytes() {
     final int sizeBytes =
-        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, FLOATS_SKETCH, true);
+        KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, KLL_FLOATS_SKETCH, true);
     assertEquals(sizeBytes, 2912);
   }
 
   @Test
   public void getMaxUpdatableItemsSerializedSizeBytes() {
     try {
-      KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, ITEMS_SKETCH, true);
+      KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, KLL_ITEMS_SKETCH, true);
     } catch (final SketchesArgumentException e) { }
   }
 
@@ -283,7 +283,7 @@ public class KllHelperTest {
     final int k = 200;
     final int m = KllSketch.DEFAULT_M;
     final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, m, n, DOUBLES_SKETCH, true);
+        KllHelper.getGrowthSchemeForGivenN(k, m, n, KLL_DOUBLES_SKETCH, true);
     assertEquals(gStats.maxN, 1_257_766_904);
     assertEquals(gStats.numLevels, 23);
     assertEquals(gStats.maxItems, 697);
@@ -297,7 +297,7 @@ public class KllHelperTest {
     final int k = 200;
     final int m = KllSketch.DEFAULT_M;
     final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, m, n, FLOATS_SKETCH, true);
+        KllHelper.getGrowthSchemeForGivenN(k, m, n, KLL_FLOATS_SKETCH, true);
     assertEquals(gStats.maxN, 1_257_766_904);
     assertEquals(gStats.numLevels, 23);
     assertEquals(gStats.maxItems, 697);
@@ -311,7 +311,7 @@ public class KllHelperTest {
     final int k = 200;
     final int m = KllSketch.DEFAULT_M;
     final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, m, n, DOUBLES_SKETCH, true);
+        KllHelper.getGrowthSchemeForGivenN(k, m, n, KLL_DOUBLES_SKETCH, true);
     assertEquals(gStats.maxN, 533);
     assertEquals(gStats.numLevels, 2);
     assertEquals(gStats.maxItems, 333);
@@ -325,7 +325,7 @@ public class KllHelperTest {
     final int k = 200;
     final int m = KllSketch.DEFAULT_M;
     final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, m, n, FLOATS_SKETCH, true);
+        KllHelper.getGrowthSchemeForGivenN(k, m, n, KLL_FLOATS_SKETCH, true);
     assertEquals(gStats.maxN, 533);
     assertEquals(gStats.numLevels, 2);
     assertEquals(gStats.maxItems, 333);
@@ -339,7 +339,7 @@ public class KllHelperTest {
     final int k = 200;
     final int m = KllSketch.DEFAULT_M;
     try {
-      KllHelper.getGrowthSchemeForGivenN(k, m, n, ITEMS_SKETCH, true);
+      KllHelper.getGrowthSchemeForGivenN(k, m, n, KLL_ITEMS_SKETCH, true);
     } catch (final SketchesArgumentException e) { }
   }
 

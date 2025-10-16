@@ -44,7 +44,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 
@@ -111,7 +111,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     offset += 2 * ITEM_BYTES;
     //new empty items array
     MemorySegment.copy(new double[k], 0, dstSeg, JAVA_DOUBLE_UNALIGNED, offset, k);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, DOUBLES_SKETCH, null);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(dstSeg, KLL_DOUBLES_SKETCH, null);
     final MemorySegment wSeg = dstSeg;
     return new KllDirectDoublesSketch(wSeg, segVal, mSegmentRequest);
   }

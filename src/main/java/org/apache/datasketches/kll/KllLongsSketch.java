@@ -23,7 +23,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
    * @param sketchStructure the current sketch structure
    */
   KllLongsSketch(final SketchStructure sketchStructure) {
-    super(SketchType.LONGS_SKETCH, sketchStructure);
+    super(SketchType.KLL_LONGS_SKETCH, sketchStructure);
   }
 
   /**
@@ -167,7 +167,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
    */
   public static KllLongsSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, LONGS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, KLL_LONGS_SKETCH);
     return new KllDirectLongsSketch(srcSeg, segVal, mSegReq);
   }
 

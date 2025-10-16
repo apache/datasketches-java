@@ -27,8 +27,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentEmptyF
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySegmentSerVer;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 
@@ -49,7 +49,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentFamilyID(wseg, Family.KLL.getID() - 1);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -58,7 +58,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentSerVer(wseg, SERIAL_VERSION_EMPTY_FULL - 1);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -68,7 +68,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentEmptyFlag(wseg, true);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -77,7 +77,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentSerVer(wseg, SERIAL_VERSION_SINGLE);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -87,7 +87,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentPreInts(wseg, PREAMBLE_INTS_FULL);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -97,7 +97,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentSerVer(wseg, SERIAL_VERSION_EMPTY_FULL);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -106,7 +106,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentPreInts(wseg, PREAMBLE_INTS_FULL);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -116,7 +116,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentSerVer(wseg, SERIAL_VERSION_EMPTY_FULL);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -125,7 +125,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = KllHelper.toByteArray(sk, true);
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentPreInts(wseg, PREAMBLE_INTS_EMPTY_SINGLE);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -135,7 +135,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentPreInts(wseg, PREAMBLE_INTS_EMPTY_SINGLE);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -145,7 +145,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = KllHelper.toByteArray(sk, true);
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentPreInts(wseg, PREAMBLE_INTS_EMPTY_SINGLE);
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -155,7 +155,7 @@ public class KllMemoryValidateTest {
     final byte[] byteArr = sk.toByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     setMemorySegmentPreInts(wseg, PREAMBLE_INTS_FULL);//should be 2, single
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, DOUBLES_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(wseg, KLL_DOUBLES_SKETCH);
   }
 
 }

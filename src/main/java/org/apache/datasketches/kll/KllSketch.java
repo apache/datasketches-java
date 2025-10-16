@@ -32,10 +32,10 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
@@ -170,7 +170,7 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n,
       final SketchType sketchType, final boolean updatableFormat) {
-    if (sketchType == ITEMS_SKETCH) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
+    if (sketchType == KLL_ITEMS_SKETCH) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
     final KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, sketchType, false);
     return updatableFormat ? gStats.updatableBytes : gStats.compactBytes;
@@ -292,7 +292,7 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
    * @return serialized size in bytes given a SketchStructure.
    */
   final int currentSerializedSizeBytes(final boolean updatable) {
-    final boolean myUpdatable = sketchType == ITEMS_SKETCH ? false : updatable;
+    final boolean myUpdatable = sketchType == KLL_ITEMS_SKETCH ? false : updatable;
     final long srcN = getN();
     final SketchStructure tgtStructure;
     if (myUpdatable) { tgtStructure = UPDATABLE; }
@@ -440,13 +440,13 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
     return hasMemorySegment() && (sketchStructure == COMPACT_SINGLE) && (getN() == 1);
   }
 
-  boolean isDoublesSketch() { return sketchType == DOUBLES_SKETCH; }
+  boolean isKllDoublesSketch() { return sketchType == KLL_DOUBLES_SKETCH; }
 
-  boolean isFloatsSketch() { return sketchType == FLOATS_SKETCH; }
+  boolean isKllFloatsSketch() { return sketchType == KLL_FLOATS_SKETCH; }
 
-  boolean isLongsSketch() { return sketchType == LONGS_SKETCH; }
+  boolean isKllLongsSketch() { return sketchType == KLL_LONGS_SKETCH; }
 
-  boolean isItemsSketch() { return sketchType == ITEMS_SKETCH; }
+  boolean isKllItemsSketch() { return sketchType == KLL_ITEMS_SKETCH; }
 
   abstract boolean isLevelZeroSorted();
 
@@ -491,19 +491,19 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
     /**
      * KllDoublesSketch
      */
-    DOUBLES_SKETCH(Double.BYTES, "KllDoublesSketch"),
+    KLL_DOUBLES_SKETCH(Double.BYTES, "KllDoublesSketch"),
     /**
      * KllFloatsSketch
      */
-    FLOATS_SKETCH(Float.BYTES, "KllFloatsSketch"),
+    KLL_FLOATS_SKETCH(Float.BYTES, "KllFloatsSketch"),
     /**
      * KllItemsSketch
      */
-    ITEMS_SKETCH(0, "KllItemsSketch"),
+    KLL_ITEMS_SKETCH(0, "KllItemsSketch"),
     /**
      * KllDoublesSketch
      */
-    LONGS_SKETCH(Long.BYTES, "KllLongsSketch");
+    KLL_LONGS_SKETCH(Long.BYTES, "KllLongsSketch");
 
     private final int typeBytes;
     private final String name;

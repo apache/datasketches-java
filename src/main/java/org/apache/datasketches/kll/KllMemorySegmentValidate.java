@@ -33,9 +33,9 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySegmentSerVer;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_ITEMS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 
@@ -106,8 +106,8 @@ final class KllMemorySegmentValidate {
     //flags
     emptyFlag = getMemorySegmentEmptyFlag(srcSeg);
     level0SortedFlag  = getMemorySegmentLevelZeroSortedFlag(srcSeg);
-    if (sketchType == DOUBLES_SKETCH) { typeBytes = Double.BYTES; }
-    else if (sketchType == FLOATS_SKETCH) { typeBytes = Float.BYTES; }
+    if (sketchType == KLL_DOUBLES_SKETCH) { typeBytes = Double.BYTES; }
+    else if (sketchType == KLL_FLOATS_SKETCH) { typeBytes = Float.BYTES; }
     else { typeBytes = 0; }
     validate();
   }
@@ -143,7 +143,7 @@ final class KllMemorySegmentValidate {
         minK = k;        //assumed
         numLevels = 1;   //assumed
         levelsArr = new int[] {k - 1, k};
-        if (sketchType == ITEMS_SKETCH) {
+        if (sketchType == KLL_ITEMS_SKETCH) {
           sketchBytes = DATA_START_ADR_SINGLE_ITEM + serDe.sizeOf(srcSeg, DATA_START_ADR_SINGLE_ITEM, 1);
         } else {
           sketchBytes = DATA_START_ADR_SINGLE_ITEM + typeBytes;
@@ -178,7 +178,7 @@ final class KllMemorySegmentValidate {
     final int numItems = updatable ? capacityItems : retainedItems;
 
     int offsetBytes = DATA_START_ADR + (levelsLen * Integer.BYTES); //levels array
-    if (sketchType == ITEMS_SKETCH) {
+    if (sketchType == KLL_ITEMS_SKETCH) {
       if (serDe instanceof ArrayOfBooleansSerDe) {
         offsetBytes += serDe.sizeOf(srcSeg, offsetBytes, numItems) + 2; //2 for min & max
       } else {
