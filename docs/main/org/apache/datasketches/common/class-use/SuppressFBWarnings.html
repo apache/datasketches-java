@@ -71,8 +71,8 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><a href="#org.apache.datasketches.theta">org.apache.datasketches.theta</a></div>
 <div class="col-last odd-row-color">
-<div class="block">The theta package contains the basic sketch classes that are members of the
-<a href="../../../../../resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>.</div>
+<div class="block">The /theta/ package contains the basic sketch classes that are members of the
+<a href="../../../../../resources/dictionary.html#thetaSketch">ThetaSketch Framework</a>.</div>
 </div>
 <div class="col-first even-row-color"><a href="#org.apache.datasketches.tuple">org.apache.datasketches.tuple</a></div>
 <div class="col-last even-row-color">
@@ -171,7 +171,7 @@ concepts for whole new families of sketches.</div>
 <div class="table-header col-second">Class</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../../frequencies/LongsSketch.html" class="type-name-link" title="class in org.apache.datasketches.frequencies">LongsSketch</a></code></div>
+<div class="col-second even-row-color"><code><a href="../../frequencies/FrequentLongsSketch.html" class="type-name-link" title="class in org.apache.datasketches.frequencies">FrequentLongsSketch</a></code></div>
 <div class="col-last even-row-color">
 <div class="block">This sketch is useful for tracking approximate frequencies of <i>long</i> items with optional
 associated counts (<i>long</i> item, <i>long</i> count) that are members of a multiset of
@@ -188,17 +188,17 @@ such items.</div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code><a href="../../theta/UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">UpdateSketchBuilder.</span><code><a href="../../theta/UpdateSketchBuilder.html#buildShared(java.lang.foreign.MemorySegment)" class="member-name-link">buildShared</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;dstSeg)</code></div>
+<div class="col-first even-row-color"><code><a href="../../theta/UpdatableThetaSketch.html" title="class in org.apache.datasketches.theta">UpdatableThetaSketch</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">UpdatableThetaSketchBuilder.</span><code><a href="../../theta/UpdatableThetaSketchBuilder.html#buildShared(java.lang.foreign.MemorySegment)" class="member-name-link">buildShared</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;dstSeg)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Returns a concurrent shared UpdateSketch with the current
+<div class="block">Returns a concurrent shared UpdatableThetaSketch with the current
 configuration of the Builder and the given destination MemorySegment.</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="../../theta/UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">UpdateSketchBuilder.</span><code><a href="../../theta/UpdateSketchBuilder.html#buildSharedFromSketch(org.apache.datasketches.theta.UpdateSketch,java.lang.foreign.MemorySegment)" class="member-name-link">buildSharedFromSketch</a><wbr>(<a href="../../theta/UpdateSketch.html" title="class in org.apache.datasketches.theta">UpdateSketch</a>&nbsp;sketch,
+<div class="col-first odd-row-color"><code><a href="../../theta/UpdatableThetaSketch.html" title="class in org.apache.datasketches.theta">UpdatableThetaSketch</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">UpdatableThetaSketchBuilder.</span><code><a href="../../theta/UpdatableThetaSketchBuilder.html#buildSharedFromSketch(org.apache.datasketches.theta.UpdatableThetaSketch,java.lang.foreign.MemorySegment)" class="member-name-link">buildSharedFromSketch</a><wbr>(<a href="../../theta/UpdatableThetaSketch.html" title="class in org.apache.datasketches.theta">UpdatableThetaSketch</a>&nbsp;sketch,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;dstSeg)</code></div>
 <div class="col-last odd-row-color">
-<div class="block">Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
+<div class="block">Returns a direct (potentially off-heap) concurrent shared UpdatableThetaSketch with the current
 configuration of the Builder, the data from the given sketch, and the given destination
 MemorySegment.</div>
 </div>
@@ -213,17 +213,17 @@ MemorySegment.</div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static &lt;S extends <a href="../../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br><a href="../../tuple/CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a><wbr>&lt;S&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">AnotB.</span><code><a href="../../tuple/AnotB.html#aNotB(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)" class="member-name-link">aNotB</a><wbr>(<a href="../../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;skA,
- <a href="../../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;skB)</code></div>
+<div class="col-first even-row-color"><code>static &lt;S extends <a href="../../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br><a href="../../tuple/CompactTupleSketch.html" title="class in org.apache.datasketches.tuple">CompactTupleSketch</a><wbr>&lt;S&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">TupleAnotB.</span><code><a href="../../tuple/TupleAnotB.html#aNotB(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)" class="member-name-link">aNotB</a><wbr>(<a href="../../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;skA,
+ <a href="../../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;skB)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Returns the A-and-not-B set operation on a Tuple sketch and a Theta sketch.</div>
+<div class="block">Returns the A-and-not-B set operation on a TupleSketch and a ThetaSketch.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;S extends <a href="../../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br><a href="../../tuple/CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a><wbr>&lt;S&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">AnotB.</span><code><a href="../../tuple/AnotB.html#aNotB(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)" class="member-name-link">aNotB</a><wbr>(<a href="../../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;skA,
- <a href="../../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;skB)</code></div>
+<div class="col-first odd-row-color"><code>static &lt;S extends <a href="../../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br><a href="../../tuple/CompactTupleSketch.html" title="class in org.apache.datasketches.tuple">CompactTupleSketch</a><wbr>&lt;S&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">TupleAnotB.</span><code><a href="../../tuple/TupleAnotB.html#aNotB(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)" class="member-name-link">aNotB</a><wbr>(<a href="../../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;skA,
+ <a href="../../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;skB)</code></div>
 <div class="col-last odd-row-color">
-<div class="block">Returns the A-and-not-B set operation on the two given Tuple sketches.</div>
+<div class="block">Returns the A-and-not-B set operation on the two given TupleSketches.</div>
 </div>
 </div>
 </section>

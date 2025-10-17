@@ -94,13 +94,11 @@ concepts for whole new families of sketches.</div>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.fdt">Sketch</a></div>
+<div class="col-first even-row-color"><a href="class-use/TupleSketch.html#org.apache.datasketches.fdt">TupleSketch</a></div>
 <div class="col-last even-row-color">
-<div class="block">This is an equivalent to org.apache.datasketches.theta2.Sketch with
-addition of a user-defined Summary object associated with every unique entry
-in the sketch.</div>
+<div class="block">The top-level class for all Tuple sketches.</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/UpdatableSketch.html#org.apache.datasketches.fdt">UpdatableSketch</a></div>
+<div class="col-first odd-row-color"><a href="class-use/UpdatableTupleSketch.html#org.apache.datasketches.fdt">UpdatableTupleSketch</a></div>
 <div class="col-last odd-row-color">
 <div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
 </div>
@@ -113,15 +111,13 @@ in the sketch.</div>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.thetacommon">Sketch</a></div>
+<div class="col-first even-row-color"><a href="class-use/Summary.html#org.apache.datasketches.thetacommon">Summary</a></div>
 <div class="col-last even-row-color">
-<div class="block">This is an equivalent to org.apache.datasketches.theta2.Sketch with
-addition of a user-defined Summary object associated with every unique entry
-in the sketch.</div>
-</div>
-<div class="col-first odd-row-color"><a href="class-use/Summary.html#org.apache.datasketches.thetacommon">Summary</a></div>
-<div class="col-last odd-row-color">
 <div class="block">Interface for user-defined Summary, which is associated with every hash in a tuple sketch</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/TupleSketch.html#org.apache.datasketches.thetacommon">TupleSketch</a></div>
+<div class="col-last odd-row-color">
+<div class="block">The top-level class for all Tuple sketches.</div>
 </div>
 </div>
 </section>
@@ -132,9 +128,9 @@ in the sketch.</div>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><a href="class-use/CompactSketch.html#org.apache.datasketches.tuple">CompactSketch</a></div>
+<div class="col-first even-row-color"><a href="class-use/CompactTupleSketch.html#org.apache.datasketches.tuple">CompactTupleSketch</a></div>
 <div class="col-last even-row-color">
-<div class="block">CompactSketches are never created directly.</div>
+<div class="block">CompactTupleSketches are never created directly.</div>
 </div>
 <div class="col-first odd-row-color"><a href="class-use/DeserializeResult.html#org.apache.datasketches.tuple">DeserializeResult</a></div>
 <div class="col-last odd-row-color">
@@ -144,43 +140,41 @@ in the sketch.</div>
 <div class="col-last even-row-color">
 <div class="block">Defines the sketch classes that this SerializerDeserializer can handle.</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.tuple">Sketch</a></div>
+<div class="col-first odd-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple">Summary</a></div>
 <div class="col-last odd-row-color">
-<div class="block">This is an equivalent to org.apache.datasketches.theta2.Sketch with
-addition of a user-defined Summary object associated with every unique entry
-in the sketch.</div>
-</div>
-<div class="col-first even-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple">Summary</a></div>
-<div class="col-last even-row-color">
 <div class="block">Interface for user-defined Summary, which is associated with every hash in a tuple sketch</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple">SummaryDeserializer</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple">SummaryDeserializer</a></div>
+<div class="col-last even-row-color">
 <div class="block">Interface for deserializing user-defined Summary</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple">SummaryFactory</a></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple">SummaryFactory</a></div>
+<div class="col-last odd-row-color">
 <div class="block">Interface for user-defined SummaryFactory</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple">SummarySetOperations</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple">SummarySetOperations</a></div>
+<div class="col-last even-row-color">
 <div class="block">This is to provide methods of producing unions and intersections of two Summary objects.</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/TupleSketch.html#org.apache.datasketches.tuple">TupleSketch</a></div>
+<div class="col-last odd-row-color">
+<div class="block">The top-level class for all Tuple sketches.</div>
 </div>
 <div class="col-first even-row-color"><a href="class-use/TupleSketchIterator.html#org.apache.datasketches.tuple">TupleSketchIterator</a></div>
 <div class="col-last even-row-color">
 <div class="block">Iterator over a generic tuple sketch</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/UpdatableSketch.html#org.apache.datasketches.tuple">UpdatableSketch</a></div>
-<div class="col-last odd-row-color">
-<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
-</div>
-<div class="col-first even-row-color"><a href="class-use/UpdatableSketchBuilder.html#org.apache.datasketches.tuple">UpdatableSketchBuilder</a></div>
-<div class="col-last even-row-color">
-<div class="block">For building a new generic tuple UpdatableSketch</div>
-</div>
 <div class="col-first odd-row-color"><a href="class-use/UpdatableSummary.html#org.apache.datasketches.tuple">UpdatableSummary</a></div>
 <div class="col-last odd-row-color">
 <div class="block">Interface for updating user-defined Summary</div>
+</div>
+<div class="col-first even-row-color"><a href="class-use/UpdatableTupleSketch.html#org.apache.datasketches.tuple">UpdatableTupleSketch</a></div>
+<div class="col-last even-row-color">
+<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/UpdatableTupleSketchBuilder.html#org.apache.datasketches.tuple">UpdatableTupleSketchBuilder</a></div>
+<div class="col-last odd-row-color">
+<div class="block">For building a new generic tuple UpdatableTupleSketch</div>
 </div>
 </div>
 </section>
@@ -195,35 +189,33 @@ in the sketch.</div>
 <div class="col-last even-row-color">
 <div class="block">Returns an object and its size in bytes as a result of a deserialize operation</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.tuple.adouble">Sketch</a></div>
+<div class="col-first odd-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple.adouble">Summary</a></div>
 <div class="col-last odd-row-color">
-<div class="block">This is an equivalent to org.apache.datasketches.theta2.Sketch with
-addition of a user-defined Summary object associated with every unique entry
-in the sketch.</div>
-</div>
-<div class="col-first even-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple.adouble">Summary</a></div>
-<div class="col-last even-row-color">
 <div class="block">Interface for user-defined Summary, which is associated with every hash in a tuple sketch</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple.adouble">SummaryDeserializer</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple.adouble">SummaryDeserializer</a></div>
+<div class="col-last even-row-color">
 <div class="block">Interface for deserializing user-defined Summary</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple.adouble">SummaryFactory</a></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple.adouble">SummaryFactory</a></div>
+<div class="col-last odd-row-color">
 <div class="block">Interface for user-defined SummaryFactory</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple.adouble">SummarySetOperations</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple.adouble">SummarySetOperations</a></div>
+<div class="col-last even-row-color">
 <div class="block">This is to provide methods of producing unions and intersections of two Summary objects.</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/UpdatableSketch.html#org.apache.datasketches.tuple.adouble">UpdatableSketch</a></div>
-<div class="col-last even-row-color">
-<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
-</div>
-<div class="col-first odd-row-color"><a href="class-use/UpdatableSummary.html#org.apache.datasketches.tuple.adouble">UpdatableSummary</a></div>
+<div class="col-first odd-row-color"><a href="class-use/TupleSketch.html#org.apache.datasketches.tuple.adouble">TupleSketch</a></div>
 <div class="col-last odd-row-color">
+<div class="block">The top-level class for all Tuple sketches.</div>
+</div>
+<div class="col-first even-row-color"><a href="class-use/UpdatableSummary.html#org.apache.datasketches.tuple.adouble">UpdatableSummary</a></div>
+<div class="col-last even-row-color">
 <div class="block">Interface for updating user-defined Summary</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/UpdatableTupleSketch.html#org.apache.datasketches.tuple.adouble">UpdatableTupleSketch</a></div>
+<div class="col-last odd-row-color">
+<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
 </div>
 </div>
 </section>
@@ -238,35 +230,33 @@ in the sketch.</div>
 <div class="col-last even-row-color">
 <div class="block">Returns an object and its size in bytes as a result of a deserialize operation</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.tuple.aninteger">Sketch</a></div>
+<div class="col-first odd-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple.aninteger">Summary</a></div>
 <div class="col-last odd-row-color">
-<div class="block">This is an equivalent to org.apache.datasketches.theta2.Sketch with
-addition of a user-defined Summary object associated with every unique entry
-in the sketch.</div>
-</div>
-<div class="col-first even-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple.aninteger">Summary</a></div>
-<div class="col-last even-row-color">
 <div class="block">Interface for user-defined Summary, which is associated with every hash in a tuple sketch</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple.aninteger">SummaryDeserializer</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple.aninteger">SummaryDeserializer</a></div>
+<div class="col-last even-row-color">
 <div class="block">Interface for deserializing user-defined Summary</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple.aninteger">SummaryFactory</a></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple.aninteger">SummaryFactory</a></div>
+<div class="col-last odd-row-color">
 <div class="block">Interface for user-defined SummaryFactory</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple.aninteger">SummarySetOperations</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple.aninteger">SummarySetOperations</a></div>
+<div class="col-last even-row-color">
 <div class="block">This is to provide methods of producing unions and intersections of two Summary objects.</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/UpdatableSketch.html#org.apache.datasketches.tuple.aninteger">UpdatableSketch</a></div>
-<div class="col-last even-row-color">
-<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
-</div>
-<div class="col-first odd-row-color"><a href="class-use/UpdatableSummary.html#org.apache.datasketches.tuple.aninteger">UpdatableSummary</a></div>
+<div class="col-first odd-row-color"><a href="class-use/TupleSketch.html#org.apache.datasketches.tuple.aninteger">TupleSketch</a></div>
 <div class="col-last odd-row-color">
+<div class="block">The top-level class for all Tuple sketches.</div>
+</div>
+<div class="col-first even-row-color"><a href="class-use/UpdatableSummary.html#org.apache.datasketches.tuple.aninteger">UpdatableSummary</a></div>
+<div class="col-last even-row-color">
 <div class="block">Interface for updating user-defined Summary</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/UpdatableTupleSketch.html#org.apache.datasketches.tuple.aninteger">UpdatableTupleSketch</a></div>
+<div class="col-last odd-row-color">
+<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
 </div>
 </div>
 </section>
@@ -281,35 +271,33 @@ in the sketch.</div>
 <div class="col-last even-row-color">
 <div class="block">Returns an object and its size in bytes as a result of a deserialize operation</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.tuple.strings">Sketch</a></div>
+<div class="col-first odd-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple.strings">Summary</a></div>
 <div class="col-last odd-row-color">
-<div class="block">This is an equivalent to org.apache.datasketches.theta2.Sketch with
-addition of a user-defined Summary object associated with every unique entry
-in the sketch.</div>
-</div>
-<div class="col-first even-row-color"><a href="class-use/Summary.html#org.apache.datasketches.tuple.strings">Summary</a></div>
-<div class="col-last even-row-color">
 <div class="block">Interface for user-defined Summary, which is associated with every hash in a tuple sketch</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple.strings">SummaryDeserializer</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummaryDeserializer.html#org.apache.datasketches.tuple.strings">SummaryDeserializer</a></div>
+<div class="col-last even-row-color">
 <div class="block">Interface for deserializing user-defined Summary</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple.strings">SummaryFactory</a></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><a href="class-use/SummaryFactory.html#org.apache.datasketches.tuple.strings">SummaryFactory</a></div>
+<div class="col-last odd-row-color">
 <div class="block">Interface for user-defined SummaryFactory</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple.strings">SummarySetOperations</a></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><a href="class-use/SummarySetOperations.html#org.apache.datasketches.tuple.strings">SummarySetOperations</a></div>
+<div class="col-last even-row-color">
 <div class="block">This is to provide methods of producing unions and intersections of two Summary objects.</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/UpdatableSketch.html#org.apache.datasketches.tuple.strings">UpdatableSketch</a></div>
-<div class="col-last even-row-color">
-<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
-</div>
-<div class="col-first odd-row-color"><a href="class-use/UpdatableSummary.html#org.apache.datasketches.tuple.strings">UpdatableSummary</a></div>
+<div class="col-first odd-row-color"><a href="class-use/TupleSketch.html#org.apache.datasketches.tuple.strings">TupleSketch</a></div>
 <div class="col-last odd-row-color">
+<div class="block">The top-level class for all Tuple sketches.</div>
+</div>
+<div class="col-first even-row-color"><a href="class-use/UpdatableSummary.html#org.apache.datasketches.tuple.strings">UpdatableSummary</a></div>
+<div class="col-last even-row-color">
 <div class="block">Interface for updating user-defined Summary</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/UpdatableTupleSketch.html#org.apache.datasketches.tuple.strings">UpdatableTupleSketch</a></div>
+<div class="col-last odd-row-color">
+<div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
 </div>
 </div>
 </section>

@@ -209,7 +209,7 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="ArrayOfDoublesUnion.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUnion</a></span>&nbsp;<span class="element-name">wrap</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;srcSeg)</span></div>
 <div class="block">Wrap the given MemorySegment as an ArrayOfDoublesUnion.
-If the given source MemorySegment is read-only, the returned Union object will also be read-only.</div>
+If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>srcSeg</code> - the given source MemorySegment</dd>
@@ -226,7 +226,7 @@ If the given source MemorySegment is read-only, the returned Union object will a
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="ArrayOfDoublesUnion.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesUnion</a></span>&nbsp;<span class="element-name">wrap</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;srcSeg,
  long&nbsp;seed)</span></div>
 <div class="block">Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion.
-If the given source MemorySegment is read-only, the returned Union object will also be read-only.</div>
+If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>srcSeg</code> - the given source MemorySegment</dd>
@@ -243,7 +243,7 @@ If the given source MemorySegment is read-only, the returned Union object will a
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">union</span><wbr><span class="parameters">(<a href="ArrayOfDoublesSketch.html" title="class in org.apache.datasketches.tuple.arrayofdoubles">ArrayOfDoublesSketch</a>&nbsp;tupleSketch)</span></div>
 <div class="block">Updates the union by adding a set of entries from a given sketch, which can be on-heap or off-heap.
-Both the given tupleSketch and the internal state of the Union must have the same <i>numValues</i>.
+Both the given tupleSketch and the internal state of the TupleUnion must have the same <i>numValues</i>.
 
 <p>Nulls and empty sketches are ignored.</p></div>
 <dl class="notes">

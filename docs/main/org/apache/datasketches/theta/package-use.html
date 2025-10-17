@@ -60,8 +60,8 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><a href="#org.apache.datasketches.theta">org.apache.datasketches.theta</a></div>
 <div class="col-last even-row-color">
-<div class="block">The theta package contains the basic sketch classes that are members of the
-<a href="../../../../resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>.</div>
+<div class="block">The /theta/ package contains the basic sketch classes that are members of the
+<a href="../../../../resources/dictionary.html#thetaSketch">ThetaSketch Framework</a>.</div>
 </div>
 <div class="col-first odd-row-color"><a href="#org.apache.datasketches.thetacommon">org.apache.datasketches.thetacommon</a></div>
 <div class="col-last odd-row-color">
@@ -83,49 +83,49 @@ concepts for whole new families of sketches.</div>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><a href="class-use/AnotB.html#org.apache.datasketches.theta">AnotB</a></div>
+<div class="col-first even-row-color"><a href="class-use/CompactThetaSketch.html#org.apache.datasketches.theta">CompactThetaSketch</a></div>
 <div class="col-last even-row-color">
-<div class="block">Computes a set difference, A-AND-NOT-B, of two theta sketches.</div>
+<div class="block">The parent class of all the CompactThetaSketches.</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/CompactSketch.html#org.apache.datasketches.theta">CompactSketch</a></div>
+<div class="col-first odd-row-color"><a href="class-use/HashIterator.html#org.apache.datasketches.theta">HashIterator</a></div>
 <div class="col-last odd-row-color">
-<div class="block">The parent class of all the CompactSketches.</div>
-</div>
-<div class="col-first even-row-color"><a href="class-use/HashIterator.html#org.apache.datasketches.theta">HashIterator</a></div>
-<div class="col-last even-row-color">
 <div class="block">This is used to iterate over the retained hash values of the Theta sketch.</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/Intersection.html#org.apache.datasketches.theta">Intersection</a></div>
+<div class="col-first even-row-color"><a href="class-use/ThetaAnotB.html#org.apache.datasketches.theta">ThetaAnotB</a></div>
+<div class="col-last even-row-color">
+<div class="block">Computes a set difference, A-AND-NOT-B, of two ThetaSketches.</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/ThetaIntersection.html#org.apache.datasketches.theta">ThetaIntersection</a></div>
 <div class="col-last odd-row-color">
 <div class="block">The API for intersection operations</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/SetOperation.html#org.apache.datasketches.theta">SetOperation</a></div>
+<div class="col-first even-row-color"><a href="class-use/ThetaSetOperation.html#org.apache.datasketches.theta">ThetaSetOperation</a></div>
 <div class="col-last even-row-color">
 <div class="block">The parent API for all Set Operations</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/SetOperationBuilder.html#org.apache.datasketches.theta">SetOperationBuilder</a></div>
+<div class="col-first odd-row-color"><a href="class-use/ThetaSetOperationBuilder.html#org.apache.datasketches.theta">ThetaSetOperationBuilder</a></div>
 <div class="col-last odd-row-color">
-<div class="block">For building a new SetOperation.</div>
+<div class="block">For building a new ThetaSetOperation.</div>
 </div>
-<div class="col-first even-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.theta">Sketch</a></div>
+<div class="col-first even-row-color"><a href="class-use/ThetaSketch.html#org.apache.datasketches.theta">ThetaSketch</a></div>
 <div class="col-last even-row-color">
 <div class="block">The top-level class for all theta sketches.</div>
 </div>
-<div class="col-first odd-row-color"><a href="class-use/Union.html#org.apache.datasketches.theta">Union</a></div>
+<div class="col-first odd-row-color"><a href="class-use/ThetaUnion.html#org.apache.datasketches.theta">ThetaUnion</a></div>
 <div class="col-last odd-row-color">
 <div class="block">Compute the union of two or more theta sketches.</div>
+</div>
+<div class="col-first even-row-color"><a href="class-use/UpdatableThetaSketch.html#org.apache.datasketches.theta">UpdatableThetaSketch</a></div>
+<div class="col-last even-row-color">
+<div class="block">The parent class for the  UpdatableThetaSketch families, such as QuickSelectThetaSketch and AlphaSketch.</div>
+</div>
+<div class="col-first odd-row-color"><a href="class-use/UpdatableThetaSketchBuilder.html#org.apache.datasketches.theta">UpdatableThetaSketchBuilder</a></div>
+<div class="col-last odd-row-color">
+<div class="block">For building a new UpdatableThetaSketch.</div>
 </div>
 <div class="col-first even-row-color"><a href="class-use/UpdateReturnState.html#org.apache.datasketches.theta">UpdateReturnState</a></div>
 <div class="col-last even-row-color">
 <div class="block"><a href="../../../../resources/dictionary.html#updateReturnState">See Update Return State</a></div>
-</div>
-<div class="col-first odd-row-color"><a href="class-use/UpdateSketch.html#org.apache.datasketches.theta">UpdateSketch</a></div>
-<div class="col-last odd-row-color">
-<div class="block">The parent class for the  Update Sketch families, such as QuickSelect and Alpha.</div>
-</div>
-<div class="col-first even-row-color"><a href="class-use/UpdateSketchBuilder.html#org.apache.datasketches.theta">UpdateSketchBuilder</a></div>
-<div class="col-last even-row-color">
-<div class="block">For building a new UpdateSketch.</div>
 </div>
 </div>
 </section>
@@ -136,7 +136,7 @@ concepts for whole new families of sketches.</div>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.thetacommon">Sketch</a></div>
+<div class="col-first even-row-color"><a href="class-use/ThetaSketch.html#org.apache.datasketches.thetacommon">ThetaSketch</a></div>
 <div class="col-last even-row-color">
 <div class="block">The top-level class for all theta sketches.</div>
 </div>
@@ -149,7 +149,7 @@ concepts for whole new families of sketches.</div>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><a href="class-use/Sketch.html#org.apache.datasketches.tuple">Sketch</a></div>
+<div class="col-first even-row-color"><a href="class-use/ThetaSketch.html#org.apache.datasketches.tuple">ThetaSketch</a></div>
 <div class="col-last even-row-color">
 <div class="block">The top-level class for all theta sketches.</div>
 </div>

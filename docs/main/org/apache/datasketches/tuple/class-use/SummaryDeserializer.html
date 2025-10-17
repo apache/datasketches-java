@@ -88,18 +88,18 @@ concepts for whole new families of sketches.</div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static &lt;S extends <a href="../Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br><a href="../Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a><wbr>&lt;S&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Sketches.</span><code><a href="../Sketches.html#heapifySketch(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer)" class="member-name-link">heapifySketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
+<div class="col-first even-row-color"><code>static &lt;S extends <a href="../Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br><a href="../TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a><wbr>&lt;S&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">TupleSketch.</span><code><a href="../TupleSketch.html#heapifySketch(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer)" class="member-name-link">heapifySketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
  <a href="../SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a>&lt;S&gt;&nbsp;deserializer)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Instantiate a Sketch from a given MemorySegment.</div>
+<div class="block">Instantiate a TupleSketch from a given MemorySegment.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;U, S extends <a href="../UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;<br><a href="../UpdatableSketch.html" title="class in org.apache.datasketches.tuple">UpdatableSketch</a><wbr>&lt;U,<wbr>S&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Sketches.</span><code><a href="../Sketches.html#heapifyUpdatableSketch(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer,org.apache.datasketches.tuple.SummaryFactory)" class="member-name-link">heapifyUpdatableSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
+<div class="col-first odd-row-color"><code>static &lt;U, S extends <a href="../UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;<br><a href="../UpdatableTupleSketch.html" title="class in org.apache.datasketches.tuple">UpdatableTupleSketch</a><wbr>&lt;U,<wbr>S&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">TupleSketch.</span><code><a href="../TupleSketch.html#heapifyUpdatableSketch(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer,org.apache.datasketches.tuple.SummaryFactory)" class="member-name-link">heapifyUpdatableSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
  <a href="../SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a>&lt;S&gt;&nbsp;deserializer,
  <a href="../SummaryFactory.html" title="interface in org.apache.datasketches.tuple">SummaryFactory</a>&lt;S&gt;&nbsp;summaryFactory)</code></div>
 <div class="col-last odd-row-color">
-<div class="block">Instantiate UpdatableSketch from a given MemorySegment</div>
+<div class="block">Instantiate an UpdatableTupleSketch from a given MemorySegment on the heap,</div>
 </div>
 </div>
 <div class="caption"><span>Constructors in <a href="../package-summary.html">org.apache.datasketches.tuple</a> with parameters of type <a href="../SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a></span></div>
@@ -108,12 +108,12 @@ concepts for whole new families of sketches.</div>
 <div class="table-header col-second">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../UpdatableSketch.html#%3Cinit%3E(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer,org.apache.datasketches.tuple.SummaryFactory)" class="member-name-link">UpdatableSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;srcSeg,
- <a href="../SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a>&lt;<a href="../UpdatableSketch.html#type-param-S" title="type parameter in UpdatableSketch">S</a>&gt;&nbsp;deserializer,
- <a href="../SummaryFactory.html" title="interface in org.apache.datasketches.tuple">SummaryFactory</a>&lt;<a href="../UpdatableSketch.html#type-param-S" title="type parameter in UpdatableSketch">S</a>&gt;&nbsp;summaryFactory)</code></div>
+<div class="col-second even-row-color"><code><a href="../UpdatableTupleSketch.html#%3Cinit%3E(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer,org.apache.datasketches.tuple.SummaryFactory)" class="member-name-link">UpdatableTupleSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;srcSeg,
+ <a href="../SummaryDeserializer.html" title="interface in org.apache.datasketches.tuple">SummaryDeserializer</a>&lt;<a href="../UpdatableTupleSketch.html#type-param-S" title="type parameter in UpdatableTupleSketch">S</a>&gt;&nbsp;deserializer,
+ <a href="../SummaryFactory.html" title="interface in org.apache.datasketches.tuple">SummaryFactory</a>&lt;<a href="../UpdatableTupleSketch.html#type-param-S" title="type parameter in UpdatableTupleSketch">S</a>&gt;&nbsp;summaryFactory)</code></div>
 <div class="col-last even-row-color">
 <div class="block"><span class="deprecated-label">Deprecated.</span>
-<div class="deprecation-comment">As of 3.0.0, heapifying an UpdatableSketch is deprecated.</div>
+<div class="deprecation-comment">As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.</div>
 </div>
 </div>
 </div>

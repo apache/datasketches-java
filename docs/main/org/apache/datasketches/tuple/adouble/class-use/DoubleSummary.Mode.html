@@ -104,7 +104,29 @@ the order they are declared.</div>
 <div class="table-header col-second">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../DoubleSketch.html#%3Cinit%3E(int,int,float,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSketch</a><wbr>(int&nbsp;lgK,
+<div class="col-second even-row-color"><code><a href="../DoubleSummary.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummary</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;mode)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Creates an instance of DoubleSummary with a given mode.</div>
+</div>
+<div class="col-first odd-row-color"><code>&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../DoubleSummaryFactory.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummaryFactory</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;summaryMode)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Creates an instance of DoubleSummaryFactory with a given mode</div>
+</div>
+<div class="col-first even-row-color"><code>&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../DoubleSummarySetOperations.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummarySetOperations</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;summaryMode)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Creates an instance given a DoubleSummary update mode where the mode is the same for both
+union and intersection.</div>
+</div>
+<div class="col-first odd-row-color"><code>&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../DoubleSummarySetOperations.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummarySetOperations</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;unionSummaryMode,
+ <a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;intersectionSummaryMode)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Creates an instance with two modes.</div>
+</div>
+<div class="col-first even-row-color"><code>&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../DoubleTupleSketch.html#%3Cinit%3E(int,int,float,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleTupleSketch</a><wbr>(int&nbsp;lgK,
  int&nbsp;lgResizeFactor,
  float&nbsp;samplingProbability,
  <a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;mode)</code></div>
@@ -112,40 +134,18 @@ the order they are declared.</div>
 <div class="block">Creates this sketch with the following parameters:</div>
 </div>
 <div class="col-first odd-row-color"><code>&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../DoubleSketch.html#%3Cinit%3E(int,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSketch</a><wbr>(int&nbsp;lgK,
+<div class="col-second odd-row-color"><code><a href="../DoubleTupleSketch.html#%3Cinit%3E(int,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleTupleSketch</a><wbr>(int&nbsp;lgK,
  <a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;mode)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Constructs this sketch with given <i>lgK</i>.</div>
 </div>
 <div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../DoubleSketch.html#%3Cinit%3E(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
+<div class="col-second even-row-color"><code><a href="../DoubleTupleSketch.html#%3Cinit%3E(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleTupleSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
  <a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;mode)</code></div>
 <div class="col-last even-row-color">
 <div class="block"><span class="deprecated-label">Deprecated.</span>
-<div class="deprecation-comment">As of 3.0.0, heapifying an UpdatableSketch is deprecated.</div>
+<div class="deprecation-comment">As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.</div>
 </div>
-</div>
-<div class="col-first odd-row-color"><code>&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../DoubleSummary.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummary</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;mode)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Creates an instance of DoubleSummary with a given mode.</div>
-</div>
-<div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../DoubleSummaryFactory.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummaryFactory</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;summaryMode)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Creates an instance of DoubleSummaryFactory with a given mode</div>
-</div>
-<div class="col-first odd-row-color"><code>&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../DoubleSummarySetOperations.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummarySetOperations</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;summaryMode)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Creates an instance given a DoubleSummary update mode where the mode is the same for both
-union and intersection.</div>
-</div>
-<div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../DoubleSummarySetOperations.html#%3Cinit%3E(org.apache.datasketches.tuple.adouble.DoubleSummary.Mode,org.apache.datasketches.tuple.adouble.DoubleSummary.Mode)" class="member-name-link">DoubleSummarySetOperations</a><wbr>(<a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;unionSummaryMode,
- <a href="../DoubleSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.adouble">DoubleSummary.Mode</a>&nbsp;intersectionSummaryMode)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Creates an instance with two modes.</div>
 </div>
 </div>
 </section>

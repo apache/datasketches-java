@@ -64,14 +64,14 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">jaccard(Sketch, Sketch, SummarySetOperations)</a></li>
-<li><a href="#jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">jaccard(Sketch, Sketch, S, SummarySetOperations)</a></li>
-<li><a href="#exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">exactlyEqual(Sketch, Sketch, SummarySetOperations)</a></li>
-<li><a href="#exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">exactlyEqual(Sketch, Sketch, S, SummarySetOperations)</a></li>
-<li><a href="#similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">similarityTest(Sketch, Sketch, SummarySetOperations, double)</a></li>
-<li><a href="#similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">similarityTest(Sketch, Sketch, S, SummarySetOperations, double)</a></li>
-<li><a href="#dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">dissimilarityTest(Sketch, Sketch, SummarySetOperations, double)</a></li>
-<li><a href="#dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">dissimilarityTest(Sketch, Sketch, S, SummarySetOperations, double)</a></li>
+<li><a href="#jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">jaccard(TupleSketch, TupleSketch, SummarySetOperations)</a></li>
+<li><a href="#jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">jaccard(TupleSketch, ThetaSketch, S, SummarySetOperations)</a></li>
+<li><a href="#exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">exactlyEqual(TupleSketch, TupleSketch, SummarySetOperations)</a></li>
+<li><a href="#exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)" tabindex="0">exactlyEqual(TupleSketch, ThetaSketch, S, SummarySetOperations)</a></li>
+<li><a href="#similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">similarityTest(TupleSketch, TupleSketch, SummarySetOperations, double)</a></li>
+<li><a href="#similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">similarityTest(TupleSketch, ThetaSketch, S, SummarySetOperations, double)</a></li>
+<li><a href="#dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">dissimilarityTest(TupleSketch, TupleSketch, SummarySetOperations, double)</a></li>
+<li><a href="#dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" tabindex="0">dissimilarityTest(TupleSketch, ThetaSketch, S, SummarySetOperations, double)</a></li>
 </ol>
 </li>
 </ol>
@@ -89,7 +89,7 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">JaccardSimilarity</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Jaccard similarity of two Tuple Sketches, or alternatively, of a Tuple and Theta Sketch.
+<div class="block">Jaccard similarity of two TupleSketches, or alternatively, of a TupleSketch and a ThetaSketch.
 
 <p>Note: only retained hash values are compared, and the Tuple summary values are not accounted for in the
 similarity measure.</p></div>
@@ -126,25 +126,25 @@ similarity measure.</p></div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">dissimilarityTest</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;expected,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">dissimilarityTest</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;expected,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Tests dissimilarity of a measured Sketch against an expected Sketch.</div>
+<div class="block">Tests dissimilarity of a measured TupleSketch against an expected ThetaSketch.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">dissimilarityTest</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;expected,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">dissimilarityTest</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;expected,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Tests dissimilarity of a measured Sketch against an expected Sketch.</div>
+<div class="block">Tests dissimilarity of a measured TupleSketch against an expected TupleSketch.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">exactlyEqual</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">exactlyEqual</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
@@ -152,44 +152,44 @@ similarity measure.</p></div>
 theta values.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">exactlyEqual</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">exactlyEqual</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Returns true if the two given sketches have exactly the same hash values and the same
 theta values.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double[]</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">jaccard</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">jaccard</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Computes the Jaccard similarity index with upper and lower bounds.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double[]</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">jaccard</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)" class="member-name-link">jaccard</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Computes the Jaccard similarity index with upper and lower bounds.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">similarityTest</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;expected,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">similarityTest</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;expected,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Tests similarity of a measured Sketch against an expected Sketch.</div>
+<div class="block">Tests similarity of a measured TupleSketch against an expected ThetaSketch.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">similarityTest</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;expected,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)" class="member-name-link">similarityTest</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;expected,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Tests similarity of a measured Sketch against an expected Sketch.</div>
+<div class="block">Tests similarity of a measured TupleSketch against an expected TupleSketch.</div>
 </div>
 </div>
 </div>
@@ -225,11 +225,11 @@ theta values.</div>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)">
+<section class="detail" id="jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)">
 <h3>jaccard</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double[]</span>&nbsp;<span class="element-name">jaccard</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double[]</span>&nbsp;<span class="element-name">jaccard</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</span></div>
 <div class="block">Computes the Jaccard similarity index with upper and lower bounds. The Jaccard similarity index
 <i>J(A,B) = (A ^ B)/(A U B)</i> is used to measure how similar the two sketches are to each
@@ -241,10 +241,10 @@ populations is 95% of the union of the two populations.
 are 2^25 or 2^26, this method may produce unpredictable results.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>sketchA</code> - The first argument, a Tuple sketch with summary type <i>S</i></dd>
-<dd><code>sketchB</code> - The second argument, a Tuple sketch with summary type <i>S</i></dd>
+<dd><code>sketchA</code> - The first argument, a TupleSketch with summary type <i>S</i></dd>
+<dd><code>sketchB</code> - The second argument, a TupleSketch with summary type <i>S</i></dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dt>Returns:</dt>
 <dd>a double array {LowerBound, Estimate, UpperBound} of the Jaccard index.
@@ -254,11 +254,11 @@ The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 stand
 </section>
 </li>
 <li>
-<section class="detail" id="jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)">
-<h3 id="jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations)">jaccard</h3>
+<section class="detail" id="jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)">
+<h3 id="jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations)">jaccard</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double[]</span>&nbsp;<span class="element-name">jaccard</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double[]</span>&nbsp;<span class="element-name">jaccard</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</span></div>
 <div class="block">Computes the Jaccard similarity index with upper and lower bounds. The Jaccard similarity index
@@ -271,11 +271,11 @@ populations is 95% of the union of the two populations.
 are 2^25 or 2^26, this method may produce unpredictable results.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="jaccard(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="jaccard(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>sketchA</code> - The first argument, a Tuple sketch with summary type <i>S</i></dd>
-<dd><code>sketchB</code> - The second argument, a Theta sketch</dd>
-<dd><code>summary</code> - the given proxy summary for the theta sketch, which doesn't have one.
+<dd><code>sketchA</code> - The first argument, a TupleSketch with summary type <i>S</i></dd>
+<dd><code>sketchB</code> - The second argument, a ThetaSketch</dd>
+<dd><code>summary</code> - the given proxy summary for the ThetaSketch, which doesn't have one.
 This may not be null.</dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dt>Returns:</dt>
@@ -286,20 +286,20 @@ The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 stand
 </section>
 </li>
 <li>
-<section class="detail" id="exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)">
+<section class="detail" id="exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)">
 <h3>exactlyEqual</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">exactlyEqual</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">exactlyEqual</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</span></div>
 <div class="block">Returns true if the two given sketches have exactly the same hash values and the same
 theta values. Thus, they are equivalent.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>sketchA</code> - The first argument, a Tuple sketch with summary type <i>S</i></dd>
-<dd><code>sketchB</code> - The second argument, a Tuple sketch with summary type <i>S</i></dd>
+<dd><code>sketchA</code> - The first argument, a TupleSketch with summary type <i>S</i></dd>
+<dd><code>sketchB</code> - The second argument, a TupleSketch with summary type <i>S</i></dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dt>Returns:</dt>
 <dd>true if the two given sketches have exactly the same hash values and the same
@@ -309,22 +309,22 @@ theta values.</dd>
 </section>
 </li>
 <li>
-<section class="detail" id="exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)">
-<h3 id="exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations)">exactlyEqual</h3>
+<section class="detail" id="exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)">
+<h3 id="exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations)">exactlyEqual</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">exactlyEqual</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">exactlyEqual</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps)</span></div>
 <div class="block">Returns true if the two given sketches have exactly the same hash values and the same
 theta values. Thus, they are equivalent.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="exactlyEqual(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="exactlyEqual(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>sketchA</code> - The first argument, a Tuple sketch with summary type <i>S</i></dd>
-<dd><code>sketchB</code> - The second argument, a Theta sketch</dd>
-<dd><code>summary</code> - the given proxy summary for the theta sketch, which doesn't have one.
+<dd><code>sketchA</code> - The first argument, a TupleSketch with summary type <i>S</i></dd>
+<dd><code>sketchB</code> - The second argument, a ThetaSketch</dd>
+<dd><code>summary</code> - the given proxy summary for the ThetaSketch, which doesn't have one.
 This may not be null.</dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dt>Returns:</dt>
@@ -335,24 +335,24 @@ theta values.</dd>
 </section>
 </li>
 <li>
-<section class="detail" id="similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)">
+<section class="detail" id="similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)">
 <h3>similarityTest</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">similarityTest</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;expected,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">similarityTest</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;expected,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</span></div>
-<div class="block">Tests similarity of a measured Sketch against an expected Sketch.
+<div class="block">Tests similarity of a measured TupleSketch against an expected TupleSketch.
 Computes the lower bound of the Jaccard index <i>J<sub>LB</sub></i> of the measured and
 expected sketches.
 if <i>J<sub>LB</sub> &ge; threshold</i>, then the sketches are considered to be
 similar with a confidence of 97.7%.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>measured</code> - a Tuple sketch with summary type <i>S</i> to be tested</dd>
-<dd><code>expected</code> - the reference Tuple sketch with summary type <i>S</i> that is considered to be correct.</dd>
+<dd><code>measured</code> - a TupleSketch with summary type <i>S</i> to be tested</dd>
+<dd><code>expected</code> - the reference TupleSketch with summary type <i>S</i> that is considered to be correct.</dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dd><code>threshold</code> - a real value between zero and one.</dd>
 <dt>Returns:</dt>
@@ -363,26 +363,26 @@ with at least 97.7% confidence.</dd>
 </section>
 </li>
 <li>
-<section class="detail" id="similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)">
-<h3 id="similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations,double)">similarityTest</h3>
+<section class="detail" id="similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)">
+<h3 id="similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations,double)">similarityTest</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">similarityTest</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;expected,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">similarityTest</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;expected,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</span></div>
-<div class="block">Tests similarity of a measured Sketch against an expected Sketch.
+<div class="block">Tests similarity of a measured TupleSketch against an expected ThetaSketch.
 Computes the lower bound of the Jaccard index <i>J<sub>LB</sub></i> of the measured and
 expected sketches.
 if <i>J<sub>LB</sub> &ge; threshold</i>, then the sketches are considered to be
 similar with a confidence of 97.7%.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="similarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="similarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>measured</code> - a Tuple sketch with summary type <i>S</i> to be tested</dd>
-<dd><code>expected</code> - the reference Theta sketch that is considered to be correct.</dd>
-<dd><code>summary</code> - the given proxy summary for the theta sketch, which doesn't have one.
+<dd><code>measured</code> - a TupleSketch with summary type <i>S</i> to be tested</dd>
+<dd><code>expected</code> - the reference ThetaSketch that is considered to be correct.</dd>
+<dd><code>summary</code> - the given proxy summary for the ThetaSketch, which doesn't have one.
 This may not be null.</dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dd><code>threshold</code> - a real value between zero and one.</dd>
@@ -394,24 +394,24 @@ with at least 97.7% confidence.</dd>
 </section>
 </li>
 <li>
-<section class="detail" id="dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)">
+<section class="detail" id="dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)">
 <h3>dissimilarityTest</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">dissimilarityTest</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;expected,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">dissimilarityTest</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;expected,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</span></div>
-<div class="block">Tests dissimilarity of a measured Sketch against an expected Sketch.
+<div class="block">Tests dissimilarity of a measured TupleSketch against an expected TupleSketch.
 Computes the upper bound of the Jaccard index <i>J<sub>UB</sub></i> of the measured and
 expected sketches.
 if <i>J<sub>UB</sub> &le; threshold</i>, then the sketches are considered to be
 dissimilar with a confidence of 97.7%.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>measured</code> - a Tuple sketch with summary type <i>S</i> to be tested</dd>
-<dd><code>expected</code> - the reference Theta sketch that is considered to be correct.</dd>
+<dd><code>measured</code> - a TupleSketch with summary type <i>S</i> to be tested</dd>
+<dd><code>expected</code> - the reference TupleSketch that is considered to be correct.</dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dd><code>threshold</code> - a real value between zero and one.</dd>
 <dt>Returns:</dt>
@@ -422,26 +422,26 @@ with at least 97.7% confidence.</dd>
 </section>
 </li>
 <li>
-<section class="detail" id="dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)">
-<h3 id="dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations,double)">dissimilarityTest</h3>
+<section class="detail" id="dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)">
+<h3 id="dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,org.apache.datasketches.tuple.Summary,org.apache.datasketches.tuple.SummarySetOperations,double)">dissimilarityTest</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">dissimilarityTest</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;measured,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;expected,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">dissimilarityTest</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;measured,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;expected,
  S&nbsp;summary,
  <a href="SummarySetOperations.html" title="interface in org.apache.datasketches.tuple">SummarySetOperations</a>&lt;S&gt;&nbsp;summarySetOps,
  double&nbsp;threshold)</span></div>
-<div class="block">Tests dissimilarity of a measured Sketch against an expected Sketch.
+<div class="block">Tests dissimilarity of a measured TupleSketch against an expected ThetaSketch.
 Computes the upper bound of the Jaccard index <i>J<sub>UB</sub></i> of the measured and
 expected sketches.
 if <i>J<sub>UB</sub> &le; threshold</i>, then the sketches are considered to be
 dissimilar with a confidence of 97.7%.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="dissimilarityTest(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="dissimilarityTest(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch,S,org.apache.datasketches.tuple.SummarySetOperations,double)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
-<dd><code>measured</code> - a Tuple sketch with summary type <i>S</i> to be tested</dd>
-<dd><code>expected</code> - the reference Theta sketch that is considered to be correct.</dd>
-<dd><code>summary</code> - the given proxy summary for the theta sketch, which doesn't have one.
+<dd><code>measured</code> - a TupleSketch with summary type <i>S</i> to be tested</dd>
+<dd><code>expected</code> - the reference ThetaSketch that is considered to be correct.</dd>
+<dd><code>summary</code> - the given proxy summary for the ThetaSketch, which doesn't have one.
 This may not be null.</dd>
 <dd><code>summarySetOps</code> - instance of SummarySetOperations used to unify or intersect summaries.</dd>
 <dd><code>threshold</code> - a real value between zero and one.</dd>

@@ -69,8 +69,8 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first even-row-color"><a href="#org.apache.datasketches.theta">org.apache.datasketches.theta</a></div>
 <div class="col-last even-row-color">
-<div class="block">The theta package contains the basic sketch classes that are members of the
-<a href="../../../../../resources/dictionary.html#thetaSketch">Theta Sketch Framework</a>.</div>
+<div class="block">The /theta/ package contains the basic sketch classes that are members of the
+<a href="../../../../../resources/dictionary.html#thetaSketch">ThetaSketch Framework</a>.</div>
 </div>
 </div>
 <section class="class-uses">
@@ -153,29 +153,29 @@ the order they are declared.</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code><a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">AnotB.</span><code><a href="../../theta/AnotB.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">CompactThetaSketch.</span><code><a href="../../theta/CompactThetaSketch.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code><a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">CompactSketch.</span><code><a href="../../theta/CompactSketch.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ThetaAnotB.</span><code><a href="../../theta/ThetaAnotB.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Intersection.</span><code><a href="../../theta/Intersection.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ThetaIntersection.</span><code><a href="../../theta/ThetaIntersection.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code>abstract <a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">SetOperation.</span><code><a href="../../theta/SetOperation.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ThetaSetOperation.</span><code><a href="../../theta/ThetaSetOperation.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
 <div class="col-last odd-row-color">
-<div class="block">Gets the Family of this SetOperation</div>
+<div class="block">Gets the Family of this ThetaSetOperation</div>
 </div>
 <div class="col-first even-row-color"><code>abstract <a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Sketch.</span><code><a href="../../theta/Sketch.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ThetaSketch.</span><code><a href="../../theta/ThetaSketch.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
 <div class="col-last even-row-color">
 <div class="block">Returns the Family that this sketch belongs to</div>
 </div>
 <div class="col-first odd-row-color"><code><a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Union.</span><code><a href="../../theta/Union.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ThetaUnion.</span><code><a href="../../theta/ThetaUnion.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code><a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">UpdateSketchBuilder.</span><code><a href="../../theta/UpdateSketchBuilder.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">UpdatableThetaSketchBuilder.</span><code><a href="../../theta/UpdatableThetaSketchBuilder.html#getFamily()" class="member-name-link">getFamily</a>()</code></div>
 <div class="col-last even-row-color">
 <div class="block">Returns the local Family</div>
 </div>
@@ -185,20 +185,20 @@ the order they are declared.</div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code><a href="../../theta/SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">SetOperationBuilder.</span><code><a href="../../theta/SetOperationBuilder.html#build(org.apache.datasketches.common.Family)" class="member-name-link">build</a><wbr>(<a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a>&nbsp;family)</code></div>
+<div class="col-first even-row-color"><code><a href="../../theta/ThetaSetOperation.html" title="class in org.apache.datasketches.theta">ThetaSetOperation</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ThetaSetOperationBuilder.</span><code><a href="../../theta/ThetaSetOperationBuilder.html#build(org.apache.datasketches.common.Family)" class="member-name-link">build</a><wbr>(<a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a>&nbsp;family)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Returns a SetOperation with the current configuration of this Builder and the given Family.</div>
+<div class="block">Returns a ThetaSetOperation with the current configuration of this Builder and the given Family.</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="../../theta/SetOperation.html" title="class in org.apache.datasketches.theta">SetOperation</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">SetOperationBuilder.</span><code><a href="../../theta/SetOperationBuilder.html#build(org.apache.datasketches.common.Family,java.lang.foreign.MemorySegment)" class="member-name-link">build</a><wbr>(<a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a>&nbsp;family,
+<div class="col-first odd-row-color"><code><a href="../../theta/ThetaSetOperation.html" title="class in org.apache.datasketches.theta">ThetaSetOperation</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ThetaSetOperationBuilder.</span><code><a href="../../theta/ThetaSetOperationBuilder.html#build(org.apache.datasketches.common.Family,java.lang.foreign.MemorySegment)" class="member-name-link">build</a><wbr>(<a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a>&nbsp;family,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;dstSeg)</code></div>
 <div class="col-last odd-row-color">
-<div class="block">Returns a SetOperation with the current configuration of this Builder, the given Family
+<div class="block">Returns a ThetaSetOperation with the current configuration of this Builder, the given Family
 and the given destination MemorySegment.</div>
 </div>
-<div class="col-first even-row-color"><code><a href="../../theta/UpdateSketchBuilder.html" title="class in org.apache.datasketches.theta">UpdateSketchBuilder</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">UpdateSketchBuilder.</span><code><a href="../../theta/UpdateSketchBuilder.html#setFamily(org.apache.datasketches.common.Family)" class="member-name-link">setFamily</a><wbr>(<a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a>&nbsp;family)</code></div>
+<div class="col-first even-row-color"><code><a href="../../theta/UpdatableThetaSketchBuilder.html" title="class in org.apache.datasketches.theta">UpdatableThetaSketchBuilder</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">UpdatableThetaSketchBuilder.</span><code><a href="../../theta/UpdatableThetaSketchBuilder.html#setFamily(org.apache.datasketches.common.Family)" class="member-name-link">setFamily</a><wbr>(<a href="../Family.html" title="enum class in org.apache.datasketches.common">Family</a>&nbsp;family)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Set the local Family.</div>
 </div>

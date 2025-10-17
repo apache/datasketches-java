@@ -104,42 +104,42 @@ the order they are declared.</div>
 <div class="table-header col-second">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../IntegerSketch.html#%3Cinit%3E(int,int,float,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSketch</a><wbr>(int&nbsp;lgK,
+<div class="col-second even-row-color"><code><a href="../IntegerSummary.html#%3Cinit%3E(org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSummary</a><wbr>(<a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;mode)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Creates an instance of IntegerSummary with a given mode.</div>
+</div>
+<div class="col-first odd-row-color"><code>&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../IntegerSummaryFactory.html#%3Cinit%3E(org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSummaryFactory</a><wbr>(<a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;summaryMode)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Creates an instance of IntegerSummaryFactory with a given mode</div>
+</div>
+<div class="col-first even-row-color"><code>&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../IntegerSummarySetOperations.html#%3Cinit%3E(org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSummarySetOperations</a><wbr>(<a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;unionSummaryMode,
+ <a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;intersectionSummaryMode)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Creates a new instance with two modes</div>
+</div>
+<div class="col-first odd-row-color"><code>&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../IntegerTupleSketch.html#%3Cinit%3E(int,int,float,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerTupleSketch</a><wbr>(int&nbsp;lgK,
  int&nbsp;lgResizeFactor,
  float&nbsp;samplingProbability,
  <a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;mode)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Creates this sketch with the following parameters:</div>
 </div>
-<div class="col-first odd-row-color"><code>&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../IntegerSketch.html#%3Cinit%3E(int,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSketch</a><wbr>(int&nbsp;lgK,
+<div class="col-first even-row-color"><code>&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../IntegerTupleSketch.html#%3Cinit%3E(int,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerTupleSketch</a><wbr>(int&nbsp;lgK,
  <a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;mode)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Constructs this sketch with given <i>lgK</i>.</div>
 </div>
-<div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../IntegerSketch.html#%3Cinit%3E(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
+<div class="col-first odd-row-color"><code>&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../IntegerTupleSketch.html#%3Cinit%3E(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerTupleSketch</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/foreign/MemorySegment.html" title="class or interface in java.lang.foreign" class="external-link">MemorySegment</a>&nbsp;seg,
  <a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;mode)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block"><span class="deprecated-label">Deprecated.</span>
-<div class="deprecation-comment">As of 3.0.0, heapifying an UpdatableSketch is deprecated.</div>
+<div class="deprecation-comment">As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.</div>
 </div>
-</div>
-<div class="col-first odd-row-color"><code>&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../IntegerSummary.html#%3Cinit%3E(org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSummary</a><wbr>(<a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;mode)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Creates an instance of IntegerSummary with a given mode.</div>
-</div>
-<div class="col-first even-row-color"><code>&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../IntegerSummaryFactory.html#%3Cinit%3E(org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSummaryFactory</a><wbr>(<a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;summaryMode)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Creates an instance of IntegerSummaryFactory with a given mode</div>
-</div>
-<div class="col-first odd-row-color"><code>&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../IntegerSummarySetOperations.html#%3Cinit%3E(org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode,org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode)" class="member-name-link">IntegerSummarySetOperations</a><wbr>(<a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;unionSummaryMode,
- <a href="../IntegerSummary.Mode.html" title="enum class in org.apache.datasketches.tuple.aninteger">IntegerSummary.Mode</a>&nbsp;intersectionSummaryMode)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Creates a new instance with two modes</div>
 </div>
 </div>
 </section>

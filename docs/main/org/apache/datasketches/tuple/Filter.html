@@ -64,7 +64,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#filter(org.apache.datasketches.tuple.Sketch)" tabindex="0">filter(Sketch)</a></li>
+<li><a href="#filter(org.apache.datasketches.tuple.TupleSketch)" tabindex="0">filter(TupleSketch)</a></li>
 </ol>
 </li>
 </ol>
@@ -86,7 +86,7 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">Filter&lt;T extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Class for filtering entries from a <a href="Sketch.html" title="class in org.apache.datasketches.tuple"><code>Sketch</code></a> given a <a href="Summary.html" title="interface in org.apache.datasketches.tuple"><code>Summary</code></a></div>
+<div class="block">Class for filtering entries from a <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple"><code>TupleSketch</code></a> given a <a href="Summary.html" title="interface in org.apache.datasketches.tuple"><code>Summary</code></a></div>
 </div>
 </section>
 <section class="summary">
@@ -117,10 +117,10 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a><wbr>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#filter(org.apache.datasketches.tuple.Sketch)" class="member-name-link">filter</a><wbr>(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;&nbsp;sketchIn)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="CompactTupleSketch.html" title="class in org.apache.datasketches.tuple">CompactTupleSketch</a><wbr>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#filter(org.apache.datasketches.tuple.TupleSketch)" class="member-name-link">filter</a><wbr>(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;&nbsp;sketchIn)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Filters elements on the provided <a href="Sketch.html" title="class in org.apache.datasketches.tuple"><code>Sketch</code></a></div>
+<div class="block">Filters elements on the provided <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple"><code>TupleSketch</code></a></div>
 </div>
 </div>
 </div>
@@ -149,7 +149,7 @@ loadScripts(document, 'script');</script>
 <dt>Parameters:</dt>
 <dd><code>predicate</code> - Predicate to use in this filter. If the Predicate returns False, the
  element is discarded. If the Predicate returns True, then the element is kept in the
- <a href="Sketch.html" title="class in org.apache.datasketches.tuple"><code>Sketch</code></a></dd>
+ <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple"><code>TupleSketch</code></a></dd>
 </dl>
 </div>
 </section>
@@ -163,16 +163,16 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="filter(org.apache.datasketches.tuple.Sketch)">
+<section class="detail" id="filter(org.apache.datasketches.tuple.TupleSketch)">
 <h3>filter</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;</span>&nbsp;<span class="element-name">filter</span><wbr><span class="parameters">(<a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;&nbsp;sketchIn)</span></div>
-<div class="block">Filters elements on the provided <a href="Sketch.html" title="class in org.apache.datasketches.tuple"><code>Sketch</code></a></div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="CompactTupleSketch.html" title="class in org.apache.datasketches.tuple">CompactTupleSketch</a>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;</span>&nbsp;<span class="element-name">filter</span><wbr><span class="parameters">(<a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;<a href="#type-param-T" title="type parameter in Filter">T</a>&gt;&nbsp;sketchIn)</span></div>
+<div class="block">Filters elements on the provided <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple"><code>TupleSketch</code></a></div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>sketchIn</code> - The sketch against which apply the <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Predicate.html" title="class or interface in java.util.function" class="external-link"><code>Predicate</code></a></dd>
+<dd><code>sketchIn</code> - The sketch against which to apply the <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Predicate.html" title="class or interface in java.util.function" class="external-link"><code>Predicate</code></a></dd>
 <dt>Returns:</dt>
-<dd>A new Sketch with some of the entries filtered out based on the <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Predicate.html" title="class or interface in java.util.function" class="external-link"><code>Predicate</code></a></dd>
+<dd>A new CompactTupleSketch with some of the entries filtered out based on the <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Predicate.html" title="class or interface in java.util.function" class="external-link"><code>Predicate</code></a></dd>
 </dl>
 </div>
 </section>

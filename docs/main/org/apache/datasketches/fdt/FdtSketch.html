@@ -93,9 +93,9 @@ loadScripts(document, 'script');</script>
 <h1 title="Class FdtSketch" class="title">Class FdtSketch</h1>
 </div>
 <div class="inheritance" title="Inheritance Tree"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">java.lang.Object</a>
-<div class="inheritance"><a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">org.apache.datasketches.tuple.Sketch</a>&lt;<a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;
-<div class="inheritance"><a href="../tuple/UpdatableSketch.html" title="class in org.apache.datasketches.tuple">org.apache.datasketches.tuple.UpdatableSketch</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[], <a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;
-<div class="inheritance"><a href="../tuple/strings/ArrayOfStringsSketch.html" title="class in org.apache.datasketches.tuple.strings">org.apache.datasketches.tuple.strings.ArrayOfStringsSketch</a>
+<div class="inheritance"><a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">org.apache.datasketches.tuple.TupleSketch</a>&lt;<a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;
+<div class="inheritance"><a href="../tuple/UpdatableTupleSketch.html" title="class in org.apache.datasketches.tuple">org.apache.datasketches.tuple.UpdatableTupleSketch</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[], <a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;
+<div class="inheritance"><a href="../tuple/strings/ArrayOfStringsTupleSketch.html" title="class in org.apache.datasketches.tuple.strings">org.apache.datasketches.tuple.strings.ArrayOfStringsTupleSketch</a>
 <div class="inheritance">org.apache.datasketches.fdt.FdtSketch</div>
 </div>
 </div>
@@ -105,7 +105,7 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">FdtSketch</span>
-<span class="extends-implements">extends <a href="../tuple/strings/ArrayOfStringsSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a></span></div>
+<span class="extends-implements">extends <a href="../tuple/strings/ArrayOfStringsTupleSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsTupleSketch</a></span></div>
 <div class="block">A Frequent Distinct Tuples sketch.
 
 <p>Suppose our data is a stream of pairs {IP address, User ID} and we want to identify the
@@ -167,7 +167,7 @@ Log-base2 of required nominal entries.</div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../tuple/CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a><wbr>&lt;<a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../tuple/CompactTupleSketch.html" title="class in org.apache.datasketches.tuple">CompactTupleSketch</a><wbr>&lt;<a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#compact()" class="member-name-link">compact</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Converts the current state of the sketch into a compact sketch</div>
@@ -244,7 +244,7 @@ represented by the count of entries of each group.</div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4 method-summary-table-tab6"><code><a href="#toByteArray()" class="member-name-link">toByteArray</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4 method-summary-table-tab6">
 <div class="block"><span class="deprecated-label">Deprecated.</span>
-<div class="deprecation-comment">As of 3.0.0, serializing an UpdatableSketch is deprecated.</div>
+<div class="deprecation-comment">As of 3.0.0, serializing an UpdatableTupleSketch is deprecated.</div>
 </div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
@@ -261,14 +261,14 @@ represented by the count of entries of each group.</div>
 </div>
 </div>
 <div class="inherited-list">
-<h3 id="methods-inherited-from-class-org.apache.datasketches.tuple.strings.ArrayOfStringsSketch">Methods inherited from class&nbsp;<a href="../tuple/strings/ArrayOfStringsSketch.html#method-summary" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a></h3>
-<code><a href="../tuple/strings/ArrayOfStringsSketch.html#update(java.lang.String%5B%5D,java.lang.String%5B%5D)" title="update(String[], String[])">update</a></code></div>
+<h3 id="methods-inherited-from-class-org.apache.datasketches.tuple.strings.ArrayOfStringsTupleSketch">Methods inherited from class&nbsp;<a href="../tuple/strings/ArrayOfStringsTupleSketch.html#method-summary" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsTupleSketch</a></h3>
+<code><a href="../tuple/strings/ArrayOfStringsTupleSketch.html#update(java.lang.String%5B%5D,java.lang.String%5B%5D)" title="update(String[], String[])">update</a></code></div>
 <div class="inherited-list">
-<h3 id="methods-inherited-from-class-org.apache.datasketches.tuple.UpdatableSketch">Methods inherited from class&nbsp;<a href="../tuple/UpdatableSketch.html#method-summary" title="class in org.apache.datasketches.tuple">UpdatableSketch</a></h3>
-<code><a href="../tuple/UpdatableSketch.html#update(byte%5B%5D,U)" title="update(byte[], String[])">update</a>, <a href="../tuple/UpdatableSketch.html#update(double,U)" title="update(double, String[])">update</a>, <a href="../tuple/UpdatableSketch.html#update(int%5B%5D,U)" title="update(int[], String[])">update</a>, <a href="../tuple/UpdatableSketch.html#update(long%5B%5D,U)" title="update(long[], String[])">update</a>, <a href="../tuple/UpdatableSketch.html#update(long,U)" title="update(long, String[])">update</a>, <a href="../tuple/UpdatableSketch.html#update(java.lang.String,U)" title="update(String, String[])">update</a>, <a href="../tuple/UpdatableSketch.html#update(java.nio.ByteBuffer,U)" title="update(ByteBuffer, String[])">update</a></code></div>
+<h3 id="methods-inherited-from-class-org.apache.datasketches.tuple.UpdatableTupleSketch">Methods inherited from class&nbsp;<a href="../tuple/UpdatableTupleSketch.html#method-summary" title="class in org.apache.datasketches.tuple">UpdatableTupleSketch</a></h3>
+<code><a href="../tuple/UpdatableTupleSketch.html#update(byte%5B%5D,U)" title="update(byte[], String[])">update</a>, <a href="../tuple/UpdatableTupleSketch.html#update(double,U)" title="update(double, String[])">update</a>, <a href="../tuple/UpdatableTupleSketch.html#update(int%5B%5D,U)" title="update(int[], String[])">update</a>, <a href="../tuple/UpdatableTupleSketch.html#update(long%5B%5D,U)" title="update(long[], String[])">update</a>, <a href="../tuple/UpdatableTupleSketch.html#update(long,U)" title="update(long, String[])">update</a>, <a href="../tuple/UpdatableTupleSketch.html#update(java.lang.String,U)" title="update(String, String[])">update</a>, <a href="../tuple/UpdatableTupleSketch.html#update(java.nio.ByteBuffer,U)" title="update(ByteBuffer, String[])">update</a></code></div>
 <div class="inherited-list">
-<h3 id="methods-inherited-from-class-org.apache.datasketches.tuple.Sketch">Methods inherited from class&nbsp;<a href="../tuple/Sketch.html#method-summary" title="class in org.apache.datasketches.tuple">Sketch</a></h3>
-<code><a href="../tuple/Sketch.html#getEstimate()" title="getEstimate()">getEstimate</a>, <a href="../tuple/Sketch.html#getEstimate(int)" title="getEstimate(int)">getEstimate</a>, <a href="../tuple/Sketch.html#getLowerBound(int)" title="getLowerBound(int)">getLowerBound</a>, <a href="../tuple/Sketch.html#getLowerBound(int,int)" title="getLowerBound(int, int)">getLowerBound</a>, <a href="../tuple/Sketch.html#getSummaryFactory()" title="getSummaryFactory()">getSummaryFactory</a>, <a href="../tuple/Sketch.html#getTheta()" title="getTheta()">getTheta</a>, <a href="../tuple/Sketch.html#getThetaLong()" title="getThetaLong()">getThetaLong</a>, <a href="../tuple/Sketch.html#getUpperBound(int)" title="getUpperBound(int)">getUpperBound</a>, <a href="../tuple/Sketch.html#getUpperBound(int,int)" title="getUpperBound(int, int)">getUpperBound</a>, <a href="../tuple/Sketch.html#isEmpty()" title="isEmpty()">isEmpty</a>, <a href="../tuple/Sketch.html#isEstimationMode()" title="isEstimationMode()">isEstimationMode</a>, <a href="../tuple/Sketch.html#toString()" title="toString()">toString</a></code></div>
+<h3 id="methods-inherited-from-class-org.apache.datasketches.tuple.TupleSketch">Methods inherited from class&nbsp;<a href="../tuple/TupleSketch.html#method-summary" title="class in org.apache.datasketches.tuple">TupleSketch</a></h3>
+<code><a href="../tuple/TupleSketch.html#createEmptySketch()" title="createEmptySketch()">createEmptySketch</a>, <a href="../tuple/TupleSketch.html#getEstimate()" title="getEstimate()">getEstimate</a>, <a href="../tuple/TupleSketch.html#getEstimate(int)" title="getEstimate(int)">getEstimate</a>, <a href="../tuple/TupleSketch.html#getLowerBound(int)" title="getLowerBound(int)">getLowerBound</a>, <a href="../tuple/TupleSketch.html#getLowerBound(int,int)" title="getLowerBound(int, int)">getLowerBound</a>, <a href="../tuple/TupleSketch.html#getSummaryFactory()" title="getSummaryFactory()">getSummaryFactory</a>, <a href="../tuple/TupleSketch.html#getTheta()" title="getTheta()">getTheta</a>, <a href="../tuple/TupleSketch.html#getThetaLong()" title="getThetaLong()">getThetaLong</a>, <a href="../tuple/TupleSketch.html#getUpperBound(int)" title="getUpperBound(int)">getUpperBound</a>, <a href="../tuple/TupleSketch.html#getUpperBound(int,int)" title="getUpperBound(int, int)">getUpperBound</a>, <a href="../tuple/TupleSketch.html#heapifySketch(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer)" title="heapifySketch(MemorySegment, SummaryDeserializer)">heapifySketch</a>, <a href="../tuple/TupleSketch.html#heapifyUpdatableSketch(java.lang.foreign.MemorySegment,org.apache.datasketches.tuple.SummaryDeserializer,org.apache.datasketches.tuple.SummaryFactory)" title="heapifyUpdatableSketch(MemorySegment, SummaryDeserializer, SummaryFactory)">heapifyUpdatableSketch</a>, <a href="../tuple/TupleSketch.html#isEmpty()" title="isEmpty()">isEmpty</a>, <a href="../tuple/TupleSketch.html#isEstimationMode()" title="isEstimationMode()">isEstimationMode</a>, <a href="../tuple/TupleSketch.html#toString()" title="toString()">toString</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#method-summary" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
@@ -343,7 +343,7 @@ reported tuple (selected with a primary key) at the threshold.</dd>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="FdtSketch.html" title="class in org.apache.datasketches.fdt">FdtSketch</a></span>&nbsp;<span class="element-name">copy</span>()</div>
 <dl class="notes">
 <dt>Overrides:</dt>
-<dd><code><a href="../tuple/strings/ArrayOfStringsSketch.html#copy()">copy</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/strings/ArrayOfStringsSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSketch</a></code></dd>
+<dd><code><a href="../tuple/strings/ArrayOfStringsTupleSketch.html#copy()">copy</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/strings/ArrayOfStringsTupleSketch.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsTupleSketch</a></code></dd>
 <dt>Returns:</dt>
 <dd>a deep copy of this sketch</dd>
 </dl>
@@ -425,11 +425,11 @@ This assumes the default Group and the default separator character '|'.</div>
 <h3>getRetainedEntries</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getRetainedEntries</span>()</div>
-<div class="block"><span class="description-from-type-label">Description copied from class:&nbsp;<code><a href="../tuple/Sketch.html#getRetainedEntries()">Sketch</a></code></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from class:&nbsp;<code><a href="../tuple/TupleSketch.html#getRetainedEntries()">TupleSketch</a></code></span></div>
 <div class="block">Returns number of retained entries</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../tuple/Sketch.html#getRetainedEntries()">getRetainedEntries</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
+<dd><code><a href="../tuple/TupleSketch.html#getRetainedEntries()">getRetainedEntries</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
 <dt>Returns:</dt>
 <dd>number of retained entries</dd>
 </dl>
@@ -441,13 +441,13 @@ This assumes the default Group and the default separator character '|'.</div>
 <h3>getCountLessThanThetaLong</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getCountLessThanThetaLong</span><wbr><span class="parameters">(long&nbsp;thetaLong)</span></div>
-<div class="block"><span class="description-from-type-label">Description copied from class:&nbsp;<code><a href="../tuple/Sketch.html#getCountLessThanThetaLong(long)">Sketch</a></code></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from class:&nbsp;<code><a href="../tuple/TupleSketch.html#getCountLessThanThetaLong(long)">TupleSketch</a></code></span></div>
 <div class="block">Gets the number of hash values less than the given theta expressed as a long.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../tuple/Sketch.html#getCountLessThanThetaLong(long)">getCountLessThanThetaLong</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
+<dd><code><a href="../tuple/TupleSketch.html#getCountLessThanThetaLong(long)">getCountLessThanThetaLong</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
 <dt>Parameters:</dt>
-<dd><code>thetaLong</code> - the given theta as a long between zero and <i>Long.MAX_VALUE</i>.</dd>
+<dd><code>thetaLong</code> - the given theta as a long in the range (zero, <i>Long.MAX_VALUE</i>].</dd>
 <dt>Returns:</dt>
 <dd>the number of hash values less than the given thetaLong.</dd>
 </dl>
@@ -541,11 +541,11 @@ This assumes the default Group and the default separator character '|'.</div>
 <section class="detail" id="compact()">
 <h3>compact</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../tuple/CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a>&lt;<a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;</span>&nbsp;<span class="element-name">compact</span>()</div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../tuple/CompactTupleSketch.html" title="class in org.apache.datasketches.tuple">CompactTupleSketch</a>&lt;<a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;</span>&nbsp;<span class="element-name">compact</span>()</div>
 <div class="block">Converts the current state of the sketch into a compact sketch</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../tuple/Sketch.html#compact()">compact</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
+<dd><code><a href="../tuple/TupleSketch.html#compact()">compact</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
 <dt>Returns:</dt>
 <dd>compact sketch</dd>
 </dl>
@@ -559,16 +559,16 @@ This assumes the default Group and the default separator character '|'.</div>
 <div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>
 </span><span class="modifiers">public</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">toByteArray</span>()</div>
 <div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
-<div class="deprecation-comment">As of 3.0.0, serializing an UpdatableSketch is deprecated.
+<div class="deprecation-comment">As of 3.0.0, serializing an UpdatableTupleSketch is deprecated.
 This capability will be removed in a future release.
-Serializing a CompactSketch is not deprecated.</div>
+Serializing a CompactTupleSketch is not deprecated.</div>
 </div>
-<div class="block">This serializes an UpdatableSketch (QuickSelectSketch).</div>
+<div class="block">This serializes an UpdatableTupleSketch (QuickSelectSketch).</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../tuple/Sketch.html#toByteArray()">toByteArray</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
+<dd><code><a href="../tuple/TupleSketch.html#toByteArray()">toByteArray</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
 <dt>Returns:</dt>
-<dd>serialized representation of an UpdatableSketch (QuickSelectSketch).</dd>
+<dd>serialized representation of an UpdatableTupleSketch (QuickSelectSketch).</dd>
 </dl>
 </div>
 </section>
@@ -578,11 +578,11 @@ Serializing a CompactSketch is not deprecated.</div>
 <h3>iterator</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../tuple/TupleSketchIterator.html" title="class in org.apache.datasketches.tuple">TupleSketchIterator</a>&lt;<a href="../tuple/strings/ArrayOfStringsSummary.html" title="class in org.apache.datasketches.tuple.strings">ArrayOfStringsSummary</a>&gt;</span>&nbsp;<span class="element-name">iterator</span>()</div>
-<div class="block"><span class="description-from-type-label">Description copied from class:&nbsp;<code><a href="../tuple/Sketch.html#iterator()">Sketch</a></code></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from class:&nbsp;<code><a href="../tuple/TupleSketch.html#iterator()">TupleSketch</a></code></span></div>
 <div class="block">Returns a SketchIterator</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../tuple/Sketch.html#iterator()">iterator</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
+<dd><code><a href="../tuple/TupleSketch.html#iterator()">iterator</a></code>&nbsp;in class&nbsp;<code><a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</code></dd>
 <dt>Returns:</dt>
 <dd>a SketchIterator</dd>
 </dl>

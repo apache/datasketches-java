@@ -109,30 +109,21 @@ concepts for whole new families of sketches.</div>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="AnotB.html" title="class in org.apache.datasketches.tuple">AnotB</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="CompactTupleSketch.html" title="class in org.apache.datasketches.tuple">CompactTupleSketch</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
-<div class="block">Computes a set difference, A-AND-NOT-B, of two generic tuple sketches.</div>
+<div class="block">CompactTupleSketches are never created directly.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="CompactSketch.html" title="class in org.apache.datasketches.tuple">CompactSketch</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="DeserializeResult.html" title="class in org.apache.datasketches.tuple">DeserializeResult</a>&lt;T&gt;</div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
-<div class="block">CompactSketches are never created directly.</div>
-</div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="DeserializeResult.html" title="class in org.apache.datasketches.tuple">DeserializeResult</a>&lt;T&gt;</div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Returns an object and its size in bytes as a result of a deserialize operation</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="Filter.html" title="class in org.apache.datasketches.tuple">Filter</a>&lt;T extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
-<div class="block">Class for filtering entries from a <a href="Sketch.html" title="class in org.apache.datasketches.tuple"><code>Sketch</code></a> given a <a href="Summary.html" title="interface in org.apache.datasketches.tuple"><code>Summary</code></a></div>
-</div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="Intersection.html" title="class in org.apache.datasketches.tuple">Intersection</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="Filter.html" title="class in org.apache.datasketches.tuple">Filter</a>&lt;T extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
-<div class="block">Computes an intersection of two or more generic tuple sketches or generic tuple sketches
-combined with theta sketches.</div>
+<div class="block">Class for filtering entries from a <a href="TupleSketch.html" title="class in org.apache.datasketches.tuple"><code>TupleSketch</code></a> given a <a href="Summary.html" title="interface in org.apache.datasketches.tuple"><code>Summary</code></a></div>
 </div>
 <div class="col-first odd-row-color class-summary class-summary-tab2"><a href="JaccardSimilarity.html" title="class in org.apache.datasketches.tuple">JaccardSimilarity</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
-<div class="block">Jaccard similarity of two Tuple Sketches, or alternatively, of a Tuple and Theta Sketch.</div>
+<div class="block">Jaccard similarity of two TupleSketches, or alternatively, of a TupleSketch and a ThetaSketch.</div>
 </div>
 <div class="col-first even-row-color class-summary class-summary-tab2"><a href="SerializerDeserializer.html" title="class in org.apache.datasketches.tuple">SerializerDeserializer</a></div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
@@ -141,16 +132,6 @@ combined with theta sketches.</div>
 <div class="col-first odd-row-color class-summary class-summary-tab3"><a href="SerializerDeserializer.SketchType.html" title="enum class in org.apache.datasketches.tuple">SerializerDeserializer.SketchType</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab3">
 <div class="block">Defines the sketch classes that this SerializerDeserializer can handle.</div>
-</div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
-<div class="col-last even-row-color class-summary class-summary-tab2">
-<div class="block">This is an equivalent to org.apache.datasketches.theta2.Sketch with
-addition of a user-defined Summary object associated with every unique entry
-in the sketch.</div>
-</div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="Sketches.html" title="class in org.apache.datasketches.tuple">Sketches</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
-<div class="block">Convenient static methods to instantiate generic tuple sketches.</div>
 </div>
 <div class="col-first even-row-color class-summary class-summary-tab1"><a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a></div>
 <div class="col-last even-row-color class-summary class-summary-tab1">
@@ -168,29 +149,42 @@ in the sketch.</div>
 <div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">This is to provide methods of producing unions and intersections of two Summary objects.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="TupleSketchIterator.html" title="class in org.apache.datasketches.tuple">TupleSketchIterator</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="TupleAnotB.html" title="class in org.apache.datasketches.tuple">TupleAnotB</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="block">Computes a set difference, A-AND-NOT-B, of two generic TupleSketches.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="TupleIntersection.html" title="class in org.apache.datasketches.tuple">TupleIntersection</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="block">Computes an intersection of two or more generic TupleSketches or generic TupleSketches
+combined with ThetaSketches.</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="block">The top-level class for all Tuple sketches.</div>
+</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="TupleSketchIterator.html" title="class in org.apache.datasketches.tuple">TupleSketchIterator</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-last odd-row-color class-summary class-summary-tab2">
 <div class="block">Iterator over a generic tuple sketch</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="Union.html" title="class in org.apache.datasketches.tuple">Union</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
-<div class="block">Compute the union of two or more generic tuple sketches or generic tuple sketches combined with
-theta sketches.</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="TupleUnion.html" title="class in org.apache.datasketches.tuple">TupleUnion</a>&lt;S extends <a href="Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
+<div class="block">Compute the union of two or more generic tuple sketches or generic TupleSketches combined with
+ThetaSketches.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="UpdatableSketch.html" title="class in org.apache.datasketches.tuple">UpdatableSketch</a>&lt;U, S extends <a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;</div>
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;</div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="block">Interface for updating user-defined Summary</div>
+</div>
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="UpdatableTupleSketch.html" title="class in org.apache.datasketches.tuple">UpdatableTupleSketch</a>&lt;U, S extends <a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;</div>
 <div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="UpdatableSketchBuilder.html" title="class in org.apache.datasketches.tuple">UpdatableSketchBuilder</a>&lt;U, S extends <a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;</div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="UpdatableTupleSketchBuilder.html" title="class in org.apache.datasketches.tuple">UpdatableTupleSketchBuilder</a>&lt;U, S extends <a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;&gt;</div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">
-<div class="block">For building a new generic tuple UpdatableSketch</div>
+<div class="block">For building a new generic tuple UpdatableTupleSketch</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="UpdatableSummary.html" title="interface in org.apache.datasketches.tuple">UpdatableSummary</a>&lt;U&gt;</div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
-<div class="block">Interface for updating user-defined Summary</div>
-</div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="Util.html" title="class in org.apache.datasketches.tuple">Util</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="Util.html" title="class in org.apache.datasketches.tuple">Util</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">Common utility functions for Tuples</div>
 </div>
 </div>

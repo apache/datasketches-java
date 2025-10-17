@@ -58,12 +58,12 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)" tabindex="0">getLowerBoundForBoverA(Sketch, Sketch)</a></li>
-<li><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)" tabindex="0">getLowerBoundForBoverA(Sketch, Sketch)</a></li>
-<li><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)" tabindex="0">getUpperBoundForBoverA(Sketch, Sketch)</a></li>
-<li><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)" tabindex="0">getUpperBoundForBoverA(Sketch, Sketch)</a></li>
-<li><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)" tabindex="0">getEstimateOfBoverA(Sketch, Sketch)</a></li>
-<li><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)" tabindex="0">getEstimateOfBoverA(Sketch, Sketch)</a></li>
+<li><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)" tabindex="0">getLowerBoundForBoverA(TupleSketch, TupleSketch)</a></li>
+<li><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)" tabindex="0">getLowerBoundForBoverA(TupleSketch, ThetaSketch)</a></li>
+<li><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)" tabindex="0">getUpperBoundForBoverA(TupleSketch, TupleSketch)</a></li>
+<li><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)" tabindex="0">getUpperBoundForBoverA(TupleSketch, ThetaSketch)</a></li>
+<li><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)" tabindex="0">getEstimateOfBoverA(TupleSketch, TupleSketch)</a></li>
+<li><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)" tabindex="0">getEstimateOfBoverA(TupleSketch, ThetaSketch)</a></li>
 </ol>
 </li>
 </ol>
@@ -117,38 +117,38 @@ then the theta of <i>B</i> is guaranteed to be less than or equal to the theta o
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)" class="member-name-link">getEstimateOfBoverA</a><wbr>(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)" class="member-name-link">getEstimateOfBoverA</a><wbr>(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Gets the estimate for B over A</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)" class="member-name-link">getEstimateOfBoverA</a><wbr>(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)" class="member-name-link">getEstimateOfBoverA</a><wbr>(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Gets the estimate for B over A</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)" class="member-name-link">getLowerBoundForBoverA</a><wbr>(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)" class="member-name-link">getLowerBoundForBoverA</a><wbr>(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Gets the approximate lower bound for B over A based on a 95% confidence interval</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)" class="member-name-link">getLowerBoundForBoverA</a><wbr>(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)" class="member-name-link">getLowerBoundForBoverA</a><wbr>(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Gets the approximate lower bound for B over A based on a 95% confidence interval</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)" class="member-name-link">getUpperBoundForBoverA</a><wbr>(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)" class="member-name-link">getUpperBoundForBoverA</a><wbr>(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Gets the approximate upper bound for B over A based on a 95% confidence interval</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;<br>double</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)" class="member-name-link">getUpperBoundForBoverA</a><wbr>(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)" class="member-name-link">getUpperBoundForBoverA</a><wbr>(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Gets the approximate upper bound for B over A based on a 95% confidence interval</div>
 </div>
@@ -170,15 +170,15 @@ then the theta of <i>B</i> is guaranteed to be less than or equal to the theta o
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)">
+<section class="detail" id="getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)">
 <h3>getLowerBoundForBoverA</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getLowerBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getLowerBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB)</span></div>
 <div class="block">Gets the approximate lower bound for B over A based on a 95% confidence interval</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
 <dd><code>sketchA</code> - the Tuple sketch A with summary type <i>S</i></dd>
 <dd><code>sketchB</code> - the Tuple sketch B with summary type <i>S</i></dd>
@@ -189,15 +189,15 @@ then the theta of <i>B</i> is guaranteed to be less than or equal to the theta o
 </section>
 </li>
 <li>
-<section class="detail" id="getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)">
+<section class="detail" id="getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)">
 <h3>getLowerBoundForBoverA</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getLowerBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getLowerBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB)</span></div>
 <div class="block">Gets the approximate lower bound for B over A based on a 95% confidence interval</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="getLowerBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="getLowerBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
 <dd><code>sketchA</code> - the Tuple sketch A with summary type <i>S</i></dd>
 <dd><code>sketchB</code> - the Theta sketch B</dd>
@@ -208,15 +208,15 @@ then the theta of <i>B</i> is guaranteed to be less than or equal to the theta o
 </section>
 </li>
 <li>
-<section class="detail" id="getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)">
+<section class="detail" id="getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)">
 <h3>getUpperBoundForBoverA</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getUpperBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getUpperBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB)</span></div>
 <div class="block">Gets the approximate upper bound for B over A based on a 95% confidence interval</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
 <dd><code>sketchA</code> - the Tuple sketch A with summary type <i>S</i></dd>
 <dd><code>sketchB</code> - the Tuple sketch B with summary type <i>S</i></dd>
@@ -227,15 +227,15 @@ then the theta of <i>B</i> is guaranteed to be less than or equal to the theta o
 </section>
 </li>
 <li>
-<section class="detail" id="getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)">
+<section class="detail" id="getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)">
 <h3>getUpperBoundForBoverA</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getUpperBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getUpperBoundForBoverA</span><wbr><span class="parameters">(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB)</span></div>
 <div class="block">Gets the approximate upper bound for B over A based on a 95% confidence interval</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="getUpperBoundForBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="getUpperBoundForBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
 <dd><code>sketchA</code> - the Tuple sketch A with summary type <i>S</i></dd>
 <dd><code>sketchB</code> - the Theta sketch B</dd>
@@ -246,15 +246,15 @@ then the theta of <i>B</i> is guaranteed to be less than or equal to the theta o
 </section>
 </li>
 <li>
-<section class="detail" id="getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)">
+<section class="detail" id="getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)">
 <h3>getEstimateOfBoverA</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getEstimateOfBoverA</span><wbr><span class="parameters">(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchB)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getEstimateOfBoverA</span><wbr><span class="parameters">(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchB)</span></div>
 <div class="block">Gets the estimate for B over A</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.tuple.Sketch)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.tuple.TupleSketch)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
 <dd><code>sketchA</code> - the Tuple sketch A with summary type <i>S</i></dd>
 <dd><code>sketchB</code> - the Tuple sketch B with summary type <i>S</i></dd>
@@ -265,15 +265,15 @@ then the theta of <i>B</i> is guaranteed to be less than or equal to the theta o
 </section>
 </li>
 <li>
-<section class="detail" id="getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)">
+<section class="detail" id="getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)">
 <h3>getEstimateOfBoverA</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getEstimateOfBoverA</span><wbr><span class="parameters">(<a href="../tuple/Sketch.html" title="class in org.apache.datasketches.tuple">Sketch</a>&lt;S&gt;&nbsp;sketchA,
- <a href="../theta/Sketch.html" title="class in org.apache.datasketches.theta">Sketch</a>&nbsp;sketchB)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;S extends <a href="../tuple/Summary.html" title="interface in org.apache.datasketches.tuple">Summary</a>&gt;</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getEstimateOfBoverA</span><wbr><span class="parameters">(<a href="../tuple/TupleSketch.html" title="class in org.apache.datasketches.tuple">TupleSketch</a>&lt;S&gt;&nbsp;sketchA,
+ <a href="../theta/ThetaSketch.html" title="class in org.apache.datasketches.theta">ThetaSketch</a>&nbsp;sketchB)</span></div>
 <div class="block">Gets the estimate for B over A</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
-<dd><span id="getEstimateOfBoverA(org.apache.datasketches.tuple.Sketch,org.apache.datasketches.theta.Sketch)-type-param-S"><code>S</code> - Summary</span></dd>
+<dd><span id="getEstimateOfBoverA(org.apache.datasketches.tuple.TupleSketch,org.apache.datasketches.theta.ThetaSketch)-type-param-S"><code>S</code> - Summary</span></dd>
 <dt>Parameters:</dt>
 <dd><code>sketchA</code> - the Tuple sketch A with summary type <i>S</i></dd>
 <dd><code>sketchB</code> - the Theta sketch B</dd>
