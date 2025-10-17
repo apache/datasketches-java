@@ -48,8 +48,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int k = 1 << lgK;
     final int u = k;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
 
     assertTrue(local.isEmpty());
 
@@ -64,11 +64,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final byte[]  serArr = shared.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(serArr);
-    final Sketch sk = Sketch.heapify(seg, sl.seed);
+    final ThetaSketch sk = ThetaSketch.heapify(seg, sl.seed);
     assertTrue(sk instanceof HeapQuickSelectSketch); //Intentional promotion to Parent
 
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
-    Sketch.heapify(seg, sl.seed);
+    ThetaSketch.heapify(seg, sl.seed);
   }
 
   @Test
@@ -77,8 +77,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int k = 1 << lgK;
     final int u = 200*k;
     final SharedLocal sl = new SharedLocal(lgK, 4, false, false);
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
     assertEquals((sl.bldr.getConCurLgNominalEntries()), 4);
     assertTrue(local.isEmpty());
 
@@ -98,8 +98,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int u = k;
     final SharedLocal sl = new SharedLocal(lgK);
 
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
     assertTrue(local.isEmpty());
     assertTrue(shared instanceof ConcurrentHeapQuickSelectSketch);
     for (int i = 0; i< u; i++) {
@@ -112,10 +112,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(shared.getRetainedEntries(false), u);
     final byte[] byteArray = shared.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
-    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
+    seg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt the FamilyID byte
 
     //try to heapify the corrupted seg
-    Sketch.heapify(seg, sl.seed);
+    ThetaSketch.heapify(seg, sl.seed);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -126,7 +126,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final SharedLocal sl = new SharedLocal(lgK, lgK, seed);
     final byte[] byteArray = sl.shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArray);
-    Sketch.heapify(srcSeg, seed2);
+    ThetaSketch.heapify(srcSeg, seed2);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -136,7 +136,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[]  serArr = sl.shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr);
     srcSeg.set(JAVA_BYTE, LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
+    ThetaSketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -152,8 +152,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int k = 1 << lgK;
     final int u = k;
     final SharedLocal sl = new SharedLocal(lgK);
-    UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
 
     for (int i=0; i<u; i++) {
       local.update(i);
@@ -162,13 +162,13 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final byte[]  serArr = shared.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
-    final Sketch recoveredShared = UpdateSketch.heapify(srcSeg);
+    final ThetaSketch recoveredShared = UpdatableThetaSketch.heapify(srcSeg);
 
     //reconstruct to Native/Direct
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-    shared = sl.bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wseg);
-    final UpdateSketch local2 = sl.bldr.buildLocal(shared);
+    shared = sl.bldr.buildSharedFromSketch((UpdatableThetaSketch)recoveredShared, wseg);
+    final UpdatableThetaSketch local2 = sl.bldr.buildLocal(shared);
 
     assertEquals(local2.getEstimate(), u, 0.0);
     assertEquals(local2.getLowerBound(2), u, 0.0);
@@ -186,8 +186,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int u = 2*k;
 
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch local = sl.local;
-    UpdateSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
+    UpdatableThetaSketch shared = sl.shared;
 
     for (int i=0; i<u; i++) {
       local.update(i);
@@ -201,12 +201,12 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[]  serArr = shared.toByteArray();
 
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
-    final UpdateSketch recoveredShared = UpdateSketch.heapify(srcSeg, sl.seed);
+    final UpdatableThetaSketch recoveredShared = UpdatableThetaSketch.heapify(srcSeg, sl.seed);
 
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     shared = sl.bldr.buildSharedFromSketch(recoveredShared, wseg);
-    final UpdateSketch local2 = sl.bldr.buildLocal(shared);
+    final UpdatableThetaSketch local2 = sl.bldr.buildLocal(shared);
     assertEquals(local2.getEstimate(), localEst);
     assertEquals(local2.getLowerBound(2), localLB);
     assertEquals(local2.getUpperBound(2), localUB);
@@ -222,8 +222,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int u = 2*k; //thus estimating
 
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch local = sl.local;
-    UpdateSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
+    UpdatableThetaSketch shared = sl.shared;
 
     for (int i=0; i<u; i++) {
       local.update(i);
@@ -240,12 +240,12 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[]  serArr = shared.toByteArray();
 
     final MemorySegment srcSeg = MemorySegment.ofArray(serArr).asReadOnly();
-    final UpdateSketch recoveredShared = UpdateSketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
+    final UpdatableThetaSketch recoveredShared = UpdatableThetaSketch.heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
 
-    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int bytes = ThetaSketch.getMaxUpdateSketchBytes(k);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     shared = sl.bldr.buildSharedFromSketch(recoveredShared, wseg);
-    final UpdateSketch local2 = sl.bldr.buildLocal(shared);
+    final UpdatableThetaSketch local2 = sl.bldr.buildLocal(shared);
 
     assertEquals(local2.getEstimate(), localEst);
     assertEquals(local2.getLowerBound(2), localLB);
@@ -263,8 +263,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
 
     assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
     assertFalse(local.isOffHeap());
@@ -286,7 +286,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(sharedBytes, maxBytes);
     assertTrue(local.isEstimationMode());
 
-    CompactSketch comp1, comp2, comp3, comp4;
+    CompactThetaSketch comp1, comp2, comp3, comp4;
 
     comp1 = shared.compact(false,  null);
 
@@ -338,8 +338,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkHQStoCompactEmptyForms() {
     final int lgK = 9;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
     println("lgArr: "+ local.getLgArrLongs());
 
     //empty
@@ -358,7 +358,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[] arr2 = new byte[compBytes];
     final MemorySegment seg2 = MemorySegment.ofArray(arr2);
 
-    final CompactSketch csk2 = shared.compact(false,  seg2);
+    final CompactThetaSketch csk2 = shared.compact(false,  seg2);
     assertEquals(csk2.getEstimate(), localEst);
     assertEquals(csk2.getLowerBound(2), localLB);
     assertEquals(csk2.getUpperBound(2), localUB);
@@ -366,7 +366,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk2.isEstimationMode(), estimating);
     assertTrue(csk2.isOrdered());
 
-    final CompactSketch csk3 = shared.compact(true, seg2);
+    final CompactThetaSketch csk3 = shared.compact(true, seg2);
     csk3.toString(false, true, 0, false);
     csk3.toString();
     assertEquals(csk3.getEstimate(), localEst);
@@ -382,8 +382,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int lgK = 12;
     final int u = 1 << lgK;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
 
     assertTrue(local.isEmpty());
 
@@ -401,8 +401,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int lgK = 12;
     final int k = 1 << lgK;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
 
     assertTrue(local.isEmpty());
 
@@ -421,8 +421,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int lgK = 9;
     final int k = 1 << lgK;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch local = sl.local;
-    final UpdateSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
 
     //Exact mode
     //int limit = (int)ConcurrentSharedThetaSketch.computeExactLimit(lim, 0); //? ask Eshcar
@@ -456,8 +456,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int k = 1 << lgK;
     final SharedLocal sl = new SharedLocal(lgK);
     //must build shared first
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
 
     assertTrue(local.isEmpty());
     final int t = ((ConcurrentHeapThetaBuffer)local).getHashTableThreshold();
@@ -498,7 +498,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkNegativeHashes() {
     final int lgK = 9;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch local = sl.local;
     local.hashUpdate(-1L);
   }
 
@@ -507,8 +507,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final int lgK = 9;
     final int k = 1 << lgK;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch shared = sl.shared;
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
 
     assertTrue(local.isEmpty());
     final int u = 3*k;
@@ -532,8 +532,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkDQStoCompactEmptyForms() {
     final int lgK = 9;
     final SharedLocal sl = new SharedLocal(lgK);
-    final UpdateSketch local = sl.local;
-    final UpdateSketch shared = sl.shared;
+    final UpdatableThetaSketch local = sl.local;
+    final UpdatableThetaSketch shared = sl.shared;
 
     //empty
     local.toString(false, true, 0, false); //exercise toString
@@ -548,7 +548,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[] segArr2 = new byte[bytes];
     final MemorySegment seg2 = MemorySegment.ofArray(segArr2);
 
-    final CompactSketch csk2 = shared.compact(false,  seg2);
+    final CompactThetaSketch csk2 = shared.compact(false,  seg2);
     assertEquals(csk2.getEstimate(), localEst);
     assertEquals(csk2.getLowerBound(2), localLB);
     assertEquals(csk2.getUpperBound(2), uskUB);
@@ -556,7 +556,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertFalse(csk2.isEstimationMode());
     assertTrue(csk2.isOrdered());
 
-    final CompactSketch csk3 = shared.compact(true, seg2);
+    final CompactThetaSketch csk3 = shared.compact(true, seg2);
     csk3.toString(false, true, 0, false);
     csk3.toString();
     assertEquals(csk3.getEstimate(), localEst);
@@ -577,7 +577,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final byte[] byteArray = sl.shared.toByteArray();
     final byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24); //corrupt no. bytes
     final MemorySegment seg = MemorySegment.ofArray(badBytes).asReadOnly();
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -591,13 +591,13 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final MemorySegment seg = MemorySegment.ofArray(badArray);
     PreambleUtil.insertLgArrLongs(seg, 4); //corrupt
     PreambleUtil.insertThetaLong(seg, Long.MAX_VALUE / 2); //corrupt
-    Sketch.heapify(seg);
+    ThetaSketch.heapify(seg);
   }
 
   @Test
   public void checkFamily() {
     final SharedLocal sl = new SharedLocal();
-    final UpdateSketch local = sl.local;
+    final UpdatableThetaSketch local = sl.local;
     assertEquals(local.getFamily(), Family.QUICKSELECT);
   }
 
@@ -635,7 +635,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test
   public void checkBuilderExceptions() {
-    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    final UpdatableThetaSketchBuilder bldr = new UpdatableThetaSketchBuilder();
     try {
       bldr.setNominalEntries(8);
       fail();
@@ -676,14 +676,14 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   static class SharedLocal {
     static final long DefaultSeed = Util.DEFAULT_UPDATE_SEED;
-    final UpdateSketch shared;
+    final UpdatableThetaSketch shared;
     final ConcurrentSharedThetaSketch sharedIf;
-    final UpdateSketch local;
+    final UpdatableThetaSketch local;
     final int sharedLgK;
     final int localLgK;
     final long seed;
     final MemorySegment wseg;
-    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    final UpdatableThetaSketchBuilder bldr = new UpdatableThetaSketchBuilder();
 
     SharedLocal() {
       this(9, 9, DefaultSeed, false, true, 1);
@@ -729,7 +729,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     }
   }
 
-  static void waitForBgPropagationToComplete(final UpdateSketch shared) {
+  static void waitForBgPropagationToComplete(final UpdatableThetaSketch shared) {
     try {
       Thread.sleep(10);
     } catch (final InterruptedException e) {

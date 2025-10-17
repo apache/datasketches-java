@@ -53,24 +53,24 @@ public class CompactSketchTest {
 
   //test combinations of compact ordered/not ordered and heap/direct
   public void checkHeapifyWrap(final int k, final int u, final boolean ordered) {
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) { //populate update sketch
       usk.update(i);
     }
 
     /****ON HEAP MemorySegment -- HEAPIFY****/
-    CompactSketch refSk = usk.compact(ordered, null);
+    CompactThetaSketch refSk = usk.compact(ordered, null);
     final byte[] barr = refSk.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(barr);
-    CompactSketch testSk = (CompactSketch) Sketch.heapify(srcSeg);
+    CompactThetaSketch testSk = (CompactThetaSketch) ThetaSketch.heapify(srcSeg);
 
     checkByRange(refSk, testSk, u, ordered);
 
     /**Via byte[]**/
     final byte[] byteArray = refSk.toByteArray();
     final MemorySegment heapROSeg = MemorySegment.ofArray(byteArray).asReadOnly();
-    testSk = (CompactSketch)Sketch.heapify(heapROSeg);
+    testSk = (CompactThetaSketch)ThetaSketch.heapify(heapROSeg);
 
     checkByRange(refSk, testSk, u, ordered);
 
@@ -81,21 +81,21 @@ public class CompactSketchTest {
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment directSeg = arena.allocate(bytes);
 
-      /**Via CompactSketch.compact**/
+      /**Via CompactThetaSketch.compact**/
       refSk = usk.compact(ordered, directSeg);
-      testSk = (CompactSketch)Sketch.wrap(directSeg);
+      testSk = (CompactThetaSketch)ThetaSketch.wrap(directSeg);
 
       checkByRange(refSk, testSk, u, ordered);
 
-      /**Via CompactSketch.compact**/
-      testSk = (CompactSketch)Sketch.wrap(directSeg);
+      /**Via CompactThetaSketch.compact**/
+      testSk = (CompactThetaSketch)ThetaSketch.wrap(directSeg);
       checkByRange(refSk, testSk, u, ordered);
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private static void checkByRange(final Sketch refSk, final Sketch testSk, final int u, final boolean ordered) {
+  private static void checkByRange(final ThetaSketch refSk, final ThetaSketch testSk, final int u, final boolean ordered) {
     if (u == 0) {
       checkEmptySketch(testSk);
     } else if (u == 1) {
@@ -105,7 +105,7 @@ public class CompactSketchTest {
     }
   }
 
-  private static void checkEmptySketch(final Sketch testSk) {
+  private static void checkEmptySketch(final ThetaSketch testSk) {
     assertEquals(testSk.getFamily(), Family.COMPACT);
     assertTrue(testSk instanceof EmptyCompactSketch);
     assertTrue(testSk.isEmpty());
@@ -123,7 +123,7 @@ public class CompactSketchTest {
     assertEquals(testSk.getCompactPreambleLongs(), 1);
   }
 
-  private static void checkSingleItemSketch(final Sketch testSk, final Sketch refSk) {
+  private static void checkSingleItemSketch(final ThetaSketch testSk, final ThetaSketch refSk) {
     assertEquals(testSk.getFamily(), Family.COMPACT);
     assertTrue(testSk instanceof SingleItemSketch);
     assertFalse(testSk.isEmpty());
@@ -141,7 +141,7 @@ public class CompactSketchTest {
     assertEquals(testSk.getCompactPreambleLongs(), 1);
   }
 
-  private static void checkOtherCompactSketch(final Sketch testSk, final Sketch refSk, final boolean ordered) {
+  private static void checkOtherCompactSketch(final ThetaSketch testSk, final ThetaSketch refSk, final boolean ordered) {
     assertEquals(testSk.getFamily(), Family.COMPACT);
     assertFalse(testSk.isEmpty());
     assertNotNull(testSk.iterator());
@@ -174,12 +174,12 @@ public class CompactSketchTest {
 
   @Test
   public void checkDirectSingleItemSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     sk.update(1);
     final int bytes = sk.getCompactBytes();
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     sk.compact(true, wseg);
-    final Sketch csk2 = Sketch.heapify(wseg);
+    final ThetaSketch csk2 = ThetaSketch.heapify(wseg);
     assertTrue(csk2 instanceof SingleItemSketch);
   }
 
@@ -188,7 +188,7 @@ public class CompactSketchTest {
     final int k = 512;
     final int u = k;
     final boolean ordered = false;
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) {
       usk.update(i);
     }
@@ -204,7 +204,7 @@ public class CompactSketchTest {
     final int k = 512;
     final int u = k;
     final boolean ordered = true;
-    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) {
       usk.update(i);
     }
@@ -218,7 +218,7 @@ public class CompactSketchTest {
   @Test
   public void checkCompactCachePart() {
     //phony values except for curCount = 0.
-    final long[] result = IntersectionImpl.compactCachePart(null, 4, 0, 0L, false);
+    final long[] result = ThetaIntersectionImpl.compactCachePart(null, 4, 0, 0L, false);
     assertEquals(result.length, 0);
   }
 
@@ -238,35 +238,35 @@ public class CompactSketchTest {
    * Empty, segment-based Compact sketches are always ordered
    */
   public void checkEmptyMemorySegmentCompactSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
 
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[16]);
-    final CompactSketch csk1 = sk.compact(false, wseg1); //the first parameter is ignored when empty
+    final CompactThetaSketch csk1 = sk.compact(false, wseg1); //the first parameter is ignored when empty
     final State state1 = new State("DirectCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     final MemorySegment wseg2 = MemorySegment.ofArray(new byte[16]);
-    final CompactSketch csk2 = sk.compact(false, wseg2);
+    final CompactThetaSketch csk2 = sk.compact(false, wseg2);
     state1.check(csk2);
 
     assertNotEquals(csk1, csk2); //different object because MemorySegment is valid
     assertFalse(csk1 == csk2);
 
     final MemorySegment wseg3 = MemorySegment.ofArray(new byte[16]);
-    final CompactSketch csk3 = csk1.compact(false, wseg3);
+    final CompactThetaSketch csk3 = csk1.compact(false, wseg3);
     state1.check(csk3);
 
     assertNotEquals(csk1, csk3); //different object because MemorySegment is valid
     assertFalse(csk1 == csk3);
 
-    final CompactSketch csk4 = csk1.compact(false, null);
+    final CompactThetaSketch csk4 = csk1.compact(false, null);
     final State state4 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state4.check(csk4);
 
     assertNotEquals(csk1, csk4); //different object because on heap
     assertFalse(csk1 == csk4);
 
-    final CompactSketch cskc = csk1.compact();
+    final CompactThetaSketch cskc = csk1.compact();
     state1.check(cskc);
 
     assertEquals(csk1, cskc); //the same object
@@ -278,29 +278,29 @@ public class CompactSketchTest {
    * Single-Item, segment-based Compact sketches are always ordered:
    */
   public void checkSingleItemMemorySegmentCompactSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     sk.update(1);
 
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[16]);
-    final CompactSketch csk1 = sk.compact(false, wseg1); //the first parameter is ignored when single item
+    final CompactThetaSketch csk1 = sk.compact(false, wseg1); //the first parameter is ignored when single item
     final State state1 = new State("DirectCompactSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     final MemorySegment wseg2 = MemorySegment.ofArray(new byte[16]);
-    final CompactSketch csk2 = sk.compact(false, wseg2); //the first parameter is ignored when single item
+    final CompactThetaSketch csk2 = sk.compact(false, wseg2); //the first parameter is ignored when single item
     state1.check(csk2);
 
     assertNotEquals(csk1, csk2); //different object because segment is valid
     assertFalse(csk1 == csk2);
 
     final MemorySegment wseg3 = MemorySegment.ofArray(new byte[16]);
-    final CompactSketch csk3 = csk1.compact(false, wseg3);
+    final CompactThetaSketch csk3 = csk1.compact(false, wseg3);
     state1.check(csk3);
 
     assertNotEquals(csk1, csk3); //different object because segment is valid
     assertFalse(csk1 == csk3);
 
-    final CompactSketch cskc = csk1.compact();
+    final CompactThetaSketch cskc = csk1.compact();
     state1.check(cskc);
 
     assertEquals(csk1, cskc); //the same object
@@ -309,19 +309,19 @@ public class CompactSketchTest {
 
   @Test
   public void checkMultipleItemMemorySegmentCompactSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     //This sequence is naturally out-of-order by the hash values.
     sk.update(1);
     sk.update(2);
     sk.update(3);
 
     final MemorySegment wseg1 = MemorySegment.ofArray(new byte[50]);
-    final CompactSketch csk1 = sk.compact(true, wseg1);
+    final CompactThetaSketch csk1 = sk.compact(true, wseg1);
     final State state1 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
     final MemorySegment wseg2 = MemorySegment.ofArray(new byte[50]);
-    final CompactSketch csk2 = sk.compact(false, wseg2);
+    final CompactThetaSketch csk2 = sk.compact(false, wseg2);
     final State state2 = new State("DirectCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, SEGMENT, !ORDERED, !ESTIMATION);
     state2.check(csk2);
 
@@ -329,13 +329,13 @@ public class CompactSketchTest {
     assertFalse(csk1 == csk2);
 
     final MemorySegment wseg3 = MemorySegment.ofArray(new byte[50]);
-    final CompactSketch csk3 = csk1.compact(false, wseg3);
+    final CompactThetaSketch csk3 = csk1.compact(false, wseg3);
     state2.check(csk3);
 
     assertNotEquals(csk1, csk3); //different object because segment is valid
     assertFalse(csk1 == csk3);
 
-    final CompactSketch cskc = csk1.compact();
+    final CompactThetaSketch cskc = csk1.compact();
     state1.check(cskc);
 
     assertEquals(csk1, cskc); //the same object
@@ -348,25 +348,25 @@ public class CompactSketchTest {
    * All empty, heap-based, compact sketches point to the same static, final constant of 8 bytes.
    */
   public void checkEmptyHeapCompactSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
 
-    final CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when empty
+    final CompactThetaSketch csk1 = sk.compact(false, null); //the first parameter is ignored when empty
     final State state1 = new State("EmptyCompactSketch", 0, 8, COMPACT, EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
-    final CompactSketch csk2 = sk.compact(false, null); //the first parameter is ignored when empty
+    final CompactThetaSketch csk2 = sk.compact(false, null); //the first parameter is ignored when empty
     state1.check(csk1);
 
     assertEquals(csk1, csk2);
     assertTrue(csk1 == csk2);
 
-    final CompactSketch csk3 = csk1.compact(false, null);
+    final CompactThetaSketch csk3 = csk1.compact(false, null);
     state1.check(csk3);
 
     assertEquals(csk1, csk3); //The same object
     assertTrue(csk1 == csk3);
 
-    final CompactSketch cskc = csk1.compact();
+    final CompactThetaSketch cskc = csk1.compact();
     state1.check(cskc);
 
     assertEquals(csk1, cskc); //The same object
@@ -378,26 +378,26 @@ public class CompactSketchTest {
    * Single-Item, heap-based Compact sketches are always ordered.
    */
   public void checkSingleItemHeapCompactSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     sk.update(1);
 
-    final CompactSketch csk1 = sk.compact(false, null); //the first parameter is ignored when single item
+    final CompactThetaSketch csk1 = sk.compact(false, null); //the first parameter is ignored when single item
     final State state1 = new State("SingleItemSketch", 1, 16, COMPACT, !EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
-    final CompactSketch csk2 = sk.compact(false, null); //the first parameter is ignored when single item
+    final CompactThetaSketch csk2 = sk.compact(false, null); //the first parameter is ignored when single item
     state1.check(csk2);
 
     assertNotEquals(csk1, csk2); //calling the compact(boolean, null) method creates a new object
     assertFalse(csk1 == csk2);
 
-    final CompactSketch csk3 = csk1.compact(false, null);
+    final CompactThetaSketch csk3 = csk1.compact(false, null);
     state1.check(csk3);
 
     assertEquals(csk1, csk3); //The same object
     assertTrue(csk1 == csk3);
 
-    final CompactSketch cskc = csk1.compact(); //this, however just returns the same object.
+    final CompactThetaSketch cskc = csk1.compact(); //this, however just returns the same object.
     state1.check(csk1);
 
     assertEquals(csk1, cskc); //the same object
@@ -406,24 +406,24 @@ public class CompactSketchTest {
 
   @Test
   public void checkMultipleItemHeapCompactSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     //This sequence is naturally out-of-order by the hash values.
     sk.update(1);
     sk.update(2);
     sk.update(3);
 
-    final CompactSketch csk1 = sk.compact(true, null); //creates a new object
+    final CompactThetaSketch csk1 = sk.compact(true, null); //creates a new object
     final State state1 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !SEGMENT, ORDERED, !ESTIMATION);
     state1.check(csk1);
 
-    final CompactSketch csk2 = sk.compact(false, null); //creates a new object, unordered
+    final CompactThetaSketch csk2 = sk.compact(false, null); //creates a new object, unordered
     final State state2 = new State("HeapCompactSketch", 3, 40, COMPACT, !EMPTY, !DIRECT, !SEGMENT, !ORDERED, !ESTIMATION);
     state2.check(csk2);
 
     assertNotEquals(csk1, csk2); //order is different and different objects
     assertFalse(csk1 == csk2);
 
-    final CompactSketch csk3 = csk1.compact(true, null);
+    final CompactThetaSketch csk3 = csk1.compact(true, null);
     state1.check(csk3);
 
     assertEquals(csk1, csk3); //the same object because wseg = null and csk1.ordered = dstOrdered
@@ -432,7 +432,7 @@ public class CompactSketchTest {
     assertNotEquals(csk2, csk3); //different object because wseg = null and csk2.ordered = false && dstOrdered = true
     assertFalse(csk2 == csk3);
 
-    final CompactSketch cskc = csk1.compact();
+    final CompactThetaSketch cskc = csk1.compact();
     state1.check(cskc);
 
     assertEquals(csk1, cskc); //the same object
@@ -441,41 +441,41 @@ public class CompactSketchTest {
 
   @Test
   public void checkHeapifySingleItemSketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     sk.update(1);
-    final int bytes = Sketch.getMaxCompactSketchBytes(2); //1 more than needed
+    final int bytes = ThetaSketch.getMaxCompactSketchBytes(2); //1 more than needed
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     sk.compact(false, wseg);
-    final Sketch csk = Sketch.heapify(wseg);
+    final ThetaSketch csk = ThetaSketch.heapify(wseg);
     assertTrue(csk instanceof SingleItemSketch);
   }
 
   @Test
   public void checkHeapifyEmptySketch() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     final MemorySegment wseg = MemorySegment.ofArray(new byte[16]); //empty, but extra bytes
-    final CompactSketch csk = sk.compact(false, wseg); //ignores order because it is empty
+    final CompactThetaSketch csk = sk.compact(false, wseg); //ignores order because it is empty
     assertTrue(csk instanceof DirectCompactSketch);
-    final Sketch csk2 = Sketch.heapify(wseg);
+    final ThetaSketch csk2 = ThetaSketch.heapify(wseg);
     assertTrue(csk2 instanceof EmptyCompactSketch);
   }
 
   @Test
   public void checkGetCache() {
-    final UpdateSketch sk = UpdateSketch.builder().setP((float).5).build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().setP((float).5).build();
     sk.update(7);
     final int bytes = sk.getCompactBytes();
-    final CompactSketch csk = sk.compact(true, MemorySegment.ofArray(new byte[bytes]));
+    final CompactThetaSketch csk = sk.compact(true, MemorySegment.ofArray(new byte[bytes]));
     final long[] cache = csk.getCache();
     assertTrue(cache.length == 0);
   }
 
   @Test
   public void checkHeapCompactSketchCompact() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     sk.update(1);
     sk.update(2);
-    final CompactSketch csk = sk.compact();
+    final CompactThetaSketch csk = sk.compact();
     assertTrue(csk.isOrdered());
     assertEquals(csk.getCurrentPreambleLongs(), 2);
   }
@@ -489,12 +489,12 @@ public class CompactSketchTest {
   @Test
   public void checkDirectCompactSketchCompact() {
     MemorySegment wseg1, wseg2;
-    CompactSketch csk1, csk2;
+    CompactThetaSketch csk1, csk2;
     int bytes;
     final int lgK = 6;
 
     //empty
-    final UpdateSketch sk = UpdateSketch.builder().setLogNominalEntries(lgK).build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().setLogNominalEntries(lgK).build();
     bytes = sk.getCompactBytes();         //empty, 8 bytes
     wseg1 = MemorySegment.ofArray(new byte[bytes]);
     wseg2 = MemorySegment.ofArray(new byte[bytes]);
@@ -554,13 +554,13 @@ public class CompactSketchTest {
 
   @Test
   public void serializeDeserializeHeapV4() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    final CompactSketch cs1 = sk.compact();
+    final CompactThetaSketch cs1 = sk.compact();
     final byte[] bytes = cs1.toByteArrayCompressed();
-    final CompactSketch cs2 = CompactSketch.heapify(MemorySegment.ofArray(bytes));
+    final CompactThetaSketch cs2 = CompactThetaSketch.heapify(MemorySegment.ofArray(bytes));
     assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
     final HashIterator it1 = cs1.iterator();
     final HashIterator it2 = cs2.iterator();
@@ -571,13 +571,13 @@ public class CompactSketchTest {
 
   @Test
   public void serializeDeserializeDirectV4_segment() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    final CompactSketch cs1 = sk.compact(true, MemorySegment.ofArray(new byte[sk.getCompactBytes()]));
+    final CompactThetaSketch cs1 = sk.compact(true, MemorySegment.ofArray(new byte[sk.getCompactBytes()]));
     final byte[] bytes = cs1.toByteArrayCompressed();
-    final CompactSketch cs2 = CompactSketch.wrap(MemorySegment.ofArray(bytes));
+    final CompactThetaSketch cs2 = CompactThetaSketch.wrap(MemorySegment.ofArray(bytes));
     assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
     final HashIterator it1 = cs1.iterator();
     final HashIterator it2 = cs2.iterator();
@@ -588,13 +588,13 @@ public class CompactSketchTest {
 
   @Test
   public void serializeDeserializeDirectV4_bytes() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    final CompactSketch cs1 = sk.compact(true, MemorySegment.ofArray(new byte[sk.getCompactBytes()]));
+    final CompactThetaSketch cs1 = sk.compact(true, MemorySegment.ofArray(new byte[sk.getCompactBytes()]));
     final byte[] bytes = cs1.toByteArrayCompressed();
-    final CompactSketch cs2 = CompactSketch.wrap(bytes);
+    final CompactThetaSketch cs2 = CompactThetaSketch.wrap(bytes);
     assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
     final HashIterator it1 = cs1.iterator();
     final HashIterator it2 = cs2.iterator();
@@ -606,13 +606,13 @@ public class CompactSketchTest {
 
   @Test
   public void serializeWrapBytesV3() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    final CompactSketch cs1 = sk.compact();
+    final CompactThetaSketch cs1 = sk.compact();
     final byte[] bytes = cs1.toByteArray();
-    final CompactSketch cs2 = new WrappedCompactSketch(bytes);
+    final CompactThetaSketch cs2 = new WrappedCompactSketch(bytes);
     assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
     final HashIterator it1 = cs1.iterator();
     final HashIterator it2 = cs2.iterator();
@@ -624,13 +624,13 @@ public class CompactSketchTest {
 
   @Test
   public void serializeWrapBytesV4() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     for (int i = 0; i < 10000; i++) {
       sk.update(i);
     }
-    final CompactSketch cs1 = sk.compact();
+    final CompactThetaSketch cs1 = sk.compact();
     final byte[] bytes = cs1.toByteArrayCompressed();
-    final CompactSketch cs2 = new WrappedCompactCompressedSketch(bytes);
+    final CompactThetaSketch cs2 = new WrappedCompactCompressedSketch(bytes);
     assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
     final HashIterator it1 = cs1.iterator();
     final HashIterator it2 = cs2.iterator();
@@ -664,7 +664,7 @@ public class CompactSketchTest {
       this.estimation = estimation;
     }
 
-    void check(final CompactSketch csk) {
+    void check(final CompactThetaSketch csk) {
       assertEquals(csk.getClass().getSimpleName(), classType, "ClassType");
       assertEquals(csk.getRetainedEntries(true), count, "curCount");
       assertEquals(csk.getCurrentBytes(), bytes, "Bytes" );

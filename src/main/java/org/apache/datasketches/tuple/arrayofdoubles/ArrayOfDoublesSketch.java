@@ -95,7 +95,7 @@ public abstract class ArrayOfDoublesSketch {
 
   /**
    * Wrap the given MemorySegment as an ArrayOfDoublesSketch.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
    * @param seg the given MemorySegment
    * @return an ArrayOfDoublesSketch
    */
@@ -105,7 +105,7 @@ public abstract class ArrayOfDoublesSketch {
 
   /**
    * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
    * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesSketch
@@ -287,6 +287,128 @@ public abstract class ArrayOfDoublesSketch {
       .append(Integer.toHexString(seedHash)).append(" | ").append(seedHash).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
+  }
+
+   // Convenient static methods to instantiate tuple sketches of type ArrayOfDoubles.
+
+  /**
+   * Wrap the given MemorySegment and seed as an ArrayOfDoublesUnion
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesUnion
+   */
+  public static ArrayOfDoublesUnion wrapUnion(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUnion.wrap(srcSeg, seed);
+  }
+
+  /**
+   * Wrap the given MemorySegment as an ArrayOfDoublesUnion
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesUnion
+   */
+  public static ArrayOfDoublesUnion wrapUnion(final MemorySegment srcSeg) {
+    return ArrayOfDoublesSketch.wrapUnion(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify the given MemorySegment and seed as an ArrayOfDoublesUnion
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesUnion
+   */
+  public static ArrayOfDoublesUnion heapifyUnion(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUnion.heapify(srcSeg, seed);
+  }
+
+  /**
+   * Heapify the given MemorySegment as an ArrayOfDoublesUnion
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesUnion
+   */
+  public static ArrayOfDoublesUnion heapifyUnion(final MemorySegment srcSeg) {
+    return ArrayOfDoublesSketch.heapifyUnion(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch wrapUpdatableSketch(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUpdatableSketch.wrap(srcSeg, seed);
+  }
+
+  /**
+   * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch wrapUpdatableSketch(final MemorySegment srcSeg) {
+    return ArrayOfDoublesSketch.wrapUpdatableSketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Wrap the given MemorySegment and seed as a ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrapSketch(final MemorySegment srcSeg, final long seed) {
+    return wrap(srcSeg, seed);
+  }
+
+  /**
+   * Wrap the given MemorySegment as an ArrayOfDoublesSketch.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch wrapSketch(final MemorySegment srcSeg) {
+    return ArrayOfDoublesSketch.wrapSketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch heapifyUpdatableSketch(final MemorySegment srcSeg, final long seed) {
+    return ArrayOfDoublesUpdatableSketch.heapify(srcSeg, seed);
+  }
+
+  /**
+   * Heapify the given MemorySegment as an ArrayOfDoublesUpdatableSketch
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesUpdatableSketch
+   */
+  public static ArrayOfDoublesUpdatableSketch heapifyUpdatableSketch(final MemorySegment srcSeg) {
+    return ArrayOfDoublesSketch.heapifyUpdatableSketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Heapify the given MemorySegment and seed as a ArrayOfDoublesSketch
+   * @param srcSeg the given source MemorySegment
+   * @param seed the given seed
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch heapifySketch(final MemorySegment srcSeg, final long seed) {
+    return heapify(srcSeg, seed);
+  }
+
+  /**
+   * Heapify the given MemorySegment as an ArrayOfDoublesSketch
+   * @param srcSeg the given source MemorySegment
+   * @return an ArrayOfDoublesSketch
+   */
+  public static ArrayOfDoublesSketch heapifySketch(final MemorySegment srcSeg) {
+    return ArrayOfDoublesSketch.heapifySketch(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
 }

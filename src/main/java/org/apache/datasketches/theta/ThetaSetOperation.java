@@ -37,97 +37,97 @@ import org.apache.datasketches.common.Util;
  *
  * @author Lee Rhodes
  */
-public abstract class SetOperation implements MemorySegmentStatus {
+public abstract class ThetaSetOperation implements MemorySegmentStatus {
   static final int CONST_PREAMBLE_LONGS = 3;
 
   /**
    * Constructor
    */
-  SetOperation() {}
+  ThetaSetOperation() {}
 
   /**
    * Makes a new builder
    *
    * @return a new builder
    */
-  public static final SetOperationBuilder builder() {
-    return new SetOperationBuilder();
+  public static final ThetaSetOperationBuilder builder() {
+    return new ThetaSetOperationBuilder();
   }
 
   /**
-   * Heapify takes the SetOperations image in MemorySegment and instantiates an on-heap
-   * SetOperation using the
+   * Heapify takes the ThetaSetOperation image in MemorySegment and instantiates an on-heap
+   * ThetaSetOperation using the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * The resulting SetOperation will not retain any link to the source MemorySegment.
+   * The resulting ThetaSetOperation will not retain any link to the source MemorySegment.
    *
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus
    * heapified.</p>
    *
-   * @param srcSeg an image of a SetOperation where the image seed hash matches the default seed hash.
-   * @return a Heap-based SetOperation from the given MemorySegment
+   * @param srcSeg an image of a ThetaSetOperation where the image seed hash matches the default seed hash.
+   * @return a Heap-based ThetaSetOperation from the given MemorySegment
    */
-  public static SetOperation heapify(final MemorySegment srcSeg) {
+  public static ThetaSetOperation heapify(final MemorySegment srcSeg) {
     return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify takes the SetOperation image in MemorySegment and instantiates an on-heap
-   * SetOperation using the given expectedSeed.
-   * The resulting SetOperation will not retain any link to the source MemorySegment.
+   * Heapify takes the ThetaSetOperation image in MemorySegment and instantiates an on-heap
+   * ThetaSetOperation using the given expectedSeed.
+   * The resulting ThetaSetOperation will not retain any link to the source MemorySegment.
    *
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus
    * heapified.</p>
    *
-   * @param srcSeg an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
+   * @param srcSeg an image of a ThetaSetOperation where the hash of the given expectedSeed matches the image seed hash.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a Heap-based SetOperation from the given MemorySegment
+   * @return a Heap-based ThetaSetOperation from the given MemorySegment
    */
-  public static SetOperation heapify(final MemorySegment srcSeg, final long expectedSeed) {
+  public static ThetaSetOperation heapify(final MemorySegment srcSeg, final long expectedSeed) {
     final byte famID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
     final Family family = idToFamily(famID);
     switch (family) {
       case UNION : {
-        return UnionImpl.heapifyInstance(srcSeg, expectedSeed);
+        return ThetaUnionImpl.heapifyInstance(srcSeg, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.heapifyInstance(srcSeg, expectedSeed);
+        return ThetaIntersectionImpl.heapifyInstance(srcSeg, expectedSeed);
       }
       default: {
-        throw new SketchesArgumentException("SetOperation cannot heapify family: "
+        throw new SketchesArgumentException("ThetaSetOperation cannot heapify family: "
             + family.toString());
       }
     }
   }
 
   /**
-   * Wrap takes the SetOperation image in MemorySegment and refers to it directly.
+   * Wrap takes the ThetaSetOperation image in MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
    * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * If the given source MemorySegment is read-only, the returned object will also be read-only.
    *
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus wrapped.</p>
    *
-   * @param srcSeg an image of a SetOperation where the image seed hash matches the default seed hash.
-   * @return a SetOperation backed by the given MemorySegment
+   * @param srcSeg an image of a ThetaSetOperation where the image seed hash matches the default seed hash.
+   * @return a ThetaSetOperation backed by the given MemorySegment
    */
-  public static SetOperation wrap(final MemorySegment srcSeg) {
+  public static ThetaSetOperation wrap(final MemorySegment srcSeg) {
     return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Wrap takes the SetOperation image in MemorySegment and refers to it directly.
+   * Wrap takes the ThetaSetOperation image in MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
    * If the given source MemorySegment is read-only, the returned object will also be read-only.
    *
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus wrapped.</p>
    *
-   * @param srcSeg an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
+   * @param srcSeg an image of a ThetaSetOperation where the hash of the given expectedSeed matches the image seed hash.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a SetOperation backed by the given MemorySegment
+   * @return a ThetaSetOperation backed by the given MemorySegment
    */
-  public static SetOperation wrap(final MemorySegment srcSeg, final long expectedSeed) {
+  public static ThetaSetOperation wrap(final MemorySegment srcSeg, final long expectedSeed) {
     final byte famID = srcSeg.get(JAVA_BYTE, FAMILY_BYTE);
     final Family family = idToFamily(famID);
     final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
@@ -136,18 +136,18 @@ public abstract class SetOperation implements MemorySegmentStatus {
     }
     switch (family) {
       case UNION : {
-        return UnionImpl.wrapInstance(srcSeg, expectedSeed);
+        return ThetaUnionImpl.wrapInstance(srcSeg, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
+        return ThetaIntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
       }
       default:
-        throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
+        throw new SketchesArgumentException("ThetaSetOperation cannot wrap family: " + family.toString());
     }
   }
 
   /**
-   * Returns the maximum required storage bytes given a nomEntries parameter for Union operations
+   * Returns the maximum required storage bytes given a nomEntries parameter for ThetaUnion operations
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not.
    * @return the maximum required storage bytes given a nomEntries parameter
@@ -158,7 +158,7 @@ public abstract class SetOperation implements MemorySegmentStatus {
   }
 
   /**
-   * Returns the maximum required storage bytes given a nomEntries parameter for Intersection
+   * Returns the maximum required storage bytes given a nomEntries parameter for intersection
    * operations
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not.
@@ -170,8 +170,8 @@ public abstract class SetOperation implements MemorySegmentStatus {
   }
 
   /**
-   * Returns the maximum number of bytes for the returned CompactSketch, given the
-   * value of nomEntries of the first sketch A of AnotB.
+   * Returns the maximum number of bytes for the returned CompactThetaSketch, given the
+   * value of nomEntries of the first sketch A of ThetaAnotB.
    * @param nomEntries this value must be a power of 2.
    * @return the maximum number of bytes.
    */
@@ -181,8 +181,8 @@ public abstract class SetOperation implements MemorySegmentStatus {
   }
 
   /**
-   * Gets the Family of this SetOperation
-   * @return the Family of this SetOperation
+   * Gets the Family of this ThetaSetOperation
+   * @return the Family of this ThetaSetOperation
    */
   public abstract Family getFamily();
 

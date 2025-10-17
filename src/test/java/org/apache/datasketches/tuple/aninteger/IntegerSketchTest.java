@@ -23,12 +23,9 @@ import static org.testng.Assert.assertEquals;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.tuple.AnotB;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.aninteger.IntegerSketch;
-import org.apache.datasketches.tuple.aninteger.IntegerSummary;
-import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
+import org.apache.datasketches.tuple.TupleAnotB;
+import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleIntersection;
 import org.testng.annotations.Test;
 
 /**
@@ -42,14 +39,14 @@ public class IntegerSketchTest {
     final int lgK = 12;
     final int K = 1 << lgK;
     final IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
-    final IntegerSketch a1Sk = new IntegerSketch(lgK, a1Mode);
+    final IntegerTupleSketch a1Sk = new IntegerTupleSketch(lgK, a1Mode);
     final int m = 2 * K;
     for (int i = 0; i < m; i++) {
       a1Sk.update(i, 1);
     }
     final double est1 = a1Sk.getEstimate();
     final MemorySegment seg = MemorySegment.ofArray(a1Sk.toByteArray());
-    final IntegerSketch a1Sk2 = new IntegerSketch(seg, a1Mode);
+    final IntegerTupleSketch a1Sk2 = new IntegerTupleSketch(seg, a1Mode);
     final double est2 = a1Sk2.getEstimate();
     assertEquals(est1, est2);
   }
@@ -59,18 +56,18 @@ public class IntegerSketchTest {
     final int lgK = 12;
     final int K = 1 << lgK;
     final IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
-    final IntegerSketch a1Sk1 = new IntegerSketch(lgK, a1Mode);
-    final IntegerSketch a1Sk2 = new IntegerSketch(lgK, a1Mode);
+    final IntegerTupleSketch a1Sk1 = new IntegerTupleSketch(lgK, a1Mode);
+    final IntegerTupleSketch a1Sk2 = new IntegerTupleSketch(lgK, a1Mode);
     final int m = 2 * K;
     for (int i = 0; i < m; i++) {
       a1Sk1.update(i, 1);
       a1Sk2.update(i + m/2, 1);
     }
-    final Intersection<IntegerSummary> inter =
-        new Intersection<>(new IntegerSummarySetOperations(a1Mode, a1Mode));
+    final TupleIntersection<IntegerSummary> inter =
+        new TupleIntersection<>(new IntegerSummarySetOperations(a1Mode, a1Mode));
     inter.intersect(a1Sk1);
     inter.intersect(a1Sk2);
-    final CompactSketch<IntegerSummary> csk = inter.getResult();
+    final CompactTupleSketch<IntegerSummary> csk = inter.getResult();
     assertEquals(csk.getEstimate(), K * 1.0, K * .03);
   }
 
@@ -79,15 +76,15 @@ public class IntegerSketchTest {
     final int lgK = 4;
     final int u = 5;
     final IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
-    final IntegerSketch a1Sk1 = new IntegerSketch(lgK, a1Mode);
-    final IntegerSketch a1Sk2 = null;//new IntegerSketch(lgK, a1Mode);
-    final AnotB<IntegerSummary> anotb = new AnotB<>();
+    final IntegerTupleSketch a1Sk1 = new IntegerTupleSketch(lgK, a1Mode);
+    final IntegerTupleSketch a1Sk2 = null;//new IntegerTupleSketch(lgK, a1Mode);
+    final TupleAnotB<IntegerSummary> anotb = new TupleAnotB<>();
     for (int i = 0; i < u; i++) {
       a1Sk1.update(i, 1);
     }
     anotb.setA(a1Sk1);
     anotb.notB(a1Sk2);
-    final CompactSketch<IntegerSummary> cSk = anotb.getResult(true);
+    final CompactTupleSketch<IntegerSummary> cSk = anotb.getResult(true);
     assertEquals((int)cSk.getEstimate(), u);
   }
 
@@ -97,8 +94,8 @@ public class IntegerSketchTest {
     final int K = 1 << lgK;
     final IntegerSummary.Mode minMode = IntegerSummary.Mode.Min;
     final IntegerSummary.Mode maxMode = IntegerSummary.Mode.Max;
-    final IntegerSketch a1Sk1 = new IntegerSketch(lgK, minMode);
-    final IntegerSketch a1Sk2 = new IntegerSketch(lgK, maxMode);
+    final IntegerTupleSketch a1Sk1 = new IntegerTupleSketch(lgK, minMode);
+    final IntegerTupleSketch a1Sk2 = new IntegerTupleSketch(lgK, maxMode);
     final int m = K / 2;
     for (int key = 0; key < m; key++) {
       a1Sk1.update(key, 1);
@@ -118,7 +115,7 @@ public class IntegerSketchTest {
     final int lgK = 12;
     final int K = 1 << lgK;
     final IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
-    final IntegerSketch a1Sk1 = new IntegerSketch(lgK, a1Mode);
+    final IntegerTupleSketch a1Sk1 = new IntegerTupleSketch(lgK, a1Mode);
     final int m = K / 2;
     for (int key = 0; key < m; key++) {
       a1Sk1.update(Integer.toHexString(key), 1);

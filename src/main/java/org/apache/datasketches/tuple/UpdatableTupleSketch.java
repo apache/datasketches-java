@@ -36,11 +36,11 @@ import org.apache.datasketches.hash.MurmurHash3;
  * any kind of user-defined accumulation is possible. Summaries also must know
  * how to copy themselves. Also union and intersection of summaries can be
  * implemented in a sub-class of SummarySetOperations, which will be used in
- * case Union or Intersection of two instances of Tuple Sketch is needed
+ * case TupleUnion or TupleIntersection of two instances of TupleSketch is needed
  * @param <U> Type of the value, which is passed to update method of a Summary
  * @param <S> Type of the UpdatableSummary&lt;U&gt;
  */
-public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
+public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
 
   /**
    * This is to create a new instance of an UpdatableQuickSelectSketch.
@@ -57,22 +57,22 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  public UpdatableSketch(final int nomEntries, final int lgResizeFactor,
+  public UpdatableTupleSketch(final int nomEntries, final int lgResizeFactor,
       final float samplingProbability, final SummaryFactory<S> summaryFactory) {
     super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
   }
 
   /**
-   * This is to create an instance of a sketch given a serialized form
-   * @param srcSeg MemorySegment object with data of a serialized UpdatableSketch
+   * This is to create an instance of an UpdatableTupleSketch given a serialized form
+   * @param srcSeg MemorySegment object with data of a serialized UpdatableTupleSketch
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
-   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * @deprecated As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
-   * Heapifying a CompactSketch is not deprecated.
+   * Heapifying a CompactTupleSketch is not deprecated.
    */
   @Deprecated
-  public UpdatableSketch(
+  public UpdatableTupleSketch(
       final MemorySegment srcSeg,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
@@ -83,7 +83,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * Copy Constructor
    * @param sketch the sketch to copy
    */
-  public UpdatableSketch(final UpdatableSketch<U, S> sketch) {
+  public UpdatableTupleSketch(final UpdatableTupleSketch<U, S> sketch) {
     super(sketch);
   }
 
@@ -91,8 +91,8 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @return a deep copy of this sketch
    */
   @Override
-  public UpdatableSketch<U,S> copy() {
-    return new UpdatableSketch<>(this);
+  public UpdatableTupleSketch<U,S> copy() {
+    return new UpdatableTupleSketch<>(this);
   }
 
   /**

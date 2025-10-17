@@ -24,15 +24,12 @@ import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
-import org.apache.datasketches.tuple.AnotB;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.Union;
-import org.apache.datasketches.tuple.aninteger.IntegerSketch;
-import org.apache.datasketches.tuple.aninteger.IntegerSummary;
-import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
+import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleAnotB;
+import org.apache.datasketches.tuple.TupleIntersection;
+import org.apache.datasketches.tuple.TupleUnion;
 import org.testng.annotations.Test;
 
 public class CornerCaseTupleSetOperationsTest {
@@ -74,9 +71,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void emptyEmpty() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -95,9 +92,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void emptyExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -116,9 +113,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void EmptyDegenerate() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -137,9 +134,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void emptyEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -160,9 +157,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void exactEmpty() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -181,9 +178,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void exactExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -202,9 +199,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void exactDegenerate() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -223,9 +220,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void exactEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -246,9 +243,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void estimationEmpty() {
-    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -267,9 +264,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void estimationExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -288,9 +285,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void estimationDegenerate() {
-    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -309,9 +306,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void estimationEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -332,9 +329,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void degenerateEmpty() {
-    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -353,9 +350,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void degenerateExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V); //entries = 0
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -374,9 +371,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void degenerateDegenerate() {
-    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_V); //entries = 0
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -395,9 +392,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void degenerateEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    IntegerTupleSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_V); //entries = 0
+    IntegerTupleSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
+    UpdatableThetaSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -418,9 +415,9 @@ public class CornerCaseTupleSetOperationsTest {
   //=================================
 
   private void checks(
-      IntegerSketch tupleA,
-      IntegerSketch tupleB,
-      UpdateSketch  thetaB,
+      IntegerTupleSketch tupleA,
+      IntegerTupleSketch tupleB,
+      UpdatableThetaSketch  thetaB,
       double expectedIntersectTheta,
       int expectedIntersectCount,
       boolean expectedIntersectEmpty,
@@ -430,101 +427,101 @@ public class CornerCaseTupleSetOperationsTest {
       double expectedUnionTheta,
       int expectedUnionCount,
       boolean expectedUnionEmpty) {
-    CompactSketch<IntegerSummary> csk;
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    Union<IntegerSummary> union = new Union<>(16, setOperations);
+    CompactTupleSketch<IntegerSummary> csk;
+    TupleIntersection<IntegerSummary> inter = new TupleIntersection<>(setOperations);
+    TupleAnotB<IntegerSummary> anotb = new TupleAnotB<>();
+    TupleUnion<IntegerSummary> union = new TupleUnion<>(16, setOperations);
 
-    //Intersection Stateless Tuple, Tuple Updatable
+    //TupleIntersection Stateless TupleSketch, TupleSketch Updatable
     csk = inter.intersect(tupleA, tupleB);
-    checkResult("Intersect Stateless Tuple, Tuple", csk, expectedIntersectTheta, expectedIntersectCount,
+    checkResult("Intersect Stateless TupleSketch, TupleSketch", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
-    //Intersection Stateless Tuple, Tuple Compact
+    //TupleIntersection Stateless TupleSketch, TupleSketch Compact
     csk = inter.intersect(tupleA.compact(), tupleB.compact());
-    checkResult("Intersect Stateless Tuple, Tuple", csk, expectedIntersectTheta, expectedIntersectCount,
+    checkResult("Intersect Stateless TupleSketch, TupleSketch", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
-    //Intersection Stateless Tuple, Theta Updatable
-    csk = inter.intersect(tupleA, thetaB, integerSummary); //Tuple, Theta
-    checkResult("Intersect Stateless Tuple, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
+    //TupleIntersection Stateless TupleSketch, ThetaSketch Updatable
+    csk = inter.intersect(tupleA, thetaB, integerSummary); //TupleSketch, ThetaSketch
+    checkResult("Intersect Stateless TupleSketch, ThetaSketch", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
-  //Intersection Stateless Tuple, Theta Compact
+  //TupleIntersection Stateless TupleSketch, ThetaSketch Compact
     csk = inter.intersect(tupleA.compact(), thetaB.compact(), integerSummary);
-    checkResult("Intersect Stateless Tuple, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
+    checkResult("Intersect Stateless TupleSketch, ThetaSketch", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
 
-    //AnotB Stateless Tuple, Tuple Updatable
-    csk = AnotB.aNotB(tupleA, tupleB);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateless Tuple, Tuple Compact
-    csk = AnotB.aNotB(tupleA.compact(), tupleB.compact());
-    checkResult("AnotB Stateless Tuple, Tuple", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateless Tuple, Theta Updatable
-    csk = AnotB.aNotB(tupleA, thetaB);
-    checkResult("AnotB Stateless Tuple, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateless Tuple, Theta Compact
-    csk = AnotB.aNotB(tupleA.compact(), thetaB.compact());
-    checkResult("AnotB Stateless Tuple, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateless TupleSketch, TupleSketch Updatable
+    csk = TupleAnotB.aNotB(tupleA, tupleB);
+    checkResult("TupleAnotB Stateless TupleSketch, TupleSketch", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateless TupleSketch, TupleSketch Compact
+    csk = TupleAnotB.aNotB(tupleA.compact(), tupleB.compact());
+    checkResult("TupleAnotB Stateless TupleSketch, TupleSketch", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateless TupleSketch, ThetaSketch Updatable
+    csk = TupleAnotB.aNotB(tupleA, thetaB);
+    checkResult("TupleAnotB Stateless TupleSketch, ThetaSketch", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateless TupleSketch, ThetaSketch Compact
+    csk = TupleAnotB.aNotB(tupleA.compact(), thetaB.compact());
+    checkResult("TupleAnotB Stateless TupleSketch, ThetaSketch", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
 
-    //AnotB Stateful Tuple, Tuple Updatable
+    //TupleAnotB Stateful TupleSketch, TupleSketch Updatable
     anotb.setA(tupleA);
     anotb.notB(tupleB);
     csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateful Tuple, Tuple Compact
+    checkResult("TupleAnotB Stateful TupleSketch, TupleSketch", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateful TupleSketch, TupleSketch Compact
     anotb.setA(tupleA.compact());
     anotb.notB(tupleB.compact());
     csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateful Tuple, Theta Updatable
+    checkResult("TupleAnotB Stateful TupleSketch, TupleSketch", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateful TupleSketch, ThetaSketch Updatable
     anotb.setA(tupleA);
     anotb.notB(thetaB);
     csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Theta", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateful Tuple, Theta Compact
+    checkResult("TupleAnotB Stateful TupleSketch, ThetaSketch", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //TupleAnotB Stateful TupleSketch, ThetaSketch Compact
     anotb.setA(tupleA.compact());
     anotb.notB(thetaB.compact());
     csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Theta", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    checkResult("TupleAnotB Stateful TupleSketch, ThetaSketch", csk,  expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
 
-    //Union Stateless Tuple, Tuple Updatable
+    //TupleUnion Stateless TupleSketch, TupleSketch Updatable
     csk = union.union(tupleA, tupleB);
-    checkResult("Union Stateless Tuple, Tuple", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //Union Stateless Tuple, Tuple Compact
+    checkResult("TupleUnion Stateless TupleSketch, TupleSketch", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //TupleUnion Stateless TupleSketch, TupleSketch Compact
     csk = union.union(tupleA.compact(), tupleB.compact());
-    checkResult("Union Stateless Tuple, Tuple", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //Union Stateless Tuple, Theta Updatable
+    checkResult("TupleUnion Stateless TupleSketch, TupleSketch", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //TupleUnion Stateless TupleSketch, ThetaSketch Updatable
     csk = union.union(tupleA, thetaB, integerSummary);
-    checkResult("Union Stateless Tuple, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //Union Stateless Tuple, Theta Compact
+    checkResult("TupleUnion Stateless TupleSketch, ThetaSketch", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //TupleUnion Stateless TupleSketch, ThetaSketch Compact
     csk = union.union(tupleA.compact(), thetaB.compact(), integerSummary);
-    checkResult("Union Stateless Tuple, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    checkResult("TupleUnion Stateless TupleSketch, ThetaSketch", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
 
-    //Union Stateful Tuple, Tuple Updatable
+    //TupleUnion Stateful TupleSketch, TupleSketch Updatable
     union.union(tupleA);
     union.union(tupleB);
     csk = union.getResult(true);
-    checkResult("Union Stateful Tuple, Tuple", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //AnotB Stateful Tuple, Tuple Compact
+    checkResult("TupleUnion Stateful TupleSketch, TupleSketch", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //TupleAnotB Stateful TupleSketch, TupleSketch Compact
     union.union(tupleA.compact());
     union.union(tupleB.compact());
     csk = union.getResult(true);
-    checkResult("Union Stateful Tuple, Tuple", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //AnotB Stateful Tuple, Theta Updatable
+    checkResult("TupleUnion Stateful TupleSketch, TupleSketch", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //TupleAnotB Stateful TupleSketch, ThetaSketch Updatable
     union.union(tupleA);
     union.union(thetaB, integerSummary);
     csk = union.getResult(true);
-    checkResult("Union Stateful Tuple, Theta", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //AnotB Stateful Tuple, Theta Compact
+    checkResult("TupleUnion Stateful TupleSketch, ThetaSketch", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //TupleAnotB Stateful TupleSketch, ThetaSketch Compact
     union.union(tupleA.compact());
     union.union(thetaB.compact(), integerSummary);
     csk = union.getResult(true);
-    checkResult("Union Stateful Tuple, Theta", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    checkResult("TupleUnion Stateful TupleSketch, ThetaSketch", csk,  expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
 
   }
 
   private static void checkResult(
       String comment,
-      CompactSketch<IntegerSummary> csk,
+      CompactTupleSketch<IntegerSummary> csk,
       double expectedTheta,
       int expectedEntries,
       boolean expectedEmpty) {
@@ -545,31 +542,31 @@ public class CornerCaseTupleSetOperationsTest {
     }
   }
 
-  private static IntegerSketch getTupleSketch(
+  private static IntegerTupleSketch getTupleSketch(
       SkType skType,
       float p,
       long updateKey) {
 
-    IntegerSketch sk;
+    IntegerTupleSketch sk;
     switch(skType) {
       case EMPTY: { // { 1.0,  0, T} p and value are not used
-        sk = new IntegerSketch(4, 2, 1.0f, IntegerSummary.Mode.Min);
+        sk = new IntegerTupleSketch(4, 2, 1.0f, IntegerSummary.Mode.Min);
         break;
       }
       case EXACT: { // { 1.0, >0, F} p is not used
-        sk = new IntegerSketch(4, 2, 1.0f, IntegerSummary.Mode.Min);
+        sk = new IntegerTupleSketch(4, 2, 1.0f, IntegerSummary.Mode.Min);
         sk.update(updateKey, 1);
         break;
       }
       case ESTIMATION: { // {<1.0, >0, F}
         checkValidUpdate(p, updateKey);
-        sk = new IntegerSketch(4, 2, p, IntegerSummary.Mode.Min);
+        sk = new IntegerTupleSketch(4, 2, p, IntegerSummary.Mode.Min);
         sk.update(updateKey, 1);
         break;
       }
       case DEGENERATE: { // {<1.0,  0, F}
         checkInvalidUpdate(p, updateKey);
-        sk = new IntegerSketch(4, 2, p, IntegerSummary.Mode.Min);
+        sk = new IntegerTupleSketch(4, 2, p, IntegerSummary.Mode.Min);
         sk.update(updateKey, 1); // > theta
         break;
       }
@@ -580,15 +577,15 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   //NOTE: p and value arguments are used for every case
-  private static UpdateSketch getThetaSketch(
+  private static UpdatableThetaSketch getThetaSketch(
       SkType skType,
       float p,
       long updateKey) {
-    UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    UpdatableThetaSketchBuilder bldr = new UpdatableThetaSketchBuilder();
     bldr.setLogNominalEntries(4);
     bldr.setResizeFactor(ResizeFactor.X4);
 
-    UpdateSketch sk;
+    UpdatableThetaSketch sk;
     switch(skType) {
       case EMPTY: { // { 1.0,  0, T} p and value are not used
         sk = bldr.build();

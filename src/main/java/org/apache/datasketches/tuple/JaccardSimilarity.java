@@ -27,10 +27,11 @@ import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedS
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets.getUpperBoundForBoverA;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.theta.ThetaSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * Jaccard similarity of two Tuple Sketches, or alternatively, of a Tuple and Theta Sketch.
+ * Jaccard similarity of two TupleSketches, or alternatively, of a TupleSketch and a ThetaSketch.
  *
  * <p>Note: only retained hash values are compared, and the Tuple summary values are not accounted for in the
  * similarity measure.</p>
@@ -52,16 +53,16 @@ public final class JaccardSimilarity {
    * <p>Note: For very large pairs of sketches, where the configured nominal entries of the sketches
    * are 2^25 or 2^26, this method may produce unpredictable results.
    *
-   * @param sketchA The first argument, a Tuple sketch with summary type <i>S</i>
-   * @param sketchB The second argument, a Tuple sketch with summary type <i>S</i>
+   * @param sketchA The first argument, a TupleSketch with summary type <i>S</i>
+   * @param sketchB The second argument, a TupleSketch with summary type <i>S</i>
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param <S> Summary
    * @return a double array {LowerBound, Estimate, UpperBound} of the Jaccard index.
    * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
    */
   public static <S extends Summary> double[] jaccard(
-      final Sketch<S> sketchA,
-      final Sketch<S> sketchB,
+      final TupleSketch<S> sketchA,
+      final TupleSketch<S> sketchB,
       final SummarySetOperations<S> summarySetOps) {
     //Corner case checks
     if (sketchA == null || sketchB == null) { return ZEROS.clone(); }
@@ -71,15 +72,15 @@ public final class JaccardSimilarity {
     final int countA = sketchA.getRetainedEntries();
     final int countB = sketchB.getRetainedEntries();
 
-    //Create the Union
+    //Create the TupleUnion
     final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
     final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
     final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
-    final Union<S> union = new Union<>(newK, summarySetOps);
+    final TupleUnion<S> union = new TupleUnion<>(newK, summarySetOps);
     union.union(sketchA);
     union.union(sketchB);
 
-    final Sketch<S> unionAB = union.getResult();
+    final TupleSketch<S> unionAB = union.getResult();
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
@@ -91,12 +92,12 @@ public final class JaccardSimilarity {
       return ONES.clone();
     }
 
-    //Create the Intersection
-    final Intersection<S> inter = new Intersection<>(summarySetOps);
+    //Create the TupleIntersection
+    final TupleIntersection<S> inter = new TupleIntersection<>(summarySetOps);
     inter.intersect(sketchA);
     inter.intersect(sketchB);
     inter.intersect(unionAB); //ensures that intersection is a subset of the union
-    final Sketch<S> interABU = inter.getResult();
+    final TupleSketch<S> interABU = inter.getResult();
 
     final double lb = getLowerBoundForBoverA(unionAB, interABU);
     final double est = getEstimateOfBoverA(unionAB, interABU);
@@ -114,9 +115,9 @@ public final class JaccardSimilarity {
    * <p>Note: For very large pairs of sketches, where the configured nominal entries of the sketches
    * are 2^25 or 2^26, this method may produce unpredictable results.
    *
-   * @param sketchA The first argument, a Tuple sketch with summary type <i>S</i>
-   * @param sketchB The second argument, a Theta sketch
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * @param sketchA The first argument, a TupleSketch with summary type <i>S</i>
+   * @param sketchB The second argument, a ThetaSketch
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one.
    * This may not be null.
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param <S> Summary
@@ -124,8 +125,8 @@ public final class JaccardSimilarity {
    * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
    */
   public static <S extends Summary> double[] jaccard(
-      final Sketch<S> sketchA,
-      final org.apache.datasketches.theta.Sketch sketchB,
+      final TupleSketch<S> sketchA,
+      final ThetaSketch sketchB,
       final S summary, final SummarySetOperations<S> summarySetOps) {
     // Null case checks
     if (summary == null) {
@@ -139,15 +140,15 @@ public final class JaccardSimilarity {
     final int countA = sketchA.getRetainedEntries();
     final int countB = sketchB.getRetainedEntries(true);
 
-    //Create the Union
+    //Create the Tuple/Theta Union
     final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
     final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
     final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
-    final Union<S> union = new Union<>(newK, summarySetOps);
+    final TupleUnion<S> union = new TupleUnion<>(newK, summarySetOps);
     union.union(sketchA);
     union.union(sketchB, summary);
 
-    final Sketch<S> unionAB = union.getResult();
+    final TupleSketch<S> unionAB = union.getResult();
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
@@ -159,12 +160,12 @@ public final class JaccardSimilarity {
       return ONES.clone();
     }
 
-    //Create the Intersection
-    final Intersection<S> inter = new Intersection<>(summarySetOps);
+    //Create the Tuple/Theta Intersection
+    final TupleIntersection<S> inter = new TupleIntersection<>(summarySetOps);
     inter.intersect(sketchA);
     inter.intersect(sketchB, summary);
     inter.intersect(unionAB); //ensures that intersection is a subset of the union
-    final Sketch<S> interABU = inter.getResult();
+    final TupleSketch<S> interABU = inter.getResult();
 
     final double lb = getLowerBoundForBoverA(unionAB, interABU);
     final double est = getEstimateOfBoverA(unionAB, interABU);
@@ -175,16 +176,16 @@ public final class JaccardSimilarity {
   /**
    * Returns true if the two given sketches have exactly the same hash values and the same
    * theta values. Thus, they are equivalent.
-   * @param sketchA The first argument, a Tuple sketch with summary type <i>S</i>
-   * @param sketchB The second argument, a Tuple sketch with summary type <i>S</i>
+   * @param sketchA The first argument, a TupleSketch with summary type <i>S</i>
+   * @param sketchB The second argument, a TupleSketch with summary type <i>S</i>
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param <S> Summary
    * @return true if the two given sketches have exactly the same hash values and the same
    * theta values.
    */
   public static <S extends Summary> boolean exactlyEqual(
-      final Sketch<S> sketchA,
-      final Sketch<S> sketchB,
+      final TupleSketch<S> sketchA,
+      final TupleSketch<S> sketchB,
       final SummarySetOperations<S> summarySetOps) {
     //Corner case checks
     if (sketchA == null || sketchB == null) { return false; }
@@ -195,11 +196,11 @@ public final class JaccardSimilarity {
     final int countA = sketchA.getRetainedEntries();
     final int countB = sketchB.getRetainedEntries();
 
-    //Create the Union
-    final Union<S> union = new Union<>(ceilingPowerOf2(countA + countB), summarySetOps);
+    //Create the TupleUnion
+    final TupleUnion<S> union = new TupleUnion<>(ceilingPowerOf2(countA + countB), summarySetOps);
     union.union(sketchA);
     union.union(sketchB);
-    final Sketch<S> unionAB = union.getResult();
+    final TupleSketch<S> unionAB = union.getResult();
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
@@ -216,9 +217,9 @@ public final class JaccardSimilarity {
   /**
    * Returns true if the two given sketches have exactly the same hash values and the same
    * theta values. Thus, they are equivalent.
-   * @param sketchA The first argument, a Tuple sketch with summary type <i>S</i>
-   * @param sketchB The second argument, a Theta sketch
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * @param sketchA The first argument, a TupleSketch with summary type <i>S</i>
+   * @param sketchB The second argument, a ThetaSketch
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one.
    * This may not be null.
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param <S> Summary
@@ -226,8 +227,8 @@ public final class JaccardSimilarity {
    * theta values.
    */
   public static <S extends Summary> boolean exactlyEqual(
-      final Sketch<S> sketchA,
-      final org.apache.datasketches.theta.Sketch sketchB,
+      final TupleSketch<S> sketchA,
+      final ThetaSketch sketchB,
       final S summary, final SummarySetOperations<S> summarySetOps) {
     // Null case checks
     if (summary == null) {
@@ -241,11 +242,11 @@ public final class JaccardSimilarity {
     final int countA = sketchA.getRetainedEntries();
     final int countB = sketchB.getRetainedEntries(true);
 
-    //Create the Union
-    final Union<S> union = new Union<>(ceilingPowerOf2(countA + countB), summarySetOps);
+    //Create the TupleUnion
+    final TupleUnion<S> union = new TupleUnion<>(ceilingPowerOf2(countA + countB), summarySetOps);
     union.union(sketchA);
     union.union(sketchB, summary);
-    final Sketch<S> unionAB = union.getResult();
+    final TupleSketch<S> unionAB = union.getResult();
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
@@ -260,14 +261,14 @@ public final class JaccardSimilarity {
   }
 
   /**
-   * Tests similarity of a measured Sketch against an expected Sketch.
+   * Tests similarity of a measured TupleSketch against an expected TupleSketch.
    * Computes the lower bound of the Jaccard index <i>J<sub>LB</sub></i> of the measured and
    * expected sketches.
    * if <i>J<sub>LB</sub> &ge; threshold</i>, then the sketches are considered to be
    * similar with a confidence of 97.7%.
    *
-   * @param measured a Tuple sketch with summary type <i>S</i> to be tested
-   * @param expected the reference Tuple sketch with summary type <i>S</i> that is considered to be correct.
+   * @param measured a TupleSketch with summary type <i>S</i> to be tested
+   * @param expected the reference TupleSketch with summary type <i>S</i> that is considered to be correct.
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param threshold a real value between zero and one.
    * @param <S> Summary
@@ -275,7 +276,7 @@ public final class JaccardSimilarity {
    * with at least 97.7% confidence.
    */
   public static <S extends Summary> boolean similarityTest(
-      final Sketch<S> measured, final Sketch<S> expected,
+      final TupleSketch<S> measured, final TupleSketch<S> expected,
       final SummarySetOperations<S> summarySetOps,
       final double threshold) {
     //index 0: the lower bound
@@ -286,15 +287,15 @@ public final class JaccardSimilarity {
   }
 
   /**
-   * Tests similarity of a measured Sketch against an expected Sketch.
+   * Tests similarity of a measured TupleSketch against an expected ThetaSketch.
    * Computes the lower bound of the Jaccard index <i>J<sub>LB</sub></i> of the measured and
    * expected sketches.
    * if <i>J<sub>LB</sub> &ge; threshold</i>, then the sketches are considered to be
    * similar with a confidence of 97.7%.
    *
-   * @param measured a Tuple sketch with summary type <i>S</i> to be tested
-   * @param expected the reference Theta sketch that is considered to be correct.
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * @param measured a TupleSketch with summary type <i>S</i> to be tested
+   * @param expected the reference ThetaSketch that is considered to be correct.
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one.
    * This may not be null.
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param threshold a real value between zero and one.
@@ -303,7 +304,7 @@ public final class JaccardSimilarity {
    * with at least 97.7% confidence.
    */
   public static <S extends Summary> boolean similarityTest(
-      final Sketch<S> measured, final org.apache.datasketches.theta.Sketch expected,
+      final TupleSketch<S> measured, final ThetaSketch expected,
       final S summary, final SummarySetOperations<S> summarySetOps,
       final double threshold) {
     //index 0: the lower bound
@@ -314,14 +315,14 @@ public final class JaccardSimilarity {
   }
 
   /**
-   * Tests dissimilarity of a measured Sketch against an expected Sketch.
+   * Tests dissimilarity of a measured TupleSketch against an expected TupleSketch.
    * Computes the upper bound of the Jaccard index <i>J<sub>UB</sub></i> of the measured and
    * expected sketches.
    * if <i>J<sub>UB</sub> &le; threshold</i>, then the sketches are considered to be
    * dissimilar with a confidence of 97.7%.
    *
-   * @param measured a Tuple sketch with summary type <i>S</i> to be tested
-   * @param expected the reference Theta sketch that is considered to be correct.
+   * @param measured a TupleSketch with summary type <i>S</i> to be tested
+   * @param expected the reference TupleSketch that is considered to be correct.
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param threshold a real value between zero and one.
    * @param <S> Summary
@@ -329,7 +330,7 @@ public final class JaccardSimilarity {
    * with at least 97.7% confidence.
    */
   public static <S extends Summary> boolean dissimilarityTest(
-      final Sketch<S> measured, final Sketch<S> expected,
+      final TupleSketch<S> measured, final TupleSketch<S> expected,
       final SummarySetOperations<S> summarySetOps,
       final double threshold) {
     //index 0: the lower bound
@@ -340,15 +341,15 @@ public final class JaccardSimilarity {
   }
 
   /**
-   * Tests dissimilarity of a measured Sketch against an expected Sketch.
+   * Tests dissimilarity of a measured TupleSketch against an expected ThetaSketch.
    * Computes the upper bound of the Jaccard index <i>J<sub>UB</sub></i> of the measured and
    * expected sketches.
    * if <i>J<sub>UB</sub> &le; threshold</i>, then the sketches are considered to be
    * dissimilar with a confidence of 97.7%.
    *
-   * @param measured a Tuple sketch with summary type <i>S</i> to be tested
-   * @param expected the reference Theta sketch that is considered to be correct.
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * @param measured a TupleSketch with summary type <i>S</i> to be tested
+   * @param expected the reference ThetaSketch that is considered to be correct.
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one.
    * This may not be null.
    * @param summarySetOps instance of SummarySetOperations used to unify or intersect summaries.
    * @param threshold a real value between zero and one.
@@ -357,7 +358,7 @@ public final class JaccardSimilarity {
    * with at least 97.7% confidence.
    */
   public static <S extends Summary> boolean dissimilarityTest(
-      final Sketch<S> measured, final org.apache.datasketches.theta.Sketch expected,
+      final TupleSketch<S> measured, final ThetaSketch expected,
       final S summary, final SummarySetOperations<S> summarySetOps,
       final double threshold) {
     //index 0: the lower bound

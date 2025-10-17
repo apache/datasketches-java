@@ -22,13 +22,13 @@ package org.apache.datasketches.tuple.adouble;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
-import org.apache.datasketches.tuple.CompactSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
+import org.apache.datasketches.tuple.CompactTupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.Union;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.TupleUnion;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
@@ -44,14 +44,14 @@ public class AdoubleUnionTest {
 
   @Test
   public void unionEmptySampling() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).setSamplingProbability(0.01f).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).setSamplingProbability(0.01f).build();
     sketch.update(1, 1.0);
     Assert.assertEquals(sketch.getRetainedEntries(), 0); // not retained due to low sampling probability
 
-    final Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
+    final TupleUnion<DoubleSummary> union = new TupleUnion<>(new DoubleSummarySetOperations(mode, mode));
     union.union(sketch);
-    final CompactSketch<DoubleSummary> result = union.getResult();
+    final CompactTupleSketch<DoubleSummary> result = union.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertFalse(result.isEmpty());
     Assert.assertTrue(result.isEstimationMode());
@@ -60,25 +60,25 @@ public class AdoubleUnionTest {
 
   @Test
   public void unionExactMode() {
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(1, 1.0);
     sketch1.update(2, 1.0);
 
-    final UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch2 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch2.update(2, 1.0);
     sketch2.update(2, 1.0);
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
 
-    final Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
+    final TupleUnion<DoubleSummary> union = new TupleUnion<>(new DoubleSummarySetOperations(mode, mode));
     union.union(sketch1);
     union.union(sketch2);
-    CompactSketch<DoubleSummary> result = union.getResult();
+    CompactTupleSketch<DoubleSummary> result = union.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
 
     final TupleSketchIterator<DoubleSummary> it = result.iterator();
@@ -104,23 +104,23 @@ public class AdoubleUnionTest {
   @Test
   public void unionEstimationMode() {
     int key = 0;
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, 1.0);
     }
 
     key -= 4096; // overlap half of the entries
-    final UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch2 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, 1.0);
     }
 
-    final Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode, mode));
+    final TupleUnion<DoubleSummary> union = new TupleUnion<>(4096, new DoubleSummarySetOperations(mode, mode));
     union.union(sketch1);
     union.union(sketch2);
-    final CompactSketch<DoubleSummary> result = union.getResult();
+    final CompactTupleSketch<DoubleSummary> result = union.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
@@ -129,26 +129,26 @@ public class AdoubleUnionTest {
   @Test
   public void unionMixedMode() {
     int key = 0;
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     for (int i = 0; i < 1000; i++) {
       sketch1.update(key++, 1.0);
       //System.out.println("theta1=" + sketch1.getTheta() + " " + sketch1.getThetaLong());
     }
 
     key -= 500; // overlap half of the entries
-    final UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch2 =
+        new UpdatableTupleSketchBuilder<>
           (new DoubleSummaryFactory(mode)).setSamplingProbability(0.2f).build();
     for (int i = 0; i < 20000; i++) {
       sketch2.update(key++, 1.0);
       //System.out.println("theta2=" + sketch2.getTheta() + " " + sketch2.getThetaLong());
     }
 
-    final Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode, mode));
+    final TupleUnion<DoubleSummary> union = new TupleUnion<>(4096, new DoubleSummarySetOperations(mode, mode));
     union.union(sketch1);
     union.union(sketch2);
-    final CompactSketch<DoubleSummary> result = union.getResult();
+    final CompactTupleSketch<DoubleSummary> result = union.getResult();
     Assert.assertEquals(result.getEstimate(), 20500.0, 20500 * 0.01);
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
@@ -156,14 +156,14 @@ public class AdoubleUnionTest {
 
   @Test
   public void checkUnionUpdateWithTheta() {
-    final Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
-    UpdateSketch usk = null;
+    final TupleUnion<DoubleSummary> union = new TupleUnion<>(new DoubleSummarySetOperations(mode, mode));
+    UpdatableThetaSketch usk = null;
     DoubleSummary dsum = null;
 
     try { union.union(usk, dsum); fail(); }
     catch (final SketchesArgumentException e) { }
 
-    usk = new UpdateSketchBuilder().build();
+    usk = new UpdatableThetaSketchBuilder().build();
     try { union.union(usk, dsum); fail(); }
     catch (final SketchesArgumentException e) { }
 

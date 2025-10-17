@@ -26,7 +26,6 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketches;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.Assert;
@@ -89,7 +88,7 @@ public class DirectArrayOfDoublesCompactSketchTest {
     us.update("b", new double[] {1.0});
     us.update("c", new double[] {1.0});
     ArrayOfDoublesCompactSketch sketch1 = us.compact(MemorySegment.ofArray(new byte[1000000]));
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 3.0);
@@ -112,7 +111,7 @@ public class DirectArrayOfDoublesCompactSketchTest {
       us.update(i, new double[] {1.0});
     }
     ArrayOfDoublesCompactSketch sketch1 = us.compact(MemorySegment.ofArray(new byte[1000000]));
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketch.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
@@ -126,7 +125,7 @@ public class DirectArrayOfDoublesCompactSketchTest {
       us.update(i, new double[] {1.0});
     }
     ArrayOfDoublesCompactSketch sketch1 = us.compact(MemorySegment.ofArray(new byte[1000000]));
-    ArrayOfDoublesSketches.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()), 123);
+    ArrayOfDoublesSketch.wrapSketch(MemorySegment.ofArray(sketch1.toByteArray()), 123);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

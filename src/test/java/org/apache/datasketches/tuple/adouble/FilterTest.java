@@ -22,10 +22,9 @@ package org.apache.datasketches.tuple.adouble;
 import java.util.Random;
 
 import org.apache.datasketches.tuple.Filter;
-import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.Sketches;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.TupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
@@ -39,11 +38,11 @@ public class FilterTest {
 
     @Test
     public void emptySketch() {
-        final Sketch<DoubleSummary> sketch = Sketches.createEmptySketch();
+        final TupleSketch<DoubleSummary> sketch = TupleSketch.createEmptySketch();
 
         final Filter<DoubleSummary> filter = new Filter<>(o -> true);
 
-        final Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
+        final TupleSketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
         Assert.assertEquals(filteredSketch.getEstimate(), 0.0);
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
@@ -56,7 +55,7 @@ public class FilterTest {
     public void nullSketch() {
         final Filter<DoubleSummary> filter = new Filter<>(o -> true);
 
-        final Sketch<DoubleSummary> filteredSketch = filter.filter(null);
+        final TupleSketch<DoubleSummary> filteredSketch = filter.filter(null);
 
         Assert.assertEquals(filteredSketch.getEstimate(), 0.0);
         Assert.assertEquals(filteredSketch.getThetaLong(), Long.MAX_VALUE);
@@ -67,14 +66,14 @@ public class FilterTest {
 
     @Test
     public void filledSketchShouldBehaveTheSame() {
-        final UpdatableSketch<Double, DoubleSummary> sketch =
-            new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+        final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+            new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
 
         fillSketch(sketch, numberOfElements, 0.0);
 
         final Filter<DoubleSummary> filter = new Filter<>(o -> true);
 
-        final Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
+        final TupleSketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
         Assert.assertEquals(filteredSketch.getEstimate(), sketch.getEstimate());
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
@@ -85,15 +84,15 @@ public class FilterTest {
 
     @Test
     public void filledSketchShouldFilterOutElements() {
-        final UpdatableSketch<Double, DoubleSummary> sketch =
-            new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+        final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+            new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
 
         fillSketch(sketch, numberOfElements, 0.0);
         fillSketch(sketch, 2 * numberOfElements, 1.0);
 
         final Filter<DoubleSummary> filter = new Filter<>(o -> o.getValue() < 0.5);
 
-        final Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
+        final TupleSketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
         Assert.assertEquals(filteredSketch.getEstimate(), numberOfElements);
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
@@ -104,8 +103,8 @@ public class FilterTest {
 
     @Test
     public void filteringInEstimationMode() {
-        final UpdatableSketch<Double, DoubleSummary> sketch =
-            new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+        final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+            new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
 
         final int n = 10000;
         fillSketch(sketch, n, 0.0);
@@ -113,7 +112,7 @@ public class FilterTest {
 
         final Filter<DoubleSummary> filter = new Filter<>(o -> o.getValue() < 0.5);
 
-        final Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
+        final TupleSketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
         Assert.assertEquals(filteredSketch.getEstimate(), n, n * 0.05);
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
@@ -124,8 +123,8 @@ public class FilterTest {
 
     @Test
     public void nonEmptySketchWithNoEntries() {
-      final UpdatableSketch<Double, DoubleSummary> sketch =
-          new UpdatableSketchBuilder<>(
+      final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+          new UpdatableTupleSketchBuilder<>(
               new DoubleSummaryFactory(mode)).setSamplingProbability(0.0001f).build();
       sketch.update(0, 0.0);
 
@@ -134,7 +133,7 @@ public class FilterTest {
 
       final Filter<DoubleSummary> filter = new Filter<>(o -> true);
 
-      final Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
+      final TupleSketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
       Assert.assertFalse(filteredSketch.isEmpty());
       Assert.assertEquals(filteredSketch.getEstimate(), sketch.getEstimate());
@@ -143,7 +142,7 @@ public class FilterTest {
       Assert.assertEquals(filteredSketch.getUpperBound(1), sketch.getUpperBound(1));
     }
 
-    private static void fillSketch(final UpdatableSketch<Double, DoubleSummary> sketch,
+    private static void fillSketch(final UpdatableTupleSketch<Double, DoubleSummary> sketch,
         final int numberOfElements, final Double sketchValue) {
 
 

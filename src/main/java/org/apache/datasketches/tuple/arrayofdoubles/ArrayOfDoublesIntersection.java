@@ -58,17 +58,17 @@ public abstract class ArrayOfDoublesIntersection {
   }
 
   /**
-   * Performs a stateful intersection of the internal set with the given tupleSketch.
-   * The given tupleSketch and the internal state must have the same <i>numValues</i>.
+   * Performs a stateful intersection of the internal set with the given TupleSketch.
+   * The given TupleSketch and the internal state must have the same <i>numValues</i>.
    * @param tupleSketch Input sketch to intersect with the internal set.
    * @param combiner Method of combining two arrays of double values
    */
   public void intersect(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
-    if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
+    if (tupleSketch == null) { throw new SketchesArgumentException("TupleSketch must not be null"); }
     Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
     if (tupleSketch.numValues_ != numValues_) {
       throw new SketchesArgumentException(
-          "Input tupleSketch cannot have different numValues from the internal numValues.");
+          "Input TupleSketch cannot have different numValues from the internal numValues.");
     }
 
     final boolean isFirstCall = firstCall_;

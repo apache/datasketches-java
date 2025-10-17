@@ -28,6 +28,8 @@ import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.lang.reflect.Array;
 
+import org.apache.datasketches.theta.HashIterator;
+import org.apache.datasketches.theta.ThetaSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 @SuppressWarnings("unchecked")
@@ -40,7 +42,7 @@ class HashTables<S extends Summary> {
   HashTables() { }
 
   //must have valid entries
-  void fromSketch(final Sketch<S> sketch) {
+  void fromSketch(final TupleSketch<S> sketch) {
     numKeys = sketch.getRetainedEntries();
     lgTableSize = getLgTableSize(numKeys);
 
@@ -58,12 +60,12 @@ class HashTables<S extends Summary> {
   }
 
   //must have valid entries
-  void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
+  void fromSketch(final ThetaSketch sketch, final S summary) {
     numKeys = sketch.getRetainedEntries(true);
     lgTableSize = getLgTableSize(numKeys);
 
     hashTable = new long[1 << lgTableSize];
-    final org.apache.datasketches.theta.HashIterator it = sketch.iterator();
+    final HashIterator it = sketch.iterator();
     while (it.next()) {
       final long hash = it.get();
       final int index = hashInsertOnly(hashTable, lgTableSize, hash);
@@ -92,9 +94,9 @@ class HashTables<S extends Summary> {
     }
   }
 
-  //For Tuple Sketches
+  //For TupleSketches
   HashTables<S> getIntersectHashTables(
-      final Sketch<S> nextTupleSketch,
+      final TupleSketch<S> nextTupleSketch,
       final long thetaLong,
       final SummarySetOperations<S> summarySetOps) {
 
@@ -121,9 +123,9 @@ class HashTables<S extends Summary> {
     return resultHT;
   }
 
-  //For Theta Sketches
+  //For ThetaSketches
   HashTables<S> getIntersectHashTables(
-      final org.apache.datasketches.theta.Sketch nextThetaSketch,
+      final ThetaSketch nextThetaSketch,
       final long thetaLong,
       final SummarySetOperations<S> summarySetOps,
       final S summary) {
@@ -135,7 +137,7 @@ class HashTables<S extends Summary> {
     final long[] matchHashArr = new long[maxMatchSize];
     final S[] matchSummariesArr = (S[]) Array.newInstance(summaryType, maxMatchSize);
     int matchCount = 0;
-    final org.apache.datasketches.theta.HashIterator it = nextThetaSketch.iterator();
+    final HashIterator it = nextThetaSketch.iterator();
 
     //scan B & search A(hashTable) for match
     while (it.next()) {

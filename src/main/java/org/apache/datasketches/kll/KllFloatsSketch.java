@@ -23,7 +23,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
    * @param sketchStructure the current sketch structure
    */
   KllFloatsSketch(final SketchStructure sketchStructure) {
-    super(SketchType.FLOATS_SKETCH, sketchStructure);
+    super(SketchType.KLL_FLOATS_SKETCH, sketchStructure);
   }
 
   /**
@@ -167,7 +167,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
    */
   public static KllFloatsSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, FLOATS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, KLL_FLOATS_SKETCH);
     return new KllDirectFloatsSketch(srcSeg, segVal, mSegReq);
   }
 

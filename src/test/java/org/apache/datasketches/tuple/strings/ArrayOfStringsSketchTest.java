@@ -24,12 +24,12 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.tuple.AnotB;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
+import org.apache.datasketches.tuple.TupleAnotB;
+import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleIntersection;
 import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.Union;
-import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
+import org.apache.datasketches.tuple.TupleUnion;
+import org.apache.datasketches.tuple.strings.ArrayOfStringsTupleSketch;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummarySetOperations;
 import org.testng.annotations.Test;
@@ -43,7 +43,7 @@ public class ArrayOfStringsSketchTest {
   @SuppressWarnings("deprecation")
   @Test
   public void checkSketch() {
-    ArrayOfStringsSketch sketch1 = new ArrayOfStringsSketch();
+    ArrayOfStringsTupleSketch sketch1 = new ArrayOfStringsTupleSketch();
     String[][] strArrArr = {{"a","b"},{"c","d"},{"e","f"}};
     int len = strArrArr.length;
     for (int i = 0; i < len; i++) {
@@ -53,28 +53,28 @@ public class ArrayOfStringsSketchTest {
     printSummaries(sketch1.iterator());
     byte[] array = sketch1.toByteArray();
     MemorySegment wseg = MemorySegment.ofArray(array);
-    ArrayOfStringsSketch sketch2 = new ArrayOfStringsSketch(wseg);
+    ArrayOfStringsTupleSketch sketch2 = new ArrayOfStringsTupleSketch(wseg);
     printSummaries(sketch2.iterator());
     checkSummaries(sketch2, sketch2);
 
     String[] strArr3 = {"g", "h" };
     sketch2.update(strArr3, strArr3);
 
-    Union<ArrayOfStringsSummary> union = new Union<>(new ArrayOfStringsSummarySetOperations());
+    TupleUnion<ArrayOfStringsSummary> union = new TupleUnion<>(new ArrayOfStringsSummarySetOperations());
     union.union(sketch1);
     union.union(sketch2);
-    CompactSketch<ArrayOfStringsSummary> csk = union.getResult();
+    CompactTupleSketch<ArrayOfStringsSummary> csk = union.getResult();
     //printSummaries(csk.iterator());
     assertEquals(csk.getRetainedEntries(), 4);
 
-    Intersection<ArrayOfStringsSummary> inter =
-        new Intersection<>(new ArrayOfStringsSummarySetOperations());
+    TupleIntersection<ArrayOfStringsSummary> inter =
+        new TupleIntersection<>(new ArrayOfStringsSummarySetOperations());
     inter.intersect(sketch1);
     inter.intersect(sketch2);
     csk = inter.getResult();
     assertEquals(csk.getRetainedEntries(), 3);
 
-    AnotB<ArrayOfStringsSummary> aNotB =  new AnotB<>();
+    TupleAnotB<ArrayOfStringsSummary> aNotB =  new TupleAnotB<>();
     aNotB.setA(sketch2);
     aNotB.notB(sketch1);
     csk = aNotB.getResult(true);
@@ -82,7 +82,7 @@ public class ArrayOfStringsSketchTest {
 
   }
 
-  private static void checkSummaries(ArrayOfStringsSketch sk1, ArrayOfStringsSketch sk2) {
+  private static void checkSummaries(ArrayOfStringsTupleSketch sk1, ArrayOfStringsTupleSketch sk2) {
     TupleSketchIterator<ArrayOfStringsSummary> it1 = sk1.iterator();
     TupleSketchIterator<ArrayOfStringsSummary> it2 = sk2.iterator();
     while(it1.next() && it2.next()) {
@@ -104,14 +104,14 @@ public class ArrayOfStringsSketchTest {
 
   @Test
   public void checkCopyCtor() {
-    ArrayOfStringsSketch sk1 = new ArrayOfStringsSketch();
+    ArrayOfStringsTupleSketch sk1 = new ArrayOfStringsTupleSketch();
     String[][] strArrArr = {{"a","b"},{"c","d"},{"e","f"}};
     int len = strArrArr.length;
     for (int i = 0; i < len; i++) {
       sk1.update(strArrArr[i], strArrArr[i]);
     }
     assertEquals(sk1.getRetainedEntries(), 3);
-    final ArrayOfStringsSketch sk2 = sk1.copy();
+    final ArrayOfStringsTupleSketch sk2 = sk1.copy();
     assertEquals(sk2.getRetainedEntries(), 3);
   }
 

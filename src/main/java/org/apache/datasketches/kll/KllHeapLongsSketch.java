@@ -27,7 +27,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
@@ -154,7 +154,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
 
   static KllHeapLongsSketch heapifyImpl(final MemorySegment srcSeg) {
     Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, LONGS_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, KLL_LONGS_SKETCH);
     return new KllHeapLongsSketch(srcSeg, segVal);
   }
 

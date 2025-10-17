@@ -22,7 +22,7 @@ package org.apache.datasketches.kll;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.bitAt;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -202,7 +202,7 @@ public class KllMiscFloatsTest {
     final boolean withLevels = false;
     final boolean withLevelsAndItems = true;
     int compaction = 0;
-    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, n, FLOATS_SKETCH, true);
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, n, KLL_FLOATS_SKETCH, true);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[sizeBytes]);
     final KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, wseg, null);
     for (int i = 1; i <= n; i++) {
@@ -481,7 +481,7 @@ public class KllMiscFloatsTest {
     //println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     wseg = MemorySegment.ofArray(compBytes);
-    println(KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true));
+    println(KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true));
     sk = KllFloatsSketch.heapify(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -552,7 +552,7 @@ public class KllMiscFloatsTest {
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(compBytes);
-    println(KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true));
+    println(KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true));
     sk = KllHeapFloatsSketch.heapifyImpl(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -624,13 +624,13 @@ public class KllMiscFloatsTest {
     for (int i = 1; i <= (k + 1); i++) { sk.update(i); }
     compBytes = sk.toByteArray();
     wseg = MemorySegment.ofArray(compBytes);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/segory & analyze segory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wseg);
     compBytes2 = sk2.toByteArray();
     wseg = MemorySegment.ofArray(compBytes2);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 2: segory to heap sketch, to byte[]/segory & analyze segory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -639,13 +639,13 @@ public class KllMiscFloatsTest {
     sk = KllFloatsSketch.newHeapInstance(k);
     compBytes = sk.toByteArray();
     wseg = MemorySegment.ofArray(compBytes);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/segory & analyze segory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wseg);
     compBytes2 = sk2.toByteArray();
     wseg = MemorySegment.ofArray(compBytes2);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 2: segory to heap sketch, to byte[]/segory & analyze segory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -655,13 +655,13 @@ public class KllMiscFloatsTest {
     sk.update(1);
     compBytes = sk.toByteArray();
     wseg = MemorySegment.ofArray(compBytes);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/segory & analyze segory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wseg);
     compBytes2 = sk2.toByteArray();
     wseg = MemorySegment.ofArray(compBytes2);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 2: segory to heap sketch, to byte[]/segory & analyze segory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -682,13 +682,13 @@ public class KllMiscFloatsTest {
     for (int i = 1; i <= (k + 1); i++) { sk.update(i); }
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/segory & analyze segory");
     println(s);
     sk2 = KllHeapFloatsSketch.heapifyImpl(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 2: segory to heap sketch, to byte[]/segory & analyze segory. Should match above");
     println(s); //note: heapify does not copy free space, while toUpdatableByteArray does
     assertEquals(sk.getN(), sk2.getN());
@@ -700,13 +700,13 @@ public class KllMiscFloatsTest {
     sk = KllFloatsSketch.newHeapInstance(k);
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/segory & analyze segory");
     println(s);
     sk2 = KllHeapFloatsSketch.heapifyImpl(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 2: segory to heap sketch, to byte[]/segory & analyze segory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -716,13 +716,13 @@ public class KllMiscFloatsTest {
     sk.update(1);
     upBytes = KllHelper.toByteArray(sk, true);
     wseg = MemorySegment.ofArray(upBytes);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/segory & analyze segory");
     println(s);
     sk2 = KllHeapFloatsSketch.heapifyImpl(wseg);
     upBytes2 = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(upBytes2);
-    s = KllPreambleUtil.toString(wseg, FLOATS_SKETCH, true);
+    s = KllPreambleUtil.toString(wseg, KLL_FLOATS_SKETCH, true);
     println("step 2: segory to heap sketch, to byte[]/segory & analyze segory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);

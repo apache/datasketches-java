@@ -22,15 +22,12 @@ package org.apache.datasketches.tuple.aninteger;
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Min;
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
 
-import org.apache.datasketches.tuple.AnotB;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.Sketch;
+import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleIntersection;
+import org.apache.datasketches.tuple.TupleAnotB;
+import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.Union;
-import org.apache.datasketches.tuple.aninteger.IntegerSketch;
-import org.apache.datasketches.tuple.aninteger.IntegerSummary;
-import org.apache.datasketches.tuple.aninteger.IntegerSummarySetOperations;
+import org.apache.datasketches.tuple.TupleUnion;
 import org.testng.annotations.Test;
 
 /**
@@ -45,20 +42,20 @@ public class ParameterLeakageTest {
 
   @Test
   public void checkUnion() {
-    IntegerSketch sk1 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk1 = new IntegerTupleSketch(4, Sum);
     sk1.update(1, 1);
     IntegerSummary sk1sum = captureSummaries(sk1)[0];
 
-    IntegerSketch sk2 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk2 = new IntegerTupleSketch(4, Sum);
     sk2.update(2, 1);
     IntegerSummary sk2sum = captureSummaries(sk2)[0];
 
 
-    Union<IntegerSummary> union = new Union<>(setOps);
+    TupleUnion<IntegerSummary> union = new TupleUnion<>(setOps);
 
-    CompactSketch<IntegerSummary> csk = union.union(sk1, sk2);
+    CompactTupleSketch<IntegerSummary> csk = union.union(sk1, sk2);
     IntegerSummary[] summaries = captureSummaries(csk);
-    println("Union Count: " + summaries.length);
+    println("TupleUnion Count: " + summaries.length);
 
     for (IntegerSummary isum : summaries) {
       if ((isum == sk1sum) || (isum == sk2sum)) {
@@ -69,17 +66,17 @@ public class ParameterLeakageTest {
 
   @Test
   public void checkIntersectStateless() {
-    IntegerSketch sk1 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk1 = new IntegerTupleSketch(4, Sum);
     sk1.update(1, 1);
     IntegerSummary sk1sum = captureSummaries(sk1)[0];
 
-    IntegerSketch sk2 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk2 = new IntegerTupleSketch(4, Sum);
     sk2.update(1, 1);
     IntegerSummary sk2sum = captureSummaries(sk2)[0];
 
-    Intersection<IntegerSummary> intersect = new Intersection<>(setOps);
+    TupleIntersection<IntegerSummary> intersect = new TupleIntersection<>(setOps);
 
-    CompactSketch<IntegerSummary> csk = intersect.intersect(sk1, sk2);
+    CompactTupleSketch<IntegerSummary> csk = intersect.intersect(sk1, sk2);
     IntegerSummary[] summaries = captureSummaries(csk);
     println("Intersect Stateless Count: " + summaries.length);
 
@@ -92,19 +89,19 @@ public class ParameterLeakageTest {
 
   @Test
   public void checkIntersectStateful() {
-    IntegerSketch sk1 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk1 = new IntegerTupleSketch(4, Sum);
     sk1.update(1, 1);
     IntegerSummary sk1sum = captureSummaries(sk1)[0];
 
-    IntegerSketch sk2 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk2 = new IntegerTupleSketch(4, Sum);
     sk2.update(1, 1);
     IntegerSummary sk2sum = captureSummaries(sk2)[0];
 
-    Intersection<IntegerSummary> intersect = new Intersection<>(setOps);
+    TupleIntersection<IntegerSummary> intersect = new TupleIntersection<>(setOps);
 
     intersect.intersect(sk1);
     intersect.intersect(sk2);
-    CompactSketch<IntegerSummary> csk = intersect.getResult();
+    CompactTupleSketch<IntegerSummary> csk = intersect.getResult();
 
     IntegerSummary[] summaries = captureSummaries(csk);
     println("Intersect Stateful Count: " + summaries.length);
@@ -118,16 +115,16 @@ public class ParameterLeakageTest {
 
   @Test
   public void checkAnotbStateless() {
-    IntegerSketch sk1 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk1 = new IntegerTupleSketch(4, Sum);
     sk1.update(1, 1);
-    CompactSketch<IntegerSummary> csk1 = sk1.compact();
+    CompactTupleSketch<IntegerSummary> csk1 = sk1.compact();
     IntegerSummary sk1sum = captureSummaries(csk1)[0];
 
-    IntegerSketch sk2 = new IntegerSketch(4, Sum); //EMPTY
+    IntegerTupleSketch sk2 = new IntegerTupleSketch(4, Sum); //EMPTY
 
-    CompactSketch<IntegerSummary> csk = AnotB.aNotB(csk1, sk2);
+    CompactTupleSketch<IntegerSummary> csk = TupleAnotB.aNotB(csk1, sk2);
     IntegerSummary[] summaries = captureSummaries(csk);
-    println("AnotB Stateless Count: " + summaries.length);
+    println("TupleAnotB Stateless Count: " + summaries.length);
 
     for (IntegerSummary isum : summaries) {
       if (isum == sk1sum) {
@@ -138,21 +135,21 @@ public class ParameterLeakageTest {
 
   @Test
   public void checkAnotbStateful() {
-    IntegerSketch sk1 = new IntegerSketch(4, Sum);
+    IntegerTupleSketch sk1 = new IntegerTupleSketch(4, Sum);
     sk1.update(1, 1);
-    CompactSketch<IntegerSummary> csk1 = sk1.compact();
+    CompactTupleSketch<IntegerSummary> csk1 = sk1.compact();
     IntegerSummary sk1sum = captureSummaries(csk1)[0];
 
-    IntegerSketch sk2 = new IntegerSketch(4, Sum); //EMPTY
+    IntegerTupleSketch sk2 = new IntegerTupleSketch(4, Sum); //EMPTY
 
-    AnotB<IntegerSummary> anotb = new AnotB<>();
+    TupleAnotB<IntegerSummary> anotb = new TupleAnotB<>();
 
     anotb.setA(csk1);
     anotb.notB(sk2);
 
-    CompactSketch<IntegerSummary> csk = anotb.getResult(true);
+    CompactTupleSketch<IntegerSummary> csk = anotb.getResult(true);
     IntegerSummary[] summaries = captureSummaries(csk);
-    println("AnotB Stateful Count: " + summaries.length);
+    println("TupleAnotB Stateful Count: " + summaries.length);
 
     for (IntegerSummary isum : summaries) {
       if (isum == sk1sum) {
@@ -161,7 +158,7 @@ public class ParameterLeakageTest {
     }
   }
 
-  private static IntegerSummary[] captureSummaries(Sketch<IntegerSummary> sk) {
+  private static IntegerSummary[] captureSummaries(TupleSketch<IntegerSummary> sk) {
     int entries = sk.getRetainedEntries();
     IntegerSummary[] intSumArr = new IntegerSummary[entries];
     int cnt = 0;

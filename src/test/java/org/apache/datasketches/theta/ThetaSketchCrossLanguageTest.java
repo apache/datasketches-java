@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 import java.nio.file.Files;
 
-import org.apache.datasketches.theta.CompactSketch;
+import org.apache.datasketches.theta.CompactThetaSketch;
 import org.apache.datasketches.theta.HashIterator;
-import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -46,7 +46,7 @@ public class ThetaSketchCrossLanguageTest {
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
-      final UpdateSketch sk = UpdateSketch.builder().build();
+      final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
       for (int i = 0; i < n; i++) {
         sk.update(i);
       }
@@ -58,7 +58,7 @@ public class ThetaSketchCrossLanguageTest {
   public void generateBinariesForCompatibilityTestingCompressed() throws IOException {
     final int[] nArr = {10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
-      final UpdateSketch sk = UpdateSketch.builder().build();
+      final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
       for (int i = 0; i < n; i++) {
         sk.update(i);
       }
@@ -68,7 +68,7 @@ public class ThetaSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
-    final UpdateSketch sk = UpdateSketch.builder().setP(0.01f).build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().setP(0.01f).build();
     sk.update(1);
     assertFalse(sk.isEmpty());
     assertEquals(sk.getRetainedEntries(), 0);
@@ -80,7 +80,7 @@ public class ThetaSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_n" + n + "_cpp.sk"));
-      final CompactSketch sketch = CompactSketch.wrap(MemorySegment.ofArray(bytes));
+      final CompactThetaSketch sketch = CompactThetaSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertTrue(sketch.isOrdered());
@@ -99,7 +99,7 @@ public class ThetaSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_n" + n + "_cpp.sk"));
-      final CompactSketch sketch = CompactSketch.wrap(bytes);
+      final CompactThetaSketch sketch = CompactThetaSketch.wrap(bytes);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertTrue(sketch.isOrdered());
@@ -118,7 +118,7 @@ public class ThetaSketchCrossLanguageTest {
     final int[] nArr = {10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_compressed_n" + n + "_cpp.sk"));
-      final CompactSketch sketch = CompactSketch.wrap(MemorySegment.ofArray(bytes));
+      final CompactThetaSketch sketch = CompactThetaSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertTrue(sketch.isOrdered());
@@ -137,7 +137,7 @@ public class ThetaSketchCrossLanguageTest {
     final int[] nArr = {10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_compressed_n" + n + "_cpp.sk"));
-      final CompactSketch sketch = CompactSketch.wrap(bytes);
+      final CompactThetaSketch sketch = CompactThetaSketch.wrap(bytes);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertTrue(sketch.isOrdered());
@@ -154,7 +154,7 @@ public class ThetaSketchCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppNonEmptyNoEntriesSegment() throws IOException {
     final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_non_empty_no_entries_cpp.sk"));
-    final CompactSketch sketch = CompactSketch.wrap(MemorySegment.ofArray(bytes));
+    final CompactThetaSketch sketch = CompactThetaSketch.wrap(MemorySegment.ofArray(bytes));
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
   }
@@ -162,7 +162,7 @@ public class ThetaSketchCrossLanguageTest {
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppNonEmptyNoEntriesBytes() throws IOException {
     final byte[] bytes = Files.readAllBytes(cppPath.resolve("theta_non_empty_no_entries_cpp.sk"));
-    final CompactSketch sketch = CompactSketch.wrap(bytes);
+    final CompactThetaSketch sketch = CompactThetaSketch.wrap(bytes);
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
   }

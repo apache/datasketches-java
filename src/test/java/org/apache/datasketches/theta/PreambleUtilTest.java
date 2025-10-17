@@ -46,7 +46,7 @@ import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.isEmptyFlag;
 import static org.apache.datasketches.theta.PreambleUtil.setEmpty;
-import static org.apache.datasketches.theta.SetOperation.getMaxUnionBytes;
+import static org.apache.datasketches.theta.ThetaSetOperation.getMaxUnionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -73,8 +73,8 @@ public class PreambleUtilTest {
     final byte[] byteArray = new byte[bytes];
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
 
-    final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(seg);
-    println(Sketch.toString(byteArray));
+    final UpdatableThetaSketch quick1 = UpdatableThetaSketch.builder().setNominalEntries(k).build(seg);
+    println(ThetaSketch.toString(byteArray));
 
     Assert.assertTrue(quick1.isEmpty());
 
@@ -89,7 +89,7 @@ public class PreambleUtilTest {
     println(PreambleUtil.preambleToString(seg));
 
     final MemorySegment uSeg = MemorySegment.ofArray(new byte[getMaxUnionBytes(k)]);
-    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
+    final ThetaUnion union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion(uSeg);
     union.union(quick1);
     println(PreambleUtil.preambleToString(uSeg));
   }
@@ -98,19 +98,19 @@ public class PreambleUtilTest {
   public void checkToStringWithPrelongsOf2() {
     final int k = 16;
     final int u = k;
-    final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch quick1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i< u; i++) {
       quick1.update(i);
     }
     final byte[] bytes = quick1.compact().toByteArray();
-    println(Sketch.toString(bytes));
+    println(ThetaSketch.toString(bytes));
   }
 
   @Test
   public void checkPreambleToStringExceptions() {
     byte[] byteArr = new byte[7];
     try { //check preLongs < 8 fails
-      Sketch.toString(byteArr);
+      ThetaSketch.toString(byteArr);
       fail("Did not throw SketchesArgumentException.");
     } catch (final SketchesArgumentException e) {
       //expected
@@ -118,7 +118,7 @@ public class PreambleUtilTest {
     byteArr = new byte[8];
     byteArr[0] = (byte) 2; //needs min capacity of 16
     try { //check preLongs == 2 fails
-      Sketch.toString(MemorySegment.ofArray(byteArr).asReadOnly());
+      ThetaSketch.toString(MemorySegment.ofArray(byteArr).asReadOnly());
       fail("Did not throw SketchesArgumentException.");
     } catch (final SketchesArgumentException e) {
       //expected
@@ -133,22 +133,22 @@ public class PreambleUtilTest {
 
   @Test
   public void checkPreLongs() {
-    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
-    CompactSketch comp = sketch.compact(false, null);
+    final UpdatableThetaSketch sketch = UpdatableThetaSketch.builder().setNominalEntries(16).build();
+    CompactThetaSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
-    println(Sketch.toString(byteArr)); //PreLongs = 1
+    println(ThetaSketch.toString(byteArr)); //PreLongs = 1
 
     sketch.update(1);
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(Sketch.toString(byteArr)); //PreLongs = 2
+    println(ThetaSketch.toString(byteArr)); //PreLongs = 2
 
     for (int i=2; i<=32; i++) {
       sketch.update(i);
     }
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(Sketch.toString(MemorySegment.ofArray(byteArr).asReadOnly())); //PreLongs = 3
+    println(ThetaSketch.toString(MemorySegment.ofArray(byteArr).asReadOnly())); //PreLongs = 3
   }
 
   @Test

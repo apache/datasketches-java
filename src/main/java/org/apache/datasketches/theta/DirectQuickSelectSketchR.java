@@ -33,11 +33,11 @@ import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.P_FLOAT;
 import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
+import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
 import java.lang.foreign.MemorySegment;
@@ -49,7 +49,7 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesReadOnlyException;
 
 /**
- * The read-only Theta Sketch.
+ * The read-only ThetaSketch in a MemorySegment.
  *
  * <p>This implementation uses data in a given MemorySegment that is owned and managed by the caller.
  * This MemorySegment can be off-heap, which if managed properly will greatly reduce the need for
@@ -58,12 +58,12 @@ import org.apache.datasketches.common.SketchesReadOnlyException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-class DirectQuickSelectSketchR extends UpdateSketch {
+class DirectQuickSelectSketchR extends UpdatableThetaSketch {
 
   /**
-   * This MemorySegment reference is also used by the writable child DirectQuickSelectSketch.
+   * This MemorySegment reference is also used by the writable child DirectQuickSelectThetaSketch.
    *
-   * <p>When this class is constructed with the writable constructor, called by the writable child DirectQuickSelectSketch,
+   * <p>When this class is constructed with the writable constructor, called by the writable child DirectQuickSelectThetaSketch,
    * this reference can be changed, its contents can be modified.</p>
    *
    * <p>When this class is constructed with the read-only constructor, called from local factories, this MemorySegment will
@@ -72,10 +72,10 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   MemorySegment wseg_; //
 
   /**
-   * This writable constructor is only called by the writable child DirectQuickSelectSketch and then this class provides the
-   * read-only methods for the DirectQuickSelectSketch class.
-   * @param wseg the writable MemorySegment used by the writable child DirectQuickSelectSketch.
-   * @param seed the seed for the update function for the writable child DirectQuickSelectSketch.
+   * This writable constructor is only called by the writable child DirectQuickSelectThetaSketch and then this class provides the
+   * read-only methods for the DirectQuickSelectThetaSketch class.
+   * @param wseg the writable MemorySegment used by the writable child DirectQuickSelectThetaSketch.
+   * @param seed the seed for the update function for the writable child DirectQuickSelectThetaSketch.
    */
   DirectQuickSelectSketchR(final MemorySegment wseg, final long seed) {
     Objects.requireNonNull(wseg, "MemorySegment wseg must not be null");
@@ -106,7 +106,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final int lgNomLongs = extractLgNomLongs(srcSeg);                   //byte 3
     final int lgArrLongs = extractLgArrLongs(srcSeg);                   //byte 4
     checkSegIntegrity(srcSeg, seed, preambleLongs, lgNomLongs, lgArrLongs);
-    UpdateSketch.checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
+    UpdatableThetaSketch.checkUnionAndQuickSelectFamily(srcSeg, preambleLongs, lgNomLongs);
     return new DirectQuickSelectSketchR(seed, srcSeg);
   }
 
@@ -122,7 +122,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return new DirectQuickSelectSketchR(seed, srcSeg);
   }
 
-  //Sketch
+  //ThetaSketch
 
   @Override
   public int getCurrentBytes() {
@@ -136,7 +136,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   public double getEstimate() {
     final int curCount = extractCurCount(wseg_);
     final long thetaLong = extractThetaLong(wseg_);
-    return Sketch.estimate(thetaLong, curCount);
+    return ThetaSketch.estimate(thetaLong, curCount);
   }
 
   @Override
@@ -146,7 +146,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     return wseg_.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
   }
 
@@ -193,7 +193,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return byteArray;
   }
 
-  //UpdateSketch
+  //UpdatableThetaSketch
 
   @Override
   public final int getLgNomLongs() {
@@ -211,7 +211,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdatableThetaSketch rebuild() {
     throw new SketchesReadOnlyException();
   }
 
@@ -238,7 +238,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   int getCurrentPreambleLongs() {
-    return Sketch.getPreambleLongs(wseg_);
+    return ThetaSketch.getPreambleLongs(wseg_);
   }
 
   @Override
@@ -253,7 +253,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   boolean isDirty() {
-    return false; //Always false for QuickSelectSketch
+    return false; //Always false for QuickSelectThetaSketch
   }
 
   @Override

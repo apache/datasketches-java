@@ -35,11 +35,11 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * For building a new UpdateSketch.
+ * For building a new UpdatableThetaSketch.
  *
  * @author Lee Rhodes
  */
-public final class UpdateSketchBuilder {
+public final class UpdatableThetaSketchBuilder {
   private int bLgNomLongs;
   private long bSeed;
   private ResizeFactor bRF;
@@ -55,7 +55,7 @@ public final class UpdateSketchBuilder {
   private int bMaxNumLocalThreads;
 
   /**
-   * Constructor for building a new UpdateSketch. The default configuration is
+   * Constructor for building a new UpdatableThetaSketch. The default configuration is
    * <ul>
    * <li>Nominal Entries: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value org.apache.datasketches.common.Util#DEFAULT_UPDATE_SEED}</li>
@@ -75,7 +75,7 @@ public final class UpdateSketchBuilder {
    * <li>Concurrent MaxNumLocalThreads: 1</li>
    * </ul>
    */
-  public UpdateSketchBuilder() {
+  public UpdatableThetaSketchBuilder() {
     bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
     bSeed = Util.DEFAULT_UPDATE_SEED;
     bRF = ResizeFactor.X8;
@@ -100,9 +100,9 @@ public final class UpdateSketchBuilder {
    *
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if the given value is not.
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setNominalEntries(final int nomEntries) {
+  public UpdatableThetaSketchBuilder setNominalEntries(final int nomEntries) {
     bLgNomLongs = ThetaUtil.checkNomLongs(nomEntries);
     return this;
   }
@@ -115,9 +115,9 @@ public final class UpdateSketchBuilder {
    * thoroughly characterized for performance.
    *
    * @param lgNomEntries the Log Nominal Entries. Also for the concurrent shared sketch
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setLogNominalEntries(final int lgNomEntries) {
+  public UpdatableThetaSketchBuilder setLogNominalEntries(final int lgNomEntries) {
     bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgNomEntries);
     return this;
   }
@@ -130,9 +130,9 @@ public final class UpdateSketchBuilder {
    * thoroughly characterized for performance.
    *
    * @param lgK the Log Nominal Entries. Also for the concurrent shared sketch.
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setLgK(final int lgK) {
+  public UpdatableThetaSketchBuilder setLgK(final int lgK) {
     bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgK);
     return this;
   }
@@ -153,9 +153,9 @@ public final class UpdateSketchBuilder {
    *
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    *                   This will become the ceiling power of 2 if it is not.
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setConCurNominalEntries(final int nomEntries) {
+  public UpdatableThetaSketchBuilder setConCurNominalEntries(final int nomEntries) {
     bConCurLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
     if (bConCurLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS || bConCurLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
@@ -171,9 +171,9 @@ public final class UpdateSketchBuilder {
    * value have not been thoroughly tested or characterized for performance.
    *
    * @param lgNomEntries the Log Nominal Entries for a concurrent local sketch
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setConCurLogNominalEntries(final int lgNomEntries) {
+  public UpdatableThetaSketchBuilder setConCurLogNominalEntries(final int lgNomEntries) {
     bConCurLgNomLongs = lgNomEntries;
     if (bConCurLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS || bConCurLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
@@ -193,9 +193,9 @@ public final class UpdateSketchBuilder {
   /**
    * Sets the local long seed value that is required by the hashing function.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setSeed(final long seed) {
+  public UpdatableThetaSketchBuilder setSeed(final long seed) {
     bSeed = seed;
     return this;
   }
@@ -211,9 +211,9 @@ public final class UpdateSketchBuilder {
   /**
    * Sets the local upfront uniform pre-sampling probability, <i>p</i>
    * @param p <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setP(final float p) {
+  public UpdatableThetaSketchBuilder setP(final float p) {
     if (p <= 0.0 || p > 1.0) {
       throw new SketchesArgumentException("p must be > 0 and <= 1.0: " + p);
     }
@@ -232,9 +232,9 @@ public final class UpdateSketchBuilder {
   /**
    * Sets the local cache Resize Factor.
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setResizeFactor(final ResizeFactor rf) {
+  public UpdatableThetaSketchBuilder setResizeFactor(final ResizeFactor rf) {
     bRF = rf;
     return this;
   }
@@ -250,9 +250,9 @@ public final class UpdateSketchBuilder {
   /**
    * Set the local Family. Choose either Family.ALPHA or Family.QUICKSELECT.
    * @param family the family for this builder
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setFamily(final Family family) {
+  public UpdatableThetaSketchBuilder setFamily(final Family family) {
     bFam = family;
     return this;
   }
@@ -268,9 +268,9 @@ public final class UpdateSketchBuilder {
   /**
    * Sets the local MemorySegmentRequest
    * @param mSegReq the given MemorySegmentRequest
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setMemorySegmentRequest(final MemorySegmentRequest mSegReq) {
+  public UpdatableThetaSketchBuilder setMemorySegmentRequest(final MemorySegmentRequest mSegReq) {
     bMemorySegmentRequest = mSegReq;
     return this;
   }
@@ -305,9 +305,9 @@ public final class UpdateSketchBuilder {
    * Sets the local Propagate Ordered Compact flag to the given value. Used with concurrent sketches.
    *
    * @param prop the given value
-   * @return this UpdateSketchBuilder
+   * @return this UpdatableThetaSketchBuilder
    */
-  public UpdateSketchBuilder setPropagateOrderedCompact(final boolean prop) {
+  public UpdatableThetaSketchBuilder setPropagateOrderedCompact(final boolean prop) {
     bPropagateOrderedCompact = prop;
     return this;
   }
@@ -356,23 +356,23 @@ public final class UpdateSketchBuilder {
   // BUILD FUNCTIONS
 
   /**
-   * Returns an UpdateSketch with the current configuration of this Builder.
-   * @return an UpdateSketch
+   * Returns an UpdatableThetaSketch with the current configuration of this Builder.
+   * @return an UpdatableThetaSketch
    */
-  public UpdateSketch build() {
+  public UpdatableThetaSketch build() {
     return build(null);
   }
 
   /**
-   * Returns an UpdateSketch with the current configuration of this Builder
+   * Returns an UpdatableThetaSketch with the current configuration of this Builder
    * with the specified backing destination MemorySegment store.
    * Note: this can only be used with the QUICKSELECT Family of sketches
    * and cannot be used with the Alpha Family of sketches.
    * @param dstSeg The destination MemorySegment.
-   * @return an UpdateSketch
+   * @return an UpdatableThetaSketch
    */
-  public UpdateSketch build(final MemorySegment dstSeg) {
-    UpdateSketch sketch = null;
+  public UpdatableThetaSketch build(final MemorySegment dstSeg) {
+    UpdatableThetaSketch sketch = null;
     final boolean unionGadget = false;
     switch (bFam) {
       case ALPHA: {
@@ -395,14 +395,14 @@ public final class UpdateSketchBuilder {
       }
       default: {
         throw new SketchesArgumentException(
-          "Given Family cannot be built as a Theta Sketch: " + bFam.toString());
+          "Given Family cannot be built as an UpdatableThetaSketch: " + bFam.toString());
       }
     }
     return sketch;
   }
 
   /**
-   * Returns an on-heap concurrent shared UpdateSketch with the current configuration of the
+   * Returns an on-heap concurrent shared UpdatableThetaSketch with the current configuration of the
    * Builder.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
@@ -411,21 +411,21 @@ public final class UpdateSketchBuilder {
    * <li>Maximum Concurrency Error</li>
    * </ul>
    *
-   * <p>Key parameters that are in common with other <i>Theta</i> sketches:
+   * <p>Key parameters that are in common with other <i>ThetaSketches</i>:
    * <ul>
    * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
    * </ul>
    *
-   * @return an on-heap concurrent UpdateSketch with the current configuration of the Builder.
+   * @return an on-heap concurrent UpdatableThetaSketch with the current configuration of the Builder.
    */
-  public UpdateSketch buildShared() {
+  public UpdatableThetaSketch buildShared() {
     return buildShared(null);
   }
 
   /**
-   * Returns a concurrent shared UpdateSketch with the current
+   * Returns a concurrent shared UpdatableThetaSketch with the current
    * configuration of the Builder and the given destination MemorySegment. If the destination
-   * MemorySegment is null, this defaults to an on-heap concurrent shared UpdateSketch.
+   * MemorySegment is null, this defaults to an on-heap concurrent shared UpdatableThetaSketch.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
    * <ul>
@@ -440,12 +440,12 @@ public final class UpdateSketchBuilder {
    * </ul>
    *
    * @param dstSeg the given MemorySegment for Direct, otherwise <i>null</i>.
-   * @return a concurrent UpdateSketch with the current configuration of the Builder
+   * @return a concurrent UpdatableThetaSketch with the current configuration of the Builder
    * and the given destination MemorySegment.
    */
   @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
       justification = "Harmless in Builder, fix later")
-  public UpdateSketch buildShared(final MemorySegment dstSeg) {
+  public UpdatableThetaSketch buildShared(final MemorySegment dstSeg) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstSeg == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError);
@@ -455,10 +455,10 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
+   * Returns a direct (potentially off-heap) concurrent shared UpdatableThetaSketch with the current
    * configuration of the Builder, the data from the given sketch, and the given destination
    * MemorySegment. If the destination MemorySegment is null, this defaults to an on-heap
-   * concurrent shared UpdateSketch.
+   * concurrent shared UpdatableThetaSketch.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
    * <ul>
@@ -472,15 +472,15 @@ public final class UpdateSketchBuilder {
    * <li>Destination MemorySegment (if not null, returned sketch is Direct. Default is null.)</li>
    * </ul>
    *
-   * @param sketch a given UpdateSketch from which the data is used to initialize the returned
+   * @param sketch a given UpdatableThetaSketch from which the data is used to initialize the returned
    * shared sketch.
    * @param dstSeg the given MemorySegment for Direct, otherwise <i>null</i>.
-   * @return a concurrent UpdateSketch with the current configuration of the Builder
+   * @return a concurrent UpdatableThetaSketch with the current configuration of the Builder
    * and the given destination MemorySegment.
    */
   @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
       justification = "Harmless in Builder, fix later")
-  public UpdateSketch buildSharedFromSketch(final UpdateSketch sketch, final MemorySegment dstSeg) {
+  public UpdatableThetaSketch buildSharedFromSketch(final UpdatableThetaSketch sketch, final MemorySegment dstSeg) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstSeg == null) {
       return new ConcurrentHeapQuickSelectSketch(sketch, bSeed, bMaxConcurrencyError);
@@ -490,8 +490,8 @@ public final class UpdateSketchBuilder {
   }
 
   /**
-   * Returns a local, on-heap, concurrent UpdateSketch to be used as a per-thread local buffer
-   * along with the given concurrent shared UpdateSketch and the current configuration of this
+   * Returns a local, on-heap, concurrent UpdatableThetaSketch to be used as a per-thread local buffer
+   * along with the given concurrent shared UpdatableThetaSketch and the current configuration of this
    * Builder.
    *
    * <p>The parameters unique to the local concurrent sketch are:
@@ -501,9 +501,9 @@ public final class UpdateSketchBuilder {
    * </ul>
    *
    * @param shared the concurrent shared sketch to be accessed via the concurrent local sketch.
-   * @return an UpdateSketch to be used as a per-thread local buffer.
+   * @return an UpdatableThetaSketch to be used as a per-thread local buffer.
    */
-  public UpdateSketch buildLocal(final UpdateSketch shared) {
+  public UpdatableThetaSketch buildLocal(final UpdatableThetaSketch shared) {
     if (shared == null || !(shared instanceof ConcurrentSharedThetaSketch)) {
       throw new SketchesStateException("The concurrent shared sketch must be built first.");
     }
@@ -514,7 +514,7 @@ public final class UpdateSketchBuilder {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("UpdateSketchBuilder configuration:").append(LS);
+    sb.append("UpdatableThetaSketchBuilder configuration:").append(LS);
     sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
     sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
     sb.append("LgLocalK:").append(TAB).append(bConCurLgNomLongs).append(LS);

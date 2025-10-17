@@ -43,11 +43,11 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * The parent class for Heap Updatable Theta Sketches.
+ * The parent class for HeapUpdatableThetaSketches.
  *
  * @author Lee Rhodes
  */
-abstract class HeapUpdateSketch extends UpdateSketch {
+abstract class HeapUpdateSketch extends UpdatableThetaSketch {
   final int lgNomLongs_;
   private final float p_;
   private final ResizeFactor rf_;
@@ -59,7 +59,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     rf_ = rf;
   }
 
-  //Sketch
+  //ThetaSketch
 
   @Override
   public int getCurrentBytes() {
@@ -68,7 +68,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return preLongs + dataLongs << 3;
   }
 
-  //UpdateSketch
+  //UpdatableThetaSketch
 
   @Override
   public final int getLgNomLongs() {
@@ -92,7 +92,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return Util.computeSeedHash(getSeed());
   }
 
-  //Used by HeapAlphaSketch and HeapQuickSelectSketch / Theta UpdateSketch
+  //Used by HeapAlphaSketch and HeapQuickSelectThetaSketch / UpdatableThetaSketch
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
     checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));

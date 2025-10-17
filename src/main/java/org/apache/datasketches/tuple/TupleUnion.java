@@ -23,35 +23,37 @@ import static java.lang.Math.min;
 
 import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.theta.HashIterator;
+import org.apache.datasketches.theta.ThetaSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * Compute the union of two or more generic tuple sketches or generic tuple sketches combined with
- * theta sketches. A new instance represents an empty set.
+ * Compute the union of two or more generic tuple sketches or generic TupleSketches combined with
+ * ThetaSketches. A new instance represents an empty set.
  * @param <S> Type of Summary
  */
-public class Union<S extends Summary> {
+public class TupleUnion<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
   private QuickSelectSketch<S> qsk_;
   private long unionThetaLong_; // need to maintain outside of the sketch
   private boolean empty_;
 
   /**
-   * Creates new Union instance with instructions on how to process two summaries that
+   * Creates new TupleUnion instance with instructions on how to process two summaries that
    * overlap. This will have the default nominal entries (K).
    * @param summarySetOps instance of SummarySetOperations
    */
-  public Union(final SummarySetOperations<S> summarySetOps) {
+  public TupleUnion(final SummarySetOperations<S> summarySetOps) {
     this(ThetaUtil.DEFAULT_NOMINAL_ENTRIES, summarySetOps);
   }
 
   /**
-   * Creates new Union instance.
+   * Creates new TupleUnion instance.
    * @param nomEntries nominal entries (K). Forced to the nearest power of 2 greater than
    * given value.
    * @param summarySetOps instance of SummarySetOperations
    */
-  public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
+  public TupleUnion(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
     summarySetOps_ = summarySetOps;
     qsk_ = new QuickSelectSketch<>(nomEntries, null);
     unionThetaLong_ = qsk_.getThetaLong();
@@ -66,43 +68,43 @@ public class Union<S extends Summary> {
    *
    * @param tupleSketchA The first argument
    * @param tupleSketchB The second argument
-   * @return the result ordered CompactSketch on the heap.
+   * @return the result ordered CompactTupleSketch on the heap.
    */
-  public CompactSketch<S> union(final Sketch<S> tupleSketchA, final Sketch<S> tupleSketchB) {
+  public CompactTupleSketch<S> union(final TupleSketch<S> tupleSketchA, final TupleSketch<S> tupleSketchB) {
     reset();
     union(tupleSketchA);
     union(tupleSketchB);
-    final CompactSketch<S> csk = getResult(true);
+    final CompactTupleSketch<S> csk = getResult(true);
     return csk;
   }
 
   /**
-   * Perform a stateless, pair-wise union operation between a tupleSketch and a thetaSketch.
+   * Perform a stateless, pair-wise union operation between a tupleSketch and a ThetaSketch.
    * The returned sketch will be cut back to the smaller of the two k values if required.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
    * @param tupleSketch The first argument
    * @param thetaSketch The second argument
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one.
    * This may not be null.
-   * @return the result ordered CompactSketch on the heap.
+   * @return the result ordered CompactTupleSketch on the heap.
    */
-  public CompactSketch<S> union(final Sketch<S> tupleSketch,
-      final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+  public CompactTupleSketch<S> union(final TupleSketch<S> tupleSketch,
+      final ThetaSketch thetaSketch, final S summary) {
     reset();
     union(tupleSketch);
     union(thetaSketch, summary);
-    final CompactSketch<S> csk = getResult(true);
+    final CompactTupleSketch<S> csk = getResult(true);
     return csk;
   }
 
   /**
-   * Performs a stateful union of the internal set with the given tupleSketch.
+   * Performs a stateful union of the internal set with the given TupleSketch.
    * @param tupleSketch input tuple sketch to merge with the internal set.
    * Nulls and empty sketches are ignored.
    */
-  public void union(final Sketch<S> tupleSketch) {
+  public void union(final TupleSketch<S> tupleSketch) {
     if (tupleSketch == null || tupleSketch.isEmpty()) { return; }
     empty_ = false;
     unionThetaLong_ = min(tupleSketch.thetaLong_, unionThetaLong_);
@@ -114,20 +116,20 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Performs a stateful union of the internal set with the given thetaSketch by combining entries
-   * using the hashes from the theta sketch and summary values from the given summary.
-   * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
+   * Performs a stateful union of the internal set with the given ThetaSketch by combining entries
+   * using the hashes from the ThetaSketch and summary values from the given summary.
+   * @param thetaSketch the given ThetaSketch input. If null or empty, it is ignored.
+   * @param summary the given proxy summary for the ThetaSketch, which doesn't have one. This may
    * not be null.
    */
-  public void union(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+  public void union(final ThetaSketch thetaSketch, final S summary) {
     if (summary == null) {
       throw new SketchesArgumentException("Summary cannot be null."); }
     if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
     empty_ = false;
     final long thetaIn = thetaSketch.getThetaLong();
     unionThetaLong_ = min(thetaIn, unionThetaLong_);
-    final org.apache.datasketches.theta.HashIterator it = thetaSketch.iterator();
+    final HashIterator it = thetaSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.get(), summary, summarySetOps_); //copies summary
     }
@@ -135,23 +137,23 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactSketch
+   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactTupleSketch
    * @return result of the stateful unions so far. The state of this operation is not reset after the
    * result is returned.
    */
-  public CompactSketch<S> getResult() {
+  public CompactTupleSketch<S> getResult() {
     return getResult(false);
   }
 
   /**
-   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactSketch.
+   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactTupleSketch.
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    * @return result of the stateful union
    */
   @SuppressWarnings("unchecked")
-  public CompactSketch<S> getResult(final boolean reset) {
-    final CompactSketch<S> result;
+  public CompactTupleSketch<S> getResult(final boolean reset) {
+    final CompactTupleSketch<S> result;
     if (empty_) {
       result = qsk_.compact();
     } else if (unionThetaLong_ >= qsk_.thetaLong_ && qsk_.getRetainedEntries() <= qsk_.getNominalEntries()) {
@@ -171,7 +173,7 @@ public class Union<S extends Summary> {
       if (numHashesIn == 0) {
         //numHashes == 0 && empty == false means Theta < 1.0
         //Therefore, this is a degenerate sketch: theta < 1.0, count = 0, empty = false
-        result = new CompactSketch<>(null, null, tmpThetaLong, empty_);
+        result = new CompactTupleSketch<>(null, null, tmpThetaLong, empty_);
       }
 
       else {
@@ -206,7 +208,7 @@ public class Union<S extends Summary> {
             i++;
           }
         }
-        result = new CompactSketch<>(hashArr, summaries, thetaLongOut, empty_);
+        result = new CompactTupleSketch<>(hashArr, summaries, thetaLongOut, empty_);
       }
     }
     if (reset) { reset(); }

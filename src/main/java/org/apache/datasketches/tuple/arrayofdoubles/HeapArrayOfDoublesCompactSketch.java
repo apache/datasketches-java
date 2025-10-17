@@ -34,7 +34,7 @@ import org.apache.datasketches.common.Util;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
- * The on-heap implementation of tuple Compact Sketch of type ArrayOfDoubles.
+ * The on-heap implementation of CompactTupleSketch of type ArrayOfDoubles.
  */
 final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch {
 

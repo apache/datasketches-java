@@ -28,7 +28,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
- * The on-heap implementation of the Union set operation for tuple sketches of type
+ * The on-heap implementation of the TupleUnion set operation for tuple sketches of type
  * ArrayOfDoubles.
  */
 final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {

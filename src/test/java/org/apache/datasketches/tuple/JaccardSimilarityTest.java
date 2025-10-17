@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
@@ -43,8 +43,8 @@ public class JaccardSimilarityTest {
   private final DoubleSummary.Mode umode = DoubleSummary.Mode.Sum;
   private final DoubleSummarySetOperations dsso = new DoubleSummarySetOperations();
   private final DoubleSummaryFactory factory = new DoubleSummaryFactory(umode);
-  private final UpdateSketchBuilder thetaBldr = UpdateSketch.builder();
-  private final UpdatableSketchBuilder<Double, DoubleSummary> tupleBldr = new UpdatableSketchBuilder<>(factory);
+  private final UpdatableThetaSketchBuilder thetaBldr = UpdatableThetaSketch.builder();
+  private final UpdatableTupleSketchBuilder<Double, DoubleSummary> tupleBldr = new UpdatableTupleSketchBuilder<>(factory);
   private final Double constSummary = 1.0;
 
   @Test
@@ -61,8 +61,8 @@ public class JaccardSimilarityTest {
     state = exactlyEqual(null, null, dsso);
     assertFalse(state);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
-    final UpdatableSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(minK).build();
 
     //check both empty
     jResults = jaccard(measured, expected, dsso);
@@ -103,8 +103,8 @@ public class JaccardSimilarityTest {
     state = exactlyEqual(null, null, factory.newSummary(), dsso);
     assertFalse(state);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
-    final UpdateSketch expected = thetaBldr.setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
+    final UpdatableThetaSketch expected = thetaBldr.setNominalEntries(minK).build();
 
     //check both empty
     jResults = jaccard(measured, expected, factory.newSummary(), dsso);
@@ -138,8 +138,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Exact Mode, minK: " + k + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
-    final UpdatableSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(k).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(k).build();
 
     for (int i = 0; i < (u-1); i++) { //one short
       measured.update(i, constSummary);
@@ -174,8 +174,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Exact Mode, minK: " + k + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
-    final UpdateSketch expected = thetaBldr.setNominalEntries(k).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
+    final UpdatableThetaSketch expected = thetaBldr.setNominalEntries(k).build();
 
     for (int i = 0; i < (u-1); i++) { //one short
       measured.update(i, constSummary);
@@ -210,8 +210,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Estimation Mode, minK: " + k + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
-    final UpdatableSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(k).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(k).build();
 
     for (int i = 0; i < u; i++) {
       measured.update(i, constSummary);
@@ -248,8 +248,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.9999;
     println("Estimation Mode, minK: " + k + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
-    final UpdateSketch expected = thetaBldr.setNominalEntries(k).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(k).build();
+    final UpdatableThetaSketch expected = thetaBldr.setNominalEntries(k).build();
 
     for (int i = 0; i < u; i++) {
       measured.update(i, constSummary);
@@ -292,8 +292,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.943;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
-    final UpdatableSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i, constSummary);
@@ -325,8 +325,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.943;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
-    final UpdateSketch expected = thetaBldr.setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).build();
+    final UpdatableThetaSketch expected = thetaBldr.setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i);
@@ -358,8 +358,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.061;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).setNominalEntries(minK).build();
-    final UpdatableSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(minK).setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> expected = tupleBldr.setNominalEntries(minK).setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i, constSummary);
@@ -388,8 +388,8 @@ public class JaccardSimilarityTest {
     double threshold = 0.061;
     println("Estimation Mode, minK: " + minK + "\t Th: " + threshold);
 
-    final UpdatableSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).setNominalEntries(minK).build();
-    final UpdateSketch expected = thetaBldr.setNominalEntries(minK).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> measured = tupleBldr.setNominalEntries(minK).setNominalEntries(minK).build();
+    final UpdatableThetaSketch expected = thetaBldr.setNominalEntries(minK).build();
 
     for (int i = 0; i < u1; i++) {
       expected.update(i);
@@ -414,8 +414,8 @@ public class JaccardSimilarityTest {
 
   @Test
   public void checkMinK1() { // tuple, tuple
-    final UpdatableSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4096
-    final UpdatableSketch<Double, DoubleSummary> skB = tupleBldr.build(); //4096
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4096
+    final UpdatableTupleSketch<Double, DoubleSummary> skB = tupleBldr.build(); //4096
     skA.update(1, constSummary);
     skB.update(1, constSummary);
     double[] result = jaccard(skA, skB, dsso);
@@ -430,8 +430,8 @@ public class JaccardSimilarityTest {
 
   @Test
   public void checkMinK2() { // tuple, theta
-    final UpdatableSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4096
-    final UpdateSketch skB = UpdateSketch.builder().build(); //4096
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4096
+    final UpdatableThetaSketch skB = UpdatableThetaSketch.builder().build(); //4096
     skA.update(1, constSummary);
     skB.update(1);
     double[] result = jaccard(skA, skB, factory.newSummary(), dsso);

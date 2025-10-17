@@ -31,10 +31,10 @@ import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Objects;
@@ -223,7 +223,7 @@ final class KllPreambleUtil {
    */
   static <T> String toString(final MemorySegment seg, final SketchType sketchType, final boolean includeData,
       final ArrayOfItemsSerDe<T> serDe) {
-    if (sketchType == ITEMS_SKETCH) {
+    if (sketchType == KLL_ITEMS_SKETCH) {
       Objects.requireNonNull(serDe, "SerDe parameter must not be null for ITEMS_SKETCH.");
     }
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, sketchType, serDe);
@@ -290,44 +290,44 @@ final class KllPreambleUtil {
         }
 
         sb.append("MIN/MAX:").append(LS);
-        if (sketchType == DOUBLES_SKETCH) {
+        if (sketchType == KLL_DOUBLES_SKETCH) {
           sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-        } else if (sketchType == FLOATS_SKETCH) {
+        } else if (sketchType == KLL_FLOATS_SKETCH) {
           sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-        } else if (sketchType == LONGS_SKETCH) {
+        } else if (sketchType == KLL_LONGS_SKETCH) {
           sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else { //ITEMS_SKETCH
-          sb.append("<<<Updatable Structure is not suppported by ItemsSketch>>>").append(LS);
+          sb.append("<<<Updatable Structure is not suppported by KllItemsSketch>>>").append(LS);
         }
 
         sb.append("ALL DATA (including free space)").append(LS);
         final int itemsSpace = (sketchBytes - offsetBytes) / typeBytes;
-        if (sketchType == DOUBLES_SKETCH) {
+        if (sketchType == KLL_DOUBLES_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
             sb.append(i + ", " + seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
-        } else if (sketchType == FLOATS_SKETCH) {
+        } else if (sketchType == KLL_FLOATS_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
             sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
-        } else if (sketchType == LONGS_SKETCH) {
+        } else if (sketchType == KLL_LONGS_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
             sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
-          sb.append("<<<Updatable Structure is not suppported by ItemsSketch>>>").append(LS);
+          sb.append("<<<Updatable Structure is not suppported by KllItemsSketch>>>").append(LS);
         }
 
       } else if (myStructure == COMPACT_FULL) {
@@ -343,17 +343,17 @@ final class KllPreambleUtil {
         sb.append(" (Top level of Levels Array is absent in MemorySegment)").append(LS);
 
         sb.append("MIN/MAX:").append(LS);
-        if (sketchType == DOUBLES_SKETCH) {
+        if (sketchType == KLL_DOUBLES_SKETCH) {
           sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-        } else if (sketchType == FLOATS_SKETCH) {
+        } else if (sketchType == KLL_FLOATS_SKETCH) {
           sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-        } else if (sketchType == LONGS_SKETCH) {
+        } else if (sketchType == KLL_LONGS_SKETCH) {
           sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
@@ -367,17 +367,17 @@ final class KllPreambleUtil {
 
         sb.append("RETAINED DATA").append(LS);
         final int itemSpace = (sketchBytes - offsetBytes) / (typeBytes == 0 ? 1 : typeBytes);
-        if (sketchType == DOUBLES_SKETCH) {
+        if (sketchType == KLL_DOUBLES_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + seg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
-        } else if (sketchType == FLOATS_SKETCH) {
+        } else if (sketchType == KLL_FLOATS_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + seg.get(JAVA_FLOAT_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
-        } else if (sketchType == LONGS_SKETCH) {
+        } else if (sketchType == KLL_LONGS_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
             offsetBytes += typeBytes;
@@ -392,11 +392,11 @@ final class KllPreambleUtil {
       } else if (myStructure == COMPACT_SINGLE) {
 
           sb.append("SINGLE ITEM DATUM: "); //no LS
-          if (sketchType == DOUBLES_SKETCH) {
+          if (sketchType == KLL_DOUBLES_SKETCH) {
             sb.append(seg.get(JAVA_DOUBLE_UNALIGNED, DATA_START_ADR_SINGLE_ITEM)).append(LS);
-          } else if (sketchType == FLOATS_SKETCH) {
+          } else if (sketchType == KLL_FLOATS_SKETCH) {
             sb.append(seg.get(JAVA_FLOAT_UNALIGNED, DATA_START_ADR_SINGLE_ITEM)).append(LS);
-          } else if (sketchType == LONGS_SKETCH) {
+          } else if (sketchType == KLL_LONGS_SKETCH) {
             sb.append(seg.get(JAVA_LONG_UNALIGNED, DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else { //ITEMS_SKETCH
             sb.append(serDe.deserializeFromMemorySegment(seg, DATA_START_ADR_SINGLE_ITEM, 1)[0]).append(LS);

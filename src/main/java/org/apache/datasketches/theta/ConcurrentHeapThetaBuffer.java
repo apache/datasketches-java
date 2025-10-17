@@ -42,10 +42,10 @@ import org.apache.datasketches.thetacommon.HashOperations;
  * Propagation is done either synchronously by the updating thread, or asynchronously by a
  * background propagation thread.
  *
- * <p>This is a buffer, not a sketch, and it extends the <i>HeapQuickSelectSketch</i>
+ * <p>This is a buffer, not a sketch, and it extends the <i>HeapQuickSelectThetaSketch</i>
  * in order to leverage some of the sketch machinery to make its work simple. However, if this
  * buffer receives a query, like <i>getEstimate()</i>, the correct answer does not come from the super
- * <i>HeapQuickSelectSketch</i>, which knows nothing about the concurrency relationship to the
+ * <i>HeapQuickSelectThetaSketch</i>, which knows nothing about the concurrency relationship to the
  * shared concurrent sketch, it must come from the shared concurrent sketch. As a result nearly all
  * of the inherited sketch methods are redirected to the shared concurrent sketch.
  *
@@ -111,7 +111,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     //no inspection StatementWithEmptyBody
     while (localPropagationInProgress.get()) { /* busy wait until previous propagation completed */ }
 
-    final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
+    final CompactThetaSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);
     shared.propagate(localPropagationInProgress, compactSketch,
         ConcurrentSharedThetaSketch.NOT_SINGLE_HASH);
@@ -119,7 +119,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     thetaLong_ = shared.getVolatileTheta();
   }
 
-  //Public Sketch overrides proxies to shared concurrent sketch
+  //Public ThetaSketch overrides proxies to shared ConcurrentThetaSketch
 
   @Override
   public int getCompactBytes() {
@@ -178,7 +178,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     throw new UnsupportedOperationException("Local theta buffer need not be serialized");
   }
 
-  //Public UpdateSketch overrides
+  //Public UpdatableThetaSketch overrides
 
   @Override
   public void reset() {
@@ -187,7 +187,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     localPropagationInProgress.set(false);
   }
 
-  //Restricted UpdateSketch overrides
+  //Restricted UpdatableThetaSketch overrides
 
   /**
    * Updates buffer with given hash value.

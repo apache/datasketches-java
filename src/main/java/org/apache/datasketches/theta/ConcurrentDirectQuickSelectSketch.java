@@ -88,7 +88,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     initBgPropagationService();
   }
 
-  ConcurrentDirectQuickSelectSketch(final UpdateSketch sketch, final long seed,
+  ConcurrentDirectQuickSelectSketch(final UpdatableThetaSketch sketch, final long seed,
       final double maxConcurrencyError, final MemorySegment dstSeg) {
     super(sketch.getLgNomLongs(), seed, 1.0F, //p
         ResizeFactor.X1, //rf,
@@ -109,7 +109,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     updateEstimationSnapshot();
   }
 
-  //Sketch overrides
+  //ThetaSketch overrides
 
   @Override
   public double getEstimate() {
@@ -129,10 +129,10 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     return res;
   }
 
-  //UpdateSketch overrides
+  //UpdatableThetaSketch overrides
 
   @Override
-  public UpdateSketch rebuild() {
+  public UpdatableThetaSketch rebuild() {
     super.rebuild();
     updateEstimationSnapshot();
     return this;
@@ -207,7 +207,7 @@ final class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
   @Override
   public boolean propagate(final AtomicBoolean localPropagationInProgress,
-                           final Sketch sketchIn, final long singleHash) {
+                           final ThetaSketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
     if (singleHash != NOT_SINGLE_HASH                   // namely, is a single hash and
         && getRetainedEntries(false) < exactLimit_) {   // a small sketch then propagate myself (blocking)

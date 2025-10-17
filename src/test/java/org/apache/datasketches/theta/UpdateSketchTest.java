@@ -27,7 +27,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgResizeFactor;
-import static org.apache.datasketches.theta.UpdateSketch.isResizeFactorIncorrect;
+import static org.apache.datasketches.theta.UpdatableThetaSketch.isResizeFactorIncorrect;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -39,10 +39,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.theta.CompactOperations;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
@@ -54,7 +50,7 @@ public class UpdateSketchTest {
   @Test
   public void checkOtherUpdates() {
     final int k = 512;
-    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     sk1.update(1L);   //#1 long
     sk1.update(1.5);  //#2 double
     sk1.update(0.0);
@@ -118,7 +114,7 @@ public class UpdateSketchTest {
 
   @Test
   public void checkBuilder() {
-    final UpdateSketchBuilder bldr = UpdateSketch.builder();
+    final UpdatableThetaSketchBuilder bldr = UpdatableThetaSketch.builder();
 
     final long seed = 12345L;
     bldr.setSeed(seed);
@@ -146,40 +142,40 @@ public class UpdateSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderNomEntries() {
-    final UpdateSketchBuilder bldr = UpdateSketch.builder();
+    final UpdatableThetaSketchBuilder bldr = UpdatableThetaSketch.builder();
     final int k = 1 << 27;
     bldr.setNominalEntries(k);
   }
 
   @Test
   public void checkCompact() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
-    final CompactSketch csk = sk.compact();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
+    final CompactThetaSketch csk = sk.compact();
     assertEquals(csk.getCompactBytes(), 8);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIncompatibleFamily() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     sk.update(1);
     final MemorySegment wseg = MemorySegment.ofArray(sk.compact().toByteArray());
-    UpdateSketch.wrap(wseg, null, Util.DEFAULT_UPDATE_SEED);
+    UpdatableThetaSketch.wrap(wseg, null, Util.DEFAULT_UPDATE_SEED);
   }
 
   @Test
   public void checkCorruption() {
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
     sk.update(1);
     final MemorySegment wseg = MemorySegment.ofArray(sk.toByteArray());
     try {
       wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2);
-      Sketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
+      ThetaSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (final SketchesArgumentException e) { }
     try {
       wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 3);
       wseg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 2);
-      Sketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
+      ThetaSketch.wrap(wseg, Util.DEFAULT_UPDATE_SEED);
       fail();
     } catch (final SketchesArgumentException e) { }
   }
@@ -204,27 +200,28 @@ public class UpdateSketchTest {
     }
   }
 
-
-  @SuppressWarnings("unused")
   @Test
   public void checkCompactOpsMemorySegmentToCompact() {
     MemorySegment skwseg, cskwseg1, cskwseg2, cskwseg3;
-    CompactSketch csk1, csk2, csk3;
+    CompactThetaSketch csk1, csk2, csk3;
     final int lgK = 6;
-    final UpdateSketch sk = UpdateSketch.builder().setLogNominalEntries(lgK).build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().setLogNominalEntries(lgK).build();
     final int n = 1 << (lgK + 1);
     for (int i = 2; i < n; i++) { sk.update(i); }
     final int cbytes = sk.getCompactBytes();
     final byte[] byteArr = sk.toByteArray();
-    skwseg = MemorySegment.ofArray(byteArr);
-    cskwseg1 = MemorySegment.ofArray(new byte[cbytes]);
-    cskwseg2 = MemorySegment.ofArray(new byte[cbytes]);
-    cskwseg3 = MemorySegment.ofArray(new byte[cbytes]);
-    csk1 = sk.compact(true, cskwseg1);
-    csk2 = CompactOperations.segmentToCompact(skwseg, true, cskwseg2);
+    skwseg = MemorySegment.ofArray(byteArr); //updatable seg
+    cskwseg1 = MemorySegment.ofArray(new byte[cbytes]); //empty
+    cskwseg2 = MemorySegment.ofArray(new byte[cbytes]); //empty
+    cskwseg3 = MemorySegment.ofArray(new byte[cbytes]); //empty
+    csk1 = sk.compact(true, cskwseg1); //cskwseg1 has compact sk image, csk1 is the sketch
+    csk2 = CompactOperations.segmentToCompact(skwseg, true, cskwseg2); //cskwseg2 has compact skwseg image
     csk3 = CompactOperations.segmentToCompact(cskwseg1, true, cskwseg3);
     assertTrue(equalContents(cskwseg1,cskwseg2));
     assertTrue(equalContents(cskwseg1, cskwseg3));
+    assertTrue(csk1.hasMemorySegment());
+    assertTrue(csk2.hasMemorySegment());
+    assertTrue(csk3.hasMemorySegment());
   }
 
   @Test

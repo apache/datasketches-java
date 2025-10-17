@@ -20,13 +20,13 @@
 package org.apache.datasketches.thetacommon;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
+import org.apache.datasketches.theta.UpdatableThetaSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
 import org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets;
-import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.TupleIntersection;
+import org.apache.datasketches.tuple.TupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
@@ -44,22 +44,22 @@ public class BoundsOnRatiosInTupleSketchedSetsTest {
   private final DoubleSummary.Mode umode = DoubleSummary.Mode.Sum;
   private final DoubleSummarySetOperations dsso = new DoubleSummarySetOperations();
   private final DoubleSummaryFactory factory = new DoubleSummaryFactory(umode);
-  private final UpdateSketchBuilder thetaBldr = UpdateSketch.builder();
-  private final UpdatableSketchBuilder<Double, DoubleSummary> tupleBldr = new UpdatableSketchBuilder<>(factory);
+  private final UpdatableThetaSketchBuilder thetaBldr = UpdatableThetaSketch.builder();
+  private final UpdatableTupleSketchBuilder<Double, DoubleSummary> tupleBldr = new UpdatableTupleSketchBuilder<>(factory);
   private final Double constSummary = 1.0;
 
   @Test
   public void checkNormalReturns1() { // tuple, tuple
-    final UpdatableSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
-    final UpdatableSketch<Double, DoubleSummary> skC = tupleBldr.build();
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
+    final UpdatableTupleSketch<Double, DoubleSummary> skC = tupleBldr.build();
     final int uA = 10000;
     final int uC = 100000;
     for (int i = 0; i < uA; i++) { skA.update(i, constSummary); }
     for (int i = 0; i < uC; i++) { skC.update(i + (uA / 2), constSummary); }
-    final Intersection<DoubleSummary> inter = new Intersection<>(dsso);
+    final TupleIntersection<DoubleSummary> inter = new TupleIntersection<>(dsso);
     inter.intersect(skA);
     inter.intersect(skC);
-    final Sketch<DoubleSummary> skB = inter.getResult();
+    final TupleSketch<DoubleSummary> skB = inter.getResult();
 
     double est = BoundsOnRatiosInTupleSketchedSets.getEstimateOfBoverA(skA, skB);
     double lb = BoundsOnRatiosInTupleSketchedSets.getLowerBoundForBoverA(skA, skB);
@@ -88,16 +88,16 @@ public class BoundsOnRatiosInTupleSketchedSetsTest {
 
   @Test
   public void checkNormalReturns2() { // tuple, theta
-    final UpdatableSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
-    final UpdateSketch skC = thetaBldr.build();
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
+    final UpdatableThetaSketch skC = thetaBldr.build();
     final int uA = 10000;
     final int uC = 100000;
     for (int i = 0; i < uA; i++) { skA.update(i, constSummary); }
     for (int i = 0; i < uC; i++) { skC.update(i + (uA / 2)); }
-    final Intersection<DoubleSummary> inter = new Intersection<>(dsso);
+    final TupleIntersection<DoubleSummary> inter = new TupleIntersection<>(dsso);
     inter.intersect(skA);
     inter.intersect(skC, factory.newSummary());
-    final Sketch<DoubleSummary> skB = inter.getResult();
+    final TupleSketch<DoubleSummary> skB = inter.getResult();
 
     double est = BoundsOnRatiosInTupleSketchedSets.getEstimateOfBoverA(skA, skB);
     double lb = BoundsOnRatiosInTupleSketchedSets.getLowerBoundForBoverA(skA, skB);
@@ -126,8 +126,8 @@ public class BoundsOnRatiosInTupleSketchedSetsTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAbnormalReturns1() { // tuple, tuple
-    final UpdatableSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
-    final UpdatableSketch<Double, DoubleSummary> skC = tupleBldr.build();
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
+    final UpdatableTupleSketch<Double, DoubleSummary> skC = tupleBldr.build();
     final int uA = 100000;
     final int uC = 10000;
     for (int i = 0; i < uA; i++) { skA.update(i, constSummary); }
@@ -137,8 +137,8 @@ public class BoundsOnRatiosInTupleSketchedSetsTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAbnormalReturns2() { // tuple, theta
-    final UpdatableSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
-    final UpdateSketch skC = thetaBldr.build();
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4K
+    final UpdatableThetaSketch skC = thetaBldr.build();
     final int uA = 100000;
     final int uC = 10000;
     for (int i = 0; i < uA; i++) { skA.update(i, constSummary); }

@@ -45,7 +45,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @param <S> type of Summary
  */
-class QuickSelectSketch<S extends Summary> extends Sketch<S> {
+class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
   private static final byte serialVersionUID = 2;
 
   private enum Flags { IS_RESERVED, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
@@ -174,9 +174,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param seg MemorySegment object with serialized QuickSelectSketch
    * @param deserializer the SummaryDeserializer
    * @param summaryFactory the SummaryFactory
-   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * @deprecated As of 3.0.0, heapifying an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
-   * Heapifying a CompactSketch is not deprecated.
+   * Heapifying a CompactTupleSketch is not deprecated.
    */
   @Deprecated
   QuickSelectSketch(
@@ -377,10 +377,10 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    */
   @Override
   @SuppressWarnings("unchecked")
-  public CompactSketch<S> compact() {
+  public CompactTupleSketch<S> compact() {
     if (getRetainedEntries() == 0) {
-      if (empty_) { return new CompactSketch<>(null, null, Long.MAX_VALUE, true); }
-      return new CompactSketch<>(null, null, thetaLong_, false);
+      if (empty_) { return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true); }
+      return new CompactTupleSketch<>(null, null, thetaLong_, false);
     }
     final long[] hashArr = new long[getRetainedEntries()];
     final S[] summaryArr = Util.newSummaryArray(summaryTable_, getRetainedEntries());
@@ -392,7 +392,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
         i++;
       }
     }
-    return new CompactSketch<>(hashArr, summaryArr, thetaLong_, empty_);
+    return new CompactTupleSketch<>(hashArr, summaryArr, thetaLong_, empty_);
   }
 
   // Layout of first 8 bytes:
@@ -401,11 +401,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||   RF   |  lgArr | lgNom  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
   /**
-   * This serializes an UpdatableSketch (QuickSelectSketch).
-   * @return serialized representation of an UpdatableSketch (QuickSelectSketch).
-   * @deprecated As of 3.0.0, serializing an UpdatableSketch is deprecated.
+   * This serializes an UpdatableTupleSketch (QuickSelectSketch).
+   * @return serialized representation of an UpdatableTupleSketch (QuickSelectSketch).
+   * @deprecated As of 3.0.0, serializing an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
-   * Serializing a CompactSketch is not deprecated.
+   * Serializing a CompactTupleSketch is not deprecated.
    */
   @Deprecated
   @Override

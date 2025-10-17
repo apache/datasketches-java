@@ -37,11 +37,11 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 
 /**
- * A CompactSketch that holds only one item hash.
+ * A CompactThetaSketch that holds only one item hash.
  *
  * @author Lee Rhodes
  */
-final class SingleItemSketch extends CompactSketch {
+final class SingleItemSketch extends CompactThetaSketch {
   private static final long DEFAULT_SEED_HASH = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED) & 0xFFFFL;
 
   // For backward compatibility, a candidate pre0_ long must have:
@@ -49,7 +49,7 @@ final class SingleItemSketch extends CompactSketch {
   // Flags mask will be 0x1F.
   // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
   // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
-  // and the hash seed matches, it is virtually guaranteed that we have a SingleItem Sketch.
+  // and the hash seed matches, it is virtually guaranteed that we have a SingleItemThetaSketch.
 
   private static final long PRE0_LO6_SI   = 0X00_00_3A_00_00_03_03_01L; //low 6 bytes, with SI flag
   private long pre0_ = 0;
@@ -76,12 +76,12 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a SingleItemSketch MemorySegment image and a seedHash.
+   * Creates a SingleItemSketch on the heap given a SingleItemThetaSketch MemorySegment image and a seedHash.
    * Checks the seed hash of the given MemorySegment against the given seedHash.
    * @param srcSeg the MemorySegment to be heapified.
    * @param expectedSeedHash the given seedHash to be checked against the srcSeg seedHash
-   * @return a SingleItemSketch
-   */ //does not override Sketch
+   * @return a SingleItemThetaSketch
+   */ //does not override ThetaSketch
   static SingleItemSketch heapify(final MemorySegment srcSeg, final short expectedSeedHash) {
     Util.checkSeedHashes((short) extractSeedHash(srcSeg), expectedSeedHash);
     final boolean singleItem = checkForSingleItem(srcSeg);
@@ -90,7 +90,7 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
+  public CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg) {
     if (dstSeg == null) { return this; }
     else {
       dstSeg.set(JAVA_LONG_UNALIGNED, 0, pre0_);
@@ -105,7 +105,7 @@ final class SingleItemSketch extends CompactSketch {
    * Create this sketch with a long.
    *
    * @param datum The given long datum.
-   * @return a SingleItemSketch
+   * @return a SingleItemThetaSketch
    */
   static SingleItemSketch create(final long datum) {
     final long[] data = { datum };
@@ -120,7 +120,7 @@ final class SingleItemSketch extends CompactSketch {
    * The special floating-point values NaN and +/- Infinity are treated as distinct.
    *
    * @param datum The given double datum.
-   * @return a SingleItemSketch
+   * @return a SingleItemThetaSketch
    */
   static SingleItemSketch create(final double datum) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
@@ -138,7 +138,7 @@ final class SingleItemSketch extends CompactSketch {
    * </p>
    *
    * @param datum The given String.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final String datum) {
     if ((datum == null) || datum.isEmpty()) { return null; }
@@ -151,7 +151,7 @@ final class SingleItemSketch extends CompactSketch {
    * If the byte array is null or empty no create attempt is made and the method returns null.
    *
    * @param data The given byte array.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final byte[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
@@ -166,7 +166,7 @@ final class SingleItemSketch extends CompactSketch {
    * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
    *
    * @param data The given char array.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final char[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
@@ -178,7 +178,7 @@ final class SingleItemSketch extends CompactSketch {
    * If the integer array is null or empty no create attempt is made and the method returns null.
    *
    * @param data The given int array.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final int[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
@@ -190,7 +190,7 @@ final class SingleItemSketch extends CompactSketch {
    * If the long array is null or empty no create attempt is made and the method returns null.
    *
    * @param data The given long array.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final long[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
@@ -204,7 +204,7 @@ final class SingleItemSketch extends CompactSketch {
    *
    * @param datum The given long datum.
    * @param seed used to hash the given value.
-   * @return a SingleItemSketch
+   * @return a SingleItemThetaSketch
    */
   static SingleItemSketch create(final long datum, final long seed) {
     final long[] data = { datum };
@@ -220,7 +220,7 @@ final class SingleItemSketch extends CompactSketch {
    *
    * @param datum The given double datum.
    * @param seed used to hash the given value.
-   * @return a SingleItemSketch
+   * @return a SingleItemThetaSketch
    */
   static SingleItemSketch create(final double datum, final long seed) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
@@ -239,7 +239,7 @@ final class SingleItemSketch extends CompactSketch {
    *
    * @param datum The given String.
    * @param seed used to hash the given value.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final String datum, final long seed) {
     if ((datum == null) || datum.isEmpty()) { return null; }
@@ -253,7 +253,7 @@ final class SingleItemSketch extends CompactSketch {
    *
    * @param data The given byte array.
    * @param seed used to hash the given value.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final byte[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
@@ -269,7 +269,7 @@ final class SingleItemSketch extends CompactSketch {
    *
    * @param data The given char array.
    * @param seed used to hash the given value.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final char[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
@@ -282,7 +282,7 @@ final class SingleItemSketch extends CompactSketch {
    *
    * @param data The given int array.
    * @param seed used to hash the given value.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final int[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
@@ -295,14 +295,14 @@ final class SingleItemSketch extends CompactSketch {
    *
    * @param data The given long array.
    * @param seed used to hash the given value.
-   * @return a SingleItemSketch or null
+   * @return a SingleItemThetaSketch or null
    */
   static SingleItemSketch create(final long[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, seed)[0] >>> 1, seed);
   }
 
-  //Sketch
+  //ThetaSketch
 
   @Override //much faster
   public int getCountLessThanThetaLong(final long thetaLong) {
@@ -330,7 +330,7 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the Alpha Sketch
+  public int getRetainedEntries(final boolean valid) { //valid is only relevant for the AlphaSketch
     return 1;
   }
 
@@ -399,7 +399,7 @@ final class SingleItemSketch extends CompactSketch {
     // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
     // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
     // and the hash seed matches (not done here), it is virtually guaranteed that we have a
-    // SingleItem Sketch.
+    // SingleItemThetaSketch.
     final boolean preLongsOK = preLongs == 1;
     final boolean serVerOK = serVer >= 3;
     final boolean famIdOK = famId == Family.COMPACT.getID();

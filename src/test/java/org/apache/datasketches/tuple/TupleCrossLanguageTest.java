@@ -33,11 +33,10 @@ import java.nio.file.Files;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.TestUtil;
-import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.Sketches;
+import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
@@ -49,7 +48,7 @@ public class TupleCrossLanguageTest {
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void serialVersion1Compatibility() {
     final byte[] byteArr = TestUtil.getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
-    Sketch<DoubleSummary> sketch = Sketches.heapifySketch(MemorySegment.ofArray(byteArr), new DoubleSummaryDeserializer());
+    TupleSketch<DoubleSummary> sketch = TupleSketch.heapifySketch(MemorySegment.ofArray(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch.getRetainedEntries(), 4096);
@@ -65,19 +64,19 @@ public class TupleCrossLanguageTest {
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void version2Compatibility() {
     final byte[] byteArr = TestUtil.getResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
-    Sketch<IntegerSummary> sketch1 = Sketches.heapifySketch(MemorySegment.ofArray(byteArr), new IntegerSummaryDeserializer());
+    TupleSketch<IntegerSummary> sketch1 = TupleSketch.heapifySketch(MemorySegment.ofArray(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
     final int lgK = 12;
     final int K = 1 << lgK;
-    final UpdatableSketchBuilder<Integer, IntegerSummary> builder =
-            new UpdatableSketchBuilder<>(new IntegerSummaryFactory());
-    final UpdatableSketch<Integer, IntegerSummary> updatableSketch = builder.build();
+    final UpdatableTupleSketchBuilder<Integer, IntegerSummary> builder =
+            new UpdatableTupleSketchBuilder<>(new IntegerSummaryFactory());
+    final UpdatableTupleSketch<Integer, IntegerSummary> updatableSketch = builder.build();
     for (int i = 0; i < 2 * K; i++) {
       updatableSketch.update(i, 1);
     }
     updatableSketch.trim();
-    Sketch<IntegerSummary> sketch2 = updatableSketch.compact();
+    TupleSketch<IntegerSummary> sketch2 = updatableSketch.compact();
 
     Assert.assertEquals(sketch1.getRetainedEntries(), sketch2.getRetainedEntries());
     Assert.assertEquals(sketch1.getThetaLong(), sketch2.getThetaLong());
@@ -90,8 +89,8 @@ public class TupleCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final byte[] bytes = Files.readAllBytes(cppPath.resolve("tuple_int_n" + n + "_cpp.sk"));
-      final Sketch<IntegerSummary> sketch =
-          Sketches.heapifySketch(MemorySegment.ofArray(bytes), new IntegerSummaryDeserializer());
+      final TupleSketch<IntegerSummary> sketch =
+          TupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new IntegerSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertTrue(n > 1000 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
@@ -107,8 +106,8 @@ public class TupleCrossLanguageTest {
   public void generateForCppIntegerSummary() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final UpdatableSketch<Integer, IntegerSummary> sk =
-          new UpdatableSketchBuilder<>(new IntegerSummaryFactory()).build();
+      final UpdatableTupleSketch<Integer, IntegerSummary> sk =
+          new UpdatableTupleSketchBuilder<>(new IntegerSummaryFactory()).build();
       for (int i = 0; i < n; i++) {
         sk.update(i, i);
       }

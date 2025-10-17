@@ -19,14 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import org.apache.datasketches.theta.AnotB;
-import org.apache.datasketches.theta.CompactSketch;
-import org.apache.datasketches.theta.Intersection;
-import org.apache.datasketches.theta.SetOperation;
-import org.apache.datasketches.theta.SetOperationBuilder;
-import org.apache.datasketches.theta.Union;
-import org.apache.datasketches.theta.UpdateSketch;
-import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.testng.annotations.Test;
 //import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 //import static org.apache.datasketches.hash.MurmurHash3.hash;
@@ -64,8 +56,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void emptyEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -84,8 +76,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void emptyExact() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -104,8 +96,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void emptyDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -124,8 +116,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void emptyEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -146,8 +138,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -166,8 +158,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactExact() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -186,8 +178,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
+    UpdatableThetaSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -206,8 +198,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -228,8 +220,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaA = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -248,8 +240,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationExact() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -268,8 +260,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -288,8 +280,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
+    UpdatableThetaSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -310,8 +302,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void degenerateEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    UpdatableThetaSketch thetaA = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
+    UpdatableThetaSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -330,8 +322,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void degenerateExact() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE,  LOWP, GT_LOWP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.DEGENERATE,  LOWP, GT_LOWP_V); //entries = 0
+    UpdatableThetaSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -350,8 +342,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void degenerateDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
+    UpdatableThetaSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -370,8 +362,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void degenerateEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdatableThetaSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
+    UpdatableThetaSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
@@ -392,8 +384,8 @@ public class CornerCaseThetaSetOperationsTest {
   //=================================
 
   private static void checks(
-      UpdateSketch thetaA,
-      UpdateSketch thetaB,
+      UpdatableThetaSketch thetaA,
+      UpdatableThetaSketch thetaB,
       double expectedIntersectTheta,
       int expectedIntersectCount,
       boolean expectedIntersectEmpty,
@@ -403,56 +395,56 @@ public class CornerCaseThetaSetOperationsTest {
       double expectedUnionTheta,
       int expectedUnionCount,
       boolean expectedUnionEmpty) {
-    CompactSketch csk;
-    Intersection inter = SetOperation.builder().buildIntersection();
-    AnotB anotb = SetOperation.builder().buildANotB();
-    Union union = new SetOperationBuilder().buildUnion();
+    CompactThetaSketch csk;
+    ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
+    ThetaAnotB anotb = ThetaSetOperation.builder().buildANotB();
+    ThetaUnion union = new ThetaSetOperationBuilder().buildUnion();
 
-    //Intersection Stateless Theta, Theta Updatable
+    //ThetaIntersection Stateless Theta, Theta Updatable
     csk = inter.intersect(thetaA, thetaB);
-    checkResult("Intersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
+    checkResult("ThetaIntersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
-    //Intersection Stateless Theta, Theta Compact
+    //ThetaIntersection Stateless Theta, Theta Compact
     csk = inter.intersect(thetaA.compact(), thetaB.compact());
-    checkResult("Intersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
+    checkResult("ThetaIntersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
 
-    //AnotB Stateless Theta, Theta Updatable
+    //ThetaAnotB Stateless Theta, Theta Updatable
     csk = anotb.aNotB(thetaA, thetaB);
-    checkResult("AnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateless Theta, Theta Compact
+    checkResult("ThetaAnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //ThetaAnotB Stateless Theta, Theta Compact
     csk = anotb.aNotB(thetaA.compact(), thetaB.compact());
-    checkResult("AnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    checkResult("ThetaAnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
 
-    //AnotB Stateful Theta, Theta Updatable
+    //ThetaAnotB Stateful Theta, Theta Updatable
     anotb.setA(thetaA);
     anotb.notB(thetaB);
     csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateful Theta, Theta Compact
+    checkResult("ThetaAnotB Stateful Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    //ThetaAnotB Stateful Theta, Theta Compact
     anotb.setA(thetaA.compact());
     anotb.notB(thetaB.compact());
     csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
+    checkResult("ThetaAnotB Stateful Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
 
-    //Union Stateful Theta, Theta Updatable
+    //ThetaUnion Stateful Theta, Theta Updatable
     union.union(thetaA);
     union.union(thetaB);
     csk = union.getResult();
     union.reset();
-    checkResult("Union Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //Union Stateful Theta, Theta Compact
+    checkResult("ThetaUnion Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    //ThetaUnion Stateful Theta, Theta Compact
     union.union(thetaA.compact());
     union.union(thetaB.compact());
     csk = union.getResult();
     union.reset();
-    checkResult("Union Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
+    checkResult("ThetaUnion Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
 
   }
 
   private static void checkResult(
       String comment,
-      CompactSketch csk,
+      CompactThetaSketch csk,
       double expectedTheta,
       int expectedEntries,
       boolean expectedEmpty) {
@@ -473,10 +465,10 @@ public class CornerCaseThetaSetOperationsTest {
     }
   }
 
-  private static UpdateSketch getSketch(SkType skType, float p, long value) {
-    UpdateSketchBuilder bldr = UpdateSketch.builder();
+  private static UpdatableThetaSketch getSketch(SkType skType, float p, long value) {
+    UpdatableThetaSketchBuilder bldr = UpdatableThetaSketch.builder();
     bldr.setLogNominalEntries(4);
-    UpdateSketch sk;
+    UpdatableThetaSketch sk;
     switch(skType) {
       case EMPTY: { // { 1.0,  0, T} p and value are not used
         sk = bldr.build();

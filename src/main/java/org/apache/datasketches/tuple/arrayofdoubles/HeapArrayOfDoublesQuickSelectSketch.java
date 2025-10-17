@@ -210,7 +210,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   }
 
   //  X/Y: X = Byte index for just AoDQuickSelectSketch
-  //       Y = Byte index when combined with Union Preamble
+  //       Y = Byte index when combined with TupleUnion Preamble
   // Long || Start Byte Adr:
   // Adr:
   // First 16 bytes are preamble from AoDUnion

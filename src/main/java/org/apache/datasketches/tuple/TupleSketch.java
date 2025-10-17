@@ -21,15 +21,20 @@ package org.apache.datasketches.tuple;
 
 import static org.apache.datasketches.common.Util.LS;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.thetacommon.BinomialBoundsN;
 
 /**
- * This is an equivalent to org.apache.datasketches.theta2.Sketch with
+ * The top-level class for all Tuple sketches. This class is never constructed directly.
+ * Use the UpdatableTupleSketchBuilder() methods to create UpdatableTupleSketches.
+ * This is similar to {@link org.apache.datasketches.theta.ThetaSketch ThetaSketch} with
  * addition of a user-defined Summary object associated with every unique entry
  * in the sketch.
  * @param <S> Type of Summary
  */
-public abstract class Sketch<S extends Summary> {
+@SuppressWarnings("deprecation")
+public abstract class TupleSketch<S extends Summary> {
 
   protected static final byte PREAMBLE_LONGS = 1;
 
@@ -37,20 +42,20 @@ public abstract class Sketch<S extends Summary> {
   boolean empty_ = true;
   protected SummaryFactory<S> summaryFactory_ = null;
 
-  Sketch(final long thetaLong, final boolean empty, final SummaryFactory<S> summaryFactory) {
+  TupleSketch(final long thetaLong, final boolean empty, final SummaryFactory<S> summaryFactory) {
     this.thetaLong_ = thetaLong;
     this.empty_ = empty;
     this.summaryFactory_ = summaryFactory;
   }
 
   /**
-   * Converts this sketch to a CompactSketch on the Java heap.
+   * Converts this TupleSketch to a CompactTupleSketch on the Java heap.
    *
    * <p>If this sketch is already in compact form this operation returns <i>this</i>.
    *
-   * @return this sketch as a CompactSketch on the Java heap.
+   * @return this sketch as a CompactTupleSketch on the Java heap.
    */
-  public abstract CompactSketch<S> compact();
+  public abstract CompactTupleSketch<S> compact();
 
   /**
    * Estimates the cardinality of the set (number of unique values presented to the sketch)
@@ -152,7 +157,7 @@ public abstract class Sketch<S extends Summary> {
 
   /**
    * Gets the number of hash values less than the given theta expressed as a long.
-   * @param thetaLong the given theta as a long between zero and <i>Long.MAX_VALUE</i>.
+   * @param thetaLong the given theta as a long in the range (zero, <i>Long.MAX_VALUE</i>].
    * @return the number of hash values less than the given thetaLong.
    */
   public abstract int getCountLessThanThetaLong(final long thetaLong);
@@ -174,12 +179,12 @@ public abstract class Sketch<S extends Summary> {
   }
 
   /**
-   * This is to serialize a sketch instance to a byte array.
+   * Serialize this sketch to a byte array.
    *
-   * <p>As of 3.0.0, serializing an UpdatableSketch is deprecated.
+   * <p>As of 3.0.0, serializing an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
-   * Serializing a CompactSketch is not deprecated.</p>
-   * @return serialized representation of the sketch
+   * Serializing a CompactTupleSketch is not deprecated.</p>
+   * @return serialized representation of this sketch.
    */
   public abstract byte[] toByteArray();
 
@@ -209,9 +214,9 @@ public abstract class Sketch<S extends Summary> {
     sb.append("   EstMode?                : ").append(isEstimationMode()).append(LS);
     sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
     sb.append("   Retained Entries        : ").append(this.getRetainedEntries()).append(LS);
-    if (this instanceof UpdatableSketch) {
+    if (this instanceof UpdatableTupleSketch) {
       @SuppressWarnings("rawtypes")
-      final UpdatableSketch updatable = (UpdatableSketch) this;
+      final UpdatableTupleSketch updatable = (UpdatableTupleSketch) this;
       sb.append("   Nominal Entries (k)     : ").append(updatable.getNominalEntries()).append(LS);
       sb.append("   Current Capacity        : ").append(updatable.getCurrentCapacity()).append(LS);
       sb.append("   Resize Factor           : ").append(updatable.getResizeFactor().getValue()).append(LS);
@@ -219,6 +224,48 @@ public abstract class Sketch<S extends Summary> {
     }
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
+  }
+
+  /**
+   * Instantiate an UpdatableTupleSketch from a given MemorySegment on the heap,
+   * @param <U> Type of update value
+   * @param <S> Type of Summary
+   * @param seg MemorySegment object representing an UpdatableTupleSketch
+   * @param deserializer instance of SummaryDeserializer
+   * @param summaryFactory instance of SummaryFactory
+   * @return UpdatableTupleSketch created from its MemorySegment representation
+   */
+  public static <U, S extends UpdatableSummary<U>> UpdatableTupleSketch<U, S> heapifyUpdatableSketch(
+      final MemorySegment seg,
+      final SummaryDeserializer<S> deserializer,
+      final SummaryFactory<S> summaryFactory) {
+    return new UpdatableTupleSketch<>(seg, deserializer, summaryFactory);
+  }
+
+  /**
+   * Instantiate a TupleSketch from a given MemorySegment.
+   * @param <S> Type of Summary
+   * @param seg MemorySegment object representing a TupleSketch
+   * @param deserializer instance of SummaryDeserializer
+   * @return TupleSketch created from its MemorySegment representation
+   */
+  public static <S extends Summary> TupleSketch<S> heapifySketch(
+      final MemorySegment seg,
+      final SummaryDeserializer<S> deserializer) {
+    final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(seg);
+    if (sketchType == SerializerDeserializer.SketchType.QuickSelectSketch) {
+      return new QuickSelectSketch<>(seg, deserializer, null);
+    }
+    return new CompactTupleSketch<>(seg, deserializer);
+  }
+
+  /**
+   * Creates an empty CompactTupleSketch.
+   * @param <S> Type of Summary
+   * @return an empty instance of a CompactTupleSketch
+   */
+  public static <S extends Summary> TupleSketch<S> createEmptySketch() {
+    return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
   }
 
 }

@@ -22,7 +22,7 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_ITEMS_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
@@ -56,7 +56,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final SketchStructure skStructure,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    super(ITEMS_SKETCH, skStructure);
+    super(KLL_ITEMS_SKETCH, skStructure);
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "SerDe must not be null.");
     this.comparator = comparator;
@@ -135,7 +135,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.ITEMS_SKETCH, serDe);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, SketchType.KLL_ITEMS_SKETCH, serDe);
     return new KllDirectCompactItemsSketch<>(segVal, comparator, serDe);
   }
 

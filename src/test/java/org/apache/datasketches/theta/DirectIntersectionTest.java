@@ -23,8 +23,8 @@ import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.SetOperation.CONST_PREAMBLE_LONGS;
-import static org.apache.datasketches.theta.SetOperation.getMaxIntersectionBytes;
+import static org.apache.datasketches.theta.ThetaSetOperation.CONST_PREAMBLE_LONGS;
+import static org.apache.datasketches.theta.ThetaSetOperation.getMaxIntersectionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -49,10 +49,10 @@ public class DirectIntersectionTest {
   public void checkExactIntersectionNoOverlap() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
+    ThetaIntersection inter;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k/2; i++) {
       usk1.update(i);
@@ -65,7 +65,7 @@ public class DirectIntersectionTest {
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
 
     inter.intersect(usk1);
     inter.intersect(usk2);
@@ -73,7 +73,7 @@ public class DirectIntersectionTest {
     final long[] cache = inter.getCache(); //only applies to stateful
     assertEquals(cache.length, 32);
 
-    CompactSketch rsk1;
+    CompactThetaSketch rsk1;
     final boolean ordered = true;
 
     assertTrue(inter.hasResult());
@@ -98,10 +98,10 @@ public class DirectIntersectionTest {
   public void checkExactIntersectionFullOverlap() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
+    ThetaIntersection inter;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<k; i++) {
       usk1.update(i);
@@ -114,11 +114,11 @@ public class DirectIntersectionTest {
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(usk1);
     inter.intersect(usk2);
 
-    CompactSketch rsk1;
+    CompactThetaSketch rsk1;
     final boolean ordered = true;
 
     rsk1 = inter.getResult(!ordered, null);
@@ -144,8 +144,8 @@ public class DirectIntersectionTest {
     final int k = 1<<lgK;
     final int u = 4*k;
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) {
       usk1.update(i);
@@ -158,15 +158,15 @@ public class DirectIntersectionTest {
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final CompactSketch csk1 = usk1.compact(true, null);
-    final CompactSketch csk2 = usk2.compact(true, null);
+    final CompactThetaSketch csk1 = usk1.compact(true, null);
+    final CompactThetaSketch csk2 = usk2.compact(true, null);
 
-    final Intersection inter =
-        SetOperation.builder().buildIntersection(iSeg);
+    final ThetaIntersection inter =
+        ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(csk1);
     inter.intersect(csk2);
 
-    final CompactSketch rsk1 = inter.getResult(true, null);
+    final CompactThetaSketch rsk1 = inter.getResult(true, null);
     println(""+rsk1.getEstimate());
   }
 
@@ -175,13 +175,13 @@ public class DirectIntersectionTest {
   public void checkNoCall() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
+    ThetaIntersection inter;
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     assertFalse(inter.hasResult());
     inter.getResult(false, null);
   }
@@ -193,8 +193,8 @@ public class DirectIntersectionTest {
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
-    final Intersection inter = SetOperation.builder().buildIntersection(iSeg);
-    final UpdateSketch sk = null;
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection(iSeg);
+    final UpdatableThetaSketch sk = null;
     try { inter.intersect(sk); fail(); }
     catch (final SketchesArgumentException e) { }
 
@@ -207,9 +207,9 @@ public class DirectIntersectionTest {
   public void check1stCall() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
-    UpdateSketch sk;
-    CompactSketch rsk1;
+    ThetaIntersection inter;
+    UpdatableThetaSketch sk;
+    CompactThetaSketch rsk1;
     double est;
 
     final int segBytes = getMaxIntersectionBytes(k);
@@ -217,8 +217,8 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = empty
-    sk = UpdateSketch.builder().setNominalEntries(k).build(); //empty
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    sk = UpdatableThetaSketch.builder().setNominalEntries(k).build(); //empty
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -226,9 +226,9 @@ public class DirectIntersectionTest {
     println("Est: "+est); // = 0
 
     //1st call = valid and not empty
-    sk = UpdateSketch.builder().setNominalEntries(k).build();
+    sk = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     sk.update(1);
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
@@ -240,9 +240,9 @@ public class DirectIntersectionTest {
   public void check2ndCallAfterEmpty() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
-    UpdateSketch sk1, sk2;
-    CompactSketch comp1;
+    ThetaIntersection inter;
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch comp1;
     double est;
 
     final int segBytes = getMaxIntersectionBytes(k);
@@ -250,11 +250,11 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = empty
-    sk1 = UpdateSketch.builder().build(); //empty
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    sk1 = UpdatableThetaSketch.builder().build(); //empty
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = empty
-    sk2 = UpdateSketch.builder().build(); //empty
+    sk2 = UpdatableThetaSketch.builder().build(); //empty
     inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
@@ -262,11 +262,11 @@ public class DirectIntersectionTest {
     println("Est: "+est);
 
     //1st call = empty
-    sk1 = UpdateSketch.builder().build(); //empty
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    sk1 = UpdatableThetaSketch.builder().build(); //empty
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = valid and not empty
-    sk2 = UpdateSketch.builder().build();
+    sk2 = UpdatableThetaSketch.builder().build();
     sk2.update(1);
     inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
@@ -279,9 +279,9 @@ public class DirectIntersectionTest {
   public void check2ndCallAfterValid() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
-    UpdateSketch sk1, sk2;
-    CompactSketch comp1;
+    ThetaIntersection inter;
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch comp1;
     double est;
 
     final int segBytes = getMaxIntersectionBytes(k);
@@ -289,12 +289,12 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().build();
+    sk1 = UpdatableThetaSketch.builder().build();
     sk1.update(1);
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = empty
-    sk2 = UpdateSketch.builder().build(); //empty
+    sk2 = UpdatableThetaSketch.builder().build(); //empty
     inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
@@ -302,12 +302,12 @@ public class DirectIntersectionTest {
     println("Est: "+est);
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().build();
+    sk1 = UpdatableThetaSketch.builder().build();
     sk1.update(1);
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().build(); //empty
+    sk2 = UpdatableThetaSketch.builder().build(); //empty
     sk2.update(1);
     inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
@@ -316,12 +316,12 @@ public class DirectIntersectionTest {
     println("Est: "+est);
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().build();
+    sk1 = UpdatableThetaSketch.builder().build();
     sk1.update(1);
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
     //2nd call = valid not intersecting
-    sk2 = UpdateSketch.builder().build(); //empty
+    sk2 = UpdatableThetaSketch.builder().build(); //empty
     sk2.update(2);
     inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
@@ -334,9 +334,9 @@ public class DirectIntersectionTest {
   public void checkEstimatingIntersect() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
-    UpdateSketch sk1, sk2;
-    CompactSketch comp1;
+    ThetaIntersection inter;
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch comp1;
     double est;
 
     final int segBytes = getMaxIntersectionBytes(k);
@@ -344,18 +344,18 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++)
      {
       sk1.update(i);  //est mode
     }
     println("sk1: "+sk1.getEstimate());
 
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
 
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    sk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++)
      {
       sk2.update(i);  //est mode
@@ -369,15 +369,12 @@ public class DirectIntersectionTest {
     println("Est: "+est);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkOverflow() {
     final int lgK = 9; //512
     final int k = 1<<lgK;
-    Intersection inter;
-    UpdateSketch sk1;
-    final UpdateSketch sk2;
-    final CompactSketch comp1;
+    ThetaIntersection inter;
+    UpdatableThetaSketch sk1;
     final double est;
 
     final int reqBytes = getMaxIntersectionBytes(k);
@@ -385,7 +382,7 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().setNominalEntries(2 * k).build(); // bigger sketch
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(2 * k).build(); // bigger sketch
     for (int i=0; i<4*k; i++)
      {
       sk1.update(i);  //force est mode
@@ -393,7 +390,7 @@ public class DirectIntersectionTest {
     println("sk1est: "+sk1.getEstimate());
     println("sk1cnt: "+sk1.getRetainedEntries(true));
 
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
   }
 
@@ -401,9 +398,9 @@ public class DirectIntersectionTest {
   public void checkHeapify() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter;
-    UpdateSketch sk1, sk2;
-    CompactSketch comp1, comp2;
+    ThetaIntersection inter;
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch comp1, comp2;
     double est, est2;
 
     final int segBytes = getMaxIntersectionBytes(k);
@@ -411,18 +408,18 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++)
      {
       sk1.update(i);  //est mode
     }
     println("sk1: "+sk1.getEstimate());
 
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk1);
 
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    sk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++)
      {
       sk2.update(i);  //est mode
@@ -437,7 +434,7 @@ public class DirectIntersectionTest {
 
     final byte[] byteArray = inter.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
-    final Intersection inter2 = (Intersection) SetOperation.heapify(seg);
+    final ThetaIntersection inter2 = (ThetaIntersection) ThetaSetOperation.heapify(seg);
     comp2 = inter2.getResult(false, null);
     est2 = comp2.getEstimate();
     println("Est2: "+est2);
@@ -448,7 +445,7 @@ public class DirectIntersectionTest {
    */
   @Test
   public void checkPreject() {
-    final UpdateSketch sk = UpdateSketch.builder().setP((float) .5).build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().setP((float) .5).build();
     sk.update(7);
     assertEquals(sk.getRetainedEntries(), 0);
   }
@@ -457,14 +454,14 @@ public class DirectIntersectionTest {
   public void checkWrapVirginEmpty() {
     final int lgK = 5;
     final int k = 1 << lgK;
-    Intersection inter1, inter2;
-    UpdateSketch sk1;
+    ThetaIntersection inter1, inter2;
+    UpdatableThetaSketch sk1;
 
     final int segBytes = getMaxIntersectionBytes(k);
     MemorySegment iSeg = MemorySegment.ofArray(new byte[segBytes]);
 
-    inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin off-heap
-    inter2 = Intersection.wrap(iSeg); //virgin off-heap, identical to inter1
+    inter1 = ThetaSetOperation.builder().buildIntersection(iSeg); //virgin off-heap
+    inter2 = ThetaIntersection.wrap(iSeg); //virgin off-heap, identical to inter1
     //both in virgin state, empty = false
     //note: both inter1 and inter2 are tied to the same MemorySegment,
     // so an intersect to one also affects the other.  Don't do what I do!
@@ -472,7 +469,7 @@ public class DirectIntersectionTest {
     assertFalse(inter2.hasResult());
 
     //This constructs a sketch with 0 entries and theta < 1.0
-    sk1 = UpdateSketch.builder().setP((float) .5).setNominalEntries(k).build();
+    sk1 = UpdatableThetaSketch.builder().setP((float) .5).setNominalEntries(k).build();
     sk1.update(7); //will be rejected by P, see proof above.
 
     //A virgin intersection (empty = false) intersected with a not-empty zero cache sketch
@@ -486,11 +483,11 @@ public class DirectIntersectionTest {
 
     //test the path via toByteArray, now in a different state
     iSeg = MemorySegment.ofArray(inter1.toByteArray());
-    inter2 = Intersection.wrap(iSeg);
+    inter2 = ThetaIntersection.wrap(iSeg);
     assertTrue(inter2.hasResult()); //still true
 
     //test the compaction path
-    final CompactSketch comp = inter2.getResult(true, null);
+    final CompactThetaSketch comp = inter2.getResult(true, null);
     assertEquals(comp.getRetainedEntries(false), 0);
     assertFalse(comp.isEmpty());
   }
@@ -499,29 +496,29 @@ public class DirectIntersectionTest {
   public void checkWrapNullEmpty2() {
     final int lgK = 5;
     final int k = 1<<lgK;
-    Intersection inter1, inter2;
-    UpdateSketch sk1;
+    ThetaIntersection inter1, inter2;
+    UpdatableThetaSketch sk1;
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin
-    inter2 = Intersection.wrap(iSeg);
+    inter1 = ThetaSetOperation.builder().buildIntersection(iSeg); //virgin
+    inter2 = ThetaIntersection.wrap(iSeg);
     //both in virgin state, empty = false
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
 
-    sk1 = UpdateSketch.builder().setP((float) .005).setFamily(Family.QUICKSELECT).setNominalEntries(k).build();
+    sk1 = UpdatableThetaSketch.builder().setP((float) .005).setFamily(Family.QUICKSELECT).setNominalEntries(k).build();
     sk1.update(1); //very unlikely to go into cache due to p.
     //A virgin intersection (empty = false) intersected with a not-empty zero cache sketch
     //remains empty = false.
 
     inter1.intersect(sk1);
-    inter2 = Intersection.wrap(iSeg);
+    inter2 = ThetaIntersection.wrap(iSeg);
     assertTrue(inter1.hasResult());
     assertTrue(inter2.hasResult());
-    final CompactSketch comp = inter2.getResult(true, null);
+    final CompactThetaSketch comp = inter2.getResult(true, null);
     assertEquals(comp.getRetainedEntries(false), 0);
     assertFalse(comp.isEmpty());
   }
@@ -534,7 +531,7 @@ public class DirectIntersectionTest {
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    SetOperation.builder().buildIntersection(iSeg);
+    ThetaSetOperation.builder().buildIntersection(iSeg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -547,15 +544,15 @@ public class DirectIntersectionTest {
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch usk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) {
       usk1.update(i);
     }
 
-    final CompactSketch csk1 = usk1.compact(true, null);
+    final CompactThetaSketch csk1 = usk1.compact(true, null);
 
-    final Intersection inter = SetOperation.builder().buildIntersection(iSeg);
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(csk1);
   }
 
@@ -567,50 +564,49 @@ public class DirectIntersectionTest {
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Intersection inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin
+    final ThetaIntersection inter1 = ThetaSetOperation.builder().buildIntersection(iSeg); //virgin
     final byte[] byteArray = inter1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     seg.set(JAVA_BYTE, PREAMBLE_LONGS_BYTE, (byte) 2);//RF not used = 0
-    Intersection.wrap(seg);
+    ThetaIntersection.wrap(seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final int k = 32;
-    Intersection inter1;
+    ThetaIntersection inter1;
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    inter1 = SetOperation.builder().buildIntersection(iSeg); //virgin
+    inter1 = ThetaSetOperation.builder().buildIntersection(iSeg); //virgin
     final byte[] byteArray = inter1.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
     //corrupt:
     seg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 2);
-    Intersection.wrap(seg); //throws in SetOperations
+    ThetaIntersection.wrap(seg); //throws in ThetaSetOperation
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIncorrectWrap() {
     final int k = 32;
-    Union union;
+    ThetaUnion union;
 
-    union = SetOperation.builder().setNominalEntries(k).buildUnion();
+    union = ThetaSetOperation.builder().setNominalEntries(k).buildUnion();
     final byte[] byteArray = union.toByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArray);
-    Intersection.wrap(seg); //wrong sketch Family
-    //Sketches.wrapIntersection(seg);
+    ThetaIntersection.wrap(seg); //wrong sketch Family
   }
 
   @Test
   public void checkWrap() {
     final int lgK = 9;
     final int k = 1<<lgK;
-    Intersection inter, inter2, inter3;
-    UpdateSketch sk1, sk2;
-    CompactSketch resultComp1, resultComp2;
+    ThetaIntersection inter, inter2, inter3;
+    UpdatableThetaSketch sk1, sk2;
+    CompactThetaSketch resultComp1, resultComp2;
     double est, est2;
 
     final int segBytes = getMaxIntersectionBytes(k);
@@ -618,28 +614,28 @@ public class DirectIntersectionTest {
     final MemorySegment iSeg = MemorySegment.ofArray(segArr1);
 
     //1st call = valid
-    sk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++)
      {
       sk1.update(i);  //est mode
     }
-    final CompactSketch compSkIn1 = sk1.compact(true, null);
+    final CompactThetaSketch compSkIn1 = sk1.compact(true, null);
     println("compSkIn1: "+compSkIn1.getEstimate());
 
-    inter = SetOperation.builder().buildIntersection(iSeg);
+    inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(compSkIn1);
 
     final byte[] segArr2 = inter.toByteArray();
     final MemorySegment srcSeg = MemorySegment.ofArray(segArr2);
-    inter2 = Intersection.wrap(srcSeg);
+    inter2 = ThetaIntersection.wrap(srcSeg);
 
     //2nd call = valid intersecting
-    sk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    sk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<2*k; i++)
      {
       sk2.update(i);  //est mode
     }
-    final CompactSketch compSkIn2 = sk2.compact(true, null);
+    final CompactThetaSketch compSkIn2 = sk2.compact(true, null);
     println("sk2: "+compSkIn2.getEstimate());
 
     inter2.intersect(compSkIn2);
@@ -650,7 +646,7 @@ public class DirectIntersectionTest {
 
     final byte[] segArr3 = inter2.toByteArray();
     final MemorySegment srcSeg2 = MemorySegment.ofArray(segArr3);
-    inter3 = Intersection.wrap(srcSeg2);
+    inter3 = ThetaIntersection.wrap(srcSeg2);
     resultComp2 = inter3.getResult(false, null);
     est2 = resultComp2.getEstimate();
     println("Est2: "+est2);
@@ -664,28 +660,28 @@ public class DirectIntersectionTest {
   public void checkDefaultMinSize() {
     final int k = 32;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
+    ThetaIntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptionMinSize() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*8 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
+    ThetaIntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
   }
 
   @Test
   public void checkGetResult() {
     final int k = 1024;
-    final UpdateSketch sk = UpdateSketch.builder().build();
+    final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().build();
 
     final int segBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[segBytes];
     final MemorySegment iSeg = MemorySegment.ofArray(segArr);
 
-    final Intersection inter = SetOperation.builder().buildIntersection(iSeg);
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection(iSeg);
     inter.intersect(sk);
-    final CompactSketch csk = inter.getResult();
+    final CompactThetaSketch csk = inter.getResult();
     assertEquals(csk.getCompactBytes(), 8);
   }
 
@@ -694,7 +690,7 @@ public class DirectIntersectionTest {
     //cheap trick
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 + PREBYTES]);
-    final IntersectionImpl impl = IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
+    final ThetaIntersectionImpl impl = ThetaIntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 
@@ -702,22 +698,22 @@ public class DirectIntersectionTest {
   public void checkExceptions1() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
+    ThetaIntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
     //corrupt SerVer
     seg.set(JAVA_BYTE, PreambleUtil.SER_VER_BYTE, (byte) 2);
-    IntersectionImpl.wrapInstance(seg, Util.DEFAULT_UPDATE_SEED, false);
+    ThetaIntersectionImpl.wrapInstance(seg, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkExceptions2() {
     final int k = 16;
     final MemorySegment seg = MemorySegment.ofArray(new byte[k*16 + PREBYTES]);
-    IntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
+    ThetaIntersectionImpl.initNewDirectInstance(Util.DEFAULT_UPDATE_SEED, seg);
     //seg now has non-empty intersection
     //corrupt empty and CurCount
     Util.setBits(seg, PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
     seg.set(JAVA_INT_UNALIGNED, PreambleUtil.RETAINED_ENTRIES_INT, 2);
-    IntersectionImpl.wrapInstance(seg, Util.DEFAULT_UPDATE_SEED, false);
+    ThetaIntersectionImpl.wrapInstance(seg, Util.DEFAULT_UPDATE_SEED, false);
   }
 
   //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2
@@ -726,8 +722,8 @@ public class DirectIntersectionTest {
   public void checkOverlappedDirect() {
     final int k = 1 << 4;
     final int segBytes = 2*k*16 +PREBYTES; //plenty of room
-    final UpdateSketch sk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    final UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+    final UpdatableThetaSketch sk2 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sk1.update(i);
       sk2.update(k-2 +i); //overlap by 2
@@ -736,15 +732,15 @@ public class DirectIntersectionTest {
     final MemorySegment segIn2 = MemorySegment.ofArray(new byte[segBytes]);
     final MemorySegment segInter = MemorySegment.ofArray(new byte[segBytes]);
     final MemorySegment segComp = MemorySegment.ofArray(new byte[segBytes]);
-    final CompactSketch csk1 = sk1.compact(true, segIn1);
-    final CompactSketch csk2 = sk2.compact(true, segIn2);
-    final Intersection inter = SetOperation.builder().buildIntersection(segInter);
+    final CompactThetaSketch csk1 = sk1.compact(true, segIn1);
+    final CompactThetaSketch csk2 = sk2.compact(true, segIn2);
+    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection(segInter);
     inter.intersect(csk1);
     inter.intersect(csk2);
-    final CompactSketch cskOut = inter.getResult(true, segComp);
+    final CompactThetaSketch cskOut = inter.getResult(true, segComp);
     assertEquals(cskOut.getEstimate(), 2.0, 0.0);
 
-    final Intersection interRO = (Intersection) SetOperation.wrap(segInter.asReadOnly());
+    final ThetaIntersection interRO = (ThetaIntersection) ThetaSetOperation.wrap(segInter.asReadOnly());
     try {
       interRO.intersect(sk1, sk2);
       fail();

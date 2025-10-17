@@ -32,16 +32,16 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
- * CompactSketches are never created directly. They are created as a result of
- * the compact() method of an UpdatableSketch or as a result of the getResult()
- * method of a set operation like Union, Intersection or AnotB. CompactSketch
- * consists of a compact list (i.e. no intervening spaces) of hash values,
+ * CompactTupleSketches are never created directly. They are created as a result of
+ * the compact() method of an UpdatableTupleSketch or as a result of the getResult()
+ * method of a set operation like TupleUnion, TupleIntersection or TupleAnotB.
+ * CompactTupleSketch consists of a compact list (i.e. no intervening spaces) of hash values,
  * corresponding list of Summaries, and a value for theta. The lists may or may
- * not be ordered. CompactSketch is read-only.
+ * not be ordered. CompactTupleSketch is read-only.
  *
  * @param <S> type of Summary
  */
-public final class CompactSketch<S extends Summary> extends Sketch<S> {
+public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> {
   private static final byte serialVersionWithSummaryClassNameUID = 1;
   private static final byte serialVersionUIDLegacy = 2;
   private static final byte serialVersionUID = 3;
@@ -54,13 +54,13 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
   private enum Flags { IS_RESERVED, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
 
   /**
-   * Create a CompactSketch from correct components
+   * Create a CompactTupleSketch from correct components
    * @param hashArr compacted hash array
    * @param summaryArr compacted summary array
    * @param thetaLong long value of theta
    * @param empty empty flag
    */
-  CompactSketch(final long[] hashArr, final S[] summaryArr, final long thetaLong, final boolean empty) {
+  CompactTupleSketch(final long[] hashArr, final S[] summaryArr, final long thetaLong, final boolean empty) {
     super(thetaLong, empty, null);
     super.thetaLong_ = thetaLong;
     super.empty_ = empty;
@@ -69,12 +69,12 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
   }
 
   /**
-   * This is to create an instance of a CompactSketch given a serialized form
+   * This is to create an instance of a CompactTupleSketch given a serialized form
    *
-   * @param seg MemorySegment object with serialized CompactSketch
+   * @param seg MemorySegment object with serialized CompactTupleSketch
    * @param deserializer the SummaryDeserializer
    */
-  CompactSketch(final MemorySegment seg, final SummaryDeserializer<S> deserializer) {
+  CompactTupleSketch(final MemorySegment seg, final SummaryDeserializer<S> deserializer) {
     super(Long.MAX_VALUE, true, null);
     int offset = 0;
     final byte preambleLongs = seg.get(JAVA_BYTE, offset++);
@@ -86,7 +86,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
           "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: " + version);
     }
     SerializerDeserializer
-      .validateType(seg.get(JAVA_BYTE, offset++), SerializerDeserializer.SketchType.CompactSketch);
+      .validateType(seg.get(JAVA_BYTE, offset++), SerializerDeserializer.SketchType.CompactTupleSketch);
     if (version <= serialVersionUIDLegacy) { // legacy serial format
       final byte flags = seg.get(JAVA_BYTE, offset++);
       empty_ = (flags & (1 << FlagsLegacy.IS_EMPTY.ordinal())) > 0;
@@ -166,7 +166,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
   }
 
   @Override
-  public CompactSketch<S> compact() {
+  public CompactTupleSketch<S> compact() {
     return this;
   }
 
@@ -214,7 +214,7 @@ public final class CompactSketch<S extends Summary> extends Sketch<S> {
     bytes[offset++] = (byte) preambleLongs;
     bytes[offset++] = serialVersionUID;
     bytes[offset++] = (byte) Family.TUPLE.getID();
-    bytes[offset++] = (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal();
+    bytes[offset++] = (byte) SerializerDeserializer.SketchType.CompactTupleSketch.ordinal();
     offset++; // unused
     bytes[offset++] = (byte) (
         (1 << Flags.IS_COMPACT.ordinal())

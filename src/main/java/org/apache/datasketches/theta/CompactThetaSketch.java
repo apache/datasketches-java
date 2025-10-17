@@ -46,49 +46,49 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 
 /**
- * The parent class of all the CompactSketches. CompactSketches are never created directly.
- * They are created as a result of the compact() method of an UpdateSketch, a result of a
- * getResult() of a SetOperation, or from a heapify method.
+ * The parent class of all the CompactThetaSketches. CompactThetaSketches are never created directly.
+ * They are created as a result of the compact() method of an UpdatableThetaSketch, a result of a
+ * getResult() of a ThetaSetOperation, or from a heapify method.
  *
- * <p>A CompactSketch is the simplest form of a Theta Sketch. It consists of a compact list
+ * <p>A CompactThetaSketch is the simplest form of a ThetaSketches. It consists of a compact list
  * (i.e., no intervening spaces) of hash values, which may be ordered or not, a value for theta
- * and a seed hash.  A CompactSketch is immutable (read-only),
+ * and a seed hash.  A CompactThetaSketch is immutable (read-only),
  * and the space required when stored is only the space required for the hash values and 8 to 24
- * bytes of preamble. An empty CompactSketch consumes only 8 bytes.</p>
+ * bytes of preamble. An empty CompactThetaSketch consumes only 8 bytes.</p>
  *
  * @author Lee Rhodes
  */
-public abstract class CompactSketch extends Sketch {
+public abstract class CompactThetaSketch extends ThetaSketch {
 
   /**
-   * Heapify takes a CompactSketch image in a MemorySegment and instantiates an on-heap CompactSketch.
+   * Heapify takes a CompactThetaSketch image in a MemorySegment and instantiates an on-heap CompactThetaSketch.
    *
    * <p>The resulting sketch will not retain any link to the source MemorySegment and all of its data will be
-   * copied to the heap CompactSketch.</p>
+   * copied to the heap CompactThetaSketch.</p>
    *
    * <p>The {@link Util#DEFAULT_UPDATE_SEED DEFAULT_UPDATE_SEED} is assumed.</p>
    *
-   * @param srcSeg an image of a CompactSketch.
-   * @return a CompactSketch on the heap.
+   * @param srcSeg an image of a CompactThetaSketch.
+   * @return a CompactThetaSketch on the heap.
    */
-  public static CompactSketch heapify(final MemorySegment srcSeg) {
+  public static CompactThetaSketch heapify(final MemorySegment srcSeg) {
     return heapify(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify takes a CompactSketch image in a MemorySegment and instantiates an on-heap CompactSketch.
+   * Heapify takes a CompactThetaSketch image in a MemorySegment and instantiates an on-heap CompactThetaSketch.
    *
    * <p>The resulting sketch will not retain any link to the source MemorySegment and all of its data will be
-   * copied to the heap CompactSketch.</p>
+   * copied to the heap CompactThetaSketch.</p>
    *
    * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.</p>
    *
-   * @param srcSeg an image of a CompactSketch that was created using the given expectedSeed.
+   * @param srcSeg an image of a CompactThetaSketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a CompactSketch on the heap.
+   * @return a CompactThetaSketch on the heap.
    */
-  public static CompactSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
+  public static CompactThetaSketch heapify(final MemorySegment srcSeg, final long expectedSeed) {
     final int serVer = extractSerVer(srcSeg);
     final int familyID = extractFamilyID(srcSeg);
     final Family family = idToFamily(familyID);
@@ -111,7 +111,7 @@ public abstract class CompactSketch extends Sketch {
   }
 
   /**
-   * Wrap takes the CompactSketch image in given MemorySegment and refers to it directly.
+   * Wrap takes the CompactThetaSketch image in given MemorySegment and refers to it directly.
    * There is no data copying onto the java heap.
    * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
@@ -121,10 +121,10 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>The {@link Util#DEFAULT_UPDATE_SEED DEFAULT_UPDATE_SEED} is assumed.</p>
    *
-   * @param srcSeg an image of a Sketch.
-   * @return a CompactSketch backed by the given MemorySegment.
+   * @param srcSeg an image of a CompactThetaSketch.
+   * @return a CompactThetaSketch backed by the given MemorySegment.
    */
-  public static CompactSketch wrap(final MemorySegment srcSeg) {
+  public static CompactThetaSketch wrap(final MemorySegment srcSeg) {
     return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
@@ -139,12 +139,12 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>This method checks if the given expectedSeed was used to create the source MemorySegment image.</p>
    *
-   * @param srcSeg an image of a Sketch that was created using the given expectedSeed.
+   * @param srcSeg an image of a CompactThetaSketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given MemorySegment image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a CompactSketch backed by the given MemorySegment.
+   * @return a CompactThetaketch backed by the given MemorySegment.
    */
-  public static CompactSketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
+  public static CompactThetaSketch wrap(final MemorySegment srcSeg, final long expectedSeed) {
     final int serVer = extractSerVer(srcSeg);
     final int familyID = extractFamilyID(srcSeg);
     final Family family = Family.idToFamily(familyID);
@@ -196,11 +196,11 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>This method checks if the DEFAULT_UPDATE_SEED was used to create the source byte array image.</p>
    *
-   * @param bytes a byte array image of a Sketch that was created using the DEFAULT_UPDATE_SEED.
+   * @param bytes a byte array image of a CompactThetaSketch that was created using the DEFAULT_UPDATE_SEED.
    *
-   * @return a CompactSketch backed by the given byte array except as above.
+   * @return a CompactThetaSketch backed by the given byte array except as above.
    */
-  public static CompactSketch wrap(final byte[] bytes) {
+  public static CompactThetaSketch wrap(final byte[] bytes) {
     return wrap(bytes, Util.DEFAULT_UPDATE_SEED);
   }
 
@@ -217,12 +217,12 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>This method checks if the given expectedSeed was used to create the source byte array image.</p>
    *
-   * @param bytes a byte array image of a Sketch that was created using the given expectedSeed.
+   * @param bytes a byte array image of a CompactThetaSketch that was created using the given expectedSeed.
    * @param expectedSeed the seed used to validate the given byte array image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a CompactSketch backed by the given byte array except as above.
+   * @return a CompactThetaSketch backed by the given byte array except as above.
    */
-  public static CompactSketch wrap(final byte[] bytes, final long expectedSeed) {
+  public static CompactThetaSketch wrap(final byte[] bytes, final long expectedSeed) {
     final int serVer = bytes[PreambleUtil.SER_VER_BYTE];
     final int familyId = bytes[PreambleUtil.FAMILY_BYTE];
     final Family family = Family.idToFamily(familyId);
@@ -261,10 +261,10 @@ public abstract class CompactSketch extends Sketch {
           "Corrupted: Serialization Version " + serVer + " not recognized.");
   }
 
-  //Sketch Overrides
+  //ThetaSketch Overrides
 
   @Override
-  public abstract CompactSketch compact(final boolean dstOrdered, final MemorySegment dstSeg);
+  public abstract CompactThetaSketch compact(final boolean dstOrdered, final MemorySegment dstSeg);
 
   @Override
   public int getCompactBytes() {
@@ -303,7 +303,7 @@ public abstract class CompactSketch extends Sketch {
 
   @Override
   public double getEstimate() {
-    return Sketch.estimate(getThetaLong(), getRetainedEntries());
+    return ThetaSketch.estimate(getThetaLong(), getRetainedEntries());
   }
 
   /**
@@ -385,8 +385,8 @@ public abstract class CompactSketch extends Sketch {
     return bytes;
   }
 
-  private static CompactSketch heapifyV4(final MemorySegment srcSeg, final long seed) {
-    final int preLongs = Sketch.getPreambleLongs(srcSeg);
+  private static CompactThetaSketch heapifyV4(final MemorySegment srcSeg, final long seed) {
+    final int preLongs = ThetaSketch.getPreambleLongs(srcSeg);
     final int entryBits = extractEntryBitsV4(srcSeg);
     final int numEntriesBytes = extractNumEntriesBytesV4(srcSeg);
     final short seedHash = (short) extractSeedHash(srcSeg);

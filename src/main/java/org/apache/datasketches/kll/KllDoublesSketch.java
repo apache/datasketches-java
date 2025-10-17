@@ -23,7 +23,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
@@ -51,7 +51,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param sketchStructure the current sketch structure
    */
   KllDoublesSketch(final SketchStructure sketchStructure) {
-    super(SketchType.DOUBLES_SKETCH, sketchStructure);
+    super(SketchType.KLL_DOUBLES_SKETCH, sketchStructure);
   }
 
   /**
@@ -167,7 +167,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    */
   public static KllDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg, "Parameter 'srcSeg' must not be null");
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, DOUBLES_SKETCH);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(srcSeg, KLL_DOUBLES_SKETCH);
     return new KllDirectDoublesSketch(srcSeg, segVal, mSegReq);
   }
 

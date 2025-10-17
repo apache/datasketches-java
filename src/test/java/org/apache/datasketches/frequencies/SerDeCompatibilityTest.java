@@ -23,8 +23,8 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
-import org.apache.datasketches.frequencies.ItemsSketch;
-import org.apache.datasketches.frequencies.LongsSketch;
+import org.apache.datasketches.frequencies.FrequentItemsSketch;
+import org.apache.datasketches.frequencies.FrequentLongsSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -34,14 +34,14 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void itemsToLongs() {
-    final ItemsSketch<Long> sketch1 = new ItemsSketch<>(8);
+    final FrequentItemsSketch<Long> sketch1 = new FrequentItemsSketch<>(8);
     sketch1.update(1L);
     sketch1.update(2L);
     sketch1.update(3L);
     sketch1.update(4L);
 
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final LongsSketch sketch2 = LongsSketch.getInstance(MemorySegment.ofArray(bytes));
+    final FrequentLongsSketch sketch2 = FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes));
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -57,14 +57,14 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void longsToItems() {
-    final LongsSketch sketch1 = new LongsSketch(8);
+    final FrequentLongsSketch sketch1 = new FrequentLongsSketch(8);
     sketch1.update(1L);
     sketch1.update(2L);
     sketch1.update(3L);
     sketch1.update(4L);
 
     final byte[] bytes = sketch1.toByteArray();
-    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(MemorySegment.ofArray(bytes), serDe);
+    final FrequentItemsSketch<Long> sketch2 = FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), serDe);
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);

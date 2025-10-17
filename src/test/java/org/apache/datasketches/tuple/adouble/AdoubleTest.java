@@ -26,12 +26,11 @@ import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.Sketches;
+import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.UpdatableSketch;
-import org.apache.datasketches.tuple.UpdatableSketchBuilder;
-import org.apache.datasketches.tuple.adouble.DoubleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketch;
+import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
+import org.apache.datasketches.tuple.adouble.DoubleTupleSketch;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
@@ -45,7 +44,7 @@ public class AdoubleTest {
   @Test
   public void isEmpty() {
     final int lgK = 12;
-    final DoubleSketch sketch = new DoubleSketch(lgK, mode);
+    final DoubleTupleSketch sketch = new DoubleTupleSketch(lgK, mode);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -61,10 +60,10 @@ public class AdoubleTest {
 
   @Test
   public void checkLowK() {
-    final UpdatableSketchBuilder<Double, DoubleSummary> bldr = new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketchBuilder<Double, DoubleSummary> bldr = new UpdatableTupleSketchBuilder<>(
         new DoubleSummaryFactory(Mode.Sum));
     bldr.setNominalEntries(16);
-    final UpdatableSketch<Double,DoubleSummary> sk = bldr.build();
+    final UpdatableTupleSketch<Double,DoubleSummary> sk = bldr.build();
     assertEquals(sk.getLgK(), 4);
   }
 
@@ -73,14 +72,14 @@ public class AdoubleTest {
   public void serDeTest() {
     final int lgK = 12;
     final int K = 1 << lgK;
-    final DoubleSketch a1Sk = new DoubleSketch(lgK, Mode.AlwaysOne);
+    final DoubleTupleSketch a1Sk = new DoubleTupleSketch(lgK, Mode.AlwaysOne);
     final int m = 2 * K;
     for (int key = 0; key < m; key++) {
       a1Sk.update(key, 1.0);
     }
     final double est1 = a1Sk.getEstimate();
     final MemorySegment seg = MemorySegment.ofArray(a1Sk.toByteArray());
-    final DoubleSketch a1Sk2 = new DoubleSketch(seg, Mode.AlwaysOne);
+    final DoubleTupleSketch a1Sk2 = new DoubleTupleSketch(seg, Mode.AlwaysOne);
     final double est2 = a1Sk2.getEstimate();
     assertEquals(est1, est2);
   }
@@ -89,7 +88,7 @@ public class AdoubleTest {
   public void checkStringKey() {
     final int lgK = 12;
     final int K = 1 << lgK;
-    final DoubleSketch a1Sk1 = new DoubleSketch(lgK, Mode.AlwaysOne);
+    final DoubleTupleSketch a1Sk1 = new DoubleTupleSketch(lgK, Mode.AlwaysOne);
     final int m = K / 2;
     for (int key = 0; key < m; key++) {
       a1Sk1.update(Integer.toHexString(key), 1.0);
@@ -101,8 +100,8 @@ public class AdoubleTest {
   @Test
   public void isEmptyWithSampling() {
     final float samplingProbability = 0.1f;
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode))
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode))
           .setSamplingProbability(samplingProbability).build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
@@ -116,8 +115,8 @@ public class AdoubleTest {
   @Test
   public void sampling() {
     final float samplingProbability = 0.001f;
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(mode)).setSamplingProbability(samplingProbability).build();
     sketch.update("a", 1.0);
     Assert.assertFalse(sketch.isEmpty());
@@ -131,8 +130,8 @@ public class AdoubleTest {
 
   @Test
   public void exactMode() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(mode)).build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -170,8 +169,8 @@ public class AdoubleTest {
   // Here we assume that presenting as many unique values as twice the nominal
   //   size of the sketch will result in estimation mode
   public void estimationMode() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(mode)).build();
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     for (int i = 1; i <= 8192; i++) {
@@ -202,8 +201,8 @@ public class AdoubleTest {
 
   @Test
   public void estimationModeWithSamplingNoResizing() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(mode))
               .setSamplingProbability(0.5f)
               .setResizeFactor(ResizeFactor.X1).build();
@@ -218,8 +217,8 @@ public class AdoubleTest {
 
   @Test
   public void updatesOfAllKeyTypes() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch.update(1L, 1.0);
     sketch.update(2.0, 1.0);
     final byte[] bytes = { 3, 3 };
@@ -236,8 +235,8 @@ public class AdoubleTest {
 
   @Test
   public void doubleSummaryDefaultSumMode() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(mode)).build();
     {
       sketch.update(1, 1.0);
@@ -267,8 +266,8 @@ public class AdoubleTest {
 
   @Test
   public void doubleSummaryMinMode() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(DoubleSummary.Mode.Min)).build();
     {
       sketch.update(1, 1.0);
@@ -298,8 +297,8 @@ public class AdoubleTest {
   @Test
 
   public void doubleSummaryMaxMode() {
-    final UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(DoubleSummary.Mode.Max)).build();
     {
       sketch.update(1, 1.0);
@@ -330,11 +329,11 @@ public class AdoubleTest {
   @SuppressWarnings("deprecation")
   @Test
   public void serializeDeserializeExact() throws Exception {
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     sketch1.update(1, 1.0);
 
-    final UpdatableSketch<Double, DoubleSummary> sketch2 = Sketches.heapifyUpdatableSketch(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch2 = TupleSketch.heapifyUpdatableSketch(
         MemorySegment.ofArray(sketch1.toByteArray()),
         new DoubleSummaryDeserializer(), new DoubleSummaryFactory(mode));
 
@@ -355,8 +354,8 @@ public class AdoubleTest {
   @SuppressWarnings("deprecation")
   @Test
   public void serializeDeserializeEstimationNoResizing() throws Exception {
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(
             new DoubleSummaryFactory(mode)).setResizeFactor(ResizeFactor.X1).build();
     for (int j = 0; j < 10; j++) {
       for (int i = 0; i < 8192; i++) {
@@ -369,8 +368,8 @@ public class AdoubleTest {
     //for binary testing
     //TestUtil.writeBytesToFile(bytes, "UpdatableSketchWithDoubleSummary4K.sk");
 
-    final Sketch<DoubleSummary> sketch2 =
-        Sketches.heapifySketch(MemorySegment.ofArray(bytes), new DoubleSummaryDeserializer());
+    final TupleSketch<DoubleSummary> sketch2 =
+        TupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
@@ -388,13 +387,13 @@ public class AdoubleTest {
   public void serializeDeserializeSampling() throws Exception {
     final int sketchSize = 16384;
     final int numberOfUniques = sketchSize;
-    final UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode))
+    final UpdatableTupleSketch<Double, DoubleSummary> sketch1 =
+        new UpdatableTupleSketchBuilder<>(new DoubleSummaryFactory(mode))
         .setNominalEntries(sketchSize).setSamplingProbability(0.5f).build();
     for (int i = 0; i < numberOfUniques; i++) {
       sketch1.update(i, 1.0);
     }
-    final Sketch<DoubleSummary> sketch2 = Sketches.heapifySketch(
+    final TupleSketch<DoubleSummary> sketch2 = TupleSketch.heapifySketch(
         MemorySegment.ofArray(sketch1.toByteArray()), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
@@ -406,8 +405,8 @@ public class AdoubleTest {
   public void checkUpdatableSketch() {
     final DoubleSummaryFactory dsumFact = new DoubleSummaryFactory(mode);
     //DoubleSummary dsum = dsumFact.newSummary();
-    final UpdatableSketchBuilder<Double, DoubleSummary> bldr = new UpdatableSketchBuilder<>(dsumFact);
-    final UpdatableSketch<Double, DoubleSummary> usk = bldr.build();
+    final UpdatableTupleSketchBuilder<Double, DoubleSummary> bldr = new UpdatableTupleSketchBuilder<>(dsumFact);
+    final UpdatableTupleSketch<Double, DoubleSummary> usk = bldr.build();
     final byte[] byteArr = new byte[0];
     usk.update(byteArr, 0.0);
     final int[] intArr = new int[0];
@@ -418,7 +417,7 @@ public class AdoubleTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void invalidSamplingProbability() {
-    new UpdatableSketchBuilder<>
+    new UpdatableTupleSketchBuilder<>
       (new DoubleSummaryFactory(mode)).setSamplingProbability(2f).build();
   }
 

@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllSketch.SketchType.LONGS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -419,8 +419,8 @@ public class KllLongsSketchTest {
     KllLongsSketch.newDirectInstance(wseg);
     try { KllLongsSketch.newDirectInstance(null); fail(); }
     catch (final NullPointerException e) { }
-    final int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, LONGS_SKETCH, true);
-    final int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, LONGS_SKETCH, false);
+    final int updateSize = KllSketch.getMaxSerializedSizeBytes(200, 0, KLL_LONGS_SKETCH, true);
+    final int compactSize = KllSketch.getMaxSerializedSizeBytes(200, 0, KLL_LONGS_SKETCH, false);
     assertTrue(compactSize < updateSize);
   }
 

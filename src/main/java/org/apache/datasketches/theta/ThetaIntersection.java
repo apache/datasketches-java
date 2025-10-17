@@ -33,7 +33,7 @@ import org.apache.datasketches.common.Util;
  *
  * @author Lee Rhodes
  */
-public abstract class Intersection extends SetOperation {
+public abstract class ThetaIntersection extends ThetaSetOperation {
 
   @Override
   public Family getFamily() {
@@ -41,22 +41,22 @@ public abstract class Intersection extends SetOperation {
   }
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * Gets the result of this operation as an ordered CompactThetaSketch on the Java heap.
    * This does not disturb the underlying data structure of this intersection.
-   * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
-   * exception will be thrown. This is because a virgin Intersection object represents the
+   * The {@link #intersect(ThetaSketch)} method must have been called at least once, otherwise an
+   * exception will be thrown. This is because a virgin intersection represents the
    * Universal Set, which has an infinite number of values.
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   * @return the result of this operation as an ordered CompactThetaSketch on the Java heap
    */
-  public CompactSketch getResult() {
+  public CompactThetaSketch getResult() {
     return getResult(true, null);
   }
 
   /**
-   * Gets the result of this operation as a CompactSketch in the given dstSeg.
+   * Gets the result of this operation as a CompactThetaSketch in the given dstSeg.
    * This does not disturb the underlying data structure of this intersection.
-   * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
-   * exception will be thrown. This is because a virgin Intersection object represents the
+   * The {@link #intersect(ThetaSketch)} method must have been called at least once, otherwise an
+   * exception will be thrown. This is because a virgin intersection represents the
    * Universal Set, which has an infinite number of values.
    *
    * <p>Note that presenting an intersection with an empty sketch sets the internal
@@ -71,10 +71,10 @@ public abstract class Intersection extends SetOperation {
    *
    * @param dstSeg the destination MemorySegment.
    *
-   * @return the result of this operation as a CompactSketch stored in the given dstSeg,
+   * @return the result of this operation as a CompactThetaSketch stored in the given dstSeg,
    * which can be either on or off-heap..
    */
-  public abstract CompactSketch getResult(boolean dstOrdered, MemorySegment dstSeg);
+  public abstract CompactThetaSketch getResult(boolean dstOrdered, MemorySegment dstSeg);
 
   /**
    * Returns true if there is a valid intersection result available
@@ -83,7 +83,7 @@ public abstract class Intersection extends SetOperation {
   public abstract boolean hasResult();
 
   /**
-   * Resets this Intersection for stateful operations only.
+   * Resets this ThetaIntersection for stateful operations only.
    * The seed remains intact, otherwise reverts to
    * the Universal Set: theta = 1.0, no retained data and empty = false.
    */
@@ -102,56 +102,56 @@ public abstract class Intersection extends SetOperation {
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
    */
-  public abstract void intersect(Sketch sketchIn);
+  public abstract void intersect(ThetaSketch sketchIn);
 
   /**
    * Perform intersect set operation on the two given sketch arguments and return the result as an
-   * ordered CompactSketch on the heap.
+   * ordered CompactThetaSketch on the heap.
    * @param a The first sketch argument
    * @param b The second sketch argument
-   * @return an ordered CompactSketch on the heap
+   * @return an ordered CompactThetaSketch on the heap
    */
-  public CompactSketch intersect(final Sketch a, final Sketch b) {
+  public CompactThetaSketch intersect(final ThetaSketch a, final ThetaSketch b) {
     return intersect(a, b, true, null);
   }
 
   /**
    * Perform intersect set operation on the two given sketches and return the result as a
-   * CompactSketch.
+   * CompactThetaSketch.
    * @param a The first sketch argument
    * @param b The second sketch argument
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    * @param dstSeg the destination MemorySegment.
-   * @return the result as a CompactSketch.
+   * @return the result as a CompactThetaSketch.
    */
-  public abstract CompactSketch intersect(Sketch a, Sketch b, boolean dstOrdered,
+  public abstract CompactThetaSketch intersect(ThetaSketch a, ThetaSketch b, boolean dstOrdered,
       MemorySegment dstSeg);
 
   /**
-   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * Factory: Wrap a ThetaIntersection target around the given source MemorySegment containing intersection data.
    * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * If the given source MemorySegment is read-only, the returned object will also be read-only.
    * @param srcSeg The source MemorySegment image.
-   * @return an Intersection that wraps a source MemorySegment that contains an Intersection image
+   * @return a ThetaIntersection that wraps a source MemorySegment that contains a ThetaIntersection image
    */
-  public static Intersection wrap(final MemorySegment srcSeg) {
+  public static ThetaIntersection wrap(final MemorySegment srcSeg) {
     return wrap(srcSeg, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Factory: Wrap an Intersection target around the given source MemorySegment containing intersection data.
+   * Factory: Wrap a ThetaIntersection target around the given source MemorySegment containing intersection data.
    * If the given source MemorySegment is read-only, the returned object will also be read-only.
    * @param srcSeg The source MemorySegment image.
    * @param expectedSeed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @return an Intersection that wraps a source MemorySegment that contains an Intersection image
+   * @return a ThetaIntersection that wraps a source MemorySegment that contains a ThetaIntersection image
    */
-  public static Intersection wrap(final MemorySegment srcSeg, final long expectedSeed) {
+  public static ThetaIntersection wrap(final MemorySegment srcSeg, final long expectedSeed) {
     final int serVer = srcSeg.get(JAVA_BYTE, SER_VER_BYTE);
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
-    return IntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
+    return ThetaIntersectionImpl.wrapInstance(srcSeg, expectedSeed, srcSeg.isReadOnly() );
   }
 
 }

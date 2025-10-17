@@ -26,7 +26,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_ITEMS_SKETCH;
 import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.getString;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -636,7 +636,7 @@ public class KllItemsSketchTest {
   public void checkHeapifyEmpty() {
     final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     final MemorySegment seg = MemorySegment.ofArray(sk1.toByteArray());
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.ITEMS_SKETCH, serDe);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.KLL_ITEMS_SKETCH, serDe);
     assertEquals(segVal.sketchStructure, COMPACT_EMPTY);
     assertEquals(seg.byteSize(), 8);
     final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(seg, Comparator.naturalOrder(), serDe);
@@ -647,7 +647,7 @@ public class KllItemsSketchTest {
     try { sk2.getMaxItem(); fail(); } catch (final SketchesArgumentException e) { }
     println(sk1.toString(true, true));
     println("");
-    println(KllPreambleUtil.toString(seg, ITEMS_SKETCH, true, serDe));
+    println(KllPreambleUtil.toString(seg, KLL_ITEMS_SKETCH, true, serDe));
   }
 
   @Test
@@ -655,7 +655,7 @@ public class KllItemsSketchTest {
     final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     sk1.update("A");
     final MemorySegment seg = MemorySegment.ofArray(sk1.toByteArray());
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.ITEMS_SKETCH, serDe);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.KLL_ITEMS_SKETCH, serDe);
     assertEquals(segVal.sketchStructure, COMPACT_SINGLE);
     assertEquals(seg.byteSize(), segVal.sketchBytes);
     final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(seg, Comparator.naturalOrder(), serDe);
@@ -666,7 +666,7 @@ public class KllItemsSketchTest {
     assertEquals(sk2.getMaxItem(), "A");
     println(sk1.toString(true, true));
     println("");
-    println(KllPreambleUtil.toString(seg, ITEMS_SKETCH, true, serDe));
+    println(KllPreambleUtil.toString(seg, KLL_ITEMS_SKETCH, true, serDe));
   }
 
   @Test
@@ -676,12 +676,12 @@ public class KllItemsSketchTest {
     sk1.update("AB");
     sk1.update("ABC");
     final MemorySegment seg = MemorySegment.ofArray(sk1.toByteArray());
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.ITEMS_SKETCH, serDe);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.KLL_ITEMS_SKETCH, serDe);
     assertEquals(segVal.sketchStructure, COMPACT_FULL);
     assertEquals(seg.byteSize(), segVal.sketchBytes);
     println(sk1.toString(true, true));
     println("");
-    println(KllPreambleUtil.toString(seg, ITEMS_SKETCH, true, serDe));
+    println(KllPreambleUtil.toString(seg, KLL_ITEMS_SKETCH, true, serDe));
   }
 
   @Test
@@ -693,12 +693,12 @@ public class KllItemsSketchTest {
       sk1.update(Util.longToFixedLengthString(i, digits));
     }
     final MemorySegment seg = MemorySegment.ofArray(sk1.toByteArray());
-    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.ITEMS_SKETCH, serDe);
+    final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, SketchType.KLL_ITEMS_SKETCH, serDe);
     assertEquals(segVal.sketchStructure, COMPACT_FULL);
     assertEquals(seg.byteSize(), segVal.sketchBytes);
     println(sk1.toString(true, true));
     println("");
-    println(KllPreambleUtil.toString(seg, ITEMS_SKETCH, true, serDe));
+    println(KllPreambleUtil.toString(seg, KLL_ITEMS_SKETCH, true, serDe));
   }
 
   @Test
@@ -718,7 +718,7 @@ public class KllItemsSketchTest {
     println("");
     println(sk2.toString(true, true));
     println("");
-    println(KllPreambleUtil.toString(seg, ITEMS_SKETCH, true, serDe));
+    println(KllPreambleUtil.toString(seg, KLL_ITEMS_SKETCH, true, serDe));
   }
 
   @Test

@@ -22,10 +22,10 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 /**
  * Top level compact tuple sketch of type ArrayOfDoubles. Compact sketches are never created
  * directly.  They are created as a result of the compact() method on a QuickSelectSketch
- * or the getResult() method of a set operation like Union, Intersection or AnotB.
- * Compact sketch consists of a compact list (i.e. no intervening spaces) of hash values,
- * corresponding list of double values, and a value for theta. The lists may or may
- * not be ordered. A compact sketch is read-only.
+ * or the getResult() method of a set operation like TupleUnion, TupleIntersection or TupleAnotB.
+ * A CompactTupleSketch consists of a compact list (i.e. no intervening spaces) of hash values,
+ * a corresponding list of double values, and a value for theta. The lists may or may
+ * not be ordered. It is read-only.
  */
 public abstract class ArrayOfDoublesCompactSketch extends ArrayOfDoublesSketch {
 

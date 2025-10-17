@@ -60,7 +60,7 @@ final class CompactOperations {
 
   private CompactOperations() {}
 
-  static CompactSketch componentsToCompact( //No error checking
+  static CompactThetaSketch componentsToCompact( //No error checking
       final long thetaLong,
       final int curCount,
       final short seedHash,
@@ -108,15 +108,16 @@ final class CompactOperations {
   }
 
   /**
-   * Heapify or convert a source Theta Sketch MemorySegment image into a heap or target MemorySegment CompactSketch.
+   * Heapify or convert a source ThetaSketch MemorySegment image into a heap or target MemorySegment CompactThetaSketch.
    * This assumes hashSeed is OK; serVer = 3.
    * @param srcSeg the given input source MemorySegment image. Can be Read Only.
-   * @param dstOrdered the desired ordering of the resulting CompactSketch
-   * @param dstWSeg Used for the target CompactSketch if it is MemorySegment-based. Must be Writable.
-   * @return a CompactSketch of the correct form.
+   * @param dstOrdered the desired ordering of the resulting CompactThetaSketch
+   * @param dstWSeg Used for the target CompactThetaSketch if it is MemorySegment-based. Must be Writable.
+   * If null, return on-heap.
+   * @return a CompactThetaSketch of the correct form.
    */
   @SuppressWarnings("unused")
-  static CompactSketch segmentToCompact(
+  static CompactThetaSketch segmentToCompact(
       final MemorySegment srcSeg,
       final boolean dstOrdered,
       final MemorySegment dstWSeg)
@@ -233,7 +234,7 @@ final class CompactOperations {
     }
     final byte famID = (byte) Family.COMPACT.getID();
 
-    //It is important to make sure that all byte fields are initialized, even those that are not used by the CompactSketch.
+    //It is important to make sure that all byte fields are initialized, even those that are not used by the CompactThetaSketch.
     // Otherwise, uninitialized fields could could cause other problems downstream.
     // As written below, all fields are initialized.
 
@@ -242,7 +243,7 @@ final class CompactOperations {
     insertSerVer(dstWSeg, SER_VER);
     insertFamilyID(dstWSeg, famID);
     //The following initializes the lgNomLongs and lgArrLongs to 0.
-    //They are not used in CompactSketches.
+    //They are not used in CompactThetaSketches.
     dstWSeg.set(JAVA_SHORT_UNALIGNED, LG_NOM_LONGS_BYTE, (short)0);
     insertFlags(dstWSeg, flags);
     insertSeedHash(dstWSeg, seedHash);
@@ -305,15 +306,15 @@ final class CompactOperations {
    * Num Theta CurCount Empty State    Name, Comments
    *  0    1.0     0      T     OK     EMPTY: The Normal Empty State
    *  1    1.0     0      F   Internal This can occur internally as the result of an intersection of two exact,
-   *                                   disjoint sets, or AnotB of two exact, identical sets. There is no probability
+   *                                   disjoint sets, or ThetaAnotB of two exact, identical sets. There is no probability
    *                                   distribution, so this is converted internally to EMPTY {1.0, 0, T}.
-   *                                   This is handled in SetOperation.createCompactSketch().
+   *                                   This is handled in ThetaSetOperation.createCompactThetaSketch().
    *  2    1.0    !0      T   Error    Empty=T and curCount !0 should never coexist.
    *                                   This is checked in all compacting operations.
    *  3    1.0    !0      F     OK     EXACT: This corresponds to a sketch in exact mode
-   *  4   <1.0     0      T   Internal This can be an initial UpdateSketch state if p < 1.0,
+   *  4   <1.0     0      T   Internal This can be an initial UpdatableThetaSketch state if p < 1.0,
    *                                   so change theta to 1.0. Return {Th = 1.0, 0, T}.
-   *                                   This is handled in UpdateSketch.compact() and toByteArray().
+   *                                   This is handled in UpdatableThetaSketch.compact() and toByteArray().
    *  5   <1.0     0      F     OK     This can result from set operations
    *  6   <1.0    !0      T   Error    Empty=T and curCount !0 should never coexist.
    *                                   This is checked in all compacting operations.
@@ -324,11 +325,11 @@ final class CompactOperations {
    */
 
   /**
-   * This corrects a temporary anomalous condition where compact() or toByteArray() is called on an UpdateSketch
+   * This corrects a temporary anomalous condition where compact() or toByteArray() is called on an UpdatableThetaSketch
    * that was initialized with p < 1.0 and update() was never called.  In this case Theta < 1.0,
    * curCount = 0, and empty = true.  The correction is to change Theta to 1.0, which makes the
    * returning sketch empty. This should only be used in the compaction or serialization of an
-   * UpdateSketch.
+   * UpdatableThetaSketch.
    * @param empty the given empty state
    * @param curCount the given curCount
    * @param thetaLong the given thetaLong
@@ -355,7 +356,7 @@ final class CompactOperations {
   /**
    * This compute number of preamble longs for a compact sketch based on <i>empty</i>,
    * <i>curCount</i> and <i>thetaLong</i>.
-   * This also accommodates for EmptyCompactSketch and SingleItemSketch.
+   * This also accommodates for EmptyCompactThetaSketch and SingleItemThetaSketch.
    * @param empty The given empty state
    * @param curCount The given current count (retained entries)
    * @param thetaLong the current thetaLong
@@ -367,7 +368,7 @@ final class CompactOperations {
   }
 
   /**
-   * This checks for the singleItem Compact Sketch.
+   * This checks for the singleItem CompactThetaSketch.
    * @param empty the given empty state
    * @param curCount the given curCount
    * @param thetaLong the given thetaLong

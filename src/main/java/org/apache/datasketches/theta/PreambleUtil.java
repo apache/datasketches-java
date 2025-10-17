@@ -41,7 +41,7 @@ import org.apache.datasketches.common.Util;
  * fields.
  *
  * <p>The intent of the design of this class was to isolate the detailed knowledge of the bit and
- * byte layout of the serialized form of the sketches derived from the Sketch class into one place.
+ * byte layout of the serialized form of the sketches derived from the ThetaSketch class into one place.
  * This allows the possibility of the introduction of different serialization
  * schemes with minimal impact on the rest of the library.</p>
  *
@@ -50,7 +50,7 @@ import org.apache.datasketches.common.Util;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
- * <p>An empty CompactSketch only requires 8 bytes.
+ * <p>An empty CompactThetaSketch only requires 8 bytes.
  * Flags: notSI, Ordered*, Compact, Empty*, ReadOnly, LE.
  * (*) Earlier versions did not set these.</p>
  *
@@ -61,7 +61,7 @@ import org.apache.datasketches.common.Util;
  *  0   ||    Seed Hash    | Flags  |        |        | FamID  | SerVer |     PreLongs = 1   |
  * </pre>
  *
- * <p>A SingleItemSketch (extends CompactSketch) requires an 8 byte preamble plus a single
+ * <p>A SingleItemThetaSketch (extends CompactThetaSketch) requires an 8 byte preamble plus a single
  * hash item of 8 bytes. Flags: SingleItem*, Ordered, Compact, notEmpty, ReadOnly, LE.
  * (*) Earlier versions did not set these.</p>
  *
@@ -75,7 +75,7 @@ import org.apache.datasketches.common.Util;
  *  1   ||---------------------------Single long hash----------------------------------------|
  * </pre>
  *
- * <p>An exact (non-estimating) CompactSketch requires 16 bytes of preamble plus a compact array of
+ * <p>An exact (non-estimating) CompactThetaSketch requires 16 bytes of preamble plus a compact array of
  * longs.</p>
  *
  * <pre>
@@ -91,7 +91,7 @@ import org.apache.datasketches.common.Util;
  *  2   ||----------------------Start of Compact Long Array----------------------------------|
  * </pre>
  *
- * <p>An estimating CompactSketch requires 24 bytes of preamble plus a compact array of longs.</p>
+ * <p>An estimating CompactThetaSketch requires 24 bytes of preamble plus a compact array of longs.</p>
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -109,7 +109,7 @@ import org.apache.datasketches.common.Util;
  *  3   ||----------------------Start of Compact Long Array----------------------------------|
  *  </pre>
  *
- * <p>The compressed CompactSketch has 8 bytes of preamble in exact mode because Theta can
+ * <p>The compressed CompactThetaSketch has 8 bytes of preamble in exact mode because theta can
  * be assumed to be 1.0. In estimating mode, the 2nd 8 bytes is Theta as a Long. The following
  * table assumes estimating mode. In any case the number of retained entries starts immediately
  * after, followed immediately by the delta encoded compressed byte array.</p>
@@ -139,10 +139,10 @@ import org.apache.datasketches.common.Util;
  *  3   ||--------Delta encoded compressed byte array starts at bytes 17-20------------------|
  *  </pre>
  *
- * <p>The UpdateSketch and AlphaSketch require 24 bytes of preamble followed by a non-compact
+ * <p>The UpdatableThetaSketch and AlphaSketch require 24 bytes of preamble followed by a non-compact
  * array of longs representing a hash table.</p>
  *
- * <p>The following table applies to both the Theta UpdateSketch and the Alpha Sketch</p>
+ * <p>The following table applies to both the Theta UpdatableThetaSketch and the AlphaSketch</p>
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
@@ -159,7 +159,7 @@ import org.apache.datasketches.common.Util;
  *  3   ||----------------------Start of Hash Table of longs---------------------------------|
  *  </pre>
  *
- * <p>Union objects require 32 bytes of preamble plus a non-compact array of longs representing a
+ * <p>ThetaUnion objects require 32 bytes of preamble plus a non-compact array of longs representing a
  * hash table.</p>
  *
  * <pre>
@@ -201,7 +201,7 @@ final class PreambleUtil {
   static final int RETAINED_ENTRIES_INT       = 8;  //8 byte aligned
   static final int P_FLOAT                    = 12; //4 byte aligned, not used by compact
   static final int THETA_LONG                 = 16; //8-byte aligned
-  static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by Union
+  static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by ThetaUnion
 
   // flag byte bit masks
   static final int RESERVED_FLAG_MASK   = 1; //Bit 0: Reserved, no longer used. Was BigEndian
@@ -283,17 +283,17 @@ final class PreambleUtil {
     long thetaLong = Long.MAX_VALUE;  //preLongs 1 or 2
     long thetaULong = thetaLong;      //preLongs 1, 2 or 3
 
-    if (preLongs == 2) { //exact (non-estimating) CompactSketch
+    if (preLongs == 2) { //exact (non-estimating) CompactThetaSketch
       curCount = extractCurCount(seg);
       p = extractP(seg);
     }
-    else if (preLongs == 3) { //Update Sketch
+    else if (preLongs == 3) { //UpdatableThetaSketch
       curCount = extractCurCount(seg);
       p = extractP(seg);
       thetaLong = extractThetaLong(seg);
       thetaULong = thetaLong;
     }
-    else if (preLongs == 4) { //Union
+    else if (preLongs == 4) { //ThetaUnion
       curCount = extractCurCount(seg);
       p = extractP(seg);
       thetaLong = extractThetaLong(seg);
@@ -352,7 +352,7 @@ final class PreambleUtil {
         return sb.toString();
       }
     }
-    else { //preLongs == 4 (Union)
+    else { //preLongs == 4 (ThetaUnion)
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
       sb.append("Bytes 12-15: P                : ").append(p).append(LS);
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);

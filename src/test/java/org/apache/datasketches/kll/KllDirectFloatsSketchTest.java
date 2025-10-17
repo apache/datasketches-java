@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -470,7 +470,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(compBytes);
-    println(KllPreambleUtil.toString(compBytes, FLOATS_SKETCH, true));
+    println(KllPreambleUtil.toString(compBytes, KLL_FLOATS_SKETCH, true));
     sk = KllFloatsSketch.wrap(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -490,7 +490,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(compBytes);
-    println(KllPreambleUtil.toString(compBytes, FLOATS_SKETCH, true));
+    println(KllPreambleUtil.toString(compBytes, KLL_FLOATS_SKETCH, true));
     sk = KllFloatsSketch.wrap(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -511,7 +511,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2, true);
     wseg = MemorySegment.ofArray(compBytes);
-    println(KllPreambleUtil.toString(compBytes, FLOATS_SKETCH, true));
+    println(KllPreambleUtil.toString(compBytes, KLL_FLOATS_SKETCH, true));
     sk = KllFloatsSketch.wrap(wseg);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -535,9 +535,9 @@ public class KllDirectFloatsSketchTest {
     assertFalse(sketch.isEmpty());
     assertTrue(sketch.isMemorySegmentUpdatableFormat());
     assertFalse(sketch.isEstimationMode());
-    assertTrue(sketch.isFloatsSketch());
+    assertTrue(sketch.isKllFloatsSketch());
     assertFalse(sketch.isLevelZeroSorted());
-    assertFalse(sketch.isDoublesSketch());
+    assertFalse(sketch.isKllDoublesSketch());
 
     final MemorySegment wseg = sketch.getMemorySegment();
     final KllFloatsSketch sk = KllHeapFloatsSketch.heapifyImpl(wseg);
@@ -546,9 +546,9 @@ public class KllDirectFloatsSketchTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isMemorySegmentUpdatableFormat());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isFloatsSketch());
+    assertTrue(sk.isKllFloatsSketch());
     assertFalse(sk.isLevelZeroSorted());
-    assertFalse(sk.isDoublesSketch());
+    assertFalse(sk.isKllDoublesSketch());
   }
 
   @Test

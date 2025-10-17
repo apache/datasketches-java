@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.ThetaUtil;
-import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
+import org.apache.datasketches.tuple.strings.ArrayOfStringsTupleSketch;
 
 /**
  * A Frequent Distinct Tuples sketch.
@@ -46,7 +46,7 @@ import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
  *
  * @author Lee Rhodes
  */
-public final class FdtSketch extends ArrayOfStringsSketch {
+public final class FdtSketch extends ArrayOfStringsTupleSketch {
 
   /**
    * Create new instance of Frequent Distinct Tuples sketch with the given

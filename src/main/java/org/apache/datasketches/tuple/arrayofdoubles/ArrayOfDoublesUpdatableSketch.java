@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
@@ -62,7 +62,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   /**
    * Wrap the given MemorySegment as an ArrayOfDoublesUpdatableSketch.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
    * @param seg the given MemorySegment
    * @return an ArrayOfDoublesUpdatableSketch
    */
@@ -72,7 +72,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
 
   /**
    * Wrap the given MemorySegment and seed as a ArrayOfDoublesUpdatableSketch.
-   * If the given source MemorySegment is read-only, the returned Union object will also be read-only.
+   * If the given source MemorySegment is read-only, the returned TupleUnion object will also be read-only.
    * @param seg the given MemorySegment
    * @param seed the given seed
    * @return an ArrayOfDoublesUpdatableSketch
