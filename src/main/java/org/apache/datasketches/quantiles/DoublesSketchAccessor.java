@@ -41,10 +41,10 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   int offset_; //bytes for Direct, doubles for heap
 
   DoublesSketchAccessor(
-    final DoublesSketch ds,
-    final boolean forceSize,
-    final int level) {
-	checkLvl(level);
+      final DoublesSketch ds,
+      final boolean forceSize,
+      final int level) {
+    checkLvl(level);
     ds_ = ds;
     forceSize_ = forceSize;
     setLevel(level);
