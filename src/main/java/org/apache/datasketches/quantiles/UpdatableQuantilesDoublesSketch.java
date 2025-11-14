@@ -27,16 +27,16 @@ import org.apache.datasketches.common.MemorySegmentRequest;
  * Extends DoubleSketch
  * @author Jon Malkin
  */
-public abstract class UpdateDoublesSketch extends DoublesSketch {
+public abstract class UpdatableQuantilesDoublesSketch extends QuantilesDoublesSketch {
 
-  UpdateDoublesSketch(final int k) {
+  UpdatableQuantilesDoublesSketch(final int k) {
     super(k);
   }
 
   /**
    * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch.
    *
-   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdatableQuantilesDoublesSketch</i>.
    * The sketch will be updated and managed totally within the MemorySegment. If the given source
    * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
    *
@@ -47,7 +47,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * @param srcSeg a MemorySegment that contains sketch data.
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
-  public static UpdateDoublesSketch wrap(final MemorySegment srcSeg) {
+  public static UpdatableQuantilesDoublesSketch wrap(final MemorySegment srcSeg) {
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, null);
   }
 
@@ -55,7 +55,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * Wrap a sketch around the given source MemorySegment containing sketch data that originated from this sketch and including an
    * optional, user defined {@link MemorySegmentRequest MemorySegmentRequest}.
    *
-   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdatableQuantilesDoublesSketch</i>.
    * The sketch will be updated and managed totally within the MemorySegment. If the given source
    * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
    *
@@ -69,7 +69,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return an instance of this sketch that wraps the given MemorySegment.
    */
-  public static UpdateDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+  public static UpdatableQuantilesDoublesSketch wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     return DirectUpdateDoublesSketch.wrapInstance(srcSeg, mSegReq);
   }
 
@@ -79,15 +79,15 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * @param srcSeg compact MemorySegment image of a sketch serialized by this sketch.
    * @return a heap-based sketch based on the given MemorySegment.
    */
-  public static UpdateDoublesSketch heapify(final MemorySegment srcSeg) {
+  public static UpdatableQuantilesDoublesSketch heapify(final MemorySegment srcSeg) {
     return HeapUpdateDoublesSketch.heapifyInstance(srcSeg);
   }
 
   /**
-   * Returns a CompactDoublesSketch of this class
-   * @return a CompactDoublesSketch of this class
+   * Returns a CompactQuantilesDoublesSketch of this class
+   * @return a CompactQuantilesDoublesSketch of this class
    */
-  public CompactDoublesSketch compact() {
+  public CompactQuantilesDoublesSketch compact() {
     return compact(null);
   }
 
@@ -97,7 +97,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * @param dstSeg An optional target MemorySegment to hold the sketch.
    * @return A compact version of this sketch
    */
-  public CompactDoublesSketch compact(final MemorySegment dstSeg) {
+  public CompactQuantilesDoublesSketch compact(final MemorySegment dstSeg) {
     if (dstSeg == null) {
       return HeapCompactDoublesSketch.createFromUpdateSketch(this);
     }
@@ -108,7 +108,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    * Returns an on-heap copy of this sketch and then resets this sketch with the same value of <i>k</i>.
    * @return an on-heap copy of this sketch and then resets this sketch with the same value of <i>k</i>.
    */
-  abstract UpdateDoublesSketch getSketchAndReset();
+  abstract UpdatableQuantilesDoublesSketch getSketchAndReset();
 
   /**
    * Grows the combined buffer to the given spaceNeeded

@@ -26,6 +26,11 @@ package org.apache.datasketches.common;
 public final class ByteArrayUtil {
 
   /**
+   * No argument constructor.
+   */
+  public ByteArrayUtil() { }
+
+  /**
    * Copies bytes from source to target with offsets on both the source and target.
    * @param source the given source
    * @param srcStart the source starting index

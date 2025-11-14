@@ -22,31 +22,39 @@ package org.apache.datasketches.quantiles;
 import java.util.Objects;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 
 /**
- * Iterator over DoublesSketch. The order is not defined.
+ * Iterator over QuantilesItemsSketch. The order is not defined.
+ * @param <T> type of item
  */
-public final class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
-  private final DoublesSketchAccessor sketchAccessor;
+public final class QuantilesItemsSketchIterator<T> implements QuantilesGenericSketchIteratorAPI<T> {
+  private Object[] combinedBuffer;
   private long bitPattern;
   private int level;
   private long weight;
   private int index;
+  private int offset;
+  private int num;
+  private int k;
 
-  DoublesSketchIterator(final DoublesSketch sketch, final long bitPattern) {
+  QuantilesItemsSketchIterator(final QuantilesItemsSketch<T> sketch, final long bitPattern) {
     Objects.requireNonNull(sketch, "sketch must not be null");
-    sketchAccessor = DoublesSketchAccessor.wrap(sketch, false);
+    combinedBuffer = sketch.combinedBuffer_;
+    num = sketch.getBaseBufferCount();
+    this.k = sketch.getK();
     this.bitPattern = bitPattern;
-    level = -1;
-    weight = 1;
-    index = -1;
+    this.level = -1;
+    this.weight = 1;
+    this.index = -1;
+    this.offset = 0;
   }
 
   @Override
-  public double getQuantile() {
+  @SuppressWarnings("unchecked")
+  public T getQuantile() {
     if (index < 0) { throw new SketchesStateException("index < 0; getQuantile() was called before next()"); }
-    return sketchAccessor.get(index);
+    return (T) combinedBuffer[offset + index];
   }
 
   @Override
@@ -57,7 +65,7 @@ public final class DoublesSketchIterator implements QuantilesDoublesSketchIterat
   @Override
   public boolean next() {
     index++; // advance index within the current level
-    if (index < sketchAccessor.numItems()) {
+    if (index < num) {
       return true;
     }
     // go to the next non-empty level
@@ -72,7 +80,8 @@ public final class DoublesSketchIterator implements QuantilesDoublesSketchIterat
       weight *= 2;
     } while ((bitPattern & 1L) == 0L);
     index = 0;
-    sketchAccessor.setLevel(level);
+    offset = (2 + level) * k;
+    num = k;
     return true;
   }
 

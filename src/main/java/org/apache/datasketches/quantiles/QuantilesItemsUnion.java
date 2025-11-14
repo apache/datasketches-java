@@ -35,17 +35,17 @@ import org.apache.datasketches.common.ArrayOfItemsSerDe;
  * @author Lee Rhodes
  * @author Alexander Saydakov
  */
-public final class ItemsUnion<T> {
+public final class QuantilesItemsUnion<T> {
 
   final int maxK_;
   final Comparator<? super T> comparator_;
-  ItemsSketch<T> gadget_;
+  QuantilesItemsSketch<T> gadget_;
   Class<T> clazz_;
 
-  private ItemsUnion(
+  private QuantilesItemsUnion(
       final int maxK,
       final Comparator<? super T> comparator,
-      final ItemsSketch<T> gadget) {
+      final QuantilesItemsSketch<T> gadget) {
     Objects.requireNonNull(gadget, "Gadget sketch must not be null.");
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     maxK_ = maxK;
@@ -56,63 +56,63 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Create an instance of ItemsUnion with the default k.
+   * Create an instance of QuantilesItemsUnion with the default k.
    * @param <T> The sketch item data type.
    * @param clazz The sketch class type.
    * @param comparator to compare items.
-   * @return a new instance of ItemsUnion
+   * @return a new instance of QuantilesItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(
+  public static <T> QuantilesItemsUnion<T> getInstance(
       final Class<T> clazz,
       final Comparator<? super T> comparator) {
-    final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, comparator);
-    return new ItemsUnion<>(PreambleUtil.DEFAULT_K, comparator, emptySk);
+    final QuantilesItemsSketch<T> emptySk = QuantilesItemsSketch.getInstance(clazz, comparator);
+    return new QuantilesItemsUnion<>(PreambleUtil.DEFAULT_K, comparator, emptySk);
   }
 
   /**
-   * Create an instance of ItemsUnion
+   * Create an instance of QuantilesItemsUnion
    * @param <T> The sketch item data type.
    * @param clazz The sketch class type.
    * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * <i>maxK</i> must be a power of 2 to enable unioning of sketches with a different <i>k</i>.
    * @param comparator to compare items.
-   * @return an new instance of ItemsUnion
+   * @return an new instance of QuantilesItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(
+  public static <T> QuantilesItemsUnion<T> getInstance(
       final Class<T> clazz,
       final int maxK,
       final Comparator<? super T> comparator) {
-    final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, maxK, comparator);
-    return new ItemsUnion<>(maxK, comparator, emptySk);
+    final QuantilesItemsSketch<T> emptySk = QuantilesItemsSketch.getInstance(clazz, maxK, comparator);
+    return new QuantilesItemsUnion<>(maxK, comparator, emptySk);
   }
 
   /**
-   * Initialize a new ItemsUnion with a heapified instance of an ItemsSketch from a MemorySegment.
+   * Initialize a new QuantilesItemsUnion with a heapified instance of an QuantilesItemsSketch from a MemorySegment.
    * @param <T> The sketch data type.
    * @param clazz The sketch class type.
-   * @param srcSeg the given srcSeg, an image of an ItemsSketch. A reference to srcSeg will not be maintained internally.
+   * @param srcSeg the given srcSeg, an image of an QuantilesItemsSketch. A reference to srcSeg will not be maintained internally.
    * @param comparator to compare items.
    * @param serDe an instance of ArrayOfItemsSerDe.
-   * @return an ItemsUnion initialized with a heapified ItemsSketch from a MemorySegment.
+   * @return an QuantilesItemsUnion initialized with a heapified QuantilesItemsSketch from a MemorySegment.
    */
-  public static <T> ItemsUnion<T> initializeWithMemorySegment(
+  public static <T> QuantilesItemsUnion<T> initializeWithMemorySegment(
       final Class<T> clazz,
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> gadget = ItemsSketch.heapify(clazz, srcSeg, comparator, serDe);
-    return new ItemsUnion<>(gadget.getK(), gadget.getComparator(), gadget);
+    final QuantilesItemsSketch<T> gadget = QuantilesItemsSketch.heapify(clazz, srcSeg, comparator, serDe);
+    return new QuantilesItemsUnion<>(gadget.getK(), gadget.getComparator(), gadget);
   }
 
   /**
-   * Initialize a new ItemsUnion with an instance of ItemsSketch
+   * Initialize a new QuantilesItemsUnion with an instance of QuantilesItemsSketch
    * @param <T> The sketch data type
-   * @param sketch an instance of ItemsSketch to initialize this union
-   * @return an initialized instance of ItemsUnion
+   * @param sketch an instance of QuantilesItemsSketch to initialize this union
+   * @return an initialized instance of QuantilesItemsUnion
    */
-  public static <T> ItemsUnion<T> initialize(final ItemsSketch<T> sketch) {
-    return new ItemsUnion<>(sketch.getK(), sketch.getComparator(), ItemsSketch.copy(sketch));
+  public static <T> QuantilesItemsUnion<T> initialize(final QuantilesItemsSketch<T> sketch) {
+    return new QuantilesItemsUnion<>(sketch.getK(), sketch.getComparator(), QuantilesItemsSketch.copy(sketch));
   }
 
   /**
@@ -128,13 +128,13 @@ public final class ItemsUnion<T> {
    *
    * @param sketchIn the sketch to be merged into this one.
    */
-  public void union(final ItemsSketch<T> sketchIn) {
+  public void union(final QuantilesItemsSketch<T> sketchIn) {
     gadget_ = updateLogic(maxK_, comparator_, gadget_, sketchIn);
   }
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
-   * Merges the given MemorySegment image of a ItemsSketch into this union object.
+   * Merges the given MemorySegment image of a QuantilesItemsSketch into this union object.
    * The given MemorySegment object is not modified and a link to it is not retained.
    * It is required that the ratio of the two K's be a power of 2.
    * This is easily satisfied if each of the K's are already a power of 2.
@@ -148,7 +148,7 @@ public final class ItemsUnion<T> {
   public void union(
       final MemorySegment srcSeg,
       final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> that = ItemsSketch.heapify(clazz_, srcSeg, comparator_, serDe);
+    final QuantilesItemsSketch<T> that = QuantilesItemsSketch.heapify(clazz_, srcSeg, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }
 
@@ -160,7 +160,7 @@ public final class ItemsUnion<T> {
   public void update(final T dataItem) {
     if (dataItem == null) { return; }
     if (gadget_ == null) {
-      gadget_ = ItemsSketch.getInstance(clazz_, maxK_, comparator_);
+      gadget_ = QuantilesItemsSketch.getInstance(clazz_, maxK_, comparator_);
     }
     gadget_.update(dataItem);
   }
@@ -170,11 +170,11 @@ public final class ItemsUnion<T> {
    * This enables further union update operations on this state.
    * @return the result of this Union operation
    */
-  public ItemsSketch<T> getResult() {
+  public QuantilesItemsSketch<T> getResult() {
     if (gadget_ == null) {
-      return ItemsSketch.getInstance(clazz_, maxK_, comparator_);
+      return QuantilesItemsSketch.getInstance(clazz_, maxK_, comparator_);
     }
-    return ItemsSketch.copy(gadget_); //can't have any externally owned handles.
+    return QuantilesItemsSketch.copy(gadget_); //can't have any externally owned handles.
   }
 
   /**
@@ -182,7 +182,7 @@ public final class ItemsUnion<T> {
    *
    * @return the result of this Union operation and reset.
    */
-  public ItemsSketch<T> getResultAndReset() {
+  public QuantilesItemsSketch<T> getResultAndReset() {
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
     return gadget_.getSketchAndReset();
   }
@@ -241,7 +241,7 @@ public final class ItemsUnion<T> {
     sb.append(LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
-      sb.append(ItemsSketch.getInstance(clazz_, maxK_, comparator_).toString());
+      sb.append(QuantilesItemsSketch.getInstance(clazz_, maxK_, comparator_).toString());
       return sb.toString();
     }
     sb.append(gadget_.toString(sketchSummary, dataDetail));
@@ -249,7 +249,7 @@ public final class ItemsUnion<T> {
   }
 
   /**
-   * Serialize this union to a byte array. Result is an ItemsSketch, serialized in an
+   * Serialize this union to a byte array. Result is an QuantilesItemsSketch, serialized in an
    * unordered, non-compact form. The resulting byte[] can be passed to getInstance for either a
    * sketch or union.
    *
@@ -258,7 +258,7 @@ public final class ItemsUnion<T> {
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     if (gadget_ == null) {
-      final ItemsSketch<T> sketch = ItemsSketch.getInstance(clazz_, maxK_, comparator_);
+      final QuantilesItemsSketch<T> sketch = QuantilesItemsSketch.getInstance(clazz_, maxK_, comparator_);
       return sketch.toByteArray(serDe);
     }
     return gadget_.toByteArray(serDe);
@@ -266,8 +266,8 @@ public final class ItemsUnion<T> {
 
   //@formatter:off
   @SuppressWarnings("unchecked")
-  static <T> ItemsSketch<T> updateLogic(final int myMaxK, final Comparator<? super T> comparator,
-      final ItemsSketch<T> myQS, final ItemsSketch<T> other) {
+  static <T> QuantilesItemsSketch<T> updateLogic(final int myMaxK, final Comparator<? super T> comparator,
+      final QuantilesItemsSketch<T> myQS, final QuantilesItemsSketch<T> other) {
     int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);
     sw1 |=    ((other  == null) ? 0 :  other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
@@ -284,7 +284,7 @@ public final class ItemsUnion<T> {
       case 10: outCase = 3; break; //myQS = valid, other = valid; merge
       default: break; //This cannot happen
     }
-    ItemsSketch<T> ret = null;
+    QuantilesItemsSketch<T> ret = null;
 
     switch (outCase) {
       case 0: break;
@@ -292,7 +292,7 @@ public final class ItemsUnion<T> {
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         assert other != null;
         if (!other.isEstimationMode()) { //other is exact, stream items in
-          ret = ItemsSketch.getInstance(other.getClassOfT(), myMaxK, comparator);
+          ret = QuantilesItemsSketch.getInstance(other.getClassOfT(), myMaxK, comparator);
           final int otherCnt = other.getBaseBufferCount();
           final Object[] combBuf = other.getCombinedBuffer();
           for (int i = 0; i < otherCnt; i++) {
@@ -302,7 +302,7 @@ public final class ItemsUnion<T> {
         else { //myQS = null, other is est mode
           ret = (myMaxK < other.getK())
               ? other.downSample(myMaxK)
-              : ItemsSketch.copy(other); //required because caller has handle
+              : QuantilesItemsSketch.copy(other); //required because caller has handle
         }
         break;
       }
@@ -322,14 +322,14 @@ public final class ItemsUnion<T> {
         }
         else { //Bigger: myQS.getK() > other.getK(), must reverse roles
           //must copy other as it will become mine and can't have any externally owned handles.
-          ret = ItemsSketch.copy(other);
+          ret = QuantilesItemsSketch.copy(other);
           ItemsMergeImpl.mergeInto(myQS, ret);
         }
         break;
       }
       case 4: {
         assert other != null;
-        ret = ItemsSketch.getInstance(other.getClassOfT(), Math.min(myMaxK, other.getK()), comparator);
+        ret = QuantilesItemsSketch.getInstance(other.getClassOfT(), Math.min(myMaxK, other.getK()), comparator);
         break;
       }
       default: break; //This cannot happen

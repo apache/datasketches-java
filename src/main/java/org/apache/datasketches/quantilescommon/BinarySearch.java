@@ -27,6 +27,11 @@ package org.apache.datasketches.quantilescommon;
 public final class BinarySearch {
 
   /**
+   * No argument constructor.
+   */
+  public BinarySearch() { }
+
+  /**
    * Binary Search for the index of the exact float value in the given search range.
    * If -1 is returned there are no values in the search range that equals the given value.
    * @param arr The given ordered array to search.

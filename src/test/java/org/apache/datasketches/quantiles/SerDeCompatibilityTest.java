@@ -33,12 +33,12 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void itemsToDoubles() {
-    final ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Double> sketch1 = QuantilesItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
     for (int i = 1; i <= 500; i++) { sketch1.update((double) i); }
 
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final UpdateDoublesSketch sketch2;
-    sketch2 = UpdateDoublesSketch.heapify(MemorySegment.ofArray(bytes));
+    final UpdatableQuantilesDoublesSketch sketch2;
+    sketch2 = UpdatableQuantilesDoublesSketch.heapify(MemorySegment.ofArray(bytes));
 
     for (int i = 501; i <= 1000; i++) { sketch2.update(i); }
     Assert.assertEquals(sketch2.getN(), 1000);
@@ -51,16 +51,16 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void doublesToItems() {
-    final UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(); //SerVer = 3
+    final UpdatableQuantilesDoublesSketch sketch1 = QuantilesDoublesSketch.builder().build(); //SerVer = 3
     for (int i = 1; i <= 500; i++) { sketch1.update(i); }
 
-    final CompactDoublesSketch cs = sketch1.compact();
+    final CompactQuantilesDoublesSketch cs = sketch1.compact();
     DoublesSketchTest.testSketchEquality(sketch1, cs);
     //final byte[] bytes = sketch1.compact().toByteArray(); // must be compact
     final byte[] bytes = cs.toByteArray(); // must be compact
 
-    //reconstruct with ItemsSketch
-    final ItemsSketch<Double> sketch2 = ItemsSketch.heapify(Double.class, MemorySegment.ofArray(bytes),
+    //reconstruct with QuantilesItemsSketch
+    final QuantilesItemsSketch<Double> sketch2 = QuantilesItemsSketch.heapify(Double.class, MemorySegment.ofArray(bytes),
         Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) { sketch2.update((double) i); }

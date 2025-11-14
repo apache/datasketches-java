@@ -130,7 +130,7 @@ final class DoublesUpdateImpl {
   private static void zipSize2KBuffer(
           final DoublesBufferAccessor bufIn,
           final DoublesBufferAccessor bufOut) {
-    final int randomOffset = DoublesSketch.rand.nextBoolean() ? 1 : 0;
+    final int randomOffset = QuantilesDoublesSketch.rand.nextBoolean() ? 1 : 0;
     final int limOut = bufOut.numItems();
     for (int idxIn = randomOffset, idxOut = 0; idxOut < limOut; idxIn += 2, idxOut++) {
       bufOut.set(idxOut, bufIn.get(idxIn));

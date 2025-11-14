@@ -25,6 +25,11 @@ package org.apache.datasketches.tdigest;
 public final class BinarySearch {
 
   /**
+   * No argument constructor.
+   */
+  public BinarySearch() { }
+
+  /**
    * Returns an index to the first element in the range [first, last) such that
    * element < value is false (i.e. that is greater than or equal to value),
    * or last if no such element is found.
@@ -43,7 +48,7 @@ public final class BinarySearch {
   static int lowerBound(final double[] values, int first, final int last, final double value) {
     int current;
     int step;
-    int count = last - first; 
+    int count = last - first;
     while (count > 0) {
       step = count / 2;
       current = first + step;
@@ -76,9 +81,9 @@ public final class BinarySearch {
   static int upperBound(final double[] values, int first, final int last, final double value) {
     int current;
     int step;
-    int count = last - first; 
+    int count = last - first;
     while (count > 0) {
-      step = count / 2; 
+      step = count / 2;
       current = first + step;
       if (!(value < values[current])) {
         first = ++current;

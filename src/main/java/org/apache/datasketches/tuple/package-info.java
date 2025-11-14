@@ -18,7 +18,7 @@
  */
 
 /**
- * The tuple package contains a number of sketches based on the same
+ * The <i>tuple</i> package contains a number of sketches based on the same
  * fundamental algorithms of the Theta Sketch Framework and extend these
  * concepts for whole new families of sketches.
  */

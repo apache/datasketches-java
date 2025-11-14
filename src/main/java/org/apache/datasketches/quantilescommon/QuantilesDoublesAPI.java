@@ -283,7 +283,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * Gets the iterator for this sketch, which is not sorted.
    * @return the iterator for this sketch
    */
-  QuantilesDoublesSketchIterator iterator();
+  QuantilesDoublesSketchIteratorAPI iterator();
 
   /**
    * Returns a byte array representation of this sketch.

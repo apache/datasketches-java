@@ -35,6 +35,11 @@ import org.apache.datasketches.common.Util;
  */
 public abstract class ThetaIntersection extends ThetaSetOperation {
 
+  /**
+   * No argument constructor.
+   */
+  public ThetaIntersection() { }
+
   @Override
   public Family getFamily() {
     return Family.INTERSECTION;

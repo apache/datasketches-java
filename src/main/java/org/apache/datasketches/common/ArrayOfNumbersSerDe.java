@@ -49,7 +49,6 @@ import java.util.Objects;
  * @author Jon Malkin
  */
 public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
-
   // values selected to enable backwards compatibility
   private static final byte LONG_INDICATOR    = 12;
   private static final byte INTEGER_INDICATOR = 9;
@@ -57,6 +56,11 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   private static final byte BYTE_INDICATOR    = 2;
   private static final byte DOUBLE_INDICATOR  = 4;
   private static final byte FLOAT_INDICATOR   = 6;
+
+  /**
+   * No argument constructor.
+   */
+  public ArrayOfNumbersSerDe() { }
 
   @Override
   public byte[] serializeToByteArray(final Number item) {

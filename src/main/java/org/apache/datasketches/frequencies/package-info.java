@@ -17,4 +17,7 @@
  * under the License.
  */
 
+/**
+ * This package contains the implementations of the paper <a href="https://arxiv.org/abs/1705.07001">https://arxiv.org/abs/1705.07001</a>.
+ */
 package org.apache.datasketches.frequencies;

@@ -30,6 +30,11 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
  */
 public class TestUtil {
 
+  /**
+   * No argument constructor.
+   */
+  public TestUtil() { }
+
   static final double pwrLaw10NextDouble(final int ppb, final double curPoint) {
     final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
     double gi = round(Math.log10(cur) * ppb); //current generating index

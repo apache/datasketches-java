@@ -51,7 +51,7 @@ import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 import org.testng.annotations.Test;
 
 public class KllItemsSketchTest {
@@ -767,7 +767,7 @@ public class KllItemsSketchTest {
     sk1.merge(sk2);
     println(sk1.toString(true, true)); //L1 and above should be sorted in reverse. Ignore L0.
     final int lvl1size = sk1.levelsArr[2] - sk1.levelsArr[1];
-    final QuantilesGenericSketchIterator<String> itr = sk1.iterator();
+    final QuantilesGenericSketchIteratorAPI<String> itr = sk1.iterator();
     itr.next();
     int prev = Integer.parseInt(itr.getQuantile().trim());
     for (int i = 1; i < lvl1size; i++) {

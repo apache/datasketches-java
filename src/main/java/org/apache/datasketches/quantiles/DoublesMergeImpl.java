@@ -61,7 +61,7 @@ final class DoublesMergeImpl {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  static void mergeInto(final DoublesSketch src, final UpdateDoublesSketch tgt) {
+  static void mergeInto(final QuantilesDoublesSketch src, final UpdatableQuantilesDoublesSketch tgt) {
     final int srcK = src.getK();
     final int tgtK = tgt.getK();
     final long srcN = src.getN();
@@ -141,8 +141,8 @@ final class DoublesMergeImpl {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  //also used by DoublesSketch, DoublesUnionImpl and HeapDoublesSketchTest
-  static void downSamplingMergeInto(final DoublesSketch src, final UpdateDoublesSketch tgt) {
+  //also used by QuantilesDoublesSketch, QuantilesDoublesUnionImpl and HeapDoublesSketchTest
+  static void downSamplingMergeInto(final QuantilesDoublesSketch src, final UpdatableQuantilesDoublesSketch tgt) {
     final int sourceK = src.getK();
     final int targetK = tgt.getK();
     final long tgtN = tgt.getN();
@@ -227,7 +227,7 @@ final class DoublesMergeImpl {
           final DoublesBufferAccessor bufC, // output
           final int kC, // number of items that should be in the output
           final int stride) {
-    final int randomOffset = DoublesSketch.rand.nextInt(stride);
+    final int randomOffset = QuantilesDoublesSketch.rand.nextInt(stride);
     for (int a = randomOffset, c = 0; c < kC; a += stride, c++ ) {
       bufC.set(c, bufA.get(a));
     }

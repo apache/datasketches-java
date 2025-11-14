@@ -21,7 +21,7 @@
  * The quantiles package contains stochastic streaming algorithms that enable single-pass
  * analysis of the distribution of a stream of quantiles.
  *
- * @see org.apache.datasketches.quantiles.DoublesSketch
- * @see org.apache.datasketches.quantiles.ItemsSketch
+ * @see org.apache.datasketches.quantiles.QuantilesDoublesSketch
+ * @see org.apache.datasketches.quantiles.QuantilesItemsSketch
  */
 package org.apache.datasketches.quantiles;

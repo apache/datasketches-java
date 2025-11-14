@@ -21,7 +21,6 @@ package org.apache.datasketches.quantilescommon;
 
 import static java.lang.Math.min;
 import static org.apache.datasketches.quantilescommon.GenericInequalitySearch.find;
-import static org.apache.datasketches.quantilescommon.IncludeMinMax.ItemsPair;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedDoubles;
@@ -32,9 +31,10 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
+import org.apache.datasketches.quantilescommon.IncludeMinMax.ItemsPair;
 
 /**
- * The SortedView for the KllItemsSketch and the classic ItemsSketch.
+ * The SortedView for the KllItemsSketch and the classic QuantilesItemsSketch.
  * @param <T> The sketch data type
  * @author Alexander Saydakov
  * @author Lee Rhodes

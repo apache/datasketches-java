@@ -42,15 +42,19 @@ public class SortTest {
     assertEquals(values[3], 4);
     assertEquals(values[4], 5);
   }
-  
+
   @Test
   public void large() {
     final int n = 1000;
     final double[] keys = new double[n];
     final long[] values = new long[n];
-    for (int i = 0; i < n; i++) values[i] = i;
+    for (int i = 0; i < n; i++) {
+      values[i] = i;
+    }
     Shuffle.shuffle(values);
-    for (int i = 0; i < n; i++) keys[i] = values[i];
+    for (int i = 0; i < n; i++) {
+      keys[i] = values[i];
+    }
     Sort.stableSort(keys, values, n);
     for (int i = 0; i < n; i++) {
       assertEquals(keys[i], i);

@@ -29,56 +29,62 @@ import org.apache.datasketches.common.MemorySegmentStatus;
  *
  * @author Lee Rhodes
  */
-public abstract class DoublesUnion implements MemorySegmentStatus {
+public abstract class QuantilesDoublesUnion implements MemorySegmentStatus {
+
+  /**
+   * No argument constructor.
+   */
+  public QuantilesDoublesUnion() { }
 
   /**
    * Returns a new UnionBuilder
    * @return a new UnionBuilder
    */
-  public static DoublesUnionBuilder builder() {
-    return new DoublesUnionBuilder();
+  public static QuantilesDoublesUnionBuilder builder() {
+    return new QuantilesDoublesUnionBuilder();
   }
 
   /**
    * Returns a Heap Union object that has been initialized with the data from the given sketch.
-   * @param sketch A DoublesSketch to be used as a source of data only and will not be modified.
-   * @return a DoublesUnion object
+   * @param sketch A QuantilesDoublesSketch to be used as a source of data only and will not be modified.
+   * @return a QuantilesDoublesUnion object
    */
-  public static DoublesUnion heapify(final DoublesSketch sketch) {
-    return DoublesUnionImpl.heapifyInstance(sketch);
+  public static QuantilesDoublesUnion heapify(final QuantilesDoublesSketch sketch) {
+    return QuantilesDoublesUnionImpl.heapifyInstance(sketch);
   }
 
   /**
    * Returns a Heap Union object that has been initialized with the data from the given MemorySegment that contains an
    * image of a sketch.
    *
-   * @param srcSeg A MemorySegment image of a DoublesSketch to be used as a source of data and will not be modified.
+   * @param srcSeg A MemorySegment image of a QuantilesDoublesSketch to be used as a source of data and will not be modified.
    * @return a Union object
    */
-  public static DoublesUnion heapify(final MemorySegment srcSeg) {
-    return DoublesUnionImpl.heapifyInstance(srcSeg);
+  public static QuantilesDoublesUnion heapify(final MemorySegment srcSeg) {
+    return QuantilesDoublesUnionImpl.heapifyInstance(srcSeg);
   }
 
   /**
-   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a DoublesSketch.
+   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a QuantilesDoublesSketch.
    *
-   * @param srcSeg A MemorySegment image of an updatable DoublesSketch to be used as the data structure for the union and will be modified.
+   * @param srcSeg A MemorySegment image of an updatable QuantilesDoublesSketch to be used as the data structure for the union
+   * and will be modified.
    * @return a Union object
    */
-  public static DoublesUnion wrap(final MemorySegment srcSeg) {
-    return DoublesUnionImpl.wrapInstance(srcSeg, null);
+  public static QuantilesDoublesUnion wrap(final MemorySegment srcSeg) {
+    return QuantilesDoublesUnionImpl.wrapInstance(srcSeg, null);
   }
 
   /**
-   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a DoublesSketch.
+   * Returns an updatable Union object that wraps the given MemorySegment that contains an image of a QuantilesDoublesSketch.
    *
    * @param srcSeg A MemorySegment sketch to be used as the data structure for the union and will be modified.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object
    */
-  public static DoublesUnion wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
-    return DoublesUnionImpl.wrapInstance(srcSeg, mSegReq);
+  public static QuantilesDoublesUnion wrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+    return QuantilesDoublesUnionImpl.wrapInstance(srcSeg, mSegReq);
   }
 
   @Override
@@ -121,11 +127,11 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
    *
    * @param sketchIn the sketch to be merged into this one.
    */
-  public abstract void union(DoublesSketch sketchIn);
+  public abstract void union(QuantilesDoublesSketch sketchIn);
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
-   * Merges the given MemorySegment image of a DoublesSketch into this union object.
+   * Merges the given MemorySegment image of a QuantilesDoublesSketch into this union object.
    * The given MemorySegment object is not modified and a link to it is not retained.
    * It is required that the ratio of the two K's be a power of 2.
    * This is easily satisfied if each of the K's are already a power of 2.
@@ -146,16 +152,16 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
   public abstract void update(double dataItem);
 
   /**
-   * Gets the result of this Union as an UpdateDoublesSketch, which enables further update
+   * Gets the result of this Union as an UpdatableQuantilesDoublesSketch, which enables further update
    * operations on the resulting sketch. The Union state has not been changed, which allows
    * further union operations.
    *
    * @return the result of this Union operation
    */
-  public abstract UpdateDoublesSketch getResult();
+  public abstract UpdatableQuantilesDoublesSketch getResult();
 
   /**
-   * Places the result of this Union into the provided MemorySegment as an UpdateDoublesSketch,
+   * Places the result of this Union into the provided MemorySegment as an UpdatableQuantilesDoublesSketch,
    * which enables further update operations on the resulting sketch. The Union state has not
    * been changed, which allows further union operations.
    *
@@ -164,15 +170,15 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return the result of this Union operation
    */
-  public abstract UpdateDoublesSketch getResult(MemorySegment dstSeg, MemorySegmentRequest mSegReq);
+  public abstract UpdatableQuantilesDoublesSketch getResult(MemorySegment dstSeg, MemorySegmentRequest mSegReq);
 
   /**
-   * Gets the result of this Union  as an UpdateDoublesSketch, which enables further update
+   * Gets the result of this Union  as an UpdatableQuantilesDoublesSketch, which enables further update
    * operations on the resulting sketch. The Union is reset to the virgin state.
    *
    * @return the result of this Union operation and reset.
    */
-  public abstract UpdateDoublesSketch getResultAndReset();
+  public abstract UpdatableQuantilesDoublesSketch getResultAndReset();
 
   /**
    * Resets this Union to a virgin state.
@@ -180,7 +186,7 @@ public abstract class DoublesUnion implements MemorySegmentStatus {
   public abstract void reset();
 
   /**
-   * Serialize this union to a byte array. Result is an UpdateDoublesSketch, serialized in an
+   * Serialize this union to a byte array. Result is an UpdatableQuantilesDoublesSketch, serialized in an
    * unordered, non-compact form. The resulting byte[] can be heapified or wrapped  as either a
    * sketch or a union.
    *

@@ -29,7 +29,7 @@ import java.util.Arrays;
  */
 final class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
 
-  DirectDoublesSketchAccessor(final DoublesSketch ds,
+  DirectDoublesSketchAccessor(final QuantilesDoublesSketch ds,
                               final boolean forceSize,
                               final int level) {
     super(ds, forceSize, level);

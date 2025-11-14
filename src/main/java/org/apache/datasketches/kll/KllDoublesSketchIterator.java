@@ -19,12 +19,12 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
 
 /**
  * Iterator over KllDoublesSketch. The order is not defined.
  */
-public final class KllDoublesSketchIterator extends KllSketchIterator implements QuantilesDoublesSketchIterator {
+public final class KllDoublesSketchIterator extends KllSketchIterator implements QuantilesDoublesSketchIteratorAPI {
   private final double[] quantiles;
 
   KllDoublesSketchIterator(final double[] quantiles, final int[] levelsArr, final int numLevels) {

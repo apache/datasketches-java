@@ -30,7 +30,7 @@ import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -40,7 +40,7 @@ public class KllItemsSketchiteratorTest {
   @Test
   public void emptySketch() {
     final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    final QuantilesGenericSketchIterator<String> it = sketch.iterator();
+    final QuantilesGenericSketchIteratorAPI<String> it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -48,7 +48,7 @@ public class KllItemsSketchiteratorTest {
   public void oneItemSketch() {
     final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     sketch.update("1");
-    final QuantilesGenericSketchIterator<String> it = sketch.iterator();
+    final QuantilesGenericSketchIteratorAPI<String> it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getQuantile(), "1");
     Assert.assertEquals(it.getWeight(), 1);
@@ -60,7 +60,7 @@ public class KllItemsSketchiteratorTest {
     final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     sketch.update("1");
     sketch.update("2");
-    final QuantilesGenericSketchIterator<String> itr = sketch.iterator();
+    final QuantilesGenericSketchIteratorAPI<String> itr = sketch.iterator();
     assertTrue(itr.next());
 
     assertEquals(itr.getQuantile(), "2");
@@ -106,7 +106,7 @@ public class KllItemsSketchiteratorTest {
       for (int i = 0; i < n; i++) {
         sketch.update(Util.longToFixedLengthString(i, digits));
       }
-      final QuantilesGenericSketchIterator<String> it = sketch.iterator();
+      final QuantilesGenericSketchIteratorAPI<String> it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

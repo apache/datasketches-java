@@ -18,6 +18,7 @@
  */
 
 /**
- *
+ * This package is for classes that simplify the task of partitioning large data into many approximately equal-sized
+ * partitions.
  */
 package org.apache.datasketches.partitions;

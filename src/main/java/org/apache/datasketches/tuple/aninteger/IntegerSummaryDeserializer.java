@@ -30,6 +30,11 @@ import org.apache.datasketches.tuple.SummaryDeserializer;
  */
 public class IntegerSummaryDeserializer implements SummaryDeserializer<IntegerSummary> {
 
+  /**
+   * No argument constructor.
+   */
+  public IntegerSummaryDeserializer() { }
+
   @Override
   public DeserializeResult<IntegerSummary> heapifySummary(final MemorySegment seg) {
     return IntegerSummary.fromMemorySegment(seg);

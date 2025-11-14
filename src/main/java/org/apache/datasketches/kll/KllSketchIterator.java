@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.quantilescommon.QuantilesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesSketchIteratorAPI;
 
 /**
  * The base implementation for the KLL sketch iterator hierarchy used for viewing the
@@ -35,7 +35,7 @@ import org.apache.datasketches.quantilescommon.QuantilesSketchIterator;
  *
  * @author Lee Rhodes
  */
-public class KllSketchIterator implements QuantilesSketchIterator {
+public class KllSketchIterator implements QuantilesSketchIteratorAPI {
   protected final int[] levelsArr;
   protected final int numLevels;
   protected int level;

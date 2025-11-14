@@ -32,19 +32,19 @@ public class DoublesSketchBuilderTest {
   @Test
   public void checkBuilder() {
     final int k = 256; //default is 128
-    DoublesSketchBuilder bldr = DoublesSketch.builder();
+    QuantilesDoublesSketchBuilder bldr = QuantilesDoublesSketch.builder();
     bldr.setK(k);
     assertEquals(bldr.getK(), k); //confirms new k
     println(bldr.toString());
-    final int bytes = DoublesSketch.getUpdatableStorageBytes(k, 0);
+    final int bytes = QuantilesDoublesSketch.getUpdatableStorageBytes(k, 0);
     final byte[] byteArr = new byte[bytes];
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    final DoublesSketch ds = bldr.build(seg);
+    final QuantilesDoublesSketch ds = bldr.build(seg);
     assertTrue(ds.hasMemorySegment());
     assertFalse(ds.isOffHeap());
     println(bldr.toString());
 
-    bldr = DoublesSketch.builder();
+    bldr = QuantilesDoublesSketch.builder();
     assertEquals(bldr.getK(), PreambleUtil.DEFAULT_K);
   }
 

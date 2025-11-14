@@ -38,6 +38,9 @@ public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
 
   private String[] stringArr = null;
 
+  /**
+   * No argument constructor.
+   */
   ArrayOfStringsSummary() { //required for ArrayOfStringsSummaryFactory
     stringArr = null;
   }

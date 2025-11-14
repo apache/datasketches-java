@@ -35,8 +35,8 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.TestUtil;
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -51,7 +51,7 @@ public class QuantilesSketchCrossLanguageTest {
   public void generateDoublesSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
-      final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+      final UpdatableQuantilesDoublesSketch sk = QuantilesDoublesSketch.builder().build();
       for (int i = 1; i <= n; i++) {
         sk.update(i);
       }
@@ -63,7 +63,7 @@ public class QuantilesSketchCrossLanguageTest {
   public void generateItemsSketchWithStrings() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
-      final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, new Comparator<String>() {
+      final QuantilesItemsSketch<String> sk = QuantilesItemsSketch.getInstance(String.class, new Comparator<String>() {
         @Override
         public int compare(final String s1, final String s2) {
           try {
@@ -92,14 +92,14 @@ public class QuantilesSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] byteArr = Files.readAllBytes(cppPath.resolve("quantiles_double_n" + n + "_cpp.sk"));
-      final DoublesSketch sk = DoublesSketch.wrap(MemorySegment.ofArray(byteArr));
+      final QuantilesDoublesSketch sk = QuantilesDoublesSketch.wrap(MemorySegment.ofArray(byteArr));
       assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
       assertTrue(n > 128 ? sk.isEstimationMode() : !sk.isEstimationMode());
       assertEquals(sk.getN(), n);
       if (n > 0) {
         assertEquals(sk.getMinItem(), 1);
         assertEquals(sk.getMaxItem(), n);
-        final QuantilesDoublesSketchIterator it = sk.iterator();
+        final QuantilesDoublesSketchIteratorAPI it = sk.iterator();
         long weight = 0;
         while(it.next()) {
           assertTrue(it.getQuantile() >= sk.getMinItem());
@@ -129,7 +129,7 @@ public class QuantilesSketchCrossLanguageTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final byte[] byteArr = Files.readAllBytes(cppPath.resolve("quantiles_string_n" + n + "_cpp.sk"));
-      final ItemsSketch<String> sk = ItemsSketch.heapify(
+      final QuantilesItemsSketch<String> sk = QuantilesItemsSketch.heapify(
           String.class,
           MemorySegment.ofArray(byteArr),
           numericOrder,
@@ -141,7 +141,7 @@ public class QuantilesSketchCrossLanguageTest {
       if (n > 0) {
         assertEquals(sk.getMinItem(), "1");
         assertEquals(sk.getMaxItem(), Integer.toString(n));
-        final QuantilesGenericSketchIterator<String> it = sk.iterator();
+        final QuantilesGenericSketchIteratorAPI<String> it = sk.iterator();
         long weight = 0;
         while(it.next()) {
           assertTrue(numericOrder.compare(it.getQuantile(), sk.getMinItem()) >= 0);
@@ -234,7 +234,7 @@ public class QuantilesSketchCrossLanguageTest {
   }
 
   private static void getAndCheck(final String ver, final int n, final double quantile) {
-    DoublesSketch.rand.setSeed(131); //make deterministic
+    QuantilesDoublesSketch.rand.setSeed(131); //make deterministic
     //create fileName
     final int k = 128;
     final double nf = 0.5;
@@ -246,7 +246,7 @@ public class QuantilesSketchCrossLanguageTest {
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArr);
 
     // heapify as update sketch
-    DoublesSketch qs2 = UpdateDoublesSketch.heapify(srcSeg);
+    QuantilesDoublesSketch qs2 = UpdatableQuantilesDoublesSketch.heapify(srcSeg);
     //Test the quantile
     double q2 = qs2.getQuantile(nf, EXCLUSIVE);
     println("New Median: " + q2);

@@ -32,7 +32,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   static final int BB_LVL_IDX = -1;
 
-  final DoublesSketch ds_;
+  final QuantilesDoublesSketch ds_;
   final boolean forceSize_;
 
   long n_;
@@ -41,7 +41,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   int offset_; //bytes for Direct, doubles for heap
 
   DoublesSketchAccessor(
-      final DoublesSketch ds,
+      final QuantilesDoublesSketch ds,
       final boolean forceSize,
       final int level) {
     checkLvl(level);
@@ -57,14 +57,14 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   }
 
   /**
-   * Wrap the given DoublesSketch
-   * @param ds the given DoublesSketch
+   * Wrap the given QuantilesDoublesSketch
+   * @param ds the given QuantilesDoublesSketch
    * @param forceSize Generally, this must be true if modeling an updatable sketch, i.e., not compact.
    * See {@link #setLevel(int) setLevel(int)} below.
    *
    * @return this
    */
-  static DoublesSketchAccessor wrap(final DoublesSketch ds, final boolean forceSize) {
+  static DoublesSketchAccessor wrap(final QuantilesDoublesSketch ds, final boolean forceSize) {
     if (ds.hasMemorySegment()) {
       return new DirectDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
     }
@@ -76,7 +76,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   /*
    * This initializes the following internal member variables:
    * <ul>
-   * <li><i>n_</i> The local copy of DoublesSketch.getN().</li>
+   * <li><i>n_</i> The local copy of QuantilesDoublesSketch.getN().</li>
    * <li><i>currLvl_</i> The current level being processed.</li>
    * <li><i>numItems_</i> The number of items in this level.</li>
    * <li><i>offset_</i> If accessing a MemorySegment sketch, this is bytes offset from the start of the segment.

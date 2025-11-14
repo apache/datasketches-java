@@ -27,6 +27,11 @@ import org.apache.datasketches.tuple.SummaryFactory;
  */
 public class ArrayOfStringsSummaryFactory implements SummaryFactory<ArrayOfStringsSummary> {
 
+  /**
+   * No argument constructor.
+   */
+  public ArrayOfStringsSummaryFactory() { }
+
   @Override
   public ArrayOfStringsSummary newSummary() {
     return new ArrayOfStringsSummary();

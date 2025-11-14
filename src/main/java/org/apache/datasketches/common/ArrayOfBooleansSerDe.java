@@ -30,6 +30,12 @@ import java.util.Objects;
  * @author Jon Malkin
  */
 public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
+
+  /**
+   * No argument constructor.
+   */
+  public ArrayOfBooleansSerDe() { }
+
   /**
    * Computes number of bytes needed for packed bit encoding of the array of booleans. Rounds
    * partial bytes up to return a whole number of bytes.

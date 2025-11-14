@@ -177,7 +177,7 @@ public class UtilTest {
          arr = makeMergeTestInput(arrLen, blkSize);
          final long [] brr = makeTheTandemArray(arr);
          assertMergeTestPrecondition(arr, brr, arrLen, blkSize);
-         DoublesSketch.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
+         QuantilesDoublesSketch.blockyTandemMergeSort(arr, brr, arrLen, blkSize);
          /* verify sorted order */
          for (int i = 0; i < (arrLen-1); i++) {
            assert arr[i] <= arr[i+1];

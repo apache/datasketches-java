@@ -167,19 +167,19 @@ public class PreambleUtilTest {
   public void checkToString() {
     final int k = PreambleUtil.DEFAULT_K;
     final int n = 1000000;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch qs = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i=0; i<n; i++) {
       qs.update(i);
     }
     final byte[] byteArr = qs.toByteArray();
-    DoublesSketch.toString(byteArr);
-    println(DoublesSketch.toString(MemorySegment.ofArray(byteArr)));
+    QuantilesDoublesSketch.toString(byteArr);
+    println(QuantilesDoublesSketch.toString(MemorySegment.ofArray(byteArr)));
   }
 
   @Test
   public void checkToStringEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
-    final DoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    final QuantilesDoublesSketch qs = QuantilesDoublesSketch.builder().setK(k).build();
     final byte[] byteArr = qs.toByteArray();
     println(PreambleUtil.toString(byteArr, true));
   }

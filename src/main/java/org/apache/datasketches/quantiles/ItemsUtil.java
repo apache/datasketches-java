@@ -58,7 +58,7 @@ final class ItemsUtil {
    * @param sketch the given quantiles sketch
    */
   @SuppressWarnings("unchecked")
-  static <T> void processFullBaseBuffer(final ItemsSketch<T> sketch) {
+  static <T> void processFullBaseBuffer(final QuantilesItemsSketch<T> sketch) {
     final int bbCount = sketch.getBaseBufferCount();
     final long n = sketch.getN();
     assert bbCount == (2 * sketch.getK()); // internal consistency check
@@ -81,7 +81,7 @@ final class ItemsUtil {
   }
 
   static <T> String toString(final boolean withLevels, final boolean withLevelsAndItems,
-      final ItemsSketch<T> sk) {
+      final QuantilesItemsSketch<T> sk) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sk.getClass().getSimpleName();
     final int bbCount = sk.getBaseBufferCount();
@@ -128,7 +128,7 @@ final class ItemsUtil {
     return sb.toString();
   }
 
-  private static <T> String outputLevels(final ItemsSketch<T> sk) {
+  private static <T> String outputLevels(final QuantilesItemsSketch<T> sk) {
     final String name = sk.getClass().getSimpleName();
     final int k = sk.getK();
     final long n = sk.getN();
@@ -151,7 +151,7 @@ final class ItemsUtil {
     return sb.toString();
   }
 
-  private static <T> String outputDataDetail(final ItemsSketch<T> sk) {
+  private static <T> String outputDataDetail(final QuantilesItemsSketch<T> sk) {
     final String name = sk.getClass().getSimpleName();
     final int k = sk.getK();
     final long n = sk.getN();

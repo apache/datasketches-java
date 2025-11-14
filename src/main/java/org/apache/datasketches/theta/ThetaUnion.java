@@ -38,6 +38,11 @@ import org.apache.datasketches.common.Util;
 public abstract class ThetaUnion extends ThetaSetOperation {
 
   /**
+   * No argument constructor.
+   */
+  public ThetaUnion() { }
+
+  /**
    * Wrap a ThetaUnion object around a ThetaUnion MemorySegment object containing data.
    * This method assumes the <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * This does NO validity checking of the given MemorySegment.

@@ -36,28 +36,28 @@ import org.apache.datasketches.common.SketchesReadOnlyException;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-final class DoublesUnionImpl extends DoublesUnion {
+final class QuantilesDoublesUnionImpl extends QuantilesDoublesUnion {
   int maxK_;
-  UpdateDoublesSketch gadget_ = null;
+  UpdatableQuantilesDoublesSketch gadget_ = null;
 
-  private DoublesUnionImpl(final int maxK) {
+  private QuantilesDoublesUnionImpl(final int maxK) {
    maxK_ = maxK;
   }
 
   /**
-   * Returns a empty DoublesUnion object on the heap.
+   * Returns a empty QuantilesDoublesUnion object on the heap.
    * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
    * different <i>k</i>.
-   * @return a new DoublesUnionImpl on the Java heap
+   * @return a new QuantilesDoublesUnionImpl on the Java heap
    */
-  static DoublesUnionImpl heapInstance(final int maxK) {
-    return new DoublesUnionImpl(maxK);
+  static QuantilesDoublesUnionImpl heapInstance(final int maxK) {
+    return new QuantilesDoublesUnionImpl(maxK);
   }
 
   /**
-   * Returns a empty DoublesUnion object that uses the given MemorySegment for its internal sketch gadget
+   * Returns a empty QuantilesDoublesUnion object that uses the given MemorySegment for its internal sketch gadget
    * and will be initialized to the empty state.
    *
    * @param maxK determines the accuracy and size of the union and is a maximum.
@@ -67,70 +67,71 @@ final class DoublesUnionImpl extends DoublesUnion {
    * @param dstSeg the MemorySegment to be used by the internal sketch and must not be null.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
-   * @return a DoublesUnion object
+   * @return a QuantilesDoublesUnion object
    */
-  static DoublesUnionImpl directInstance(final int maxK, final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
+  static QuantilesDoublesUnionImpl directInstance(final int maxK, final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(dstSeg);
     final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstSeg, mSegReq);
-    final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
+    final QuantilesDoublesUnionImpl union = new QuantilesDoublesUnionImpl(maxK);
     union.maxK_ = maxK;
     union.gadget_ = sketch;
     return union;
   }
 
   /**
-   * Returns a Heap DoublesUnion object that has been initialized with the data from the given
+   * Returns a Heap QuantilesDoublesUnion object that has been initialized with the data from the given
    * sketch.
    *
-   * @param sketch A DoublesSketch to be used as a source of data only and will not be modified.
-   * @return a DoublesUnion object
+   * @param sketch A QuantilesDoublesSketch to be used as a source of data only and will not be modified.
+   * @return a QuantilesDoublesUnion object
    */
-  static DoublesUnionImpl heapifyInstance(final DoublesSketch sketch) {
+  static QuantilesDoublesUnionImpl heapifyInstance(final QuantilesDoublesSketch sketch) {
     Objects.requireNonNull(sketch);
     final int k = sketch.getK();
-    final DoublesUnionImpl union = new DoublesUnionImpl(k);
+    final QuantilesDoublesUnionImpl union = new QuantilesDoublesUnionImpl(k);
     union.maxK_ = k;
     union.gadget_ = copyToHeap(sketch);
     return union;
   }
 
   /**
-   * Returns a Heap DoublesUnion object that has been initialized with the data from the given
-   * MemorySegment image of a DoublesSketch. The srcSeg object will not be modified and a reference to
+   * Returns a Heap QuantilesDoublesUnion object that has been initialized with the data from the given
+   * MemorySegment image of a QuantilesDoublesSketch. The srcSeg object will not be modified and a reference to
    * it is not retained. The <i>maxK</i> of the resulting union will be that obtained from
    * the sketch MemorySegment image.
    *
-   * @param srcSeg an optionally read-only MemorySegment image of a DoublesSketch
-   * @return a DoublesUnion object
+   * @param srcSeg an optionally read-only MemorySegment image of a QuantilesDoublesSketch
+   * @return a QuantilesDoublesUnion object
    */
-  static DoublesUnionImpl heapifyInstance(final MemorySegment srcSeg) {
+  static QuantilesDoublesUnionImpl heapifyInstance(final MemorySegment srcSeg) {
     Objects.requireNonNull(srcSeg);
     final HeapUpdateDoublesSketch sketch = HeapUpdateDoublesSketch.heapifyInstance(srcSeg);
-    final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
+    final QuantilesDoublesUnionImpl union = new QuantilesDoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
     return union;
   }
 
   /**
-   * Returns an Union object that wraps the data of the given MemorySegment image of a UpdateDoublesSketch.
+   * Returns an Union object that wraps the data of the given MemorySegment image of a UpdatableQuantilesDoublesSketch.
    * The data of the Union will remain in the MemorySegment.
    *
-   * @param srcSeg A MemorySegment image of an updatable DoublesSketch to be used as the data structure for the union and will be modified.
+   * @param srcSeg A MemorySegment image of an updatable QuantilesDoublesSketch to be used as the data structure for the union
+   * and will be modified.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object
    */
-  static DoublesUnionImpl wrapInstance(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+  static QuantilesDoublesUnionImpl wrapInstance(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     Objects.requireNonNull(srcSeg);
     if (srcSeg.isReadOnly()) { throw new SketchesReadOnlyException("Cannot create a Union with a Read Only MemorySegment."); }
     final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(srcSeg, mSegReq);
-    final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
+    final QuantilesDoublesUnionImpl union = new QuantilesDoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
     return union;
   }
 
   @Override
-  public void union(final DoublesSketch sketchIn) {
+  public void union(final QuantilesDoublesSketch sketchIn) {
     Objects.requireNonNull(sketchIn);
     gadget_ = updateLogic(maxK_, gadget_, sketchIn);
     gadget_.doublesSV = null;
@@ -140,9 +141,9 @@ final class DoublesUnionImpl extends DoublesUnion {
   public void union(final MemorySegment seg) {
     Objects.requireNonNull(seg);
     if (checkIsMemorySegmentCompact(seg)) {
-      gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(seg));
+      gadget_ = updateLogic(maxK_, gadget_, QuantilesDoublesSketch.wrap(seg));
     } else {
-      gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.writableWrap(seg, null));
+      gadget_ = updateLogic(maxK_, gadget_, QuantilesDoublesSketch.writableWrap(seg, null));
     }
 
     gadget_.doublesSV = null;
@@ -160,13 +161,13 @@ final class DoublesUnionImpl extends DoublesUnion {
   @Override
   public byte[] toByteArray() {
     if (gadget_ == null) {
-      return DoublesSketch.builder().setK(maxK_).build().toByteArray();
+      return QuantilesDoublesSketch.builder().setK(maxK_).build().toByteArray();
     }
     return gadget_.toByteArray();
   }
 
   @Override
-  public UpdateDoublesSketch getResult() {
+  public UpdatableQuantilesDoublesSketch getResult() {
     if (gadget_ == null) {
       return HeapUpdateDoublesSketch.newInstance(maxK_);
     }
@@ -174,10 +175,10 @@ final class DoublesUnionImpl extends DoublesUnion {
   }
 
   @Override
-  public UpdateDoublesSketch getResult(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
+  public UpdatableQuantilesDoublesSketch getResult(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
     final long segCapBytes = dstSeg.byteSize();
     if (gadget_ == null) {
-      if (segCapBytes < DoublesSketch.getUpdatableStorageBytes(0, 0)) {
+      if (segCapBytes < QuantilesDoublesSketch.getUpdatableStorageBytes(0, 0)) {
         throw new SketchesArgumentException("Insufficient capacity for result: " + segCapBytes);
       }
       return DirectUpdateDoublesSketch.newInstance(maxK_, dstSeg, mSegReq);
@@ -188,9 +189,9 @@ final class DoublesUnionImpl extends DoublesUnion {
   }
 
   @Override
-  public UpdateDoublesSketch getResultAndReset() {
+  public UpdatableQuantilesDoublesSketch getResultAndReset() {
     if (gadget_ == null) { return null; } //Intentionally return null here for speed.
-    final UpdateDoublesSketch ds = gadget_.getSketchAndReset();
+    final UpdatableQuantilesDoublesSketch ds = gadget_.getSketchAndReset();
     gadget_ = null;
     return ds;
   }
@@ -252,7 +253,7 @@ final class DoublesUnionImpl extends DoublesUnion {
   }
 
   //@formatter:off
-  static UpdateDoublesSketch updateLogic(final int myMaxK, final UpdateDoublesSketch myQS, final DoublesSketch other) {
+  static UpdatableQuantilesDoublesSketch updateLogic(final int myMaxK, final UpdatableQuantilesDoublesSketch myQS, final QuantilesDoublesSketch other) {
     int sw1 = ((myQS  == null) ? 0 :  myQS.isEmpty() ? 4 : 8);
     sw1 |=    ((other == null) ? 0 : other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
@@ -269,7 +270,7 @@ final class DoublesUnionImpl extends DoublesUnion {
       case 10: outCase = 3; break; //myQS = valid, other = valid; merge
       default: break; //This cannot happen
     }
-    UpdateDoublesSketch ret = null;
+    UpdatableQuantilesDoublesSketch ret = null;
 
     switch (outCase) {
       case 0: break; //return null
@@ -313,12 +314,12 @@ final class DoublesUnionImpl extends DoublesUnion {
             ret = DoublesUtil.copyToHeap(other);
           }
         } else { //Not Empty: myQS has data, downsample to tmp
-          final UpdateDoublesSketch tmp = DoublesSketch.builder().setK(other.getK()).build();
+          final UpdatableQuantilesDoublesSketch tmp = QuantilesDoublesSketch.builder().setK(other.getK()).build();
 
           DoublesMergeImpl.downSamplingMergeInto(myQS, tmp); //myData -> tmp
           ret = (myQS.hasMemorySegment())
-              ? DoublesSketch.builder().setK(other.getK()).build(myQS.getMemorySegment())
-              : DoublesSketch.builder().setK(other.getK()).build();
+              ? QuantilesDoublesSketch.builder().setK(other.getK()).build(myQS.getMemorySegment())
+              : QuantilesDoublesSketch.builder().setK(other.getK()).build();
 
           DoublesMergeImpl.mergeInto(tmp, ret);
           DoublesMergeImpl.mergeInto(other, ret);

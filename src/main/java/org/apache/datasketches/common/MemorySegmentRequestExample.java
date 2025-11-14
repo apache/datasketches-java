@@ -20,11 +20,10 @@
 package org.apache.datasketches.common;
 
 import java.lang.foreign.Arena;
-
 import java.lang.foreign.MemorySegment;
 import java.util.Enumeration;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This is an example of a possible implementation of the MemorySegmentRequest interface
@@ -34,6 +33,11 @@ import java.util.Objects;
  */
 public final class MemorySegmentRequestExample implements MemorySegmentRequest {
   private final ConcurrentHashMap<MemorySegment, Arena> map = new ConcurrentHashMap<>();
+
+  /**
+   * No argument constructor.
+   */
+  public MemorySegmentRequestExample() { }
 
   /**
    * Request a new off-heap MemorySegment with the given <i>newByteSeze</i>.

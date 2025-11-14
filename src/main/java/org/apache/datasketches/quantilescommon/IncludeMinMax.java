@@ -27,6 +27,11 @@ import java.util.Comparator;
  */
 public class IncludeMinMax {
 
+  /**
+   * No argument constructor.
+   */
+  public IncludeMinMax() { }
+
   /** A simple structure to hold a pair of arrays */
   public static class DoublesPair {
     /** the array of quantiles */

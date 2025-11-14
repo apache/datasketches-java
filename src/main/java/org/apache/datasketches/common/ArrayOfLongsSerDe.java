@@ -32,6 +32,11 @@ import java.util.Objects;
  */
 public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
 
+  /**
+   * No argument constructor.
+   */
+  public ArrayOfLongsSerDe() { }
+
   @Override
   public byte[] serializeToByteArray(final Long item) {
     Objects.requireNonNull(item, "Item must not be null");

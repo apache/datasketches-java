@@ -63,7 +63,7 @@ final class ItemsMergeImpl {
      * @param tgt The target sketch
      */
   @SuppressWarnings("unchecked")
-  static <T> void mergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
+  static <T> void mergeInto(final QuantilesItemsSketch<T> src, final QuantilesItemsSketch<T> tgt) {
     final int srcK = src.getK();
     final int tgtK = tgt.getK();
     final long srcN = src.getN();
@@ -133,8 +133,8 @@ final class ItemsMergeImpl {
    * @param src The source sketch
    * @param tgt The target sketch
    */
-  @SuppressWarnings("unchecked") //also used by ItemsSketch and ItemsUnion
-  static <T> void downSamplingMergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
+  @SuppressWarnings("unchecked") //also used by QuantilesItemsSketch and QuantilesItemsUnion
+  static <T> void downSamplingMergeInto(final QuantilesItemsSketch<T> src, final QuantilesItemsSketch<T> tgt) {
     final int sourceK = src.getK();
     final int targetK = tgt.getK();
 
@@ -208,7 +208,7 @@ final class ItemsMergeImpl {
       final T[] bufC, final int startC, // output
       final int kC, // number of items that should be in the output
       final int stride) {
-    final int randomOffset = ItemsSketch.rand.nextInt(stride);
+    final int randomOffset = QuantilesItemsSketch.rand.nextInt(stride);
     final int limC = startC + kC;
     for (int a = startSrc + randomOffset, c = startC; c < limC; a += stride, c++ ) {
       bufC[c] = bufSrc[a];

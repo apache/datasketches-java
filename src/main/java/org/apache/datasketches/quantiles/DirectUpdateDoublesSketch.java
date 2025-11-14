@@ -62,12 +62,12 @@ import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
- * Implements the DoublesSketch in a MemorySegment.
+ * Implements the QuantilesDoublesSketch in a MemorySegment.
  *
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
+final class DirectUpdateDoublesSketch extends UpdatableQuantilesDoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
   private MemorySegmentRequest mSegReq_ = null;
   private MemorySegment seg_;
@@ -80,7 +80,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   /**
-   * Creates a new instance of a DoublesSketch in a MemorySegment.
+   * Creates a new instance of a QuantilesDoublesSketch in a MemorySegment.
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
@@ -114,9 +114,9 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   /**
-   * Wrap this sketch around the given updatable MemorySegment image of a DoublesSketch.
+   * Wrap this sketch around the given updatable MemorySegment image of a QuantilesDoublesSketch.
    *
-   * @param srcSeg the given MemorySegment image of an UpdateDoublesSketch and must not be null.
+   * @param srcSeg the given MemorySegment image of an UpdatableQuantilesDoublesSketch and must not be null.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given srcSeg
@@ -294,7 +294,7 @@ final class DirectUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  UpdateDoublesSketch getSketchAndReset() {
+  UpdatableQuantilesDoublesSketch getSketchAndReset() {
     final HeapUpdateDoublesSketch skCopy = HeapUpdateDoublesSketch.heapifyInstance(seg_);
     reset();
     return skCopy;

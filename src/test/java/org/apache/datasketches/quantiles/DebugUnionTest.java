@@ -27,7 +27,7 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.util.HashSet;
 
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
 import org.testng.annotations.Test;
 
 /**
@@ -42,28 +42,28 @@ public class DebugUnionTest {
     final int numSketches = 3;
     final int sketchK = 8;
     final int unionK = 8;
-    final UpdateDoublesSketch[] sketchArr = new UpdateDoublesSketch[numSketches];
+    final UpdatableQuantilesDoublesSketch[] sketchArr = new UpdatableQuantilesDoublesSketch[numSketches];
 
     //builds the input sketches, all on heap
-    DoublesSketch.setRandom(1); //make deterministic for test
+    QuantilesDoublesSketch.setRandom(1); //make deterministic for test
     final HashSet<Double> set = new HashSet<>(); //holds input values
     for (int s = 0; s < numSketches; s++) {
       sketchArr[s] = buildHeapSketch(sketchK, n, valueLimit, set);
     }
 
     //loads the on heap union
-    DoublesSketch.setRandom(1); //make deterministic for test
-    final DoublesUnion hUnion = DoublesUnion.builder().setMaxK(unionK).build();
+    QuantilesDoublesSketch.setRandom(1); //make deterministic for test
+    final QuantilesDoublesUnion hUnion = QuantilesDoublesUnion.builder().setMaxK(unionK).build();
     for (int s = 0; s < numSketches; s++) { hUnion.union(sketchArr[s]); }
-    final DoublesSketch hSketch = hUnion.getResult();
+    final QuantilesDoublesSketch hSketch = hUnion.getResult();
 
     //loads the direct union
-    DoublesSketch.setRandom(1); //make deterministic for test
-    DoublesUnion dUnion;
-    DoublesSketch dSketch;
+    QuantilesDoublesSketch.setRandom(1); //make deterministic for test
+    QuantilesDoublesUnion dUnion;
+    QuantilesDoublesSketch dSketch;
     try (Arena arena = Arena.ofConfined()) {
       final MemorySegment wseg = arena.allocate(10_000_000);
-      dUnion = DoublesUnion.builder().setMaxK(8).build(wseg, null);
+      dUnion = QuantilesDoublesUnion.builder().setMaxK(8).build(wseg, null);
       for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap
     } catch (final Exception e) {
@@ -79,8 +79,8 @@ public class DebugUnionTest {
     int hErrors = 0;
     int dErrors = 0;
 
-    final QuantilesDoublesSketchIterator hit = hSketch.iterator();
-    final QuantilesDoublesSketchIterator dit = dSketch.iterator();
+    final QuantilesDoublesSketchIteratorAPI hit = hSketch.iterator();
+    final QuantilesDoublesSketchIteratorAPI dit = dSketch.iterator();
 
     while (hit.next() && dit.next()) {
       final double v = hit.getQuantile();
@@ -100,11 +100,11 @@ public class DebugUnionTest {
     //println(dSketch.toString(true, true));
   }
 
-  private static UpdateDoublesSketch buildHeapSketch(final int k, final int n, final int valueLimit,
+  private static UpdatableQuantilesDoublesSketch buildHeapSketch(final int k, final int n, final int valueLimit,
       final HashSet<Double> set) {
-    final UpdateDoublesSketch uSk = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch uSk = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i = 0; i < n; i++) {
-      final double value = DoublesSketch.rand.nextInt(valueLimit) + 1;
+      final double value = QuantilesDoublesSketch.rand.nextInt(valueLimit) + 1;
       uSk.update(value);
       set.add(value);
     }

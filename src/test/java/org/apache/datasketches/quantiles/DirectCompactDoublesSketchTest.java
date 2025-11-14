@@ -38,14 +38,14 @@ public class DirectCompactDoublesSketchTest {
 
   @BeforeMethod
   public void setUp() {
-    DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
+    QuantilesDoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrapFromUpdateSketch() {
     final int k = 4;
     final int n = 27;
-    final UpdateDoublesSketch qs = HeapUpdateDoublesSketchTest.buildAndLoadQS(k, n);
+    final UpdatableQuantilesDoublesSketch qs = HeapUpdateDoublesSketchTest.buildAndLoadQS(k, n);
 
     final byte[] qsBytes = qs.toByteArray();
     final MemorySegment qsSeg = MemorySegment.ofArray(qsBytes);
@@ -58,7 +58,7 @@ public class DirectCompactDoublesSketchTest {
   public void createFromUnsortedUpdateSketch() {
     final int k = 4;
     final int n = 13;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch qs = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
@@ -94,10 +94,10 @@ public class DirectCompactDoublesSketchTest {
 
   @Test
   public void wrapEmptyCompactSketch() {
-    final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
+    final CompactQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build().compact();
     final MemorySegment seg
             = MemorySegment.ofBuffer(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
-    final DoublesSketch s2 = DoublesSketch.wrap(seg);
+    final QuantilesDoublesSketch s2 = QuantilesDoublesSketch.wrap(seg);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
     assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMinItem()));
@@ -141,7 +141,7 @@ public class DirectCompactDoublesSketchTest {
   }
 
   static DirectCompactDoublesSketch buildAndLoadDCQS(final int k, final int n, final int startV) {
-    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch qs = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }

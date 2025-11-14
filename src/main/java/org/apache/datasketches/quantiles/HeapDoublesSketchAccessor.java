@@ -26,7 +26,7 @@ import java.util.Arrays;
  */
 final class HeapDoublesSketchAccessor extends DoublesSketchAccessor {
 
-  HeapDoublesSketchAccessor(final DoublesSketch ds,
+  HeapDoublesSketchAccessor(final QuantilesDoublesSketch ds,
                             final boolean forceSize,
                             final int level) {
     super(ds, forceSize, level);

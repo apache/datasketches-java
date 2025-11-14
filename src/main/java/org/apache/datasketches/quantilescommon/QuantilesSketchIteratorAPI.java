@@ -20,8 +20,8 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * This is the base interface for the SketchIterator hierarchy used for viewing the
- * non-ordered quantiles retained by a sketch.
+ * This is the base API for the iterator hierarchy used for viewing the
+ * non-ordered quantiles retained by the classic Quantiles* sketches and KLL sketches, for example.
  *
  * <p>Prototype example of the recommended iteration loop:</p>
  * <pre>{@code
@@ -34,7 +34,7 @@ package org.apache.datasketches.quantilescommon;
  * @author Lee Rhodes
  */
 
-public interface QuantilesSketchIterator {
+public interface QuantilesSketchIteratorAPI {
 
   /**
    * Gets the natural weight at the current index.

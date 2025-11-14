@@ -44,12 +44,12 @@ import java.lang.foreign.MemorySegment;
  * The multi-byte primitives are stored in native byte order.
  * The single byte fields are treated as unsigned.</p>
  *
- * <p>An empty ItemsSketch, on-heap DoublesSketch or compact off-heap DoublesSketch only require 8
- * bytes. An off-heap UpdateDoublesSketch and all non-empty sketches require at least 16 bytes of
+ * <p>An empty QuantilesItemsSketch, on-heap QuantilesDoublesSketch or compact off-heap QuantilesDoublesSketch only require 8
+ * bytes. An off-heap UpdatableQuantilesDoublesSketch and all non-empty sketches require at least 16 bytes of
  * preamble.</p>
  *
  * <pre>{@code
- * Long || Start Byte Adr: Common for both DoublesSketch and ItemsSketch
+ * Long || Start Byte Adr: Common for both QuantilesDoublesSketch and QuantilesItemsSketch
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
  *  0   ||------unused-----|--------K--------|  Flags | FamID  | SerVer | Preamble_Longs |
@@ -57,8 +57,8 @@ import java.lang.foreign.MemorySegment;
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||-----------------------------------N_LONG--------------------------------------|
  *
- *  Applies only to DoublesSketch:
- *  (ItemsSketch has elements in the same order, but size depends on sizeOf(T)
+ *  Applies only to QuantilesDoublesSketch:
+ *  (QuantilesItemsSketch has elements in the same order, but size depends on sizeOf(T)
  *
  *      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
  *  2   ||---------------------------START OF DATA, MIN_DOUBLE---------------------------|
@@ -86,9 +86,9 @@ final class PreambleUtil {
   static final int N_LONG                     = 8;  //to 15
 
   //After Preamble:
-  static final int MIN_DOUBLE                 = 16; //to 23 (Only for DoublesSketch)
-  static final int MAX_DOUBLE                 = 24; //to 31 (Only for DoublesSketch)
-  static final int COMBINED_BUFFER            = 32; //to 39 (Only for DoublesSketch)
+  static final int MIN_DOUBLE                 = 16; //to 23 (Only for QuantilesDoublesSketch)
+  static final int MAX_DOUBLE                 = 24; //to 31 (Only for QuantilesDoublesSketch)
+  static final int COMBINED_BUFFER            = 32; //to 39 (Only for QuantilesDoublesSketch)
 
   // flag bit masks
   static final int RESERVED_FLAG_MASK         = 1;
@@ -110,7 +110,7 @@ final class PreambleUtil {
    * Used primarily in testing.
    *
    * @param byteArr the given byte array.
-   * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
+   * @param isDoublesSketch flag to indicate that the byte array represents QuantilesDoublesSketch
    * to output min and max quantiles in the summary
    * @return the summary string.
    */
@@ -121,11 +121,11 @@ final class PreambleUtil {
 
   /**
    * Returns a human readable string summary of the Preamble of the given MemorySegment. If this MemorySegment
-   * image is from a DoublesSketch, the MinQuantile and MaxQuantile will also be output.
+   * image is from a QuantilesDoublesSketch, the MinQuantile and MaxQuantile will also be output.
    * Used primarily in testing.
    *
    * @param seg the given MemorySegment
-   * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
+   * @param isDoublesSketch flag to indicate that the byte array represents QuantilesDoublesSketch
    * to output min and max quantiles in the summary
    * @return the summary string.
    */

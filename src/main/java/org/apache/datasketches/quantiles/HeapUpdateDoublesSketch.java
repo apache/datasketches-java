@@ -49,12 +49,12 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
- * Implements the DoublesSketch on the Java heap.
+ * Implements the QuantilesDoublesSketch on the Java heap.
  *
  * @author Lee Rhodes
  * @author Jon Malkin
  */
-final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
+final class HeapUpdateDoublesSketch extends UpdatableQuantilesDoublesSketch {
   static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
@@ -104,7 +104,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   /**
-   * Obtains a new on-heap instance of a DoublesSketch.
+   * Obtains a new on-heap instance of a QuantilesDoublesSketch.
    *
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 1 and less than 65536 and a power of 2.
@@ -123,10 +123,10 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   /**
-   * Heapifies the given srcSeg, which must be a MemorySegment image of a DoublesSketch and may have data.
+   * Heapifies the given srcSeg, which must be a MemorySegment image of a QuantilesDoublesSketch and may have data.
    *
    * @param srcSeg a MemorySegment image of a sketch, which may be in compact or updatable form.
-   * @return a DoublesSketch on the Java heap.
+   * @return a QuantilesDoublesSketch on the Java heap.
    */
   static HeapUpdateDoublesSketch heapifyInstance(final MemorySegment srcSeg) {
     final long segCapBytes = srcSeg.byteSize();

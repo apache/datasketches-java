@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -27,16 +27,16 @@ public class DoublesSketchIteratorTest {
 
   @Test
   public void emptySketch() {
-    DoublesSketch sketch = DoublesSketch.builder().build();
-    QuantilesDoublesSketchIterator it = sketch.iterator();
+    QuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().build();
+    QuantilesDoublesSketchIteratorAPI it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    UpdatableQuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().build();
     sketch.update(0);
-    QuantilesDoublesSketchIterator it = sketch.iterator();
+    QuantilesDoublesSketchIteratorAPI it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getQuantile(), 0.0);
     Assert.assertEquals(it.getWeight(), 1);
@@ -46,11 +46,11 @@ public class DoublesSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+      UpdatableQuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().build();
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      QuantilesDoublesSketchIterator it = sketch.iterator();
+      QuantilesDoublesSketchIteratorAPI it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

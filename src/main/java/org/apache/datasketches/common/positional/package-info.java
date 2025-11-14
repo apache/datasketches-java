@@ -17,4 +17,11 @@
  * under the License.
  */
 
+/**
+ * This package provides the classes that define and implement a relative positional API.
+ *
+ * @see org.apache.datasketches.common.positional.Positional
+ *
+ * @author Lee Rhodes
+ */
 package org.apache.datasketches.common.positional;

@@ -35,7 +35,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesAPI;
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
 
 /**
  * This variation of the KllSketch implements primitive doubles.
@@ -266,7 +266,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public QuantilesDoublesSketchIterator iterator() {
+  public QuantilesDoublesSketchIteratorAPI iterator() {
     return new KllDoublesSketchIterator(
         getDoubleItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }

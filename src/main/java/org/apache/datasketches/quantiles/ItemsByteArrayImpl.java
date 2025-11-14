@@ -47,7 +47,7 @@ final class ItemsByteArrayImpl {
 
   private ItemsByteArrayImpl() {}
 
-  static <T> byte[] toByteArray(final ItemsSketch<T> sketch, final boolean ordered, final ArrayOfItemsSerDe<T> serDe) {
+  static <T> byte[] toByteArray(final QuantilesItemsSketch<T> sketch, final boolean ordered, final ArrayOfItemsSerDe<T> serDe) {
     final boolean empty = sketch.isEmpty();
 
     final int flags = (empty ? EMPTY_FLAG_MASK : 0)
@@ -84,12 +84,12 @@ final class ItemsByteArrayImpl {
    * Returns an array of items in compact form, including min and max extracted from the
    * Combined Buffer.
    * @param <T> the data type
-   * @param sketch a type of ItemsSketch
+   * @param sketch a type of QuantilesItemsSketch
    * @param ordered true if the desired form of the resulting array has the base buffer sorted.
    * @return an array of items, including min and max extracted from the Combined Buffer.
    */
   @SuppressWarnings("unchecked")
-  private static <T> T[] combinedBufferToItemsArray(final ItemsSketch<T> sketch,
+  private static <T> T[] combinedBufferToItemsArray(final QuantilesItemsSketch<T> sketch,
       final boolean ordered) {
     final int extra = 2; // extra space for min and max items
     final int outArrCap = sketch.getNumRetained();

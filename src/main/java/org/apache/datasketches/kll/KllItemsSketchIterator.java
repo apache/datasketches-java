@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 
 /**
  * Iterator over KllItemsSketch. The order is not defined.
  * @param <T> the item class type
  */
-public final class KllItemsSketchIterator<T> extends KllSketchIterator implements QuantilesGenericSketchIterator<T> {
+public final class KllItemsSketchIterator<T> extends KllSketchIterator implements QuantilesGenericSketchIteratorAPI<T> {
   private final Object[] quantiles;
 
   KllItemsSketchIterator(final Object[] quantiles, final int[] levelsArr, final int numLevels) {
