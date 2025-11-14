@@ -24,7 +24,7 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.MemorySegmentRequest;
 
 /**
- * Extends DoubleSketch
+ * Extends QuantilesDoubleSketch
  * @author Jon Malkin
  */
 public abstract class UpdatableQuantilesDoublesSketch extends QuantilesDoublesSketch {

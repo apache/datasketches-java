@@ -25,7 +25,7 @@ import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.MemorySegmentStatus;
 
 /**
- * The API for Union operations for quantiles DoublesSketches
+ * The API for Union operations for QuantilesDoublesSketches
  *
  * @author Lee Rhodes
  */

@@ -28,7 +28,7 @@ import java.util.Objects;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 
 /**
- * The API for Union operations for generic ItemsSketches
+ * The API for Union operations for generic QuantilesItemsSketches
  *
  * @param <T> The sketch item data type.
  *
