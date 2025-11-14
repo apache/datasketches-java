@@ -21,6 +21,8 @@ package org.apache.datasketches.common.positional;
 
 /**
  * Position operation violation.
+ *
+ * @author Lee Rhodes
  */
 public class PositionInvariantsException extends RuntimeException {
   private static final long serialVersionUID = 1L;

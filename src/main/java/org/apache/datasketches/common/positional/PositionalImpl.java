@@ -112,7 +112,7 @@ class PositionalImpl implements Positional {
    * @param start the lowest start position
    * @param pos the current position
    * @param end the highest position
-   * @param cap the capacity of the backing buffer.
+   * @param cap the capacity of the backing resource.
    */
   private static final void checkInvariants(final long start, final long pos, final long end,
         final long cap) {
