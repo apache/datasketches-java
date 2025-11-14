@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-public class MurmurHash3FFM21Test {
+public class MurmurHash3FFMTest {
   private final Random rand = new Random();
   private static final int trials = 1 << 20;
 
@@ -158,25 +158,25 @@ public class MurmurHash3FFM21Test {
   }
 
   private static final long[] hashV2(final long[] key, final long seed) {
-    return MurmurHash3FFM21.hash(key, seed);
+    return MurmurHash3FFM.hash(key, seed);
   }
 
   private static final long[] hashV2(final int[] key2, final long seed) {
-    return MurmurHash3FFM21.hash(key2, seed);
+    return MurmurHash3FFM.hash(key2, seed);
   }
 
   private static final long[] hashV2(final char[] key, final long seed) {
-    return MurmurHash3FFM21.hash(key, seed);
+    return MurmurHash3FFM.hash(key, seed);
   }
 
   private static final long[] hashV2(final byte[] key, final long seed) {
-    return MurmurHash3FFM21.hash(key, seed);
+    return MurmurHash3FFM.hash(key, seed);
   }
 
   //V2 single primitives
 
   private static final long[] hashV2(final long key, final long seed, final long[] out) {
-    return MurmurHash3FFM21.hash(key, seed, out);
+    return MurmurHash3FFM.hash(key, seed, out);
   }
 
 //  private static final long[] hashV2(double key, long seed, long[] out) {
@@ -201,7 +201,7 @@ public class MurmurHash3FFM21Test {
 
     for (int offset = 0; offset < 16; offset++) {
       final int arrLen = cap - offset;
-      hash1 = MurmurHash3FFM21.hash(wseg, offset, arrLen, seed, hash1);
+      hash1 = MurmurHash3FFM.hash(wseg, offset, arrLen, seed, hash1);
       final byte[] byteArr2 = new byte[arrLen];
       MemorySegment.copy(wseg, JAVA_BYTE, offset, byteArr2, 0, arrLen);
       hash2 = MurmurHash3.hash(byteArr2, seed);
@@ -224,8 +224,8 @@ public class MurmurHash3FFM21Test {
       for (int i = 0; i < j; i++) { wseg.set(JAVA_BYTE, i, (byte) (-128 + i)); }
 
       final long[] hash1 = MurmurHash3.hash(in, seed);
-      hash2 = MurmurHash3FFM21.hash(wseg, offset, bytes, seed, hash2);
-      final long[] hash3 = MurmurHash3FFM21.hash(in, seed);
+      hash2 = MurmurHash3FFM.hash(wseg, offset, bytes, seed, hash2);
+      final long[] hash3 = MurmurHash3FFM.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -248,8 +248,8 @@ public class MurmurHash3FFM21Test {
       for (int i = 0; i < j; i++) { wseg.set(JAVA_INT_UNALIGNED, i, i); }
 
       final long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MurmurHash3FFM21.hash(wseg, offset, bytes, seed, hash2);
-      final long[] hash3 = MurmurHash3FFM21.hash(in, seed);
+      hash2 = MurmurHash3FFM.hash(wseg, offset, bytes, seed, hash2);
+      final long[] hash3 = MurmurHash3FFM.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -272,8 +272,8 @@ public class MurmurHash3FFM21Test {
       for (int i = 0; i < j; i++) { wseg.set(JAVA_INT_UNALIGNED, i, i); }
 
       final long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MurmurHash3FFM21.hash(wseg, offset, bytes, seed, hash2);
-      final long[] hash3 = MurmurHash3FFM21.hash(in, seed);
+      hash2 = MurmurHash3FFM.hash(wseg, offset, bytes, seed, hash2);
+      final long[] hash3 = MurmurHash3FFM.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -296,8 +296,8 @@ public class MurmurHash3FFM21Test {
       for (int i = 0; i < j; i++) { wseg.set(JAVA_LONG_UNALIGNED, i, i); }
 
       final long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MurmurHash3FFM21.hash(wseg, offset, bytes, seed, hash2);
-      final long[] hash3 = MurmurHash3FFM21.hash(in, seed);
+      hash2 = MurmurHash3FFM.hash(wseg, offset, bytes, seed, hash2);
+      final long[] hash3 = MurmurHash3FFM.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -315,8 +315,8 @@ public class MurmurHash3FFM21Test {
     final MemorySegment wseg = MemorySegment.ofArray(in);
 
     final long[] hash1 = MurmurHash3.hash(in, 0);
-    hash2 = MurmurHash3FFM21.hash(wseg, offset, bytes, seed, hash2);
-    final long[] hash3 = MurmurHash3FFM21.hash(in, seed);
+    hash2 = MurmurHash3FFM.hash(wseg, offset, bytes, seed, hash2);
+    final long[] hash3 = MurmurHash3FFM.hash(in, seed);
 
     assertEquals(hash1, hash2);
     assertEquals(hash1, hash3);
@@ -327,57 +327,57 @@ public class MurmurHash3FFM21Test {
     final long seed = 123;
     final long[] hashOut = new long[2];
     try {
-      MurmurHash3FFM21.hash(MemorySegment.ofArray(new long[0]), 0, 0, seed, hashOut);  //seg empty
+      MurmurHash3FFM.hash(MemorySegment.ofArray(new long[0]), 0, 0, seed, hashOut);  //seg empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final String s = "";
-      MurmurHash3FFM21.hash(s, seed, hashOut); //string empty
+      MurmurHash3FFM.hash(s, seed, hashOut); //string empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final String s = null;
-      MurmurHash3FFM21.hash(s, seed, hashOut); //string null
+      MurmurHash3FFM.hash(s, seed, hashOut); //string null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final byte[] barr = {};
-      MurmurHash3FFM21.hash(barr, seed); //byte[] empty
+      MurmurHash3FFM.hash(barr, seed); //byte[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final byte[] barr = null;
-      MurmurHash3FFM21.hash(barr, seed); //byte[] null
+      MurmurHash3FFM.hash(barr, seed); //byte[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final char[] carr = {};
-      MurmurHash3FFM21.hash(carr, seed); //char[] empty
+      MurmurHash3FFM.hash(carr, seed); //char[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final char[] carr = null;
-      MurmurHash3FFM21.hash(carr, seed); //char[] null
+      MurmurHash3FFM.hash(carr, seed); //char[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final int[] iarr = {};
-      MurmurHash3FFM21.hash(iarr, seed); //int[] empty
+      MurmurHash3FFM.hash(iarr, seed); //int[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final int[] iarr = null;
-      MurmurHash3FFM21.hash(iarr, seed); //int[] null
+      MurmurHash3FFM.hash(iarr, seed); //int[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final long[] larr = {};
-      MurmurHash3FFM21.hash(larr, seed); //long[] empty
+      MurmurHash3FFM.hash(larr, seed); //long[] empty
       fail();
     } catch (final IllegalArgumentException e) { } //OK
     try {
       final long[] larr = null;
-      MurmurHash3FFM21.hash(larr, seed); //long[] null
+      MurmurHash3FFM.hash(larr, seed); //long[] null
       fail();
     } catch (final IllegalArgumentException e) { } //OK
   }
@@ -387,9 +387,9 @@ public class MurmurHash3FFM21Test {
     final long seed = 123;
     final long[] hashOut = new long[2];
     final String s = "123";
-    assertTrue(MurmurHash3FFM21.hash(s, seed, hashOut)[0] != 0);
+    assertTrue(MurmurHash3FFM.hash(s, seed, hashOut)[0] != 0);
     final long v = 123;
-    assertTrue(MurmurHash3FFM21.hash(v, seed, hashOut)[0] != 0);
+    assertTrue(MurmurHash3FFM.hash(v, seed, hashOut)[0] != 0);
   }
 
   @Test
@@ -417,8 +417,8 @@ public class MurmurHash3FFM21Test {
 
     final MemorySegment wseg = MemorySegment.ofArray(dataArr);
     final long[] hash1 = MurmurHash3.hash(dataArr, 0);
-    hash2 = MurmurHash3FFM21.hash(wseg, offset, bytes, seed, hash2);
-    final long[] hash3 = MurmurHash3FFM21.hash(dbl, seed, hash2);
+    hash2 = MurmurHash3FFM.hash(wseg, offset, bytes, seed, hash2);
+    final long[] hash3 = MurmurHash3FFM.hash(dbl, seed, hash2);
 
     assertEquals(hash1, hash2);
     assertEquals(hash1, hash3);

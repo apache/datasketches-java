@@ -44,16 +44,16 @@ import java.util.Objects;
  * <p>This implementation produces exactly the same hash result as the
  * MurmurHash3 function in datasketches-java given compatible inputs.</p>
  *
- * <p>This FFM21 version of the implementation leverages the java.lang.foreign package (FFM) of JDK-21 in place of
+ * <p>This FFM version of the implementation leverages the java.lang.foreign package (FFM) of JDK-25 in place of
  * the Unsafe class.
  *
  * @author Lee Rhodes
  */
-public final class MurmurHash3FFM21 {
+public final class MurmurHash3FFM {
   private static final long C1 = 0x87c37b91114253d5L;
   private static final long C2 = 0x4cf5ad432745937fL;
 
-  private MurmurHash3FFM21() { }
+  private MurmurHash3FFM() { }
 
   /**
    * Returns a 128-bit hash of the input.
@@ -199,7 +199,7 @@ public final class MurmurHash3FFM21 {
       final long k1 = seg.get(JAVA_LONG_UNALIGNED, cumOff);     //0, 16, 32, ...
       final long k2 = seg.get(JAVA_LONG_UNALIGNED, cumOff + 8); //8, 24, 40, ...
 
-      synchronized (MurmurHash3FFM21.class) {
+      synchronized (MurmurHash3FFM.class) {
         cumOff += 16L;
         rem -= 16L;
       }
