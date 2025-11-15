@@ -61,6 +61,11 @@ import org.apache.datasketches.common.Util;
 public abstract class CompactThetaSketch extends ThetaSketch {
 
   /**
+   * No argument constructor.
+   */
+  public CompactThetaSketch() { }
+
+  /**
    * Heapify takes a CompactThetaSketch image in a MemorySegment and instantiates an on-heap CompactThetaSketch.
    *
    * <p>The resulting sketch will not retain any link to the source MemorySegment and all of its data will be

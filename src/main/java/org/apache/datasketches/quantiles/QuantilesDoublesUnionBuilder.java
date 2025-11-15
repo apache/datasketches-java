@@ -24,20 +24,20 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.MemorySegmentRequest;
 
 /**
- * For building a new DoublesSketch Union operation.
+ * For building a new QuantilesDoublesSketch Union operation.
  *
  * @author Lee Rhodes
  */
-public class DoublesUnionBuilder {
+public class QuantilesDoublesUnionBuilder {
   private int bMaxK = PreambleUtil.DEFAULT_K;
 
   /**
-   * Constructor for a new DoublesUnionBuilder. The default configuration is
+   * Constructor for a new QuantilesDoublesUnionBuilder. The default configuration is
    * <ul>
    * <li>k: 128. This produces a normalized rank error of about 1.7%</li>
    * </ul>
    */
-  public DoublesUnionBuilder() {}
+  public QuantilesDoublesUnionBuilder() {}
 
   /**
    * Sets the parameter <i>masK</i> that determines the maximum size of the sketch that
@@ -48,7 +48,7 @@ public class DoublesUnionBuilder {
    * different <i>k</i>.
    * @return this builder
    */
-  public DoublesUnionBuilder setMaxK(final int maxK) {
+  public QuantilesDoublesUnionBuilder setMaxK(final int maxK) {
     ClassicUtil.checkK(maxK);
     bMaxK = maxK;
     return this;
@@ -66,8 +66,8 @@ public class DoublesUnionBuilder {
    * Returns a new empty Union object with the current configuration of this Builder.
    * @return a Union object
    */
-  public DoublesUnion build() {
-    return DoublesUnionImpl.heapInstance(bMaxK);
+  public QuantilesDoublesUnion build() {
+    return QuantilesDoublesUnionImpl.heapInstance(bMaxK);
   }
 
   /**
@@ -78,8 +78,8 @@ public class DoublesUnionBuilder {
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a Union object
    */
-  public DoublesUnion build(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
-    return DoublesUnionImpl.directInstance(bMaxK, dstSeg, mSegReq);
+  public QuantilesDoublesUnion build(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
+    return QuantilesDoublesUnionImpl.directInstance(bMaxK, dstSeg, mSegReq);
   }
 
 }

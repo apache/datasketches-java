@@ -34,6 +34,11 @@ import org.apache.datasketches.req.ReqSketch;
 public final class KolmogorovSmirnov {
 
   /**
+   * No argument constructor.
+   */
+  public KolmogorovSmirnov() { }
+
+  /**
    * Computes the raw delta between two QuantilesDoublesAPI sketches for the <i>kolmogorovSmirnovTest(...)</i> method.
    * @param sketch1 first Input QuantilesDoublesAPI
    * @param sketch2 second Input QuantilesDoublesAPI

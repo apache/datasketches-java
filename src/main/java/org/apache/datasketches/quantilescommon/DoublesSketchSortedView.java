@@ -19,15 +19,15 @@
 
 package org.apache.datasketches.quantilescommon;
 
-import static org.apache.datasketches.quantilescommon.IncludeMinMax.DoublesPair;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.getNaturalRank;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.quantilescommon.IncludeMinMax.DoublesPair;
 
 /**
- * The SortedView of the Quantiles Classic DoublesSketch and the KllDoublesSketch.
+ * The SortedView of the Quantiles Classic QuantilesDoublesSketch and the KllDoublesSketch.
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */

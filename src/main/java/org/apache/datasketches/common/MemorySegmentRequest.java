@@ -53,10 +53,14 @@ public interface MemorySegmentRequest {
   }
 
   /**
-   * This class implements the defaults
+   * A convenience class that implements a default implementation.
    */
   public static class Default implements MemorySegmentRequest {
-    //A convenience class that creates the target for the static member DEFAULT.
+
+    /**
+     * No argument constructor that creates the target for the static member DEFAULT.
+     */
+    public Default() { }
   }
 
   /**

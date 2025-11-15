@@ -41,6 +41,11 @@ import java.util.Objects;
  */
 public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
 
+  /**
+   * No argument constructor.
+   */
+  public ArrayOfStringsSerDe() { }
+
   @Override
   public byte[] serializeToByteArray(final String item) {
     Objects.requireNonNull(item, "Item must not be null");

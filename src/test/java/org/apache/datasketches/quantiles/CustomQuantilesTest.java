@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 public class CustomQuantilesTest {
 
   /**
-   * Currently, this test only exercises the classic DoublesSketch, but all the quantiles
+   * Currently, this test only exercises the classic QuantilesDoublesSketch, but all the quantiles
    * sketches use the same code for getQuantile() and getRank() anyway.
    * This same pattern is also part of the CrossCheckQuantilesTest.
    * This structure of this test allows more detailed analysis for troubleshooting.
@@ -49,7 +49,7 @@ public class CustomQuantilesTest {
     //quantiles sketches it is easier to create by loading the sorted view directly via
     //a package-private constructor.
     int k = 4;
-    UpdateDoublesSketch sk = DoublesSketch.builder().setK(k).build();
+    UpdatableQuantilesDoublesSketch sk = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i = 1; i <= 3; i++) {
       for (int q = 10; q <= k * 10; q += 10) {
         sk.update(q);

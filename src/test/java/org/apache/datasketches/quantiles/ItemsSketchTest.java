@@ -43,7 +43,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -51,12 +51,12 @@ public class ItemsSketchTest {
 
   @BeforeMethod
   public void setUp() {
-    ItemsSketch.rand.setSeed(32749); // make sketches deterministic for testing
+    QuantilesItemsSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
   @Test
   public void empty() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 128, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 128, Comparator.naturalOrder());
     assertNotNull(sketch);
     sketch.update(null);
     assertTrue(sketch.isEmpty());
@@ -77,7 +77,7 @@ public class ItemsSketchTest {
 
   @Test
   public void oneItem() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 128, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 128, Comparator.naturalOrder());
     sketch.update("a");
     assertEquals(sketch.getN(), 1);
     assertEquals(sketch.getNumRetained(), 1);
@@ -123,7 +123,7 @@ public class ItemsSketchTest {
 
   @Test
   public void tenItems() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertFalse(sketch.isReadOnly());
@@ -189,7 +189,7 @@ public class ItemsSketchTest {
 
   @Test
   public void estimation() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
     for (int i = 1; i <= 1000; i++) {
       sketch.update(i);
     }
@@ -255,15 +255,15 @@ public class ItemsSketchTest {
 
   @Test
   public void serializeDeserializeLong() {
-    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(Long.class, 128, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Long> sketch1 = QuantilesItemsSketch.getInstance(Long.class, 128, Comparator.naturalOrder());
     for (int i = 1; i <= 500; i++) {
       sketch1.update((long) i);
     }
 
     final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final ItemsSketch<Long> sketch2 =
-        ItemsSketch.heapify(Long.class, MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
+    final QuantilesItemsSketch<Long> sketch2 =
+        QuantilesItemsSketch.heapify(Long.class, MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) {
       sketch2.update((long) i);
@@ -278,15 +278,15 @@ public class ItemsSketchTest {
 
   @Test
   public void serializeDeserializeDouble() {
-    final ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(Double.class, 128, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Double> sketch1 = QuantilesItemsSketch.getInstance(Double.class, 128, Comparator.naturalOrder());
     for (int i = 1; i <= 500; i++) {
       sketch1.update((double) i);
     }
 
     final ArrayOfItemsSerDe<Double> serDe = new ArrayOfDoublesSerDe();
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final ItemsSketch<Double> sketch2 =
-        ItemsSketch.heapify(Double.class, MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
+    final QuantilesItemsSketch<Double> sketch2 =
+        QuantilesItemsSketch.heapify(Double.class, MemorySegment.ofArray(bytes), Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) {
       sketch2.update((double) i);
@@ -310,7 +310,7 @@ public class ItemsSketchTest {
         return i1.compareTo(i2);
       }
     };
-    final ItemsSketch<String> sketch1 = ItemsSketch.getInstance(String.class, 128, numericOrder);
+    final QuantilesItemsSketch<String> sketch1 = QuantilesItemsSketch.getInstance(String.class, 128, numericOrder);
     for (int i = 1; i <= 500; i++)
      {
       sketch1.update(Integer.toBinaryString(i << 10)); // to make strings longer
@@ -318,7 +318,7 @@ public class ItemsSketchTest {
 
     final ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     final byte[] bytes = sketch1.toByteArray(serDe);
-    final ItemsSketch<String> sketch2 = ItemsSketch.heapify(String.class, MemorySegment.ofArray(bytes), numericOrder, serDe);
+    final QuantilesItemsSketch<String> sketch2 = QuantilesItemsSketch.heapify(String.class, MemorySegment.ofArray(bytes), numericOrder, serDe);
 
     for (int i = 501; i <= 1000; i++) {
       sketch2.update(Integer.toBinaryString(i << 10));
@@ -333,7 +333,7 @@ public class ItemsSketchTest {
 
   @Test
   public void toStringCrudeCheck() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, Comparator.naturalOrder());
     String brief, full, part;
     brief = sketch.toString();
     full = sketch.toString(true, true);
@@ -347,15 +347,15 @@ public class ItemsSketchTest {
     assertTrue(part.length() < full.length());
     final ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     final byte[] bytes = sketch.toByteArray(serDe);
-    ItemsSketch.toString(bytes);
-    ItemsSketch.toString(MemorySegment.ofArray(bytes));
-    //PreambleUtil.toString(bytes, true); // not a DoublesSketch so this will fail
-    //ItemsSketch<String> sketch2 = ItemsSketch.getInstance(MemorySegment.wrap(bytes), Comparator.naturalOrder(), serDe);
+    QuantilesItemsSketch.toString(bytes);
+    QuantilesItemsSketch.toString(MemorySegment.ofArray(bytes));
+    //PreambleUtil.toString(bytes, true); // not a QuantilesDoublesSketch so this will fail
+    //QuantilesItemsSketch<String> sketch2 = QuantilesItemsSketch.getInstance(MemorySegment.wrap(bytes), Comparator.naturalOrder(), serDe);
   }
 
   @Test
   public void toStringBiggerCheck() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
     for (int i=0; i<40; i++) {
       sketch.update(Integer.toString(i));
     }
@@ -367,7 +367,7 @@ public class ItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkDownsampleException() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
     for (int i=0; i<40; i++) {
       sketch.update(Integer.toString(i));
     }
@@ -376,7 +376,7 @@ public class ItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void negativeQuantileMustThrow() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
     sketch.update("ABC");
     sketch.getQuantile(-0.1);
   }
@@ -384,50 +384,50 @@ public class ItemsSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep1() {
     final MemorySegment seg = MemorySegment.ofArray(new byte[4]);
-    ItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+    QuantilesItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceExcep2() {
     final MemorySegment seg = MemorySegment.ofArray(new byte[8]);
-    ItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+    QuantilesItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
   @Test
   public void checkGoodSerDeId() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, Comparator.naturalOrder());
     final byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    ItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
+    QuantilesItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), new ArrayOfStringsSerDe());
   }
 
   @Test
   public void checkDownsample() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
     for (int i=0; i<40; i++) {
       sketch.update(Integer.toString(i));
     }
-    final ItemsSketch<String> out = sketch.downSample(8);
+    final QuantilesItemsSketch<String> out = sketch.downSample(8);
     assertEquals(out.getK(), 8);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void unorderedSplitPoints() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
     sketch.update(1);
     sketch.getPMF(new Integer[] {2, 1});
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void nonUniqueSplitPoints() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
     sketch.update(1);
     sketch.getPMF(new Integer[] {1, 1});
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void nullInSplitPoints() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
     sketch.update(1);
     sketch.getPMF(new Integer[] {1, null});
   }
@@ -435,17 +435,17 @@ public class ItemsSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void compactNotSupported() {
     final ArrayOfDoublesSerDe serDe = new ArrayOfDoublesSerDe();
-    final ItemsSketch<Double> sketch = ItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Double> sketch = QuantilesItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
     final byte[] byteArr = sketch.toByteArray(serDe);
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
     clearBits(seg, PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.COMPACT_FLAG_MASK);
     println(PreambleUtil.toString(seg, false));
-    ItemsSketch.heapify(Double.class, seg, Comparator.naturalOrder(), serDe);
+    QuantilesItemsSketch.heapify(Double.class, seg, Comparator.naturalOrder(), serDe);
   }
 
   @Test
   public void checkPutMemory() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
     for (int i=0; i<40; i++) {
       sketch.update(Integer.toString(i));
     }
@@ -456,7 +456,7 @@ public class ItemsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPutMemoryException() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
     for (int i=0; i<40; i++) {
       sketch.update(Integer.toString(i));
     }
@@ -467,7 +467,7 @@ public class ItemsSketchTest {
 
   @Test
   public void checkPMFonEmpty() {
-    final ItemsSketch<String> iss = buildStringIS(32, 32);
+    final QuantilesItemsSketch<String> iss = buildStringIS(32, 32);
     final double[] ranks = {};
     final String[] qOut = iss.getQuantiles(ranks);
     println("qOut: "+qOut.length);
@@ -487,7 +487,7 @@ public class ItemsSketchTest {
 
   @Test
   public void getRankAndGetCdfConsistency() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
     final int n = 1_000_000;
     final Integer[] values = new Integer[n];
     for (int i = 0; i < n; i++) {
@@ -510,8 +510,8 @@ public class ItemsSketchTest {
 
   @Test
   public void getRankAndGetCdfConsistencyReverseComparator() {
-    final ItemsSketch<Integer> sketch =
-        ItemsSketch.getInstance(Integer.class, Comparator.<Integer>naturalOrder().reversed());
+    final QuantilesItemsSketch<Integer> sketch =
+        QuantilesItemsSketch.getInstance(Integer.class, Comparator.<Integer>naturalOrder().reversed());
     final int n = 1_000_000;
     final Integer[] values = new Integer[n];
     for (int i = 0; i < n; i++) {
@@ -527,7 +527,7 @@ public class ItemsSketchTest {
 
   @Test
   public void checkBounds() {
-    final ItemsSketch<Double> sketch = ItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Double> sketch = QuantilesItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
     for (int i = 0; i < 1000; i++) {
       sketch.update((double)i);
     }
@@ -544,27 +544,27 @@ public class ItemsSketchTest {
 
   @Test
   public void checkGetKFromEqs() {
-    final ItemsSketch<Double> sketch = ItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Double> sketch = QuantilesItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
     final int k = sketch.getK();
-    final double eps = ItemsSketch.getNormalizedRankError(k, false);
-    final double epsPmf = ItemsSketch.getNormalizedRankError(k, true);
-    final int kEps = ItemsSketch.getKFromEpsilon(eps, false);
-    final int kEpsPmf = ItemsSketch.getKFromEpsilon(epsPmf, true);
+    final double eps = QuantilesItemsSketch.getNormalizedRankError(k, false);
+    final double epsPmf = QuantilesItemsSketch.getNormalizedRankError(k, true);
+    final int kEps = QuantilesItemsSketch.getKFromEpsilon(eps, false);
+    final int kEpsPmf = QuantilesItemsSketch.getKFromEpsilon(epsPmf, true);
     assertEquals(kEps, k);
     assertEquals(kEpsPmf, k);
   }
 
   private static void checkToFromByteArray2(final int k, final int n) {
-    final ItemsSketch<String> is = buildStringIS(k, n);
+    final QuantilesItemsSketch<String> is = buildStringIS(k, n);
     byte[] byteArr;
     MemorySegment seg;
-    ItemsSketch<String> is2;
+    QuantilesItemsSketch<String> is2;
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
     //ordered
     byteArr = is.toByteArray(true, serDe);
     seg = MemorySegment.ofArray(byteArr);
-    is2 = ItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), serDe);
+    is2 = QuantilesItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), serDe);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));
     }
@@ -572,18 +572,18 @@ public class ItemsSketchTest {
     //Not-ordered
     byteArr = is.toByteArray(false, serDe);
     seg = MemorySegment.ofArray(byteArr);
-    is2 = ItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), serDe);
+    is2 = QuantilesItemsSketch.heapify(String.class, seg, Comparator.naturalOrder(), serDe);
     for (double f = 0.1; f < 0.95; f += 0.1) {
       assertEquals(is.getQuantile(f), is2.getQuantile(f));
     }
   }
 
-  static ItemsSketch<String> buildStringIS(final int k, final int n) {
+  static QuantilesItemsSketch<String> buildStringIS(final int k, final int n) {
     return buildStringIS(k, n, 0);
   }
 
-  static ItemsSketch<String> buildStringIS(final int k, final int n, final int start) {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
+  static QuantilesItemsSketch<String> buildStringIS(final int k, final int n, final int start) {
+    final QuantilesItemsSketch<String> sketch = QuantilesItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
     for (int i = 0; i < n; i++) {
       sketch.update(Integer.toString(i + start));
     }
@@ -592,7 +592,7 @@ public class ItemsSketchTest {
 
   @Test
   public void sortedView() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
     sketch.update(3);
     sketch.update(1);
     sketch.update(2);
@@ -618,15 +618,15 @@ public class ItemsSketchTest {
   @Test
   public void checkIssue484() {
     final Boolean[] items = { true,false,true,false,true,false,true,false,true,false };
-    final ItemsSketch<Boolean> sketch = ItemsSketch.getInstance(Boolean.class, Boolean::compareTo);
+    final QuantilesItemsSketch<Boolean> sketch = QuantilesItemsSketch.getInstance(Boolean.class, Boolean::compareTo);
     for (int i = 0; i < items.length; i++) { sketch.update(items[i]); }
     final byte[] serialized = sketch.toByteArray(new ArrayOfBooleansSerDe());
-    final ItemsSketch<Boolean> deserialized =
-        ItemsSketch.heapify(Boolean.class, MemorySegment.ofArray(serialized), Boolean::compareTo, new ArrayOfBooleansSerDe());
+    final QuantilesItemsSketch<Boolean> deserialized =
+        QuantilesItemsSketch.heapify(Boolean.class, MemorySegment.ofArray(serialized), Boolean::compareTo, new ArrayOfBooleansSerDe());
     checkSketchesEqual(sketch, deserialized);
   }
 
-  private static <T> void checkSketchesEqual(final ItemsSketch<T> expected, final ItemsSketch<T> actual) {
+  private static <T> void checkSketchesEqual(final QuantilesItemsSketch<T> expected, final QuantilesItemsSketch<T> actual) {
     final ItemsSketchSortedView<T> expSV = expected.getSortedView();
     final ItemsSketchSortedView<T> actSV = actual.getSortedView();
     final int N = (int)actSV.getN();
@@ -648,8 +648,8 @@ public class ItemsSketchTest {
   //Otherwise the higher levels would not be sorted properly.
   public void checkL0SortDuringMergeIssue527() throws NumberFormatException {
     final Random rand = new Random();
-    final ItemsSketch<String> sk1 = ItemsSketch.getInstance(String.class, 8, Comparator.reverseOrder());
-    final ItemsSketch<String> sk2 = ItemsSketch.getInstance(String.class, 8, Comparator.reverseOrder());
+    final QuantilesItemsSketch<String> sk1 = QuantilesItemsSketch.getInstance(String.class, 8, Comparator.reverseOrder());
+    final QuantilesItemsSketch<String> sk2 = QuantilesItemsSketch.getInstance(String.class, 8, Comparator.reverseOrder());
     final int n = 24; //don't change this
     for (int i = 1; i <= n; i++ ) {
       final int j = rand.nextInt(n) + 1;
@@ -657,13 +657,13 @@ public class ItemsSketchTest {
       sk2.update(getString(j +100, 3));
     }
     final int k = 8;
-    final ItemsUnion<String> union = ItemsUnion.getInstance(String.class, k, Comparator.reverseOrder());
+    final QuantilesItemsUnion<String> union = QuantilesItemsUnion.getInstance(String.class, k, Comparator.reverseOrder());
     union.union(sk1);
     union.union(sk2);
-    final ItemsSketch<String> sk3 = union.getResult();
+    final QuantilesItemsSketch<String> sk3 = union.getResult();
     println(sk3.toString(true, true)); //L0 and above should be sorted in reverse. Ignore BB.
 
-    final QuantilesGenericSketchIterator<String> itr = sk3.iterator();
+    final QuantilesGenericSketchIteratorAPI<String> itr = sk3.iterator();
     itr.next();
     int prev = Integer.parseInt(itr.getQuantile().trim());
     for (int i = 1; i < (2 * k); i++) {

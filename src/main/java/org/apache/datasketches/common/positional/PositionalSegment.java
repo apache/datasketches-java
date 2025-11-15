@@ -22,7 +22,7 @@ package org.apache.datasketches.common.positional;
 import java.lang.foreign.MemorySegment;
 
 /**
- * Defines the read-only API for relative positional access to a resource.
+ * Defines the API for relative positional access to a MemorySegment.
  *
  * @author Lee Rhodes
  */
@@ -259,7 +259,7 @@ public interface PositionalSegment extends Positional {
       int dstOffsetShorts,
       int lengthShorts);
 
-  //PRIMITIVE putX() and putXArray()
+  //PRIMITIVE setX() and setXArray()
 
   /**
    * Sets the boolean value at the current position.

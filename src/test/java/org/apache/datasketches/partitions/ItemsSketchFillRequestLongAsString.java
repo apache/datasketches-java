@@ -27,13 +27,13 @@ import static org.apache.datasketches.quantilescommon.LongsAsOrderableStrings.ge
 import java.util.Comparator;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.quantiles.ItemsSketch;
+import org.apache.datasketches.quantiles.QuantilesItemsSketch;
 
 /**
  * This is an simulated data set with a given N used for testing.
  * @author Lee Rhodes
  */
-public class ItemsSketchFillRequestLongAsString implements SketchFillRequest<String, ItemsSketch<String>> {
+public class ItemsSketchFillRequestLongAsString implements SketchFillRequest<String, QuantilesItemsSketch<String>> {
   private int k;
   private int numDigits;
 
@@ -48,9 +48,9 @@ public class ItemsSketchFillRequestLongAsString implements SketchFillRequest<Str
   }
 
   @Override
-  public ItemsSketch<String> getRange(final String lowerQuantile, final String upperQuantile,
+  public QuantilesItemsSketch<String> getRange(final String lowerQuantile, final String upperQuantile,
       final BoundsRule bounds) {
-    final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sk = QuantilesItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
     long upper, lower;
     try {
       lower = Long.parseLong(lowerQuantile.trim());
@@ -66,8 +66,8 @@ public class ItemsSketchFillRequestLongAsString implements SketchFillRequest<Str
     return sk;
   }
 
-  public ItemsSketch<String> getRange(final long lowerQuantile, final long upperQuantile, final BoundsRule bounds) {
-    final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
+  public QuantilesItemsSketch<String> getRange(final long lowerQuantile, final long upperQuantile, final BoundsRule bounds) {
+    final QuantilesItemsSketch<String> sk = QuantilesItemsSketch.getInstance(String.class, k, Comparator.naturalOrder());
     final long lower = lowerQuantile;
     final long upper = upperQuantile;
     if (bounds == INCLUDE_BOTH) {

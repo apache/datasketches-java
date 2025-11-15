@@ -28,7 +28,7 @@ final class ItemsUpdateImpl {
 
   //important: newN might not equal n_
   // This only increases the size and does not touch or move any data.
-  static <T> void maybeGrowLevels(final ItemsSketch<T> sketch, final long newN) {
+  static <T> void maybeGrowLevels(final QuantilesItemsSketch<T> sketch, final long newN) {
     // important: newN might not equal n_
     final int k = sketch.getK();
     final int numLevelsNeeded = ClassicUtil.computeNumLevelsNeeded(k, newN);
@@ -54,7 +54,7 @@ final class ItemsUpdateImpl {
       final T[] sizeKBuf, final int sizeKStart,
       final T[] size2KBuf, final int size2KStart,
       final boolean doUpdateVersion,
-      final ItemsSketch<T> sketch) { // else doMergeIntoVersion
+      final QuantilesItemsSketch<T> sketch) { // else doMergeIntoVersion
     final Object[] levelsArr = sketch.getCombinedBuffer();
     final long bitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
@@ -93,12 +93,12 @@ final class ItemsUpdateImpl {
     sketch.bitPattern_ = bitPattern + (1L << startingLevel);
   }
 
-  //note: this version refers to the ItemsSketch.rand
+  //note: this version refers to the QuantilesItemsSketch.rand
   private static void zipSize2KBuffer(
       final Object[] bufA, final int startA, // input
       final Object[] bufC, final int startC, // output
       final int k) {
-    final int randomOffset = ItemsSketch.rand.nextBoolean() ? 1 : 0;
+    final int randomOffset = QuantilesItemsSketch.rand.nextBoolean() ? 1 : 0;
     final int limC = startC + k;
     for (int a = startA + randomOffset, c = startC; c < limC; a += 2, c++) {
       bufC[c] = bufA[a];

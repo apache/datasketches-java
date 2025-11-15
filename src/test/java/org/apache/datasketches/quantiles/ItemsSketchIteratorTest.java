@@ -21,7 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -29,16 +29,16 @@ public class ItemsSketchIteratorTest {
 
   @Test
   public void emptySketch() {
-    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
-    QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
+    QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
+    QuantilesGenericSketchIteratorAPI<Integer> it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
+    QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
     sketch.update(0);
-    QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
+    QuantilesGenericSketchIteratorAPI<Integer> it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getQuantile(), Integer.valueOf(0));
     Assert.assertEquals(it.getWeight(), 1);
@@ -48,11 +48,11 @@ public class ItemsSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
+      QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
+      QuantilesGenericSketchIteratorAPI<Integer> it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

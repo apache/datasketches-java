@@ -22,7 +22,6 @@ package org.apache.datasketches.quantiles;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.MemorySegmentRequestExample;
@@ -32,8 +31,8 @@ public class ClassicQuantilesMemorySegmentRequestApp {
 
   @Test
   /**
-   * This method emulates an application using an off-heap DoublesSketch that needs to expand off-heap.
-   * This demonstrates one example of how to manage a growing off-heap DoublesSketch where the
+   * This method emulates an application using an off-heap QuantilesDoublesSketch that needs to expand off-heap.
+   * This demonstrates one example of how to manage a growing off-heap QuantilesDoublesSketch where the
    * expanded MemorySegments are also off-heap.
    */
   public void checkMemorySegmentRequestExample() {
@@ -43,14 +42,14 @@ public class ClassicQuantilesMemorySegmentRequestApp {
     //Use the custom MemorySegmentRequestExample to do the allocations.
     final MemorySegmentRequestExample mSegReqEx = new MemorySegmentRequestExample();
 
-    //The allocation of the original off-heap MemorySegment for the DoublesSketch
+    //The allocation of the original off-heap MemorySegment for the QuantilesDoublesSketch
     //Note that this targets the size to only handle 2k values, which is quite small.
-    final int initalBytes = DoublesSketch.getUpdatableStorageBytes(k, 2 * k);
+    final int initalBytes = QuantilesDoublesSketch.getUpdatableStorageBytes(k, 2 * k);
 
     final MemorySegment seg = mSegReqEx.request(initalBytes);
 
     //Create a new KllLongsSketch and pass the mSegReqEx
-    final DoublesSketch sk = DoublesSketch.builder().setK(k).build(seg, mSegReqEx);
+    final QuantilesDoublesSketch sk = QuantilesDoublesSketch.builder().setK(k).build(seg, mSegReqEx);
 
     //Update the sketch with way more data than the original MemorySegment can handle, forcing it to request larger MemorySegments.
     for (int n = 1; n <= itemsIn; n++) { sk.update(n); }

@@ -88,6 +88,11 @@ public final class TupleAnotB<S extends Summary> {
   }
 
   /**
+   * No argument constructor.
+   */
+  public TupleAnotB() { }
+
+  /**
    * This is part of a multistep, stateful TupleAnotB operation and sets the given TupleSketch as the
    * first argument <i>A</i> of <i>A-AND-NOT-B</i>. This overwrites the internal state of this
    * TupleAnotB operator with the contents of the given sketch.

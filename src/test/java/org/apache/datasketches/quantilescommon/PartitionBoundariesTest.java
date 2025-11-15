@@ -32,11 +32,11 @@ import java.util.Comparator;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllItemsSketch;
-import org.apache.datasketches.quantiles.ItemsSketch;
+import org.apache.datasketches.quantiles.QuantilesItemsSketch;
 import org.testng.annotations.Test;
 
 /**
- * This tests partition boundaries with both KllItemsSketch and classic ItemsSketch
+ * This tests partition boundaries with both KllItemsSketch and classic QuantilesItemsSketch
  */
 public class PartitionBoundariesTest {
   private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
@@ -61,7 +61,7 @@ public class PartitionBoundariesTest {
     final int numDigits = digits(totalN);
     final long v2 = 1000L;
     final QuantileSearchCriteria searchCrit = QuantileSearchCriteria.INCLUSIVE;
-    final ItemsSketch<String> sk = ItemsSketch.getInstance(String.class,k, Comparator.naturalOrder());
+    final QuantilesItemsSketch<String> sk = QuantilesItemsSketch.getInstance(String.class,k, Comparator.naturalOrder());
 
     for (long i = 1; i <= n; i++)  { sk.update(getString(i, numDigits)); }
     for (long i = 1; i <= n2; i++) { sk.update(getString(v2, numDigits)); }
@@ -149,7 +149,7 @@ public class PartitionBoundariesTest {
 
   @Test
   public void getQuantilesVsPartitionBoundariesClassic() {
-    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    final QuantilesItemsSketch<Integer> sketch = QuantilesItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);

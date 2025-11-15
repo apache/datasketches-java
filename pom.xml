@@ -117,7 +117,7 @@ under the License.
     <!-- com.github plugins -->
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
     <!-- org.apache.creadur plugins -->
-    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version>
+    <apache-rat-plugin.version>0.17</apache-rat-plugin.version>
     <!-- org.eluder maven plugins -->
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
@@ -332,19 +332,20 @@ under the License.
           <configuration>
             <outputDirectory>${project.basedir}/rat</outputDirectory>
             <consoleOutput>true</consoleOutput>
-            <useDefaultExcludes>true</useDefaultExcludes>
-            <excludes>
-              <!-- rat uses .gitignore for excludes by default -->
-              <exclude>**/*.yaml</exclude>
-              <exclude>**/*.yml</exclude>
-              <exclude>**/.*</exclude>
-              <exclude>**/test/resources/**/*.txt</exclude>
-              <exclude>**/git.properties</exclude>
-              <exclude>**/*.sk</exclude>
-              <exclude>LICENSE</exclude>
-              <exclude>NOTICE</exclude>
-              <exclude>**/*.code-workspace</exclude>
-            </excludes>
+            <inputExcludes>
+              <!-- I think rat uses .gitignore for excludes by default -->
+              <inputExcludeStd>StandardCollection</inputExcludeStd>
+              <inputExclude>**/*.yaml</inputExclude>
+              <inputExclude>**/*.yml</inputExclude>
+              <inputExclude>**/.*</inputExclude>
+              <inputExclude>**/test/resources/**/*.txt</inputExclude>
+              <inputExclude>**/git.properties</inputExclude>
+              <inputExclude>**/doc/**</inputExclude>
+              <inputExclude>**/*.sk</inputExclude>
+              <inputExclude>LICENSE</inputExclude>
+              <inputExclude>NOTICE</inputExclude>
+              <inputExclude>**/*.code-workspace</inputExclude>
+            </inputExcludes>
           </configuration>
         </plugin>
 

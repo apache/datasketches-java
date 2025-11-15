@@ -25,8 +25,8 @@ import org.apache.datasketches.common.SketchesStateException;
  * Compact sketches are inherently <i>read only</i>.
  * @author Jon Malkin
  */
-public abstract class CompactDoublesSketch extends DoublesSketch {
-  CompactDoublesSketch(final int k) {
+public abstract class CompactQuantilesDoublesSketch extends QuantilesDoublesSketch {
+  CompactQuantilesDoublesSketch(final int k) {
     super(k);
   }
 

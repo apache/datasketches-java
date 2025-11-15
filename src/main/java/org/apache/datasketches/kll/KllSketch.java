@@ -71,7 +71,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
  * This class is the root of the KLL sketch class hierarchy. It includes the public API that is independent
- * of either sketch type (e.g., float, double or generic item) and independent of whether the sketch is targeted
+ * of either sketch type (e.g., float, double, long or generic item) and independent of whether the sketch is targeted
  * for use on the Java heap or off-heap.
  *
  * <p>KLL is an implementation of a very compact quantiles sketch with lazy compaction scheme

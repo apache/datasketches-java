@@ -32,6 +32,11 @@ import java.util.Objects;
  */
 public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
+  /**
+   * No argument constructor.
+   */
+  public ArrayOfDoublesSerDe() { }
+
   @Override
   public byte[] serializeToByteArray(final Double item) {
     Objects.requireNonNull(item, "Item must not be null");

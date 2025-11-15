@@ -20,21 +20,22 @@
 package org.apache.datasketches.quantilescommon;
 
 /**
- * The quantiles sketch iterator for primitive type double.
- * @see QuantilesSketchIterator
+ * The quantiles sketch iterator for generic types.
+ * @see QuantilesSketchIteratorAPI
+ * @param <T> The generic quantile type
  * @author Lee Rhodes
  */
-public interface QuantilesDoublesSketchIterator extends QuantilesSketchIterator {
+public interface QuantilesGenericSketchIteratorAPI<T> extends QuantilesSketchIteratorAPI {
 
   /**
-   * Gets the double quantile at the current index.
+   * Gets the generic quantile at the current index.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @return the double quantile at the current index.
+   * @return the generic quantile at the current index.
    */
-  double getQuantile();
+  T getQuantile();
 
 }
 

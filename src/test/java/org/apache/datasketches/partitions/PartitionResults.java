@@ -74,7 +74,7 @@ public class PartitionResults {
     final double rmsRelErr = sqrt(normMeanSqErr); //a.k.a. Normalized RMS Error or NRMSE
     final double maxAbsErrFraction = maxAbsErr / meanPartSize;
 
-    println(LS + sketchType +" ItemsSketch Partitions Test");
+    println(LS + sketchType + " Generic Quantiles Sketch Partitions Test");
     println(LS + "INPUT:");
     printf("Sketch K              :%,20d\n", k);
     printf("Search Criteria       :%20s\n", searchCrit.name());

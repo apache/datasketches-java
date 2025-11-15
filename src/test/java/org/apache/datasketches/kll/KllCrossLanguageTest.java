@@ -41,9 +41,9 @@ import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.kll.KllHeapItemsSketch;
 import org.apache.datasketches.kll.KllItemsSketch;
 import org.apache.datasketches.kll.KllLongsSketch;
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 import org.testng.annotations.Test;
 
 /**
@@ -156,7 +156,7 @@ public class KllCrossLanguageTest {
         assertEquals(sketch.getMinItem(), 1);
         assertEquals(sketch.getMaxItem(), n);
         long weight = 0;
-        final QuantilesDoublesSketchIterator it = sketch.iterator();
+        final QuantilesDoublesSketchIteratorAPI it = sketch.iterator();
         while (it.next()) {
           assertTrue(it.getQuantile() >= sketch.getMinItem());
           assertTrue(it.getQuantile() <= sketch.getMaxItem());
@@ -198,7 +198,7 @@ public class KllCrossLanguageTest {
         assertEquals(sketch.getMinItem(), Integer.toString(1));
         assertEquals(sketch.getMaxItem(), Integer.toString(n));
         long weight = 0;
-        final QuantilesGenericSketchIterator<String> it = sketch.iterator();
+        final QuantilesGenericSketchIteratorAPI<String> it = sketch.iterator();
         while (it.next()) {
           assertTrue(numericOrder.compare(it.getQuantile(), sketch.getMinItem()) >= 0);
           assertTrue(numericOrder.compare(it.getQuantile(), sketch.getMaxItem()) <= 0);

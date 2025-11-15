@@ -32,6 +32,11 @@ import org.apache.datasketches.common.SketchesArgumentException;
 public final class SerializerDeserializer {
 
   /**
+   * No argument constructor.
+   */
+  public SerializerDeserializer() { }
+
+  /**
    * Defines the sketch classes that this SerializerDeserializer can handle.
    */
   public static enum SketchType {

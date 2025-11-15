@@ -27,7 +27,7 @@ import java.util.List;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.partitions.Partitioner.PartitionBoundsRow;
-import org.apache.datasketches.quantiles.ItemsSketch;
+import org.apache.datasketches.quantiles.QuantilesItemsSketch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.testng.annotations.Test;
 
@@ -94,9 +94,9 @@ public class ClassicPartitionsTest {
 
     final long startTime_mS = System.currentTimeMillis();
     final ItemsSketchFillRequestLongAsString fillReq = new ItemsSketchFillRequestLongAsString(k, totalN);
-    final ItemsSketch<String> sk = fillReq.getRange(1L, totalN, INCLUDE_BOTH);
+    final QuantilesItemsSketch<String> sk = fillReq.getRange(1L, totalN, INCLUDE_BOTH);
     final long endFillInitialSketchTime_mS = System.currentTimeMillis();
-    final Partitioner<String, ItemsSketch<String>> partitioner = new Partitioner<>(
+    final Partitioner<String, QuantilesItemsSketch<String>> partitioner = new Partitioner<>(
         tgtPartitionSize,
         maxPartsPerSk,
         fillReq,

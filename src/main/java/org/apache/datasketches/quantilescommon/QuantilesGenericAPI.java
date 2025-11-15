@@ -297,7 +297,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * Gets the iterator for this sketch, which is not sorted.
    * @return the iterator for this sketch
    */
-  QuantilesGenericSketchIterator<T> iterator();
+  QuantilesGenericSketchIteratorAPI<T> iterator();
 
   /**
    * Updates this sketch with the given item.

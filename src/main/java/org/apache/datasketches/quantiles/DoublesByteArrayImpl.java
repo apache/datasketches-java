@@ -51,7 +51,7 @@ final class DoublesByteArrayImpl {
 
   private DoublesByteArrayImpl() {}
 
-  static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered, final boolean compact) {
+  static byte[] toByteArray(final QuantilesDoublesSketch sketch, final boolean ordered, final boolean compact) {
     final boolean empty = sketch.isEmpty();
 
     //create the flags byte
@@ -72,13 +72,13 @@ final class DoublesByteArrayImpl {
 
   /**
    * Returns a byte array, including preamble, min, max and data extracted from the sketch.
-   * @param sketch the given DoublesSketch
+   * @param sketch the given QuantilesDoublesSketch
    * @param flags the Flags field
    * @param ordered true if the desired form of the resulting array has the base buffer sorted.
    * @param compact true if the desired form of the resulting array is in compact form.
    * @return a byte array, including preamble, min, max and data extracted from the Combined Buffer.
    */
-  private static byte[] convertToByteArray(final DoublesSketch sketch, final int flags,
+  private static byte[] convertToByteArray(final QuantilesDoublesSketch sketch, final int flags,
                                            final boolean ordered, final boolean compact) {
     final int preLongs = sketch.isEmpty() ? 1 : 2;
 

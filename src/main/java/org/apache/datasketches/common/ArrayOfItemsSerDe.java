@@ -31,6 +31,11 @@ import java.util.Objects;
 public abstract class ArrayOfItemsSerDe<T> {
 
   /**
+   * No argument constructor.
+   */
+  public ArrayOfItemsSerDe() { }
+
+  /**
    * Serialize a single unserialized item to a byte array.
    *
    * @param item the item to be serialized

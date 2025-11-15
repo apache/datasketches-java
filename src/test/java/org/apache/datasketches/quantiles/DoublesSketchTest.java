@@ -39,11 +39,11 @@ public class DoublesSketchTest {
 
   @Test
   public void heapToDirect() {
-    final UpdateDoublesSketch heapSketch = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch heapSketch = QuantilesDoublesSketch.builder().build();
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    final DoublesSketch directSketch = DoublesSketch.writableWrap(MemorySegment.ofArray(heapSketch.toByteArray(false)), null);
+    final QuantilesDoublesSketch directSketch = QuantilesDoublesSketch.writableWrap(MemorySegment.ofArray(heapSketch.toByteArray(false)), null);
 
     assertEquals(directSketch.getMinItem(), 0.0);
     assertEquals(directSketch.getMaxItem(), 999.0);
@@ -53,12 +53,12 @@ public class DoublesSketchTest {
   @Test
   public void directToHeap() {
     final int sizeBytes = 10000;
-    final UpdateDoublesSketch directSketch = DoublesSketch.builder().build(MemorySegment.ofArray(new byte[sizeBytes]));
+    final UpdatableQuantilesDoublesSketch directSketch = QuantilesDoublesSketch.builder().build(MemorySegment.ofArray(new byte[sizeBytes]));
     for (int i = 0; i < 1000; i++) {
       directSketch.update(i);
     }
-    UpdateDoublesSketch heapSketch;
-    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(MemorySegment.ofArray(directSketch.toByteArray()));
+    UpdatableQuantilesDoublesSketch heapSketch;
+    heapSketch = (UpdatableQuantilesDoublesSketch) QuantilesDoublesSketch.heapify(MemorySegment.ofArray(directSketch.toByteArray()));
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
@@ -69,7 +69,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkToByteArray() {
-    final UpdateDoublesSketch ds = DoublesSketch.builder().build(); //k = 128
+    final UpdatableQuantilesDoublesSketch ds = QuantilesDoublesSketch.builder().build(); //k = 128
     ds.update(1);
     ds.update(2);
     final byte[] arr = ds.toByteArray(false);
@@ -83,8 +83,8 @@ public class DoublesSketchTest {
    * @param sketch1 input sketch 1
    * @param sketch2 input sketch 2
    */
-  static void testSketchEquality(final DoublesSketch sketch1,
-                                 final DoublesSketch sketch2) {
+  static void testSketchEquality(final QuantilesDoublesSketch sketch1,
+                                 final QuantilesDoublesSketch sketch2) {
     assertEquals(sketch1.getK(), sketch2.getK());
     assertEquals(sketch1.getN(), sketch2.getN());
     assertEquals(sketch1.getBitPattern(), sketch2.getBitPattern());
@@ -118,19 +118,19 @@ public class DoublesSketchTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[(k*16) +24]);
     final MemorySegment cseg = MemorySegment.ofArray(new byte[8]);
     final DirectUpdateDoublesSketch duds =
-            (DirectUpdateDoublesSketch) DoublesSketch.builder().setK(k).build(seg);
+            (DirectUpdateDoublesSketch) QuantilesDoublesSketch.builder().setK(k).build(seg);
     assertTrue(duds.isSameResource(seg));
     final DirectCompactDoublesSketch dcds = (DirectCompactDoublesSketch) duds.compact(cseg);
     assertTrue(dcds.isSameResource(cseg));
 
-    final UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch uds = QuantilesDoublesSketch.builder().setK(k).build();
     assertFalse(uds.isSameResource(seg));
   }
 
   @Test
   public void checkEmptyExceptions() {
     final int k = 16;
-    final UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch uds = QuantilesDoublesSketch.builder().setK(k).build();
     try { uds.getMaxItem(); fail(); } catch (final IllegalArgumentException e) {}
     try { uds.getMinItem(); fail(); } catch (final IllegalArgumentException e) {}
     try { uds.getRank(1.0); fail(); } catch (final IllegalArgumentException e) {}
@@ -142,7 +142,7 @@ public class DoublesSketchTest {
   public void directSketchShouldMoveOntoHeapEventually() {
     final Arena arena = Arena.ofConfined();
     final MemorySegment wseg = arena.allocate(1000);
-    final UpdateDoublesSketch sketch = DoublesSketch.builder().build(wseg);
+    final UpdatableQuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().build(wseg);
     Assert.assertTrue(sketch.isSameResource(wseg));
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
@@ -157,7 +157,7 @@ public class DoublesSketchTest {
     final Arena arena = Arena.ofConfined();
     int i = 0;
     final MemorySegment wseg = arena.allocate(50);
-    final UpdateDoublesSketch sketch = DoublesSketch.builder().build(wseg);
+    final UpdatableQuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().build(wseg);
     Assert.assertTrue(sketch.isSameResource(wseg));
     for (; i < 1000; i++) {
       if (sketch.isSameResource(wseg)) {
@@ -175,7 +175,7 @@ public class DoublesSketchTest {
   public void checkEmptyDirect() {
     try (Arena arena = Arena.ofConfined()) {
        final MemorySegment wseg = arena.allocate(1000);
-      final UpdateDoublesSketch sketch = DoublesSketch.builder().build(wseg);
+      final UpdatableQuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().build(wseg);
       sketch.toByteArray(); //exercises a specific path
     } catch (final Exception e) {
       throw new RuntimeException(e);
@@ -184,7 +184,7 @@ public class DoublesSketchTest {
 
   @Test
   public void sortedView() {
-    final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().build();
     sketch.update(3);
     sketch.update(1);
     sketch.update(2);
@@ -209,7 +209,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkRankLBError() {
-    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch sk = QuantilesDoublesSketch.builder().build();
     final double eps = sk.getNormalizedRankError(false);
     println("" + (2 * eps));
     for (int i = 1; i <= 10000; i++) { sk.update(i); }
@@ -220,7 +220,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkRankUBError() {
-    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch sk = QuantilesDoublesSketch.builder().build();
     final double eps = sk.getNormalizedRankError(false);
     println(""+ (2 * eps));
     for (int i = 1; i <= 10000; i++) { sk.update(i); }
@@ -231,7 +231,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkGetRanks() {
-    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch sk = QuantilesDoublesSketch.builder().build();
     for (int i = 1; i <= 10000; i++) { sk.update(i); }
     final double[] qArr = {1000,2000,3000,4000,5000,6000,7000,8000,9000,10000};
     final double[] ranks = sk.getRanks(qArr, INCLUSIVE);
@@ -246,7 +246,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkToStringHeap() {
-    final DoublesSketch sk = DoublesSketch.builder().setK(8).build();
+    final QuantilesDoublesSketch sk = QuantilesDoublesSketch.builder().setK(8).build();
     final int n = 32;
     for (int i = 1; i <= n; i++) {
       final double item = i;

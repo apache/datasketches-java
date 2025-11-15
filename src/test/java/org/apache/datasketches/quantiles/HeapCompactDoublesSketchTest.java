@@ -37,14 +37,14 @@ public class HeapCompactDoublesSketchTest {
 
   @BeforeMethod
   public void setUp() {
-    DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
+    QuantilesDoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
   @Test
   public void heapifyFromUpdateSketch() {
     final int k = 4;
     final int n = 45;
-    final UpdateDoublesSketch qs = buildAndLoadQS(k, n);
+    final UpdatableQuantilesDoublesSketch qs = buildAndLoadQS(k, n);
     final byte[] qsBytes = qs.toByteArray();
     final MemorySegment qsSeg = MemorySegment.ofArray(qsBytes);
 
@@ -58,7 +58,7 @@ public class HeapCompactDoublesSketchTest {
   public void createFromUnsortedUpdateSketch() {
     final int k = 4;
     final int n = 13;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch qs = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
@@ -72,7 +72,7 @@ public class HeapCompactDoublesSketchTest {
   public void heapifyFromCompactSketch() {
     final int k = 8;
     final int n = 177;
-    final UpdateDoublesSketch qs = buildAndLoadQS(k, n); // assuming reverse ordered inserts
+    final UpdatableQuantilesDoublesSketch qs = buildAndLoadQS(k, n); // assuming reverse ordered inserts
 
     final byte[] qsBytes = qs.compact().toByteArray();
     final MemorySegment qsSeg = MemorySegment.ofArray(qsBytes);
@@ -84,7 +84,7 @@ public class HeapCompactDoublesSketchTest {
   @Test
   public void checkHeapifyUnsortedCompactV2() {
     final int k = 64;
-    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(64).build();
+    final UpdatableQuantilesDoublesSketch qs = QuantilesDoublesSketch.builder().setK(64).build();
     for (int i = 0; i < (3 * k); ++i) {
       qs.update(i);
     }
@@ -107,7 +107,7 @@ public class HeapCompactDoublesSketchTest {
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
-    final UpdateDoublesSketch qs1 = buildAndLoadQS(k, 0);
+    final UpdatableQuantilesDoublesSketch qs1 = buildAndLoadQS(k, 0);
     final byte[] byteArr = qs1.compact().toByteArray();
     final byte[] byteArr2 = qs1.toByteArray(true);
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
@@ -135,12 +135,12 @@ public class HeapCompactDoublesSketchTest {
     }
   }
 
-  static UpdateDoublesSketch buildAndLoadQS(final int k, final int n) {
+  static UpdatableQuantilesDoublesSketch buildAndLoadQS(final int k, final int n) {
     return buildAndLoadQS(k, n, 0);
   }
 
-  static UpdateDoublesSketch buildAndLoadQS(final int k, final int n, final int startV) {
-    final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build();
+  static UpdatableQuantilesDoublesSketch buildAndLoadQS(final int k, final int n, final int startV) {
+    final UpdatableQuantilesDoublesSketch qs = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }

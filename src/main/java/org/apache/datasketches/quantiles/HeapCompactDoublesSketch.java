@@ -42,12 +42,12 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
- * Implements the DoublesSketch on the Java heap.
+ * Implements the QuantilesDoublesSketch on the Java heap.
  *
  * @author Lee Rhodes
  * @author Jon Malkin
  */
-final class HeapCompactDoublesSketch extends CompactDoublesSketch {
+final class HeapCompactDoublesSketch extends CompactQuantilesDoublesSketch {
   static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
@@ -96,12 +96,12 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   /**
-   * Converts the given UpdateDoublesSketch to this compact form.
+   * Converts the given UpdatableQuantilesDoublesSketch to this compact form.
    *
    * @param sketch the sketch to convert
-   * @return a HeapCompactDoublesSketch created from an UpdateDoublesSketch
+   * @return a HeapCompactDoublesSketch created from an UpdatableQuantilesDoublesSketch
    */
-  static HeapCompactDoublesSketch createFromUpdateSketch(final UpdateDoublesSketch sketch) {
+  static HeapCompactDoublesSketch createFromUpdateSketch(final UpdatableQuantilesDoublesSketch sketch) {
     final int k = sketch.getK();
     final long n = sketch.getN();
 
@@ -149,10 +149,10 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   /**
-   * Heapifies the given srcSeg, which must be a MemorySegment image of a DoublesSketch and may have data.
+   * Heapifies the given srcSeg, which must be a MemorySegment image of a QuantilesDoublesSketch and may have data.
    *
    * @param srcSeg a MemorySegment image of a sketch, which may be in compact or not compact form.
-   * @return a DoublesSketch on the Java heap.
+   * @return a QuantilesDoublesSketch on the Java heap.
    */
   static HeapCompactDoublesSketch heapifyInstance(final MemorySegment srcSeg) {
     final long segCapBytes = srcSeg.byteSize();

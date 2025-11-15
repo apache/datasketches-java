@@ -20,7 +20,7 @@
 package org.apache.datasketches.hash;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.hash.MurmurHash3FFM21.hash;
+import static org.apache.datasketches.hash.MurmurHash3FFM.hash;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
  *
  * @author Lee Rhodes
  */
-public class MurmurHash3FFM21bTest {
+public class MurmurHash3FFMbTest {
 
   @Test
   public void checkByteArrRemainderGT8() { //byte[], remainder > 8
@@ -195,7 +195,7 @@ public class MurmurHash3FFM21bTest {
       0x72, 0x20, 0x74, 0x68, 0x65, 0x20, 0x6c, 0x61, 0x7a, 0x79, 0x20, 0x64, 0x6f, 0x67,
       (byte) 0xff, 0x64, 0x6f, 0x67, 0x00
     };
-    final long[] result = MurmurHash3FFM21.hash(key, 0);
+    final long[] result = MurmurHash3FFM.hash(key, 0);
     //Should be:
     final long h1 = 0xe88abda785929c9eL;
     final long h2 = 0x96b98587cacc83d6L;

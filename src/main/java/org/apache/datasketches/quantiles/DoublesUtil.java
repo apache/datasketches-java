@@ -49,7 +49,7 @@ final class DoublesUtil {
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
-  static HeapUpdateDoublesSketch copyToHeap(final DoublesSketch sketch) {
+  static HeapUpdateDoublesSketch copyToHeap(final QuantilesDoublesSketch sketch) {
     final HeapUpdateDoublesSketch qsCopy;
     qsCopy = HeapUpdateDoublesSketch.newInstance(sketch.getK());
     qsCopy.putN(sketch.getN());
@@ -97,7 +97,7 @@ final class DoublesUtil {
     }
   }
 
-  static String toString(final boolean withLevels, final boolean withLevelsAndItems, final DoublesSketch sk) {
+  static String toString(final boolean withLevels, final boolean withLevelsAndItems, final QuantilesDoublesSketch sk) {
     final StringBuilder sb = new StringBuilder();
     sb.append(getSummary(sk));
     if (withLevels) {
@@ -109,7 +109,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static String getSummary(final DoublesSketch sk) {
+  private static String getSummary(final QuantilesDoublesSketch sk) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sk.getClass().getSimpleName();
     final int k = sk.getK();
@@ -157,7 +157,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static String outputLevels(final DoublesSketch sk) {
+  private static String outputLevels(final QuantilesDoublesSketch sk) {
     final String name = sk.getClass().getSimpleName();
     final int k = sk.getK();
     final long n = sk.getN();
@@ -180,7 +180,7 @@ final class DoublesUtil {
     return sb.toString();
   }
 
-  private static String outputDataDetail(final DoublesSketch sk) {
+  private static String outputDataDetail(final QuantilesDoublesSketch sk) {
     final String name = sk.getClass().getSimpleName();
     final int k = sk.getK();
     final long n = sk.getN();

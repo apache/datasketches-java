@@ -57,7 +57,7 @@ public final class ClassicUtil {
 
   /**
    * Used by Classic Quantiles.
-   * Gets the normalized rank error given k and pmf for the Quantiles DoubleSketch and ItemsSketch.
+   * Gets the normalized rank error given k and pmf for the QuantilesDoubleSketch and QuantilesItemsSketch.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -75,7 +75,7 @@ public final class ClassicUtil {
   /**
    * Used by Classic Quantiles.
    * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error
-   * for the Quantiles DoubleSketch and ItemsSketch.
+   * for the QuantilesDoubleSketch and QuantilesItemsSketch.
    * @param epsilon the normalized rank error between zero and one.
    * @param pmf if true, this function returns <em>k</em> assuming the input epsilon
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
@@ -109,7 +109,7 @@ public final class ClassicUtil {
   static int computeGrowingBaseBufferCap(final int k, final int curCombinedBufCap) {
     if (curCombinedBufCap < (2 * k)) {
       return 2 * Math.max(Math.min(k, curCombinedBufCap), MIN_K);
-    } 
+    }
     return 2 * k;
   }
 

@@ -27,6 +27,11 @@ import org.apache.datasketches.tuple.SummarySetOperations;
  */
 public class ArrayOfStringsSummarySetOperations implements SummarySetOperations<ArrayOfStringsSummary> {
 
+  /**
+   * No argument constructor.
+   */
+  public ArrayOfStringsSummarySetOperations() { }
+
   @Override
   public ArrayOfStringsSummary union(final ArrayOfStringsSummary a, final ArrayOfStringsSummary b) {
     return a.copy();

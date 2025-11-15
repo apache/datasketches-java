@@ -18,10 +18,10 @@
  */
 
 /**
- * The /theta/ package contains the basic sketch classes that are members of the
- * <a href="{@docRoot}/resources/dictionary.html#thetaSketch">ThetaSketch Framework</a>.
+ * The <i>theta</i> package contains the basic sketch classes that are members of the
+ * <a href="https://github.com/apache/datasketches-website/blob/master/docs/pdf/ThetaSketchFramework.pdf">Theta-Sketch Framework</a>.
  *
  * <p>There is a separate /tuple/ package for many of the sketches that are derived from the
- * same algorithms defined in the ThetaSketch Framework paper.</p>
+ * same algorithms defined in the Theta-Sketch Framework paper.</p>
  */
 package org.apache.datasketches.theta;

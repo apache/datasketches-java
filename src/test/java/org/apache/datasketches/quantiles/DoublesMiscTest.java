@@ -36,7 +36,7 @@ public class DoublesMiscTest {
 
   @Test
   public void wrapAndUpdating() {
-    final UpdateDoublesSketch sk1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch sk1 = QuantilesDoublesSketch.builder().build();
     sk1.update(1);
     sk1.update(2);
     final byte[] bytes = sk1.toByteArray(false);
@@ -44,7 +44,7 @@ public class DoublesMiscTest {
     Assert.assertEquals(bytes.length, curBytes);
     //convert to MemorySegment
     final MemorySegment seg = MemorySegment.ofArray(bytes);
-    final UpdateDoublesSketch sk2 = (UpdateDoublesSketch) DoublesSketch.writableWrap(seg, null);
+    final UpdatableQuantilesDoublesSketch sk2 = (UpdatableQuantilesDoublesSketch) QuantilesDoublesSketch.writableWrap(seg, null);
     assertEquals(seg.byteSize(), curBytes);
     sk2.update(3);
     sk2.update(4);
@@ -52,16 +52,16 @@ public class DoublesMiscTest {
     assertEquals(sk2.getMaxItem(), 4.0);
     //check the size for just 4 elements
     final MemorySegment seg2 = sk2.getMemorySegment();
-    assertEquals(seg2.byteSize(), DoublesSketch.getUpdatableStorageBytes(sk2.getK(), sk2.getN()));
+    assertEquals(seg2.byteSize(), QuantilesDoublesSketch.getUpdatableStorageBytes(sk2.getK(), sk2.getN()));
   }
 
   @Test
   public void wrapCompactSketch() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.compact().toByteArray());
-    final DoublesSketch s2 = DoublesSketch.wrap(seg); // compact, so this is ok
+    final QuantilesDoublesSketch s2 = QuantilesDoublesSketch.wrap(seg); // compact, so this is ok
     assertEquals(s2.getMinItem(), 1.0);
     assertEquals(s2.getMaxItem(), 2.0);
     assertEquals(s2.getN(), 2);
@@ -69,22 +69,22 @@ public class DoublesMiscTest {
 
   @Test
   public void heapifySparseSketch() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
-    final DoublesSketch s2 = DoublesSketch.heapify(seg);
+    final QuantilesDoublesSketch s2 = QuantilesDoublesSketch.heapify(seg);
     assertEquals(s2.getMinItem(), 1.0);
     assertEquals(s2.getMaxItem(), 2.0);
   }
 
   @Test
   public void heapifyAndUpdateSparseSketch() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
-    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.heapify(seg);
+    final UpdatableQuantilesDoublesSketch s2 = (UpdatableQuantilesDoublesSketch) QuantilesDoublesSketch.heapify(seg);
     s2.update(3);
     assertEquals(s2.getMinItem(), 1.0);
     assertEquals(s2.getMaxItem(), 3.0);
@@ -92,36 +92,36 @@ public class DoublesMiscTest {
 
   @Test
   public void heapifyCompactSketch() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
-    final DoublesSketch s2 = DoublesSketch.heapify(seg);
+    final QuantilesDoublesSketch s2 = QuantilesDoublesSketch.heapify(seg);
     assertEquals(s2.getMinItem(), 1.0);
     assertEquals(s2.getMaxItem(), 2.0);
   }
 
   @Test
   public void heapifyEmptyUpdateSketch() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray());
-    final DoublesSketch s2 = DoublesSketch.heapify(seg);
+    final QuantilesDoublesSketch s2 = QuantilesDoublesSketch.heapify(seg);
     assertTrue(s2.isEmpty());
   }
 
   @Test
   public void heapifyEmptyCompactSketch() {
-    final CompactDoublesSketch s1 = DoublesSketch.builder().build().compact();
+    final CompactQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build().compact();
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray());
-    final DoublesSketch s2 = DoublesSketch.heapify(seg);
+    final QuantilesDoublesSketch s2 = QuantilesDoublesSketch.heapify(seg);
     assertTrue(s2.isEmpty());
   }
 
   @Test
   public void wrapEmptyUpdateSketch() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray()).asReadOnly();
-    final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.writableWrap(seg, null);
+    final UpdatableQuantilesDoublesSketch s2 = (UpdatableQuantilesDoublesSketch) QuantilesDoublesSketch.writableWrap(seg, null);
     assertTrue(s2.isEmpty());
 
     // ensure the various put calls fail
@@ -185,59 +185,59 @@ public class DoublesMiscTest {
 
   @Test
   public void wrapEmptyCompactSketch() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     final MemorySegment seg = MemorySegment.ofArray(s1.compact().toByteArray());
-    final DoublesSketch s2 = DoublesSketch.wrap(seg); // compact, so this is ok
+    final QuantilesDoublesSketch s2 = QuantilesDoublesSketch.wrap(seg); // compact, so this is ok
     Assert.assertTrue(s2.isEmpty());
   }
 
   @Test
   public void heapifyUnionFromSparse() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
-    final DoublesUnion u = DoublesUnion.heapify(seg);
+    final QuantilesDoublesUnion u = QuantilesDoublesUnion.heapify(seg);
     u.update(3);
-    final DoublesSketch s2 = u.getResult();
+    final QuantilesDoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
   public void initializeUnionFromCompactSegment() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
-    final DoublesUnion u = DoublesUnion.heapify(seg);
+    final QuantilesDoublesUnion u = QuantilesDoublesUnion.heapify(seg);
     u.update(3);
-    final DoublesSketch s2 = u.getResult();
+    final QuantilesDoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
   public void unionFromUpdatableSegment() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false));
-    final DoublesUnion u = DoublesUnion.wrap(seg);
+    final QuantilesDoublesUnion u = QuantilesDoublesUnion.wrap(seg);
     u.update(3);
-    final DoublesSketch s2 = u.getResult();
+    final QuantilesDoublesSketch s2 = u.getResult();
     Assert.assertEquals(s2.getMinItem(), 1.0);
     Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
   public void wrapUnionFromHeap() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false)).asReadOnly();
     try {
-      final DoublesUnion u = DoublesUnion.wrap(seg, null);
+      final QuantilesDoublesUnion u = QuantilesDoublesUnion.wrap(seg, null);
     } catch (final SketchesReadOnlyException e) {
       //expected
     }
@@ -246,11 +246,11 @@ public class DoublesMiscTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void wrapUnionFromCompact() {
-    final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().build();
     s1.update(1);
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(true));
-    DoublesUnion.wrap(seg, null); //compact seg
+    QuantilesDoublesUnion.wrap(seg, null); //compact seg
     fail();
   }
 

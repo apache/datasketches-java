@@ -59,13 +59,13 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
- * Implements the DoublesSketch off-heap.
+ * Implements the QuantilesDoublesSketch off-heap.
  *
  * @author Kevin Lang
  * @author Lee Rhodes
  * @author Jon Malkin
  */
-final class DirectCompactDoublesSketch extends CompactDoublesSketch {
+final class DirectCompactDoublesSketch extends CompactQuantilesDoublesSketch {
   private static final int MIN_DIRECT_DOUBLES_SER_VER = 3;
   private final MemorySegment seg_;
 
@@ -76,13 +76,13 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   /**
-   * Converts the given UpdateDoublesSketch to this compact form.
+   * Converts the given UpdatableQuantilesDoublesSketch to this compact form.
    *
    * @param sketch the sketch to convert
    * @param dstSeg the MemorySegment to use for the destination
-   * @return a DirectCompactDoublesSketch created from an UpdateDoublesSketch
+   * @return a DirectCompactDoublesSketch created from an UpdatableQuantilesDoublesSketch
    */
-  static DirectCompactDoublesSketch createFromUpdateSketch(final UpdateDoublesSketch sketch,
+  static DirectCompactDoublesSketch createFromUpdateSketch(final UpdatableQuantilesDoublesSketch sketch,
                                                            final MemorySegment dstSeg) {
     final long segCap = dstSeg.byteSize();
     final int k = sketch.getK();
@@ -133,9 +133,9 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   /**
-   * Wrap this sketch around the given compact MemorySegment image of a DoublesSketch.
+   * Wrap this sketch around the given compact MemorySegment image of a QuantilesDoublesSketch.
    *
-   * @param srcSeg the given compact MemorySegment image of a DoublesSketch,
+   * @param srcSeg the given compact MemorySegment image of a QuantilesDoublesSketch,
    * @return a sketch that wraps the given srcSeg.
    */
   static DirectCompactDoublesSketch wrapInstance(final MemorySegment srcSeg) {

@@ -37,7 +37,7 @@ import org.apache.datasketches.quantilescommon.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 
 /**
  * This variation of the KllSketch implements generic data types. The user must provide
@@ -256,7 +256,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public QuantilesGenericSketchIterator<T> iterator() {
+  public QuantilesGenericSketchIteratorAPI<T> iterator() {
     return new KllItemsSketchIterator<>(
         getTotalItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }

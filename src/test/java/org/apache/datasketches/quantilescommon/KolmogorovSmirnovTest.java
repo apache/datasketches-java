@@ -28,8 +28,8 @@ import java.util.Random;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.kll.KllSketch;
-import org.apache.datasketches.quantiles.DoublesSketch;
-import org.apache.datasketches.quantiles.UpdateDoublesSketch;
+import org.apache.datasketches.quantiles.QuantilesDoublesSketch;
+import org.apache.datasketches.quantiles.UpdatableQuantilesDoublesSketch;
 import org.testng.annotations.Test;
 
 public class KolmogorovSmirnovTest {
@@ -38,8 +38,8 @@ public class KolmogorovSmirnovTest {
  @Test
  public void checkDisjointDistributionClassicDoubles() {
    final int k = 256;
-   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
-   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s2 = QuantilesDoublesSketch.builder().setK(k).build();
 
    final Random rand = new Random(1);
 
@@ -49,7 +49,7 @@ public class KolmogorovSmirnovTest {
      s1.update(x + 500);
      s2.update(x);
    }
-   final double eps = DoublesSketch.getNormalizedRankError(k, false);
+   final double eps = QuantilesDoublesSketch.getNormalizedRankError(k, false);
    println("Disjoint Classic Doubles");
    println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
    println("2*eps = " + (2 * eps) + LS);
@@ -102,7 +102,7 @@ public class KolmogorovSmirnovTest {
  @Test
  public void checkIdenticalDistributionClassicDoubles() {
    final int k = 256;
-   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().setK(k).build();
 
    final Random rand = new Random(1);
 
@@ -156,8 +156,8 @@ public class KolmogorovSmirnovTest {
  @Test
  public void checkSameDistributionDifferentClassicDoublesSketches() {
    final int k = 256;
-   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
-   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s2 = QuantilesDoublesSketch.builder().setK(k).build();
 
    final Random rand = new Random(1);
 
@@ -167,7 +167,7 @@ public class KolmogorovSmirnovTest {
      s1.update(x);
      s2.update(x);
    }
-   final double eps = DoublesSketch.getNormalizedRankError(k, false);
+   final double eps = QuantilesDoublesSketch.getNormalizedRankError(k, false);
    println("Same Classic Doubles");
    println("D     = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
    println("2*eps = " + (2 * eps) + LS);
@@ -219,8 +219,8 @@ public class KolmogorovSmirnovTest {
  @Test
  public void mediumResolutionClassicDoubles() {
    final int k = 2048;
-   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
-   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s2 = QuantilesDoublesSketch.builder().setK(k).build();
    final double tgtPvalue = .05;
 
    final Random rand = new Random(1);
@@ -294,8 +294,8 @@ public class KolmogorovSmirnovTest {
  @Test
  public void highResolutionClassicDoubles() {
    final int k = 8192;
-   final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
-   final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s1 = QuantilesDoublesSketch.builder().setK(k).build();
+   final UpdatableQuantilesDoublesSketch s2 = QuantilesDoublesSketch.builder().setK(k).build();
    final double tgtPvalue = .05;
 
    final Random rand = new Random(1);

@@ -31,6 +31,8 @@ import java.lang.foreign.MemorySegment;
 
 /**
  * Implementation of PositionalSegment
+ *
+ * @author Lee Rhodes
  */
 final class PositionalSegmentImpl extends PositionalImpl implements PositionalSegment {
   private static final byte SHORT_SHIFT     = 1;
@@ -200,7 +202,7 @@ final class PositionalSegmentImpl extends PositionalImpl implements PositionalSe
     incrementPosition(lengthShorts << SHORT_SHIFT);
   }
 
-  //PRIMITIVE putX() and putXArray() implementations
+  //PRIMITIVE setX() and setXArray() implementations
 
   @Override
   public void setBoolean(final boolean value) {

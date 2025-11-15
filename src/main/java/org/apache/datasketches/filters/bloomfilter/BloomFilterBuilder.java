@@ -35,6 +35,11 @@ import org.apache.datasketches.common.SketchesArgumentException;
 public final class BloomFilterBuilder {
 
   /**
+   * No argument constructor.
+   */
+  public BloomFilterBuilder() { }
+
+  /**
    * Returns the optimal number of hash functions to given target numbers of distinct items
    * and the BloomFilter size in bits. This function will provide a result even if the input
    * values exceed the capacity of a single BloomFilter.

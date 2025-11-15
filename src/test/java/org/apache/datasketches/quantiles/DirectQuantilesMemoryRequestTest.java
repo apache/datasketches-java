@@ -53,7 +53,7 @@ public class DirectQuantilesMemoryRequestTest {
       //########## Receiving Application
       // The receiving application has been given wseg to use for a sketch,
       // but alas, it is not ultimately large enough.
-      final UpdateDoublesSketch usk = DoublesSketch.builder().setK(k).build(wseg);
+      final UpdatableQuantilesDoublesSketch usk = QuantilesDoublesSketch.builder().setK(k).build(wseg);
       assertTrue(usk.isEmpty());
 
       //Load the sketch
@@ -84,7 +84,7 @@ public class DirectQuantilesMemoryRequestTest {
     try (Arena arena = Arena.ofConfined()) {
       wseg = arena.allocate(initBytes);
       println("Initial seg size: " + wseg.byteSize());
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wseg);
+      final UpdatableQuantilesDoublesSketch usk1 = QuantilesDoublesSketch.builder().setK(k).build(wseg);
       for (int i = 1; i <= u; i++) {
         usk1.update(i);
       }
@@ -105,7 +105,7 @@ public class DirectQuantilesMemoryRequestTest {
     try (Arena arena = Arena.ofConfined()) {
       wseg = arena.allocate(initBytes);
       println("Initial seg size: " + wseg.byteSize());
-      final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build(wseg);
+      final UpdatableQuantilesDoublesSketch usk1 = QuantilesDoublesSketch.builder().setK(k).build(wseg);
       for (int i = 1; i <= u; i++) {
         usk1.update(i);
       }
@@ -123,9 +123,9 @@ public class DirectQuantilesMemoryRequestTest {
   @Test
   public void checkUpdatableStorageBytes() {
     final int k = 16;
-    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, 1);
+    final int initBytes = QuantilesDoublesSketch.getUpdatableStorageBytes(k, 1);
     println("Predicted Updatable Storage Bytes: " + initBytes);
-    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
+    final UpdatableQuantilesDoublesSketch usk1 = QuantilesDoublesSketch.builder().setK(k).build();
     usk1.update(1.0);
     final byte[] uarr = usk1.toByteArray();
     println("Actual Storage Bytes " + uarr.length);
@@ -138,14 +138,14 @@ public class DirectQuantilesMemoryRequestTest {
   public void checkGrowFromWrappedEmptySketch() {
     final int k = 16;
     final int n = 0;
-    final int initBytes = DoublesSketch.getUpdatableStorageBytes(k, n); //empty: 8 bytes
-    final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
+    final int initBytes = QuantilesDoublesSketch.getUpdatableStorageBytes(k, n); //empty: 8 bytes
+    final UpdatableQuantilesDoublesSketch usk1 = QuantilesDoublesSketch.builder().setK(k).build();
     final MemorySegment origSketchSeg = MemorySegment.ofArray(usk1.toByteArray()); //on heap
     MemorySegment wseg;
     try (Arena arena = Arena.ofConfined()) {
       wseg = arena.allocate(initBytes); //off heap
       MemorySegment.copy(origSketchSeg, 0, wseg, 0, initBytes);
-      final UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(wseg, null);
+      final UpdatableQuantilesDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(wseg, null);
       assertTrue(isSameResource(wseg, usk2.getMemorySegment()));
       assertEquals(wseg.byteSize(), initBytes);
       assertTrue(wseg.isNative());

@@ -44,6 +44,11 @@ public final class JaccardSimilarity {
   private static final double[] ONES = {1.0, 1.0, 1.0};
 
   /**
+   * No argument constructor.
+   */
+  public JaccardSimilarity() { }
+
+  /**
    * Computes the Jaccard similarity index with upper and lower bounds. The Jaccard similarity index
    * <i>J(A,B) = (A ^ B)/(A U B)</i> is used to measure how similar the two sketches are to each
    * other. If J = 1.0, the sketches are considered equal. If J = 0, the two sketches are

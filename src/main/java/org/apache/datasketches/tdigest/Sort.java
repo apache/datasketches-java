@@ -27,6 +27,11 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class Sort {
 
   /**
+   * No argument constructor.
+   */
+  public Sort() { }
+
+  /**
    * Stable sort two arrays.
    * The first array is sorted while the second array is permuted the same way.
    *
@@ -139,7 +144,7 @@ public final class Sort {
       }
     }
   }
-  
+
   private static void swap(final double[] values, final int i, final int j) {
     final double tmpValue = values[i];
     values[i] = values[j];

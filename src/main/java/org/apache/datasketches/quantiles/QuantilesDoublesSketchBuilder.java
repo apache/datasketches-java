@@ -27,21 +27,21 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.MemorySegmentRequest;
 
 /**
- * For building a new quantiles DoublesSketch.
+ * For building a new quantiles QuantilesDoublesSketch.
  *
  * @author Lee Rhodes
  */
-public class DoublesSketchBuilder {
+public class QuantilesDoublesSketchBuilder {
   private int bK = PreambleUtil.DEFAULT_K;
 
   /**
-   * Constructor for a new DoublesSketchBuilder. The default configuration is
+   * Constructor for a new QuantilesDoublesSketchBuilder. The default configuration is
    * <ul>
    * <li>k: 128. This produces a normalized rank error of about 1.7%</li>
    * <li>MemorySegment: null</li>
    * </ul>
    */
-  public DoublesSketchBuilder() {}
+  public QuantilesDoublesSketchBuilder() {}
 
   /**
    * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch.
@@ -51,7 +51,7 @@ public class DoublesSketchBuilder {
    * larger <i>k</i> to smaller <i>k</i>.
    * @return this builder
    */
-  public DoublesSketchBuilder setK(final int k) {
+  public QuantilesDoublesSketchBuilder setK(final int k) {
     ClassicUtil.checkK(k);
     bK = k;
     return this;
@@ -66,32 +66,32 @@ public class DoublesSketchBuilder {
   }
 
   /**
-   * Returns an UpdateDoublesSketch with the current configuration of this Builder.
-   * @return a UpdateDoublesSketch
+   * Returns an UpdatableQuantilesDoublesSketch with the current configuration of this Builder.
+   * @return a UpdatableQuantilesDoublesSketch
    */
-  public UpdateDoublesSketch build() {
+  public UpdatableQuantilesDoublesSketch build() {
     return HeapUpdateDoublesSketch.newInstance(bK);
   }
 
   /**
-   * Returns a UpdateDoublesSketch with the current configuration of this builder
+   * Returns a UpdatableQuantilesDoublesSketch with the current configuration of this builder
    * and the specified backing destination MemorySegment store that can grow.
    * @param dstSeg destination MemorySegment for use by the sketch
-   * @return an UpdateDoublesSketch
+   * @return an UpdatableQuantilesDoublesSketch
    */
-  public UpdateDoublesSketch build(final MemorySegment dstSeg) {
+  public UpdatableQuantilesDoublesSketch build(final MemorySegment dstSeg) {
     return this.build(dstSeg, null);
   }
 
   /**
-   * Returns a UpdateDoublesSketch with the current configuration of this builder
+   * Returns a UpdatableQuantilesDoublesSketch with the current configuration of this builder
    * and the specified backing destination MemorySegment store that can grow.
    * @param dstSeg destination MemorySegment for use by the sketch
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
-   * @return an UpdateDoublesSketch
+   * @return an UpdatableQuantilesDoublesSketch
    */
-  public UpdateDoublesSketch build(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
+  public UpdatableQuantilesDoublesSketch build(final MemorySegment dstSeg, final MemorySegmentRequest mSegReq) {
     return DirectUpdateDoublesSketch.newInstance(bK, dstSeg, mSegReq);
   }
 

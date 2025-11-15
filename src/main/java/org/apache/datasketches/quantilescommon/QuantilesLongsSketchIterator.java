@@ -21,10 +21,10 @@ package org.apache.datasketches.quantilescommon;
 
 /**
  * The quantiles sketch iterator for primitive type long.
- * @see QuantilesSketchIterator
+ * @see QuantilesSketchIteratorAPI
  * @author Zac Blanco
  */
-public interface QuantilesLongsSketchIterator extends QuantilesSketchIterator {
+public interface QuantilesLongsSketchIterator extends QuantilesSketchIteratorAPI {
 
   /**
    * Gets the long quantile at the current index.

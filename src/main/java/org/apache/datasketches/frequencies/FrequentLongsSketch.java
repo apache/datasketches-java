@@ -54,7 +54,10 @@ import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.SuppressFBWarnings;
 
 /**
- * This sketch is useful for tracking approximate frequencies of <i>long</i> items with optional
+ * This sketch is based on the paper <a href="https://arxiv.org/abs/1705.07001">https://arxiv.org/abs/1705.07001</a>
+ * ("A High-Performance Algorithm for Identifying Frequent Items in Data Streams"
+ * by Daniel Anderson, Pryce Bevan, Kevin Lang, Edo Liberty, Lee Rhodes, and Justin Thaler)
+ * and is useful for tracking approximate frequencies of <i>long</i> items with optional
  * associated counts (<i>long</i> item, <i>long</i> count) that are members of a multiset of
  * such items. The true frequency of an item is defined to be the sum of associated counts.
  *

@@ -41,7 +41,7 @@ public class AccuracyTest {
     }
     double[] randArr = seqArr.clone();
     shuffle(randArr);
-    UpdateDoublesSketch sketch = DoublesSketch.builder().setK(k).build();
+    UpdatableQuantilesDoublesSketch sketch = QuantilesDoublesSketch.builder().setK(k).build();
     for (int i = 0; i < n; i++) {
       sketch.update(randArr[i]);
     }

@@ -35,6 +35,11 @@ public final class Util {
   private static final int PRIME = 0x7A3C_CA71;
 
   /**
+   * No argument constructor.
+   */
+  public Util() { }
+
+  /**
    * Converts a <i>double</i> to a <i>long[]</i>.
    * @param value the given double value
    * @return the long array

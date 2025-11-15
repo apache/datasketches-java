@@ -30,7 +30,7 @@ public class DoublesUnionBuilderTest {
 
   @Test
   public void checkBuilds() {
-    final UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
+    final UpdatableQuantilesDoublesSketch qs1 = QuantilesDoublesSketch.builder().build();
     for (int i=0; i<1000; i++) { qs1.update(i); }
 
     final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
@@ -38,16 +38,16 @@ public class DoublesUnionBuilderTest {
     qs1.putIntoMemorySegment(dstSeg);
     final MemorySegment srcSeg = dstSeg;
 
-    final DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+    final QuantilesDoublesUnionBuilder bldr = new QuantilesDoublesUnionBuilder();
     bldr.setMaxK(128);
-    DoublesUnion union = bldr.build(); //virgin union
+    QuantilesDoublesUnion union = bldr.build(); //virgin union
 
-    union = DoublesUnion.heapify(srcSeg);
-    final DoublesSketch qs2 = union.getResult();
+    union = QuantilesDoublesUnion.heapify(srcSeg);
+    final QuantilesDoublesSketch qs2 = union.getResult();
     assertEquals(qs1.getCurrentCompactSerializedSizeBytes(), qs2.getCurrentCompactSerializedSizeBytes());
 
-    union = DoublesUnion.heapify(qs2);
-    final DoublesSketch qs3 = union.getResult();
+    union = QuantilesDoublesUnion.heapify(qs2);
+    final QuantilesDoublesSketch qs3 = union.getResult();
     assertEquals(qs2.getCurrentCompactSerializedSizeBytes(), qs3.getCurrentCompactSerializedSizeBytes());
     assertFalse(qs2 == qs3);
   }
@@ -55,7 +55,7 @@ public class DoublesUnionBuilderTest {
 
 @Test
 public void checkDeprecated1() {
-  final UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
+  final UpdatableQuantilesDoublesSketch qs1 = QuantilesDoublesSketch.builder().build();
   for (int i=0; i<1000; i++) {
     qs1.update(i);
   }
@@ -65,17 +65,17 @@ public void checkDeprecated1() {
   qs1.putIntoMemorySegment(dstSeg);
   final MemorySegment srcSeg = dstSeg;
 
-  final DoublesUnionBuilder bldr = new DoublesUnionBuilder();
+  final QuantilesDoublesUnionBuilder bldr = new QuantilesDoublesUnionBuilder();
   bldr.setMaxK(128);
-  DoublesUnion union = bldr.build(); //virgin union
+  QuantilesDoublesUnion union = bldr.build(); //virgin union
 
-  union = DoublesUnion.heapify(srcSeg); //heapify
-  final DoublesSketch qs2 = union.getResult();
+  union = QuantilesDoublesUnion.heapify(srcSeg); //heapify
+  final QuantilesDoublesSketch qs2 = union.getResult();
   assertEquals(qs1.getCurrentCompactSerializedSizeBytes(), qs2.getCurrentCompactSerializedSizeBytes());
   assertEquals(qs1.getCurrentUpdatableSerializedSizeBytes(), qs2.getCurrentUpdatableSerializedSizeBytes());
 
-  union = DoublesUnion.heapify(qs2);  //heapify again
-  final DoublesSketch qs3 = union.getResult();
+  union = QuantilesDoublesUnion.heapify(qs2);  //heapify again
+  final QuantilesDoublesSketch qs3 = union.getResult();
   assertEquals(qs2.getCurrentCompactSerializedSizeBytes(), qs3.getCurrentCompactSerializedSizeBytes());
   assertEquals(qs2.getCurrentUpdatableSerializedSizeBytes(), qs3.getCurrentUpdatableSerializedSizeBytes());
   assertFalse(qs2 == qs3); //different objects

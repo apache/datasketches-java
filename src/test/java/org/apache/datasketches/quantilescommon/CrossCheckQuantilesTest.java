@@ -39,9 +39,9 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.kll.KllItemsSketch;
-import org.apache.datasketches.quantiles.DoublesSketch;
-import org.apache.datasketches.quantiles.ItemsSketch;
-import org.apache.datasketches.quantiles.UpdateDoublesSketch;
+import org.apache.datasketches.quantiles.QuantilesDoublesSketch;
+import org.apache.datasketches.quantiles.QuantilesItemsSketch;
+import org.apache.datasketches.quantiles.UpdatableQuantilesDoublesSketch;
 import org.apache.datasketches.req.ReqSketch;
 import org.testng.annotations.Test;
 
@@ -132,9 +132,9 @@ public class CrossCheckQuantilesTest {
   ReqSketch reqFloatsSk = null;
   KllFloatsSketch kllFloatsSk = null;
   KllDoublesSketch kllDoublesSk = null;
-  UpdateDoublesSketch classicDoublesSk = null;
+  UpdatableQuantilesDoublesSketch classicDoublesSk = null;
   KllItemsSketch<String> kllItemsSk = null;
-  ItemsSketch<String> itemsSk = null;
+  QuantilesItemsSketch<String> itemsSk = null;
 
   FloatsSketchSortedView floatsSV = null;
   DoublesSketchSortedView doublesSV = null;
@@ -294,9 +294,9 @@ public class CrossCheckQuantilesTest {
     reqFloatsSk = ReqSketch.builder().setK(k).build();
     kllFloatsSk = KllFloatsSketch.newHeapInstance(k);
     kllDoublesSk = KllDoublesSketch.newHeapInstance(k);
-    classicDoublesSk = DoublesSketch.builder().setK(k).build();
+    classicDoublesSk = QuantilesDoublesSketch.builder().setK(k).build();
     kllItemsSk = KllItemsSketch.newHeapInstance(k, comparator, serDe);
-    itemsSk = ItemsSketch.getInstance(String.class, k, comparator);
+    itemsSk = QuantilesItemsSketch.getInstance(String.class, k, comparator);
 
     final int count = skFStreamValues[set].length;
     for (int i = 0; i < count; i++) {

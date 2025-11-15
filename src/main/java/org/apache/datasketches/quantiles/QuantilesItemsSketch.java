@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
@@ -35,8 +37,6 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
@@ -53,7 +53,7 @@ import org.apache.datasketches.quantilescommon.ItemsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
-import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 
 /**
  * This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using generic items,
@@ -67,14 +67,14 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  * from the hypothetically sorted array of input quantiles at normalized ranks of 0.483 and 0.517, with
  * a confidence of about 99%.</p>
  *
- * <p>The size of an ItemsSketch is very dependent on the size of the generic Items input into the sketch,
- * so there is no comparable size table as there is for the DoublesSketch.</p>
+ * <p>The size of an QuantilesItemsSketch is very dependent on the size of the generic Items input into the sketch,
+ * so there is no comparable size table as there is for the QuantilesDoublesSketch.</p>
  *
  * @see QuantilesAPI
  *
  * @param <T> The sketch item data type.
  */
-public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
+public final class QuantilesItemsSketch<T> implements QuantilesGenericAPI<T> {
   final Class<T> clazz;
   private final Comparator<? super T> comparator_;
   final int k_;
@@ -126,7 +126,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
   //**Constructors**
 
-  private ItemsSketch(
+  private QuantilesItemsSketch(
       final int k,
       final Class<T> clazz,
       final Comparator<? super T> comparator) {
@@ -139,20 +139,20 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Obtains a new instance of an ItemsSketch using the DEFAULT_K.
+   * Obtains a new instance of an QuantilesItemsSketch using the DEFAULT_K.
    * @param <T> The sketch item data type.
    * @param clazz the given class of T.
    * @param comparator to compare items.
    * @return an ItemSketch&lt;T&gt;.
    */
-  public static <T> ItemsSketch<T> getInstance(
+  public static <T> QuantilesItemsSketch<T> getInstance(
       final Class<T> clazz,
       final Comparator<? super T> comparator) {
     return getInstance(clazz, PreambleUtil.DEFAULT_K, comparator);
   }
 
   /**
-   * Obtains a new instance of an ItemsSketch using the given <i>k</i>.
+   * Obtains a new instance of an QuantilesItemsSketch using the given <i>k</i>.
    * @param <T> The sketch item data type.
    * @param clazz the given class of T.
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
@@ -160,11 +160,11 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param comparator to compare items.
    * @return an ItemSketch&lt;T&gt;.
    */
-  public static <T> ItemsSketch<T> getInstance(
+  public static <T> QuantilesItemsSketch<T> getInstance(
       final Class<T> clazz,
       final int k,
       final Comparator<? super T> comparator) {
-    final ItemsSketch<T> qs = new ItemsSketch<>(k, clazz, comparator);
+    final QuantilesItemsSketch<T> qs = new QuantilesItemsSketch<>(k, clazz, comparator);
     final int bufAlloc = 2 * Math.min(MIN_K, k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferItemCapacity_ = bufAlloc;
@@ -177,15 +177,15 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Heapifies the given srcSeg, which must be a MemorySegment image of a ItemsSketch.
+   * Heapifies the given srcSeg, which must be a MemorySegment image of a QuantilesItemsSketch.
    * @param <T> The sketch item data type.
    * @param clazz the given class of T.
    * @param srcSeg a MemorySegment image of a sketch generated from this class.
    * @param comparator to compare items.
    * @param serDe an instance of ArrayOfItemsSerDe.
-   * @return a ItemsSketch&lt;T&gt; on the Java heap.
+   * @return a QuantilesItemsSketch&lt;T&gt; on the Java heap.
    */
-  public static <T> ItemsSketch<T> heapify(
+  public static <T> QuantilesItemsSketch<T> heapify(
       final Class<T> clazz,
       final MemorySegment srcSeg,
       final Comparator<? super T> comparator,
@@ -208,7 +208,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
 
     final boolean empty = checkPreLongsFlagsCap(preambleLongs, flags, segCapBytes);
     checkFamilyID(familyID);
-    final ItemsSketch<T> sk = getInstance(clazz, k, comparator); //checks k
+    final QuantilesItemsSketch<T> sk = getInstance(clazz, k, comparator); //checks k
     if (empty) { return sk; }
 
     //Not empty, must have valid preamble + min, max
@@ -239,8 +239,8 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param sketch the given sketch.
    * @return a copy of the given sketch.
    */
-  static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
-    final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.clazz, sketch.k_, sketch.comparator_);
+  static <T> QuantilesItemsSketch<T> copy(final QuantilesItemsSketch<T> sketch) {
+    final QuantilesItemsSketch<T> qsCopy = QuantilesItemsSketch.getInstance(sketch.clazz, sketch.k_, sketch.comparator_);
     qsCopy.n_ = sketch.n_;
     qsCopy.minItem_ = sketch.isEmpty() ? null : sketch.getMinItem();
     qsCopy.maxItem_ = sketch.isEmpty() ? null : sketch.getMaxItem();
@@ -362,8 +362,8 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   @Override
-  public QuantilesGenericSketchIterator<T> iterator() {
-    return new ItemsSketchIterator<>(this, bitPattern_);
+  public QuantilesGenericSketchIteratorAPI<T> iterator() {
+    return new QuantilesItemsSketchIterator<>(this, bitPattern_);
   }
 
   @Override
@@ -474,20 +474,20 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   /**
-   * Returns a human readable string of the preamble of a byte array image of an ItemsSketch.
+   * Returns a human readable string of the preamble of a byte array image of an QuantilesItemsSketch.
    * Used for debugging.
    * @param byteArr the given byte array
-   * @return a human readable string of the preamble of a byte array image of an ItemsSketch.
+   * @return a human readable string of the preamble of a byte array image of an QuantilesItemsSketch.
    */
   public static String toString(final byte[] byteArr) {
     return PreambleUtil.toString(byteArr, false);
   }
 
   /**
-   * Returns a human readable string of the preamble of a MemorySegment image of an ItemsSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of an QuantilesItemsSketch.
    * Used for debugging.
    * @param seg the given MemorySegment
-   * @return a human readable string of the preamble of a MemorySegment image of an ItemsSketch.
+   * @return a human readable string of the preamble of a MemorySegment image of an QuantilesItemsSketch.
    */
   public static String toString(final MemorySegment seg) {
     return PreambleUtil.toString(seg, false);
@@ -501,8 +501,8 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * It is required that this.getK() = newK * 2^(nonnegative integer).
    * @return the new sketch.
    */
-  public ItemsSketch<T> downSample(final int newK) {
-    final ItemsSketch<T> newSketch = ItemsSketch.getInstance(clazz, newK, comparator_);
+  public QuantilesItemsSketch<T> downSample(final int newK) {
+    final QuantilesItemsSketch<T> newSketch = QuantilesItemsSketch.getInstance(clazz, newK, comparator_);
     ItemsMergeImpl.downSamplingMergeInto(this, newSketch);
     return newSketch;
   }
@@ -538,7 +538,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     if ((minItem_ == null) || (comparator_.compare(item, minItem_) < 0)) { minItem_ = item; }
 
     if ((baseBufferCount_ + 1) > combinedBufferItemCapacity_) {
-      ItemsSketch.growBaseBuffer(this);
+      QuantilesItemsSketch.growBaseBuffer(this);
     }
     combinedBuffer_[baseBufferCount_++] = item;
     n_++;
@@ -586,8 +586,8 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * Returns a copy of this sketch and then resets.
    * @return a copy of this sketch and then resets.
    */
-  ItemsSketch<T> getSketchAndReset() {
-    final ItemsSketch<T> skCopy = copy(this);
+  QuantilesItemsSketch<T> getSketchAndReset() {
+    final QuantilesItemsSketch<T> skCopy = copy(this);
     reset();
     return skCopy;
   }
@@ -620,7 +620,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     }
   }
 
-  private static <T> void growBaseBuffer(final ItemsSketch<T> sketch) {
+  private static <T> void growBaseBuffer(final QuantilesItemsSketch<T> sketch) {
     final Object[] baseBuffer = sketch.getCombinedBuffer();
     final int oldSize = sketch.getCombinedBufferAllocatedCount();
     final int k = sketch.getK();
@@ -642,7 +642,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
   }
 
   @SuppressWarnings({"unchecked"})
-  private static <T> ItemsSketchSortedView<T> getSV(final ItemsSketch<T> sk) {
+  private static <T> ItemsSketchSortedView<T> getSV(final QuantilesItemsSketch<T> sk) {
     final long totalN = sk.getN();
     if (sk.isEmpty() || (totalN == 0)) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int k = sk.getK();
@@ -654,7 +654,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     final T[] combinedBuffer = (T[]) sk.getCombinedBuffer();
     final int baseBufferCount = sk.getBaseBufferCount();
 
-    // Populate from ItemsSketch:
+    // Populate from QuantilesItemsSketch:
     // copy over the "levels" and then the base buffer, all with appropriate weights
     populateFromItemsSketch(k, totalN, sk.getBitPattern(), combinedBuffer, baseBufferCount,
         numQuantiles, svQuantiles, svCumWeights, sk.getComparator());

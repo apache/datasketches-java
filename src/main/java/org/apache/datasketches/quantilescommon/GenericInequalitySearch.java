@@ -48,6 +48,11 @@ import org.apache.datasketches.common.SketchesArgumentException;
 public final class GenericInequalitySearch {
 
   /**
+   * No argument constructor.
+   */
+  public GenericInequalitySearch() { }
+
+  /**
    * The enumerator of inequalities
    */
   public enum Inequality {

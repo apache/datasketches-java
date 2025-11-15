@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.quantiles;
 
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.System.arraycopy;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.quantiles.ClassicUtil.MAX_PRELONGS;
 import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
@@ -44,7 +44,7 @@ import org.apache.datasketches.quantilescommon.DoublesSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesAPI;
-import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
 
 /**
  * This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using doubles,
@@ -59,7 +59,7 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
  * a confidence of about 99%.</p>
  *
  * <pre>
-Table Guide for DoublesSketch Size in Bytes and Approximate Error:
+Table Guide for QuantilesDoublesSketch Size in Bytes and Approximate Error:
           K =&gt; |      16      32      64     128     256     512   1,024
     ~ Error =&gt; | 12.145%  6.359%  3.317%  1.725%  0.894%  0.463%  0.239%
              N | Size in Bytes -&gt;
@@ -101,7 +101,7 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  *
  * @see QuantilesAPI
  */
-public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmentStatus {
+public abstract class QuantilesDoublesSketch implements QuantilesDoublesAPI, MemorySegmentStatus {
 
   /**
    * Setting the seed makes the results of the sketch deterministic if the input quantiles are
@@ -120,21 +120,21 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    */
   DoublesSketchSortedView doublesSV = null;
 
-  DoublesSketch(final int k) {
+  QuantilesDoublesSketch(final int k) {
     checkK(k);
     k_ = k;
   }
 
   synchronized static void setRandom(final long seed) {
-    DoublesSketch.rand = new Random(seed);
+    QuantilesDoublesSketch.rand = new Random(seed);
   }
 
   /**
    * Returns a new builder
    * @return a new builder
    */
-  public static final DoublesSketchBuilder builder() {
-    return new DoublesSketchBuilder();
+  public static final QuantilesDoublesSketchBuilder builder() {
+    return new QuantilesDoublesSketchBuilder();
   }
 
   /**
@@ -143,7 +143,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * @param srcSeg a MemorySegment image of a Sketch.
    * @return a heap-based Sketch based on the given MemorySegment
    */
-  public static DoublesSketch heapify(final MemorySegment srcSeg) {
+  public static QuantilesDoublesSketch heapify(final MemorySegment srcSeg) {
     if (checkIsMemorySegmentCompact(srcSeg)) {
       return HeapCompactDoublesSketch.heapifyInstance(srcSeg);
     }
@@ -151,12 +151,12 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   /**
-   * Wrap this sketch around the given MemorySegment image of a compact, read-only DoublesSketch.
+   * Wrap this sketch around the given MemorySegment image of a compact, read-only QuantilesDoublesSketch.
    *
-   * @param srcSeg the given MemorySegment image of a compact, read-only DoublesSketch.
+   * @param srcSeg the given MemorySegment image of a compact, read-only QuantilesDoublesSketch.
    * @return a compact, read-only sketch that wraps the given MemorySegment.
    */
-  public static DoublesSketch wrap(final MemorySegment srcSeg) {
+  public static QuantilesDoublesSketch wrap(final MemorySegment srcSeg) {
     if (!checkIsMemorySegmentCompact(srcSeg)) {
       throw new SketchesArgumentException(
           "MemorySegment sketch image must be in compact form. "
@@ -166,9 +166,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   /**
-   * Wrap this sketch around the given MemorySegment image of an updatable DoublesSketch.
+   * Wrap this sketch around the given MemorySegment image of an updatable QuantilesDoublesSketch.
    *
-   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdatableQuantilesDoublesSketch</i>.
    * The sketch will be updated and managed totally within the MemorySegment. If the given source
    * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
    *
@@ -176,10 +176,10 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * will request more capacity using the {@link MemorySegmentRequest MemorySegmentRequest} interface. The default of this interface will
    * return a new MemorySegment on the heap.</p>
    *
-   * @param srcSeg the given MemorySegment image of an <i>UpdateDoublesSketch</i>.
+   * @param srcSeg the given MemorySegment image of an <i>UpdatableQuantilesDoublesSketch</i>.
    * @return an updatable sketch that wraps the given MemorySegment.
    */
-  public static DoublesSketch writableWrap(final MemorySegment srcSeg) {
+  public static QuantilesDoublesSketch writableWrap(final MemorySegment srcSeg) {
     if (checkIsMemorySegmentCompact(srcSeg)) {
       throw new SketchesArgumentException(
           "MemorySegment sketch image must be in updatable form. "
@@ -189,9 +189,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   /**
-   * Wrap this sketch around the given MemorySegment image of an updatable DoublesSketch.
+   * Wrap this sketch around the given MemorySegment image of an updatable QuantilesDoublesSketch.
    *
-   * <p>The given MemorySegment must be writable and it must contain a <i>UpdateDoublesSketch</i>.
+   * <p>The given MemorySegment must be writable and it must contain a <i>UpdatableQuantilesDoublesSketch</i>.
    * The sketch will be updated and managed totally within the MemorySegment. If the given source
    * MemorySegment is created off-heap, then all the management of the sketch's internal data will be off-heap as well.</p>
    *
@@ -200,12 +200,12 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * return a new MemorySegment on the heap. It is up to the user to optionally extend this interface if more flexible
    * handling of requests for more capacity is required.</p>
    *
-   * @param srcSeg the given MemorySegment image of a DoublesSketch.
+   * @param srcSeg the given MemorySegment image of a QuantilesDoublesSketch.
    * @param mSegReq the MemorySegmentRequest used if the given MemorySegment needs to expand.
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return a sketch that wraps the given MemorySegment.
    */
-  public static DoublesSketch writableWrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
+  public static QuantilesDoublesSketch writableWrap(final MemorySegment srcSeg, final MemorySegmentRequest mSegReq) {
     if (checkIsMemorySegmentCompact(srcSeg)) {
       throw new SketchesArgumentException("MemorySegment sketch image must be in updatable form.");
     }
@@ -413,20 +413,20 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   /**
-   * Returns a human readable string of the preamble of a byte array image of a DoublesSketch.
+   * Returns a human readable string of the preamble of a byte array image of a QuantilesDoublesSketch.
    * Used for debugging.
    * @param byteArr the given byte array
-   * @return a human readable string of the preamble of a byte array image of a DoublesSketch.
+   * @return a human readable string of the preamble of a byte array image of a QuantilesDoublesSketch.
    */
   public static String toString(final byte[] byteArr) {
     return PreambleUtil.toString(byteArr, true);
   }
 
   /**
-   * Returns a human readable string of the preamble of a MemorySegment image of a DoublesSketch.
+   * Returns a human readable string of the preamble of a MemorySegment image of a QuantilesDoublesSketch.
    * Used for debugging.
    * @param seg the given MemorySegment
-   * @return a human readable string of the preamble of a MemorySegment image of a DoublesSketch.
+   * @return a human readable string of the preamble of a MemorySegment image of a QuantilesDoublesSketch.
    */
   public static String toString(final MemorySegment seg) {
     return PreambleUtil.toString(seg, true);
@@ -445,7 +445,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
    * Otherwise, it can be null and the default MemorySegmentRequest will be used.
    * @return the new sketch.
    */
-  public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK, final MemorySegment dstSeg,
+  public QuantilesDoublesSketch downSample(final QuantilesDoublesSketch srcSketch, final int smallerK, final MemorySegment dstSeg,
       final MemorySegmentRequest mSegReq) {
     return downSampleInternal(srcSketch, smallerK, dstSeg, mSegReq);
   }
@@ -464,7 +464,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   /**
-   * Returns the number of bytes a DoublesSketch would require to store in compact form
+   * Returns the number of bytes a QuantilesDoublesSketch would require to store in compact form
    * given <i>k</i> and <i>n</i>. The compact form is not updatable.
    * @param k the size configuration parameter for the sketch
    * @param n the number of quantiles input into the sketch
@@ -544,8 +544,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   }
 
   @Override
-  public QuantilesDoublesSketchIterator iterator() {
-    return new DoublesSketchIterator(this, getBitPattern());
+  public QuantilesDoublesSketchIteratorAPI iterator() {
+    return new QuantilesDoublesSketchIterator(this, getBitPattern());
   }
 
   @Override
@@ -556,12 +556,12 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
   /*
    * DoublesMergeImpl.downSamplingMergeInto requires the target sketch to implement update(), so
    * we ensure that the target is an UpdateSketch. The public API, on the other hand, just
-   * specifies a DoublesSketch. This lets us be more specific about the type without changing the
+   * specifies a QuantilesDoublesSketch. This lets us be more specific about the type without changing the
    * public API.
    */
-  UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK, final MemorySegment dstSeg,
+  UpdatableQuantilesDoublesSketch downSampleInternal(final QuantilesDoublesSketch srcSketch, final int smallerK, final MemorySegment dstSeg,
       final MemorySegmentRequest mSegReq) {
-    final UpdateDoublesSketch newSketch = dstSeg == null
+    final UpdatableQuantilesDoublesSketch newSketch = dstSeg == null
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
             : DirectUpdateDoublesSketch.newInstance(smallerK, dstSeg, mSegReq);
     if (srcSketch.isEmpty()) { return newSketch; }
@@ -626,7 +626,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI, MemorySegmen
     final long[] svCumWeights = new long[numQuantiles];
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(this, false);
 
-    // Populate from DoublesSketch:
+    // Populate from QuantilesDoublesSketch:
     //  copy over the "levels" and then the base buffer, all with appropriate weights
     populateFromDoublesSketch(getK(), totalN, getBitPattern(), sketchAccessor, svQuantiles, svCumWeights);
 

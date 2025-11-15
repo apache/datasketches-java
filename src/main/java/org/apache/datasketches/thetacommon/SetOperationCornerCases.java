@@ -32,6 +32,11 @@ import org.apache.datasketches.common.SketchesArgumentException;
 public class SetOperationCornerCases {
   private static final long MAX = Long.MAX_VALUE;
 
+  /**
+   * No argument constructor.
+   */
+  public SetOperationCornerCases() { }
+
   /** Intersection actions */
   public enum IntersectAction {
     /** Degenerate{MinTheta, 0, F} */

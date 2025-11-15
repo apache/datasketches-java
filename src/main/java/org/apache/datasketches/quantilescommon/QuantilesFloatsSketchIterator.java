@@ -21,10 +21,10 @@ package org.apache.datasketches.quantilescommon;
 
 /**
  * The quantiles sketch iterator for primitive type float.
- * @see QuantilesSketchIterator
+ * @see QuantilesSketchIteratorAPI
  * @author Lee Rhodes
  */
-public interface QuantilesFloatsSketchIterator extends QuantilesSketchIterator {
+public interface QuantilesFloatsSketchIterator extends QuantilesSketchIteratorAPI {
 
   /**
    * Gets the float quantile at the current index.
