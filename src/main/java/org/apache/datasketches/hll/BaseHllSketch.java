@@ -35,7 +35,7 @@ import org.apache.datasketches.common.Util;
 
 /**
  * Although this class is package-private, it provides a single place to define and document
- * the common public API for both HllSketch and Union.
+ * the common public API for both HllSketch and HllUnion.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -115,7 +115,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * Gets the current (approximate) Relative Error (RE) asymptotic values given several
    * parameters. This is used primarily for testing.
    * @param upperBound return the RE for the Upper Bound, otherwise for the Lower Bound.
-   * @param oooFlag set true if the sketch is the result of a non qualifying union operation.
+   * @param oooFlag set true if the sketch is the result of a non qualifying HllUnion operation.
    * @param lgConfigK the configured value for the sketch.
    * @param numStdDev the given number of Standard Deviations. This must be an integer between
    * 1 and 3, inclusive.
@@ -206,8 +206,8 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * inquire of the sketch if it has, in fact, moved itself.
    *
    * @param seg the given MemorySegment
-   * @return true if the given MemorySegment refers to the same underlying resource as this sketch or
-   * union.
+   * @return true if the given MemorySegment refers to the same underlying resource as this HllSketch or
+   * HllUnion.
    */
   @Override
   public abstract boolean isSameResource(MemorySegment seg);
@@ -219,17 +219,17 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
 
   /**
    * Serializes this sketch as a byte array in compact form. The compact form is smaller in size
-   * than the updatable form and read-only. It can be used in union operations as follows:
+   * than the updatable form and read-only. It can be used in HllUnion operations as follows:
    * <pre>{@code
-   *     Union union; HllSketch sk, sk2;
+   *     HllUnion union; HllSketch sk, sk2;
    *     int lgK = 12;
    *     sk = new HllSketch(lgK, TgtHllType.HLL_4); //can be 4, 6, or 8
    *     for (int i = 0; i < (2 << lgK); i++) { sk.update(i); }
    *     byte[] arr = HllSketch.toCompactByteArray();
    *     //...
-   *     union = Union.heapify(arr); //initializes the union using data from the array.
+   *     union = HllUnion.heapify(arr); //initializes the HllUnion using data from the array.
    *     //OR, if used in an off-heap environment:
-   *     union = Union.heapify(MemorySegment.ofArray(arr)); //same as above, except from MemorySegment object.
+   *     union = HllUnion.heapify(MemorySegment.ofArray(arr)); //same as above, except from MemorySegment object.
    *
    *     //To recover an updatable heap sketch:
    *     sk2 = HllSketch.heapify(arr);
@@ -250,17 +250,17 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
   /**
    * Serializes this sketch as a byte array in an updatable form. The updatable form is larger than
    * the compact form. The use of this form is primarily in environments that support updating
-   * sketches in off-heap MemorySegment. If the sketch is constructed using HLL_8, sketch updating and
-   * union updating operations can actually occur in MemorySegment, which can be off-heap:
+   * sketches in off-heap MemorySegment. If the sketch is constructed using HLL_8, HllSketch updating and
+   * HllUnion updating operations can actually occur in MemorySegment, which can be off-heap:
    * <pre>{@code
-   *     Union union; HllSketch sk;
+   *     HllUnion union; HllSketch sk;
    *     int lgK = 12;
    *     sk = new HllSketch(lgK, TgtHllType.HLL_8) //must be 8
    *     for (int i = 0; i < (2 << lgK); i++) { sk.update(i); }
    *     byte[] arr = sk.toUpdatableByteArray();
    *     MemorySegment wseg = MemorySegment.wrap(arr);
    *     //...
-   *     union = Union.writableWrap(wseg); //no deserialization!
+   *     union = HllUnion.writableWrap(wseg); //no deserialization!
    * }</pre>
    * @return this sketch as an updatable byte array.
    */

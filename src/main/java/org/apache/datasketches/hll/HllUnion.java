@@ -34,64 +34,64 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
- * This performs union operations for all HllSketches. This union operator can be configured to be
- * on or off heap.  The source sketch given to this union using the {@link #update(HllSketch)} can
+ * This performs union operations for all HllSketches. This HllUnion operator can be configured to be
+ * on or off heap.  The source sketch given to this HllUnion using the {@link #update(HllSketch)} can
  * be configured with any precision value <i>lgConfigK</i> (from 4 to 21), any <i>TgtHllType</i>
  * (HLL_4, HLL_6, HLL_8), and either on or off-heap; and it can be in either of the sparse modes
  * (<i>LIST</i> or <i>SET</i>), or the dense mode (<i>HLL</i>).
  *
- * <p>Although the API for this union operator parallels many of the methods of the
- * <i>HllSketch</i>, the behavior of the union operator has some fundamental differences.</p>
+ * <p>Although the API for this HllUnion operator parallels many of the methods of the
+ * <i>HllSketch</i>, the behavior of the HllUnion operator has some fundamental differences.</p>
  *
- * <p>First, this union operator is configured with a <i>lgMaxK</i> instead of the normal
- * <i>lgConfigK</i>.  Generally, this union operator will inherit the lowest <i>lgConfigK</i>
+ * <p>First, this HllUnion operator is configured with a <i>lgMaxK</i> instead of the normal
+ * <i>lgConfigK</i>.  Generally, this HllUnion operator will inherit the lowest <i>lgConfigK</i>
  * less than <i>lgMaxK</i> that it has seen. However, the <i>lgConfigK</i> of incoming sketches that
  * are still in sparse are ignored. The <i>lgMaxK</i> provides the user the ability to specify the
- * largest maximum size for the union operation.
+ * largest maximum size for the HllUnion operation.
  *
- * <p>Second, the user cannot specify the {@link TgtHllType} as an input parameter to the union.
+ * <p>Second, the user cannot specify the {@link TgtHllType} as an input parameter to the HllUnion.
  * Instead, it is specified for the sketch returned with {@link #getResult(TgtHllType)}.
  *
  * <p>The following graph illustrates the HLL Merge speed.</p>
  *
- * <p><img src="doc-files/HLL_UnionTime4_6_8_Java_CPP.png" width="500" alt="HLL LgK12 Union Speed"></p>
+ * <p><img src="doc-files/HLL_UnionTime4_6_8_Java_CPP.png" width="500" alt="HLL_UnionTime4_6_8_Java_CPP.png"></p>
  * This graph illustrates the relative merging speed of the HLL 4,6,8 Java HLL sketches compared to
  * the DataSketches C++ implementations of the same sketches. With this particular test (merging 32 relative large
  * sketches together), the Java HLL 8 is the fastest and the Java HLL 4 the slowest, with a mixed cluster in the middle.
- * Union / Merging speed is somewhat difficult to measure as the performance is very dependent on the mix of sketch
+ * HllUnion / Merging speed is somewhat difficult to measure as the performance is very dependent on the mix of sketch
  * sizes (and types) you are merging. So your mileage will vary!
  *
- * <p>For a complete example of using the Union operator
- * see <a href="https://datasketches.apache.org/docs/HLL/HllJavaExample.html">Union Example</a>.</p>
+ * <p>For a complete example of using the HllUnion operator
+ * see <a href="https://datasketches.apache.org/docs/HLL/HllJavaExample.html">HllUnion Example</a>.</p>
  *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public class Union extends BaseHllSketch {
+public class HllUnion extends BaseHllSketch {
   final int lgMaxK;
   private final HllSketch gadget;
 
   /**
-   * Construct this Union operator with the default maximum log-base-2 of <i>K</i>.
+   * Construct this HllUnion operator with the default maximum log-base-2 of <i>K</i>.
    */
-  public Union() {
+  public HllUnion() {
     lgMaxK = HllSketch.DEFAULT_LG_K;
     gadget = new HllSketch(lgMaxK, HLL_8);
   }
 
   /**
-   * Construct this Union operator with a given maximum log-base-2 of <i>K</i>.
+   * Construct this HllUnion operator with a given maximum log-base-2 of <i>K</i>.
    * @param lgMaxK the desired maximum log-base-2 of <i>K</i>.  This value must be
    * between 4 and 21 inclusively.
    */
-  public Union(final int lgMaxK) {
+  public HllUnion(final int lgMaxK) {
     this.lgMaxK = HllUtil.checkLgK(lgMaxK);
     gadget = new HllSketch(lgMaxK, HLL_8);
   }
 
   /**
-   * Construct this Union operator with a given maximum log-base-2 of <i>K</i> and the given
-   * MemorySegment as the destination for this Union. This MemorySegment is usually configured
+   * Construct this HllUnion operator with a given maximum log-base-2 of <i>K</i> and the given
+   * MemorySegment as the destination for this HllUnion. This MemorySegment is usually configured
    * for off-heap MemorySegment. What remains on the java heap is a thin wrapper object that reads and
    * writes to the given MemorySegment.
    *
@@ -101,35 +101,35 @@ public class Union extends BaseHllSketch {
    * between 4 and 21 inclusively.
    * @param dstWseg the destination writable MemorySegment for the sketch.
    */
-  public Union(final int lgMaxK, final MemorySegment dstWseg) {
+  public HllUnion(final int lgMaxK, final MemorySegment dstWseg) {
     this.lgMaxK = HllUtil.checkLgK(lgMaxK);
     gadget = new HllSketch(lgMaxK, HLL_8, dstWseg);
   }
 
   //used only by writableWrap
-  private Union(final HllSketch sketch) {
+  private HllUnion(final HllSketch sketch) {
     lgMaxK = sketch.getLgConfigK();
     gadget = sketch;
   }
 
   /**
-   * Construct a union operator populated with the given byte array image of an HllSketch.
+   * Construct a HllUnion operator populated with the given byte array image of an HllSketch.
    * @param byteArray the given byte array
-   * @return a union operator populated with the given byte array image of an HllSketch.
+   * @return a HllUnion operator populated with the given byte array image of an HllSketch.
    */
-  public static final Union heapify(final byte[] byteArray) {
+  public static final HllUnion heapify(final byte[] byteArray) {
     return heapify(MemorySegment.ofArray(byteArray));
   }
 
   /**
-   * Construct a union operator populated with the given MemorySegment image of an HllSketch.
+   * Construct a HllUnion operator populated with the given MemorySegment image of an HllSketch.
    * @param seg the given MemorySegment
-   * @return a union operator populated with the given MemorySegment image of an HllSketch.
+   * @return a HllUnion operator populated with the given MemorySegment image of an HllSketch.
    */
-  public static final Union heapify(final MemorySegment seg) {
+  public static final HllUnion heapify(final MemorySegment seg) {
     final int lgK = HllUtil.checkLgK(seg.get(JAVA_BYTE, PreambleUtil.LG_K_BYTE));
     final HllSketch sk = HllSketch.heapify(seg, false); //allows non-finalized image
-    final Union union = new Union(lgK);
+    final HllUnion union = new HllUnion(lgK);
     union.update(sk);
     return union;
   }
@@ -143,16 +143,16 @@ public class Union extends BaseHllSketch {
    * <p>The given <i>dstSeg</i> is checked for the required capacity as determined by
    * {@link HllSketch#getMaxUpdatableSerializationBytes(int, TgtHllType)}, and for the correct type.
    * @param srcWseg an writable image of a valid sketch with data.
-   * @return a Union operator where the sketch data is in the given dstSeg.
+   * @return a HllUnion operator where the sketch data is in the given dstSeg.
    */
-  public static final Union writableWrap(final MemorySegment srcWseg) {
+  public static final HllUnion writableWrap(final MemorySegment srcWseg) {
     final TgtHllType tgtHllType = extractTgtHllType(srcWseg);
     if (tgtHllType != TgtHllType.HLL_8) {
       throw new SketchesArgumentException(
-          "Union can only wrap writable HLL_8 sketches that were the Gadget of a Union.");
+          "HllUnion can only wrap writable HLL_8 sketches that were the Gadget of a HllUnion.");
     }
     //allows writableWrap of non-finalized image
-    return new Union(HllSketch.writableWrap(srcWseg, false));
+    return new HllUnion(HllSketch.writableWrap(srcWseg, false));
   }
 
   @Override
@@ -178,7 +178,7 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Gets the effective <i>lgConfigK</i> for the union operator, which may be less than
+   * Gets the effective <i>lgConfigK</i> for the HllUnion operator, which may be less than
    * <i>lgMaxK</i>.
    * @return the <i>lgConfigK</i>.
    */
@@ -194,28 +194,28 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Returns the maximum size in bytes that this union operator can grow to given a lgK.
+   * Returns the maximum size in bytes that this HllUnion operator can grow to given a lgK.
    *
-   * @param lgK The maximum Log2 of K for this union operator. This value must be
+   * @param lgK The maximum Log2 of K for this HllUnion operator. This value must be
    * between 4 and 21 inclusively.
-   * @return the maximum size in bytes that this union operator can grow to.
+   * @return the maximum size in bytes that this HllUnion operator can grow to.
    */
   public static int getMaxSerializationBytes(final int lgK) {
     return HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
   }
 
   /**
-   * Return the result of this union operator as an HLL_4 sketch.
-   * @return the result of this union operator as an HLL_4 sketch.
+   * Return the result of this HllUnion operator as an HLL_4 sketch.
+   * @return the result of this HllUnion operator as an HLL_4 sketch.
    */
   public HllSketch getResult() {
     return getResult(HllSketch.DEFAULT_HLL_TYPE);
   }
 
   /**
-   * Return the result of this union operator with the specified {@link TgtHllType}
+   * Return the result of this HllUnion operator with the specified {@link TgtHllType}
    * @param tgtHllType the TgtHllType enum
-   * @return the result of this union operator with the specified TgtHllType
+   * @return the result of this HllUnion operator with the specified TgtHllType
    */
   public HllSketch getResult(final TgtHllType tgtHllType) {
     checkRebuildCurMinNumKxQ(gadget);
@@ -286,11 +286,11 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Gets the serialization of this union operator as a byte array in compact form, which is
+   * Gets the serialization of this HllUnion operator as a byte array in compact form, which is
    * designed to be heapified only. It is not directly updatable.
-   * For the Union operator, this is the serialization of the internal state of
-   * the union operator as a sketch.
-   * @return the serialization of this union operator as a byte array.
+   * For the HllUnion operator, this is the serialization of the internal state of
+   * the HllUnion operator as a sketch.
+   * @return the serialization of this HllUnion operator as a byte array.
    */
   @Override
   public byte[] toCompactByteArray() {
@@ -313,7 +313,7 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Update this union operator with the given sketch.
+   * Update this HllUnion operator with the given sketch.
    * @param sketch the given sketch.
    */
   public void update(final HllSketch sketch) {
@@ -326,28 +326,28 @@ public class Union extends BaseHllSketch {
     gadget.hllSketchImpl = gadget.hllSketchImpl.couponUpdate(coupon);
   }
 
-  // Union operator logic
+  // HllUnion operator logic
 
   /**
    * Union the given source and destination sketches. This static method examines the state of
    * the current internal gadget and the incoming sketch and determines the optimum way to
    * perform the union. This may involve swapping the merge order, downsampling, transforming,
-   * and / or copying one of the arguments and may completely replace the internals of the union.
+   * and / or copying one of the arguments and may completely replace the internals of the HllUnion.
    *
-   * <p>If the union gadget is empty, the source sketch is effectively copied to the union gadget
+   * <p>If the HllUnion gadget is empty, the source sketch is effectively copied to the HllUnion gadget
    * after any required transformations.
    *
-   * <p>The direction of the merge is reversed if the union gadget is in LIST or SET mode, and the
+   * <p>The direction of the merge is reversed if the HllUnion gadget is in LIST or SET mode, and the
    * source sketch is in HLL mode. This is done to maintain maximum accuracy of the union process.
    *
    * <p>The source sketch is downsampled if the source LgK is larger than maxLgK and in HLL mode.
    *
-   * <p>The union gadget is downsampled if both source and union gadget are in HLL mode
-   * and the source LgK <b>less than</b> the union gadget LgK.
+   * <p>The HllUnion gadget is downsampled if both source and HllUnion gadget are in HLL mode
+   * and the source LgK <b>less than</b> the HllUnion gadget LgK.
    *
    * @param source the given incoming sketch, which cannot be modified.
    * @param gadget the given gadget sketch, which has a target of HLL_8 and holds the result.
-   * @param lgMaxK the maximum value of log2 K for this union.
+   * @param lgMaxK the maximum value of log2 K for this union operation.
    * @return the union of the two sketches in the form of the internal HllSketchImpl, which is
    * always in HLL_8 form.
    */
@@ -765,7 +765,7 @@ public class Union extends BaseHllSketch {
       tgt.hllSketchImpl.putRebuildCurMinNumKxQFlag(true);
   }
 
-  //Used by union operator. Always copies or downsamples to Heap HLL_8.
+  //Used by HllUnion operator. Always copies or downsamples to Heap HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more context.
   /**
    * Copies or downsamples the given candidate HLLmode sketch to tgtLgK, HLL_8, on the heap.

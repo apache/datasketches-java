@@ -203,7 +203,7 @@ public class HllSketch extends BaseHllSketch {
     return heapify(srcSeg, true);
   }
 
-  //used by union and above
+  //used by HllUnion and above
   static final HllSketch heapify(final MemorySegment srcSeg, final boolean checkRebuild) {
     Objects.requireNonNull(srcSeg, "Source MemorySegment must not be null");
     checkBounds(0, 8, srcSeg.byteSize()); //need min 8 bytes
@@ -218,7 +218,7 @@ public class HllSketch extends BaseHllSketch {
       } else { //Hll_8
         heapSketch = new HllSketch(Hll8Array.heapify(srcSeg));
         if (checkRebuild) {
-          Union.checkRebuildCurMinNumKxQ(heapSketch);
+          HllUnion.checkRebuildCurMinNumKxQ(heapSketch);
         }
       }
     } else if (curMode == CurMode.LIST) {
@@ -245,7 +245,7 @@ public class HllSketch extends BaseHllSketch {
     return writableWrap(srcWseg, true);
   }
 
-  //used by union and above
+  //used by HllUnion and above
   static final HllSketch writableWrap( final MemorySegment srcWseg, final boolean checkRebuild) {
     Objects.requireNonNull(srcWseg, "Source MemorySegment must not be null");
     checkBounds(0, 8, srcWseg.byteSize()); //need min 8 bytes
@@ -268,8 +268,8 @@ public class HllSketch extends BaseHllSketch {
         directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcWseg));
       } else { //Hll_8
         directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcWseg));
-        if (checkRebuild) { //union only uses HLL_8, we allow non-finalized from a union call.
-          Union.checkRebuildCurMinNumKxQ(directSketch);
+        if (checkRebuild) { //HllUnion only uses HLL_8, we allow non-finalized from a HllUnion call.
+          HllUnion.checkRebuildCurMinNumKxQ(directSketch);
         }
       }
     } else if (curMode == CurMode.LIST) {
@@ -305,8 +305,8 @@ public class HllSketch extends BaseHllSketch {
         directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcSeg, true));
       } else { //Hll_8
         directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcSeg, true));
-        //rebuild if srcSeg came from a union and was not finalized, rather than throw exception.
-        Union.checkRebuildCurMinNumKxQ(directSketch);
+        //rebuild if srcSeg came from a HllUnion and was not finalized, rather than throw exception.
+        HllUnion.checkRebuildCurMinNumKxQ(directSketch);
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =

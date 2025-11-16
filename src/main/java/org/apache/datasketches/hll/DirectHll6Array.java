@@ -83,7 +83,7 @@ final class DirectHll6Array extends DirectHllArray {
   }
 
   @Override
-  //Would be used by Union, but not used because the gadget is always HLL8 type
+  //Would be used by HllUnion, but not used because the gadget is always HLL8 type
  void updateSlotNoKxQ(final int slotNo, final int newValue) {
     throw new SketchesStateException("Improper access.");
   }

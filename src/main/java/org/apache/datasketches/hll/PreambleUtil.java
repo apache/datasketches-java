@@ -137,7 +137,7 @@ final class PreambleUtil {
   static final int EMPTY_FLAG_MASK          = 4;
   static final int COMPACT_FLAG_MASK        = 8;
   static final int OUT_OF_ORDER_FLAG_MASK   = 16;
-  static final int REBUILD_CURMIN_NUM_KXQ_MASK = 32; //used only by Union
+  static final int REBUILD_CURMIN_NUM_KXQ_MASK = 32; //used only by HllUnion
 
   //Mode byte masks
   static final int CUR_MODE_MASK            = 3;

@@ -26,7 +26,7 @@ import org.apache.datasketches.hll.BaseHllSketch;
 import org.apache.datasketches.hll.HllSketch;
 import org.apache.datasketches.hll.PreambleUtil;
 import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.Union;
+import org.apache.datasketches.hll.HllUnion;
 import org.testng.annotations.Test;
 
 import java.lang.foreign.MemorySegment;
@@ -71,7 +71,7 @@ public class BaseHllSketchTest {
     sk.update(s);
     sk.update("1234");
 
-    final Union u = new Union(10);
+    final HllUnion u = new HllUnion(10);
     final byte[] byteArr1 = null;
     u.update(byteArr1);
     u.update(new byte[] {});

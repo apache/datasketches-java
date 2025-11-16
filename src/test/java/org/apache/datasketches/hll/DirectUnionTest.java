@@ -36,7 +36,7 @@ import org.apache.datasketches.hll.HllSketch;
 import org.apache.datasketches.hll.HllUtil;
 import org.apache.datasketches.hll.RelativeErrorTables;
 import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.Union;
+import org.apache.datasketches.hll.HllUnion;
 
 /**
  * @author Lee Rhodes
@@ -198,7 +198,7 @@ public class DirectUnionTest {
     final String h1SketchStr = ("H1 SKETCH: \n" + h1.toString());
     final String h2SketchStr = ("H2 SKETCH: \n" + h2.toString());
 
-    final Union union = newUnion(lgMaxK);
+    final HllUnion union = newUnion(lgMaxK);
     union.update(h1);
 
     final String uH1SketchStr = ("Union after H1: \n" + union.getResult(resultType).toString());
@@ -260,7 +260,7 @@ public class DirectUnionTest {
   }
 
   private static void toFrom1(final int lgK, final TgtHllType tgtHllType, final int n) {
-    final Union srcU = newUnion(lgK);
+    final HllUnion srcU = newUnion(lgK);
     final HllSketch srcSk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       srcSk.update(i);
@@ -271,7 +271,7 @@ public class DirectUnionTest {
 
     final byte[] byteArr = srcU.toCompactByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    final Union dstU = Union.heapify(seg);
+    final HllUnion dstU = HllUnion.heapify(seg);
 
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
   }
@@ -290,7 +290,7 @@ public class DirectUnionTest {
   }
 
   private static void toFrom2(final int lgK, final TgtHllType tgtHllType, final int n) {
-    final Union srcU = newUnion(lgK);
+    final HllUnion srcU = newUnion(lgK);
     final HllSketch srcSk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       srcSk.update(i);
@@ -300,14 +300,14 @@ public class DirectUnionTest {
     srcU.update(srcSk);
 
     final byte[] byteArr = srcU.toCompactByteArray();
-    final Union dstU = Union.heapify(byteArr);
+    final HllUnion dstU = HllUnion.heapify(byteArr);
 
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
   }
 
   @Test
   public void checkCompositeEst() {
-    final Union u = newUnion(12);
+    final HllUnion u = newUnion(12);
     assertEquals(u.getCompositeEstimate(), 0, .03);
     for (int i = 1; i <= 15; i++) { u.update(i); }
     assertEquals(u.getCompositeEstimate(), 15, 15 *.03);
@@ -319,31 +319,31 @@ public class DirectUnionTest {
   @Test
   public void checkMisc() {
     try {
-      final Union u = newUnion(HllUtil.MIN_LOG_K - 1);
+      final HllUnion u = newUnion(HllUtil.MIN_LOG_K - 1);
       fail();
     } catch (final SketchesArgumentException e) {
       //expected
     }
     try {
-      final Union u = newUnion(HllUtil.MAX_LOG_K + 1);
+      final HllUnion u = newUnion(HllUtil.MAX_LOG_K + 1);
       fail();
     } catch (final SketchesArgumentException e) {
       //expected
     }
-    final Union u = newUnion(7);
+    final HllUnion u = newUnion(7);
     final HllSketch sk = u.getResult();
     assertTrue(sk.isEmpty());
   }
 
   @Test
   public void checkHeapify() {
-    final Union u = newUnion(16);
+    final HllUnion u = newUnion(16);
     for (int i = 0; i < (1 << 20); i++) {
       u.update(i);
     }
     final double est1 = u.getEstimate();
     final byte[] byteArray = u.toUpdatableByteArray();
-    final Union u2 = Union.heapify(byteArray);
+    final HllUnion u2 = HllUnion.heapify(byteArray);
     assertEquals(u2.getEstimate(), est1, 0.0);
   }
 
@@ -363,7 +363,7 @@ public class DirectUnionTest {
   @Test
   public void checkEmptyCouponMisc() {
     final int lgK = 8;
-    final Union union = newUnion(lgK);
+    final HllUnion union = newUnion(lgK);
     for (int i = 0; i < 20; i++) { union.update(i); } //SET mode
     union.couponUpdate(0);
     assertEquals(union.getEstimate(), 20.0, 0.001);
@@ -371,7 +371,7 @@ public class DirectUnionTest {
     assertTrue(union.hasMemorySegment());
     assertFalse(union.isOffHeap());
     final int bytes = union.getUpdatableSerializationBytes();
-    assertTrue(bytes  <= Union.getMaxSerializationBytes(lgK));
+    assertTrue(bytes  <= HllUnion.getMaxSerializationBytes(lgK));
     assertFalse(union.isCompact());
   }
 
@@ -388,7 +388,7 @@ public class DirectUnionTest {
     final HllSketch sk2 = HllSketch.wrap(MemorySegment.ofArray(skByteArr));
     assertEquals(sk2.getEstimate(), est, 0.0);
 
-    final Union union = newUnion(lgConfigK);
+    final HllUnion union = newUnion(lgConfigK);
     union.update(HllSketch.wrap(MemorySegment.ofArray(skByteArr)));
     assertEquals(union.getEstimate(), est, 0.0);
   }
@@ -402,7 +402,7 @@ public class DirectUnionTest {
     final double est1 = sk1.getEstimate();
     final byte[] byteArr1 = sk1.toCompactByteArray();
 
-    final Union union = newUnion(lgConfigK);
+    final HllUnion union = newUnion(lgConfigK);
     union.update(HllSketch.wrap(MemorySegment.ofArray(byteArr1)));
     final double est2 = union.getEstimate();
     assertEquals(est2, est1);
@@ -412,10 +412,10 @@ public class DirectUnionTest {
   public void checkWritableWrap() {
     final int lgConfigK = 10;
     final int n = 128;
-    final Union union = newUnion(lgConfigK);
+    final HllUnion union = newUnion(lgConfigK);
     for (int i = 0; i < n; i++) { union.update(i); }
     final double est = union.getEstimate();
-    final Union union2 = Union.writableWrap(MemorySegment.ofArray(union.toUpdatableByteArray()));
+    final HllUnion union2 = HllUnion.writableWrap(MemorySegment.ofArray(union.toUpdatableByteArray()));
     final double est2 = union2.getEstimate();
     assertEquals(est2, est, 0.0);
   }
@@ -426,13 +426,13 @@ public class DirectUnionTest {
     final int n = 128;
     final HllSketch sk = new HllSketch(lgConfigK, HLL_6);
     for (int i = 0; i < n; i++) {sk.update(i); }
-    Union.writableWrap(MemorySegment.ofArray(sk.toUpdatableByteArray()));
+    HllUnion.writableWrap(MemorySegment.ofArray(sk.toUpdatableByteArray()));
   }
 
-  private static Union newUnion(final int lgK) {
+  private static HllUnion newUnion(final int lgK) {
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-    return new Union(lgK, wseg);
+    return new HllUnion(lgK, wseg);
   }
 
   private static double getBound(final int lgK, final boolean ub, final boolean oooFlag, final int numStdDev, final double est) {
