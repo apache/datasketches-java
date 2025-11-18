@@ -66,7 +66,7 @@ jobs:
           # TAG="${GITHUB_REF_NAME}"
           TAG="9.0.0-rc"
           VERSION_DIR="docs/${TAG}"
-
+          echo $VERSION_DIR
           rm -rf "gh-pages/${VERSION_DIR}"
           mkdir -p "gh-pages/${VERSION_DIR}"
           cp -r target/reports/apidocs/* "gh-pages/${VERSION_DIR}/"
