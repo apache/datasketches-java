@@ -45,7 +45,7 @@ jobs:
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: target/site/apidocs
+          path: target/reports/apidocs
 
   update-gh-pages:
     name: Update gh-pages
@@ -68,7 +68,7 @@ jobs:
 
           rm -rf "gh-pages/${VERSION_DIR}"
           mkdir -p "gh-pages/${VERSION_DIR}"
-          cp -r target/site/apidocs/* "gh-pages/${VERSION_DIR}/"
+          cp -r target/reports/apidocs/* "gh-pages/${VERSION_DIR}/"
 
       - name: Regenerate multi-version index.html
         run: |
