@@ -63,7 +63,8 @@ jobs:
 
       - name: Copy Javadoc into versioned folder
         run: |
-          TAG="${GITHUB_REF_NAME}"
+          # TAG="${GITHUB_REF_NAME}"
+          TAG="9.0.0-rc"
           VERSION_DIR="docs/${TAG}"
 
           rm -rf "gh-pages/${VERSION_DIR}"
@@ -121,74 +122,74 @@ jobs:
           git commit -m "Update release Javadoc for ${GITHUB_REF_NAME}"
           git push origin gh-pages
 
-  delete-tag-docs:
-    name: Remove deleted tag docs
-    runs-on: ubuntu-latest
-
-    if: github.event_name == 'delete' && github.event.ref_type == 'tag'
-
-    steps:
-      - name: Checkout gh-pages
-        uses: actions/checkout@v5
-        with:
-          ref: gh-pages
-          path: gh-pages
-
-      - name: Remove documentation for deleted tag
-        run: |
-          TAG="${GITHUB_REF_NAME}"
-          VERSION_DIR="docs/${TAG}"
-          rm -rf "gh-pages/${VERSION_DIR}"
-
-      - name: Rebuild index.html
-        run: |
-          cd gh-pages
-
-          # Regenerate index.html (same as above)
-          cat > index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8"/>
-            <title>Javadoc Versions</title>
-            <style>
-              body { font-family: Arial; padding: 2rem; max-width: 800px; margin: auto; }
-              h1 { font-size: 2rem; }
-              ul { line-height: 1.8; font-size: 1.1rem; }
-            </style>
-          </head>
-          <body>
-          <h1>Available Javadoc Versions</h1>
-          <ul>
-          EOF
-
-          for dir in docs/*; do
-            [ -d "$dir" ] || continue
-            ver=$(basename "$dir")
-            echo "<li><a href=\"docs/$ver/\">$ver</a></li>" >> index.html
-          done
-
-          cat >> index.html << 'EOF'
-          </ul>
-          </body>
-          </html>
-          EOF
-
-      - name: Commit & push removal
-        run: |
-          cd gh-pages
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-
-          if git diff --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git add .
-          git commit -m "Remove Javadoc for deleted tag ${GITHUB_REF_NAME}"
-          git push origin gh-pages
-
+#  delete-tag-docs:
+#    name: Remove deleted tag docs
+#    runs-on: ubuntu-latest
+#
+#    if: github.event_name == 'delete' && github.event.ref_type == 'tag'
+#
+#    steps:
+#      - name: Checkout gh-pages
+#        uses: actions/checkout@v5
+#        with:
+#          ref: gh-pages
+#          path: gh-pages
+#
+#      - name: Remove documentation for deleted tag
+#        run: |
+#          TAG="${GITHUB_REF_NAME}"
+#          VERSION_DIR="docs/${TAG}"
+#          rm -rf "gh-pages/${VERSION_DIR}"
+#
+#      - name: Rebuild index.html
+#        run: |
+#          cd gh-pages
+#
+#          # Regenerate index.html (same as above)
+#          cat > index.html << 'EOF'
+#          <!DOCTYPE html>
+#          <html>
+#          <head>
+#            <meta charset="UTF-8"/>
+#            <title>Javadoc Versions</title>
+#            <style>
+#              body { font-family: Arial; padding: 2rem; max-width: 800px; margin: auto; }
+#              h1 { font-size: 2rem; }
+#              ul { line-height: 1.8; font-size: 1.1rem; }
+#            </style>
+#          </head>
+#          <body>
+#          <h1>Available Javadoc Versions</h1>
+#          <ul>
+#          EOF
+#
+#          for dir in docs/*; do
+#            [ -d "$dir" ] || continue
+#            ver=$(basename "$dir")
+#            echo "<li><a href=\"docs/$ver/\">$ver</a></li>" >> index.html
+#          done
+#
+#          cat >> index.html << 'EOF'
+#          </ul>
+#          </body>
+#          </html>
+#          EOF
+#
+#      - name: Commit & push removal
+#        run: |
+#          cd gh-pages
+#          git config user.email "github-actions[bot]@users.noreply.github.com"
+#          git config user.name "github-actions[bot]"
+#
+#          if git diff --quiet; then
+#            echo "No changes to commit"
+#            exit 0
+#          fi
+#
+#          git add .
+#          git commit -m "Remove Javadoc for deleted tag ${GITHUB_REF_NAME}"
+#          git push origin gh-pages
+#
 # Summary of Features
 #   Multi-version docs (docs/<tag>/)
 #   Auto-generated index.html
