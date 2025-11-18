@@ -69,6 +69,12 @@ jobs:
           echo $VERSION_DIR
           rm -rf "gh-pages/${VERSION_DIR}"
           mkdir -p "gh-pages/${VERSION_DIR}"
+          TGT_DIR="target/reports/apidocs/"
+          if [ -d "$TGT_DIR" ]; then
+            echo "$TGT_DIR" exists."
+          else
+            echo "$TGT_DIR" does not exist."
+          fi
           cp -r target/reports/apidocs/* "gh-pages/${VERSION_DIR}/"
 
       - name: Regenerate multi-version index.html

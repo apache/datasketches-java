@@ -1,12 +1,12 @@
 name: Auto JDK Matrix Test & Install
 
 on:
-  push:
-    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
-  pull_request:
-    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
-    # The branches below must be a subset of the branches above
-    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+#  push:
+#    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+#  pull_request:
+#    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/*.xml', '**/*.yaml', '**/*.yml', '**/LICENSE', '**/NOTICE' ]
+#    # The branches below must be a subset of the branches above
+#    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
   workflow_dispatch:
 
 env:
