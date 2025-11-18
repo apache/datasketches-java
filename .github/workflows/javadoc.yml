@@ -66,15 +66,15 @@ jobs:
           # TAG="${GITHUB_REF_NAME}"
           TAG="9.0.0-rc"
           VERSION_DIR="docs/${TAG}"
-          echo $VERSION_DIR
+          echo "$VERSION_DIR"
           rm -rf "gh-pages/${VERSION_DIR}"
           mkdir -p "gh-pages/${VERSION_DIR}"
           SRC_DIR="target/reports/apidocs/"
           echo $SRC_DIR
-          if [ -d $SRC_DIR ]; then
-            echo $SRC_DIR exists."
+          if [ -d "$SRC_DIR" ]; then
+            echo "$SRC_DIR exists."
           else
-            echo $SRC_DIR does not exist."
+            echo "$SRC_DIR does not exist."
           fi
           cp -r target/reports/apidocs/ "gh-pages/${VERSION_DIR}/"
 
