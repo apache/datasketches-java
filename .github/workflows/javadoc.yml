@@ -1,209 +1,67 @@
-name: JavaDoc Releases
+name: Deploy Versioned Javadoc (Manual Trigger)
+
+# Select the target TAG where to run the workflow from.
+# This TAG name becomes the subdirectory under branch gh-pages/docs/${TAG}
+#   where the javadocs will be copied to.
 
 on:
-  push:
-    tags:
-      - "*"          # Only publish docs for tags
-  delete:
-    tags:
-      - "*"          # Auto-remove docs when tags are deleted
   workflow_dispatch:
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+    inputs:
+      tag_ref:
+        description: 'Existing Git Tag to deploy (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0' # Default can be left blank or set to a placeholder
 
 jobs:
-  build:
-    name: Build JavaDoc
+  build-and-deploy-javadoc:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
 
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v5
+  steps:
+    - name: Checkout Code at Specified Tag
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ github.event.inputs.tag_ref }}  # from manual trigger input
+        fetch-depth: 0 
 
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 25
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: 'maven' 
 
-      - name: Set up Maven cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.m2/repository
-          key: maven-${{ runner.os }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            maven-${{ runner.os }}-
+    - name: Build and Generate Javadoc
+      run: mvn javadoc:javadoc
 
-      - name: Build JavaDoc
-        run: mvn -B javadoc:javadoc
+    - name: Deploy Javadoc to gh-pages/docs/${TAG}
+      env:
+        GH_PAGES_EMAIL: noreply@github.com
+        GH_PAGES_NAME: github-actions[bot]
+        GIT_TAG_NAME: ${{ github.event.inputs.tag_ref }}
+        TARGET_DIR: docs/${{ github.event.inputs.tag_ref }}
+      run: |
+        # 1. Configure Git user
+        git config user.email "${GH_PAGES_EMAIL}"
+        git config user.name "${GH_PAGES_NAME}"
 
-      # Upload for GitHub Pages preview (this is optional)
-      - name: Upload Pages Artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: target/reports/apidocs
+        # 2. Fetch and checkout the existing gh-pages branch
+        git fetch origin gh-pages:gh-pages
+        git checkout gh-pages
 
-  update-gh-pages:
-    name: Update gh-pages
-    needs: build
-    runs-on: ubuntu-latest
+        # 3. Clean up any previous documentation for this tag (optional, but safer)
+        rm -rf $TARGET_DIR
 
-    if: github.event_name != 'delete'   # skip this job on delete events
+        # 4. Create the versioned directory structure
+        mkdir -p $TARGET_DIR
 
-    steps:
-      - name: Checkout gh-pages branch
-        uses: actions/checkout@v5
-        with:
-          ref: gh-pages
-          path: gh-pages
+        # 5. Copy the generated Javadoc files into the versioned directory
+        cp -r target/reports/apidocs/* $TARGET_DIR/
 
-      - name: Copy Javadoc into versioned folder
-        run: |
-          # TAG="${GITHUB_REF_NAME}"
-          TAG="9.0.0-rc"
-          VERSION_DIR="docs/${TAG}"
-          echo "$VERSION_DIR"
-          rm -rf "gh-pages/${VERSION_DIR}"
-          mkdir -p "gh-pages/${VERSION_DIR}"
-          SRC_DIR="target/reports/apidocs/"
-          echo $SRC_DIR
-          if [ -d "$SRC_DIR" ]; then
-            echo "$SRC_DIR exists."
-          else
-            echo "$SRC_DIR does not exist."
-          fi
-          cp -r target/reports/apidocs/ "gh-pages/${VERSION_DIR}/"
-
-      - name: Regenerate multi-version index.html
-        run: |
-          cd gh-pages
-
-          # Create index header
-          cat > index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8"/>
-            <title>Javadoc Versions</title>
-            <style>
-              body { font-family: Arial; padding: 2rem; max-width: 800px; margin: auto; }
-              h1 { font-size: 2rem; }
-              ul { line-height: 1.8; font-size: 1.1rem; }
-            </style>
-          </head>
-          <body>
-          <h1>Available Javadoc Versions</h1>
-          <ul>
-          EOF
-
-          # Insert entries for each version directory
-          for dir in docs/*; do
-            [ -d "$dir" ] || continue
-            ver=$(basename "$dir")
-            echo "<li><a href=\"docs/$ver/\">$ver</a></li>" >> index.html
-          done
-
-          # Close HTML
-          cat >> index.html << 'EOF'
-          </ul>
-          </body>
-          </html>
-          EOF
-
-      - name: Commit & push changes
-        run: |
-          cd gh-pages
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-
-          if git diff --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git add .
-          git commit -m "Update release Javadoc for ${GITHUB_REF_NAME}"
-          git push origin gh-pages
-
-#  delete-tag-docs:
-#    name: Remove deleted tag docs
-#    runs-on: ubuntu-latest
-#
-#    if: github.event_name == 'delete' && github.event.ref_type == 'tag'
-#
-#    steps:
-#      - name: Checkout gh-pages
-#        uses: actions/checkout@v5
-#        with:
-#          ref: gh-pages
-#          path: gh-pages
-#
-#      - name: Remove documentation for deleted tag
-#        run: |
-#          TAG="${GITHUB_REF_NAME}"
-#          VERSION_DIR="docs/${TAG}"
-#          rm -rf "gh-pages/${VERSION_DIR}"
-#
-#      - name: Rebuild index.html
-#        run: |
-#          cd gh-pages
-#
-#          # Regenerate index.html (same as above)
-#          cat > index.html << 'EOF'
-#          <!DOCTYPE html>
-#          <html>
-#          <head>
-#            <meta charset="UTF-8"/>
-#            <title>Javadoc Versions</title>
-#            <style>
-#              body { font-family: Arial; padding: 2rem; max-width: 800px; margin: auto; }
-#              h1 { font-size: 2rem; }
-#              ul { line-height: 1.8; font-size: 1.1rem; }
-#            </style>
-#          </head>
-#          <body>
-#          <h1>Available Javadoc Versions</h1>
-#          <ul>
-#          EOF
-#
-#          for dir in docs/*; do
-#            [ -d "$dir" ] || continue
-#            ver=$(basename "$dir")
-#            echo "<li><a href=\"docs/$ver/\">$ver</a></li>" >> index.html
-#          done
-#
-#          cat >> index.html << 'EOF'
-#          </ul>
-#          </body>
-#          </html>
-#          EOF
-#
-#      - name: Commit & push removal
-#        run: |
-#          cd gh-pages
-#          git config user.email "github-actions[bot]@users.noreply.github.com"
-#          git config user.name "github-actions[bot]"
-#
-#          if git diff --quiet; then
-#            echo "No changes to commit"
-#            exit 0
-#          fi
-#
-#          git add .
-#          git commit -m "Remove Javadoc for deleted tag ${GITHUB_REF_NAME}"
-#          git push origin gh-pages
-#
-# Summary of Features
-#   Multi-version docs (docs/<tag>/)
-#   Auto-generated index.html
-#   Only publish for tags
-#   Delete docs when tags are deleted
-#   Upload Pages artifact
-#   Maven dependency caching
-#   No third-party actions
-#   No force-push
-#   Clean HTML layout
+        # 6. Add the new directory and files, commit, and push
+        git add $TARGET_DIR
+        git commit -m "Manual Javadoc deployment for tag ${GIT_TAG_NAME} into $TARGET_DIR"
+        git push origin gh-pages
