@@ -17,6 +17,7 @@
 
 
 doc/
+serialization_test_data/
 
 # Sketch binary test files
 *.sk
