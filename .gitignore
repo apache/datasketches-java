@@ -1,0 +1,22 @@
+/target/
+
+# Eclipse project files 
+.classpath
+.project
+.settings/
+.checkstyle
+
+# IntelliJ project files
+*.idea
+**/*.iml
+*.ipr
+*.iws
+
+# VSCode project files
+**/.vscode/
+
+
+doc/
+
+# Sketch binary test files
+*.sk
