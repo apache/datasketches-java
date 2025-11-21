@@ -18,18 +18,18 @@
  */
 
 /**
- * <h2>The DataSketches&trade; HLL sketch family package</h2>
- * {@link org.apache.datasketches.hll.HllSketch HllSketch} and {@link org.apache.datasketches.hll.Union Union}
+ * <h2>The DataSketches&trade; HllSketch family package</h2>
+ * {@link org.apache.datasketches.hll.HllSketch HllSketch} and {@link org.apache.datasketches.hll.HllUnion HllUnion}
  * are the public facing classes of this high performance implementation of Phillipe Flajolet's
  * HyperLogLog algorithm[1] but with significantly improved error behavior and important features that can be
  * essential for large production systems that must handle massive data.
  *
- * <h2>Key Features of the DataSketches&trade; HLL Sketch and its companion Union</h2>
+ * <h2>Key Features of the DataSketches&trade; HllSketch and its companion HllUnion</h2>
  *
  * <h3>Advanced Estimation Algorithms for Optimum Accuracy</h3>
  *
  * <h4>Zero error at low cardinalities</h4>
- * The HLL sketch leverages highly compact arrays and hash tables to keep exact counts until the transition to
+ * The HllSketch leverages highly compact arrays and hash tables to keep exact counts until the transition to
  * dense mode is required for space reasons. The result is perfect accuracy for very low cardinalities.
  *
  * <p>Accuracy for very small streams can be important because Big Data is often fragmented into millions of smaller
@@ -55,7 +55,7 @@
  * sketch once the statistical randomness is removed through multiple trials. This can be observed in the
  * following graph.</p>
  *
- * <p><img src="doc-files/HLL_HIP_K12T20U20.png" width="500" alt="HLL Accuracy">[6]</p>
+ * <p><img src="doc-files/HLL_HIP_K12T20U20.png" width="500" alt="HLL_HIP_K12T20U20.png">[6]</p>
  *
  * <p>The above graph has 7 curves. At y = 0, is the median line that hugs the x-axis so closely that it can't be seen.
  * The two curves, just above and just below the x-axis, correspond to +/- 1 standard deviation (SD) of error.
@@ -68,8 +68,8 @@
  * Below the cardinality of about 512 there is no error at all. This is the point where this particular
  * sketch transitions from sparse to dense (or estimation) mode.</p>
  *
- * <h3>Three HLL Types</h3>
- * This HLL implementation offers three different types of HLL sketch, each with different
+ * <h3>Three HllSketch Types</h3>
+ * This HLL implementation offers three different types of HllSketch, each with different
  * trade-offs with accuracy, space and performance. These types are selected with the
  * {@link org.apache.datasketches.hll.TgtHllType TgtHllType} parameter.
  *
@@ -96,7 +96,7 @@
  * terms of update time, but has the smallest storage footprint of about <i>K/2 * 1.03</i> bytes.
  *
  * <h3>Off-Heap Operation</h3>
- * This HLL sketch also offers the capability of operating off-heap. Given a <i>MemorySegment[5]</i> object
+ * This HllSketch also offers the capability of operating off-heap. Given a <i>MemorySegment[5]</i> object
  * created by the user, the sketch will perform all of its updates and internal phase transitions
  * in that object, which can actually reside either on-heap or off-heap based on how it was
  * configured. In large systems that must update and union many millions of sketches, having the
@@ -104,8 +104,8 @@
  * off-heap and back, and reduces the need for garbage collection.
  *
  * <h3>Merging sketches with different configured <i>lgConfigK</i></h3>
- * This enables a user to union a HLL sketch that was configured with, say, <i>lgConfigK = 12</i>
- * with another loaded HLL sketch that was configured with, say, <i>lgConfigK = 14</i>.
+ * This enables a user to union an HllSketch that was configured with, say, <i>lgConfigK = 12</i>
+ * with another loaded HllSketch that was configured with, say, <i>lgConfigK = 14</i>.
  *
  * <p>Why is this important?  Suppose you have been building a history of sketches of your customer's
  * data that go back a full year (or 5 or 10!) that were all configured with <i>lgConfigK = 12</i>. Because sketches
@@ -125,7 +125,7 @@
  *
  * <h3>Multi-language, multi-platform.</h3>
  * The binary structures for our sketch serializations are language and platform independent.
- * This means it is possible to generate an HLL sketch on a C++ Windows platform and it can be used on a
+ * This means it is possible to generate an HllSketch on a C++ Windows platform and it can be used on a
  * Java or Python Unix platform.
  *
  * <p>[1] Philippe Flajolet, et al, <a href="https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf">

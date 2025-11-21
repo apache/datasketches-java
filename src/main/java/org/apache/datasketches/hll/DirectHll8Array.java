@@ -86,7 +86,7 @@ final class DirectHll8Array extends DirectHllArray {
   }
 
   @Override
-  //Used by Union when source is not HLL8
+  //Used by HllUnion when source is not HLL8
  void updateSlotNoKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {

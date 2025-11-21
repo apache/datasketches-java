@@ -34,7 +34,7 @@ import org.apache.datasketches.hll.AbstractHllArray;
 import org.apache.datasketches.hll.HllArray;
 import org.apache.datasketches.hll.HllSketch;
 import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.Union;
+import org.apache.datasketches.hll.HllUnion;
 import org.testng.annotations.Test;
 
 /**
@@ -59,7 +59,7 @@ public class HllArrayTest {
   }
 
   private static void testComposite(final int lgK, final TgtHllType tgtHllType, final int n) {
-    final Union u = new Union(lgK);
+    final HllUnion u = new HllUnion(lgK);
     final HllSketch sk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       u.update(i);

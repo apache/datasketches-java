@@ -1,41 +1,67 @@
-name: JavaDoc
+name: Deploy Versioned Javadoc (Manual Trigger)
+
+# Select the target TAG where to run the workflow from.
+# This TAG name becomes the subdirectory under branch gh-pages/docs/${TAG}
+#   where the javadocs will be copied to.
 
 on:
-  push:
-    branches: main
   workflow_dispatch:
-
-permissions:
-  contents: write
+    inputs:
+      tag_ref:
+        description: 'Existing Git Tag to deploy (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0' # Default can be left blank or set to a placeholder
 
 jobs:
-  javadoc:
+  build-and-deploy-javadoc:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+  steps:
+    - name: Checkout Code at Specified Tag
+      uses: actions/checkout@v5
+      with:
+        ref: ${{ github.event.inputs.tag_ref }}  # from manual trigger input
+        fetch-depth: 0 
 
-      - name: Setup Java
-        uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'temurin'
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: 'maven' 
 
-      - name: Echo Java Version
-        run:  java -version
+    - name: Build and Generate Javadoc
+      run: mvn javadoc:javadoc
 
-      - name: Print Current workflow
-        run: >
-         cat .github/workflows/javadoc.yml
+    - name: Deploy Javadoc to gh-pages/docs/${TAG}
+      env:
+        GH_PAGES_EMAIL: noreply@github.com
+        GH_PAGES_NAME: github-actions[bot]
+        GIT_TAG_NAME: ${{ github.event.inputs.tag_ref }}
+        TARGET_DIR: docs/${{ github.event.inputs.tag_ref }}
+      run: |
+        # 1. Configure Git user
+        git config user.email "${GH_PAGES_EMAIL}"
+        git config user.name "${GH_PAGES_NAME}"
 
-      - name: Generate JavaDoc
-        run: mvn javadoc:javadoc
+        # 2. Fetch and checkout the existing gh-pages branch
+        git fetch origin gh-pages:gh-pages
+        git checkout gh-pages
 
-      - name: Deploy JavaDoc
-        uses: JamesIves/github-pages-deploy-action@881db5376404c5c8d621010bcbec0310b58d5e29
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          folder: target/reports/apidocs
-          target-folder: docs/${{ github.ref_name }}
-          branch: gh-pages
+        # 3. Clean up any previous documentation for this tag (optional, but safer)
+        rm -rf $TARGET_DIR
+
+        # 4. Create the versioned directory structure
+        mkdir -p $TARGET_DIR
+
+        # 5. Copy the generated Javadoc files into the versioned directory
+        cp -r target/reports/apidocs/* $TARGET_DIR/
+
+        # 6. Add the new directory and files, commit, and push
+        git add $TARGET_DIR
+        git commit -m "Manual Javadoc deployment for tag ${GIT_TAG_NAME} into $TARGET_DIR"
+        git push origin gh-pages

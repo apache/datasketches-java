@@ -31,12 +31,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.HllUtil;
-import org.apache.datasketches.hll.PreambleUtil;
-import org.apache.datasketches.hll.RelativeErrorTables;
-import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.Union;
 import org.testng.annotations.Test;
 
 /**
@@ -199,7 +193,7 @@ public class UnionTest {
     final String h1SketchStr = ("H1 SKETCH: \n" + h1.toString());
     final String h2SketchStr = ("H2 SKETCH: \n" + h2.toString());
 
-    final Union union = newUnion(lgMaxK);
+    final HllUnion union = newUnion(lgMaxK);
     union.update(h1);
 
     final String uH1SketchStr = ("Union after H1: \n" + union.getResult(resultType).toString());
@@ -261,7 +255,7 @@ public class UnionTest {
   }
 
   private static void toFrom1(final int lgK, final TgtHllType tgtHllType, final int n) {
-    final Union srcU = newUnion(lgK);
+    final HllUnion srcU = newUnion(lgK);
     final HllSketch srcSk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       srcSk.update(i);
@@ -272,7 +266,7 @@ public class UnionTest {
 
     final byte[] byteArr = srcU.toCompactByteArray();
     final MemorySegment seg = MemorySegment.ofArray(byteArr);
-    final Union dstU = Union.heapify(seg);
+    final HllUnion dstU = HllUnion.heapify(seg);
     assertFalse(dstU.isSameResource(seg));
 
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
@@ -292,7 +286,7 @@ public class UnionTest {
   }
 
   private static void toFrom2(final int lgK, final TgtHllType tgtHllType, final int n) {
-    final Union srcU = newUnion(lgK);
+    final HllUnion srcU = newUnion(lgK);
     final HllSketch srcSk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) {
       srcSk.update(i);
@@ -302,14 +296,14 @@ public class UnionTest {
     srcU.update(srcSk);
 
     final byte[] byteArr = srcU.toCompactByteArray();
-    final Union dstU = Union.heapify(byteArr);
+    final HllUnion dstU = HllUnion.heapify(byteArr);
 
     assertEquals(dstU.getEstimate(), srcU.getEstimate(), 0.0);
   }
 
   @Test
   public void checkCompositeEst() {
-    final Union u = new Union();
+    final HllUnion u = new HllUnion();
     assertEquals(u.getCompositeEstimate(), 0, .03);
     for (int i = 1; i <= 15; i++) { u.update(i); }
     assertEquals(u.getCompositeEstimate(), 15, 15 *.03);
@@ -321,31 +315,31 @@ public class UnionTest {
   @Test
   public void checkMisc() {
     try {
-      final Union u = newUnion(HllUtil.MIN_LOG_K - 1);
+      final HllUnion u = newUnion(HllUtil.MIN_LOG_K - 1);
       fail();
     } catch (final SketchesArgumentException e) {
       //expected
     }
     try {
-      final Union u = newUnion(HllUtil.MAX_LOG_K + 1);
+      final HllUnion u = newUnion(HllUtil.MAX_LOG_K + 1);
       fail();
     } catch (final SketchesArgumentException e) {
       //expected
     }
-    final Union u = newUnion(7);
+    final HllUnion u = newUnion(7);
     final HllSketch sk = u.getResult();
     assertTrue(sk.isEmpty());
   }
 
   @Test
   public void checkHeapify() {
-    final Union u = newUnion(16);
+    final HllUnion u = newUnion(16);
     for (int i = 0; i < (1 << 20); i++) {
       u.update(i);
     }
     final double est1 = u.getEstimate();
     final byte[] byteArray = u.toUpdatableByteArray();
-    final Union u2 = Union.heapify(byteArray);
+    final HllUnion u2 = HllUnion.heapify(byteArray);
     assertEquals(u2.getEstimate(), est1, 0.0);
   }
 
@@ -365,7 +359,7 @@ public class UnionTest {
   @Test
   public void checkEmptyCouponMisc() {
     final int lgK = 8;
-    final Union union = newUnion(lgK);
+    final HllUnion union = newUnion(lgK);
     for (int i = 0; i < 20; i++) { union.update(i); } //SET mode
     union.couponUpdate(0);
     assertEquals(union.getEstimate(), 20.0, 0.001);
@@ -373,7 +367,7 @@ public class UnionTest {
     assertFalse(union.hasMemorySegment());
     assertFalse(union.isOffHeap());
     final int bytes = union.getUpdatableSerializationBytes();
-    assertTrue(bytes  <= Union.getMaxSerializationBytes(lgK));
+    assertTrue(bytes  <= HllUnion.getMaxSerializationBytes(lgK));
     assertFalse(union.isCompact());
   }
 
@@ -390,7 +384,7 @@ public class UnionTest {
     final HllSketch sk2 = HllSketch.wrap(MemorySegment.ofArray(skByteArr));
     assertEquals(sk2.getEstimate(), est, 0.0);
 
-    final Union union = newUnion(lgConfigK);
+    final HllUnion union = newUnion(lgConfigK);
     union.update(HllSketch.wrap(MemorySegment.ofArray(skByteArr)));
     assertEquals(union.getEstimate(), est, 0.0);
   }
@@ -404,7 +398,7 @@ public class UnionTest {
     final double est1 = sk1.getEstimate();
     final byte[] byteArr1 = sk1.toCompactByteArray();
 
-    final Union union = newUnion(lgConfigK);
+    final HllUnion union = newUnion(lgConfigK);
     union.update(HllSketch.wrap(MemorySegment.ofArray(byteArr1)));
     final double est2 = union.getEstimate();
     assertEquals(est2, est1);
@@ -420,7 +414,7 @@ public class UnionTest {
       sk1.update(i);
       sk2.update(i + u);
     }
-    final Union union = new Union(lgK);
+    final HllUnion union = new HllUnion(lgK);
     union.update(sk1);
     union.update(sk2);
     final HllSketch rsk1 = union.getResult(TgtHllType.HLL_8);
@@ -450,9 +444,9 @@ public class UnionTest {
       sk1.update(i);
       sk2.update(i + u);
     }
-    final int bytes = Union.getMaxSerializationBytes(lgK);
+    final int bytes = HllUnion.getMaxSerializationBytes(lgK);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-    final Union union1 = new Union(lgK, wseg); //Create original union off-heap
+    final HllUnion union1 = new HllUnion(lgK, wseg); //Create original union off-heap
     union1.update(sk1);
     union1.update(sk2); //oooFlag = Rebuild_KxQ = TRUE
     assertTrue(!union1.toString().isEmpty());
@@ -466,23 +460,23 @@ public class UnionTest {
     assertFalse(rebuild);
   }
 
-  @Test //similar to above except uses Union.writableWrap instead of heapify
+  @Test //similar to above except uses HllUnion.writableWrap instead of heapify
   public void druidUseCase() {
    final int lgK = 12;
-   final int bytes = Union.getMaxSerializationBytes(lgK);
+   final int bytes = HllUnion.getMaxSerializationBytes(lgK);
    final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-   new Union(lgK, wseg); // result is unused, relying on side effect
+   new HllUnion(lgK, wseg); // result is unused, relying on side effect
    int trueCount = 0;
    final int delta = 1 << (lgK - 3); //(lgK < 8) ? 16 : 1 << (lgK - 3) //allows changing lgK above
    for (int i = 0; i < 3; i++) {
-    Union.writableWrap(wseg).update(buildSketch(trueCount, delta));
+    HllUnion.writableWrap(wseg).update(buildSketch(trueCount, delta));
     trueCount += delta;
    }
    boolean rebuild = PreambleUtil.extractRebuildCurMinNumKxQFlag(wseg);
    final double hipAccum = PreambleUtil.extractHipAccum(wseg);
    assertTrue(rebuild);
    assertTrue(hipAccum == 0.0);
-   final HllSketch result = Union.writableWrap(wseg).getResult(); //rebuilds result
+   final HllSketch result = HllUnion.writableWrap(wseg).getResult(); //rebuilds result
    rebuild = result.hllSketchImpl.isRebuildCurMinNumKxQFlag();
    assertFalse(rebuild);
    final double est = result.getEstimate();
@@ -500,8 +494,8 @@ public class UnionTest {
    return sketch;
   }
 
-  private static Union newUnion(final int lgK) {
-    return new Union(lgK);
+  private static HllUnion newUnion(final int lgK) {
+    return new HllUnion(lgK);
   }
 
   private static double getBound(final int lgK, final boolean ub, final boolean oooFlag, final int numStdDev, final double est) {

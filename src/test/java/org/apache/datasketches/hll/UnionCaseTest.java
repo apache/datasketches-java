@@ -33,12 +33,6 @@ import static org.testng.Assert.assertTrue;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.hll.AbstractHllArray;
-import org.apache.datasketches.hll.DirectHllArray;
-import org.apache.datasketches.hll.HllArray;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.Union;
 import org.testng.annotations.Test;
 
 /**
@@ -49,7 +43,7 @@ public class UnionCaseTest {
   long v = 0;
   final static int maxLgK = 12;
   HllSketch source;
-  //Union union;
+  //HllUnion union;
   String hfmt = "%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s" + LS;
   String hdr = String.format(hfmt, "caseNum","srcLgKStr","gdtLgKStr","srcType","gdtType",
       "srcSeg","gdtSeg","srcMode","gdtMode","srcOoof","gdtOoof");
@@ -96,13 +90,13 @@ public class UnionCaseTest {
   private void checkCase(final int caseNum, final TgtHllType srcType, final boolean srcSeg) {
     source = getSource(caseNum, srcType, srcSeg);
     final boolean gdtSeg = (caseNum & 1) > 0;
-    final Union union = getUnion(caseNum, gdtSeg);
+    final HllUnion union = getUnion(caseNum, gdtSeg);
     union.update(source);
     final int totalU = getSrcCount(caseNum, maxLgK) + getUnionCount(caseNum);
     output(caseNum, source, union, totalU);
   }
 
-  private void output(final int caseNum, final HllSketch source, final Union union, final int totalU) {
+  private void output(final int caseNum, final HllSketch source, final HllUnion union, final int totalU) {
     final double estU = union.getEstimate();
     final double err = Math.abs((estU / totalU) - 1.0);
     final int gdtLgK = union.getLgConfigK();
@@ -137,7 +131,7 @@ public class UnionCaseTest {
     }
   }
 
-  private Union getUnion(final int caseNum, final boolean useMemorySegment) {
+  private HllUnion getUnion(final int caseNum, final boolean useMemorySegment) {
     final int unionU = getUnionCount(caseNum);
     return (useMemorySegment) ? buildMemorSegmentUnion(maxLgK, unionU) : buildHeapUnion(maxLgK, unionU);
   }
@@ -162,10 +156,10 @@ public class UnionCaseTest {
 
   @Test
   public void checkMisc() {
-    final Union u = buildHeapUnion(12, 0);
+    final HllUnion u = buildHeapUnion(12, 0);
     int bytes = u.getCompactSerializationBytes();
     assertEquals(bytes, 8);
-    bytes = Union.getMaxSerializationBytes(7);
+    bytes = HllUnion.getMaxSerializationBytes(7);
     assertEquals(bytes, 40 + 128);
     double v = u.getEstimate();
     assertEquals(v, 0.0, 0.0);
@@ -187,7 +181,7 @@ public class UnionCaseTest {
     final int n2 = 3;
     final int n3 = 2;
     final int sum = n1 + n2 + n3;
-    final Union u = buildHeapUnion(12, n1); //gdt = list
+    final HllUnion u = buildHeapUnion(12, n1); //gdt = list
     final HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //src = list
     final HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //src = list
     u.update(h2);
@@ -209,7 +203,7 @@ public class UnionCaseTest {
     final int n2 = 2;
     final int n3 = 16;
     final int sum = n1 + n2 + n3;
-    final Union u = buildHeapUnion(12, n1);        //LIST, 5
+    final HllUnion u = buildHeapUnion(12, n1);        //LIST, 5
     final HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //LIST, 2
     final HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //SET, 16
     u.update(h2);
@@ -231,7 +225,7 @@ public class UnionCaseTest {
     final int n2 = 10;
     final int n3 = 6;
     final int sum = n1 + n2 + n3;
-    final Union u = buildHeapUnion(12, n1);
+    final HllUnion u = buildHeapUnion(12, n1);
     final HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //SET
     final HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //LIST
     u.update(h2);
@@ -253,7 +247,7 @@ public class UnionCaseTest {
     final int n2 = 10;
     final int n3 = 16;
     final int sum = n1 + n2 + n3;
-    final Union u = buildHeapUnion(12, n1);
+    final HllUnion u = buildHeapUnion(12, n1);
     final HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //src: SET
     final HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //src: SET
     u.update(h2);
@@ -275,7 +269,7 @@ public class UnionCaseTest {
     final int n2 = 0;
     final int n3 = 7;
     final int sum = n1 + n2 + n3;
-    final Union u = buildHeapUnion(12, n1);   //LIST empty
+    final HllUnion u = buildHeapUnion(12, n1);   //LIST empty
     final HllSketch h2 = buildHeapSketch(11, HLL_6, n2);   //src: LIST empty, ignored
     final HllSketch h3 = buildHeapSketch(10, HLL_8, n3);   //src: LIST
     u.update(h2);
@@ -297,7 +291,7 @@ public class UnionCaseTest {
     final int n2 = 0;
     final int n3 = 16;
     final int sum = n1 + n2 + n3;
-    final Union u = buildHeapUnion(12, n1);        //LIST empty
+    final HllUnion u = buildHeapUnion(12, n1);        //LIST empty
     final HllSketch h2 = buildHeapSketch(11, HLL_6, n2);   //LIST empty, ignored
     final HllSketch h3 = buildHeapSketch(10, HLL_8, n3);   // Src Set
     u.update(h2);
@@ -316,7 +310,7 @@ public class UnionCaseTest {
   @SuppressWarnings("unused")
   @Test
   public void checkSpecialMergeCase4() {
-    final Union u = buildHeapUnion(12, 1 << 9);
+    final HllUnion u = buildHeapUnion(12, 1 << 9);
     final HllSketch sk = buildHeapSketch(12, HLL_8, 1 << 9);
 
     u.update(sk);
@@ -360,7 +354,7 @@ public class UnionCaseTest {
     final HllSketch sk = buildHeapSketch(4, HLL_8, 16);
     final HllArray hllArr = (HllArray)(sk.hllSketchImpl);
     hllArr.putRebuildCurMinNumKxQFlag(true); //corrupt the flag
-    final Union union = buildHeapUnion(4, 0);
+    final HllUnion union = buildHeapUnion(4, 0);
     union.update(sk);
   }
 
@@ -370,7 +364,7 @@ public class UnionCaseTest {
     final DirectHllArray hllArr = (DirectHllArray)(sk.hllSketchImpl);
     hllArr.putRebuildCurMinNumKxQFlag(true); //corrupt the flag
     final MemorySegment wseg = sk.getMemorySegment();
-    Union.writableWrap(wseg);
+    HllUnion.writableWrap(wseg);
   }
 
   @Test(expectedExceptions = SketchesStateException.class)
@@ -393,17 +387,17 @@ public class UnionCaseTest {
   }
 
   //BUILDERS
-  private Union buildHeapUnion(final int lgMaxK, final int n) {
-    final Union u = new Union(lgMaxK);
+  private HllUnion buildHeapUnion(final int lgMaxK, final int n) {
+    final HllUnion u = new HllUnion(lgMaxK);
     for (int i = 0; i < n; i++) { u.update(i + v); }
     v += n;
     return u;
   }
 
-  private Union buildMemorSegmentUnion(final int lgMaxK, final int n) {
+  private HllUnion buildMemorSegmentUnion(final int lgMaxK, final int n) {
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgMaxK, TgtHllType.HLL_8);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-    final Union u = new Union(lgMaxK, wseg);
+    final HllUnion u = new HllUnion(lgMaxK, wseg);
     for (int i = 0; i < n; i++) { u.update(i + v); }
     v += n;
     return u;

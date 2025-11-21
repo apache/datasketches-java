@@ -30,11 +30,6 @@ import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.hll.AbstractHllArray;
-import org.apache.datasketches.hll.CurMode;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.Union;
 import org.testng.annotations.Test;
 
 /**
@@ -55,7 +50,7 @@ public class IsomorphicTest {
           final TgtHllType tgtHllType1 = TgtHllType.fromOrdinal(t);
           final HllSketch sk1 = buildHeapSketch(lgK, tgtHllType1, curMode);
           final byte[] sk1bytes = sk1.toUpdatableByteArray(); //UPDATABLE
-          final Union union = buildHeapUnion(lgK, null); //UNION
+          final HllUnion union = buildHeapUnion(lgK, null); //UNION
           union.update(sk1);
           final HllSketch sk2 = union.getResult(tgtHllType1);
           final byte[] sk2bytes = sk2.toUpdatableByteArray(); //UPDATABLE
@@ -77,7 +72,7 @@ public class IsomorphicTest {
           final TgtHllType tgtHllType1 = TgtHllType.fromOrdinal(t);
           final HllSketch sk1 = buildHeapSketch(lgK, tgtHllType1, curMode);
           final byte[] sk1bytes = sk1.toCompactByteArray(); //COMPACT
-          final Union union = buildHeapUnion(lgK, null); //UNION
+          final HllUnion union = buildHeapUnion(lgK, null); //UNION
           union.update(sk1);
           final HllSketch sk2 = union.getResult(tgtHllType1);
           final byte[] sk2bytes = sk2.toCompactByteArray(); //COMPACT
@@ -161,17 +156,17 @@ public class IsomorphicTest {
   }
 
   private static void innerLoop(final int uLgK, final int skLgK, final TgtHllType tgtHllType) {
-    Union u;
+    HllUnion u;
     HllSketch sk;
     final HllSketch skOut;
 
-    //CASE 1 Heap Union, Heap sketch
+    //CASE 1 Heap HllUnion, Heap HllSketch
     u = buildHeapUnionHllMode(uLgK, 0);
     sk = buildHeapSketchHllMode(skLgK, tgtHllType, 1 << uLgK);
     u.update(sk);
     final byte[] bytesOut1 = u.getResult(HLL_8).toUpdatableByteArray();
 
-    //CASE 2 Heap Union, MemorySegment sketch
+    //CASE 2 Heap HllUnion, MemorySegment HllSketch
     u = buildHeapUnionHllMode(uLgK, 0);
     sk = buildMemorySegmentSketchHllMode(skLgK, tgtHllType, 1 << uLgK);
     u.update(sk);
@@ -181,10 +176,10 @@ public class IsomorphicTest {
     //println("Uheap/SkSegment HIP: " + bytesToDouble(bytesOut2, 8)); //HipAccum
     String comb = "uLgK: " + uLgK + ", skLgK: " + skLgK
         + ", SkType: " + tgtHllType.toString()
-        + ", Case1: Heap Union, Heap sketch; Case2: /Heap Union, MemorySegment sketch";
+        + ", Case1: Heap HllUnion, Heap HllSketch; Case2: /Heap HllUnion, MemorySegment HllSketch";
     checkArrays(bytesOut1, bytesOut2, comb, false);
 
-    //CASE 3 Offheap Union, Heap sketch
+    //CASE 3 Offheap HllUnion, Heap HllSketch
     u = buildMemorySegmentUnionHllMode(uLgK, 0);
     sk = buildHeapSketchHllMode(skLgK, tgtHllType, 1 << uLgK);
     u.update(sk);
@@ -194,10 +189,10 @@ public class IsomorphicTest {
     //println("Usegment/SkHeap HIP:  " + bytesToDouble(bytesOut3, 8)); //HipAccum
     comb = "LgK: " + uLgK + ", skLgK: " + skLgK
         + ", SkType: " + tgtHllType.toString()
-        + ", Case2: Heap Union, MemorySegment sketch; Case3: /MemorySegment Union, Heap sketch";
+        + ", Case2: Heap HllUnion, MemorySegment HllSketch; Case3: /MemorySegment HllUnion, Heap HllSketch";
     checkArrays(bytesOut2, bytesOut3, comb, false);
 
-    //Case 4 MemorySegment Union, MemorySegment sketch
+    //Case 4 MemorySegment HllUnion, MemorySegment HllSketch
     u = buildMemorySegmentUnionHllMode(uLgK, 0);
     sk = buildMemorySegmentSketchHllMode(skLgK, tgtHllType, 1 << uLgK);
     u.update(sk);
@@ -205,7 +200,7 @@ public class IsomorphicTest {
 
     comb = "LgK: " + uLgK + ", skLgK: " + skLgK
         + ", SkType: " + tgtHllType.toString()
-        + ", Case2: Heap Union, MemorySegment sketch; Case4: /MemorySegment Union, MemorySegment sketch";
+        + ", Case2: Heap HllUnion, MemorySegment HllSketch; Case4: /MemorySegment HllUnion, MemorySegment HllSketch";
     checkArrays(bytesOut2, bytesOut4, comb, false);
   }
 
@@ -218,7 +213,7 @@ public class IsomorphicTest {
   public void isomorphicHllMerges2() {
     byte[] bytesOut8, bytesOut6, bytesOut4;
     String comb;
-    Union u;
+    HllUnion u;
     HllSketch sk;
     for (int lgK = 4; lgK <= 4; lgK++) { //All LgK
       u = buildHeapUnionHllMode(lgK, 0);
@@ -260,18 +255,18 @@ public class IsomorphicTest {
   }
 
   //BUILDERS
-  private Union buildHeapUnion(final int lgMaxK, final CurMode curMode) {
-    final Union u = new Union(lgMaxK);
+  private HllUnion buildHeapUnion(final int lgMaxK, final CurMode curMode) {
+    final HllUnion u = new HllUnion(lgMaxK);
     final int n = (curMode == null) ? 0 : getN(lgMaxK, curMode);
     for (int i = 0; i < n; i++) { u.update(i + v); }
     v += n;
     return u;
   }
 
-  private Union buildMemorySegmentUnion(final int lgMaxK, final CurMode curMode) {
+  private HllUnion buildMemorySegmentUnion(final int lgMaxK, final CurMode curMode) {
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgMaxK, TgtHllType.HLL_8);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-    final Union u = new Union(lgMaxK, wseg);
+    final HllUnion u = new HllUnion(lgMaxK, wseg);
     final int n = (curMode == null) ? 0 : getN(lgMaxK, curMode);
     for (int i = 0; i < n; i++) { u.update(i + v); }
     v += n;
@@ -296,17 +291,17 @@ public class IsomorphicTest {
     return sk;
   }
 
-  private static Union buildHeapUnionHllMode(final int lgMaxK, final int startN) {
-    final Union u = new Union(lgMaxK);
+  private static HllUnion buildHeapUnionHllMode(final int lgMaxK, final int startN) {
+    final HllUnion u = new HllUnion(lgMaxK);
     final int n = getN(lgMaxK, HLL);
     for (int i = 0; i < n; i++) { u.update(i + startN); }
     return u;
   }
 
-  private static Union buildMemorySegmentUnionHllMode(final int lgMaxK, final int startN) {
+  private static HllUnion buildMemorySegmentUnionHllMode(final int lgMaxK, final int startN) {
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgMaxK, TgtHllType.HLL_8);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-    final Union u = new Union(lgMaxK, wseg);
+    final HllUnion u = new HllUnion(lgMaxK, wseg);
     final int n = getN(lgMaxK, HLL);
     for (int i = 0; i < n; i++) { u.update(i + startN); }
     return u;

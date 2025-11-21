@@ -47,7 +47,7 @@ import org.apache.datasketches.hll.HllSketchImpl;
 import org.apache.datasketches.hll.HllUtil;
 import org.apache.datasketches.hll.PreambleUtil;
 import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.Union;
+import org.apache.datasketches.hll.HllUnion;
 import org.testng.annotations.Test;
 
 /**
@@ -431,15 +431,15 @@ public class HllSketchTest {
   @SuppressWarnings("unused")
   @Test
   public void checkJavadocExample() {
-    Union union; HllSketch sk, sk2;
+    HllUnion union; HllSketch sk, sk2;
     final int lgK = 12;
     sk = new HllSketch(lgK, TgtHllType.HLL_4); //can be 4, 6, or 8
     for (int i = 0; i < (2 << lgK); i++) { sk.update(i); }
     final byte[] arr = sk.toCompactByteArray();
     //  ...
-    union = Union.heapify(arr); //initializes the union using data from the array.
+    union = HllUnion.heapify(arr); //initializes the union using data from the array.
     //OR, if used in an off-heap environment:
-    union = Union.heapify(MemorySegment.ofArray(arr));
+    union = HllUnion.heapify(MemorySegment.ofArray(arr));
 
     //To recover an updatable Heap sketch:
     sk2 = HllSketch.heapify(arr);

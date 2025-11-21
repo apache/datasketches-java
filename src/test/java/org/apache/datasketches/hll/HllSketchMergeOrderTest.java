@@ -98,7 +98,7 @@ public class HllSketchMergeOrderTest {
      * Merges three sketches in the specified order and returns the composite estimate
      */
     private double mergeThreeSketches(final HllSketch s1, final HllSketch s2, final HllSketch s3) {
-        final Union union = new Union(LgK);
+        final HllUnion union = new HllUnion(LgK);
 
         union.update(s1);
         union.update(s2);

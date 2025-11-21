@@ -33,11 +33,11 @@ under the License.
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>9.0.0-SNAPSHOT</version>
+  <version>9.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
-  <description>Core sketch algorithms used alone and by other Java repositories in the DataSketches library.</description>
+  <description>Core sketch algorithms used alone and by other Java repositories in the Apache DataSketches Project.</description>
   <url>https://datasketches.apache.org/</url>
   <inceptionYear>2015</inceptionYear>
 
@@ -92,6 +92,8 @@ under the License.
     <!-- System-wide properties -->
     <maven.version>3.9.11</maven.version>
     <java.version>25</java.version>
+    <!-- Reproducable Builds, arbitrary, fixed date 
+    <project.build.outputTimestamp>2025-12-01T00:00:00Z</project.build.outputTimestamp> -->
     <!-- removed: g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 -->
     <jvm.options>-Xmx4g</jvm.options> <!-- use space to separate args -->
     <charset.encoding>UTF-8</charset.encoding>
@@ -102,17 +104,17 @@ under the License.
 
     <!--  org.apache.maven plugins -->
     <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
-    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-    <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
+    <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+    <maven-dependency-plugin.version>3.9.0</maven-dependency-plugin.version>
     <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
-    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version> <!--3.5.0 fails -->
+    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+    <maven-release-plugin.version>3.2.0</maven-release-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
     <!-- for surefire, failsafe and surefire-report: -->
-    <maven-surefire-failsafe-plugins.version>3.5.3</maven-surefire-failsafe-plugins.version>
+    <maven-surefire-failsafe-plugins.version>3.5.4</maven-surefire-failsafe-plugins.version>
     <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
     <!-- com.github plugins -->
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
@@ -122,11 +124,12 @@ under the License.
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     <!-- org.jacoco.maven plugins -->
-    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
     <!-- org.mojohaus plugins -->
-    <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
+    <versions-maven-plugin.version>2.19.1</versions-maven-plugin.version>
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
+    <reproducible-build-maven-plugin.version>0.17</reproducible-build-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -393,6 +396,19 @@ under the License.
           <version>${git-commit-id-plugin.version}</version>
         </plugin>
 
+        <plugin>
+          <groupId>io.github.zlika</groupId>
+          <artifactId>reproducible-build-maven-plugin</artifactId>
+          <version>${reproducible-build-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>strip-jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
       </plugins>
     </pluginManagement>
     <plugins>
@@ -460,6 +476,10 @@ under the License.
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>io.github.zlika</groupId>
+        <artifactId>reproducible-build-maven-plugin</artifactId>
+      </plugin>
     </plugins>
   </build>
 
@@ -506,7 +526,7 @@ under the License.
                 <includeOnlyProperties>
                   <includeProperty>git.branch</includeProperty>
                   <includeProperty>git.commit.id.full</includeProperty>
-                  <includeProperty>git.commit.time</includeProperty>
+                  <!-- <includeProperty>git.commit.time</includeProperty> remove for reproducible builds-->
                   <includeProperty>git.commit.user.email</includeProperty>
                   <includeProperty>git.tags</includeProperty>
                 </includeOnlyProperties>
@@ -609,8 +629,6 @@ under the License.
         </plugins>
       </build>
     </profile>
-
-
 
     <profile>
       <id>generate-java-files</id>
