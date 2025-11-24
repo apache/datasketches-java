@@ -54,8 +54,9 @@ final class KllDoublesHelper {
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
    * @param dblSk the current KllDoublesSketch
+   * @param random the random number generator
    */
-  static void compressWhileUpdatingSketch(final KllDoublesSketch dblSk) {
+  static void compressWhileUpdatingSketch(final KllDoublesSketch dblSk, final Random random) {
     final int level =
         findLevelToCompact(dblSk.getK(), dblSk.getM(), dblSk.getNumLevels(), dblSk.levelsArr);
     if (level == (dblSk.getNumLevels() - 1)) {
@@ -83,9 +84,9 @@ final class KllDoublesHelper {
       Arrays.sort(myDoubleItemsArr, adjBeg, adjBeg + adjPop);
     }
     if (popAbove == 0) {
-      KllDoublesHelper.randomlyHalveUpDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
+      KllDoublesHelper.randomlyHalveUpDoubles(myDoubleItemsArr, adjBeg, adjPop, random);
     } else {
-      KllDoublesHelper.randomlyHalveDownDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
+      KllDoublesHelper.randomlyHalveDownDoubles(myDoubleItemsArr, adjBeg, adjPop, random);
       KllDoublesHelper.mergeSortedDoubleArrays(
           myDoubleItemsArr, adjBeg, halfAdjPop,
           myDoubleItemsArr, rawEnd, popAbove,
@@ -119,7 +120,7 @@ final class KllDoublesHelper {
   }
 
   //assumes readOnly = false and UPDATABLE, called from KllDoublesSketch::merge
-  static void mergeDoubleImpl(final KllDoublesSketch mySketch, final KllDoublesSketch otherDblSk) {
+  static void mergeDoubleImpl(final KllDoublesSketch mySketch, final KllDoublesSketch otherDblSk, final Random random) {
     if (otherDblSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -136,12 +137,12 @@ final class KllDoublesHelper {
 
     //MERGE: update this sketch with level0 items from the other sketch
     if (otherDblSk.isCompactSingleItem()) {
-      KllDoublesSketch.updateDouble(mySketch, otherDblSk.getDoubleSingleItem());
+      KllDoublesSketch.updateDouble(mySketch, otherDblSk.getDoubleSingleItem(), random);
       otherDoubleItemsArr = new double[0];
     } else {
       otherDoubleItemsArr = otherDblSk.getDoubleItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-        KllDoublesSketch.updateDouble(mySketch, otherDoubleItemsArr[i]);
+        KllDoublesSketch.updateDouble(mySketch, otherDoubleItemsArr[i], random);
       }
     }
 
@@ -173,7 +174,7 @@ final class KllDoublesHelper {
 
       // notice that workbuf is being used as both the input and output
       final int[] result = generalDoublesCompress(mySketch.getK(), mySketch.getM(), provisionalNumLevels,
-          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), KllSketch.random);
+          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 

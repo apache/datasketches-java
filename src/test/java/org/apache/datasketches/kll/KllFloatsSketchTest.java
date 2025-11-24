@@ -31,6 +31,12 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
 
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -707,6 +713,36 @@ public class KllFloatsSketchTest {
     printf("  mS / Trial  : %,12.3f" + LS, trialTime);
     final double updateTime = runTime / (1.0 * totN * trials);
     printf("  nS / Update : %,12.3f" + LS, updateTime);
+  }
+
+  @Test
+  public void deterministicMerge() throws NoSuchAlgorithmException {
+    KllFloatsSketch t1 = KllFloatsSketch.newHeapInstance();
+    KllFloatsSketch t2 = KllFloatsSketch.newHeapInstance();
+    for(int i=0; i<1000; i++) {
+      t1.update(1f*i);
+      t2.update(2f*i);
+    }
+    byte[] tb1 = t1.toByteArray();
+    byte[] tb2 = t2.toByteArray();
+
+    MessageDigest md5 = MessageDigest.getInstance("MD5");
+    HashSet<BigInteger> digests = new HashSet<>();
+    for(int i=0; i<100; i++) {
+      Random random = new Random(5);
+      byte[] h1 = Arrays.copyOf(tb1, tb1.length);
+      byte[] h2 = Arrays.copyOf(tb2, tb2.length);
+
+      KllFloatsSketch start = KllFloatsSketch.newHeapInstance();
+      KllFloatsSketch kll1 = KllFloatsSketch.heapify(MemorySegment.ofArray(h1));
+      KllFloatsSketch kll2 = KllFloatsSketch.heapify(MemorySegment.ofArray(h2));
+      start.merge(kll1, random);
+      start.merge(kll2, random);
+
+      BigInteger digest = new BigInteger(md5.digest(start.toByteArray()));
+      digests.add(digest);
+    }
+    assertEquals(digests.size(), 1);
   }
 
   private final static boolean enablePrinting = false;

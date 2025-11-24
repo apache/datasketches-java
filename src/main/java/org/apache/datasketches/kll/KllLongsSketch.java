@@ -28,6 +28,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_LONGS_SKETCH;
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
@@ -272,12 +273,12 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   }
 
   @Override
-  public final void merge(final KllSketch other) {
+  public final void merge(final KllSketch other, final Random random) {
     if (readOnly || (sketchStructure != UPDATABLE)) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllLongsSketch otherLngSk = (KllLongsSketch)other;
     if (otherLngSk.isEmpty()) { return; }
-    KllLongsHelper.mergeLongsImpl(this, otherLngSk);
+    KllLongsHelper.mergeLongsImpl(this, otherLngSk, random);
     longsSV = null;
   }
 
@@ -323,17 +324,17 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   public void update(final long item) {
     // Align with KllDoublesSketch
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    updateLong(this, item);
+    updateLong(this, item, random);
     longsSV = null;
   }
 
   //Also Called from KllLongsHelper::merge
-  static void updateLong(final KllLongsSketch lngSk, final long item) {
+  static void updateLong(final KllLongsSketch lngSk, final long item, final Random random) {
     lngSk.updateMinMax(item);
     int freeSpace = lngSk.levelsArr[0];
     assert (freeSpace >= 0);
     if (freeSpace == 0) {
-      KllLongsHelper.compressWhileUpdatingSketch(lngSk);
+      KllLongsHelper.compressWhileUpdatingSketch(lngSk, random);
       freeSpace = lngSk.levelsArr[0];
       assert (freeSpace > 0);
     }
@@ -369,9 +370,9 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
     //
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1L) { updateLong(this, item); }
+    if (weight == 1L) { updateLong(this, item, random); }
     else if (weight < levelsArr[0]) {
-      for (int i = 0; i < (int)weight; i++) { updateLong(this, item); }
+      for (int i = 0; i < (int)weight; i++) { updateLong(this, item, random); }
     } else {
       final KllHeapLongsSketch tmpSk = new KllHeapLongsSketch(getK(), DEFAULT_M, item, weight);
       merge(tmpSk);
@@ -419,7 +420,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
     int count = 0;
     while (count < length) {
       if (levelsArr[0] == 0) {
-        KllLongsHelper.compressWhileUpdatingSketch(this);
+        KllLongsHelper.compressWhileUpdatingSketch(this, random);
       }
       final int spaceNeeded = length - count;
       final int freeSpace = levelsArr[0];

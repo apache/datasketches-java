@@ -54,8 +54,9 @@ final class KllLongsHelper {
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
    * @param lngSk the current KllLongsSketch
+   * @param random the random number generator
    */
-  static void compressWhileUpdatingSketch(final KllLongsSketch lngSk) {
+  static void compressWhileUpdatingSketch(final KllLongsSketch lngSk, final Random random) {
     final int level =
         findLevelToCompact(lngSk.getK(), lngSk.getM(), lngSk.getNumLevels(), lngSk.levelsArr);
     if (level == (lngSk.getNumLevels() - 1)) {
@@ -83,9 +84,9 @@ final class KllLongsHelper {
       Arrays.sort(myLongItemsArray, adjBeg, adjBeg + adjPop);
     }
     if (popAbove == 0) {
-      KllLongsHelper.randomlyHalveUpLongs(myLongItemsArray, adjBeg, adjPop, KllSketch.random);
+      KllLongsHelper.randomlyHalveUpLongs(myLongItemsArray, adjBeg, adjPop, random);
     } else {
-      KllLongsHelper.randomlyHalveDownLongs(myLongItemsArray, adjBeg, adjPop, KllSketch.random);
+      KllLongsHelper.randomlyHalveDownLongs(myLongItemsArray, adjBeg, adjPop, random);
       KllLongsHelper.mergeSortedLongArrays(
           myLongItemsArray, adjBeg, halfAdjPop,
           myLongItemsArray, rawEnd, popAbove,
@@ -119,7 +120,7 @@ final class KllLongsHelper {
   }
 
   //assumes readOnly = false and UPDATABLE, called from KllLongsSketch::merge
-  static void mergeLongsImpl(final KllLongsSketch mySketch, final KllLongsSketch otherLngSk) {
+  static void mergeLongsImpl(final KllLongsSketch mySketch, final KllLongsSketch otherLngSk, final Random random) {
     if (otherLngSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -136,12 +137,12 @@ final class KllLongsHelper {
 
     //MERGE: update this sketch with level0 items from the other sketch
     if (otherLngSk.isCompactSingleItem()) {
-      KllLongsSketch.updateLong(mySketch, otherLngSk.getLongSingleItem());
+      KllLongsSketch.updateLong(mySketch, otherLngSk.getLongSingleItem(), random);
       otherLongItemsArray = new long[0];
     } else {
       otherLongItemsArray = otherLngSk.getLongItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-        KllLongsSketch.updateLong(mySketch, otherLongItemsArray[i]);
+        KllLongsSketch.updateLong(mySketch, otherLongItemsArray[i], random);
       }
     }
 
@@ -173,7 +174,7 @@ final class KllLongsHelper {
 
       // notice that workbuf is being used as both the input and output
       final int[] result = generalLongsCompress(mySketch.getK(), mySketch.getM(), provisionalNumLevels,
-          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), KllSketch.random);
+          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 

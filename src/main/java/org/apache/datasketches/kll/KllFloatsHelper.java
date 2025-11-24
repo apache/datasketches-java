@@ -54,8 +54,9 @@ final class KllFloatsHelper {
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
    * @param fltSk the current KllFloatsSketch
+   * @param random the random number generator
    */
-  static void compressWhileUpdatingSketch(final KllFloatsSketch fltSk) {
+  static void compressWhileUpdatingSketch(final KllFloatsSketch fltSk, Random random) {
     final int level =
         findLevelToCompact(fltSk.getK(), fltSk.getM(), fltSk.getNumLevels(), fltSk.levelsArr);
     if (level == (fltSk.getNumLevels() - 1)) {
@@ -83,9 +84,9 @@ final class KllFloatsHelper {
       Arrays.sort(myFloatItemsArr, adjBeg, adjBeg + adjPop);
     }
     if (popAbove == 0) {
-      KllFloatsHelper.randomlyHalveUpFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
+      KllFloatsHelper.randomlyHalveUpFloats(myFloatItemsArr, adjBeg, adjPop, random);
     } else {
-      KllFloatsHelper.randomlyHalveDownFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
+      KllFloatsHelper.randomlyHalveDownFloats(myFloatItemsArr, adjBeg, adjPop, random);
       KllFloatsHelper.mergeSortedFloatArrays(
           myFloatItemsArr, adjBeg, halfAdjPop,
           myFloatItemsArr, rawEnd, popAbove,
@@ -119,7 +120,7 @@ final class KllFloatsHelper {
   }
 
   //assumes readOnly = false and UPDATABLE, called from KllFloatsSketch::merge
-  static void mergeFloatImpl(final KllFloatsSketch mySketch, final KllFloatsSketch otherFltSk) {
+  static void mergeFloatImpl(final KllFloatsSketch mySketch, final KllFloatsSketch otherFltSk, final Random random) {
     if (otherFltSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -136,12 +137,12 @@ final class KllFloatsHelper {
 
     //MERGE: update this sketch with level0 items from the other sketch
     if (otherFltSk.isCompactSingleItem()) {
-      KllFloatsSketch.updateFloat(mySketch, otherFltSk.getFloatSingleItem());
+      KllFloatsSketch.updateFloat(mySketch, otherFltSk.getFloatSingleItem(), random);
       otherFloatItemsArr = new float[0];
     } else {
       otherFloatItemsArr = otherFltSk.getFloatItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-       KllFloatsSketch.updateFloat(mySketch, otherFloatItemsArr[i]);
+       KllFloatsSketch.updateFloat(mySketch, otherFloatItemsArr[i], random);
       }
     }
 
@@ -173,7 +174,7 @@ final class KllFloatsHelper {
 
       // notice that workbuf is being used as both the input and output
       final int[] result = generalFloatsCompress(mySketch.getK(), mySketch.getM(), provisionalNumLevels,
-          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), KllSketch.random);
+          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 

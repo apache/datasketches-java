@@ -267,7 +267,21 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
    * Attempting to merge a sketch of the wrong type will throw an exception.
    * @param other sketch to merge into this one
    */
-  public abstract void merge(KllSketch other);
+  public final void merge(KllSketch other) {
+    merge(other, random);
+  }
+
+  /**
+   * Merges another sketch into this one.
+   * Attempting to merge a sketch of the wrong type will throw an exception.
+   *
+   * <p><b>Warning:</b> providing a custom number generator might break the
+   * error bounds of the KllSketch.</p>
+   *
+   * @param other sketch to merge into this one
+   * @param random random number generator to be used
+   */
+  public abstract void merge(KllSketch other, Random random);
 
   @Override
   public final String toString() {
