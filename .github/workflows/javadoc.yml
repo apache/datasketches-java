@@ -16,52 +16,51 @@ jobs:
   build-and-deploy-javadoc:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pages: write
-      id-token: write
+      contents: write  # Sufficient for checkout and pushing to gh-pages
 
-  steps:
-    - name: Checkout Code at Specified Tag
-      uses: actions/checkout@v5
-      with:
-        ref: ${{ github.event.inputs.tag_ref }}  # from manual trigger input
-        fetch-depth: 0 
+    steps:
+      - name: Checkout Code at Specified Tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.tag_ref }}  # from manual trigger input
+          fetch-depth: 0
 
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        java-version: '25'
-        distribution: 'temurin'
-        cache: 'maven' 
-
-    - name: Build and Generate Javadoc
-      run: mvn javadoc:javadoc
-
-    - name: Deploy Javadoc to gh-pages/docs/${TAG}
-      env:
-        GH_PAGES_EMAIL: noreply@github.com
-        GH_PAGES_NAME: github-actions[bot]
-        GIT_TAG_NAME: ${{ github.event.inputs.tag_ref }}
-        TARGET_DIR: docs/${{ github.event.inputs.tag_ref }}
-      run: |
-        # 1. Configure Git user
-        git config user.email "${GH_PAGES_EMAIL}"
-        git config user.name "${GH_PAGES_NAME}"
-
-        # 2. Fetch and checkout the existing gh-pages branch
-        git fetch origin gh-pages:gh-pages
-        git checkout gh-pages
-
-        # 3. Clean up any previous documentation for this tag (optional, but safer)
-        rm -rf $TARGET_DIR
-
-        # 4. Create the versioned directory structure
-        mkdir -p $TARGET_DIR
-
-        # 5. Copy the generated Javadoc files into the versioned directory
-        cp -r target/reports/apidocs/* $TARGET_DIR/
-
-        # 6. Add the new directory and files, commit, and push
-        git add $TARGET_DIR
-        git commit -m "Manual Javadoc deployment for tag ${GIT_TAG_NAME} into $TARGET_DIR"
-        git push origin gh-pages
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'maven' 
+  
+      - name: Build and Generate Javadoc
+        run: mvn javadoc:javadoc
+  
+      - name: Deploy Javadoc to gh-pages/docs/${TAG}
+        env:
+          GH_PAGES_EMAIL: noreply@github.com
+          GH_PAGES_NAME: github-actions[bot]
+          GIT_TAG_NAME: ${{ github.event.inputs.tag_ref }}
+          TARGET_DIR: docs/${{ github.event.inputs.tag_ref }}
+          
+        run: |
+          # 1. Configure Git user
+          git config user.email "${GH_PAGES_EMAIL}"
+          git config user.name "${GH_PAGES_NAME}"
+  
+          # 2. Fetch and checkout the existing gh-pages branch (or create it if it doesn't exist)
+          git fetch origin gh-pages:gh-pages
+          git checkout gh-pages
+  
+          # 3. Clean up any previous documentation for this tag (optional, but safer)
+          rm -rf $TARGET_DIR
+  
+          # 4. Create the versioned directory structure
+          mkdir -p $TARGET_DIR
+  
+          # 5. Copy the generated Javadoc files into the versioned directory
+          cp -r target/reports/apidocs/* $TARGET_DIR/
+  
+          # 6. Add the new directory and files, commit, and push
+          git add $TARGET_DIR
+          git commit -m "Manual Javadoc deployment for tag ${GIT_TAG_NAME} into $TARGET_DIR"
+          git push origin gh-pages
