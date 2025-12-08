@@ -59,8 +59,9 @@ final class KllItemsHelper {
    * The following code is only valid in the special case of exactly reaching capacity while updating.
    * It cannot be used while merging, while reducing k, or anything else.
    * @param itmSk the current KllItemsSketch
+   * @param random the random number generator
    */
-  private static <T> void compressWhileUpdatingSketch(final KllItemsSketch<T> itmSk) {
+  private static <T> void compressWhileUpdatingSketch(final KllItemsSketch<T> itmSk, final Random random) {
     final int level =
         findLevelToCompact(itmSk.getK(), itmSk.getM(), itmSk.getNumLevels(), itmSk.levelsArr);
     if (level == (itmSk.getNumLevels() - 1)) {
@@ -88,9 +89,9 @@ final class KllItemsHelper {
       Arrays.sort((T[])myItemsArr, adjBeg, adjBeg + adjPop, itmSk.comparator);
     }
     if (popAbove == 0) {
-      KllItemsHelper.randomlyHalveUpItems(myItemsArr, adjBeg, adjPop, KllSketch.random);
+      KllItemsHelper.randomlyHalveUpItems(myItemsArr, adjBeg, adjPop, random);
     } else {
-      KllItemsHelper.randomlyHalveDownItems(myItemsArr, adjBeg, adjPop, KllSketch.random);
+      KllItemsHelper.randomlyHalveDownItems(myItemsArr, adjBeg, adjPop, random);
       KllItemsHelper.mergeSortedItemsArrays(
           myItemsArr, adjBeg, halfAdjPop,
           myItemsArr, rawEnd, popAbove,
@@ -125,7 +126,7 @@ final class KllItemsHelper {
 
   //assumes readOnly = false, and UPDATABLE, called from KllItemSketch::merge
   static <T> void mergeItemImpl(final KllItemsSketch<T> mySketch,
-      final KllItemsSketch<T> otherItmSk, final Comparator<? super T> comp) {
+      final KllItemsSketch<T> otherItmSk, final Comparator<? super T> comp, final Random random) {
     if (otherItmSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -142,12 +143,12 @@ final class KllItemsHelper {
 
     //MERGE: update this sketch with level0 items from the other sketch
     if (otherItmSk.isCompactSingleItem()) {
-      updateItem(mySketch, otherItmSk.getSingleItem());
+      updateItem(mySketch, otherItmSk.getSingleItem(), random);
       otherItemsArr = new Object[0];
     } else {
       otherItemsArr = otherItmSk.getTotalItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-       updateItem(mySketch, otherItemsArr[i]);
+       updateItem(mySketch, otherItemsArr[i], random);
       }
     }
 
@@ -179,7 +180,7 @@ final class KllItemsHelper {
 
       // notice that workbuf is being used as both the input and output
       final int[] result = generalItemsCompress(mySketch.getK(), mySketch.getM(), provisionalNumLevels,
-          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), KllSketch.random, comp);
+          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), random, comp);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 
@@ -316,12 +317,12 @@ final class KllItemsHelper {
   }
 
   //Called from KllItemsSketch::update and this
-  static <T> void updateItem(final KllItemsSketch<T> itmSk, final Object item) {
+  static <T> void updateItem(final KllItemsSketch<T> itmSk, final Object item, final Random random) {
     itmSk.updateMinMax((T)item);
     int freeSpace = itmSk.levelsArr[0];
     assert freeSpace >= 0;
     if (freeSpace == 0) {
-      compressWhileUpdatingSketch(itmSk);
+      compressWhileUpdatingSketch(itmSk, random);
       freeSpace = itmSk.levelsArr[0];
       assert (freeSpace > 0);
     }
@@ -333,9 +334,9 @@ final class KllItemsHelper {
   }
 
   //Called from KllItemsSketch::update with weight
-  static <T> void updateItem(final KllItemsSketch<T> itmSk, final T item, final long weight) {
+  static <T> void updateItem(final KllItemsSketch<T> itmSk, final T item, final long weight, final Random random) {
     if (weight < itmSk.levelsArr[0]) {
-      for (int i = 0; i < (int)weight; i++) { updateItem(itmSk, item); }
+      for (int i = 0; i < (int)weight; i++) { updateItem(itmSk, item, random); }
     } else {
       itmSk.updateMinMax(item);
       final KllHeapItemsSketch<T> tmpSk =
