@@ -426,7 +426,7 @@ public final class TDigestDouble {
       return new TDigestDouble(reverseMerge, k, value, value, new double[] {value}, new long[] {1}, 1, null);
     }
     final int numCentroids = posSeg.getInt();
-    posSeg.getInt(); // unused
+    final int numBuffered = posSeg.getInt();
     final double min;
     final double max;
     if (isFloat) {
@@ -444,7 +444,11 @@ public final class TDigestDouble {
       weights[i] = isFloat ? posSeg.getInt() : posSeg.getLong();
       totalWeight += weights[i];
     }
-    return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight, null);
+    final double[] buffered = new double[numBuffered];
+    for (int i = 0; i < numBuffered; i++) {
+      buffered[i] = isFloat ? posSeg.getFloat() : posSeg.getDouble();
+    }
+    return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight, buffered);
   }
 
   // compatibility with the format of the reference implementation
