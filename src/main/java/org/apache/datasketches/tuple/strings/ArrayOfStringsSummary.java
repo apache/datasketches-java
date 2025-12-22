@@ -36,19 +36,16 @@ import org.apache.datasketches.tuple.UpdatableSummary;
  */
 public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
 
-  private String[] stringArr = null;
+  private String[] stringArr = new String[] {}; //empty string array;
 
   /**
    * No argument constructor.
    */
-  ArrayOfStringsSummary() { //required for ArrayOfStringsSummaryFactory
-    stringArr = null;
-  }
+  ArrayOfStringsSummary() {} //required for ArrayOfStringsSummaryFactory
 
   //Used by copy() and in test
   ArrayOfStringsSummary(final String[] stringArr) {
-    this.stringArr = stringArr.clone();
-    checkNumNodes(stringArr.length);
+    update(stringArr);
   }
 
   //used by fromMemorySegment and in test
@@ -87,10 +84,20 @@ public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     this.stringArr = stringArr;
   }
 
+  //From UpdatableSummary
+
+  @Override
+  public final ArrayOfStringsSummary update(final String[] value) {
+      if (value == null) { stringArr = new String[] {}; }
+      else { stringArr = value.clone(); }
+    return this;
+  }
+
+  //From Summary
+
   @Override
   public ArrayOfStringsSummary copy() {
-    final ArrayOfStringsSummary nodes = new ArrayOfStringsSummary(stringArr);
-    return nodes;
+    return new ArrayOfStringsSummary(stringArr);
   }
 
   @Override
@@ -112,16 +119,6 @@ public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     return out;
   }
 
-  //From UpdatableSummary
-
-  @Override
-  public ArrayOfStringsSummary update(final String[] value) {
-    if (stringArr == null) {
-      stringArr = value.clone();
-    }
-    return this;
-  }
-
   //From Object
 
   @Override
@@ -138,6 +135,8 @@ public final class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     final String thisStr = stringConcat(stringArr);
     return thisStr.equals(thatStr);
   }
+
+  //Local
 
   /**
    * Returns the nodes array for this summary.
