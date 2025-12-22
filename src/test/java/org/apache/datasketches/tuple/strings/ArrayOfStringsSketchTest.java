@@ -49,22 +49,30 @@ public class ArrayOfStringsSketchTest {
     for (int i = 0; i < len; i++) {
       sketch1.update(strArrArr[i], strArrArr[i]);
     }
-    sketch1.update(strArrArr[0], strArrArr[0]); //insert duplicate
+    println("Sketch1");
     printSummaries(sketch1.iterator());
-    byte[] array = sketch1.toByteArray();
-    MemorySegment wseg = MemorySegment.ofArray(array);
+    
+    sketch1.update(strArrArr[0], strArrArr[0]); //insert duplicate
+    println("Sketch1 updated with a duplicate");
+    printSummaries(sketch1.iterator());
+    
+    MemorySegment wseg = MemorySegment.ofArray(sketch1.toByteArray());
     ArrayOfStringsTupleSketch sketch2 = new ArrayOfStringsTupleSketch(wseg);
+    println("Sketch2 = Sketch1 via SerDe");
     printSummaries(sketch2.iterator());
-    checkSummaries(sketch2, sketch2);
+    checkSummariesEqual(sketch2, sketch2);
 
     String[] strArr3 = {"g", "h" };
     sketch2.update(strArr3, strArr3);
-
+    println("Sketch2 with a new row");
+    printSummaries(sketch2.iterator());
+    
     TupleUnion<ArrayOfStringsSummary> union = new TupleUnion<>(new ArrayOfStringsSummarySetOperations());
     union.union(sketch1);
     union.union(sketch2);
     CompactTupleSketch<ArrayOfStringsSummary> csk = union.getResult();
-    //printSummaries(csk.iterator());
+    println("Result of union of Sketch1, Sketch2");
+    printSummaries(csk.iterator());
     assertEquals(csk.getRetainedEntries(), 4);
 
     TupleIntersection<ArrayOfStringsSummary> inter =
@@ -72,17 +80,21 @@ public class ArrayOfStringsSketchTest {
     inter.intersect(sketch1);
     inter.intersect(sketch2);
     csk = inter.getResult();
+    println("Intersect Sketch1, Sketch2");
+    printSummaries(csk.iterator());
     assertEquals(csk.getRetainedEntries(), 3);
 
     TupleAnotB<ArrayOfStringsSummary> aNotB =  new TupleAnotB<>();
     aNotB.setA(sketch2);
     aNotB.notB(sketch1);
     csk = aNotB.getResult(true);
+    println("AnotB(Sketch2, Sketch1)");
+    printSummaries(csk.iterator());
     assertEquals(csk.getRetainedEntries(), 1);
 
   }
 
-  private static void checkSummaries(ArrayOfStringsTupleSketch sk1, ArrayOfStringsTupleSketch sk2) {
+  private static void checkSummariesEqual(ArrayOfStringsTupleSketch sk1, ArrayOfStringsTupleSketch sk2) {
     TupleSketchIterator<ArrayOfStringsSummary> it1 = sk1.iterator();
     TupleSketchIterator<ArrayOfStringsSummary> it2 = sk2.iterator();
     while(it1.next() && it2.next()) {
@@ -100,6 +112,7 @@ public class ArrayOfStringsSketchTest {
       }
       println("");
     }
+    println("");
   }
 
   @Test
