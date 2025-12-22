@@ -28,6 +28,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETC
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
@@ -272,12 +273,12 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public final void merge(final KllSketch other) {
+  public final void merge(final KllSketch other, final Random random) {
     if (readOnly || (sketchStructure != UPDATABLE)) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
     if (othDblSk.isEmpty()) { return; }
-    KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
+    KllDoublesHelper.mergeDoubleImpl(this, othDblSk, random);
     doublesSV = null;
   }
 
@@ -323,17 +324,17 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public void update(final double item) {
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    updateDouble(this, item);
+    updateDouble(this, item, random);
     doublesSV = null;
   }
 
   //Also Called from KllDoublesHelper::merge
-  static void updateDouble(final KllDoublesSketch dblSk, final double item) {
+  static void updateDouble(final KllDoublesSketch dblSk, final double item, final Random random) {
     dblSk.updateMinMax(item);
     int freeSpace = dblSk.levelsArr[0];
     assert (freeSpace >= 0);
     if (freeSpace == 0) {
-      KllDoublesHelper.compressWhileUpdatingSketch(dblSk);
+      KllDoublesHelper.compressWhileUpdatingSketch(dblSk, random);
       freeSpace = dblSk.levelsArr[0];
       assert (freeSpace > 0);
     }
@@ -369,9 +370,9 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1L) { updateDouble(this, item); }
+    if (weight == 1L) { updateDouble(this, item, random); }
     else if (weight < levelsArr[0]) {
-      for (int i = 0; i < (int)weight; i++) { updateDouble(this, item); }
+      for (int i = 0; i < (int)weight; i++) { updateDouble(this, item, random); }
     } else {
       final KllHeapDoublesSketch tmpSk = new KllHeapDoublesSketch(getK(), DEFAULT_M, item, weight);
       merge(tmpSk);
@@ -403,7 +404,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     for (int i = offset; i < end; i++) {
       final double v = items[i];
       if (!Double.isNaN(v)) {
-        updateDouble(this, v); //normal path
+        updateDouble(this, v, random); //normal path
         doublesSV = null;
       }
     }
@@ -419,7 +420,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     int count = 0;
     while (count < length) {
       if (levelsArr[0] == 0) {
-        KllDoublesHelper.compressWhileUpdatingSketch(this);
+        KllDoublesHelper.compressWhileUpdatingSketch(this, random);
       }
       final int spaceNeeded = length - count;
       final int freeSpace = levelsArr[0];

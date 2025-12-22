@@ -28,6 +28,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH
 import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.MemorySegmentRequest;
@@ -272,12 +273,12 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
-  public final void merge(final KllSketch other) {
+  public final void merge(final KllSketch other, final Random random) {
     if (readOnly || (sketchStructure != UPDATABLE)) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
     if (othFltSk.isEmpty()) { return; }
-    KllFloatsHelper.mergeFloatImpl(this, othFltSk);
+    KllFloatsHelper.mergeFloatImpl(this, othFltSk, random);
     floatsSV = null;
   }
 
@@ -323,17 +324,17 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   public void update(final float item) {
     if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    updateFloat(this, item);
+    updateFloat(this, item, random);
     floatsSV = null;
   }
 
   //Also Called from KllFloatsHelper::merge
-  static void updateFloat(final KllFloatsSketch fltSk, final float item) {
+  static void updateFloat(final KllFloatsSketch fltSk, final float item, final Random random) {
     fltSk.updateMinMax(item);
     int freeSpace = fltSk.levelsArr[0];
     assert (freeSpace >= 0);
     if (freeSpace == 0) {
-      KllFloatsHelper.compressWhileUpdatingSketch(fltSk);
+      KllFloatsHelper.compressWhileUpdatingSketch(fltSk, random);
       freeSpace = fltSk.levelsArr[0];
       assert (freeSpace > 0);
     }
@@ -369,9 +370,9 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1L) { updateFloat(this, item); }
+    if (weight == 1L) { updateFloat(this, item, random); }
     else if (weight < levelsArr[0]) {
-      for (int i = 0; i < (int)weight; i++) { updateFloat(this, item); }
+      for (int i = 0; i < (int)weight; i++) { updateFloat(this, item, random); }
     } else {
       final KllHeapFloatsSketch tmpSk = new KllHeapFloatsSketch(getK(), DEFAULT_M, item, weight);
       merge(tmpSk);
@@ -403,7 +404,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     for (int i = offset; i < end; i++) {
       final float v = items[i];
       if (!Float.isNaN(v)) {
-        updateFloat(this, v); //normal path
+        updateFloat(this, v, random); //normal path
         floatsSV = null;
       }
     }
@@ -419,7 +420,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     int count = 0;
     while (count < length) {
       if (levelsArr[0] == 0) {
-        KllFloatsHelper.compressWhileUpdatingSketch(this);
+        KllFloatsHelper.compressWhileUpdatingSketch(this, random);
       }
       final int spaceNeeded = length - count;
       final int freeSpace = levelsArr[0];

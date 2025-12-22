@@ -29,6 +29,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -262,12 +263,12 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public final void merge(final KllSketch other) {
+  public final void merge(final KllSketch other, final Random random) {
     if (readOnly || (sketchStructure != UPDATABLE)) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllItemsSketch<T> othItmSk = (KllItemsSketch<T>)other;
     if (othItmSk.isEmpty()) { return; }
-    KllItemsHelper.mergeItemImpl(this, othItmSk, comparator);
+    KllItemsHelper.mergeItemImpl(this, othItmSk, comparator, random);
     itemsSV = null;
   }
 
@@ -309,7 +310,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public void update(final T item) {
     if (item == null) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    KllItemsHelper.updateItem(this, item);
+    KllItemsHelper.updateItem(this, item, random);
     itemsSV = null;
   }
 
@@ -322,8 +323,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     if (item == null) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
-    if (weight == 1L) { KllItemsHelper.updateItem(this, item); }
-    else { KllItemsHelper.updateItem(this, item, weight); }
+    if (weight == 1L) { KllItemsHelper.updateItem(this, item, random); }
+    else { KllItemsHelper.updateItem(this, item, weight, random); }
     itemsSV = null;
   }
 
