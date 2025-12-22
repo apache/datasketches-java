@@ -36,7 +36,7 @@ public class ArrayOfStringsSummary_Issue699 {
   @Test
   void checkCopy() {
     ArrayOfStringsSummary aoss = new ArrayOfStringsSummary();
-    ArrayOfStringsSummary aoss2 = aoss.copy();
+    aoss.copy(); //if null this will throw
   }
   
   @Test
