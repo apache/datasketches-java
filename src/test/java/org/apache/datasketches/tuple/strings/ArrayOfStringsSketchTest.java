@@ -47,12 +47,12 @@ public class ArrayOfStringsSketchTest {
     String[][] strArrArr = {{"a","b"},{"c","d"},{"e","f"}};
     int len = strArrArr.length;
     for (int i = 0; i < len; i++) {
-      sketch1.update(strArrArr[i], strArrArr[i]);
+      sketch1.update(i, strArrArr[i]);
     }
     println("Sketch1");
     printSummaries(sketch1.iterator());
     
-    sketch1.update(strArrArr[0], strArrArr[0]); //insert duplicate
+    sketch1.update(0, strArrArr[0]); //insert duplicate
     println("Sketch1 updated with a duplicate");
     printSummaries(sketch1.iterator());
     
@@ -60,10 +60,10 @@ public class ArrayOfStringsSketchTest {
     ArrayOfStringsTupleSketch sketch2 = new ArrayOfStringsTupleSketch(wseg);
     println("Sketch2 = Sketch1 via SerDe");
     printSummaries(sketch2.iterator());
-    checkSummariesEqual(sketch2, sketch2);
+    checkSummariesEqual(sketch1, sketch2);
 
     String[] strArr3 = {"g", "h" };
-    sketch2.update(strArr3, strArr3);
+    sketch2.update(3, strArr3);
     println("Sketch2 with a new row");
     printSummaries(sketch2.iterator());
     
@@ -121,7 +121,7 @@ public class ArrayOfStringsSketchTest {
     String[][] strArrArr = {{"a","b"},{"c","d"},{"e","f"}};
     int len = strArrArr.length;
     for (int i = 0; i < len; i++) {
-      sk1.update(strArrArr[i], strArrArr[i]);
+      sk1.update(i, strArrArr[i]);
     }
     assertEquals(sk1.getRetainedEntries(), 3);
     final ArrayOfStringsTupleSketch sk2 = sk1.copy();
