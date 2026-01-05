@@ -15,6 +15,7 @@
 
 # Additional tools
 .clover/
+.mvn/
 
 # OSX files
 **/.DS_Store
