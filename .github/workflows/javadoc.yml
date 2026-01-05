@@ -30,7 +30,7 @@ jobs:
         with:
           java-version: '25'
           distribution: 'temurin'
-          cache: 'maven' 
+          cache: 'maven'
 
       - name: Build and Generate Javadoc  # POM is configured to output to target/site/apidocs
         run: mvn javadoc:javadoc
@@ -80,4 +80,3 @@ jobs:
       - name: Confirm Deployment
         if: success()
         run: echo "Javadoc for ${{ github.event.inputs.tag_ref }} is now live on gh-pages."
-
