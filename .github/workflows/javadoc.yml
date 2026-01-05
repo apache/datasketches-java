@@ -10,7 +10,7 @@ on:
       tag_ref:
         description: 'Existing Git Tag to deploy (e.g., 1.0.0):'
         required: true
-	default: '99.0.0' # unlikely to conflict if accidentally used. Can be left blank
+        default: '99.0.0' # unlikely to conflict if accidentally used. Can be left blank
 
 jobs:
   build-and-deploy-javadoc:
