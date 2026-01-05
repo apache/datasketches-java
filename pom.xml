@@ -28,7 +28,7 @@ under the License.
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>32</version>
+    <version>35</version>
   </parent>
 
   <groupId>org.apache.datasketches</groupId>
@@ -92,8 +92,6 @@ under the License.
     <!-- System-wide properties -->
     <maven.version>3.9.11</maven.version>
     <java.version>25</java.version>
-    <!-- Reproducable Builds, arbitrary, fixed date 
-    <project.build.outputTimestamp>2025-12-01T00:00:00Z</project.build.outputTimestamp> -->
     <!-- removed: g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8 -->
     <jvm.options>-Xmx4g</jvm.options> <!-- use space to separate args -->
     <charset.encoding>UTF-8</charset.encoding>
@@ -103,18 +101,7 @@ under the License.
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss'Z'</maven.build.timestamp.format>
 
     <!--  org.apache.maven plugins -->
-    <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
-    <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
-    <maven-dependency-plugin.version>3.9.0</maven-dependency-plugin.version>
-    <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
-    <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
-    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version> <!--3.5.0 fails -->
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-    <maven-release-plugin.version>3.2.0</maven-release-plugin.version>
-    <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <!-- for surefire, failsafe and surefire-report: -->
-    <maven-surefire-failsafe-plugins.version>3.5.4</maven-surefire-failsafe-plugins.version>
     <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
     <!-- com.github plugins -->
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
@@ -147,13 +134,11 @@ under the License.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>${maven-assembly-plugin.version}</version>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <fork>true</fork>
           <release>${java.version}</release>
@@ -166,7 +151,6 @@ under the License.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>${maven-dependency-plugin.version}</version>
       </plugin>
 
       <plugin>
@@ -174,13 +158,11 @@ under the License.
         <!-- Apache Parent pom: apache-release profile -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven-deploy-plugin.version}</version>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>${maven-enforcer-plugin.version}</version>
         <executions>
           <execution>
             <id>enforce-banned-dependencies</id>
@@ -212,7 +194,6 @@ under the License.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven-jar-plugin.version}</version>
         <executions>
           <execution>
             <id>default-jar</id>
@@ -234,12 +215,10 @@ under the License.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc-plugin.version}</version>
+        <version>${maven-javadoc-plugin.version}</version><!--$NO-MVN-MAN-VER$-->
         <configuration>
           <outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
-          <reportOutputDirectory>${project.reporting.outputDirectory}</reportOutputDirectory>
           <jarOutputDirectory>${project.reporting.outputDirectory}</jarOutputDirectory>
-          <destDir>apidocs</destDir>
           <docfilessubdirs>true</docfilessubdirs>
           <show>public</show>
           <doclint>all,-missing</doclint>
@@ -261,13 +240,11 @@ under the License.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>${maven-release-plugin.version}</version>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>${maven-source-plugin.version}</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -289,7 +266,6 @@ under the License.
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-failsafe-plugins.version}</version>
         <configuration>
           <forkCount>1</forkCount>
           <reuseForks>true</reuseForks>
@@ -326,7 +302,7 @@ ${testng.check-cpp-historical-files}</excludedGroups> <!-- do not indent -->
       <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
-        <version>${apache-rat-plugin.version}</version>
+        <version>${apache-rat-plugin.version}</version><!--$NO-MVN-MAN-VER$-->
         <executions>
           <execution>
             <phase>verify</phase>
@@ -511,7 +487,6 @@ ${testng.check-cpp-historical-files}</excludedGroups> <!-- do not indent -->
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-gpg-plugin</artifactId>
-              <version>${maven-gpg-plugin.version}</version>
               <executions>
                 <execution>
                   <id>sign-artifacts</id>
