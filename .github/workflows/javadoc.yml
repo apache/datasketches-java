@@ -8,17 +8,16 @@ on:
   workflow_dispatch:
     inputs:
       tag_ref:
-        description: 'Existing Git Tag to deploy (e.g., 1.0.0)'
+        description: 'Existing Git Tag to deploy (e.g., 1.0.0):'
         required: true
-        default: '1.0.0' # Default can be left blank or set to a placeholder
+        # Default can be left blank or set to a placeholder
+        default: '99.0.0' # unlikely to conflict if accidentally used.
 
 jobs:
   build-and-deploy-javadoc:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pages: write
-      id-token: write
 
   steps:
     - name: Checkout Code at Specified Tag
@@ -35,33 +34,45 @@ jobs:
         cache: 'maven' 
 
     - name: Build and Generate Javadoc
+      # POM is configured to output to target/site/apidocs
       run: mvn javadoc:javadoc
 
-    - name: Deploy Javadoc to gh-pages/docs/${TAG}
+    - name: Deploy Javadoc via Worktree
       env:
-        GH_PAGES_EMAIL: noreply@github.com
-        GH_PAGES_NAME: github-actions[bot]
-        GIT_TAG_NAME: ${{ github.event.inputs.tag_ref }}
-        TARGET_DIR: docs/${{ github.event.inputs.tag_ref }}
+        TAG_NAME: ${{ github.event.inputs.tag_ref }}
+
       run: |
-        # 1. Configure Git user
-        git config user.email "${GH_PAGES_EMAIL}"
-        git config user.name "${GH_PAGES_NAME}"
+      # 1. Configure Git Identity
+        git config user.email "noreply@github.com"
+        git config user.name "github-actions[bot]"
 
-        # 2. Fetch and checkout the existing gh-pages branch
-        git fetch origin gh-pages:gh-pages
-        git checkout gh-pages
+      # 2. Ensure gh-pages exists and is fetched
+        git fetch origin gh-pages --depth=1 || git branch gh-pages
+        
+      # 3. Create a worktree for the gh-pages branch in a separate folder
+      # This prevents switching the main directory and losing the 'target' folder
+        git worktree add ./gh-pages-dir origin/gh-pages
+        
+      # 4. Prepare the target directory inside the worktree
+        TARGET_PATH="gh-pages-dir/docs/$TAG_NAME"
+        mkdir -p $TARGET_PATH
+        
+      # 5. Copy the generated docs (using . to copy contents, not the folder itself)
+        cp -a target/site/apidocs/. $TARGET_PATH/
+        
+      # 6. Commit and Push from the worktree directory
+        cd gh-pages-dir
+        git add .
 
-        # 3. Clean up any previous documentation for this tag (optional, but safer)
-        rm -rf $TARGET_DIR
+        # Only commit and push if there are actual changes
+        if git diff --staged --quiet; then
+          echo "No changes detected for Javadoc $TAG_NAME."
+        else
+          git commit -m "Manual Javadoc deployment for tag $TAG_NAME"
+          git push origin gh-pages
+        fi
 
-        # 4. Create the versioned directory structure
-        mkdir -p $TARGET_DIR
+      # 7. Cleanup the worktree
+        cd ..
+        git worktree remove ./gh-pages-dir
 
-        # 5. Copy the generated Javadoc files into the versioned directory
-        cp -r target/reports/apidocs/* $TARGET_DIR/
-
-        # 6. Add the new directory and files, commit, and push
-        git add $TARGET_DIR
-        git commit -m "Manual Javadoc deployment for tag ${GIT_TAG_NAME} into $TARGET_DIR"
-        git push origin gh-pages
