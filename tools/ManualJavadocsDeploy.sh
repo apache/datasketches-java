@@ -19,8 +19,10 @@ EXIT_CODE=0
   mkdir -p "$TARGET_PATH"
   cp -a target/site/apidocs/. "$TARGET_PATH/"
   cd gh-pages-dir
+  
   echo "ECHO: git pull origin gh-pages --rebase"
   git pull origin gh-pages --rebase
+
   echo "ECHO: git add docs/$TAG_NAME"
   git add "docs/$TAG_NAME"
   
@@ -41,7 +43,12 @@ EXIT_CODE=0
 echo "ECHO: Cleaning up worktree..."
 git worktree remove --force ./gh-pages-dir || true
 
-# Final exit based on subshell success
+# Check the exit code and report success or failure
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "ECHO: Javadoc for $TAG_NAME is now live on gh-pages."
+else
+  echo "ECHO: Javadoc deployment failed for $TAG_NAME."
+fi
+
+# Final exit
 exit $EXIT_CODE
-if: success()
-run: echo "ECHO: Javadoc for $TAG_NAME is now live on gh-pages."
