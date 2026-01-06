@@ -4,13 +4,13 @@ set -e
 TAG_NAME="test"
 # Build and Generate Javadoc
 # POM is configured to output to target/site/apidocs
-echo "mvn clean javadoc:javadoc"
+echo "ECHO: mvn clean javadoc:javadoc"
 mvn clean javadoc:javadoc
 
-echo "git fetch origin gh-pages"
+echo "ECHO: git fetch origin gh-pages"
 git fetch origin gh-pages
 
-echo "Create worktree"
+echo "ECHO: Create worktree"
 git worktree add ./gh-pages-dir origin/gh-pages
 EXIT_CODE=0
 (
@@ -22,20 +22,23 @@ EXIT_CODE=0
   git add "docs/$TAG_NAME"
   
   if git diff --staged --quiet; then
-    echo "No changes detected for Javadoc $TAG_NAME."
+    echo "ECHO: No changes detected for Javadoc $TAG_NAME."
   else
-    echo "Changes detected for Javadoc $TAG_NAME."
+    echo "ECHO: Changes detected for Javadoc $TAG_NAME."
+    echo "ECHO: git status:"
     git status
+    echo "ECHO: git commit ..."
     git commit -m "Manual Javadoc deployment for tag $TAG_NAME"
+    echo "ECHO: git push origin gh-pages"
     git push origin gh-pages
   fi
 ) || EXIT_CODE=$?
 
 # Cleanup
-echo "Cleaning up worktree..."
+echo "ECHO: Cleaning up worktree..."
 git worktree remove --force ./gh-pages-dir || true
 
 # Final exit based on subshell success
 exit $EXIT_CODE
 if: success()
-run: echo "Javadoc for $TAG_NAME is now live on gh-pages."
+run: echo "ECHO: Javadoc for $TAG_NAME is now live on gh-pages."
