@@ -3,6 +3,7 @@ name: Deploy Versioned Javadoc (Manual Trigger)
 # Select the target TAG where to run the workflow from.
 # This TAG name becomes the subdirectory under branch gh-pages/docs/${TAG}
 #   where the javadocs will be copied to.
+# The gh-pages/docs branch/folder must exist.
 
 on:
   workflow_dispatch:
@@ -47,25 +48,31 @@ jobs:
           git config user.name "github-actions[bot]"
           
           # 3. Ensure gh-pages exists and is fetched
-          git fetch origin gh-pages --depth=1 || git branch gh-pages
+          echo "git fetch origin gh-pages"
+          git fetch origin gh-pages
           
           # 4. Create worktree for the gh-pages branch in a separate folder
+          echo "git worktree add ./gh-pages-dir origin/gh-pages"
           git worktree add ./gh-pages-dir origin/gh-pages
           
           # 5. Deployment Logic in a subshell to capture exit code
           (
-            set -e # Exit subshell on any internal error
-            TARGET_PATH="gh-pages-dir/docs/$TAG_NAME" # target directory inside the worktree
+            set -e
+            TARGET_PATH="gh-pages-dir/docs/$TAG_NAME"
             mkdir -p "$TARGET_PATH"
+            echo "cp -a target/site/apidocs/. $TARGET_PATH/"
             cp -a target/site/apidocs/. "$TARGET_PATH/"
-            
             cd gh-pages-dir
-            git add .
+            echo "git add docs/$TAG_NAME"
+            git add "docs/$TAG_NAME"
             
             if git diff --staged --quiet; then
               echo "No changes detected for Javadoc $TAG_NAME."
             else
+              echo "Changes detected for Javadoc $TAG_NAME."
+              echo "git commit ..."
               git commit -m "Manual Javadoc deployment for tag $TAG_NAME"
+              echo "git push origin gh-pages"
               git push origin gh-pages
             fi
           ) || EXIT_CODE=$?
