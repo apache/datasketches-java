@@ -11,7 +11,7 @@ echo "ECHO: git fetch origin gh-pages"
 git fetch origin gh-pages
 
 echo "ECHO: Create worktree"
-git worktree add ./gh-pages-dir origin/gh-pages
+git worktree add -B gh-pages ./gh-pages-dir origin/gh-pages
 EXIT_CODE=0
 (
   set -e
