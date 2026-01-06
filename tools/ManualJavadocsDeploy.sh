@@ -19,6 +19,9 @@ EXIT_CODE=0
   mkdir -p "$TARGET_PATH"
   cp -a target/site/apidocs/. "$TARGET_PATH/"
   cd gh-pages-dir
+  echo "ECHO: git pull origin gh-pages --rebase"
+  git pull origin gh-pages --rebase
+  echo "ECHO: git add docs/$TAG_NAME"
   git add "docs/$TAG_NAME"
   
   if git diff --staged --quiet; then
