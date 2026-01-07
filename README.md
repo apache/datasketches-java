@@ -20,22 +20,23 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java)
 [![Coverage Status](https://coveralls.io/repos/github/apache/datasketches-java/badge.svg)](https://coveralls.io/github/apache/datasketches-java)
 
-=================
+-----------------
 
-# Apache<sup>&reg;</sup> DataSketches&trade; Core Java Library Component
+# Apache® DataSketches™ Core Java Library Component
+
 This is the core Java component of the DataSketches library.  It contains all of the sketching algorithms and can be accessed directly from user applications. 
 
 This component is also a dependency of other components of the library that create adaptors for target systems, such as the [Apache Pig adaptor](https://github.com/apache/datasketches-pig), the [Apache Hive adaptor](https://github.com/apache/datasketches-hive), and others.
 
-Note that we have parallel core library components for C++, Python and GO implementations of many of the same sketch algorithms:
+Note that we have parallel core library components for C++, Python, and GO implementations of many of the same sketch algorithms:
 
-- [datasketches-cpp](https://github.com/apache/datasketches-cpp), 
-- [datasketches-python](https://github.com/apache/datasketches-python),
-- [datasketches-go](https://github.com/apache/datasketches-go).
+- [datasketches-cpp](https://github.com/apache/datasketches-cpp)
+- [datasketches-python](https://github.com/apache/datasketches-python)
+- [datasketches-go](https://github.com/apache/datasketches-go)
 
 Please visit the main [DataSketches website](https://datasketches.apache.org) for more information.
 
-If you are interested in making contributions to this site please see our [Community](https://datasketches.apache.org/docs/Community/) page for how to contact us.
+If you are interested in making contributions to this site, please see our [Community](https://datasketches.apache.org/docs/Community/) page for how to contact us.
 
 
 ## Build & Runtime Dependencies
@@ -76,7 +77,7 @@ This will create the following jars:
 
 ### SpotBugs
 
-* Make sure you configure SpotBugs with the /tools/FindBugsExcludeFilter.xml file. Otherwise, you may get a lot of false positive or low risk issues that we have examined and eliminated with this exclusion file.
+* Make sure you configure SpotBugs with the `/tools/FindBugsExcludeFilter.xml` file. Otherwise, you may get a lot of false positive or low risk issues that we have examined and eliminated with this exclusion file.
 
 ### Checkstyle
 
