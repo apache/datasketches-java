@@ -272,7 +272,7 @@ public final class BinomialBoundsN {
           "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="
               + numSDev + ", numSamples=" + numSamples);
     }
-    if ((theta < 0.0) || (theta > 1.0)) {
+    if ((theta <= 0.0) || (theta > 1.0)) {
       throw new SketchesArgumentException("0.0 < theta <= 1.0: " + theta);
     }
   }

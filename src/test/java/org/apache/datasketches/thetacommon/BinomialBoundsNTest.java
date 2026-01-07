@@ -25,6 +25,7 @@ import static org.apache.datasketches.thetacommon.BinomialBoundsN.getUpperBound;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.testng.Assert.assertThrows;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.BinomialBoundsN;
@@ -119,17 +120,17 @@ public class BinomialBoundsNTest {
 
   @Test
   public static void checkCheckArgs() {
-    try {
-      checkArgs(-1L, 1.0, 1);
-      checkArgs(10L, 0.0, 1);
-      checkArgs(10L, 1.01, 1);
-      checkArgs(10L, 1.0, 3);
-      checkArgs(10L, 1.0, 0);
-      checkArgs(10L, 1.0, 4);
-      fail("Expected SketchesArgumentException");
-    } catch (final SketchesArgumentException e) {
-      //pass
-    }
+    assertThrows(SketchesArgumentException.class,
+      () -> checkArgs(-1L, 1.0, 1));
+    assertThrows(SketchesArgumentException.class,
+      () -> checkArgs(10L, 0.0, 1));
+    assertThrows(SketchesArgumentException.class,
+      () -> checkArgs(10L, 1.01, 1));
+    checkArgs(10L, 1.0, 3);
+    assertThrows(SketchesArgumentException.class,
+      () -> checkArgs(10L, 1.0, 0));
+    assertThrows(SketchesArgumentException.class,
+      () -> checkArgs(10L, 1.0, 4));
   }
 
   @Test
