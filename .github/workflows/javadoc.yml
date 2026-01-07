@@ -93,5 +93,6 @@ jobs:
 
       - name: Confirm Deployment
         if: success()
-        run: echo "ECHO: Javadoc for ${{ github.event.inputs.tag_ref }} is now live on gh-pages."
+        run: |
+          echo "ECHO: Javadoc for ${{ github.event.inputs.tag_ref }} is now live on gh-pages."
 
