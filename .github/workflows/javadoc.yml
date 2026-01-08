@@ -41,38 +41,38 @@ jobs:
           TAG_NAME: ${{ github.event.inputs.tag_ref }}
         run: |
           if [ -z "$TAG_NAME" ]; then echo "ERROR: No tag specified"; exit 1; fi
-          
+
           # 1. Initialize error tracking
           EXIT_CODE=0
-          
+
           # 2. Configure Git Identity
           git config user.email "noreply@github.com"
           git config user.name "github-actions[bot]"
-          
+
           # 3. Ensure gh-pages exists and is fetched
           echo "ECHO: git fetch origin gh-pages"
           git fetch origin gh-pages
-          
+
           # 4. Create worktree for the gh-pages branch in a separate folder
           echo "ECHO: git worktree add -B gh-pages ./gh-pages-dir origin/gh-pages"
           git worktree add -B gh-pages ./gh-pages-dir origin/gh-pages
-          
+
           # 5. Deployment Logic in a subshell to capture exit code
           (
             set -e
             TARGET_PATH="gh-pages-dir/docs/$TAG_NAME"
             mkdir -p "$TARGET_PATH"
-            
+
             echo "ECHO: cp -a target/site/apidocs/. $TARGET_PATH/"
             cp -a target/site/apidocs/. "$TARGET_PATH/"
             cd gh-pages-dir
-            
+
             echo "ECHO: git pull origin gh-pages --rebase"
             git pull origin gh-pages --rebase
-            
+
             echo "git add docs/$TAG_NAME"
             git add "docs/$TAG_NAME"
-            
+
             if git diff --staged --quiet; then
               echo "No changes detected for Javadoc $TAG_NAME."
             else
@@ -83,11 +83,11 @@ jobs:
               git push origin gh-pages
             fi
           ) || EXIT_CODE=$?
-          
+
           # 6. Cleanup (Always runs)
           echo "ECHO: Cleaning up worktree..."
           git worktree remove --force ./gh-pages-dir || true
-          
+
           # 7. Final exit based on subshell success
           exit $EXIT_CODE
 
