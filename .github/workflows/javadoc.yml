@@ -3,20 +3,21 @@ name: Deploy Versioned Javadoc (Manual Trigger)
 # Select the target TAG where to run the workflow from.
 # This TAG name becomes the subdirectory under branch gh-pages/docs/${TAG}
 #   where the javadocs will be copied to.
+# The gh-pages/docs branch/folder must exist.
 
 on:
   workflow_dispatch:
     inputs:
       tag_ref:
-        description: 'Existing Git Tag to deploy (e.g., 1.0.0)'
+        description: 'Existing Git Tag to deploy (e.g., 1.0.0):'
         required: true
-        default: '1.0.0' # Default can be left blank or set to a placeholder
+        default: '99.0.0' # unlikely to conflict if accidentally used. Can be left blank
 
 jobs:
   build-and-deploy-javadoc:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Sufficient for checkout and pushing to gh-pages
+      contents: write
 
     steps:
       - name: Checkout Code at Specified Tag
@@ -30,37 +31,68 @@ jobs:
         with:
           java-version: '25'
           distribution: 'temurin'
-          cache: 'maven' 
-  
-      - name: Build and Generate Javadoc
-        run: mvn javadoc:javadoc
-  
-      - name: Deploy Javadoc to gh-pages/docs/${TAG}
+          cache: 'maven'
+
+      - name: Build and Generate Javadoc  # POM is configured to output to target/site/apidocs
+        run: mvn clean javadoc:javadoc
+
+      - name: Deploy Javadoc via Worktree
         env:
-          GH_PAGES_EMAIL: noreply@github.com
-          GH_PAGES_NAME: github-actions[bot]
-          GIT_TAG_NAME: ${{ github.event.inputs.tag_ref }}
-          TARGET_DIR: docs/${{ github.event.inputs.tag_ref }}
-          
+          TAG_NAME: ${{ github.event.inputs.tag_ref }}
         run: |
-          # 1. Configure Git user
-          git config user.email "${GH_PAGES_EMAIL}"
-          git config user.name "${GH_PAGES_NAME}"
-  
-          # 2. Fetch and checkout the existing gh-pages branch (or create it if it doesn't exist)
-          git fetch origin gh-pages:gh-pages
-          git checkout gh-pages
-  
-          # 3. Clean up any previous documentation for this tag (optional, but safer)
-          rm -rf $TARGET_DIR
-  
-          # 4. Create the versioned directory structure
-          mkdir -p $TARGET_DIR
-  
-          # 5. Copy the generated Javadoc files into the versioned directory
-          cp -r target/reports/apidocs/* $TARGET_DIR/
-  
-          # 6. Add the new directory and files, commit, and push
-          git add $TARGET_DIR
-          git commit -m "Manual Javadoc deployment for tag ${GIT_TAG_NAME} into $TARGET_DIR"
-          git push origin gh-pages
+          if [ -z "$TAG_NAME" ]; then echo "ERROR: No tag specified"; exit 1; fi
+
+          # 1. Initialize error tracking
+          EXIT_CODE=0
+
+          # 2. Configure Git Identity
+          git config user.email "noreply@github.com"
+          git config user.name "github-actions[bot]"
+
+          # 3. Ensure gh-pages exists and is fetched
+          echo "ECHO: git fetch origin gh-pages"
+          git fetch origin gh-pages
+
+          # 4. Create worktree for the gh-pages branch in a separate folder
+          echo "ECHO: git worktree add -B gh-pages ./gh-pages-dir origin/gh-pages"
+          git worktree add -B gh-pages ./gh-pages-dir origin/gh-pages
+
+          # 5. Deployment Logic in a subshell to capture exit code
+          (
+            set -e
+            TARGET_PATH="gh-pages-dir/docs/$TAG_NAME"
+            mkdir -p "$TARGET_PATH"
+
+            echo "ECHO: cp -a target/site/apidocs/. $TARGET_PATH/"
+            cp -a target/site/apidocs/. "$TARGET_PATH/"
+            cd gh-pages-dir
+
+            echo "ECHO: git pull origin gh-pages --rebase"
+            git pull origin gh-pages --rebase
+
+            echo "git add docs/$TAG_NAME"
+            git add "docs/$TAG_NAME"
+
+            if git diff --staged --quiet; then
+              echo "No changes detected for Javadoc $TAG_NAME."
+            else
+              echo "ECHO: Changes detected for Javadoc $TAG_NAME."
+              echo "ECHO: git commit ..."
+              git commit -m "Manual Javadoc deployment for tag $TAG_NAME"
+              echo "ECHO: git push origin gh-pages"
+              git push origin gh-pages
+            fi
+          ) || EXIT_CODE=$?
+
+          # 6. Cleanup (Always runs)
+          echo "ECHO: Cleaning up worktree..."
+          git worktree remove --force ./gh-pages-dir || true
+
+          # 7. Final exit based on subshell success
+          exit $EXIT_CODE
+
+      - name: Confirm Deployment
+        if: success()
+        run: |
+          echo "ECHO: Javadoc for ${{ github.event.inputs.tag_ref }} is now live on gh-pages."
+
