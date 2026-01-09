@@ -55,7 +55,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update(i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_longs_n_exact" + n + "_k" + k + "_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_longs_exact_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray());
     }
   }
@@ -78,7 +78,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_longs_n" + n + "_k" + k + "_sampling_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_longs_sampling_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray());
     }
   }
@@ -102,7 +102,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update((long) i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_long_n_exact" + n + "_k" + k + "_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_items_long_exact_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
@@ -125,7 +125,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_long_n" + n + "_k" + k + "_sampling_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_items_long_sampling_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
@@ -149,7 +149,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update((double) i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_double_n_exact" + n + "_k" + k + "_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_items_double_exact_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray(new ArrayOfDoublesSerDe()));
     }
   }
@@ -172,7 +172,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_double_n" + n + "_k" + k + "_sampling_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_items_double_sampling_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray(new ArrayOfDoublesSerDe()));
     }
   }
@@ -196,7 +196,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update("item" + i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_string_n_exact" + n + "_k" + k + "_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_items_string_exact_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
@@ -219,7 +219,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_string_n" + n + "_k" + k + "_sampling_java.sk"))
+      Files.newOutputStream(javaPath.resolve("reservoir_items_string_sampling_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
