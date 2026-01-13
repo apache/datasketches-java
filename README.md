@@ -17,7 +17,7 @@
     under the License.
 -->
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.apache.datasketches/datasketches-java)
+[![Maven Central](https://img.shields.io/maven-central/v/org.apache.datasketches/datasketches-java)](https://central.sonatype.com/artifact/org.apache.datasketches/datasketches-java/9.0.0/versions)
 [![Coverage Status](https://coveralls.io/repos/github/apache/datasketches-java/badge.svg)](https://coveralls.io/github/apache/datasketches-java)
 
 -----------------
