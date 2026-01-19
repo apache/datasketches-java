@@ -114,7 +114,7 @@ public class ReservoirCrossLanguageTest {
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
 
-    for (final int maxK : maxKArr) {
+    for (int maxK : maxKArr) {
       long[] predeterminedSamples = new long[maxK];
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples[i] = i * 2;
@@ -305,7 +305,7 @@ public class ReservoirCrossLanguageTest {
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
 
-    for (final int maxK : maxKArr) {
+    for (int maxK : maxKArr) {
       ArrayList<Long> predeterminedSamples = new ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add((long) (i * 2));
@@ -355,7 +355,7 @@ public class ReservoirCrossLanguageTest {
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
 
-    for (final int maxK : maxKArr) {
+    for (int maxK : maxKArr) {
       ArrayList<Double> predeterminedSamples = new ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add((double) (i * 2));
@@ -405,7 +405,7 @@ public class ReservoirCrossLanguageTest {
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
 
-    for (final int maxK : maxKArr) {
+    for (int maxK : maxKArr) {
       ArrayList<String> predeterminedSamples = new ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add("item" + (i * 2));
