@@ -22,6 +22,7 @@ package org.apache.datasketches.sampling;
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ResizeFactor;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -74,12 +75,62 @@ public class ReservoirCrossLanguageTest {
       final ReservoirLongsSketch sk = ReservoirLongsSketch.getInstance(
           predeterminedSamples,
           n,
-          org.apache.datasketches.common.ResizeFactor.X8,
+          ResizeFactor.X8,
           k
       );
 
       Files.newOutputStream(javaPath.resolve("reservoir_longs_sampling_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray());
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirLongsUnionEmpty() throws IOException {
+    final int maxK = 128;
+    final ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
+
+    Files.newOutputStream(javaPath.resolve("reservoir_longs_union_empty_maxk" + maxK + "_java.sk"))
+        .write(union.toByteArray());
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirLongsUnionExact() throws IOException {
+    final int maxK = 128;
+    final int[] nArr = {1, 10, 32, 100, 128};
+
+    for (final int n : nArr) {
+      final ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
+      for (int i = 0; i < n; i++) {
+        union.update(i);
+      }
+      Files.newOutputStream(javaPath.resolve("reservoir_longs_union_exact_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray());
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirLongsUnionSampling() throws IOException {
+    final int[] maxKArr = {32, 64, 128};
+    final long n = 1000;
+
+    for (final int maxK : maxKArr) {
+      final long[] predeterminedSamples = new long[maxK];
+      for (int i = 0; i < maxK; i++) {
+        predeterminedSamples[i] = i * 2;
+      }
+
+      final ReservoirLongsSketch sk = ReservoirLongsSketch.getInstance(
+          predeterminedSamples,
+          n,
+          ResizeFactor.X8,
+          maxK
+      );
+
+      final ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
+      union.update(sk);
+
+      Files.newOutputStream(javaPath.resolve("reservoir_longs_union_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray());
     }
   }
 
@@ -121,7 +172,7 @@ public class ReservoirCrossLanguageTest {
       final ReservoirItemsSketch<Long> sk = ReservoirItemsSketch.newInstance(
           predeterminedSamples,
           n,
-          org.apache.datasketches.common.ResizeFactor.X8,
+          ResizeFactor.X8,
           k
       );
 
@@ -168,7 +219,7 @@ public class ReservoirCrossLanguageTest {
       final ReservoirItemsSketch<Double> sk = ReservoirItemsSketch.newInstance(
           predeterminedSamples,
           n,
-          org.apache.datasketches.common.ResizeFactor.X8,
+          ResizeFactor.X8,
           k
       );
 
@@ -215,12 +266,162 @@ public class ReservoirCrossLanguageTest {
       final ReservoirItemsSketch<String> sk = ReservoirItemsSketch.newInstance(
           predeterminedSamples,
           n,
-          org.apache.datasketches.common.ResizeFactor.X8,
+          ResizeFactor.X8,
           k
       );
 
       Files.newOutputStream(javaPath.resolve("reservoir_items_string_sampling_n" + n + "_k" + k + "_java.sk"))
           .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionLongEmpty() throws IOException {
+    final int maxK = 128;
+    final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
+
+    Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_empty_maxk" + maxK + "_java.sk"))
+        .write(union.toByteArray(new ArrayOfLongsSerDe()));
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionLongExact() throws IOException {
+    final int maxK = 128;
+    final int[] nArr = {1, 10, 32, 100, 128};
+
+    for (final int n : nArr) {
+      final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
+      for (int i = 0; i < n; i++) {
+        union.update((long) i);
+      }
+      Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_exact_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray(new ArrayOfLongsSerDe()));
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionLongSampling() throws IOException {
+    final int[] maxKArr = {32, 64, 128};
+    final long n = 1000;
+
+    for (final int maxK : maxKArr) {
+      final java.util.ArrayList<Long> predeterminedSamples = new java.util.ArrayList<>();
+      for (int i = 0; i < maxK; i++) {
+        predeterminedSamples.add((long) (i * 2));
+      }
+
+      final ReservoirItemsSketch<Long> sk = ReservoirItemsSketch.newInstance(
+          predeterminedSamples,
+          n,
+          ResizeFactor.X8,
+          maxK
+      );
+
+      final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
+      union.update(sk);
+
+      Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray(new ArrayOfLongsSerDe()));
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionDoubleEmpty() throws IOException {
+    final int maxK = 128;
+    final ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
+
+    Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_empty_maxk" + maxK + "_java.sk"))
+        .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionDoubleExact() throws IOException {
+    final int maxK = 128;
+    final int[] nArr = {1, 10, 32, 100, 128};
+
+    for (final int n : nArr) {
+      final ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
+      for (int i = 0; i < n; i++) {
+        union.update((double) i);
+      }
+      Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_exact_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionDoubleSampling() throws IOException {
+    final int[] maxKArr = {32, 64, 128};
+    final long n = 1000;
+
+    for (final int maxK : maxKArr) {
+      final java.util.ArrayList<Double> predeterminedSamples = new java.util.ArrayList<>();
+      for (int i = 0; i < maxK; i++) {
+        predeterminedSamples.add((double) (i * 2));
+      }
+
+      final ReservoirItemsSketch<Double> sk = ReservoirItemsSketch.newInstance(
+          predeterminedSamples,
+          n,
+          ResizeFactor.X8,
+          maxK
+      );
+
+      final ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
+      union.update(sk);
+
+      Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionStringEmpty() throws IOException {
+    final int maxK = 128;
+    final ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
+
+    Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_empty_maxk" + maxK + "_java.sk"))
+        .write(union.toByteArray(new ArrayOfStringsSerDe()));
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionStringExact() throws IOException {
+    final int maxK = 128;
+    final int[] nArr = {1, 10, 32, 100, 128};
+
+    for (final int n : nArr) {
+      final ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
+      for (int i = 0; i < n; i++) {
+        union.update("item" + i);
+      }
+      Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_exact_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray(new ArrayOfStringsSerDe()));
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateReservoirItemsUnionStringSampling() throws IOException {
+    final int[] maxKArr = {32, 64, 128};
+    final long n = 1000;
+
+    for (final int maxK : maxKArr) {
+      final java.util.ArrayList<String> predeterminedSamples = new java.util.ArrayList<>();
+      for (int i = 0; i < maxK; i++) {
+        predeterminedSamples.add("item" + (i * 2));
+      }
+
+      final ReservoirItemsSketch<String> sk = ReservoirItemsSketch.newInstance(
+          predeterminedSamples,
+          n,
+          ResizeFactor.X8,
+          maxK
+      );
+
+      final ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
+      union.update(sk);
+
+      Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
+          .write(union.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 }
