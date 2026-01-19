@@ -99,7 +99,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
 
-    for (final int n : nArr) {
+    for (int n : nArr) {
       ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update(i);
@@ -290,7 +290,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
 
-    for (final int n : nArr) {
+    for (int n : nArr) {
       ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update((long) i);
@@ -306,7 +306,7 @@ public class ReservoirCrossLanguageTest {
     long n = 1000;
 
     for (final int maxK : maxKArr) {
-      java.util.ArrayList<Long> predeterminedSamples = new java.util.ArrayList<>();
+      ArrayList<Long> predeterminedSamples = new ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add((long) (i * 2));
       }
@@ -340,7 +340,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
 
-    for (final int n : nArr) {
+    for (int n : nArr) {
       ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update((double) i);
@@ -356,7 +356,7 @@ public class ReservoirCrossLanguageTest {
     long n = 1000;
 
     for (final int maxK : maxKArr) {
-      ArrayList<Double> predeterminedSamples = new java.util.ArrayList<>();
+      ArrayList<Double> predeterminedSamples = new ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add((double) (i * 2));
       }
@@ -390,7 +390,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
 
-    for (final int n : nArr) {
+    for (int n : nArr) {
       ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update("item" + i);
@@ -406,7 +406,7 @@ public class ReservoirCrossLanguageTest {
     long n = 1000;
 
     for (final int maxK : maxKArr) {
-      ArrayList<String> predeterminedSamples = new java.util.ArrayList<>();
+      ArrayList<String> predeterminedSamples = new ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add("item" + (i * 2));
       }
