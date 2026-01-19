@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.javaPath;
@@ -86,8 +87,8 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirLongsUnionEmpty() throws IOException {
-    final int maxK = 128;
-    final ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
+    int maxK = 128;
+    ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
 
     Files.newOutputStream(javaPath.resolve("reservoir_longs_union_empty_maxk" + maxK + "_java.sk"))
         .write(union.toByteArray());
@@ -95,11 +96,11 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirLongsUnionExact() throws IOException {
-    final int maxK = 128;
-    final int[] nArr = {1, 10, 32, 100, 128};
+    int maxK = 128;
+    int[] nArr = {1, 10, 32, 100, 128};
 
     for (final int n : nArr) {
-      final ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
+      ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update(i);
       }
@@ -110,23 +111,23 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirLongsUnionSampling() throws IOException {
-    final int[] maxKArr = {32, 64, 128};
-    final long n = 1000;
+    int[] maxKArr = {32, 64, 128};
+    long n = 1000;
 
     for (final int maxK : maxKArr) {
-      final long[] predeterminedSamples = new long[maxK];
+      long[] predeterminedSamples = new long[maxK];
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples[i] = i * 2;
       }
 
-      final ReservoirLongsSketch sk = ReservoirLongsSketch.getInstance(
+      ReservoirLongsSketch sk = ReservoirLongsSketch.getInstance(
           predeterminedSamples,
           n,
           ResizeFactor.X8,
           maxK
       );
 
-      final ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
+      ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
       union.update(sk);
 
       Files.newOutputStream(javaPath.resolve("reservoir_longs_union_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
@@ -277,8 +278,8 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionLongEmpty() throws IOException {
-    final int maxK = 128;
-    final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
+    int maxK = 128;
+    ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
 
     Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_empty_maxk" + maxK + "_java.sk"))
         .write(union.toByteArray(new ArrayOfLongsSerDe()));
@@ -286,11 +287,11 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionLongExact() throws IOException {
-    final int maxK = 128;
-    final int[] nArr = {1, 10, 32, 100, 128};
+    int maxK = 128;
+    int[] nArr = {1, 10, 32, 100, 128};
 
     for (final int n : nArr) {
-      final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
+      ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update((long) i);
       }
@@ -301,23 +302,23 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionLongSampling() throws IOException {
-    final int[] maxKArr = {32, 64, 128};
-    final long n = 1000;
+    int[] maxKArr = {32, 64, 128};
+    long n = 1000;
 
     for (final int maxK : maxKArr) {
-      final java.util.ArrayList<Long> predeterminedSamples = new java.util.ArrayList<>();
+      java.util.ArrayList<Long> predeterminedSamples = new java.util.ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add((long) (i * 2));
       }
 
-      final ReservoirItemsSketch<Long> sk = ReservoirItemsSketch.newInstance(
+      ReservoirItemsSketch<Long> sk = ReservoirItemsSketch.newInstance(
           predeterminedSamples,
           n,
           ResizeFactor.X8,
           maxK
       );
 
-      final ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
+      ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
       union.update(sk);
 
       Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
@@ -327,8 +328,8 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionDoubleEmpty() throws IOException {
-    final int maxK = 128;
-    final ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
+    int maxK = 128;
+    ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
 
     Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_empty_maxk" + maxK + "_java.sk"))
         .write(union.toByteArray(new ArrayOfDoublesSerDe()));
@@ -336,11 +337,11 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionDoubleExact() throws IOException {
-    final int maxK = 128;
-    final int[] nArr = {1, 10, 32, 100, 128};
+    int maxK = 128;
+    int[] nArr = {1, 10, 32, 100, 128};
 
     for (final int n : nArr) {
-      final ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
+      ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update((double) i);
       }
@@ -351,23 +352,23 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionDoubleSampling() throws IOException {
-    final int[] maxKArr = {32, 64, 128};
-    final long n = 1000;
+    int[] maxKArr = {32, 64, 128};
+    long n = 1000;
 
     for (final int maxK : maxKArr) {
-      final java.util.ArrayList<Double> predeterminedSamples = new java.util.ArrayList<>();
+      ArrayList<Double> predeterminedSamples = new java.util.ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add((double) (i * 2));
       }
 
-      final ReservoirItemsSketch<Double> sk = ReservoirItemsSketch.newInstance(
+      ReservoirItemsSketch<Double> sk = ReservoirItemsSketch.newInstance(
           predeterminedSamples,
           n,
           ResizeFactor.X8,
           maxK
       );
 
-      final ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
+      ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
       union.update(sk);
 
       Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
@@ -377,8 +378,8 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionStringEmpty() throws IOException {
-    final int maxK = 128;
-    final ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
+    int maxK = 128;
+    ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
 
     Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_empty_maxk" + maxK + "_java.sk"))
         .write(union.toByteArray(new ArrayOfStringsSerDe()));
@@ -386,11 +387,11 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionStringExact() throws IOException {
-    final int maxK = 128;
-    final int[] nArr = {1, 10, 32, 100, 128};
+    int maxK = 128;
+    int[] nArr = {1, 10, 32, 100, 128};
 
     for (final int n : nArr) {
-      final ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
+      ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
       for (int i = 0; i < n; i++) {
         union.update("item" + i);
       }
@@ -401,23 +402,23 @@ public class ReservoirCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateReservoirItemsUnionStringSampling() throws IOException {
-    final int[] maxKArr = {32, 64, 128};
-    final long n = 1000;
+    int[] maxKArr = {32, 64, 128};
+    long n = 1000;
 
     for (final int maxK : maxKArr) {
-      final java.util.ArrayList<String> predeterminedSamples = new java.util.ArrayList<>();
+      ArrayList<String> predeterminedSamples = new java.util.ArrayList<>();
       for (int i = 0; i < maxK; i++) {
         predeterminedSamples.add("item" + (i * 2));
       }
 
-      final ReservoirItemsSketch<String> sk = ReservoirItemsSketch.newInstance(
+      ReservoirItemsSketch<String> sk = ReservoirItemsSketch.newInstance(
           predeterminedSamples,
           n,
           ResizeFactor.X8,
           maxK
       );
 
-      final ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
+      ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
       union.update(sk);
 
       Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
