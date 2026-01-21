@@ -95,4 +95,18 @@ public class AosSketchCrossLanguageTest {
 
     Files.newOutputStream(javaPath.resolve("aos_unicode_java.sk")).write(sk.compact().toByteArray());
   }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateBinariesForCompatibilityTestingEmptyStrings() throws IOException {
+    ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
+
+    sk.update(new String[]{""}, new String[]{"empty_key_value"});
+    sk.update(new String[]{"empty_value_key"}, new String[]{""});
+    sk.update(new String[]{"", ""}, new String[]{"", ""});
+
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getRetainedEntries(), 3);
+
+    Files.newOutputStream(javaPath.resolve("aos_empty_strings_java.sk")).write(sk.compact().toByteArray());
+  }
 }
