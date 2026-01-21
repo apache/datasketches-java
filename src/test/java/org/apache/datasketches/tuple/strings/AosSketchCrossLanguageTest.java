@@ -38,9 +38,9 @@ public class AosSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingOneString() throws IOException {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
+    int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
-      final ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
+      ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
       for (int i = 0; i < n; i++) {
         sk.update(new String[] {String.valueOf(i)}, new String[] {"value" + i});
       }
@@ -50,9 +50,9 @@ public class AosSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingThreeStrings() throws IOException {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
+    int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
-      final ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
+      ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
       for (int i = 0; i < n; i++) {
         sk.update(new String[] {String.valueOf(i)}, new String[] {"a" + i, "b" + i, "c" + i});
       }
@@ -62,7 +62,7 @@ public class AosSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
-    final ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch(12,
+    ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch(12,
         ResizeFactor.X8, 0.01f);
     sk.update(new String[] {"key1"}, new String[] {"value1"});
     assertFalse(sk.isEmpty());
@@ -72,9 +72,9 @@ public class AosSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingMultiKeyStrings() throws IOException {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10_000};
+    int[] nArr = {0, 1, 10, 100, 1000, 10_000};
     for (int n : nArr) {
-      final ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
+      ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
       for (int i = 0; i < n; i++) {
         sk.update(new String[] {"key" + i, "subkey" + (i % 10)}, new String[] {"value" + i});
       }
@@ -84,7 +84,7 @@ public class AosSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingUnicodeStrings() throws IOException {
-    final ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
+    ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
 
     sk.update(new String[]{"키", "열쇠"}, new String[]{"밸류", "값"});
     sk.update(new String[]{"🔑", "🗝️"}, new String[]{"📦", "🎁"});
