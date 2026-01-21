@@ -72,7 +72,7 @@ public class AosSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateBinariesForCompatibilityTestingMultiKeyStrings() throws IOException {
-    int[] nArr = {0, 1, 10, 100, 1000, 10_000};
+    int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
       ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
       for (int i = 0; i < n; i++) {
