@@ -621,7 +621,7 @@ public final class CpcSketch {
     assert ((sketch.windowOffset >= 0) && (sketch.windowOffset <= 56));
     final int k = 1 << sketch.lgK;
     final long c32pre = sketch.numCoupons << 5;
-    assert c32pre >= (3L * k); // C < 3K/32, in other words flavor >= HYBRID
+    assert c32pre >= (3L * k); // C >= 3K/32, in other words flavor >= HYBRID
     final long c8pre = sketch.numCoupons << 3;
     final int w8pre = sketch.windowOffset << 3;
     assert c8pre < ((27L + w8pre) * k); // C < (K * 27/8) + (K * windowOffset)
