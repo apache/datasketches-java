@@ -289,6 +289,42 @@ public class VarOptItemsSketchTest {
   }
 
   @Test
+  public void checkCorruptSerializedRWeightNaN() {
+    final int k = 32;
+    final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(k, k + 1);
+    final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    assertEquals(PreambleUtil.extractPreLongs(seg), Family.VAROPT.getMaxPreLongs());
+
+    PreambleUtil.insertTotalRWeight(seg, Double.NaN);
+
+    try {
+      VarOptItemsSketch.heapify(seg, new ArrayOfLongsSerDe());
+      fail();
+    } catch (final SketchesArgumentException e) {
+      assertTrue(e.getMessage().contains("invalid R region weight"));
+    }
+  }
+
+  @Test
+  public void checkCorruptSerializedRWeightZero() {
+    final int k = 32;
+    final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(k, k + 1);
+    final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    assertEquals(PreambleUtil.extractPreLongs(seg), Family.VAROPT.getMaxPreLongs());
+
+    PreambleUtil.insertTotalRWeight(seg, 0.0);
+
+    try {
+      VarOptItemsSketch.heapify(seg, new ArrayOfLongsSerDe());
+      fail();
+    } catch (final SketchesArgumentException e) {
+      assertTrue(e.getMessage().contains("invalid R region weight"));
+    }
+  }
+
+  @Test
   public void checkCumulativeWeight() {
     final int k = 256;
     final int n = 10 * k;
