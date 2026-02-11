@@ -235,7 +235,7 @@ public final class BloomFilterBuilder {
   }
 
   private static void validateSizeInputs(final long numBits, final int numHashes) {
-    if (numBits < 0) {
+    if (numBits <= 0) {
       throw new SketchesArgumentException("Size of BloomFilter must be strictly positive. "
               + "Requested: " + numBits);
     }
