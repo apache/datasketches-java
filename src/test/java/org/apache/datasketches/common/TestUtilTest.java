@@ -57,7 +57,7 @@ public class TestUtilTest {
   @Test
   public void testGetFileBytes_NotRegular_NotReadable() throws IOException {
     try {
-      byte[] resultBytes = getFileBytes(resPath, "");
+      getFileBytes(resPath, "");
     } catch (RuntimeException e) {
       System.out.println(e.toString());
     }
