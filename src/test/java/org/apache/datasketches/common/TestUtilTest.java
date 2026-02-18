@@ -44,7 +44,7 @@ public class TestUtilTest {
     byte[] resultBytes = getFileBytes(resPath, "GettysburgAddress.txt");
     assertNotNull(resultBytes);
     String resultString = new String(resultBytes, UTF_8);
-    assertTrue(resultString.startsWith("Abraham Lincoln's Gettysburg Address:")); 
+    assertTrue(resultString.startsWith("Abraham Lincoln's Gettysburg Address:"));
   }
 
   @Test
@@ -62,5 +62,8 @@ public class TestUtilTest {
       System.out.println(e.toString());
     }
   }
+  
+  
+  
   
 }

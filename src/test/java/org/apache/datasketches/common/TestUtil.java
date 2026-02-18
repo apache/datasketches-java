@@ -42,14 +42,13 @@ import java.util.Objects;
  */
 public final class TestUtil  {
 
-  private static final String userDir = System.getProperty("user.dir");
-
   /**
    * TestNG group constants
    */
   public static final String GENERATE_JAVA_FILES = "generate_java_files";
   public static final String CHECK_CPP_FILES = "check_cpp_files";
   public static final String CHECK_GO_FILES = "check_go_files";
+  public static final String CHECK_RUST_FILES = "check_rust_files";
   public static final String CHECK_CPP_HISTORICAL_FILES = "check_cpp_historical_files";
 
   /**
@@ -68,33 +67,73 @@ public final class TestUtil  {
   public static final Path goPath = Path.of(".", "serialization_test_data", "go_generated_files");
   
   /**
+   * The project relative Path for Rust serialized sketches to be tested by Java.
+   */
+  public static final Path rustPath = Path.of(".", "serialization_test_data", "rust_generated_files");
+  
+  /**
    * The project relative Path for /src/test/resources
    */
   public static final Path resPath = Path.of(".","src","test","resources");
 
 
-  //Get Resources
-
-  private static final int BUF_SIZE = 1 << 13;
-
-  public static byte[] getFileBytes(Path basePath, String fileName) throws RuntimeException {
+  /**
+   * Gets all the bytes of a file as a byte array.
+   * If the file is missing, this writes a warning message to the console.
+   * @param basePath the base directory path where the file is located
+   * @param fileName the simple file name of the file
+   * @return a byte array
+   * @throws RuntimeException for IO errors, or if resolved path is not a file or not readable.
+   */
+  public static byte[] getFileBytes(final Path basePath, final String fileName) throws RuntimeException {
     Objects.requireNonNull(basePath, "input parameter 'Path basePath' cannot be null.");
     Objects.requireNonNull(fileName, "input parameter 'String fileName' cannot be null.");
     Path path = Path.of(basePath.toString(), fileName);
-    Path absPath = path.toAbsolutePath(); //for debugging
+    Path absPath = path.toAbsolutePath(); //for error output
     byte[] bytes = new byte[0]; //or null
-    if (Files.notExists(path)) {
+    if (Files.notExists(path)) { //In this specific case, just issue warning.
       System.err.println("File disappeared or not found: " + absPath);
-      return bytes; //or null
+      return bytes; //empty
     }
     if (!Files.isRegularFile(path) || !Files.isReadable(path)) {
       throw new RuntimeException("Path is not a regular file or not readable: " + absPath);
     }
     try {
-        bytes = Files.readAllBytes(path);
-        return bytes;
-      } catch (IOException e) {
-        throw new RuntimeException("System Error reading file: " + absPath + " " + e);
-      }
-    } 
+      bytes = Files.readAllBytes(path);
+      return bytes;
+    } catch (IOException e) {
+        throw new RuntimeException("System IO Error reading file: " + absPath + " " + e);
+    }
+  }
+  
+  /**
+   * Puts all the bytes of the given byte array to a file with the given fileName.
+   * This assumes that the base directory path is {@link #javaPath javaPath}.
+   * @param fileName the name of the target file
+   * @param bytes the given byte array
+   */
+  public static void putBytesToJavaPathFile(final String fileName, final byte[] bytes) {
+    putBytesToFile(javaPath, fileName, bytes);
+  }
+  
+  /**
+   * Puts all the bytes of the given byte array to a basePath file with the given fileName.
+   * @param basePath the directory path for the given fileName
+   * @param fileName the name of the target file
+   * @param bytes the given byte array
+   * @throws RuntimeException for IO errors,
+   */
+  public static void putBytesToFile(final Path basePath, final String fileName, final byte[] bytes) {
+    Objects.requireNonNull(basePath, "input parameter 'Path basePath' cannot be null.");
+    Objects.requireNonNull(fileName, "input parameter 'String fileName' cannot be null.");
+    Objects.requireNonNull(bytes, "input parameter 'byte[] bytes' cannot be null.");
+    Path filePath = null;
+    try {
+      Files.createDirectories(basePath); //create the directory if it doesn't exist.
+      filePath = basePath.resolve(fileName);
+      Files.write(filePath, bytes);
+    } catch (IOException e) {
+      throw new RuntimeException("System IO Error writing file: " + filePath.toString() + " " + e);
+    }
+  }
 }
