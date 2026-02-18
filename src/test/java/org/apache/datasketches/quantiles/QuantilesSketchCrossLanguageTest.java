@@ -22,8 +22,10 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.resPath;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -91,7 +93,7 @@ public class QuantilesSketchCrossLanguageTest {
   public void checkDoublesSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] byteArr = Files.readAllBytes(cppPath.resolve("quantiles_double_n" + n + "_cpp.sk"));
+      final byte[] byteArr = getFileBytes(cppPath, "quantiles_double_n" + n + "_cpp.sk");
       final QuantilesDoublesSketch sk = QuantilesDoublesSketch.wrap(MemorySegment.ofArray(byteArr));
       assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
       assertTrue(n > 128 ? sk.isEstimationMode() : !sk.isEstimationMode());
@@ -128,7 +130,7 @@ public class QuantilesSketchCrossLanguageTest {
     };
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] byteArr = Files.readAllBytes(cppPath.resolve("quantiles_string_n" + n + "_cpp.sk"));
+      final byte[] byteArr = getFileBytes(cppPath, "quantiles_string_n" + n + "_cpp.sk");
       final QuantilesItemsSketch<String> sk = QuantilesItemsSketch.heapify(
           String.class,
           MemorySegment.ofArray(byteArr),
@@ -242,7 +244,7 @@ public class QuantilesSketchCrossLanguageTest {
     println("fullName: "+ fileName);
     println("Old Median: " + quantile);
     //Read File bytes
-    final byte[] byteArr = TestUtil.getResourceBytes(fileName);
+    final byte[] byteArr = TestUtil.getFileBytes(resPath, fileName);
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArr);
 
     // heapify as update sketch

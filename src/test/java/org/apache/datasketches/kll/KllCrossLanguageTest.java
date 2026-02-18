@@ -22,8 +22,10 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.resPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -95,7 +97,7 @@ public class KllCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllDoublesSketchOneItemVersion1() {
-    final byte[] byteArr = TestUtil.getResourceBytes("kll_sketch_double_one_item_v1.sk");
+    final byte[] byteArr = TestUtil.getFileBytes(resPath, "kll_sketch_double_one_item_v1.sk");
     final KllDoublesSketch sk = KllDoublesSketch.heapify(MemorySegment.ofArray(byteArr));
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
@@ -107,7 +109,7 @@ public class KllCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void checkCppKllFloatsSketchOneItemVersion1() {
-    final byte[] byteArr = TestUtil.getResourceBytes("kll_sketch_float_one_item_v1.sk");
+    final byte[] byteArr = TestUtil.getFileBytes(resPath, "kll_sketch_float_one_item_v1.sk");
     final KllFloatsSketch sk = KllFloatsSketch.heapify(MemorySegment.ofArray(byteArr));
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
@@ -121,7 +123,7 @@ public class KllCrossLanguageTest {
   public void kllFloat() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_float_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "kll_float_n" + n + "_cpp.sk");
       final KllFloatsSketch sketch = KllFloatsSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getK(), 200);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -146,7 +148,7 @@ public class KllCrossLanguageTest {
   public void kllDouble() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_double_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "kll_double_n" + n + "_cpp.sk");
       final KllDoublesSketch sketch = KllDoublesSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getK(), 200);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -184,7 +186,7 @@ public class KllCrossLanguageTest {
     };
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_string_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "kll_string_n" + n + "_cpp.sk");
       final KllHeapItemsSketch<String> sketch = new KllHeapItemsSketch<>(
         MemorySegment.ofArray(bytes),
         numericOrder,

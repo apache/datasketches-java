@@ -21,6 +21,7 @@ package org.apache.datasketches.filters.bloomfilter;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
@@ -65,7 +66,7 @@ public class BloomFilterCrossLanguageTest {
     final short[] hArr = {3, 5};
     for (final int n : nArr) {
       for (final short numHashes : hArr) {
-        final byte[] bytes = Files.readAllBytes(cppPath.resolve("bf_n" + n + "_h" + numHashes + "_cpp.sk"));
+        final byte[] bytes = getFileBytes(cppPath,"bf_n" + n + "_h" + numHashes + "_cpp.sk");
         final BloomFilter bf = BloomFilter.heapify(MemorySegment.ofArray(bytes));
         assertEquals(bf.isEmpty(), n == 0);
         assertTrue(bf.isEmpty() || (bf.getBitsUsed() > (n / 10)));

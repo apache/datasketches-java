@@ -21,6 +21,7 @@ package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
@@ -102,7 +103,7 @@ public class FrequentItemsSketchCrossLanguageTest {
   public void longs() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("frequent_long_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "frequent_long_n" + n + "_cpp.sk");
       final FrequentLongsSketch sketch = FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       if (n > 10) {
@@ -118,7 +119,7 @@ public class FrequentItemsSketchCrossLanguageTest {
   public void strings() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("frequent_string_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "frequent_string_n" + n + "_cpp.sk");
       final FrequentItemsSketch<String> sketch = FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       if (n > 10) {
@@ -132,7 +133,7 @@ public class FrequentItemsSketchCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void stringsAscii() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("frequent_string_ascii_cpp.sk"));
+    final byte[] bytes = getFileBytes(cppPath, "frequent_string_ascii_cpp.sk");
     final FrequentItemsSketch<String> sketch = FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getMaximumError(), 0);
@@ -145,7 +146,7 @@ public class FrequentItemsSketchCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void stringsUtf8() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("frequent_string_utf8_cpp.sk"));
+    final byte[] bytes = getFileBytes(cppPath, "frequent_string_utf8_cpp.sk");
     final FrequentItemsSketch<String> sketch = FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getMaximumError(), 0);

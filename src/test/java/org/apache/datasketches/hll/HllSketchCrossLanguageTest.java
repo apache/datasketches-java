@@ -21,6 +21,7 @@ package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
@@ -68,7 +69,7 @@ public class HllSketchCrossLanguageTest {
   public void hll4() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll4_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "hll4_n" + n + "_cpp.sk");
       final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getLgConfigK(), 12);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -80,7 +81,7 @@ public class HllSketchCrossLanguageTest {
   public void hll6() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll6_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "hll6_n" + n + "_cpp.sk");
       final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getLgConfigK(), 12);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -92,7 +93,7 @@ public class HllSketchCrossLanguageTest {
   public void hll8() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("hll8_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "hll8_n" + n + "_cpp.sk");
       final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getLgConfigK(), 12);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());

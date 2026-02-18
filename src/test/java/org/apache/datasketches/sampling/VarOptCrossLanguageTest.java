@@ -21,6 +21,7 @@ package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
 import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.testng.Assert.assertEquals;
@@ -114,7 +115,7 @@ public class VarOptCrossLanguageTest {
   public void deserializeFromCppSketchLongs() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_sketch_long_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "varopt_sketch_long_n" + n + "_cpp.sk");
       final VarOptItemsSketch<Long> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe());
       assertEquals(sk.getK(), 32);
       assertEquals(sk.getN(), n);
@@ -124,7 +125,7 @@ public class VarOptCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppSketchStringsExact() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_sketch_string_exact_cpp.sk"));
+    final byte[] bytes = getFileBytes(cppPath, "varopt_sketch_string_exact_cpp.sk");
     final VarOptItemsSketch<String> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
     assertEquals(sk.getK(), 1024);
     assertEquals(sk.getN(), 200);
@@ -139,7 +140,7 @@ public class VarOptCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppSketchLongsSampling() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_sketch_long_sampling_cpp.sk"));
+    final byte[] bytes = getFileBytes(cppPath, "varopt_sketch_long_sampling_cpp.sk");
     final VarOptItemsSketch<Long> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe());
     assertEquals(sk.getK(), 1024);
     assertEquals(sk.getN(), 2003);
@@ -156,7 +157,7 @@ public class VarOptCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCppUnionDoubleSampling() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("varopt_union_double_sampling_cpp.sk"));
+    final byte[] bytes = getFileBytes(cppPath, "varopt_union_double_sampling_cpp.sk");
     final VarOptItemsUnion<Double> u = VarOptItemsUnion.heapify(MemorySegment.ofArray(bytes), new ArrayOfDoublesSerDe());
 
     // must reduce k in the process
