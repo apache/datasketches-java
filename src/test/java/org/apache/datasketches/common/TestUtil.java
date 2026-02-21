@@ -19,22 +19,9 @@
 
 package org.apache.datasketches.common;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -65,47 +52,59 @@ public final class TestUtil  {
    * The project relative Path for Go serialized sketches to be tested by Java.
    */
   public static final Path goPath = Path.of(".", "serialization_test_data", "go_generated_files");
-  
+
   /**
    * The project relative Path for Rust serialized sketches to be tested by Java.
    */
   public static final Path rustPath = Path.of(".", "serialization_test_data", "rust_generated_files");
-  
+
   /**
    * The project relative Path for /src/test/resources
    */
   public static final Path resPath = Path.of(".","src","test","resources");
 
+  public enum Existence { MUST_EXIST, WARNING }
 
   /**
    * Gets all the bytes of a file as a byte array.
-   * If the file is missing, this writes a warning message to the console.
+   * If the file is missing, this either throws an exception or writes a warning message to the console
+   * based on the state of {@link #Existence Existence}.
    * @param basePath the base directory path where the file is located
    * @param fileName the simple file name of the file
-   * @return a byte array
-   * @throws RuntimeException for IO errors, or if resolved path is not a file or not readable.
+   * @param option an optional parameter. If option == Existence.MUST_EXIST and the file does not exist an exception will be thrown.
+   * If option == Existence.WARNING, or not given, and the file does not exist, it writes a warning message
+   * to {@link System.err.out System.err.out}.
+   * If option has more than one argument an exception will be thrown.
+   * @return a byte array. It may be empty.
+   * @throws RuntimeException for IO errors, or if resolved path is not a file or not readable or optionally not found.
    */
-  public static byte[] getFileBytes(final Path basePath, final String fileName) throws RuntimeException {
+  public static byte[] getFileBytes(final Path basePath, final String fileName,  Existence... option) {
     Objects.requireNonNull(basePath, "input parameter 'Path basePath' cannot be null.");
     Objects.requireNonNull(fileName, "input parameter 'String fileName' cannot be null.");
+    if (option.length > 1) { throw new IllegalArgumentException("Existence option has a maximum of one argument"); }
+    Existence status = (option.length == 1) ? option[0] : Existence.WARNING;
+
     Path path = Path.of(basePath.toString(), fileName);
     Path absPath = path.toAbsolutePath(); //for error output
-    byte[] bytes = new byte[0]; //or null
-    if (Files.notExists(path)) { //In this specific case, just issue warning.
-      System.err.println("File disappeared or not found: " + absPath);
-      return bytes; //empty
+    if (Files.notExists(path)) {
+      if (status == Existence.MUST_EXIST) {
+        throw new RuntimeException("File disappeared or not found: " + absPath);
+      } else {
+        System.err.println("WARNING: File disappeared or not found: " + absPath);
+        return new byte[0];
+      }
     }
     if (!Files.isRegularFile(path) || !Files.isReadable(path)) {
       throw new RuntimeException("Path is not a regular file or not readable: " + absPath);
     }
     try {
-      bytes = Files.readAllBytes(path);
+      byte[] bytes = Files.readAllBytes(path);
       return bytes;
     } catch (IOException e) {
         throw new RuntimeException("System IO Error reading file: " + absPath + " " + e);
     }
   }
-  
+
   /**
    * Puts all the bytes of the given byte array to a file with the given fileName.
    * This assumes that the base directory path is {@link #javaPath javaPath}.
@@ -113,17 +112,18 @@ public final class TestUtil  {
    * @param bytes the given byte array
    */
   public static void putBytesToJavaPathFile(final String fileName, final byte[] bytes) {
-    putBytesToFile(javaPath, fileName, bytes);
+    putFileBytes(javaPath, fileName, bytes);
   }
-  
+
   /**
    * Puts all the bytes of the given byte array to a basePath file with the given fileName.
+   * If the file exists it will be overwritten.
    * @param basePath the directory path for the given fileName
    * @param fileName the name of the target file
    * @param bytes the given byte array
    * @throws RuntimeException for IO errors,
    */
-  public static void putBytesToFile(final Path basePath, final String fileName, final byte[] bytes) {
+  public static void putFileBytes(final Path basePath, final String fileName, final byte[] bytes) {
     Objects.requireNonNull(basePath, "input parameter 'Path basePath' cannot be null.");
     Objects.requireNonNull(fileName, "input parameter 'String fileName' cannot be null.");
     Objects.requireNonNull(bytes, "input parameter 'byte[] bytes' cannot be null.");

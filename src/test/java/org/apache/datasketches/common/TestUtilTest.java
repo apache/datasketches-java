@@ -19,23 +19,19 @@
 
 package org.apache.datasketches.common;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putFileBytes;
 import static org.apache.datasketches.common.TestUtil.resPath;
-
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 //import static org.testng.internal.EclipseInterface.ASSERT_LEFT; // Ignore, standard imports
 import static org.testng.Assert.assertNotNull;
-
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import static java.nio.charset.StandardCharsets.UTF_8;
+
+import org.testng.annotations.Test;
 
 public class TestUtilTest {
 
@@ -49,7 +45,7 @@ public class TestUtilTest {
 
   @Test
   public void testGetFileBytes_MissingFile() {
-    byte[] resultBytes = getFileBytes(resPath, "NonExistentFile");
+    byte[] resultBytes = getFileBytes(resPath, "Test_NonExistentFile_OK");
     assertNotNull(resultBytes);
     assertEquals(resultBytes.length, 0, "Should return empty array for missing file.");
   }
@@ -59,11 +55,18 @@ public class TestUtilTest {
     try {
       getFileBytes(resPath, "");
     } catch (RuntimeException e) {
-      System.out.println(e.toString());
+      System.out.println("Test: Not regular file or not readable: OK\n" + "  " + e.toString());
     }
   }
-  
-  
-  
-  
+
+  private static final Path testPath = Path.of(".", "target", "testDir");
+
+  @Test
+  public void testPutBytesToFile() {
+    byte[] gettysBytes = getFileBytes(resPath, "GettysburgAddress.txt");
+    putFileBytes(testPath, "GettysburgAddressCopy.txt", gettysBytes);
+    byte[] gettysBytes2 = getFileBytes(testPath, "GettysburgAddressCopy.txt");
+    assertEquals(gettysBytes, gettysBytes2);
+  }
+
 }
