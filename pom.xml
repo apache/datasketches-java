@@ -25,12 +25,6 @@ under the License.
 
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.apache</groupId>
-    <artifactId>apache</artifactId>
-    <version>37</version>
-  </parent>
-
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
   <version>9.0.1-SNAPSHOT</version>
@@ -106,7 +100,16 @@ under the License.
 
     <!--  Covered by Apache Parent POM -->
     <!--    org.apache.maven plugins -->
+    <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version> <!-- parent 37: 3.14.1 -->
+    <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+    <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+    <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+    <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
+    <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-surefire-failsafe-plugins.version>3.5.4</maven-surefire-failsafe-plugins.version> <!-- for surefire, failsafe and surefire-report -->
 
     <!--    org.apache.rat plugins -->
     <apache-rat-plugin.version>0.17</apache-rat-plugin.version> <!-- parent 37: 0.16.1 -->
@@ -145,16 +148,15 @@ under the License.
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-assembly-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-assembly-plugin.version}</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <fork>true</fork>
-            <release>${java.version}</release>
           </configuration>
         </plugin>
 
@@ -162,13 +164,13 @@ under the License.
           <!-- Apache Parent pom: apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-deploy-plugin.version}</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-enforcer-plugin.version}</version>
           <executions>
             <execution>
               <id>enforce-banned-dependencies</id>
@@ -204,7 +206,7 @@ under the License.
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-jar-plugin.version}</version>
           <executions>
             <execution>
               <id>default-jar</id>
@@ -226,7 +228,7 @@ under the License.
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-javadoc-plugin.version}</version>
           <configuration>
             <excludePackageNames>org.apache.datasketches.memory/internal</excludePackageNames>
             <docfilessubdirs>true</docfilessubdirs>
@@ -252,13 +254,13 @@ under the License.
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-release-plugin.version}</version>
         </plugin>
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-source-plugin.version}</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -280,7 +282,7 @@ under the License.
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <!-- version from Parent -->
+          <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
             <argLine>@{jvm.args}</argLine>
             <jdkToolchain>
@@ -530,7 +532,7 @@ under the License.
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-jar-plugin</artifactId>
-              <!-- version from Parent -->
+              <version>${maven-jar-plugin.version}</version>
               <executions>
                 <execution>
                   <id>default-jar</id>
@@ -576,7 +578,7 @@ under the License.
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-gpg-plugin</artifactId>
-              <!-- version from Parent -->
+              <version>${maven-gpg-plugin.version}</version>
               <executions>
                 <execution>
                   <id>sign-artifacts</id>
@@ -609,6 +611,26 @@ under the License.
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Disable source release assembly for 'apache-release' profile.
+             This is performed from a script outside Maven -->
+    <profile>
+      <id>apache-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>${maven-assembly-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>source-release-assembly</id>
+                <phase>none</phase>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
@@ -692,4 +714,5 @@ under the License.
     </profile>
 
   </profiles>
+
 </project>
