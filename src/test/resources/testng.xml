@@ -22,7 +22,7 @@ under the License.
 <suite name="DSJavaSuite">
     <test name="AllDSJavaTests">
         <packages>
-            <package name="org.apache.datasketches.java.*" />
+            <package name="org.apache.datasketches.*" />
         </packages>
     </test>
 </suite>

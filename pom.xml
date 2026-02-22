@@ -180,7 +180,7 @@ under the License.
               <configuration>
                 <rules>
                   <!-- The normal Java enforcer rule out of the box is toolchain unaware
-                  and is really only usefull for checking what java version is available
+                  and is really only useful for checking what java version is available
                   via the users shell environment. It does not check that the java compiler
                   version is sane or matches the java command version.
                   In the context of toolchains this rule is useless.
@@ -230,15 +230,14 @@ under the License.
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
-            <excludePackageNames>org.apache.datasketches.memory/internal</excludePackageNames>
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
             <doclint>all,-missing</doclint>
            <additionalJOptions>
-              <additionalJOption>${jvm.mem}</additionalJOption>
-              <additionalJOption>${jvm.locale.language}</additionalJOption>
-              <additionalJOption>${jvm.locale.country}</additionalJOption>
-              <additionalJOption>${jvm.locale.encoding}</additionalJOption>
+              <additionalJOption>-J${jvm.mem}</additionalJOption>
+              <additionalJOption>-J${jvm.locale.language}</additionalJOption>
+              <additionalJOption>-J${jvm.locale.country}</additionalJOption>
+              <additionalJOption>-J${jvm.locale.encoding}</additionalJOption>
             </additionalJOptions>
           </configuration>
           <executions>
@@ -296,7 +295,8 @@ under the License.
               <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
             </suiteXmlFiles>
             <perCoreThreadCount>false</perCoreThreadCount>
-            <excludedGroups>${testng.generate-java-files},${testng.check-cpp-files},${testng.check-go-files},${testng.check-cpp-historical-files}</excludedGroups>
+            <!--<excludedGroups>${testng.generate-java-files},${testng.check-cpp-files},${testng.check-go-files},${testng.check-cpp-historical-files}</excludedGroups>
+            -->
           </configuration>
         </plugin>
 
@@ -335,8 +335,7 @@ under the License.
           <configuration>
             <outputDirectory>${project.basedir}/rat</outputDirectory>
             <consoleOutput>true</consoleOutput>
-            <useDefaultExcludes>true</useDefaultExcludes>
-            <excludes>
+            <inputExcludes>
               <!-- rat uses .gitignore for excludes by default -->
               <inputExcludeStd>StandardCollection</inputExcludeStd>
               <inputExclude>**/*.yaml</inputExclude>
@@ -349,7 +348,7 @@ under the License.
               <inputExclude>LICENSE</inputExclude>
               <inputExclude>NOTICE</inputExclude>
               <inputExclude>**/*.code-workspace</inputExclude>
-            </excludes>
+            </inputExcludes>
           </configuration>
         </plugin>
 
@@ -367,6 +366,10 @@ under the License.
           <groupId>io.github.git-commit-id</groupId>
           <artifactId>git-commit-id-maven-plugin</artifactId>
           <version>${git-commit-id-maven-plugin.version}</version>
+          <configuration>
+            <skip>${m2e.version}</skip>
+            <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+          </configuration>
         </plugin>
 
         <plugin>
@@ -455,12 +458,12 @@ under the License.
         <groupId>com.github.hazendaz.maven</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>
       </plugin>
-
+<!--
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
         <artifactId>git-commit-id-maven-plugin</artifactId>
       </plugin>
-
+-->
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
