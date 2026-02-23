@@ -23,8 +23,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.putFileBytes;
 import static org.apache.datasketches.common.TestUtil.resPath;
+import static org.apache.datasketches.common.TestUtil.Existence.MUST_EXIST;
+import static org.apache.datasketches.common.TestUtil.Existence.WARNING;
 import static org.testng.Assert.assertEquals;
-//import static org.testng.internal.EclipseInterface.ASSERT_LEFT; // Ignore, standard imports
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -36,7 +37,7 @@ import org.testng.annotations.Test;
 public class TestUtilTest {
 
   @Test
-  public void testGetFileBytes_Success() throws IOException {
+  public void testGetFileBytes_Success() {// throws IOException {
     byte[] resultBytes = getFileBytes(resPath, "GettysburgAddress.txt");
     assertNotNull(resultBytes);
     String resultString = new String(resultBytes, UTF_8);
@@ -44,19 +45,20 @@ public class TestUtilTest {
   }
 
   @Test
-  public void testGetFileBytes_MissingFile() {
-    byte[] resultBytes = getFileBytes(resPath, "Test_NonExistentFile_OK");
+  public void testGetFileBytes_MissingFile_Warning() {
+    byte[] resultBytes = getFileBytes(resPath, "Test_NonExistentFile_OK", WARNING); //WARNING is the default
     assertNotNull(resultBytes);
     assertEquals(resultBytes.length, 0, "Should return empty array for missing file.");
   }
 
-  @Test
+  @Test(expectedExceptions = RuntimeException.class)
+  public void testGetFileBytes_MissingFile_MustExist() {
+    getFileBytes(resPath, "Test_NonExistentFile_OK", MUST_EXIST);
+  }
+
+  @Test(expectedExceptions = RuntimeException.class)
   public void testGetFileBytes_NotRegular_NotReadable() throws IOException {
-    try {
-      getFileBytes(resPath, "");
-    } catch (RuntimeException e) {
-      System.out.println("Test: Not regular file or not readable: OK\n" + "  " + e.toString());
-    }
+    getFileBytes(resPath, "");
   }
 
   private static final Path testPath = Path.of(".", "target", "testDir");

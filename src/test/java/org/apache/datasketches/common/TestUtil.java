@@ -68,7 +68,7 @@ public final class TestUtil  {
   /**
    * Gets all the bytes of a file as a byte array.
    * If the file is missing, this either throws an exception or writes a warning message to the console
-   * based on the state of {@link #Existence Existence}.
+   * based on the state of the optional {@link #Existence Existence}.
    * @param basePath the base directory path where the file is located
    * @param fileName the simple file name of the file
    * @param option an optional parameter. If option == Existence.MUST_EXIST and the file does not exist an exception will be thrown.
