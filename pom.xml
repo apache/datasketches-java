@@ -458,12 +458,12 @@ under the License.
         <groupId>com.github.hazendaz.maven</groupId>
         <artifactId>coveralls-maven-plugin</artifactId>
       </plugin>
-<!--
+
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
         <artifactId>git-commit-id-maven-plugin</artifactId>
       </plugin>
--->
+
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
