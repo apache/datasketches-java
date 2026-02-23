@@ -23,7 +23,7 @@ import org.testng.annotations.BeforeSuite;
 
 public class A_BeforeSuite {
 
-  @BeforeSuite
+  @BeforeSuite(alwaysRun = true)
   public void printTestEnvironment() {
     System.out.println("====================================================");
     System.out.println("TEST JDK: " + System.getProperty("java.version"));
