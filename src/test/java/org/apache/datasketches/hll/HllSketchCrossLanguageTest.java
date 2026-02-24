@@ -21,20 +21,18 @@ package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.hll.HllSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -59,9 +57,9 @@ public class HllSketchCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         hll8.update(i);
       }
-      Files.newOutputStream(javaPath.resolve("hll4_n" + n + "_java.sk")).write(hll4.toCompactByteArray());
-      Files.newOutputStream(javaPath.resolve("hll6_n" + n + "_java.sk")).write(hll6.toCompactByteArray());
-      Files.newOutputStream(javaPath.resolve("hll8_n" + n + "_java.sk")).write(hll8.toCompactByteArray());
+      putBytesToJavaPath("hll4_n" + n + "_java.sk", hll4.toCompactByteArray());
+      putBytesToJavaPath("hll6_n" + n + "_java.sk", hll6.toCompactByteArray());
+      putBytesToJavaPath("hll8_n" + n + "_java.sk", hll8.toCompactByteArray());
     }
   }
 

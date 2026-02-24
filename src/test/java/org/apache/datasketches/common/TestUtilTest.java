@@ -21,7 +21,7 @@ package org.apache.datasketches.common;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.putFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToFile;
 import static org.apache.datasketches.common.TestUtil.resPath;
 import static org.apache.datasketches.common.TestUtil.Existence.MUST_EXIST;
 import static org.apache.datasketches.common.TestUtil.Existence.WARNING;
@@ -66,7 +66,7 @@ public class TestUtilTest {
   @Test
   public void testPutBytesToFile() {
     byte[] gettysBytes = getFileBytes(resPath, "GettysburgAddress.txt");
-    putFileBytes(testPath, "GettysburgAddressCopy.txt", gettysBytes);
+    putBytesToFile(testPath, "GettysburgAddressCopy.txt", gettysBytes);
     byte[] gettysBytes2 = getFileBytes(testPath, "GettysburgAddressCopy.txt");
     assertEquals(gettysBytes, gettysBytes2);
   }

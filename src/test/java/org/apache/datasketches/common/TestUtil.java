@@ -111,8 +111,8 @@ public final class TestUtil  {
    * @param fileName the name of the target file
    * @param bytes the given byte array
    */
-  public static void putBytesToJavaPathFile(final String fileName, final byte[] bytes) {
-    putFileBytes(javaPath, fileName, bytes);
+  public static void putBytesToJavaPath(final String fileName, final byte[] bytes) {
+    putBytesToFile(javaPath, fileName, bytes);
   }
 
   /**
@@ -123,7 +123,7 @@ public final class TestUtil  {
    * @param bytes the given byte array
    * @throws RuntimeException for IO errors,
    */
-  public static void putFileBytes(final Path basePath, final String fileName, final byte[] bytes) {
+  public static void putBytesToFile(final Path basePath, final String fileName, final byte[] bytes) {
     Objects.requireNonNull(basePath, "input parameter 'Path basePath' cannot be null.");
     Objects.requireNonNull(fileName, "input parameter 'String fileName' cannot be null.");
     Objects.requireNonNull(bytes, "input parameter 'byte[] bytes' cannot be null.");

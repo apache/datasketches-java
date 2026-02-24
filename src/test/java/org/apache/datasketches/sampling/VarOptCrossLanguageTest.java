@@ -21,22 +21,18 @@ package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
-import java.nio.file.Files;
 
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.sampling.SampleSubsetSummary;
-import org.apache.datasketches.sampling.VarOptItemsSketch;
-import org.apache.datasketches.sampling.VarOptItemsUnion;
 import org.testng.annotations.Test;
 
 /**
@@ -54,8 +50,7 @@ public class VarOptCrossLanguageTest {
       for (int i = 1; i <= n; i++) {
         sk.update(Long.valueOf(i), 1.0);
       }
-      Files.newOutputStream(javaPath.resolve("varopt_sketch_long_n" + n + "_java.sk"))
-        .write(sk.toByteArray(new ArrayOfLongsSerDe()));
+      putBytesToJavaPath("varopt_sketch_long_n" + n + "_java.sk",  sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
 
@@ -65,8 +60,7 @@ public class VarOptCrossLanguageTest {
     for (int i = 1; i <= 200; ++i) {
       sketch.update(Integer.toString(i), 1000.0 / i);
     }
-    Files.newOutputStream(javaPath.resolve("varopt_sketch_string_exact_java.sk"))
-      .write(sketch.toByteArray(new ArrayOfStringsSerDe()));
+    putBytesToJavaPath("varopt_sketch_string_exact_java.sk",  sketch.toByteArray(new ArrayOfStringsSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -79,8 +73,7 @@ public class VarOptCrossLanguageTest {
     sketch.update(-1L, 100000.0);
     sketch.update(-2L, 110000.0);
     sketch.update(-3L, 120000.0);
-    Files.newOutputStream(javaPath.resolve("varopt_sketch_long_sampling_java.sk"))
-      .write(sketch.toByteArray(new ArrayOfLongsSerDe()));
+    putBytesToJavaPath("varopt_sketch_long_sampling_java.sk",  sketch.toByteArray(new ArrayOfLongsSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -107,8 +100,7 @@ public class VarOptCrossLanguageTest {
       sketch.update(1.0 * i, 1.0);
     }
     union.update(sketch);
-    Files.newOutputStream(javaPath.resolve("varopt_union_double_sampling_java.sk"))
-      .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+    putBytesToJavaPath("varopt_union_double_sampling_java.sk",  union.toByteArray(new ArrayOfDoublesSerDe()));
   }
 
   @Test(groups = {CHECK_CPP_FILES})

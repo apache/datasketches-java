@@ -19,18 +19,17 @@
 
 package org.apache.datasketches.sampling;
 
+import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.ResizeFactor;
 import org.testng.annotations.Test;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.javaPath;
 
 /**
  * Serialize binary sketches to be tested by other language code.
@@ -43,8 +42,7 @@ public class ReservoirCrossLanguageTest {
     final int k = 128;
     final ReservoirLongsSketch sk = ReservoirLongsSketch.newInstance(k);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_longs_empty_k" + k + "_java.sk"))
-        .write(sk.toByteArray());
+    putBytesToJavaPath("reservoir_longs_empty_k" + k + "_java.sk",  sk.toByteArray());
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -57,8 +55,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update(i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_longs_exact_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray());
+      putBytesToJavaPath("reservoir_longs_exact_n" + n + "_k" + k + "_java.sk",  sk.toByteArray());
     }
   }
 
@@ -80,8 +77,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_longs_sampling_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray());
+      putBytesToJavaPath("reservoir_longs_sampling_n" + n + "_k" + k + "_java.sk",  sk.toByteArray());
     }
   }
 
@@ -90,8 +86,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_longs_union_empty_maxk" + maxK + "_java.sk"))
-        .write(union.toByteArray());
+    putBytesToJavaPath("reservoir_longs_union_empty_maxk" + maxK + "_java.sk",  union.toByteArray());
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -104,8 +99,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         union.update(i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_longs_union_exact_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray());
+      putBytesToJavaPath("reservoir_longs_union_exact_n" + n + "_maxk" + maxK + "_java.sk",  union.toByteArray());
     }
   }
 
@@ -130,8 +124,7 @@ public class ReservoirCrossLanguageTest {
       ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
       union.update(sk);
 
-      Files.newOutputStream(javaPath.resolve("reservoir_longs_union_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray());
+      putBytesToJavaPath("reservoir_longs_union_sampling_n" + n + "_maxk" + maxK + "_java.sk",  union.toByteArray());
     }
   }
 
@@ -140,8 +133,7 @@ public class ReservoirCrossLanguageTest {
     final int k = 128;
     final ReservoirItemsSketch<Long> sk = ReservoirItemsSketch.newInstance(k);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_items_long_empty_k" + k + "_java.sk"))
-        .write(sk.toByteArray(new ArrayOfLongsSerDe()));
+    putBytesToJavaPath("reservoir_items_long_empty_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfLongsSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -154,8 +146,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update((long) i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_long_exact_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray(new ArrayOfLongsSerDe()));
+      putBytesToJavaPath("reservoir_items_long_exact_n" + n + "_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
 
@@ -177,8 +168,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_long_sampling_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray(new ArrayOfLongsSerDe()));
+      putBytesToJavaPath("reservoir_items_long_sampling_n" + n + "_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
 
@@ -187,8 +177,7 @@ public class ReservoirCrossLanguageTest {
     final int k = 128;
     final ReservoirItemsSketch<Double> sk = ReservoirItemsSketch.newInstance(k);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_items_double_empty_k" + k + "_java.sk"))
-        .write(sk.toByteArray(new ArrayOfDoublesSerDe()));
+    putBytesToJavaPath("reservoir_items_double_empty_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfDoublesSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -201,8 +190,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update((double) i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_double_exact_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray(new ArrayOfDoublesSerDe()));
+      putBytesToJavaPath("reservoir_items_double_exact_n" + n + "_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfDoublesSerDe()));
     }
   }
 
@@ -224,8 +212,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_double_sampling_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray(new ArrayOfDoublesSerDe()));
+      putBytesToJavaPath("reservoir_items_double_sampling_n" + n + "_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfDoublesSerDe()));
     }
   }
 
@@ -234,8 +221,7 @@ public class ReservoirCrossLanguageTest {
     final int k = 128;
     final ReservoirItemsSketch<String> sk = ReservoirItemsSketch.newInstance(k);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_items_string_empty_k" + k + "_java.sk"))
-        .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+    putBytesToJavaPath("reservoir_items_string_empty_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -248,8 +234,7 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update("item" + i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_string_exact_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+      putBytesToJavaPath("reservoir_items_string_exact_n" + n + "_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 
@@ -271,8 +256,7 @@ public class ReservoirCrossLanguageTest {
           k
       );
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_string_sampling_n" + n + "_k" + k + "_java.sk"))
-          .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+      putBytesToJavaPath("reservoir_items_string_sampling_n" + n + "_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 
@@ -281,8 +265,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_empty_maxk" + maxK + "_java.sk"))
-        .write(union.toByteArray(new ArrayOfLongsSerDe()));
+    putBytesToJavaPath("reservoir_items_union_long_empty_maxk" + maxK + "_java.sk",  union.toByteArray(new ArrayOfLongsSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -295,8 +278,8 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         union.update((long) i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_exact_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray(new ArrayOfLongsSerDe()));
+      putBytesToJavaPath("reservoir_items_union_long_exact_n" + n + "_maxk" + maxK + "_java.sk",
+          union.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
 
@@ -321,8 +304,8 @@ public class ReservoirCrossLanguageTest {
       ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
       union.update(sk);
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_union_long_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray(new ArrayOfLongsSerDe()));
+      putBytesToJavaPath("reservoir_items_union_long_sampling_n" + n + "_maxk" + maxK + "_java.sk",
+          union.toByteArray(new ArrayOfLongsSerDe()));
     }
   }
 
@@ -331,8 +314,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_empty_maxk" + maxK + "_java.sk"))
-        .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+    putBytesToJavaPath("reservoir_items_union_double_empty_maxk" + maxK + "_java.sk",  union.toByteArray(new ArrayOfDoublesSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -345,8 +327,8 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         union.update((double) i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_exact_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+      putBytesToJavaPath("reservoir_items_union_double_exact_n" + n + "_maxk" + maxK + "_java.sk",
+          union.toByteArray(new ArrayOfDoublesSerDe()));
     }
   }
 
@@ -371,8 +353,8 @@ public class ReservoirCrossLanguageTest {
       ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
       union.update(sk);
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_union_double_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray(new ArrayOfDoublesSerDe()));
+      putBytesToJavaPath("reservoir_items_union_double_sampling_n" + n + "_maxk" + maxK + "_java.sk",
+          union.toByteArray(new ArrayOfDoublesSerDe()));
     }
   }
 
@@ -381,8 +363,7 @@ public class ReservoirCrossLanguageTest {
     int maxK = 128;
     ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
 
-    Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_empty_maxk" + maxK + "_java.sk"))
-        .write(union.toByteArray(new ArrayOfStringsSerDe()));
+    putBytesToJavaPath("reservoir_items_union_string_empty_maxk" + maxK + "_java.sk",  union.toByteArray(new ArrayOfStringsSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -395,8 +376,8 @@ public class ReservoirCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         union.update("item" + i);
       }
-      Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_exact_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray(new ArrayOfStringsSerDe()));
+      putBytesToJavaPath("reservoir_items_union_string_exact_n" + n + "_maxk" + maxK + "_java.sk",
+          union.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 
@@ -421,8 +402,8 @@ public class ReservoirCrossLanguageTest {
       ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
       union.update(sk);
 
-      Files.newOutputStream(javaPath.resolve("reservoir_items_union_string_sampling_n" + n + "_maxk" + maxK + "_java.sk"))
-          .write(union.toByteArray(new ArrayOfStringsSerDe()));
+      putBytesToJavaPath("reservoir_items_union_string_sampling_n" + n + "_maxk" + maxK + "_java.sk",
+          union.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 }

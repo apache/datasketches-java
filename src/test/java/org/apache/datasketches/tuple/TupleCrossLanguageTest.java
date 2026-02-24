@@ -22,23 +22,18 @@ package org.apache.datasketches.tuple;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.apache.datasketches.common.TestUtil.resPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.TestUtil;
-import org.apache.datasketches.tuple.TupleSketch;
-import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.UpdatableTupleSketch;
-import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
@@ -113,7 +108,7 @@ public class TupleCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update(i, i);
       }
-      Files.newOutputStream(javaPath.resolve("tuple_int_n" + n + "_java.sk")).write(sk.compact().toByteArray());
+      putBytesToJavaPath("tuple_int_n" + n + "_java.sk", sk.compact().toByteArray());
     }
   }
 

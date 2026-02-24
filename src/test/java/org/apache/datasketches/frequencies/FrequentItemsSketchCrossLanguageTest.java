@@ -21,20 +21,17 @@ package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.frequencies.FrequentItemsSketch;
-import org.apache.datasketches.frequencies.FrequentLongsSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -54,7 +51,7 @@ public class FrequentItemsSketchCrossLanguageTest {
       assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
       if (n > 10) { assertTrue(sk.getMaximumError() > 0); }
       else { assertEquals(sk.getMaximumError(), 0); }
-      Files.newOutputStream(javaPath.resolve("frequent_long_n" + n + "_java.sk")).write(sk.toByteArray());
+      putBytesToJavaPath("frequent_long_n" + n + "_java.sk",  sk.toByteArray());
     }
   }
 
@@ -69,8 +66,7 @@ public class FrequentItemsSketchCrossLanguageTest {
       assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
       if (n > 10) { assertTrue(sk.getMaximumError() > 0); }
       else { assertEquals(sk.getMaximumError(), 0); }
-      Files.newOutputStream(javaPath.resolve("frequent_string_n" + n + "_java.sk"))
-        .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+      putBytesToJavaPath("frequent_string_n" + n + "_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 
@@ -81,8 +77,7 @@ public class FrequentItemsSketchCrossLanguageTest {
     sk.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 2);
     sk.update("ccccccccccccccccccccccccccccc", 3);
     sk.update("ddddddddddddddddddddddddddddd", 4);
-    Files.newOutputStream(javaPath.resolve("frequent_string_ascii_java.sk"))
-      .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+    putBytesToJavaPath("frequent_string_ascii_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -95,8 +90,7 @@ public class FrequentItemsSketchCrossLanguageTest {
     sk.update("уфхцч", 5);
     sk.update("шщъыь", 6);
     sk.update("эюя", 7);
-    Files.newOutputStream(javaPath.resolve("frequent_string_utf8_java.sk"))
-      .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+    putBytesToJavaPath("frequent_string_utf8_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
   @Test(groups = {CHECK_CPP_FILES})

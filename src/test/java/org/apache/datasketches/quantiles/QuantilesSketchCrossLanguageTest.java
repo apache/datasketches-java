@@ -22,9 +22,9 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.apache.datasketches.common.TestUtil.resPath;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -32,7 +32,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
-import java.nio.file.Files;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
@@ -57,7 +56,7 @@ public class QuantilesSketchCrossLanguageTest {
       for (int i = 1; i <= n; i++) {
         sk.update(i);
       }
-      Files.newOutputStream(javaPath.resolve("quantiles_double_n" + n + "_java.sk")).write(sk.toByteArray());
+      putBytesToJavaPath("quantiles_double_n" + n + "_java.sk",  sk.toByteArray());
     }
   }
 
@@ -84,8 +83,7 @@ public class QuantilesSketchCrossLanguageTest {
         assertEquals(sk.getMinItem(), "1");
         assertEquals(sk.getMaxItem(), Integer.toString(n));
       }
-      Files.newOutputStream(javaPath.resolve("quantiles_string_n" + n + "_java.sk"))
-        .write(sk.toByteArray(new ArrayOfStringsSerDe()));
+      putBytesToJavaPath("quantiles_string_n" + n + "_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 

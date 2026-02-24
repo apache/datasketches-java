@@ -22,15 +22,14 @@ package org.apache.datasketches.cpc;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_GO_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.goPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
 import org.testng.annotations.Test;
 
@@ -51,7 +50,7 @@ public class CpcSketchCrossLanguageTest {
         sk.update(i);
       }
       assertEquals(sk.getFlavor(), flavorArr[flavorIdx++]);
-      Files.newOutputStream(javaPath.resolve("cpc_n" + n + "_java.sk")).write(sk.toByteArray());
+      putBytesToJavaPath("cpc_n" + n + "_java.sk",  sk.toByteArray());
     }
   }
 
@@ -67,7 +66,7 @@ public class CpcSketchCrossLanguageTest {
     final long v4 = -1;
     sk.update(v4);
     assertEquals(sk.getEstimate(), 1, 0.01);
-    Files.newOutputStream(javaPath.resolve("cpc_negative_one_java.sk")).write(sk.toByteArray());
+    putBytesToJavaPath("cpc_negative_one_java.sk",  sk.toByteArray());
   }
 
   @Test(groups = {CHECK_CPP_FILES})

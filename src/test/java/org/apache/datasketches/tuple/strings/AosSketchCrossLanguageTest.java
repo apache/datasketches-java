@@ -20,12 +20,11 @@
 package org.apache.datasketches.tuple.strings;
 
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
 import java.io.IOException;
-import java.nio.file.Files;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.testng.annotations.Test;
@@ -44,7 +43,7 @@ public class AosSketchCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update(new String[] {String.valueOf(i)}, new String[] {"value" + i});
       }
-      Files.newOutputStream(javaPath.resolve("aos_1_n" + n + "_java.sk")).write(sk.compact().toByteArray());
+      putBytesToJavaPath("aos_1_n" + n + "_java.sk", sk.compact().toByteArray());
     }
   }
 
@@ -56,7 +55,7 @@ public class AosSketchCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update(new String[] {String.valueOf(i)}, new String[] {"a" + i, "b" + i, "c" + i});
       }
-      Files.newOutputStream(javaPath.resolve("aos_3_n" + n + "_java.sk")).write(sk.compact().toByteArray());
+      putBytesToJavaPath("aos_3_n" + n + "_java.sk", sk.compact().toByteArray());
     }
   }
 
@@ -67,7 +66,7 @@ public class AosSketchCrossLanguageTest {
     sk.update(new String[] {"key1"}, new String[] {"value1"});
     assertFalse(sk.isEmpty());
     assertEquals(sk.getRetainedEntries(), 0);
-    Files.newOutputStream(javaPath.resolve("aos_1_non_empty_no_entries_java.sk")).write(sk.compact().toByteArray());
+    putBytesToJavaPath("aos_1_non_empty_no_entries_java.sk", sk.compact().toByteArray());
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -78,7 +77,7 @@ public class AosSketchCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update(new String[] {"key" + i, "subkey" + (i % 10)}, new String[] {"value" + i});
       }
-      Files.newOutputStream(javaPath.resolve("aos_multikey_n" + n + "_java.sk")).write(sk.compact().toByteArray());
+      putBytesToJavaPath("aos_multikey_n" + n + "_java.sk", sk.compact().toByteArray());
     }
   }
 
@@ -93,7 +92,7 @@ public class AosSketchCrossLanguageTest {
     assertFalse(sk.isEmpty());
     assertEquals(sk.getRetainedEntries(), 3);
 
-    Files.newOutputStream(javaPath.resolve("aos_unicode_java.sk")).write(sk.compact().toByteArray());
+    putBytesToJavaPath("aos_unicode_java.sk", sk.compact().toByteArray());
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
@@ -107,6 +106,6 @@ public class AosSketchCrossLanguageTest {
     assertFalse(sk.isEmpty());
     assertEquals(sk.getRetainedEntries(), 3);
 
-    Files.newOutputStream(javaPath.resolve("aos_empty_strings_java.sk")).write(sk.compact().toByteArray());
+    putBytesToJavaPath("aos_empty_strings_java.sk", sk.compact().toByteArray());
   }
 }

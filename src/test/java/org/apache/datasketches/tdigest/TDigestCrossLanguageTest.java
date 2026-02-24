@@ -21,14 +21,15 @@ package org.apache.datasketches.tdigest;
 
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
-import java.nio.file.Files;
+
 import org.testng.annotations.Test;
 
 public class TDigestCrossLanguageTest {
@@ -101,7 +102,7 @@ public class TDigestCrossLanguageTest {
       for (int i = 1; i <= n; i++) {
         td.update(i);
       }
-      Files.newOutputStream(javaPath.resolve("tdigest_double_n" + n + "_java.sk")).write(td.toByteArray());
+      putBytesToJavaPath("tdigest_double_n" + n + "_java.sk", td.toByteArray());
     }
   }
 
