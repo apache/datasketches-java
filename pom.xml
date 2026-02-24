@@ -283,7 +283,7 @@ under the License.
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
-            <argLine> @{argLine} @{jvm.args}</argLine>
+            <argLine>@{argLine} @{jvm.args}</argLine>
             <jdkToolchain>
               <version>${java.version}</version>
             </jdkToolchain>
