@@ -133,7 +133,8 @@ public final class TestUtil  {
       filePath = basePath.resolve(fileName);
       Files.write(filePath, bytes);
     } catch (IOException e) {
-      throw new RuntimeException("System IO Error writing file: " + filePath.toString() + " " + e);
+      final String filePathDesc = String.valueOf(filePath);
+      throw new RuntimeException("System IO Error writing file: " + filePathDesc + " " + e);
     }
   }
 }
