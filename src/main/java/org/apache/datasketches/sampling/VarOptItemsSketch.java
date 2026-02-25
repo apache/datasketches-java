@@ -331,6 +331,11 @@ public final class VarOptItemsSketch<T> {
     if (numPreLongs == Family.VAROPT.getMaxPreLongs()) {
       if (rCount > 0) {
         totalRWeight = extractTotalRWeight(srcSeg);
+        if (Double.isNaN(totalRWeight) || (totalRWeight <= 0.0)) {
+          throw new SketchesArgumentException("Possible Corruption: deserializing in full mode "
+                  + "but invalid R region weight. Found r = " + rCount
+                  + ", R region weight = " + totalRWeight);
+        }
       } else {
         throw new SketchesArgumentException(
                 "Possible Corruption: "

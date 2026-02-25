@@ -152,7 +152,7 @@ final class PreambleUtil {
   static final int RESERVED_FLAG_MASK       = 1; //Reserved.
   static final int COMPRESSED_FLAG_MASK     = 2;
   static final int HIP_FLAG_MASK            = 4;
-  static final int SUP_VAL_FLAG_MASK        = 8; //num Suprising Values > 0
+  static final int SUP_VAL_FLAG_MASK        = 8; //num Surprising Values > 0
   static final int WINDOW_FLAG_MASK         = 16;//window length > 0
 
   //PREAMBLE SIZE
@@ -253,7 +253,7 @@ final class PreambleUtil {
    * Do not change the order.
    *
    * <p>Note: NUM_SV has dual meanings: In sparse and hybrid flavors it is equivalent to
-   * numCoupons so it isn't stored separately. In pinned and sliding flavors is is the
+   * numCoupons so it isn't stored separately. In pinned and sliding flavors is the
    * numSV of the PairTable, which stores only surprising values.</p>
    */
   enum HiField { NUM_COUPONS, NUM_SV, KXP, HIP_ACCUM, SV_LENGTH_INTS, W_LENGTH_INTS, SV_STREAM,

@@ -124,7 +124,7 @@ public class CpcUnion {
     bitMatrix = null;
     // We begin with the accumulator holding an EMPTY_MERGED sketch object.
     // As an optimization the accumulator could start as NULL, but that would require changes elsewhere.
-    accumulator = new CpcSketch(lgK);
+    accumulator = new CpcSketch(lgK, seed);
   }
 
   /**
