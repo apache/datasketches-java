@@ -210,7 +210,7 @@ public class KllCrossLanguageTest {
   public void kllLong() throws IOException {
     final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("kll_long_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath,"kll_long_n" + n + "_cpp.sk");
       final KllLongsSketch sketch = KllLongsSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getK(), 200);
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
