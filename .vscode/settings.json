@@ -1,3 +1,0 @@
-{
-    "java.checkstyle.configuration": "${workspaceFolder}/tools/SketchesCheckstyle.xml"
-}
