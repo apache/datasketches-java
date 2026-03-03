@@ -1,0 +1,4139 @@
+*****************************************************
+Summary
+*****************************************************
+Generated at: 2026-03-03T13:43:44-08:00
+    by Apache Creadur RAT::Core 0.17 (Apache Software Foundation)
+
+-----------------------------------------------------
+Counters
+-----------------------------------------------------
+    (Entries starting with '!' exceed the minimum or maximum values)
+  Approved:           612    A count of approved licenses.
+  Archives:           0    A count of archive files.
+  Binaries:           3    A count of binary files.
+  Document types:     3    A count of distinct document types.
+  Ignored:            541    A count of ignored files.
+  License categories: 1    A count of distinct license categories.
+  License names:      1    A count of distinct license names.
+  Notices:            0    A count of notice files.
+  Standards:          612    A count of standard files.
+  Unapproved:         0    A count of unapproved licenses.
+  Unknown:            0    A count of unknown file types.
+
+
+-----------------------------------------------------
+Licenses detected
+-----------------------------------------------------
+
+Apache License 2.0: 612 
+
+-----------------------------------------------------
+License Categories detected
+-----------------------------------------------------
+
+AL   : 612 
+
+-----------------------------------------------------
+Document Types detected
+-----------------------------------------------------
+
+BINARY: 3 
+IGNORED: 541 
+STANDARD: 612 
+
+*****************************************************
+Detail
+*****************************************************
+
+  Documents with unapproved licenses will start with a '!'
+  The first character on the next line identifies the document type.
+   
+   char         type
+    A       Archive file
+    B       Binary file
+    I       Ignored file
+    N       Notice file
+    S       Standard file
+    U       Unknown file.
+  
+  /.DS_Store
+  I         application/octet-stream    
+
+  /.asf.yaml
+  I         text/x-yaml    
+
+  /.checkstyle
+  I         application/octet-stream    
+
+  /.classpath
+  I         text/plain    
+
+  /.editorconfig
+  I         application/octet-stream    
+
+  /.git
+  I         application/octet-stream     (directory)
+
+  /.gitattributes
+  I         application/octet-stream    
+
+  /.github
+  I         application/octet-stream     (directory)
+
+  /.gitignore
+  I         application/octet-stream    
+
+  /.mvn
+  I         application/octet-stream     (directory)
+
+  /.project
+  I         text/plain    
+
+  /.settings
+  I         application/octet-stream     (directory)
+
+  /.vscode
+  I         application/octet-stream     (directory)
+
+  /LICENSE
+  I         text/plain    
+
+  /NOTICE
+  I         text/plain    
+
+  /README.md
+  S         text/x-web-markdown    UTF-8
+    AL       AL2.0         Apache License 2.0
+
+  /pom.xml
+  S         application/xml    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /serialization_test_data/.DS_Store
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_1_non_empty_no_entries_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/aod_3_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n0_h3_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n0_h5_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n10000_h3_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n10000_h5_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n2000000_h3_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n2000000_h5_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n30000000_h3_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/bf_n30000000_h5_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/cpc_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/cpc_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/cpc_n20000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/cpc_n2000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/cpc_n200_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_long_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_ascii_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/frequent_string_utf8_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll4_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll6_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/hll8_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_double_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_float_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/kll_string_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_double_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/quantiles_string_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/req_float_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_buf_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_double_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_buf_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tdigest_float_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_compressed_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_compressed_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_compressed_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_compressed_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_compressed_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_compressed_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/theta_non_empty_no_entries_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/tuple_int_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n0_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n1000000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n100000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n10000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n1000_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n100_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n10_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_n1_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_long_sampling_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_sketch_string_exact_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/cpp_generated_files/varopt_union_double_sampling_cpp.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/cpc_n0_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/cpc_n100_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/cpc_n20000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/cpc_n2000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/cpc_n200_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/cpc_negative_one_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n0_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n1000000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n100000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n10000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n1000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n100_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n10_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll4_n1_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n0_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n1000000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n100000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n10000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n1000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n100_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n10_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll6_n1_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n0_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n1000000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n100000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n10000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n1000_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n100_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n10_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/go_generated_files/hll8_n1_go.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/.DS_Store
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_1_non_empty_no_entries_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aod_3_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_1_non_empty_no_entries_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_3_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_empty_strings_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_multikey_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/aos_unicode_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n0_h3_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n0_h5_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n10000_h3_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n10000_h5_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n2000000_h3_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n2000000_h5_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n30000000_h3_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/bf_n30000000_h5_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/cpc_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/cpc_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/cpc_n20000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/cpc_n2000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/cpc_n200_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/cpc_negative_one_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_long_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_ascii_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/frequent_string_utf8_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll4_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll6_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/hll8_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_double_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_float_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_long_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/kll_string_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_double_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/quantiles_string_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/req_float_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_empty_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_exact_n100_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_exact_n10_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_exact_n128_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_exact_n1_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_exact_n32_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_sampling_n1000_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_sampling_n1000_k32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_double_sampling_n1000_k64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_empty_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_exact_n100_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_exact_n10_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_exact_n128_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_exact_n1_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_exact_n32_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_sampling_n1000_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_sampling_n1000_k32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_long_sampling_n1000_k64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_empty_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_exact_n100_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_exact_n10_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_exact_n128_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_exact_n1_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_exact_n32_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_sampling_n1000_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_sampling_n1000_k32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_string_sampling_n1000_k64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_empty_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_exact_n100_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_exact_n10_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_exact_n128_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_exact_n1_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_exact_n32_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_sampling_n1000_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_sampling_n1000_maxk32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_double_sampling_n1000_maxk64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_empty_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_exact_n100_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_exact_n10_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_exact_n128_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_exact_n1_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_exact_n32_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_sampling_n1000_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_sampling_n1000_maxk32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_long_sampling_n1000_maxk64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_empty_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_exact_n100_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_exact_n10_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_exact_n128_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_exact_n1_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_exact_n32_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_sampling_n1000_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_sampling_n1000_maxk32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_items_union_string_sampling_n1000_maxk64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_empty_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_exact_n100_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_exact_n10_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_exact_n128_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_exact_n1_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_exact_n32_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_sampling_n1000_k128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_sampling_n1000_k32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_sampling_n1000_k64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_empty_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_exact_n100_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_exact_n10_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_exact_n128_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_exact_n1_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_exact_n32_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_sampling_n1000_maxk128_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_sampling_n1000_maxk32_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/reservoir_longs_union_sampling_n1000_maxk64_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tdigest_double_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_compressed_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_compressed_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_compressed_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_compressed_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_compressed_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_compressed_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/theta_non_empty_no_entries_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/tuple_int_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n0_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n1000000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n100000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n10000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n1000_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n100_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n10_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_n1_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_long_sampling_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_sketch_string_exact_java.sk
+  I         application/octet-stream    
+
+  /serialization_test_data/java_generated_files/varopt_union_double_sampling_java.sk
+  I         application/octet-stream    
+
+  /src/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/datasketches/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/datasketches/common/ArrayOfBooleansSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ArrayOfDoublesSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ArrayOfItemsSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ArrayOfLongsSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ArrayOfNumbersSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ArrayOfStringsSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ArrayOfUtf16StringsSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/BoundsOnBinomialProportions.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/BoundsOnRatiosInSampledSets.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ByteArrayUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/Family.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/MemorySegmentRequest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/MemorySegmentRequestExample.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/MemorySegmentStatus.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/QuickSelect.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/ResizeFactor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/SketchesArgumentException.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/SketchesException.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/SketchesNotSupportedException.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/SketchesReadOnlyException.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/SketchesStateException.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/SpecialValueLayouts.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/SuppressFBWarnings.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/Util.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/positional/PositionInvariantsException.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/positional/Positional.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/positional/PositionalImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/positional/PositionalSegment.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/positional/PositionalSegmentImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/common/positional/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/count/CountMinSketch.java
+  S         text/x-java-source    UTF-8
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/count/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/BitMatrix.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CompressedState.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CompressionCharacterization.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CompressionData.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CpcCompression.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CpcConfidence.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CpcSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CpcUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CpcUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/CpcWrapper.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/Flavor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/Format.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/IconEstimator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/IconPolynomialCoefficients.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/MergingValidation.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/PairTable.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/PreambleUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/QuickMergingValidation.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/RuntimeAsserts.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/StreamingValidation.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/TestUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/cpc/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/fdt/FdtSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/fdt/Group.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/fdt/PostProcessor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/fdt/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/datasketches/filters/bloomfilter/BitArray.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/bloomfilter/BloomFilter.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/bloomfilter/BloomFilterBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/bloomfilter/DirectBitArray.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/bloomfilter/DirectBitArrayR.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/bloomfilter/HeapBitArray.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/bloomfilter/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/filters/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/ErrorType.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/FrequentItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/FrequentLongsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/PreambleUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/ReversePurgeItemHashMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/ReversePurgeLongHashMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/Util.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/frequencies/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hash/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/datasketches/hash/MurmurHash3.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hash/MurmurHash3FFM.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hash/XxHash.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hash/XxHash64.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hash/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/AbstractCoupons.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/AbstractHllArray.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/AuxHashMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/BaseHllSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/CompositeInterpolationXTable.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/Conversions.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/CouponHashSet.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/CouponList.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/CouponMapping.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/CubicInterpolation.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/CurMode.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/DirectAuxHashMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/DirectCouponHashSet.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/DirectCouponList.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/DirectHll4Array.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/DirectHll6Array.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/DirectHll8Array.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/DirectHllArray.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HarmonicNumbers.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HeapAuxHashMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/Hll4Array.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/Hll4Update.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/Hll6Array.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/Hll8Array.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HllArray.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HllEstimators.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HllPairIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HllSketch.java
+  S         text/x-java-source    UTF-8
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HllSketchImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HllUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/HllUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/IntArrayPairIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/IntMemorySegmentPairIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/PairIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/PreambleUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/RelativeErrorTables.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/TgtHllType.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/ToByteArrayImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hll/doc-files/HLL_HIP_K12T20U20.png
+  B         image/png    
+
+  /src/main/java/org/apache/datasketches/hll/doc-files/HLL_UnionTime4_6_8_Java_CPP.png
+  B         image/png    
+
+  /src/main/java/org/apache/datasketches/hll/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/CouponHashMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/CouponTraverseMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/CouponsIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/HllMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/Map.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/SingleCouponMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/UniqueCountMap.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/hllmap/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllDirectCompactItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllDirectDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllDirectFloatsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllDirectLongsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllDoublesHelper.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllDoublesSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllFloatsHelper.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllFloatsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllFloatsSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllHeapDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllHeapFloatsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllHeapItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllHeapLongsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllHelper.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllItemsHelper.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllItemsSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllLongsHelper.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllLongsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllLongsSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllMemorySegmentValidate.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllPreambleUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/KllSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/kll/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/partitions/BoundsRule.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/partitions/Partitioner.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/partitions/SketchFillRequest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/partitions/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/datasketches/quantiles/ClassicUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/CompactQuantilesDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DirectCompactDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DirectDoublesSketchAccessor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DirectUpdateDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DoublesArrayAccessor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DoublesBufferAccessor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DoublesByteArrayImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DoublesMergeImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DoublesSketchAccessor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DoublesUpdateImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/DoublesUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/HeapCompactDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/HeapDoublesSketchAccessor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/HeapUpdateDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/ItemsByteArrayImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/ItemsMergeImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/ItemsUpdateImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/ItemsUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/PreambleUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesDoublesSketchBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesDoublesSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesDoublesUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesDoublesUnionBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesDoublesUnionImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesItemsSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/QuantilesItemsUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/UpdatableQuantilesDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantiles/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/BinarySearch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/DoublesSketchSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/DoublesSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/DoublesSortedViewIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/FloatsSketchSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/FloatsSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/FloatsSortedViewIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/GenericInequalitySearch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/GenericPartitionBoundaries.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/GenericSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/GenericSortedViewIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/IncludeMinMax.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/InequalitySearch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/ItemsSketchSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/KolmogorovSmirnov.java
+  S         text/x-java-source    UTF-8
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/LongsSketchSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/LongsSortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/LongsSortedViewIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/PartitioningFeature.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantileSearchCriteria.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesDoublesAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesDoublesSketchIteratorAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesFloatsAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesFloatsSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesGenericAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesGenericSketchIteratorAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesLongsAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesLongsSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesSketchIteratorAPI.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/QuantilesUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/SketchPartitionLimits.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/SortedView.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/SortedViewIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/quantilescommon/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/BaseReqSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/FloatBuffer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/ReqCompactor.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/ReqDebug.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/ReqSerDe.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/ReqSketch.java
+  S         text/x-java-source    UTF-8
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/ReqSketchBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/ReqSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/req/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/EbppsItemsSample.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/EbppsItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/PreambleUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/ReservoirItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/ReservoirItemsUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/ReservoirLongsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/ReservoirLongsUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/ReservoirSize.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/SampleSubsetSummary.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/SamplingUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/VarOptItemsSamples.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/VarOptItemsSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/VarOptItemsUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/sampling/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tdigest/BinarySearch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tdigest/Sort.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tdigest/TDigestDouble.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tdigest/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/datasketches/theta/BitPacking.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/BytesCompactCompressedHashIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/BytesCompactHashIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/CompactOperations.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/CompactThetaSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ConcurrentBackgroundThetaPropagation.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ConcurrentDirectQuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ConcurrentHeapQuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ConcurrentHeapThetaBuffer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ConcurrentPropagationService.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ConcurrentSharedThetaSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/DirectCompactCompressedSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/DirectCompactSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/DirectQuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/DirectQuickSelectSketchR.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/EmptyCompactSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/HashIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/HeapAlphaSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/HeapCompactHashIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/HeapCompactSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/HeapHashIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/HeapQuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/HeapUpdateSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/JaccardSimilarity.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/MemorySegmentCompactCompressedHashIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/MemorySegmentHashIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/PreambleUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/Rebuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/SingleItemSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaAnotB.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaAnotBimpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaIntersection.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaIntersectionImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaSetOperation.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaSetOperationBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/ThetaUnionImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/UpdatableThetaSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/UpdatableThetaSketchBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/UpdateReturnState.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/WrappedCompactCompressedSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/WrappedCompactSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/theta/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/BinomialBoundsN.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/BoundsOnRatiosInThetaSketchedSets.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/BoundsOnRatiosInTupleSketchedSets.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/EquivTables.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/HashOperations.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/SetOperationCornerCases.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/ThetaUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/thetacommon/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/.DS_Store
+  I         application/octet-stream    
+
+  /src/main/java/org/apache/datasketches/tuple/CompactTupleSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/DeserializeResult.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/Filter.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/HashTables.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/JaccardSimilarity.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/QuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/SerializerDeserializer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/Summary.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/SummaryDeserializer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/SummaryFactory.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/SummarySetOperations.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/TupleAnotB.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/TupleIntersection.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/TupleSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/TupleSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/TupleUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/UpdatableSummary.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/UpdatableTupleSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/UpdatableTupleSketchBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/Util.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/adouble/DoubleSummary.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/adouble/DoubleSummaryDeserializer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/adouble/DoubleSummaryFactory.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/adouble/DoubleSummarySetOperations.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/adouble/DoubleTupleSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/adouble/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/aninteger/IntegerSummary.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/aninteger/IntegerSummaryDeserializer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/aninteger/IntegerSummaryFactory.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/aninteger/IntegerSummarySetOperations.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/aninteger/IntegerTupleSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/aninteger/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesAnotB.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesAnotBImpl.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesCombiner.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesCompactSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesIntersection.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesQuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSetOperationBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUpdatableSketchBuilder.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesCompactSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesIntersection.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesQuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesQuickSelectSketchR.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesUnionR.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/HashTables.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/HeapArrayOfDoublesCompactSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/HeapArrayOfDoublesIntersection.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/HeapArrayOfDoublesQuickSelectSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/HeapArrayOfDoublesSketchIterator.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/HeapArrayOfDoublesUnion.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/arrayofdoubles/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/strings/ArrayOfStringsSummary.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryDeserializer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryFactory.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/strings/ArrayOfStringsSummarySetOperations.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/strings/ArrayOfStringsTupleSketch.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/java/org/apache/datasketches/tuple/strings/package-info.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/javadoc/overview.html
+  S         text/html    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/main/javadoc/resources/dictionary.html
+  S         text/html    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/datasketches/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/datasketches/common/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/datasketches/common/ArrayOfXSerDeTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/BoundsOnBinomialProportionsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/BoundsOnRatiosInSampledSetsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/ByteArrayUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/FamilyTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/Shuffle.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/ShuffleTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/SketchesExceptionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/TestUtil.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/UtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/positional/PositionalSegmentTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/common/positional/PositionalTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/count/CountMinSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/CompressedStateTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/CompressionDataTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/CpcCompressionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/CpcSketchCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/CpcSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/CpcUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/CpcWrapperTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/IconEstimatorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/PairTableTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/PreambleUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/RuntimeAssertsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/cpc/TestAllTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/fdt/FdtSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/fdt/GroupTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/filters/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/datasketches/filters/bloomfilter/BloomFilterBuilderTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/filters/bloomfilter/BloomFilterCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/filters/bloomfilter/BloomFilterTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/filters/bloomfilter/DirectBitArrayRTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/filters/bloomfilter/DirectBitArrayTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/filters/bloomfilter/HeapBitArrayTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/frequencies/DistTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/frequencies/FrequentItemsSketchCrossLanguageTest.java
+  S         text/x-java-source    UTF-8
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/frequencies/HashMapStressTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/frequencies/ItemsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/frequencies/LongsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/frequencies/ReversePurgeLongHashMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/frequencies/SerDeCompatibilityTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hash/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/datasketches/hash/MurmurHash3FFMTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hash/MurmurHash3FFMbTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hash/MurmurHash3Test.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hash/XxHash64LoopingTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hash/XxHash64Test.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/AuxHashMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/BaseHllSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/CouponListTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/CrossCountingTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/DirectAuxHashMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/DirectCouponListTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/DirectHllSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/DirectUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/HllArrayTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/HllSketchCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/HllSketchMergeOrderTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/HllSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/IsomorphicTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/PreambleUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/SizeAndModeTransitions.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/TablesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/ToFromByteArrayTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/UnionCaseTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hll/UnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hllmap/CouponHashMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hllmap/CouponTraverseMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hllmap/HllMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hllmap/SingleCouponMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/hllmap/UniqueCountMapTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectCompactDoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectCompactFloatsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectCompactItemsSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectCompactItemsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectCompactLongsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectDoublesSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectDoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectFloatsSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectFloatsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectLongsSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDirectLongsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDoublesSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDoublesSketchSerDeTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllDoublesValidationTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllFloatsSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllFloatsSketchSerDeTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllFloatsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllFloatsValidationTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllHelperTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllItemsSketchSerDeTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllItemsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllItemsSketchiteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllLongsSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllLongsSketchSerDeTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllLongsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMemorySegmentRequestApp.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMemoryValidateTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMiscDirectDoublesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMiscDirectFloatsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMiscDirectLongsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMiscDoublesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMiscFloatsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMiscItemsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllMiscLongsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/kll/KllSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/partitions/ClassicPartitionsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/partitions/ItemsSketchFillRequestLongAsString.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/partitions/KllItemsSketchFillRequestLongAsString.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/partitions/KllPartitionsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/partitions/PartitionResults.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/AccuracyTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/ClassicQuantilesMemorySegmentRequestApp.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/CustomQuantilesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DebugUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DirectCompactDoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DirectQuantilesMemoryRequestTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DirectUpdateDoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DoublesMiscTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DoublesSketchBuilderTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DoublesSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DoublesUnionBuilderTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DoublesUnionImplTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/DoublesUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/HeapCompactDoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/HeapUpdateDoublesSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/ItemsSketchIteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/ItemsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/ItemsUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/PreambleUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/QuantilesSketchCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/SerDeCompatibilityTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantiles/UtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/CrossCheckQuantilesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/GenericInequalitySearchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/IncludeMinMaxTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/InequalitySearchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/KolmogorovSmirnovTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/LinearRanksAndQuantiles.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/LongsAsOrderableStrings.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/PartitionBoundariesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/quantilescommon/QuantilesUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqCompactorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqDebugImplTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqFloatBufferTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqSketchBuilderTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqSketchCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqSketchOtherTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqSketchSortedViewTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/req/ReqSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/EbppsItemsSampleTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/EbppsItemsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/ReservoirCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/ReservoirItemsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/ReservoirItemsUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/ReservoirLongsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/ReservoirLongsUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/ReservoirSizeTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/VarOptCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/VarOptItemsSamplesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/VarOptItemsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/sampling/VarOptItemsUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tdigest/SortTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tdigest/TDigestCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tdigest/TDigestDoubleTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/datasketches/theta/AnotBimplTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/BitPackingTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/CompactSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/ConcurrentDirectQuickSelectSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/ConcurrentHeapQuickSelectSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/CornerCaseThetaSetOperationsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/DirectIntersectionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/DirectQuickSelectSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/DirectUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/EmptyTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/ExamplesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/HeapAlphaSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/HeapIntersectionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/HeapQuickSelectSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/HeapUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/HeapifyWrapSerVer3Test.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/IteratorTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/JaccardSimilarityTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/PairwiseSetOperationsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/PreambleUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/ReadOnlyMemorySegmentTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/SetOperationTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/SetOpsCornerCasesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/SingleItemSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/SketchMiscTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/SketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/ThetaSketchCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/UnionImplTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/theta/UpdateSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/thetacommon/BinomialBoundsNTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/thetacommon/BoundsOnRatiosInThetaSketchedSetsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/thetacommon/BoundsOnRatiosInTupleSketchedSetsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/thetacommon/HashOperationsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/thetacommon/QuickSelectTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/thetacommon/ThetaUtilTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/.DS_Store
+  I         application/octet-stream    
+
+  /src/test/java/org/apache/datasketches/tuple/CompactSketchWithDoubleSummaryTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/IntegerSummary.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/IntegerSummaryDeserializer.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/IntegerSummaryFactory.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/JaccardSimilarityTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/MiscTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/ReadOnlyMemorySegmentTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/SerializerDeserializerTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/TupleCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/TupleExamples2Test.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/TupleExamplesTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/adouble/AdoubleAnotBTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/adouble/AdoubleIntersectionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/adouble/AdoubleTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/adouble/AdoubleUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/adouble/FilterTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/aninteger/CornerCaseTupleSetOperationsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/aninteger/EngagementTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/aninteger/IntegerSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/aninteger/MikhailsBugTupleTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/aninteger/ParameterLeakageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/AodSketchCrossLanguageTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesAnotBTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesCompactSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesIntersectionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesQuickSelectSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/ArrayOfDoublesUnionTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/CornerCaseArrayOfDoublesSetOperationsTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesCompactSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/DirectArrayOfDoublesQuickSelectSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/HeapArrayOfDoublesCompactSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/arrayofdoubles/HeapArrayOfDoublesQuickSelectSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/strings/AosSketchCrossLanguageTest.java
+  S         text/x-java-source    UTF-8
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/strings/ArrayOfStringsSketchTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/strings/ArrayOfStringsSummaryTest.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/java/org/apache/datasketches/tuple/strings/ArrayOfStringsSummary_Issue699.java
+  S         text/x-java-source    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /src/test/resources/ArrayOfDoublesUnion_v0.9.1.sk
+  I         application/octet-stream    
+
+  /src/test/resources/CompactSketchWithDoubleSummary4K_serialVersion1.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n1000_v0.3.0.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n1000_v0.6.0.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n1000_v0.8.0.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n1000_v0.8.3.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n50_v0.3.0.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n50_v0.6.0.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n50_v0.8.0.sk
+  I         application/octet-stream    
+
+  /src/test/resources/Qk128_n50_v0.8.3.sk
+  I         application/octet-stream    
+
+  /src/test/resources/TupleWithTestIntegerSummary4kTrimmedSerVer2.sk
+  I         application/octet-stream    
+
+  /src/test/resources/kll_double_n1.sk
+  I         application/octet-stream    
+
+  /src/test/resources/kll_sketch_double_one_item_v1.sk
+  I         application/octet-stream    
+
+  /src/test/resources/kll_sketch_float_one_item_v1.sk
+  I         application/octet-stream    
+
+  /src/test/resources/tdigest_ref_k100_n10000_double.sk
+  I         application/octet-stream    
+
+  /src/test/resources/tdigest_ref_k100_n10000_float.sk
+  I         application/octet-stream    
+
+  /target
+  I         application/octet-stream     (directory)
+
+  /tools/FindBugsExcludeFilter.xml
+  S         application/xml    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /tools/ManualJavadocsDeploy.sh
+  B         application/x-sh    
+
+  /tools/SketchesCheckstyle.xml
+  S         application/xml    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+  /tools/testng.xml
+  S         application/xml    ISO-8859-1
+    AL       AL2.0         Apache License 2.0
+
+

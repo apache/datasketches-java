@@ -1,0 +1,81 @@
+-J-Duser.language=
+-J-Duser.country=
+-J-Xmx4g
+-J-Duser.language=en
+-J-Duser.country=US
+-J-Dfile.encoding=UTF-8
+@options
+@packages
+-encoding
+'UTF-8'
+-overview
+'/Users/lrhodes/dev/git/Apache/datasketches-java25/src/main/javadoc/overview.html'
+-public
+--release
+25
+-sourcepath
+'/Users/lrhodes/dev/git/Apache/datasketches-java25/src/main/java:/Users/lrhodes/dev/git/Apache/datasketches-java25/src/main/javadoc'
+-author
+-bottom
+'Copyright &#169; 2015&#x2013;2026. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs'
+-docencoding
+'UTF-8'
+-docfilessubdirs
+-Xdoclint:all,-missing
+-doctitle
+'datasketches-java 9.0.1-SNAPSHOT API'
+-use
+-version
+-windowtitle
+'datasketches-java 9.0.1-SNAPSHOT API'
+org.apache.datasketches.filters.bloomfilter
+org.apache.datasketches.filters
+org.apache.datasketches.tdigest
+org.apache.datasketches.hll
+org.apache.datasketches.hash
+org.apache.datasketches.tuple.adouble
+org.apache.datasketches.tuple
+org.apache.datasketches.tuple.strings
+org.apache.datasketches.tuple.aninteger
+org.apache.datasketches.tuple.arrayofdoubles
+org.apache.datasketches.hllmap
+org.apache.datasketches.frequencies
+org.apache.datasketches.count
+org.apache.datasketches.fdt
+org.apache.datasketches.kll
+org.apache.datasketches.sampling
+org.apache.datasketches.partitions
+org.apache.datasketches.req
+org.apache.datasketches.common
+org.apache.datasketches.common.positional
+org.apache.datasketches.thetacommon
+org.apache.datasketches.quantilescommon
+org.apache.datasketches.cpc
+org.apache.datasketches.theta
+org.apache.datasketches
+org.apache.datasketches.quantiles
+/Users/lrhodes/dev/git/Apache/datasketches-java25/src/main/java/.DS_Store = 1757454157708
+/Users/lrhodes/dev/git/Apache/datasketches-java25/src/main/java = 1747084663648
+/Users/lrhodes/dev/git/Apache/datasketches-java25/src/main/javadoc/overview.html = 1770495384208
+/Users/lrhodes/dev/git/Apache/datasketches-java25/src/main/javadoc = 1770495384208
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/constant-values.html = 1772501221865
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/tag-search-index.js = 1772501222007
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/overview-tree.html = 1772501221969
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/module-search-index.js = 1772501222005
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/index.html = 1772501221972
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/package-search-index.js = 1772501222005
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/serialized-form.html = 1772501221872
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/index-all.html = 1772501222034
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/allpackages-index.html = 1772501222005
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/deprecated-list.html = 1772501221969
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/member-search-index.js = 1772501222007
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/overview-summary.html = 1772501222035
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/help-doc.html = 1772501222036
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/element-list = 1772501221832
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/search.html = 1772501222035
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/allclasses-index.html = 1772501222004
+/Users/lrhodes/dev/git/Apache/datasketches-java25/target/site/apidocs/type-search-index.js = 1772501222005
