@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd"> -->
 
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +23,7 @@ under the License.
 <suite name="DSJavaSuite">
     <test name="AllDSJavaTests">
         <packages>
-            <package name="org.apache.datasketches.*" />
+            <package name="org.apache.datasketches" />
         </packages>
     </test>
 </suite>

@@ -36,7 +36,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 abstract class BaseReqSketch implements QuantilesFloatsAPI {
   static final byte INIT_NUMBER_OF_SECTIONS = 3;
   //These two factors are used by upper and lower bounds
-  private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS); //0.1306394529
   private static final double fixRseFactor = .084;
 
   @Override
