@@ -50,6 +50,7 @@ local/
 reports/
 .pmd
 tmp/
+*.txt
 
 # Build artifacts
 target/
