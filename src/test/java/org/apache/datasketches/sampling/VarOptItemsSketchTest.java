@@ -264,6 +264,18 @@ public class VarOptItemsSketchTest {
     vis.update("invalidWeight", -1.0); // should fail
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkNaNWeight() {
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(5);
+    vis.update("invalidWeight", Double.NaN);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkInfiniteWeight() {
+    final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(5);
+    vis.update("invalidWeight", Double.POSITIVE_INFINITY);
+  }
+
   @Test
   public void checkCorruptSerializedWeight() {
     final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(24);
