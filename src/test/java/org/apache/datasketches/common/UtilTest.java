@@ -203,9 +203,9 @@ public class UtilTest {
   public void checkInvPow2() {
     Assert.assertEquals(invPow2(1), 0.5);
     Assert.assertEquals(invPow2(0), 1.0);
-    try { invPow2(-1); failIAE(); } catch (final AssertionError e) {}
-    try {invPow2(1024); failIAE(); } catch (final AssertionError e) {}
-    try {invPow2(Integer.MIN_VALUE); failIAE(); } catch (final AssertionError e) {}
+    try {invPow2(-1); failIAE(); } catch (final SketchesArgumentException e) {}
+    try {invPow2(1024); failIAE(); } catch (final SketchesArgumentException e) {}
+    try {invPow2(Integer.MIN_VALUE); failIAE(); } catch (final SketchesArgumentException e) {}
   }
 
   private static void failIAE() { throw new IllegalArgumentException("Test should have failed!"); }

@@ -20,7 +20,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Checkout Code at Specified Tag
+      - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
         uses: actions/checkout@v5
         with:
           ref: ${{ github.event.inputs.tag_ref }}  # from manual trigger input
@@ -31,7 +31,10 @@ jobs:
         with:
           java-version: '25'
           distribution: 'temurin'
+          java-package: jdk
+          architecture: x64
           cache: 'maven'
+          overwrite-settings: true  # ensures the runner's .m2/settings.xml is current
 
       - name: Build and Generate Javadoc  # POM is configured to output to target/site/apidocs
         run: mvn clean javadoc:javadoc

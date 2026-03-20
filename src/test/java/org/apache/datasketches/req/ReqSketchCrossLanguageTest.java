@@ -22,16 +22,15 @@ package org.apache.datasketches.req;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
-import org.apache.datasketches.req.ReqSketch;
 import org.testng.annotations.Test;
 
 /**
@@ -48,7 +47,7 @@ public class ReqSketchCrossLanguageTest {
       for (int i = 1; i <= n; i++) {
         sk.update(i);
       }
-      Files.newOutputStream(javaPath.resolve("req_float_n" + n + "_java.sk")).write(sk.toByteArray());
+      putBytesToJavaPath("req_float_n" + n + "_java.sk",  sk.toByteArray());
     }
   }
 
@@ -56,7 +55,7 @@ public class ReqSketchCrossLanguageTest {
   public void deserializeFromCpp() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("req_float_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "req_float_n" + n + "_cpp.sk");
       final ReqSketch sk = ReqSketch.heapify(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
       assertTrue(n > 10 ? sk.isEstimationMode() : !sk.isEstimationMode());

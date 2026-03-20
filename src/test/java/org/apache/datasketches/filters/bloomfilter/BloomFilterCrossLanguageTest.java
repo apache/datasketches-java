@@ -22,16 +22,14 @@ package org.apache.datasketches.filters.bloomfilter;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.filters.bloomfilter.BloomFilter;
-import org.apache.datasketches.filters.bloomfilter.BloomFilterBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -41,7 +39,7 @@ import org.testng.annotations.Test;
 public class BloomFilterCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generatBloomFilterBinariesForCompatibilityTesting() throws IOException {
+  public void generateBloomFilterBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 10_000, 2_000_000, 300_000_00};
     final short[] hArr = {3, 5};
     for (final int n : nArr) {
@@ -54,7 +52,7 @@ public class BloomFilterCrossLanguageTest {
         if (n > 0) { bf.update(Float.NaN); }
         assertEquals(bf.isEmpty(), n == 0);
         assertTrue(bf.isEmpty() || (bf.getBitsUsed() > (n / 10)));
-        Files.newOutputStream(javaPath.resolve("bf_n" + n + "_h" + numHashes + "_java.sk")).write(bf.toByteArray());
+        putBytesToJavaPath("bf_n" + n + "_h" + numHashes + "_java.sk", bf.toByteArray());
       }
     }
   }
@@ -65,7 +63,7 @@ public class BloomFilterCrossLanguageTest {
     final short[] hArr = {3, 5};
     for (final int n : nArr) {
       for (final short numHashes : hArr) {
-        final byte[] bytes = Files.readAllBytes(cppPath.resolve("bf_n" + n + "_h" + numHashes + "_cpp.sk"));
+        final byte[] bytes = getFileBytes(cppPath,"bf_n" + n + "_h" + numHashes + "_cpp.sk");
         final BloomFilter bf = BloomFilter.heapify(MemorySegment.ofArray(bytes));
         assertEquals(bf.isEmpty(), n == 0);
         assertTrue(bf.isEmpty() || (bf.getBitsUsed() > (n / 10)));

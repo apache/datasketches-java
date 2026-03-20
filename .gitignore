@@ -50,6 +50,7 @@ local/
 reports/
 .pmd
 tmp/
+*.txt
 
 # Build artifacts
 target/
@@ -71,3 +72,4 @@ _*/
 
 # Sketch binary test files
 *.sk
+/tools/genCPPcrossLangFiles.sh

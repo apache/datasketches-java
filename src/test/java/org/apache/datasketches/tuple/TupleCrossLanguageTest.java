@@ -23,20 +23,17 @@ import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+import static org.apache.datasketches.common.TestUtil.resPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.TestUtil;
-import org.apache.datasketches.tuple.TupleSketch;
-import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.UpdatableTupleSketch;
-import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
@@ -47,7 +44,7 @@ public class TupleCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void serialVersion1Compatibility() {
-    final byte[] byteArr = TestUtil.getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
+    final byte[] byteArr = TestUtil.getFileBytes(resPath, "CompactSketchWithDoubleSummary4K_serialVersion1.sk");
     TupleSketch<DoubleSummary> sketch = TupleSketch.heapifySketch(MemorySegment.ofArray(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
@@ -63,7 +60,7 @@ public class TupleCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void version2Compatibility() {
-    final byte[] byteArr = TestUtil.getResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
+    final byte[] byteArr = TestUtil.getFileBytes(resPath, "TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
     TupleSketch<IntegerSummary> sketch1 = TupleSketch.heapifySketch(MemorySegment.ofArray(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
@@ -88,7 +85,7 @@ public class TupleCrossLanguageTest {
   public void deserializeFromCppIntegerSummary() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("tuple_int_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "tuple_int_n" + n + "_cpp.sk");
       final TupleSketch<IntegerSummary> sketch =
           TupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new IntegerSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
@@ -111,19 +108,19 @@ public class TupleCrossLanguageTest {
       for (int i = 0; i < n; i++) {
         sk.update(i, i);
       }
-      Files.newOutputStream(javaPath.resolve("tuple_int_n" + n + "_java.sk")).write(sk.compact().toByteArray());
+      putBytesToJavaPath("tuple_int_n" + n + "_java.sk", sk.compact().toByteArray());
     }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] byteArr = TestUtil.getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
+    final byte[] byteArr = TestUtil.getFileBytes(resPath, "ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(byteArr));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] byteArr = TestUtil.getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
+    final byte[] byteArr = TestUtil.getFileBytes(resPath, "ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(byteArr));
   }
 

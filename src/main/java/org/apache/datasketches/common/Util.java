@@ -445,13 +445,15 @@ public final class Util {
   }
 
   /**
-   * Computes the inverse integer power of 2: 1/(2^e) = 2^(-e).
-   * @param e a positive value between 0 and 1023 inclusive
-   * @return  the inverse integer power of 2: 1/(2^e) = 2^(-e)
+   * Computes the inverse integer power of 2: 1/(2^exp) = 2^(-exp).
+   * @param exp a positive value between 0 and 1023 inclusive
+   * @return the inverse integer power of 2: 1/(2^exp) = 2^(-exp)
    */
-  public static double invPow2(final int e) {
-    assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
-    return Double.longBitsToDouble((1023L - e) << 52);
+  public static double invPow2(final int exp) {
+    if ((exp | (1024 - exp - 1)) < 0) {
+      throw new SketchesArgumentException("exp cannot be negative or greater than 1023: " + exp);
+    }
+    return Double.longBitsToDouble((1023L - exp) << 52);
   }
 
   /**

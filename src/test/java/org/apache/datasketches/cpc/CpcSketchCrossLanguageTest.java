@@ -23,13 +23,13 @@ import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.TestUtil.CHECK_GO_FILES;
 import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
 import static org.apache.datasketches.common.TestUtil.cppPath;
+import static org.apache.datasketches.common.TestUtil.getFileBytes;
 import static org.apache.datasketches.common.TestUtil.goPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
+import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 
-import java.lang.foreign.MemorySegment;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.lang.foreign.MemorySegment;
 
 import org.testng.annotations.Test;
 
@@ -50,7 +50,7 @@ public class CpcSketchCrossLanguageTest {
         sk.update(i);
       }
       assertEquals(sk.getFlavor(), flavorArr[flavorIdx++]);
-      Files.newOutputStream(javaPath.resolve("cpc_n" + n + "_java.sk")).write(sk.toByteArray());
+      putBytesToJavaPath("cpc_n" + n + "_java.sk",  sk.toByteArray());
     }
   }
 
@@ -66,7 +66,7 @@ public class CpcSketchCrossLanguageTest {
     final long v4 = -1;
     sk.update(v4);
     assertEquals(sk.getEstimate(), 1, 0.01);
-    Files.newOutputStream(javaPath.resolve("cpc_negative_one_java.sk")).write(sk.toByteArray());
+    putBytesToJavaPath("cpc_negative_one_java.sk",  sk.toByteArray());
   }
 
   @Test(groups = {CHECK_CPP_FILES})
@@ -75,7 +75,7 @@ public class CpcSketchCrossLanguageTest {
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
     int flavorIdx = 0;
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("cpc_n" + n + "_cpp.sk"));
+      final byte[] bytes = getFileBytes(cppPath, "cpc_n" + n + "_cpp.sk");
       final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
       assertEquals(sketch.getEstimate(), n, n * 0.02);
@@ -88,7 +88,7 @@ public class CpcSketchCrossLanguageTest {
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
     int flavorIdx = 0;
     for (final int n: nArr) {
-      final byte[] bytes = Files.readAllBytes(goPath.resolve("cpc_n" + n + "_go.sk"));
+      final byte[] bytes = getFileBytes(goPath, "cpc_n" + n + "_go.sk");
       final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
       assertEquals(sketch.getEstimate(), n, n * 0.02);

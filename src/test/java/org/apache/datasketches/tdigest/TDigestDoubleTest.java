@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tdigest;
 
+import static org.apache.datasketches.common.TestUtil.resPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
@@ -152,7 +153,7 @@ public class TDigestDoubleTest {
 
   @Test
   public void deserializeFromReferenceImplementationDouble() {
-    final byte[] bytes = TestUtil.getResourceBytes("tdigest_ref_k100_n10000_double.sk");
+    final byte[] bytes = TestUtil.getFileBytes(resPath, "tdigest_ref_k100_n10000_double.sk");
     final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
     final int n = 10000;
     assertEquals(td.getK(), 100);
@@ -168,7 +169,7 @@ public class TDigestDoubleTest {
 
   @Test
   public void deserializeFromReferenceImplementationFloat() {
-    final byte[] bytes = TestUtil.getResourceBytes("tdigest_ref_k100_n10000_float.sk");
+    final byte[] bytes = TestUtil.getFileBytes(resPath, "tdigest_ref_k100_n10000_float.sk");
     final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
     final int n = 10000;
     assertEquals(td.getK(), 100);
