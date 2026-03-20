@@ -29,6 +29,8 @@ import java.util.Objects;
  */
 public final class TestUtil  {
 
+  private static final String userDir = System.getProperty("user.dir");
+
   /**
    * TestNG group constants
    */
@@ -41,27 +43,27 @@ public final class TestUtil  {
   /**
    * The project relative Path for Java serialized sketches to be tested by other languages.
    */
-  public static final Path javaPath = Path.of(".", "serialization_test_data", "java_generated_files");
+  public static final Path javaPath = Path.of(userDir, "serialization_test_data", "java_generated_files").normalize();
 
   /**
    * The project relative Path for C++ serialized sketches to be tested by Java.
    */
-  public static final Path cppPath = Path.of(".", "serialization_test_data", "cpp_generated_files");
+  public static final Path cppPath = Path.of(userDir, "serialization_test_data", "cpp_generated_files").normalize();
 
   /**
    * The project relative Path for Go serialized sketches to be tested by Java.
    */
-  public static final Path goPath = Path.of(".", "serialization_test_data", "go_generated_files");
+  public static final Path goPath = Path.of(userDir, "serialization_test_data", "go_generated_files").normalize();
 
   /**
    * The project relative Path for Rust serialized sketches to be tested by Java.
    */
-  public static final Path rustPath = Path.of(".", "serialization_test_data", "rust_generated_files");
+  public static final Path rustPath = Path.of(userDir, "serialization_test_data", "rust_generated_files").normalize();
 
   /**
    * The project relative Path for /src/test/resources
    */
-  public static final Path resPath = Path.of(".","src","test","resources");
+  public static final Path resPath = Path.of(userDir,"src","test","resources").normalize();
 
   public enum Existence { MUST_EXIST, WARNING }
 
@@ -73,7 +75,7 @@ public final class TestUtil  {
    * @param fileName the simple file name of the file
    * @param option an optional parameter. If option == Existence.MUST_EXIST and the file does not exist an exception will be thrown.
    * If option == Existence.WARNING, or not given, and the file does not exist, it writes a warning message
-   * to {@link System.err.out System.err.out}.
+   * to {@link System.err System.err}.
    * If option has more than one argument an exception will be thrown.
    * @return a byte array. It may be empty.
    * @throws RuntimeException for IO errors, or if resolved path is not a file or not readable or optionally not found.
