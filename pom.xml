@@ -99,10 +99,9 @@ under the License.
     <project.reporting.outputDirectory>${project.build.directory}/site</project.reporting.outputDirectory>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss'Z'</maven.build.timestamp.format>
 
-    <!--  Covered by Apache Parent POM -->
     <!--    org.apache.maven plugins -->
     <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
-    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version> <!-- parent 37: 3.14.1 -->
+    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
     <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
@@ -110,10 +109,10 @@ under the License.
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
     <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
-    <maven-surefire-failsafe-plugins.version>3.5.4</maven-surefire-failsafe-plugins.version> <!-- for surefire, failsafe and surefire-report -->
+    <maven-surefire-failsafe-plugins.version>3.5.4</maven-surefire-failsafe-plugins.version> <!-- surefire, failsafe, surefire-report -->
 
     <!--    org.apache.rat plugins -->
-    <apache-rat-plugin.version>0.17</apache-rat-plugin.version> <!-- parent 37: 0.16.1 -->
+    <apache-rat-plugin.version>0.17</apache-rat-plugin.version>
 
     <!-- Not covered by Apache Parent POM-->
     <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
@@ -162,7 +161,6 @@ under the License.
         </plugin>
 
         <plugin>
-          <!-- Apache Parent pom: apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${maven-deploy-plugin.version}</version>
@@ -642,7 +640,6 @@ under the License.
         <pluginManagement>
           <plugins>
             <plugin>
-              <!-- Apache Parent pom, pluginManagement-->
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <configuration>
@@ -661,7 +658,6 @@ under the License.
         <pluginManagement>
           <plugins>
             <plugin>
-              <!-- Apache Parent pom, pluginManagement-->
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <configuration>
@@ -680,7 +676,6 @@ under the License.
         <pluginManagement>
           <plugins>
             <plugin>
-              <!-- Apache Parent pom, pluginManagement-->
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <configuration>
@@ -700,7 +695,6 @@ under the License.
         <pluginManagement>
           <plugins>
             <plugin>
-              <!-- Apache Parent pom, pluginManagement-->
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <configuration>

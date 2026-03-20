@@ -72,3 +72,4 @@ _*/
 
 # Sketch binary test files
 *.sk
+/tools/genCPPcrossLangFiles.sh
