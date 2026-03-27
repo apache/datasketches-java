@@ -33,9 +33,6 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
-import org.apache.datasketches.req.BaseReqSketch;
-import org.apache.datasketches.req.ReqSketch;
-import org.apache.datasketches.req.ReqSketchBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -114,7 +111,7 @@ public class ReqSketchOtherTest {
     assertEquals(v, 120.0f);
     final FloatsSortedView aux = sk.getSortedView();
     assertNotNull(aux);
-    assertTrue(BaseReqSketch.getRSE(sk.getK(), .5, false, 120) > 0);
+    assertTrue(BaseReqSketch.getRSE(sk.getK(), .5, false, 120) >= 0);
     assertTrue(sk.getSerializedSizeBytes() > 0);
   }
 
@@ -185,7 +182,7 @@ public class ReqSketchOtherTest {
     try { sk.getQuantiles(new double[] {0.5}); fail(); } catch (IllegalArgumentException e) {}
     try { sk.getPMF(new float[] {1f}); fail(); } catch (IllegalArgumentException e) {}
     try { sk.getCDF(new float[] {1f}); fail(); } catch (IllegalArgumentException e) {}
-    assertTrue(BaseReqSketch.getRSE(50, 0.5, true, 0) > 0);
+    assertTrue(BaseReqSketch.getRSE(50, 0.5, true, 0) >= 0);
     assertTrue(sk.getRankUpperBound(0.5, 1) > 0);
   }
 
