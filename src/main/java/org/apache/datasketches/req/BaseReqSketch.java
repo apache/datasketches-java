@@ -71,7 +71,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
   public static double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
-    return getRankUB(k, 2, rank, 1, hra, totalN); //more conservative to assume > 1 level
+    return getRankUB(k, 2, rank, 1, hra, totalN) - rank; //more conservative to assume > 1 level
   }
 
   @Override
@@ -188,9 +188,8 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
    */
   public abstract String viewCompactorDetail(String fmt, boolean allData);
 
-  static boolean exactRank(final int k, final int levels, final double rank,
-      final boolean hra, final long totalN) {
-    final int baseCap = k * INIT_NUMBER_OF_SECTIONS;
+  static boolean exactRank(final int k, final int levels, final double rank, final boolean hra, final long totalN) {
+    final long baseCap = (long)k * INIT_NUMBER_OF_SECTIONS;
     if ((levels == 1) || (totalN <= baseCap)) { return true; }
     final double exactRankThresh = (double)baseCap / totalN;
     return (hra ? (rank >= (1.0 - exactRankThresh)) : (rank <= exactRankThresh));
