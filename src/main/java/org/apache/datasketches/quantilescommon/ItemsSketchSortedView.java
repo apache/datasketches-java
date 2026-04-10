@@ -104,12 +104,14 @@ public class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T getMaxItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int top = quantiles.length - 1;
     return quantiles[top];
   }
 
   @Override
   public T getMinItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return quantiles[0];
   }
 
