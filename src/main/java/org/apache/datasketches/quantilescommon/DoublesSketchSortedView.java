@@ -74,12 +74,14 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public double getMaxItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int top = quantiles.length - 1;
     return quantiles[top];
   }
 
   @Override
   public double getMinItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return quantiles[0];
   }
 
