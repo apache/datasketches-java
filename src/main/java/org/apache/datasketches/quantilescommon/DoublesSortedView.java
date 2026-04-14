@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.quantilescommon;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+
 /**
  * The Sorted View for quantile sketches of primitive type double.
  * @see SortedView
@@ -58,7 +60,7 @@ public interface DoublesSortedView extends SortedView {
    * </blockquote>
    * @param searchCrit the desired search criteria.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     QuantilesUtil.checkDoublesSplitPointsOrder(splitPoints);
@@ -76,7 +78,7 @@ public interface DoublesSortedView extends SortedView {
    * sketch algorithm.
    *
    * @return the maximum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double getMaxItem();
 
@@ -85,7 +87,7 @@ public interface DoublesSortedView extends SortedView {
    * sketch algorithm.
    *
    * @return the minimum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   double getMinItem();
 
@@ -127,7 +129,7 @@ public interface DoublesSortedView extends SortedView {
    * </blockquote>
    * @param searchCrit the desired search criteria.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    */
   default double[] getPMF(final double[] splitPoints,  final QuantileSearchCriteria searchCrit) {
     final double[] buckets = getCDF(splitPoints, searchCrit);
@@ -147,7 +149,7 @@ public interface DoublesSortedView extends SortedView {
    * If EXCLUSIVE, he given rank includes all quantiles &lt;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    * @see QuantileSearchCriteria
    */
   double getQuantile(double rank, QuantileSearchCriteria searchCrit);
@@ -164,7 +166,7 @@ public interface DoublesSortedView extends SortedView {
    * @param quantile the given quantile
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
    * @return the normalized rank corresponding to the given quantile.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty.
    * @see QuantileSearchCriteria
    */
   double getRank(double quantile, QuantileSearchCriteria searchCrit);

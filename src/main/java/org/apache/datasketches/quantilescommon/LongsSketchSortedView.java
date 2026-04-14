@@ -74,12 +74,14 @@ public final class LongsSketchSortedView implements LongsSortedView {
 
   @Override
   public long getMaxItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int top = quantiles.length - 1;
     return quantiles[top];
   }
 
   @Override
   public long getMinItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return quantiles[0];
   }
 

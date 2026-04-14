@@ -74,12 +74,14 @@ public class FloatsSketchSortedView implements FloatsSortedView {
 
   @Override
   public float getMaxItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int top = quantiles.length - 1;
     return quantiles[top];
   }
 
   @Override
   public float getMinItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return quantiles[0];
   }
 
