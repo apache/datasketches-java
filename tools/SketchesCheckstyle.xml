@@ -226,8 +226,7 @@ under the License.
       <property name="allowedAnnotations" value="Override, Test"/>
     </module>
 
-    <!-- disabled because of a Checkstyle bug with <p> after @param -->
-    <!-- <module name="JavadocParagraph"/>  -->
+    <module name="JavadocParagraph"/>
 
     <module name="JavadocTagContinuationIndentation">
       <property name="severity" value="ignore"/>
@@ -256,6 +255,7 @@ under the License.
       <property name="severity" value="warning"/>
       <property name="allowEscapesForControlCharacters" value="true"/>
       <property name="allowByTailComment" value="true"/>
+      <property name="allowIfAllCharactersEscaped" value="true"/>
       <property name="allowNonPrintableEscapes" value="true"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>

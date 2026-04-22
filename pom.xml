@@ -35,6 +35,14 @@ under the License.
   <url>https://datasketches.apache.org/</url>
   <inceptionYear>2015</inceptionYear>
 
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <mailingLists>
     <mailingList>
       <name>DataSketches Developers</name>
@@ -58,6 +66,19 @@ under the License.
     <url>https://github.com/apache/${project.artifactId}</url>
     <tag>HEAD</tag>
   </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>apache.releases.https</id>
+      <name>Apache Release Distribution Repository</name>
+      <url>https://repository.apache.org/service/local/staging/deploy/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <id>apache.snapshots.https</id>
+      <name>Apache Development Snapshot Repository</name>
+      <url>https://repository.apache.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
 
   <issueManagement>
     <system>GitHub</system>
@@ -93,29 +114,29 @@ under the License.
     <jvm.locale.encoding>-Dfile.encoding=UTF-8</jvm.locale.encoding>
     <jvm.args>${jvm.mem} ${jvm.locale.language} ${jvm.locale.country} ${jvm.locale.encoding}</jvm.args>
     <charset.encoding>UTF-8</charset.encoding>
+    <project.build.outputTimestamp>2026-01-09T19:00:20Z</project.build.outputTimestamp>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
+    <project.reporting.inputEncoding>${charset.encoding}</project.reporting.inputEncoding>
     <project.reporting.outputEncoding>${charset.encoding}</project.reporting.outputEncoding>
     <project.reporting.outputDirectory>${project.build.directory}/site</project.reporting.outputDirectory>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss'Z'</maven.build.timestamp.format>
 
-    <!--    org.apache.maven plugins -->
-    <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
+    <!--  org.apache.maven plugins -->
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
     <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+    <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
     <maven-release-plugin.version>3.3.1</maven-release-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
     <maven-surefire-failsafe-plugins.version>3.5.4</maven-surefire-failsafe-plugins.version> <!-- surefire, failsafe, surefire-report -->
-
-    <!--    org.apache.rat plugins -->
-    <apache-rat-plugin.version>0.17</apache-rat-plugin.version>
-
-    <!-- Not covered by Apache Parent POM-->
     <maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
+
+    <!--  org.apache.rat plugins -->
+    <apache-rat-plugin.version>0.17</apache-rat-plugin.version>
 
     <!-- com.github maven plugins -->
     <coveralls-repo-token></coveralls-repo-token>
@@ -130,6 +151,31 @@ under the License.
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Snapshot Repository</name>
+      <url>https://repository.apache.org/content/groups/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>apache</id>
+      <name>Apache Releases Repository</name>
+      <url>https://repository.apache.org/content/groups/public</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <dependencies>
     <!-- Test Scope -->
@@ -147,16 +193,10 @@ under the License.
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <version>${maven-assembly-plugin.version}</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
           <configuration>
-            <fork>true</fork>
+            <fork>true</fork> <!-- required if Maven is using a different JVM -->
           </configuration>
         </plugin>
 
@@ -178,10 +218,8 @@ under the License.
               </goals>
               <configuration>
                 <rules>
-                  <!-- The normal Java enforcer rule out of the box is toolchain unaware
-                  and is really only useful for checking what java version is available
-                  via the users shell environment. It does not check that the java compiler
-                  version is sane or matches the java command version.
+                  <!-- The Java enforcer rule is toolchain unaware
+                  and is only checks the compiler used by the Maven runtime.
                   In the context of toolchains this rule is useless.
                   See: https://github.com/paulmoloney/maven-enforcer-toolchain-rules
                   <requireJavaVersion> ... </requireJavaVersion>
@@ -200,6 +238,12 @@ under the License.
               </configuration>
             </execution>
           </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>${maven-install-plugin.version}</version>
         </plugin>
 
         <plugin>
@@ -232,8 +276,8 @@ under the License.
             <outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
-            <doclint>all,-missing</doclint>
-           <additionalJOptions>
+            <doclint>none</doclint> <!-- use Checkstyle -->
+            <additionalJOptions>
               <additionalJOption>-J${jvm.mem}</additionalJOption>
               <additionalJOption>-J${jvm.locale.language}</additionalJOption>
               <additionalJOption>-J${jvm.locale.country}</additionalJOption>
@@ -284,9 +328,6 @@ under the License.
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
             <argLine>@{argLine} @{jvm.args}</argLine>
-            <jdkToolchain>
-              <version>${java.version}</version>
-            </jdkToolchain>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>false</redirectTestOutputToFile>
@@ -294,8 +335,8 @@ under the License.
             <suiteXmlFiles>
               <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
             </suiteXmlFiles>
-            <perCoreThreadCount>false</perCoreThreadCount>
             <excludedGroups>${testng.generate-java-files},${testng.check-cpp-files},${testng.check-go-files},${testng.check-cpp-historical-files}</excludedGroups>
+            <perCoreThreadCount>false</perCoreThreadCount>
           </configuration>
         </plugin>
 
@@ -393,11 +434,6 @@ under the License.
     </pluginManagement>
 
     <plugins>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -554,6 +590,7 @@ under the License.
                     <addBuildEnvironmentEntries>true</addBuildEnvironmentEntries>
                   </manifest>
                   <manifestEntries>
+                    <Automatic-Module-Name>org.apache.datasketches</Automatic-Module-Name>
                     <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
                     <GroupId-ArtifactId>${project.groupId}:${project.artifactId}</GroupId-ArtifactId>
                     <!-- these properties are generated by the git-commit-id-maven-plugin during initialize -->
@@ -609,26 +646,6 @@ under the License.
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- Disable source release assembly for 'apache-release' profile.
-             This is performed from a script outside Maven -->
-    <profile>
-      <id>apache-release</id>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>${maven-assembly-plugin.version}</version>
-            <executions>
-              <execution>
-                <id>source-release-assembly</id>
-                <phase>none</phase>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
