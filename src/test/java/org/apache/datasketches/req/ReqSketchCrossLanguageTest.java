@@ -51,6 +51,30 @@ public class ReqSketchCrossLanguageTest {
     }
   }
 
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateNegativeBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {1, 10};
+    for (final int n: nArr) {
+      final ReqSketch sk = ReqSketch.builder().build();
+      for (int i = 1; i <= n; i++) {
+        sk.update(-i);
+      }
+      putBytesToJavaPath("req_float_negative_n" + n + "_java.sk", sk.toByteArray());
+    }
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateMixedBinariesForCompatibilityTesting() throws IOException {
+    final int[] nArr = {1, 10};
+    for (final int n: nArr) {
+      final ReqSketch sk = ReqSketch.builder().build();
+      for (int i = -n; i <= n; i++) {
+        sk.update(i);
+      }
+      putBytesToJavaPath("req_float_mixed_n" + n + "_java.sk", sk.toByteArray());
+    }
+  }
+
   @Test(groups = {CHECK_CPP_FILES})
   public void deserializeFromCpp() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
