@@ -205,7 +205,7 @@ class ReqSerDe {
     final float[] arr = new float[count];
     posSeg.getFloatArray(arr, 0, count);
     float minItem = Float.MAX_VALUE;
-    float maxItem = Float.MIN_VALUE;
+    float maxItem = -Float.MAX_VALUE;
     for (int i = 0; i < count; i++) {
       minItem = min(minItem, arr[i]);
       maxItem = max(maxItem, arr[i]);
