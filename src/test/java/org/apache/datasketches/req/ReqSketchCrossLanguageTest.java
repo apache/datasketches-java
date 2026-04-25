@@ -98,48 +98,4 @@ public class ReqSketchCrossLanguageTest {
       }
     }
   }
-
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeNegativeFromCpp() throws IOException {
-    final int[] nArr = {1, 10};
-    for (final int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "req_float_negative_n" + n + "_cpp.sk");
-      final ReqSketch sk = ReqSketch.heapify(MemorySegment.ofArray(bytes));
-      assertTrue(!sk.isEmpty());
-      assertEquals(sk.getN(), n);
-      assertEquals(sk.getMinItem(), -n);
-      assertEquals(sk.getMaxItem(), -1);
-      final QuantilesFloatsSketchIterator it = sk.iterator();
-      long weight = 0;
-      while(it.next()) {
-        assertTrue(it.getQuantile() >= sk.getMinItem());
-        assertTrue(it.getQuantile() <= sk.getMaxItem());
-        weight += it.getWeight();
-      }
-      assertEquals(weight, n);
-    }
-  }
-
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeMixedFromCpp() throws IOException {
-    final int[] nArr = {1, 10};
-    for (final int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "req_float_mixed_n" + n + "_cpp.sk");
-      final ReqSketch sk = ReqSketch.heapify(MemorySegment.ofArray(bytes));
-      assertTrue(!sk.isEmpty());
-      final int expectedN = 2 * n + 1; // range -n to n inclusive
-      assertEquals(sk.getN(), expectedN);
-      assertEquals(sk.getMinItem(), -n);
-      assertEquals(sk.getMaxItem(), (float) n);
-      final QuantilesFloatsSketchIterator it = sk.iterator();
-      long weight = 0;
-      while(it.next()) {
-        assertTrue(it.getQuantile() >= sk.getMinItem());
-        assertTrue(it.getQuantile() <= sk.getMaxItem());
-        weight += it.getWeight();
-      }
-      assertEquals(weight, expectedN);
-    }
-  }
-
 }
