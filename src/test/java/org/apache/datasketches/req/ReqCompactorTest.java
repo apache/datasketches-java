@@ -144,4 +144,26 @@ public class ReqCompactorTest {
     assertEquals(compactor.minItem, (float) -half);
     assertEquals(compactor.maxItem, (float) (half - 1));
   }
+
+  @Test
+  public void checkSerDeWithInfiniteValues() {
+    checkSerDeInfiniteImpl(12, false);
+    checkSerDeInfiniteImpl(12, true);
+  }
+
+  private static void checkSerDeInfiniteImpl(final int k, final boolean hra) {
+    final ReqCompactor c1 = new ReqCompactor((byte)0, hra, k, null);
+    final FloatBuffer fbuf = c1.getBuffer();
+
+    fbuf.append(Float.POSITIVE_INFINITY);
+    fbuf.append(1);
+    fbuf.append(Float.NEGATIVE_INFINITY);
+    fbuf.append(-1);
+
+    final byte[] c1ser = c1.toByteArray();
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, fbuf.isSorted(), hra);
+    assertEquals(compactor.minItem, Float.NEGATIVE_INFINITY);
+    assertEquals(compactor.maxItem, Float.POSITIVE_INFINITY);
+  }
 }

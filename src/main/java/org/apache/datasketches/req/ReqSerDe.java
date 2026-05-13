@@ -20,7 +20,6 @@
 package org.apache.datasketches.req;
 
 import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static java.lang.Math.round;
 
 import java.lang.foreign.MemorySegment;
@@ -204,11 +203,17 @@ class ReqSerDe {
     final int count = posSeg.getInt();
     final float[] arr = new float[count];
     posSeg.getFloatArray(arr, 0, count);
-    float minItem = Float.MAX_VALUE;
-    float maxItem = -Float.MAX_VALUE;
+    float minItem = Float.NaN;
+    float maxItem = Float.NaN;
     for (int i = 0; i < count; i++) {
-      minItem = min(minItem, arr[i]);
-      maxItem = max(maxItem, arr[i]);
+      final float item = arr[i];
+      if (Float.isNaN(minItem)) {
+        minItem = item;
+        maxItem = item;
+      } else {
+        if (item < minItem) { minItem = item; }
+        if (item > maxItem) { maxItem = item; }
+      }
     }
     final int delta = 2 * sectionSize * numSections;
     final int nomCap = 2 * delta;
