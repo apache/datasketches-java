@@ -19,15 +19,14 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.max;
-import static java.lang.Math.round;
-
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.positional.PositionalSegment;
+
+import static java.lang.Math.*;
 
 /**
  * This class handles serialization and deserialization.
@@ -203,17 +202,16 @@ class ReqSerDe {
     final int count = posSeg.getInt();
     final float[] arr = new float[count];
     posSeg.getFloatArray(arr, 0, count);
-    float minItem = Float.NaN;
-    float maxItem = Float.NaN;
+    float minItem = Float.POSITIVE_INFINITY;
+    float maxItem = Float.NEGATIVE_INFINITY;
     for (int i = 0; i < count; i++) {
       final float item = arr[i];
-      if (Float.isNaN(minItem)) {
-        minItem = item;
-        maxItem = item;
-      } else {
-        if (item < minItem) { minItem = item; }
-        if (item > maxItem) { maxItem = item; }
+      if (Float.isNaN(item)) {
+        continue;
       }
+
+      minItem = min(minItem, arr[i]);
+      maxItem = max(maxItem, arr[i]);
     }
     final int delta = 2 * sectionSize * numSections;
     final int nomCap = 2 * delta;
