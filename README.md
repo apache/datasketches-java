@@ -28,11 +28,12 @@ This is the core Java component of the DataSketches library.  It contains all of
 
 This component is also a dependency of other components of the library that create adaptors for target systems, such as the [Apache Pig adaptor](https://github.com/apache/datasketches-pig), the [Apache Hive adaptor](https://github.com/apache/datasketches-hive), and others.
 
-Note that we have parallel core library components for C++, Python, and GO implementations of many of the same sketch algorithms:
+Note that we have parallel core library components for C++, Python, GO, and Rust implementations of many of the same sketch algorithms:
 
 - [datasketches-cpp](https://github.com/apache/datasketches-cpp)
 - [datasketches-python](https://github.com/apache/datasketches-python)
 - [datasketches-go](https://github.com/apache/datasketches-go)
+- [datasketches-rust](https://github.com/apache/datasketches-rust)
 
 Please visit the main [DataSketches website](https://datasketches.apache.org) for more information.
 
