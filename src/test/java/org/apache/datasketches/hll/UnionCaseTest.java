@@ -31,6 +31,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 
 import org.apache.datasketches.common.SketchesStateException;
 import org.testng.annotations.Test;
@@ -40,6 +42,7 @@ import org.testng.annotations.Test;
  */
 public class UnionCaseTest {
   private static final String LS = System.getProperty("line.separator");
+  private static final VarHandle GADGET_HANDLE;
   long v = 0;
   final static int maxLgK = 12;
   HllSketch source;
@@ -48,47 +51,66 @@ public class UnionCaseTest {
   String hdr = String.format(hfmt, "caseNum","srcLgKStr","gdtLgKStr","srcType","gdtType",
       "srcSeg","gdtSeg","srcMode","gdtMode","srcOoof","gdtOoof");
 
+  static {
+    try {
+      MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(HllUnion.class, MethodHandles.lookup());
+      GADGET_HANDLE = lookup.findVarHandle(HllUnion.class, "gadget", HllSketch.class);
+    } catch (Exception e) { throw new RuntimeException(e); }
+  }
+  
   @Test
   public void checkAllCases() {
     print(hdr);
     for (int i = 0; i < 24; i++) {
-      checkCase(i, HLL_4, false);
+      checkCase(i, HLL_4, false, false);
     }
     println("");
 
     print(hdr);
     for (int i = 0; i < 24; i++) {
-      checkCase(i, HLL_6, false);
+      checkCase(i, HLL_6, false, false);
     }
     println("");
 
     print(hdr);
     for (int i = 0; i < 24; i++) {
-      checkCase(i, HLL_8, false);
+      checkCase(i, HLL_8, false, false);
     }
     println("");
 
     print(hdr);
     for (int i = 0; i < 24; i++) {
-      checkCase(i, HLL_4, true);
+      checkCase(i, HLL_8, false, true);
+    }
+    println("");
+    
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_4, true, false);
     }
     println("");
 
     print(hdr);
     for (int i = 0; i < 24; i++) {
-      checkCase(i, HLL_6, true);
+      checkCase(i, HLL_6, true, false);
     }
     println("");
 
     print(hdr);
     for (int i = 0; i < 24; i++) {
-      checkCase(i, HLL_8, true);
+      checkCase(i, HLL_8, true, false);
+    }
+    println("");
+    
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_8, true, true);
     }
     println("");
   }
 
-  private void checkCase(final int caseNum, final TgtHllType srcType, final boolean srcSeg) {
-    source = getSource(caseNum, srcType, srcSeg);
+  private void checkCase(final int caseNum, final TgtHllType srcType, final boolean srcSeg, final boolean srcUnion) {
+    source = getSource(caseNum, srcType, srcSeg, srcUnion);
     final boolean gdtSeg = (caseNum & 1) > 0;
     final HllUnion union = getUnion(caseNum, gdtSeg);
     union.update(source);
@@ -121,11 +143,17 @@ public class UnionCaseTest {
     assertTrue(err < rse, "Err: " + err + ", RSE: " + rse);
   }
 
-  private HllSketch getSource(final int caseNum, final TgtHllType tgtHllType, final boolean useMemorySegment) {
+  private HllSketch getSource(final int caseNum, final TgtHllType tgtHllType, final boolean useMemorySegment,
+      final boolean useHllUnion) {
     final int srcLgK = getSrcLgK(caseNum, maxLgK);
     final int srcU = getSrcCount(caseNum, maxLgK);
     if (useMemorySegment) {
       return buildMemorySegmentSketch(srcLgK, tgtHllType, srcU);
+    } else if (useHllUnion) {
+      final HllSketch sk = buildHeapSketch(srcLgK, tgtHllType, srcU);
+      final HllUnion u = new HllUnion(maxLgK);
+      u.update(sk);
+      return (HllSketch) GADGET_HANDLE.get(u);
     } else {
       return buildHeapSketch(srcLgK, tgtHllType, srcU);
     }
@@ -133,7 +161,7 @@ public class UnionCaseTest {
 
   private HllUnion getUnion(final int caseNum, final boolean useMemorySegment) {
     final int unionU = getUnionCount(caseNum);
-    return (useMemorySegment) ? buildMemorSegmentUnion(maxLgK, unionU) : buildHeapUnion(maxLgK, unionU);
+    return (useMemorySegment) ? buildMemorySegmentUnion(maxLgK, unionU) : buildHeapUnion(maxLgK, unionU);
   }
 
   private static int getUnionCount(final int caseNum) {
@@ -394,7 +422,7 @@ public class UnionCaseTest {
     return u;
   }
 
-  private HllUnion buildMemorSegmentUnion(final int lgMaxK, final int n) {
+  private HllUnion buildMemorySegmentUnion(final int lgMaxK, final int n) {
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgMaxK, TgtHllType.HLL_8);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
     final HllUnion u = new HllUnion(lgMaxK, wseg);
@@ -436,7 +464,7 @@ public class UnionCaseTest {
    * @param o value to print
    */
   static void print(final Object o) {
-    //System.out.print(o.toString()); //disable here
+    System.out.print(o.toString()); //disable here
   }
 
   /**
@@ -444,7 +472,7 @@ public class UnionCaseTest {
    * @param args arguments
    */
   static void printf(final String fmt, final Object...args) {
-    //System.out.printf(fmt, args); //disable here
+    System.out.printf(fmt, args); //disable here
   }
 
 }
