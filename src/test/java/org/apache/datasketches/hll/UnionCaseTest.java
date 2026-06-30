@@ -464,7 +464,7 @@ public class UnionCaseTest {
    * @param o value to print
    */
   static void print(final Object o) {
-    System.out.print(o.toString()); //disable here
+    //System.out.print(o.toString()); //disable here
   }
 
   /**
@@ -472,7 +472,7 @@ public class UnionCaseTest {
    * @param args arguments
    */
   static void printf(final String fmt, final Object...args) {
-    System.out.printf(fmt, args); //disable here
+    //System.out.printf(fmt, args); //disable here
   }
 
 }
