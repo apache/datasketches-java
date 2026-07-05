@@ -101,4 +101,69 @@ public class ReqCompactorTest {
     assertEquals(fbuf2.getDelta(), delta);
     assertTrue(fbuf.isEqualTo(fbuf2));
   }
+
+  @Test
+  public void checkSerDeWithNegativeValues() {
+    checkSerDeNegativeImpl(12, false);
+    checkSerDeNegativeImpl(12, true);
+  }
+
+  private static void checkSerDeNegativeImpl(final int k, final boolean hra) {
+    final ReqCompactor c1 = new ReqCompactor((byte)0, hra, k, null);
+    final int nomCap = 2 * 3 * k;
+    final FloatBuffer fbuf = c1.getBuffer();
+
+    for (int i = 1; i <= nomCap; i++) {
+      fbuf.append(-i); //all negative values
+    }
+    final byte[] c1ser = c1.toByteArray();
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, fbuf.isSorted(), hra);
+    assertEquals(compactor.minItem, -nomCap);
+    assertEquals(compactor.maxItem, -1f);
+  }
+
+  @Test
+  public void checkSerDeWithMixedValues() {
+    checkSerDeMixedImpl(12, false);
+    checkSerDeMixedImpl(12, true);
+  }
+
+  private static void checkSerDeMixedImpl(final int k, final boolean hra) {
+    final ReqCompactor c1 = new ReqCompactor((byte)0, hra, k, null);
+    final int nomCap = 2 * 3 * k;
+    final int half = nomCap / 2;
+    final FloatBuffer fbuf = c1.getBuffer();
+
+    for (int i = 0; i < nomCap; i++) {
+      fbuf.append(i - half); // range: -half to half-1
+    }
+    final byte[] c1ser = c1.toByteArray();
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, fbuf.isSorted(), hra);
+    assertEquals(compactor.minItem, (float) -half);
+    assertEquals(compactor.maxItem, (float) (half - 1));
+  }
+
+  @Test
+  public void checkSerDeWithInfiniteValues() {
+    checkSerDeInfiniteImpl(12, false);
+    checkSerDeInfiniteImpl(12, true);
+  }
+
+  private static void checkSerDeInfiniteImpl(final int k, final boolean hra) {
+    final ReqCompactor c1 = new ReqCompactor((byte)0, hra, k, null);
+    final FloatBuffer fbuf = c1.getBuffer();
+
+    fbuf.append(Float.POSITIVE_INFINITY);
+    fbuf.append(1);
+    fbuf.append(Float.NEGATIVE_INFINITY);
+    fbuf.append(-1);
+
+    final byte[] c1ser = c1.toByteArray();
+    final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, fbuf.isSorted(), hra);
+    assertEquals(compactor.minItem, Float.NEGATIVE_INFINITY);
+    assertEquals(compactor.maxItem, Float.POSITIVE_INFINITY);
+  }
 }
