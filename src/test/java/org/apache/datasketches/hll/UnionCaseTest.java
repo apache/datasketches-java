@@ -31,8 +31,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
-//import java.lang.invoke.MethodHandles;
-//import java.lang.invoke.VarHandle;
 
 import org.apache.datasketches.common.SketchesStateException;
 import org.testng.annotations.Test;
@@ -108,14 +106,18 @@ public class UnionCaseTest {
       skSource = getSkSource(caseNum, srcType, srcSeg);
     }
     final boolean gdtSeg = (caseNum & 1) > 0;
-    final HllUnion union = getUnion(caseNum, gdtSeg);
+    final HllUnion union = getUnion(caseNum, gdtSeg); //union under test
+    HllSketch refSketch;
     if (srcUnion) {
       union.update(uSource);
+      refSketch = union.getResult(HLL_8);
     } else {
       union.update(skSource);
+      refSketch = skSource;
     }
     final int totalU = getSrcCount(caseNum, maxLgK) + getUnionCount(caseNum);
-    output(caseNum, skSource, union, totalU);
+    
+    output(caseNum, refSketch, union, totalU);
   }
 
   private void output(final int caseNum, final HllSketch source, final HllUnion union, final int totalU) {
