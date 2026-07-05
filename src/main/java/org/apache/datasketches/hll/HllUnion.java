@@ -176,7 +176,7 @@ public class HllUnion extends BaseHllSketch {
     checkRebuildCurMinNumKxQ(gadget);
     return gadget.getEstimate();
   }
-
+  
   /**
    * Gets the effective <i>lgConfigK</i> for the HllUnion operator, which may be less than
    * <i>lgMaxK</i>.
@@ -320,6 +320,14 @@ public class HllUnion extends BaseHllSketch {
     gadget.hllSketchImpl = unionImpl(sketch, gadget, lgMaxK);
   }
 
+  /**
+   * Update this HllUnion operator with the given HllUnion.
+   * @param union the given HllUnion.
+   */
+  public void update(final HllUnion union) {
+    gadget.hllSketchImpl = unionImpl(union.gadget, gadget, lgMaxK);
+  }
+  
   @Override
   void couponUpdate(final int coupon) {
     if (coupon == EMPTY) { return; }
