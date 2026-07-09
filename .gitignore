@@ -75,4 +75,6 @@ _*/
 
 # Sketch binary test files
 *.sk
+src/
+pom.xml
 
