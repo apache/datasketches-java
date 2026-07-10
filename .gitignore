@@ -1,75 +1,79 @@
 # Eclipse project files 
-.classpath
-.project
-.settings/
-.checkstyle
+**/.classpath
+**/.project
+**/.settings/
+**/.factorypath
+**/.checkstyle
 
 # IntelliJ project files
-*.idea
+**/.idea/
 **/*.iml
-*.ipr
-*.iws
+**/*.ipr
+**/*.iws
+
+# Netbeans project files
+**/nb-configuration.xml
 
 # VSCode project files
 **/.vscode/
 
 # Additional tools
-.clover/
-.mvn/
+**/.clover/
 
 # OSX files
 **/.DS_Store
 
 # Compiler output, class files
-*.class
-bin/
+**/*.class
+**/bin/
 
 # Log file
-*.log
+**/*.log
 
 # BlueJ files
-*.ctxt
+**/*.ctxt
 
 # Mobile Tools for Java (J2ME)
-.mtj.tmp/
+**/.mtj.tmp/
 
 # Package Files #
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-*.rar
+**/*.jar
+**/*.war
+**/*.ear
+**/*.tar.gz
+**/*.rar
+**/*.zip  # if copying Javadocs into a branch use "git add -f . "
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+**/hs_err_pid*
 
 #Test config and output
-test-output/
-local/
-reports/
-.pmd
-tmp/
-*.txt
+**/test-output/
+**/local/
+**/reports/
+**/.pmd
+**/tmp/
+**/*.txt
 
 # Build artifacts
-target/
-serialization_test_data/
-out/
-build/
-jarsIn/
-build.xml
-*.properties
-*.releaseBackup
-*.next
-*.tag
-doc/
+**/target/
+**/out/
+**/build/
+**/jarsIn/
+**/build.xml
+**/*.properties
+**/*.releaseBackup
+**/*.next
+**/*.tag
+**/doc/      # This may need to be removed
 
 # Jekyll
-_site/
-_*
-_*/
+**/_site/
+**/_*
+**/_*/
 
+# Special ignores for this project
 # Sketch binary test files
-*.sk
+**/*.sk
 /tools/genCPPcrossLangFiles.sh
+serialization_test_data/
