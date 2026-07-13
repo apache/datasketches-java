@@ -131,10 +131,10 @@ public final class XorFilter implements MemorySegmentStatus {
       buildSeed = splitMix64(rngState);
       stackSize = map(keys, numKeys, buildSeed, xorMask, count, queue, stackHash, stackIndex);
       if (stackSize == numKeys) { break; }
-      if (attempt == (MAX_ITERATIONS - 1)) {
-        throw new SketchesArgumentException("Xor filter construction failed after " + MAX_ITERATIONS
-            + " attempts; the input likely contains duplicate keys or is degenerate.");
-      }
+    }
+    if (stackSize != numKeys) {
+      throw new SketchesArgumentException("Xor filter construction failed after " + MAX_ITERATIONS
+          + " attempts; the input likely contains duplicate keys or is degenerate.");
     }
 
     seed_ = buildSeed;
