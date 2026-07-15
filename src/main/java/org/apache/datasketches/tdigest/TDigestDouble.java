@@ -95,11 +95,12 @@ public final class TDigestDouble {
   }
 
   /**
-   * Update this TDigest with the given value
+   * Update this TDigest with the given value.
+   * NaN and infinity are ignored.
    * @param value to update the TDigest with
    */
   public void update(final double value) {
-    if (Double.isNaN(value)) { return; }
+    if (!Double.isFinite(value)) { return; }
     if (numBuffered_ == (centroidsCapacity_ * BUFFER_MULTIPLIER)) { compress(); }
     bufferValues_[numBuffered_] = value;
     numBuffered_++;
@@ -423,6 +424,7 @@ public final class TDigestDouble {
       } else {
         value = posSeg.getDouble();
       }
+      checkDeserializedValue(value, "value");
       return new TDigestDouble(reverseMerge, k, value, value, new double[] {value}, new long[] {1}, 1, null);
     }
     final int numCentroids = posSeg.getInt();
@@ -436,17 +438,22 @@ public final class TDigestDouble {
       min = posSeg.getDouble();
       max = posSeg.getDouble();
     }
+    checkDeserializedValue(min, "min");
+    checkDeserializedValue(max, "max");
     final double[] means = new double[numCentroids];
     final long[] weights = new long[numCentroids];
     long totalWeight = 0;
     for (int i = 0; i < numCentroids; i++) {
       means[i] = isFloat ? posSeg.getFloat() : posSeg.getDouble();
       weights[i] = isFloat ? posSeg.getInt() : posSeg.getLong();
+      checkDeserializedValue(means[i], "centroid mean");
+      checkDeserializedWeight(weights[i]);
       totalWeight += weights[i];
     }
     final double[] buffered = new double[numBuffered];
     for (int i = 0; i < numBuffered; i++) {
       buffered[i] = isFloat ? posSeg.getFloat() : posSeg.getDouble();
+      checkDeserializedValue(buffered[i], "buffered value");
     }
     return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight, buffered);
   }
@@ -464,12 +471,16 @@ public final class TDigestDouble {
       final double max = seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
       final short k = (short) seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
       final int numCentroids = seg.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset); offset += Integer.BYTES;
+      checkDeserializedValue(min, "min");
+      checkDeserializedValue(max, "max");
       final double[] means = new double[numCentroids];
       final long[] weights = new long[numCentroids];
       long totalWeight = 0;
       for (int i = 0; i < numCentroids; i++) {
         weights[i] = (long) seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
         means[i] = seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
+        checkDeserializedValue(means[i], "centroid mean");
+        checkDeserializedWeight(weights[i]);
         totalWeight += weights[i];
       }
       return new TDigestDouble(false, k, min, max, means, weights, totalWeight, null);
@@ -482,15 +493,31 @@ public final class TDigestDouble {
     // they can be derived from k in the constructor
     seg.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset); offset += Integer.BYTES;
     final int numCentroids = seg.get(JAVA_SHORT_UNALIGNED_BIG_ENDIAN, offset); offset += Short.BYTES;
+    checkDeserializedValue(min, "min");
+    checkDeserializedValue(max, "max");
     final double[] means = new double[numCentroids];
     final long[] weights = new long[numCentroids];
     long totalWeight = 0;
     for (int i = 0; i < numCentroids; i++) {
       weights[i] = (long) seg.get(JAVA_FLOAT_UNALIGNED_BIG_ENDIAN, offset); offset += Float.BYTES;
       means[i] = seg.get(JAVA_FLOAT_UNALIGNED_BIG_ENDIAN, offset); offset += Float.BYTES;
+      checkDeserializedValue(means[i], "centroid mean");
+      checkDeserializedWeight(weights[i]);
       totalWeight += weights[i];
     }
     return new TDigestDouble(false, k, min, max, means, weights, totalWeight, null);
+  }
+
+  private static void checkDeserializedValue(final double value, final String description) {
+    if (!Double.isFinite(value)) {
+      throw new SketchesArgumentException("Deserialized " + description + " must be finite, actual: " + value);
+    }
+  }
+
+  private static void checkDeserializedWeight(final long weight) {
+    if (weight < 1) {
+      throw new SketchesArgumentException("Deserialized centroid weight must be positive, actual: " + weight);
+    }
   }
 
   /**
@@ -594,8 +621,8 @@ public final class TDigestDouble {
       }
       if (addThis) { // merge into existing centroid
         centroidWeights_[numCentroids_ - 1] += weights[current];
-        centroidMeans_[numCentroids_ - 1] += ((values[current] - centroidMeans_[numCentroids_ - 1])
-            * weights[current]) / centroidWeights_[numCentroids_ - 1];
+        centroidMeans_[numCentroids_ - 1] = mergedMean(centroidMeans_[numCentroids_ - 1],
+            values[current], weights[current], centroidWeights_[numCentroids_ - 1]);
       } else { // copy to a new centroid
         weightSoFar += centroidWeights_[numCentroids_ - 1];
         centroidMeans_[numCentroids_] = values[current];
@@ -641,7 +668,26 @@ public final class TDigestDouble {
     }
   }
 
+  /*
+   * The weights are normalized before multiplying so that each term is bounded by the magnitude
+   * of its input, otherwise the products can overflow to infinity for values of large magnitude.
+   */
   private static double weightedAverage(final double x1, final double w1, final double x2, final double w2) {
-    return ((x1 * w1) + (x2 * w2)) / (w1 + w2);
+    final double weight = w1 + w2;
+    return (x1 * (w1 / weight)) + (x2 * (w2 / weight));
+  }
+
+  /*
+   * Computes the mean of a centroid after merging in the given value with weight w,
+   * where weight is the total weight of the centroid including w.
+   * The intermediate (value - mean) or its product with w can overflow to infinity
+   * even when both inputs are finite (e.g. means near opposite ends of the double range),
+   * which eventually turns the stored mean into NaN. In that case fall back to
+   * the overflow-safe weighted average, which stays finite.
+   */
+  private static double mergedMean(final double mean, final double value, final long w, final long weight) {
+    final double newMean = mean + (((value - mean) * w) / weight);
+    if (Double.isFinite(newMean)) { return newMean; }
+    return weightedAverage(mean, weight - w, value, w);
   }
 }
