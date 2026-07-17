@@ -27,11 +27,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllDirectFloatsSketch;
-import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.kll.KllHelper;
-import org.apache.datasketches.kll.KllPreambleUtil;
-import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.testng.annotations.Test;
 
 public class KllDirectCompactFloatsSketchTest {

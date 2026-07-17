@@ -30,13 +30,8 @@ import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
 
-import org.testng.annotations.Test;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.HllUtil;
-import org.apache.datasketches.hll.RelativeErrorTables;
-import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.HllUnion;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes

@@ -33,13 +33,6 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllDirectLongsSketch;
-import org.apache.datasketches.kll.KllHeapLongsSketch;
-import org.apache.datasketches.kll.KllHelper;
-import org.apache.datasketches.kll.KllLongsHelper;
-import org.apache.datasketches.kll.KllLongsSketch;
-import org.apache.datasketches.kll.KllPreambleUtil;
-import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.quantilescommon.LongsSortedView;
 import org.apache.datasketches.quantilescommon.LongsSortedViewIterator;

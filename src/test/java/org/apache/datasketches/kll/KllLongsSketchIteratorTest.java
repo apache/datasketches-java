@@ -19,16 +19,15 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.kll.KllLongsSketch;
-import org.apache.datasketches.quantilescommon.LongsSortedViewIterator;
-import org.apache.datasketches.quantilescommon.QuantilesLongsSketchIterator;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+
+import org.apache.datasketches.quantilescommon.LongsSortedViewIterator;
+import org.apache.datasketches.quantilescommon.QuantilesLongsSketchIterator;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class KllLongsSketchIteratorTest {
 

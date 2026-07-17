@@ -28,9 +28,7 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("resource")
 public class HeapifyWrapSerVer3Test {
-  private static final short defaultSeedHash = Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED);
 
   //Heapify CompactThetaSketch
 

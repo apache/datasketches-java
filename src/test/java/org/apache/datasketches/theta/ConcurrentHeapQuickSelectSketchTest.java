@@ -737,7 +737,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     }
     final ConcurrentSharedThetaSketch csts = (ConcurrentSharedThetaSketch)shared;
     csts.awaitBgPropagationTermination();
-    ConcurrentPropagationService.resetExecutorService(Thread.currentThread().getId());
+    ConcurrentPropagationService.resetExecutorService(Thread.currentThread().threadId());
     csts.initBgPropagationService();
   }
 

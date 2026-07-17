@@ -30,11 +30,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.hll.AbstractHllArray;
-import org.apache.datasketches.hll.HllArray;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.HllUnion;
 import org.testng.annotations.Test;
 
 /**

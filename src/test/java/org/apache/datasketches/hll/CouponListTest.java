@@ -26,11 +26,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.hll.AbstractCoupons;
-import org.apache.datasketches.hll.CurMode;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.PairIterator;
-import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**

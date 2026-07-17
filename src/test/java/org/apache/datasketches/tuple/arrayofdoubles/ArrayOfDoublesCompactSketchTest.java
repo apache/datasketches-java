@@ -24,14 +24,6 @@ import static org.testng.Assert.assertEquals;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesCompactSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
-import org.apache.datasketches.tuple.arrayofdoubles.DirectArrayOfDoublesCompactSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.DirectArrayOfDoublesQuickSelectSketchR;
-import org.apache.datasketches.tuple.arrayofdoubles.HeapArrayOfDoublesCompactSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.HeapArrayOfDoublesQuickSelectSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

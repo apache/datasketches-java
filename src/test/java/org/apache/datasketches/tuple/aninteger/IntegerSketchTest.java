@@ -23,8 +23,8 @@ import static org.testng.Assert.assertEquals;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.tuple.TupleAnotB;
 import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleAnotB;
 import org.apache.datasketches.tuple.TupleIntersection;
 import org.testng.annotations.Test;
 

@@ -29,16 +29,13 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.filters.bloomfilter.BloomFilter;
-import org.apache.datasketches.filters.bloomfilter.BloomFilterBuilder;
 import org.testng.annotations.Test;
-
-import java.lang.foreign.Arena;
 
 public class BloomFilterTest {
 

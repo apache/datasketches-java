@@ -19,15 +19,14 @@
 
 package org.apache.datasketches.count;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.testng.annotations.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.lang.annotation.Repeatable;
-import java.nio.ByteBuffer;
-
-import static org.testng.Assert.*;
 
 public class CountMinSketchTest {
 

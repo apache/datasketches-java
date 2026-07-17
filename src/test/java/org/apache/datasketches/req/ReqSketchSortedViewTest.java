@@ -21,14 +21,11 @@ package org.apache.datasketches.req;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
-import org.apache.datasketches.req.ReqSketch;
-import org.apache.datasketches.req.ReqSketchBuilder;
 import org.testng.annotations.Test;
 
 /**

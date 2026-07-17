@@ -34,8 +34,6 @@ import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
-import org.apache.datasketches.req.ReqSketch;
-import org.apache.datasketches.req.ReqSketchBuilder;
 import org.testng.annotations.Test;
 
 /**

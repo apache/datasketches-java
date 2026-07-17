@@ -23,12 +23,10 @@ import static org.apache.datasketches.thetacommon.BinomialBoundsN.checkArgs;
 import static org.apache.datasketches.thetacommon.BinomialBoundsN.getLowerBound;
 import static org.apache.datasketches.thetacommon.BinomialBoundsN.getUpperBound;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 import static org.testng.Assert.assertThrows;
+import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.thetacommon.BinomialBoundsN;
 import org.testng.annotations.Test;
 
 /**

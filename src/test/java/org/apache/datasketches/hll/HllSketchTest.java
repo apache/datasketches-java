@@ -38,16 +38,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.hll.AbstractCoupons;
-import org.apache.datasketches.hll.AbstractHllArray;
-import org.apache.datasketches.hll.AuxHashMap;
-import org.apache.datasketches.hll.CurMode;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.HllSketchImpl;
-import org.apache.datasketches.hll.HllUtil;
-import org.apache.datasketches.hll.PreambleUtil;
-import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.HllUnion;
 import org.testng.annotations.Test;
 
 /**

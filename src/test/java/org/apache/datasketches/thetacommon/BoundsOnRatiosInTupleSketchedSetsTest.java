@@ -19,10 +19,12 @@
 
 package org.apache.datasketches.thetacommon;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
-import org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets;
 import org.apache.datasketches.tuple.TupleIntersection;
 import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.UpdatableTupleSketch;
@@ -31,9 +33,6 @@ import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 /**
  * @author Lee Rhodes

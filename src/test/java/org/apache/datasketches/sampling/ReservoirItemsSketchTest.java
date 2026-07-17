@@ -527,6 +527,7 @@ public class ReservoirItemsSketchTest {
     }
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void checkEstimateSubsetSum() {
     final int k = 10;

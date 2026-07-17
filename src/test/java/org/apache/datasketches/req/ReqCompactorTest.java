@@ -25,10 +25,6 @@ import static org.testng.Assert.assertTrue;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.positional.PositionalSegment;
-import org.apache.datasketches.req.FloatBuffer;
-import org.apache.datasketches.req.ReqCompactor;
-import org.apache.datasketches.req.ReqSerDe;
-import org.apache.datasketches.req.ReqSketch;
 import org.apache.datasketches.req.ReqSerDe.Compactor;
 import org.testng.annotations.Test;
 

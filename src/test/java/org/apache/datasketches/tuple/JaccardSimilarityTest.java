@@ -19,21 +19,19 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.theta.UpdatableThetaSketch;
-import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
-import org.apache.datasketches.tuple.UpdatableTupleSketch;
-import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
-import org.apache.datasketches.tuple.adouble.DoubleSummary;
-import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
-import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
-import org.testng.annotations.Test;
-
 import static org.apache.datasketches.tuple.JaccardSimilarity.dissimilarityTest;
 import static org.apache.datasketches.tuple.JaccardSimilarity.exactlyEqual;
 import static org.apache.datasketches.tuple.JaccardSimilarity.jaccard;
 import static org.apache.datasketches.tuple.JaccardSimilarity.similarityTest;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+
+import org.apache.datasketches.theta.UpdatableThetaSketch;
+import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
+import org.apache.datasketches.tuple.adouble.DoubleSummary;
+import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
+import org.apache.datasketches.tuple.adouble.DoubleSummarySetOperations;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes

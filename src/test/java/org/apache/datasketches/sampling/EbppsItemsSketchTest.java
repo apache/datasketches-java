@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.sampling.EbppsItemsSketch;
-import org.apache.datasketches.sampling.PreambleUtil;
 import org.testng.annotations.Test;
 
 public class EbppsItemsSketchTest {

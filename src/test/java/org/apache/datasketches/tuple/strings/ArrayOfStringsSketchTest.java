@@ -24,14 +24,11 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.tuple.TupleAnotB;
 import org.apache.datasketches.tuple.CompactTupleSketch;
+import org.apache.datasketches.tuple.TupleAnotB;
 import org.apache.datasketches.tuple.TupleIntersection;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.TupleUnion;
-import org.apache.datasketches.tuple.strings.ArrayOfStringsTupleSketch;
-import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
-import org.apache.datasketches.tuple.strings.ArrayOfStringsSummarySetOperations;
 import org.testng.annotations.Test;
 
 /**

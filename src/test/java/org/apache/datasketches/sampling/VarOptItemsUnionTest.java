@@ -34,10 +34,6 @@ import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.sampling.ReservoirItemsSketch;
-import org.apache.datasketches.sampling.VarOptItemsSamples;
-import org.apache.datasketches.sampling.VarOptItemsSketch;
-import org.apache.datasketches.sampling.VarOptItemsUnion;
 import org.testng.annotations.Test;
 
 /**

@@ -23,8 +23,6 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
-import org.apache.datasketches.frequencies.FrequentItemsSketch;
-import org.apache.datasketches.frequencies.FrequentLongsSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

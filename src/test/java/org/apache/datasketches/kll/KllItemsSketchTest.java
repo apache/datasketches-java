@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.Math.ceil;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
-import static java.lang.Math.ceil;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
@@ -44,10 +44,6 @@ import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.kll.KllItemsSketch;
-import org.apache.datasketches.kll.KllMemorySegmentValidate;
-import org.apache.datasketches.kll.KllPreambleUtil;
-import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;

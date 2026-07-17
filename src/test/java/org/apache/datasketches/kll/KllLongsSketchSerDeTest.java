@@ -27,7 +27,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllLongsSketch;
 import org.testng.annotations.Test;
 
 public class KllLongsSketchSerDeTest {

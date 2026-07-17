@@ -22,13 +22,9 @@ package org.apache.datasketches.theta;
 import static org.testng.Assert.assertEquals;
 
 import java.lang.foreign.MemorySegment;
-import org.testng.annotations.Test;
-import org.apache.datasketches.common.Family;
-import org.apache.datasketches.theta.CompactThetaSketch;
-import org.apache.datasketches.theta.HashIterator;
-import org.apache.datasketches.theta.ThetaSketch;
 
-import org.apache.datasketches.theta.UpdatableThetaSketch;
+import org.apache.datasketches.common.Family;
+import org.testng.annotations.Test;
 
 
 /**

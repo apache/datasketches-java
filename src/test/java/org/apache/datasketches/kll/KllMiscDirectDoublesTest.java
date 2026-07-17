@@ -28,11 +28,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllDirectDoublesSketch;
-import org.apache.datasketches.kll.KllDoublesSketch;
-import org.apache.datasketches.kll.KllHeapDoublesSketch;
-import org.apache.datasketches.kll.KllHelper;
-import org.apache.datasketches.kll.KllPreambleUtil;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.annotations.Test;

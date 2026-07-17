@@ -28,12 +28,6 @@ import java.util.HashSet;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.hll.AbstractHllArray;
-import org.apache.datasketches.hll.CurMode;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.IntMemorySegmentPairIterator;
-import org.apache.datasketches.hll.PairIterator;
-import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**

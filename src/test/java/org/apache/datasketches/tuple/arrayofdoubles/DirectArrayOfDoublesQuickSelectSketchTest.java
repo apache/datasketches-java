@@ -24,11 +24,6 @@ import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketchIterator;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
-import org.apache.datasketches.tuple.arrayofdoubles.DirectArrayOfDoublesQuickSelectSketch;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

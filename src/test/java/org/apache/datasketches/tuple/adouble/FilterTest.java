@@ -25,12 +25,11 @@ import org.apache.datasketches.tuple.Filter;
 import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.UpdatableTupleSketch;
 import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
-import org.apache.datasketches.tuple.adouble.DoubleSummary;
-import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("unused")
 public class FilterTest {
     private static final int numberOfElements = 100;
     private static final Random random = new Random(1);//deterministic for this class

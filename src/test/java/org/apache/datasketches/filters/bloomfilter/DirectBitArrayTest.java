@@ -19,13 +19,8 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static java.lang.foreign.ValueLayout.JAVA_CHAR_UNALIGNED;
-import static java.lang.foreign.ValueLayout.JAVA_DOUBLE_UNALIGNED;
-import static java.lang.foreign.ValueLayout.JAVA_FLOAT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
-import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
@@ -33,11 +28,8 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.common.positional.PositionalSegment;
-import org.apache.datasketches.filters.bloomfilter.BitArray;
-import org.apache.datasketches.filters.bloomfilter.DirectBitArray;
-import org.apache.datasketches.filters.bloomfilter.HeapBitArray;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.positional.PositionalSegment;
 import org.testng.annotations.Test;
 
 public class DirectBitArrayTest {

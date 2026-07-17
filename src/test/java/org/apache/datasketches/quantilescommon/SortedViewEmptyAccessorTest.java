@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 public final class SortedViewEmptyAccessorTest {
 
   @Test
-  public void checkFloatsSortedViewEmptyAccessors() {
+  public static void checkFloatsSortedViewEmptyAccessors() {
     final FloatsSketchSortedView sv = new FloatsSketchSortedView(
         new float[] {1F},
         new long[] {1},
@@ -42,7 +42,7 @@ public final class SortedViewEmptyAccessorTest {
   }
 
   @Test
-  public void checkDoublesSortedViewEmptyAccessors() {
+  public static void checkDoublesSortedViewEmptyAccessors() {
     final DoublesSketchSortedView sv = new DoublesSketchSortedView(
         new double[] {1.0},
         new long[] {1},
@@ -55,7 +55,7 @@ public final class SortedViewEmptyAccessorTest {
   }
 
   @Test
-  public void checkLongsSortedViewEmptyAccessors() {
+  public static void checkLongsSortedViewEmptyAccessors() {
     final LongsSketchSortedView sv = new LongsSketchSortedView(
         new long[] {1},
         new long[] {1},
@@ -68,7 +68,7 @@ public final class SortedViewEmptyAccessorTest {
   }
 
   @Test
-  public void checkItemsSortedViewEmptyAccessors() {
+  public static void checkItemsSortedViewEmptyAccessors() {
     final ItemsSketchSortedView<String> sv = new ItemsSketchSortedView<>(
         new String[] {"1"},
         new long[] {1},

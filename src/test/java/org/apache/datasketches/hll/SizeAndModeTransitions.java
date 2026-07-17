@@ -23,8 +23,6 @@ import static org.testng.Assert.assertEquals;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 public class SizeAndModeTransitions {
@@ -38,7 +36,7 @@ public class SizeAndModeTransitions {
     checkHLL8Heap(false);
   }
 
-  private void checkHLL8Heap(final boolean withSeg) {
+  private static void checkHLL8Heap(final boolean withSeg) {
     final TgtHllType tgtHllType = TgtHllType.HLL_8;
     final int lgK = 10;
     final int N = 97;

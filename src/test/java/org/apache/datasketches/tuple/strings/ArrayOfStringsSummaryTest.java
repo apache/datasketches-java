@@ -25,11 +25,9 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
-import org.testng.annotations.Test;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.tuple.DeserializeResult;
-import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
-import org.apache.datasketches.tuple.strings.ArrayOfStringsSummaryDeserializer;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes

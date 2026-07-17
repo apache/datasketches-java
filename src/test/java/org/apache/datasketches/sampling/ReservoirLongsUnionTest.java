@@ -37,10 +37,6 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.sampling.PreambleUtil;
-import org.apache.datasketches.sampling.ReservoirLongsSketch;
-import org.apache.datasketches.sampling.ReservoirLongsUnion;
-import org.apache.datasketches.sampling.ReservoirSize;
 import org.testng.annotations.Test;
 
 public class ReservoirLongsUnionTest {

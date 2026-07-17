@@ -81,7 +81,7 @@ public class HllSketchMergeOrderTest {
      * @param limit the upper limit, exclusive
      * @return the loaded sketch
      */
-    private HllSketch createUniquePowerSeriesSketch(final long baseValue, final int ppo, final long limit) {
+    private static HllSketch createUniquePowerSeriesSketch(final long baseValue, final int ppo, final long limit) {
       final HllSketch sketch = new HllSketch(LgK);
       int count = 0;
       long lastp = 0;
@@ -97,7 +97,7 @@ public class HllSketchMergeOrderTest {
     /**
      * Merges three sketches in the specified order and returns the composite estimate
      */
-    private double mergeThreeSketches(final HllSketch s1, final HllSketch s2, final HllSketch s3) {
+    private static double mergeThreeSketches(final HllSketch s1, final HllSketch s2, final HllSketch s3) {
         final HllUnion union = new HllUnion(LgK);
 
         union.update(s1);

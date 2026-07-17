@@ -22,16 +22,10 @@ package org.apache.datasketches.hll;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.hll.BaseHllSketch;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.PreambleUtil;
-import org.apache.datasketches.hll.TgtHllType;
-import org.apache.datasketches.hll.HllUnion;
-import org.testng.annotations.Test;
-
 import java.lang.foreign.MemorySegment;
-
 import java.nio.ByteBuffer;
+
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes

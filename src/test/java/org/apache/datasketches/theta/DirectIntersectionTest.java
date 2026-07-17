@@ -375,7 +375,6 @@ public class DirectIntersectionTest {
     final int k = 1<<lgK;
     ThetaIntersection inter;
     UpdatableThetaSketch sk1;
-    final double est;
 
     final int reqBytes = getMaxIntersectionBytes(k);
     final byte[] segArr = new byte[reqBytes];
