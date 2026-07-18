@@ -9,81 +9,96 @@ on:
       os_type:
         required: true
         type: string
-      java_arch:
+      cpu_arch:
         required: true
         type: string
+      jdk_distribution:
+        required: true
+        type: string
+      jvm_args:
+        required: false
+        type: string
+        default: ""
 
 env:
+  JVM_ARGS: ${{ inputs.jvm_args }}
   MAVEN_OPTS: -Xmx4g -Xms1g
-  MAVEN_ARGS: "-B -Dmaven.javadoc.skip=true -Dgpg.skip=true"
+  MAVEN_ARGS: "-B -Dmaven.javadoc.skip=true -Dgpg.skip=true -ntp"
+  # -ntp (no-transfer-progress) hides the "Downloaded..." lines
 
 jobs:
   build:
-    name: Build (${{ inputs.os_type }}, JDK ${{ inputs.jdk_version }}, ${{ inputs.java_arch }})
     runs-on: ${{ inputs.os_type }}
+
     steps:
-      - name: Checkout Source code
-        uses: actions/checkout@v4
+      # Pull down the compiled workspace binaries from Phase 1
+      - name: 1. Download Compiled Workspace Jars
+        uses: actions/download-artifact@v8
         with:
-          persist-credentials: false
+          name: compiled-jars
 
-      - name: Checkout Workflow Logic (workflows branch)
-        uses: actions/checkout@v4
-        with:
-          ref: workflows
-          path: .github/workflow-logic
+      - name: 2. Print Calling Repo & Branch
+        continue-on-error: true
+        shell: bash
+        run: |
+          echo "=== Calling Repo & Branch ==="
+          echo "Triggered by Repository: ${{ github.repository }}"
+          echo "Triggered by Ref/Branch: ${{ github.ref_name }}"
 
-      - name: Install Matrix JDK
-        uses: actions/setup-java@v4
+      # Provision ONLY the specific isolated JDK required for this test run
+      - name: 3. Provision Target Isolated Execution JDK
+        id: target-jdk
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ inputs.jdk_version }}
-          distribution: 'temurin'
-          java-package: jdk
-          architecture: ${{ inputs.java_arch }}
-          cache: 'maven'
-          overwrite-settings: true
+          distribution: ${{ inputs.jdk_distribution }}
+          architecture: ${{ inputs.cpu_arch }}
+          check-latest: false
 
-      - name: Verify Toolchain Configuration
+      - name: 4. Verify Environment Context
         shell: bash
         run: |
-          if [ -f ~/.m2/toolchains.xml ]; then
-            cat ~/.m2/toolchains.xml
+          echo "--- Target JVM Path Exposes: ---"
+          echo "Path: ${{ steps.target-jdk.outputs.path }}"
+          echo "--- Native Maven Boot Info: ---"
+          mvn -version -B
+
+      - name: 5. Run Package Tests from jars via Target JVM Fork
+        shell: bash
+        run: |
+          # Dynamically detect if the host runner is Windows
+          if [[ "${{ inputs.os_type }}" == *"windows"* ]]; then
+            JAVA_EXE="$JAVA_HOME/bin/java.exe"
           else
-            echo "toolchains.xml not found in ~/.m2/"
+            JAVA_EXE="$JAVA_HOME/bin/java"
           fi
+          echo "Testing datasketches-java jars for JDK version ${{ inputs.jdk_version }}..."
+          mvn surefire:test -B -pl datasketches-java \
+            -Dmaven.test.classpath.useTestJar=true \
+            -Djvm="$JAVA_EXE" \
+            -DargLine="${{ env.JVM_ARGS }}"
 
-      - name: Echo Java & Maven Version
-        run: mvn -version
 
-      - name: Print Current Workflows
-        continue-on-error: true
-        run: |
-          echo "Checking for workflow files..."
-          echo "--- Reusable Workflow: ---"
-          cat .github/workflow-logic/.github/workflows/reusable-jdk-os-matrix.yml || echo "::warning::Could not find Reusable Workflow file."
-          echo "--- Caller Workflow: ---"
-          cat .github/workflows/auto-jdk-os-matrix.yml || echo "::warning::Could not find Caller Workflow file."
-
-      - name: Test
-        run: mvn clean test
-
-      - name: Install
-        run: mvn clean install "-DskipTests=true" "-Dmaven.clean.failOnError=false"
-
-      - name: Add Result to Summary
-        if: always()
+      # Build Markdown Job Summary report table for each iteration
+      - name: 6. Print Matrix Coordinate Summary
+        if: always() # Ensures it prints even if previous maven tests fail!
         shell: bash
         run: |
-          # Define the header
-          HEADER="| OS | Arch | JDK | Status |"
-          SEP="|----|------|-----|--------|"
+          # Define and write the table structure
+          HEADER="| JDK | OS | Arch | DIST | Status |"
+          SEP="|----|------|-----|--------|-----|"
+          echo "$HEADER" >> $GITHUB_STEP_SUMMARY
+          echo "$SEP" >> $GITHUB_STEP_SUMMARY
 
-          # Check if the header already exists in the summary file
-          if ! grep -q "$HEADER" "$GITHUB_STEP_SUMMARY"; then
-            echo "$HEADER" >> $GITHUB_STEP_SUMMARY
-            echo "$SEP" >> $GITHUB_STEP_SUMMARY
+          # Determine the status icon dynamically via Bash
+          STATUS_ICON="❌"
+          if [ "${{ job.status }}" = "success" ]; then
+            STATUS_ICON="✅"
           fi
 
           # Append the specific job row
-          echo "| ${{ inputs.os_type }} | ${{ inputs.java_arch }} | ${{ inputs.jdk_version }} | ${{ job.status == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-
+          echo "| ${{ inputs.jdk_version }} \
+          | ${{ inputs.os_type }} \
+          | ${{ inputs.cpu_arch }} \
+          | ${{ inputs.jdk_distribution }} \
+          | $STATUS_ICON |" >> $GITHUB_STEP_SUMMARY
