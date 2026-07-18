@@ -27,9 +27,6 @@ import java.lang.foreign.MemorySegment;
 import java.util.List;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.fdt.FdtSketch;
-import org.apache.datasketches.fdt.Group;
-import org.apache.datasketches.fdt.PostProcessor;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
 import org.testng.annotations.Test;

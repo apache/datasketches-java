@@ -37,11 +37,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.sampling.PreambleUtil;
-import org.apache.datasketches.sampling.SampleSubsetSummary;
-import org.apache.datasketches.sampling.SamplingUtil;
-import org.apache.datasketches.sampling.VarOptItemsSamples;
-import org.apache.datasketches.sampling.VarOptItemsSketch;
 import org.testng.annotations.Test;
 
 public class VarOptItemsSketchTest {
@@ -579,6 +574,7 @@ public class VarOptItemsSketchTest {
   }
 
   @Test
+  @SuppressWarnings("unused")
   public void checkEstimateSubsetSum() {
     final int k = 10;
     final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(k);

@@ -26,9 +26,8 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.common.positional.PositionalSegment;
-import org.apache.datasketches.filters.bloomfilter.HeapBitArray;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.positional.PositionalSegment;
 import org.testng.annotations.Test;
 
 public class HeapBitArrayTest {

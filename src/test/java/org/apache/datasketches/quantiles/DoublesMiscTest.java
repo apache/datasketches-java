@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.common.MemorySegmentStatus.isSameResource;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -28,7 +27,6 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
-import org.apache.datasketches.common.SketchesStateException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -237,7 +235,7 @@ public class DoublesMiscTest {
     s1.update(2);
     final MemorySegment seg = MemorySegment.ofArray(s1.toByteArray(false)).asReadOnly();
     try {
-      final QuantilesDoublesUnion u = QuantilesDoublesUnion.wrap(seg, null);
+      QuantilesDoublesUnion.wrap(seg, null);
     } catch (final SketchesReadOnlyException e) {
       //expected
     }
@@ -258,7 +256,7 @@ public class DoublesMiscTest {
    * println
    * @param o object to print
    */
-  private static void println(final Object o) {
+  static void println(final Object o) {
     //System.out.println(o.toString());
   }
 

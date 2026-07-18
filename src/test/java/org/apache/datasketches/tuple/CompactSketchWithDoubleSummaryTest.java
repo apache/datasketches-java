@@ -22,15 +22,10 @@ package org.apache.datasketches.tuple;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.tuple.CompactTupleSketch;
-import org.apache.datasketches.tuple.TupleSketch;
-import org.apache.datasketches.tuple.TupleSketchIterator;
-import org.apache.datasketches.tuple.UpdatableTupleSketch;
-import org.apache.datasketches.tuple.UpdatableTupleSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
+import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
-import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

@@ -42,10 +42,6 @@ import org.apache.datasketches.common.ArrayOfNumbersSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.sampling.PreambleUtil;
-import org.apache.datasketches.sampling.ReservoirItemsSketch;
-import org.apache.datasketches.sampling.ReservoirItemsUnion;
-import org.apache.datasketches.sampling.ReservoirSize;
 import org.testng.annotations.Test;
 
 // Tests mostly focus on Long since other types are already tested in ReservoirItemsSketchTest.

@@ -21,8 +21,6 @@ package org.apache.datasketches.kll;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.kll.KllHelper;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;

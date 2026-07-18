@@ -30,7 +30,6 @@ import java.util.Comparator;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.kll.KllItemsSketch;
 import org.testng.annotations.Test;
 
 public class KllItemsSketchSerDeTest {

@@ -35,16 +35,12 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.frequencies.ErrorType;
-import org.apache.datasketches.frequencies.FrequentLongsSketch;
-import org.apache.datasketches.frequencies.PreambleUtil;
-import org.apache.datasketches.frequencies.ReversePurgeLongHashMap;
 import org.apache.datasketches.frequencies.FrequentLongsSketch.Row;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class LongsSketchTest {
 

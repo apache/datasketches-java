@@ -20,30 +20,18 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllHelper.checkM;
-import static org.apache.datasketches.kll.KllSketch.getMaxSerializedSizeBytes;
-import static org.apache.datasketches.kll.KllSketch.SketchType.*;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_ITEMS_SKETCH;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Hashtable;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.common.MemorySegmentRequest;
-import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
-import org.apache.datasketches.kll.KllDoublesSketch;
-import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.kll.KllHelper;
-import org.apache.datasketches.kll.KllItemsSketch;
-import org.apache.datasketches.kll.KllSketch;
-import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.testng.annotations.Test;
 
 public class KllHelperTest {

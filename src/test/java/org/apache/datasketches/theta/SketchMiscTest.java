@@ -45,19 +45,19 @@ public class SketchMiscTest {
     return seg;
   }
 
-  private static MemorySegment getMemorySegmentFromCompactSketch(final CompactThetaSketch csk) {
-    final byte[] sk1bytes = csk.toByteArray();
-    final MemorySegment seg = MemorySegment.ofArray(sk1bytes).asReadOnly();
-    return seg;
-  }
-
-  private static CompactThetaSketch getCompactSketch(final int k, final int from, final int to) {
-    final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
-    for (int i=from; i<to; i++) {
-      sk1.update(i);
-    }
-    return sk1.compact(true, null);
-  }
+//  private static MemorySegment getMemorySegmentFromCompactSketch(final CompactThetaSketch csk) {
+//    final byte[] sk1bytes = csk.toByteArray();
+//    final MemorySegment seg = MemorySegment.ofArray(sk1bytes).asReadOnly();
+//    return seg;
+//  }
+//
+//  private static CompactThetaSketch getCompactSketch(final int k, final int from, final int to) {
+//    final UpdatableThetaSketch sk1 = UpdatableThetaSketch.builder().setNominalEntries(k).build();
+//    for (int i=from; i<to; i++) {
+//      sk1.update(i);
+//    }
+//    return sk1.compact(true, null);
+//  }
 
   @Test
   public void checkSketchMethods() {

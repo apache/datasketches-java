@@ -33,17 +33,14 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.lang.foreign.MemorySegment;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.ArrayOfUtf16StringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.frequencies.ErrorType;
-import org.apache.datasketches.frequencies.FrequentItemsSketch;
-import org.apache.datasketches.frequencies.ReversePurgeItemHashMap;
 import org.apache.datasketches.frequencies.FrequentItemsSketch.Row;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class ItemsSketchTest {
 

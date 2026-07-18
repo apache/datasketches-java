@@ -24,8 +24,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.hll.HeapAuxHashMap;
-import org.apache.datasketches.hll.PairIterator;
 import org.testng.annotations.Test;
 
 /**

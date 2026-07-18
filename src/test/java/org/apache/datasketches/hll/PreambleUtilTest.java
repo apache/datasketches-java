@@ -35,10 +35,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.hll.CurMode;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.PreambleUtil;
-import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**

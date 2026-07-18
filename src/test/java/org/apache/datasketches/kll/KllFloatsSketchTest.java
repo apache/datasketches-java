@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.kll;
 
-import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.Math.min;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.KLL_FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -34,9 +34,6 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.kll.KllHelper;
-import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.testng.annotations.Test;

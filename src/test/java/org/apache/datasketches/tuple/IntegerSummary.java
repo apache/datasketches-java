@@ -24,8 +24,6 @@ import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.ByteArrayUtil;
-import org.apache.datasketches.tuple.DeserializeResult;
-import org.apache.datasketches.tuple.UpdatableSummary;
 
 /**
  * Summary for generic tuple sketches of type Integer.

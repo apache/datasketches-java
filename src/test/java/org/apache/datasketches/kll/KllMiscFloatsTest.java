@@ -33,13 +33,6 @@ import java.lang.foreign.MemorySegment;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllDirectFloatsSketch;
-import org.apache.datasketches.kll.KllFloatsHelper;
-import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.kll.KllHeapFloatsSketch;
-import org.apache.datasketches.kll.KllHelper;
-import org.apache.datasketches.kll.KllPreambleUtil;
-import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.testng.annotations.Test;

@@ -23,8 +23,8 @@ import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Min;
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
 
 import org.apache.datasketches.tuple.CompactTupleSketch;
-import org.apache.datasketches.tuple.TupleIntersection;
 import org.apache.datasketches.tuple.TupleAnotB;
+import org.apache.datasketches.tuple.TupleIntersection;
 import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.TupleUnion;

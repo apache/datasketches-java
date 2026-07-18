@@ -32,16 +32,6 @@ import java.lang.foreign.MemorySegment;
 import java.util.HashMap;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.hll.AbstractHllArray;
-import org.apache.datasketches.hll.AuxHashMap;
-import org.apache.datasketches.hll.DirectAuxHashMap;
-import org.apache.datasketches.hll.DirectHllArray;
-import org.apache.datasketches.hll.HeapAuxHashMap;
-import org.apache.datasketches.hll.HllArray;
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.HllUtil;
-import org.apache.datasketches.hll.PairIterator;
-import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**

@@ -25,8 +25,6 @@ import static org.testng.Assert.assertThrows;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.filters.bloomfilter.BloomFilter;
-import org.apache.datasketches.filters.bloomfilter.BloomFilterBuilder;
 import org.testng.annotations.Test;
 
 public class BloomFilterBuilderTest {

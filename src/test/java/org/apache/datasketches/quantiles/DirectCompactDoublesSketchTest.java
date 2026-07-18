@@ -29,7 +29,6 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

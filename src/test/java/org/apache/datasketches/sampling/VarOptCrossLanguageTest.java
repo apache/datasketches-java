@@ -116,6 +116,7 @@ public class VarOptCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
+  @SuppressWarnings("unused")
   public void deserializeFromCppSketchStringsExact() throws IOException {
     final byte[] bytes = getFileBytes(cppPath, "varopt_sketch_string_exact_cpp.sk");
     final VarOptItemsSketch<String> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
@@ -131,6 +132,7 @@ public class VarOptCrossLanguageTest {
   }
 
   @Test(groups = {CHECK_CPP_FILES})
+  @SuppressWarnings("unused")
   public void deserializeFromCppSketchLongsSampling() throws IOException {
     final byte[] bytes = getFileBytes(cppPath, "varopt_sketch_long_sampling_cpp.sk");
     final VarOptItemsSketch<Long> sk = VarOptItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe());

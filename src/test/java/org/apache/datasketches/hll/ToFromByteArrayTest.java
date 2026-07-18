@@ -26,8 +26,6 @@ import static org.testng.Assert.assertEquals;
 
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.hll.HllSketch;
-import org.apache.datasketches.hll.TgtHllType;
 import org.testng.annotations.Test;
 
 /**

@@ -41,9 +41,6 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.sampling.ReservoirLongsSketch;
-import org.apache.datasketches.sampling.ReservoirSize;
-import org.apache.datasketches.sampling.SampleSubsetSummary;
 import org.testng.annotations.Test;
 
 public class ReservoirLongsSketchTest {
@@ -408,6 +405,7 @@ public class ReservoirLongsSketchTest {
     }
   }
 
+  @SuppressWarnings("unused")
   public void checkEstimateSubsetSum() {
     final int k = 10;
     final ReservoirLongsSketch sketch = ReservoirLongsSketch.newInstance(k);

@@ -22,9 +22,6 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesQuickSelectSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketch;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketchBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

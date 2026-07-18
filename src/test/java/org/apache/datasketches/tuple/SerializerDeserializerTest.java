@@ -25,7 +25,6 @@ import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

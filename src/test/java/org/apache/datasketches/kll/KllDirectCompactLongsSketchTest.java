@@ -27,9 +27,6 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllDirectLongsSketch;
-import org.apache.datasketches.kll.KllHelper;
-import org.apache.datasketches.kll.KllLongsSketch;
 import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.testng.annotations.Test;
 
@@ -79,13 +76,13 @@ public class KllDirectCompactLongsSketchTest {
     final MemorySegment srcSeg2 = MemorySegment.ofArray(sk2.toByteArray());
     // wrap it back to a sketch
     final KllLongsSketch sk3 = KllLongsSketch.wrap(srcSeg2);
-    assertTrue(sk2.hasMemorySegment());
-    assertTrue(sk2.sketchStructure == SketchStructure.COMPACT_FULL);
-    assertTrue(sk2.isCompactMemorySegmentFormat());
-    assertFalse(sk2.isMemorySegmentUpdatableFormat());
-    assertTrue(sk2.isReadOnly());
-    assertEquals(sk2.getMinItem(), 1L);
-    assertEquals(sk2.getMaxItem(), 21L);
+    assertTrue(sk3.hasMemorySegment());
+    assertTrue(sk3.sketchStructure == SketchStructure.COMPACT_FULL);
+    assertTrue(sk3.isCompactMemorySegmentFormat());
+    assertFalse(sk3.isMemorySegmentUpdatableFormat());
+    assertTrue(sk3.isReadOnly());
+    assertEquals(sk3.getMinItem(), 1L);
+    assertEquals(sk3.getMaxItem(), 21L);
   }
 
   @Test

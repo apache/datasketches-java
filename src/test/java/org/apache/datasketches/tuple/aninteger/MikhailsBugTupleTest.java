@@ -20,8 +20,8 @@
 package org.apache.datasketches.tuple.aninteger;
 
 import org.apache.datasketches.tuple.CompactTupleSketch;
-import org.apache.datasketches.tuple.TupleIntersection;
 import org.apache.datasketches.tuple.TupleAnotB;
+import org.apache.datasketches.tuple.TupleIntersection;
 import org.testng.annotations.Test;
 
 /**

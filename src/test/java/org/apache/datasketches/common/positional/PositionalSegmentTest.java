@@ -29,10 +29,8 @@ import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
 import static org.testng.Assert.assertEquals;
 
 import java.lang.foreign.MemorySegment;
-import java.util.List;
 
 import org.testng.annotations.Test;
-import org.testng.collections.Lists;
 
 public class PositionalSegmentTest {
 
