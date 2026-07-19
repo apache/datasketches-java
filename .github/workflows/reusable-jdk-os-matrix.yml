@@ -46,6 +46,7 @@ jobs:
           echo "Triggered by Ref/Branch: ${{ github.ref_name }}"
 
       # Provision ONLY the specific isolated JDK required for this test run
+      # Note: inputs.os_type determined above in line 31
       - name: 3. Provision Target Isolated Execution JDK
         id: target-jdk
         uses: actions/setup-java@v5
