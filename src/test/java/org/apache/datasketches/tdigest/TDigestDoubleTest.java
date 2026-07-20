@@ -26,7 +26,9 @@ import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
+import java.lang.foreign.ValueLayout;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.common.TestUtil;
 import org.testng.annotations.Test;
@@ -149,6 +151,89 @@ public class TDigestDoubleTest {
     assertEquals(td2.getMaxValue(), td1.getMaxValue());
     assertEquals(td2.getRank(5000), td1.getRank(5000));
     assertEquals(td2.getQuantile(0.5), td1.getQuantile(0.5));
+  }
+
+  @Test
+  public void updateIgnoresNaNAndInfinity() {
+    final TDigestDouble td = new TDigestDouble();
+    td.update(Double.NaN);
+    td.update(Double.POSITIVE_INFINITY);
+    td.update(Double.NEGATIVE_INFINITY);
+    assertTrue(td.isEmpty());
+    td.update(1);
+    td.update(Double.POSITIVE_INFINITY);
+    td.update(Double.NEGATIVE_INFINITY);
+    assertEquals(td.getTotalWeight(), 1);
+    assertEquals(td.getMinValue(), 1.0);
+    assertEquals(td.getMaxValue(), 1.0);
+  }
+
+  // issue #702
+  @Test
+  public void extremeValuesDoNotProduceNaN() {
+    final TDigestDouble td = new TDigestDouble();
+    final int n = 10000;
+    for (int i = 0; i < n; i++) {
+      td.update(((i & 1) == 0) ? Double.MAX_VALUE : -Double.MAX_VALUE);
+    }
+    final byte[] bytes = td.toByteArray(); // compresses as a side effect
+    assertEquals(td.getTotalWeight(), n);
+    assertTrue(Double.isFinite(td.getQuantile(0.25)));
+    assertTrue(Double.isFinite(td.getQuantile(0.5)));
+    assertTrue(Double.isFinite(td.getQuantile(0.75)));
+    // all serialized centroid means must be finite, otherwise heapify throws
+    final TDigestDouble td2 = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
+    assertEquals(td2.getTotalWeight(), n);
+    assertEquals(td2.getMinValue(), -Double.MAX_VALUE);
+    assertEquals(td2.getMaxValue(), Double.MAX_VALUE);
+  }
+
+  // serialized layout: preamble 16 bytes, min 8 bytes, max 8 bytes,
+  // then (mean 8 bytes, weight 8 bytes) per centroid
+  private static byte[] serializeNonEmpty() {
+    final TDigestDouble td = new TDigestDouble();
+    for (int i = 0; i < 1000; i++) {
+      td.update(i);
+    }
+    return td.toByteArray();
+  }
+
+  @Test
+  public void deserializeNaNCentroidMean() {
+    final byte[] bytes = serializeNonEmpty();
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 32, Double.NaN);
+    assertThrows(SketchesArgumentException.class, () -> TDigestDouble.heapify(MemorySegment.ofArray(bytes)));
+  }
+
+  @Test
+  public void deserializeInfiniteCentroidMean() {
+    final byte[] bytes = serializeNonEmpty();
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 32, Double.NEGATIVE_INFINITY);
+    assertThrows(SketchesArgumentException.class, () -> TDigestDouble.heapify(MemorySegment.ofArray(bytes)));
+  }
+
+  @Test
+  public void deserializeZeroCentroidWeight() {
+    final byte[] bytes = serializeNonEmpty();
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_LONG_UNALIGNED, 40, 0L);
+    assertThrows(SketchesArgumentException.class, () -> TDigestDouble.heapify(MemorySegment.ofArray(bytes)));
+  }
+
+  @Test
+  public void deserializeNaNMinValue() {
+    final byte[] bytes = serializeNonEmpty();
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 16, Double.NaN);
+    assertThrows(SketchesArgumentException.class, () -> TDigestDouble.heapify(MemorySegment.ofArray(bytes)));
+  }
+
+  @Test
+  public void deserializeNaNSingleValue() {
+    final TDigestDouble td = new TDigestDouble();
+    td.update(1);
+    final byte[] bytes = td.toByteArray();
+    // single-value layout: preamble 8 bytes, then the value
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 8, Double.NaN);
+    assertThrows(SketchesArgumentException.class, () -> TDigestDouble.heapify(MemorySegment.ofArray(bytes)));
   }
 
   @Test
