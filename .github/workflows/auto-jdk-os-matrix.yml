@@ -28,8 +28,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-version: |
-            17
-            21
+            25
           distribution: 'temurin'
           cache: 'maven'
 
@@ -54,7 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        jdk: [ '17', '21', '25' ]
+        jdk: [ '25' ]
         os: [ windows-latest, ubuntu-latest, macos-latest ]
         include:
           - os: windows-latest
@@ -64,23 +63,23 @@ jobs:
           - os: macos-latest
             arch: aarch64
 
-          - jdk: '17'
-            distribution: 'temurin'
-            jvm_args: >-
-              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+#          - jdk: '17'
+#            distribution: 'temurin'
+#            jvm_args: >-
+#              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+#              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
 
-          - jdk: '21'
-            distribution: 'temurin'
-            jvm_args: >-
-              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+#          - jdk: '21'
+#            distribution: 'temurin'
+#            jvm_args: >-
+#              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+#              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
 
           - jdk: '25'
             distribution: 'temurin'
-            jvm_args: >-
-              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
-              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+#            jvm_args: >-
+#              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+#              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
 
     # Reference your reusable workflow branch
     uses: apache/datasketches-java/.github/workflows/reusable-jdk-os-matrix.yml@reusable_workflows
