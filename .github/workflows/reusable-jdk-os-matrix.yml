@@ -74,7 +74,7 @@ jobs:
             JAVA_EXE="$JAVA_HOME/bin/java"
           fi
           echo "Testing datasketches-java jars for JDK version ${{ inputs.jdk_version }}..."
-          mvn surefire:test -B -pl datasketches-java \
+          mvn surefire:test -B \
             -Dmaven.test.classpath.useTestJar=true \
             -Djvm="$JAVA_EXE" \
             -DargLine="${{ env.JVM_ARGS }}"
