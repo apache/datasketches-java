@@ -1,0 +1,92 @@
+name: JDK & OS Matrix Test
+
+on:
+  push:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/LICENSE', '**/NOTICE' ]
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]', 'v[0-9]+.[0-9]+.[Xx]']
+  pull_request:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/LICENSE', '**/NOTICE' ]
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]', 'v[0-9]+.[0-9]+.[Xx]']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # PHASE 1: Replicate command-line compilation exactly
+  build-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v7
+
+      - name: Install Build JDKs for Subproject Toolchains
+        uses: actions/setup-java@v5
+        with:
+          java-version: |
+            25
+          distribution: 'temurin'
+          cache: 'maven'
+
+      # Builds the isolated modules using their respective toolchains
+      - name: Package All Versioned JARs
+        run: mvn clean package -DskipTests=true -B
+
+      # Archive the compiled artifacts and skeletal structure for Phase 2 testing
+      - name: Archive Compiled Workspace
+        uses: actions/upload-artifact@v7
+        with:
+          name: compiled-jars
+          path: |
+            pom.xml
+            **/pom.xml
+            **/target/*.jar
+            **/src/test/resources/
+
+# PHASE 2: Run isolated target matrix tests against the JARs
+  matrix-test:
+    needs: build-artifacts # <--- THIS makes Phase 2 flow sequentially after Phase 1
+    strategy:
+      fail-fast: false
+      matrix:
+        jdk: [ '25' ]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
+        include:
+          - os: windows-latest
+            arch: x64
+          - os: ubuntu-latest
+            arch: x64
+          - os: macos-latest
+            arch: aarch64
+
+#          - jdk: '17'
+#            distribution: 'temurin'
+#            jvm_args: >-
+#              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+#              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+
+#          - jdk: '21'
+#            distribution: 'temurin'
+#            jvm_args: >-
+#              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+#              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+
+          - jdk: '25'
+            distribution: 'temurin'
+            jvm_args: ""
+#            jvm_args: >-
+#              --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+#              --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+
+    # Reference your reusable workflow branch
+    uses: apache/datasketches-java/.github/workflows/reusable-jdk-os-matrix.yml@reusable_workflows
+    with:
+      jdk_version: ${{ matrix.jdk }}
+      os_type: ${{ matrix.os }}
+      cpu_arch: ${{ matrix.arch }}
+      jdk_distribution: ${{ matrix.distribution }}
+      jvm_args: ${{ matrix.jvm_args }}

@@ -150,6 +150,7 @@ under the License.
 
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
+    <argLine></argLine>
   </properties>
 
   <repositories>
@@ -327,7 +328,7 @@ under the License.
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-failsafe-plugins.version}</version>
           <configuration>
-            <argLine>@{argLine} @{jvm.args}</argLine>
+            <argLine>@{argLine} ${jvm.args}</argLine>
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>false</redirectTestOutputToFile>
