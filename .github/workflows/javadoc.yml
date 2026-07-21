@@ -1,101 +1,69 @@
-name: Deploy Versioned Javadoc (Manual Trigger)
+name: Stage Versioned Javadocs (Manual Trigger)
 
-# Select the target TAG where to run the workflow from.
-# This TAG name becomes the subdirectory under branch gh-pages/docs/${TAG}
-#   where the javadocs will be copied to.
-# The gh-pages/docs branch/folder must exist.
+# This workflow is triggered manually via Workflow Dispatch on GitHub.
+# It automatically extracts the project version from the root pom.xml 
+# of the branch or tag that you trigger this workflow from.
+# It compiles and packages the javadocs into a structured ZIP.
+#
+# To deploy:
+# 1. Kick off the workflow on your chosen branch or tag.
+# 2. Download the resulting versioned-javadocs-*.zip from the run summary.
+# 3. You have 30 days to download before they are deleted from the server.
+# 4. Extract it directly into your local gh-pages repository clone and push.
 
 on:
   workflow_dispatch:
-    inputs:
-      tag_ref:
-        description: 'Existing Git Tag to deploy (e.g., 1.0.0):'
-        required: true
-        default: '99.0.0' # unlikely to conflict if accidentally used. Can be left blank
 
 jobs:
-  build-and-deploy-javadoc:
+  build-and-package-javadoc:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
-      - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-        uses: actions/checkout@v5
+      - name: 1. Checkout Current (triggered) Workspace Context
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.inputs.tag_ref }}  # from manual trigger input
+          ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - name: 2. Provision JDK 25 Runtime
+        uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'temurin'
           java-package: jdk
           architecture: x64
           cache: 'maven'
-          overwrite-settings: true  # ensures the runner's .m2/settings.xml is current
 
-      - name: Build and Generate Javadoc  # POM is configured to output to target/site/apidocs
-        run: mvn clean javadoc:javadoc
-
-      - name: Deploy Javadoc via Worktree
-        env:
-          TAG_NAME: ${{ github.event.inputs.tag_ref }}
+      - name: 3. Extract POM Project Version
+        id: get-version
+        shell: bash
         run: |
-          if [ -z "$TAG_NAME" ]; then echo "ERROR: No tag specified"; exit 1; fi
+          POM_VERSION=$(mvn help:evaluate -B -Dexpression=project.version -q -DforceStdout)
+          echo "Discovered Project Version: $POM_VERSION"
+          echo "POM_VERSION=$POM_VERSION" >> $GITHUB_ENV
 
-          # 1. Initialize error tracking
-          EXIT_CODE=0
-
-          # 2. Configure Git Identity
-          git config user.email "noreply@github.com"
-          git config user.name "github-actions[bot]"
-
-          # 3. Ensure gh-pages exists and is fetched
-          echo "ECHO: git fetch origin gh-pages"
-          git fetch origin gh-pages
-
-          # 4. Create worktree for the gh-pages branch in a separate folder
-          echo "ECHO: git worktree add -B gh-pages ./gh-pages-dir origin/gh-pages"
-          git worktree add -B gh-pages ./gh-pages-dir origin/gh-pages
-
-          # 5. Deployment Logic in a subshell to capture exit code
-          (
-            set -e
-            TARGET_PATH="gh-pages-dir/docs/$TAG_NAME"
-            mkdir -p "$TARGET_PATH"
-
-            echo "ECHO: cp -a target/site/apidocs/. $TARGET_PATH/"
-            cp -a target/site/apidocs/. "$TARGET_PATH/"
-            cd gh-pages-dir
-
-            echo "ECHO: git pull origin gh-pages --rebase"
-            git pull origin gh-pages --rebase
-
-            echo "git add docs/$TAG_NAME"
-            git add "docs/$TAG_NAME"
-
-            if git diff --staged --quiet; then
-              echo "No changes detected for Javadoc $TAG_NAME."
-            else
-              echo "ECHO: Changes detected for Javadoc $TAG_NAME."
-              echo "ECHO: git commit ..."
-              git commit -m "Manual Javadoc deployment for tag $TAG_NAME"
-              echo "ECHO: git push origin gh-pages"
-              git push origin gh-pages
-            fi
-          ) || EXIT_CODE=$?
-
-          # 6. Cleanup (Always runs)
-          echo "ECHO: Cleaning up worktree..."
-          git worktree remove --force ./gh-pages-dir || true
-
-          # 7. Final exit based on subshell success
-          exit $EXIT_CODE
-
-      - name: Confirm Deployment
-        if: success()
+      - name: 4. Compile and Generate Javadoc
+        shell: bash
         run: |
-          echo "ECHO: Javadoc for ${{ github.event.inputs.tag_ref }} is now live on gh-pages."
+          echo "Generating Javadoc..."
+          mvn clean compile javadoc:javadoc -B
 
+      - name: 5. Stage Artifacts for Review
+        shell: bash
+        run: |
+          STAGE_DIR="javadoc-staging/docs/${{ env.POM_VERSION }}"
+          echo "Creating staging directory for version ${{ env.POM_VERSION }}..."
+          mkdir -p "${STAGE_DIR}"
+                
+          echo "Copying generated HTML assets into staging..."
+          cp -r target/site/apidocs/* "${STAGE_DIR}/"
+
+      - name: 6. Upload Generated Javadocs as Workflow Zip Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: versioned-javadocs-${{ env.POM_VERSION }}
+          path: javadoc-staging/
+          retention-days: 30
+s
