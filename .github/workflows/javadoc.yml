@@ -66,4 +66,3 @@ jobs:
           name: versioned-javadocs-${{ env.POM_VERSION }}
           path: javadoc-staging/
           retention-days: 30
-s
