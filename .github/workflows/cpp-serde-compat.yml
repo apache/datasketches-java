@@ -47,3 +47,10 @@ jobs:
 
       - name: Run Java tests
         run: mvn test -P check-cpp-files
+
+      - name: Upload C++ Generated Sketch Files
+        uses: actions/upload-artifact@v7
+        with:
+          name: cpp_generated_files
+          path: serialization_test_data/cpp_generated_files/
+          retention-days: 30
