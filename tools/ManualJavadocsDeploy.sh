@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-TAG_NAME="test"
+# Assumes that a remote branch named 'gh-pages' exists.
+# If a local branch 'gh-pages' exists it will be overwritten.
+
+# MODIFY THIS TAG_NAME!
+TAG_NAME="test" 
 # Build and Generate Javadoc
 # POM is configured to output to target/site/apidocs
 echo "ECHO: mvn clean javadoc:javadoc"
