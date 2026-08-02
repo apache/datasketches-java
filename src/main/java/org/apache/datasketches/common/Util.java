@@ -27,9 +27,18 @@ import static java.lang.Math.round;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.foreign.MemorySegment;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.ByteOrder;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * Common utility functions.
@@ -44,6 +53,8 @@ public final class Util {
       throw new SketchesNotSupportedException("Machine Native Endianness must be LITTLE_ENDIAN.");
     }
   }
+
+  /** Common static constants ******************/
 
   /**
    * The java line separator character as a String.
@@ -100,7 +111,7 @@ public final class Util {
 
   private Util() {}
 
-  //Byte Conversions
+  /** Byte Conversions *************************/
 
   /**
    * Returns an int extracted from a Little-Endian byte array.
@@ -162,7 +173,7 @@ public final class Util {
     return arr;
   }
 
-  //Byte array conversions
+  /** Byte array conversions *******************/
 
   static long[] convertToLongArray(final byte[] byteArr, final boolean littleEndian) {
     final int len = byteArr.length;
@@ -187,7 +198,7 @@ public final class Util {
     return longArr;
   }
 
-  //String Related
+  /** String Related ***************************/
 
   /**
    * Returns a string of spaced hex bytes in Big-Endian order.
@@ -295,7 +306,24 @@ public final class Util {
     return s;
   }
 
-  //Memory byte alignment
+  /**
+   * Converts the given number to a string prepended with spaces, if necessary, to
+   * match the given length.
+   *
+   * <p>For example, assume a sequence of integers from 1 to 1000. The largest value has
+   * four decimal digits. Convert the entire sequence of strings to the form "   1" to "1000".
+   * When these strings are sorted they will be in numerical sequence: "   1", "   2", ... "1000".</p>
+   *
+   * @param number the given number
+   * @param length the desired string length.
+   * @return the given number to a string prepended with spaces
+   */
+  public static String longToFixedLengthString(final long number, final int length) {
+    final String num = Long.toString(number);
+    return characterPad(num, length, ' ', false);
+  }
+
+  /** Memory byte alignment ********************/
 
   /**
    * Checks if parameter v is a multiple of 8 and greater than zero.
@@ -319,7 +347,7 @@ public final class Util {
     return ((v & 0X7L) == 0L) && (v > 0L);
   }
 
-  //Powers of 2 or powers of base related
+  /** Powers of 2 or powers of base related ****/
 
   /**
    * Returns true if given long argument is exactly a positive power of 2.
@@ -591,8 +619,8 @@ public final class Util {
     return Math.round(pow(base, floor(logBaseOfX(base, x))));
   }
 
-  // Logarithm related
-
+  /** Logarithm related ************************/
+  
   /**
    * The log<sub>2</sub>(value)
    * @param value the given value
@@ -690,8 +718,8 @@ public final class Util {
     return Long.numberOfTrailingZeros(powerOf2);
   }
 
-  //Checks that throw
-
+  /** Checks that throw ************************/
+  
   /**
    * Check the requested offset and length against the allocated size.
    * The invariants equation is: {@code 0 <= reqOff <= reqLen <= reqOff + reqLen <= allocSize}.
@@ -724,7 +752,7 @@ public final class Util {
         + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
   }
 
-  //Boolean Checks
+  /** Boolean Checks ***************************/
 
   /**
    * Unsigned compare with longs.
@@ -754,7 +782,7 @@ public final class Util {
     return (n & 1L) == 1L;
   }
 
-  //Other
+  /** Bit Number ******************************/
 
   /**
    * Returns a one if the bit at bitPos is a one, otherwise zero.
@@ -767,6 +795,8 @@ public final class Util {
     return (number & (1L << bitPos)) > 0 ? 1 : 0;
   }
 
+  /** Decimal Digits ***************************/
+  
   /**
    * Computes the number of decimal digits of the number n
    * @param n the given number
@@ -777,25 +807,8 @@ public final class Util {
     return (int) ceil(log(n) / log(10));
   }
 
-  /**
-   * Converts the given number to a string prepended with spaces, if necessary, to
-   * match the given length.
-   *
-   * <p>For example, assume a sequence of integers from 1 to 1000. The largest value has
-   * four decimal digits. Convert the entire sequence of strings to the form "   1" to "1000".
-   * When these strings are sorted they will be in numerical sequence: "   1", "   2", ... "1000".</p>
-   *
-   * @param number the given number
-   * @param length the desired string length.
-   * @return the given number to a string prepended with spaces
-   */
-  public static String longToFixedLengthString(final long number, final int length) {
-    final String num = Long.toString(number);
-    return characterPad(num, length, ' ', false);
-  }
-
-  //Generic tests
-
+  /** Generic relational tests *****************/
+  
   /**
    * Finds the minimum of two generic items
    * @param <T> the type
@@ -844,7 +857,7 @@ public final class Util {
     return c.compare((T)item1, (T)item2) <= 0;
   }
 
-  //MemorySegment related
+  /** MemorySegment related ********************/
 
   /**
    * Clears all bytes of this MemorySegment to zero.
@@ -957,6 +970,8 @@ public final class Util {
     seg.set(JAVA_BYTE, offsetBytes, (byte)(b | bitMask));
   }
 
+  /** Seed Hashes ******************************/
+  
   /**
    * Computes and checks the 16-bit seed hash from the given long seed.
    * The seed hash may not be zero in order to maintain compatibility with older serialized
@@ -988,6 +1003,96 @@ public final class Util {
             + ", " + Integer.toHexString(seedHashB & 0XFFFF));
     }
     return seedHashA;
+  }
+  
+  /** Files and File Bytes ******************************/
+
+  /**
+   * Windows, POSIX, and JAR friendly, returns a byte array of the contents of the file defined by the given 
+   * resourceName.
+   * If the resource is in a JAR it will be copied into the File System as a temporary file first.
+   * 
+   * @param resourceName the short name or the full path name.
+   * @return a byte array of the contents of the file defined by the given resourceName.
+   */
+  public static byte[] getResourceBytes(final String resourceName) {
+    Objects.requireNonNull(resourceName, "Given resourceName must not be null");
+    
+    String normalizedName = resourceName.replace('\\', '/');
+    if (normalizedName.startsWith("/")) {
+      normalizedName = normalizedName.substring(1);
+    }
+  
+    final ClassLoader loader = Util.class.getClassLoader();
+    try (InputStream in = loader.getResourceAsStream(normalizedName)) {
+      if (in == null) {
+        throw new IllegalArgumentException("Resource not found: " + normalizedName);
+      }
+      return in.readAllBytes();
+    } catch (final IOException e) {
+      throw new IllegalArgumentException("Cannot read resource: " + normalizedName + Util.LS + e);
+    }
+  }
+
+  /**
+   *   Windows, POSIX, and JAR friendly get Resource File.
+   *   If the resource is in a JAR it will be copied into the File System as a temporary file first.
+   *   @param resourceName the simple file name or full path name.
+   *   Any back-slashes will be converted to forward slashes and a leading forward slash will be removed.
+   *   No other special characters allowed.
+   *   @return a File System File
+   */
+  public static File getResourceFile(final String resourceName) {
+    Objects.requireNonNull(resourceName, "Given resourceName must not be null");
+    if (resourceName.isEmpty()) { throw new IllegalArgumentException("Given resourceName must not be empty"); }
+    // Normalize name: ClassLoaders MUST use forward slashes even on Windows
+    String normalizedName = resourceName.replace('\\', '/');
+    if (normalizedName.startsWith("/")) { normalizedName = normalizedName.substring(1); }
+  
+    final ClassLoader loader = Util.class.getClassLoader();
+    final URL url = loader.getResource(normalizedName);
+    if (url == null) { throw new IllegalArgumentException("Resource not found: " + normalizedName); }
+  
+    // If it's a real file, return it directly
+    if ("file".equals(url.getProtocol())) {
+        try { 
+          final URI uri = url.toURI();
+          return new File(uri); } 
+        catch (final URISyntaxException e) { return new File(url.getPath()); }
+    }
+  
+    // If it's in a JAR, we must extract it for Memory.map() to work
+    // We use a prefix that won't collide with Windows reserved names
+    final File tempFile;
+    try { tempFile = File.createTempFile("datasketches-", ".bin"); }
+    catch (final IOException e1) { throw new IllegalArgumentException(e1); }
+    tempFile.deleteOnExit();
+  
+    try (InputStream in = loader.getResourceAsStream(normalizedName)) {
+        if (in == null) { throw new IllegalArgumentException("Could not open stream for " + normalizedName); }
+        
+        // Use REPLACE_EXISTING to avoid "File Already Exists" errors on Windows retries
+        Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (final IOException e) { throw new IllegalArgumentException(e); }
+  
+    // Final Windows Fix: Ensure the file is actually writable if you need to setReadOnly later
+    //tempFile.setWritable(true); 
+    
+    return tempFile;
+  }
+
+  /**
+   * Windows, POSIX, and JAR friendly, checks if the given resourceName exists and sets it to Read-Only.
+   * If the resource is in a JAR it will be copied into the File System as a temporary file first.
+   * This will not work if the file is currently memory-mapped.
+   * If it is memory-mapped, close the mapping first.
+   * @param resourceName the given resource.
+   * @return the read only file.
+   */
+  public static File setResourceReadOnly(final String resourceName) {
+      final File file = getResourceFile(resourceName);
+      file.setReadOnly();
+      return file;
   }
 
 }

@@ -220,7 +220,7 @@ under the License.
               <configuration>
                 <rules>
                   <!-- The Java enforcer rule is toolchain unaware
-                  and is only checks the compiler used by the Maven runtime.
+                  and only checks the compiler version used by the Maven runtime.
                   In the context of toolchains this rule is useless.
                   See: https://github.com/paulmoloney/maven-enforcer-toolchain-rules
                   <requireJavaVersion> ... </requireJavaVersion>
