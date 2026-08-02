@@ -1037,6 +1037,11 @@ public final class Util {
   /**
    *   Windows, POSIX, and JAR friendly get Resource File.
    *   If the resource is in a JAR it will be copied into the File System as a temporary file first.
+   *   
+   *   <p>While tempFile.deleteOnExit() works, keep in mind that JVMs running long processes won't delete those files 
+   *   until the JVM completely terminates, which can lead to memory/disk leaks if this method is called frequently. 
+   *   If you're using this for memory-mapped files, consider explicitly deleting the file once the memory-mapped buffer 
+   *   is no longer in use, or registering a custom shutdown hook if deleteOnExit() is insufficient.</p>
    *   @param resourceName the simple file name or full path name.
    *   Any back-slashes will be converted to forward slashes and a leading forward slash will be removed.
    *   No other special characters allowed.
@@ -1063,8 +1068,9 @@ public final class Util {
   
     // If it's in a JAR, we must extract it for Memory.map() to work
     // We use a prefix that won't collide with Windows reserved names
+    // We use NIO Files.createTempFile to ensure secure default permissions (0600)
     final File tempFile;
-    try { tempFile = File.createTempFile("datasketches-", ".bin"); }
+    try { tempFile = Files.createTempFile("datasketches-", ".bin").toFile(); }
     catch (final IOException e1) { throw new IllegalArgumentException(e1); }
     tempFile.deleteOnExit();
   
@@ -1091,7 +1097,9 @@ public final class Util {
    */
   public static File setResourceReadOnly(final String resourceName) {
       final File file = getResourceFile(resourceName);
-      file.setReadOnly();
+      if (!file.setReadOnly()) {
+        throw new IllegalArgumentException("Could not set read-only for resource file: " + file.getAbsolutePath());
+      }
       return file;
   }
 
