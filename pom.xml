@@ -188,12 +188,6 @@ under the License.
     <!-- org.sonatype.plugins -->
     <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
 
-    <!-- Default fallback properties in case of a build from distributed source (non-git):
-    <git.branch>source-release-no-git</git.branch>
-    <git.closest.tag.name>unknown</git.closest.tag.name>
-    <git.commit.id.full>unknown</git.commit.id.full>
-    <git.commit.time>unknown</git.commit.time>
-    <git.build.user.email>unknown</git.build.user.email> -->
   </properties>
 
   <dependencies>
@@ -362,7 +356,6 @@ under the License.
                 <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
                 <Group-ArtifactId>${project.groupId}:${project.artifactId}</Group-ArtifactId>
                 <git-branch>${git.branch}</git-branch>
-                <git-commit-tag>${git.closest.tag.name}</git-commit-tag>
                 <git-commit-id>${git.commit.id.full}</git-commit-id>
                 <git-commit-time>${git.commit.time}</git-commit-time>
                 <git-commit-user-email>${git.build.user.email}</git-commit-user-email>
@@ -398,7 +391,6 @@ under the License.
                 <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
                 <Group-ArtifactId>${project.groupId}:${project.artifactId}</Group-ArtifactId>
                 <git-branch>${git.branch}</git-branch>
-                <git-commit-tag>${git.closest.tag.name}</git-commit-tag>
                 <git-commit-id>${git.commit.id.full}</git-commit-id>
                 <git-commit-time>${git.commit.time}</git-commit-time>
                 <git-commit-user-email>${git.build.user.email}</git-commit-user-email>
@@ -459,7 +451,6 @@ under the License.
                 <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
                 <Group-ArtifactId>${project.groupId}:${project.artifactId}</Group-ArtifactId>
                 <git-branch>${git.branch}</git-branch>
-                <git-commit-tag>${git.closest.tag.name}</git-commit-tag>
                 <git-commit-id>${git.commit.id.full}</git-commit-id>
                 <git-commit-time>${git.commit.time}</git-commit-time>
                 <git-commit-user-email>${git.build.user.email}</git-commit-user-email>
