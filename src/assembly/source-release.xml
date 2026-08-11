@@ -23,6 +23,7 @@ under the License.
   <formats>
     <format>zip</format>
   </formats>
+  <baseDirectory>${project.artifactId}-${project.version}-source-release</baseDirectory>
   <fileSets>
     <fileSet>
       <directory>${project.basedir}</directory>
@@ -32,9 +33,14 @@ under the License.
         <!-- Git & Build folders -->
         <exclude>**/.git/**</exclude>
         <exclude>**/target/**</exclude>
-        
+        <!-- GitHub and SCM configuration -->
+        <exclude>**/.github/**</exclude>
+        <exclude>**/.gitattributes</exclude>
         <!-- Private / Tooling folders requested to be blocked -->
         <exclude>**/.vscode/**</exclude>
+        <exclude>**/.idea/**</exclude>
+        <exclude>**/.checkstyle</exclude>
+        <exclude>**/.DS_Store</exclude>
         <exclude>**/.settings/**</exclude>
         <exclude>**/.asf.yaml</exclude>
         <exclude>**/.classpath</exclude>
