@@ -174,13 +174,16 @@ under the License.
 
     <!-- non-org.apache.maven plugins -->
 
-    <!-- org.apache plugins -->
-    <apache-rat-plugin.version>0.18</apache-rat-plugin.version>
-    <apache-source-release-assembly-descriptor.version>1.8</apache-source-release-assembly-descriptor.version>
-
     <!-- com.github.hazendaz.maven plugins -->
     <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>5.0.0</coveralls-maven-plugin.version>
+
+    <!-- io.github.git-commit-id plugins-->
+    <git-commit-id-maven-plugin.version>10.0.0</git-commit-id-maven-plugin.version>
+
+    <!-- org.apache plugins -->
+    <apache-rat-plugin.version>0.18</apache-rat-plugin.version>
+    <apache-source-release-assembly-descriptor.version>1.8</apache-source-release-assembly-descriptor.version>
 
     <!-- org.jacoco plugins -->
     <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
@@ -501,6 +504,41 @@ under the License.
         <!-- non-org-apache-maven plugins -->
 
         <plugin>
+          <!-- Submit code coverage report to Coveralls.io. -->
+          <groupId>com.github.hazendaz.maven</groupId>
+          <artifactId>coveralls-maven-plugin</artifactId>
+          <version>${coveralls-maven-plugin.version}</version>
+          <configuration>
+            <repoToken>${coveralls-repo-token}</repoToken>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>io.github.git-commit-id</groupId>
+          <artifactId>git-commit-id-maven-plugin</artifactId>
+          <version>${git-commit-id-maven-plugin.version}</version>
+          <executions>
+            <execution>
+              <id>get-the-git-infos</id>
+              <goals>
+                <goal>revision</goal>
+              </goals>
+              <phase>initialize</phase>
+            </execution>
+          </executions>
+          <configuration>
+            <generateGitPropertiesFile>true</generateGitPropertiesFile>
+            <generateGitPropertiesFilename>${project.basedir}/git.properties</generateGitPropertiesFilename>
+            <includeOnlyProperties>
+              <includeOnlyProperty>^git\.branch$</includeOnlyProperty>
+              <includeOnlyProperty>^git\.commit\.id$</includeOnlyProperty>
+              <includeOnlyProperty>^git\.commit\.time$</includeOnlyProperty>
+              <includeOnlyProperty>^git\.build\.user\.email$</includeOnlyProperty>
+            </includeOnlyProperties>
+          </configuration>
+        </plugin>
+
+        <plugin>
           <groupId>org.apache.rat</groupId>
           <artifactId>apache-rat-plugin</artifactId>
           <version>${apache-rat-plugin.version}</version>
@@ -532,16 +570,6 @@ under the License.
               <inputExclude>**/*.html</inputExclude>
               <inputExclude>**/api-links.bin</inputExclude>
             </inputExcludes>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <!-- Submit code coverage report to Coveralls.io. -->
-          <groupId>com.github.hazendaz.maven</groupId>
-          <artifactId>coveralls-maven-plugin</artifactId>
-          <version>${coveralls-maven-plugin.version}</version>
-          <configuration>
-            <repoToken>${coveralls-repo-token}</repoToken>
           </configuration>
         </plugin>
 
@@ -592,18 +620,18 @@ under the License.
         <artifactId>maven-clean-plugin</artifactId>
       </plugin>
 
-      <!-- compiler plugin not required here -->
+      <!-- compiler plugin is automatic and not required here -->
 
-      <!-- deploy plugin not required here -->
+      <!-- deploy plugin is automatic and not required here -->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
       </plugin>
 
-      <!-- gpg plugin only activated in nexus-jars profile -->
+      <!-- gpg plugin activated in nexus-jars profile -->
 
-      <!-- install plugin not required here -->
+      <!-- install plugin is automatic and not required here -->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -641,7 +669,10 @@ under the License.
         <artifactId>coveralls-maven-plugin</artifactId>
       </plugin>
 
-
+      <plugin>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.rat</groupId>
