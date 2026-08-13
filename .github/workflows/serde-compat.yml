@@ -35,7 +35,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Download ${{ matrix.name }} snapshots
-        run: python3 tools/download_serialization_test_data.py ${{ matrix.language }}
+        run: ./tools/download_serialization_test_data.sh ${{ matrix.language }}
 
       - name: Run Java tests against ${{ matrix.name }} snapshots
         run: mvn test -P ${{ matrix.profile }}
