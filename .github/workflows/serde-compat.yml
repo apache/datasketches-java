@@ -1,0 +1,41 @@
+name: SerDe Compatibility Test
+
+on:
+  push:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/LICENSE', '**/NOTICE' ]
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+  pull_request:
+    paths-ignore: [ '**/*.html', '**/*.md', '**/*.txt', '**/LICENSE', '**/NOTICE' ]
+    # The branches below must be a subset of the branches above
+    branches: [ 'main', '[0-9]+.[0-9]+.[Xx]' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }} SerDe Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: cpp
+            name: C++
+            profile: check-cpp-files
+          - language: go
+            name: Go
+            profile: check-go-files
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Download ${{ matrix.name }} snapshots
+        run: ./tools/download_serialization_test_data.sh ${{ matrix.language }}
+
+      - name: Run Java tests against ${{ matrix.name }} snapshots
+        run: mvn test -P ${{ matrix.profile }}
