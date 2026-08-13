@@ -98,27 +98,42 @@ for language in "${languages[@]}"; do
   staging_directory="$(
     mktemp -d "${SERIALIZATION_DATA}/.${language}_generated_files.XXXXXX"
   )"
-  count=0
+  members=()
+  names=()
 
   while IFS= read -r member; do
     case "${member}" in
       */serialization/"${language}"/snapshots/*.sk)
         name="${member##*/}"
-        output="${staging_directory}/${name}"
-        if [[ -e "${output}" || -L "${output}" ]]; then
-          echo "Duplicate snapshot in archive: ${name}" >&2
-          exit 1
-        fi
-        tar -xOzf "${archive_path}" "${member}" > "${output}"
-        count=$((count + 1))
+        for existing_name in "${names[@]-}"; do
+          if [[ "${name}" == "${existing_name}" ]]; then
+            echo "Duplicate snapshot in archive: ${name}" >&2
+            exit 1
+          fi
+        done
+        members+=("${member}")
+        names+=("${name}")
         ;;
     esac
   done < <(tar -tzf "${archive_path}")
 
+  count=${#members[@]}
   if [[ ${count} -eq 0 ]]; then
     echo "No ${language} snapshots found in the TCK archive" >&2
     exit 1
   fi
+
+  tar \
+    -xzf "${archive_path}" \
+    -C "${staging_directory}" \
+    --strip-components=4 \
+    "${members[@]}"
+  for name in "${names[@]}"; do
+    if [[ ! -f "${staging_directory}/${name}" ]]; then
+      echo "Failed to extract snapshot: ${name}" >&2
+      exit 1
+    fi
+  done
 
   destination="${SERIALIZATION_DATA}/${language}_generated_files"
   if [[ -L "${destination}" ]]; then
