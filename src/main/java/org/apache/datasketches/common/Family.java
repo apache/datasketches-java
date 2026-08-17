@@ -162,7 +162,12 @@ public enum Family {
   /**
    * Bloom Filter
    */
-  BLOOMFILTER(21, "BLOOMFILTER", 3, 4);
+  BLOOMFILTER(21, "BLOOMFILTER", 3, 4),
+
+  /**
+   * Xor Filter
+   */
+  XORFILTER(22, "XORFILTER", 3, 3);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
