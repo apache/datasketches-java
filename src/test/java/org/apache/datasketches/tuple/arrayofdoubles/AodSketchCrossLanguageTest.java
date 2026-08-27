@@ -19,11 +19,12 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -31,6 +32,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
 /**
@@ -40,7 +42,7 @@ import org.testng.annotations.Test;
 public class AodSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingOneValue() throws IOException {
+  public void serializeOneValue() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final ArrayOfDoublesUpdatableSketch sk = new ArrayOfDoublesUpdatableSketchBuilder().build();
@@ -52,7 +54,7 @@ public class AodSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingThreeValues() throws IOException {
+  public void serializeThreeValues() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final ArrayOfDoublesUpdatableSketch sk = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(3).build();
@@ -64,7 +66,7 @@ public class AodSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
+  public void serializeNonEmptyNoEntries() throws IOException {
     final ArrayOfDoublesUpdatableSketch sk =
         new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
     sk.update(1, new double[] {1});
@@ -73,11 +75,34 @@ public class AodSketchCrossLanguageTest {
     putBytesToJavaPath("aod_1_non_empty_no_entries_java.sk",  sk.compact().toByteArray());
   }
 
+  @Test(groups = {CHECK_JAVA_FILES})
+  public void checkJava() {
+    deserializeOneValue(GroupLanguage.JAVA);
+    deserializeThreeValues(GroupLanguage.JAVA);
+    deserializeOneValueNonEmptyNoEntries(GroupLanguage.JAVA);
+  }
+
   @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppOneValue() throws IOException {
+  public void checkCpp() {
+    deserializeOneValue(GroupLanguage.CPP);
+    deserializeThreeValues(GroupLanguage.CPP);
+    deserializeOneValueNonEmptyNoEntries(GroupLanguage.CPP);
+  }
+
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    deserializeOneValue(GroupLanguage.GO);
+    deserializeThreeValues(GroupLanguage.GO);
+    deserializeOneValueNonEmptyNoEntries(GroupLanguage.GO);
+  }
+
+  private static void deserializeOneValue(final GroupLanguage lang) {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "aod_1_n" + n + "_cpp.sk");
+      final String fileName = "aod_1_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue; }
+      //System.out.println(fileName);
       final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
@@ -89,11 +114,13 @@ public class AodSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppThreeValues() throws IOException {
+  private static void deserializeThreeValues(final GroupLanguage lang) {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "aod_3_n" + n + "_cpp.sk");
+      final String fileName = "aod_3_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue; }
+      //System.out.println(fileName);
       final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
@@ -107,9 +134,11 @@ public class AodSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppOneValueNonEmptyNoEntries() throws IOException {
-    final byte[] bytes = getFileBytes(cppPath, "aod_1_non_empty_no_entries_cpp.sk");
+  private static void deserializeOneValueNonEmptyNoEntries(final GroupLanguage lang) {
+    final String fileName = "aod_1_non_empty_no_entries" + lang.sfx + ".sk";
+    final byte[] bytes = getFileBytes(lang.pth, fileName);
+    if (bytes.length == 0) { return; }
+    //System.err.println(fileName);
     final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(MemorySegment.ofArray(bytes));
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);

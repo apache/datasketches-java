@@ -19,80 +19,22 @@
 
 package org.apache.datasketches.tdigest;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
 public class TDigestCrossLanguageTest {
-
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppDouble() throws IOException {
-    final boolean[] with_buffer = {false, true};
-    for (final boolean buffered : with_buffer) {
-      final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-      for (final int n : nArr) {
-        final byte[] bytes;
-        if (buffered) {
-          bytes = getFileBytes(cppPath, "tdigest_double_buf_n" + n + "_cpp.sk");
-        } else {
-          bytes = getFileBytes(cppPath, "tdigest_double_n" + n + "_cpp.sk");
-        }
-        final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
-        assertTrue(n == 0 ? td.isEmpty() : !td.isEmpty());
-        assertEquals(td.getTotalWeight(), n);
-        if (n > 0) {
-          assertEquals(td.getMinValue(), 1);
-          assertEquals(td.getMaxValue(), n);
-          assertEquals(td.getRank(0), 0);
-          assertEquals(td.getRank(n + 1), 1);
-          if (n == 1) {
-            assertEquals(td.getRank(n), 0.5);
-          } else {
-            assertEquals(td.getRank(n / 2), 0.5, 0.05);
-          }
-        }
-      }
-    }
-  }
-
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppFloat() throws IOException {
-    final boolean[] with_buffer = {false, true};
-    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (final boolean buffered : with_buffer) {
-      for (final int n : nArr) {
-        final byte[] bytes;
-        if (buffered) {
-          bytes = getFileBytes(cppPath, "tdigest_float_buf_n" + n + "_cpp.sk");
-        } else {
-          bytes = getFileBytes(cppPath, "tdigest_float_n" + n + "_cpp.sk");
-        }
-        final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes), true);
-        assertTrue(n == 0 ? td.isEmpty() : !td.isEmpty());
-        assertEquals(td.getTotalWeight(), n);
-        if (n > 0) {
-          assertEquals(td.getMinValue(), 1);
-          assertEquals(td.getMaxValue(), n);
-          assertEquals(td.getRank(0), 0);
-          assertEquals(td.getRank(n + 1), 1);
-          if (n == 1) {
-            assertEquals(td.getRank(n), 0.5);
-          } else {
-            assertEquals(td.getRank(n / 2), 0.5, 0.05);
-          }
-        }
-      }
-    }
-  }
 
   @Test(groups = {GENERATE_JAVA_FILES})
   public void generateForCppDouble() throws IOException {
@@ -103,6 +45,51 @@ public class TDigestCrossLanguageTest {
         td.update(i);
       }
       putBytesToJavaPath("tdigest_double_n" + n + "_java.sk", td.toByteArray());
+    }
+  }
+
+  @Test(groups = {CHECK_JAVA_FILES})
+  public void checkJava() {
+    deserializeTDigest(GroupLanguage.JAVA);
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void checkCpp() {
+    deserializeTDigest(GroupLanguage.CPP);
+  }
+
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    deserializeTDigest(GroupLanguage.GO);
+  }
+
+  private static void deserializeTDigest(final GroupLanguage lang) {
+    final String[] dfArr = {"double_", "float_"};
+    final String[] bufArr = {"buf_", ""};
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
+    for (final String df: dfArr) {
+      for (final String buf: bufArr) {
+        for (final int n : nArr) {
+          final String fileName = "tdigest_" + df + buf + "n" + n + lang.sfx + ".sk";
+          final byte[] bytes = getFileBytes(lang.pth, fileName);
+          if (bytes.length == 0) { continue;}
+          //System.out.println(fileName);
+          final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes), df == "float_");
+          assertTrue(n == 0 ? td.isEmpty() : !td.isEmpty());
+          assertEquals(td.getTotalWeight(), n);
+          if (n > 0) {
+            assertEquals(td.getMinValue(), 1);
+            assertEquals(td.getMaxValue(), n);
+            assertEquals(td.getRank(0), 0);
+            assertEquals(td.getRank(n + 1), 1);
+            if (n == 1) {
+              assertEquals(td.getRank(n), 0.5);
+            } else {
+              assertEquals(td.getRank(n / 2), 0.5, 0.05);
+            }
+          }
+        }
+      }
     }
   }
 

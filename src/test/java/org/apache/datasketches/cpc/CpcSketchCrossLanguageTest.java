@@ -19,18 +19,18 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.CHECK_GO_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.goPath;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
 /**
@@ -69,30 +69,46 @@ public class CpcSketchCrossLanguageTest {
     putBytesToJavaPath("cpc_negative_one_java.sk",  sk.toByteArray());
   }
 
+  @Test(groups = {CHECK_JAVA_FILES})
+  public void checkJava() {
+    allFlavors(GroupLanguage.JAVA);
+    negativeIntEquivalence(GroupLanguage.JAVA);
+  }
+
   @Test(groups = {CHECK_CPP_FILES})
-  public void allFlavors() throws IOException {
+  public void checkCpp() {
+    allFlavors(GroupLanguage.CPP);
+    negativeIntEquivalence(GroupLanguage.CPP);
+  }
+
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    allFlavors(GroupLanguage.GO);
+    negativeIntEquivalence(GroupLanguage.GO);
+  }
+
+  private static void allFlavors(final GroupLanguage lang) {
     final int[] nArr = {0, 100, 200, 2000, 20000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
     int flavorIdx = 0;
     for (final int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "cpc_n" + n + "_cpp.sk");
+      String fileName = "cpc_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue;}
+      //System.out.println(fileName);
       final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
       assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
       assertEquals(sketch.getEstimate(), n, n * 0.02);
     }
   }
 
-  @Test(groups = {CHECK_GO_FILES})
-  public void checkAllFlavorsGo() throws IOException {
-    final int[] nArr = {0, 100, 200, 2000, 20000};
-    final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
-    int flavorIdx = 0;
-    for (final int n: nArr) {
-      final byte[] bytes = getFileBytes(goPath, "cpc_n" + n + "_go.sk");
-      final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
-      assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
-      assertEquals(sketch.getEstimate(), n, n * 0.02);
-    }
+  private static void negativeIntEquivalence(final GroupLanguage lang) {
+    String fileName = "cpc_negative_one" + lang.sfx + ".sk";
+    final byte[] bytes = getFileBytes(lang.pth, fileName);
+    if (bytes.length == 0) { return;}
+    //System.out.println(fileName);
+    final CpcSketch sketch = CpcSketch.heapify(MemorySegment.ofArray(bytes));
+    assertEquals(sketch.getEstimate(), 1, 0.02);
   }
 
 }

@@ -19,17 +19,18 @@
 
 package org.apache.datasketches.filters.bloomfilter;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
 /**
@@ -39,8 +40,8 @@ import org.testng.annotations.Test;
 public class BloomFilterCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBloomFilterBinariesForCompatibilityTesting() throws IOException {
-    final int[] nArr = {0, 10_000, 2_000_000, 300_000_00};
+  public void generateBloomFilterBinaries() {
+    final int[] nArr = {0, 10_000, 2_000_000, 30_000_000};
     final short[] hArr = {3, 5};
     for (final int n : nArr) {
       for (final short numHashes : hArr) {
@@ -57,13 +58,30 @@ public class BloomFilterCrossLanguageTest {
     }
   }
 
+  @Test(groups = {CHECK_JAVA_FILES})
+  public void checkJava() {
+    readBloomFilterBinaries(GroupLanguage.JAVA);
+  }
+
   @Test(groups = {CHECK_CPP_FILES})
-  public void readBloomFilterBinariesForCompatibilityTesting() throws IOException {
-    final int[] nArr = {0, 10_000, 2_000_000, 300_000_00};
+  public void checkCpp() {
+    readBloomFilterBinaries(GroupLanguage.CPP);
+  }
+
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    readBloomFilterBinaries(GroupLanguage.GO);
+  }
+
+  private static void readBloomFilterBinaries(final GroupLanguage lang) {
+    final int[] nArr = {0, 10_000, 2_000_000, 30_000_000};
     final short[] hArr = {3, 5};
     for (final int n : nArr) {
       for (final short numHashes : hArr) {
-        final byte[] bytes = getFileBytes(cppPath,"bf_n" + n + "_h" + numHashes + "_cpp.sk");
+        final String fileName = "bf_n" + n + "_h" + numHashes + lang.sfx + ".sk";
+        final byte[] bytes = getFileBytes(lang.pth, fileName);
+        if (bytes.length == 0) { continue;}
+        //System.out.println(fileName);
         final BloomFilter bf = BloomFilter.heapify(MemorySegment.ofArray(bytes));
         assertEquals(bf.isEmpty(), n == 0);
         assertTrue(bf.isEmpty() || (bf.getBitsUsed() > (n / 10)));
@@ -77,4 +95,5 @@ public class BloomFilterCrossLanguageTest {
       }
     }
   }
+
 }

@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
-import static org.apache.datasketches.common.TestUtil.resPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_HISTORICAL_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -33,7 +33,8 @@ import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.TestUtil;
+import org.apache.datasketches.common.UtilityIO;
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
@@ -42,9 +43,57 @@ import org.testng.annotations.Test;
 
 public class TupleCrossLanguageTest {
 
+  @Test(groups = {GENERATE_JAVA_FILES})
+  public void generateForCppIntegerSummary() throws IOException {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
+    for (int n: nArr) {
+      final UpdatableTupleSketch<Integer, IntegerSummary> sk =
+          new UpdatableTupleSketchBuilder<>(new IntegerSummaryFactory()).build();
+      for (int i = 0; i < n; i++) {
+        sk.update(i, i);
+      }
+      putBytesToJavaPath("tuple_int_n" + n + "_java.sk", sk.compact().toByteArray());
+    }
+  }
+
+  @Test(groups = {CHECK_JAVA_FILES})
+  public void checkJava() {
+    deserializeTupleIntegerSummary(GroupLanguage.JAVA);
+  }
+
+  @Test(groups = {CHECK_CPP_FILES})
+  public void checkCpp() {
+    deserializeTupleIntegerSummary(GroupLanguage.CPP);
+  }
+
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    deserializeTupleIntegerSummary(GroupLanguage.GO);
+  }
+
+  private static void deserializeTupleIntegerSummary(final GroupLanguage lang) {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
+    for (int n: nArr) {
+      final String fileName = "tuple_int_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue;}
+      //System.out.println(fileName);
+      final TupleSketch<IntegerSummary> sketch =
+          TupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new IntegerSummaryDeserializer());
+      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+      assertTrue(n > 1000 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
+      assertEquals(sketch.getEstimate(), n, n * 0.03);
+      final TupleSketchIterator<IntegerSummary> it = sketch.iterator();
+      while (it.next()) {
+        assertTrue(it.getHash() < sketch.getThetaLong());
+        assertTrue(it.getSummary().getValue() < n);
+      }
+    }
+  }
+
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void serialVersion1Compatibility() {
-    final byte[] byteArr = TestUtil.getFileBytes(resPath, "CompactSketchWithDoubleSummary4K_serialVersion1.sk");
+    final byte[] byteArr = UtilityIO.getTestResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
     TupleSketch<DoubleSummary> sketch = TupleSketch.heapifySketch(MemorySegment.ofArray(byteArr), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
@@ -60,7 +109,7 @@ public class TupleCrossLanguageTest {
 
   @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
   public void version2Compatibility() {
-    final byte[] byteArr = TestUtil.getFileBytes(resPath, "TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
+    final byte[] byteArr = UtilityIO.getTestResourceBytes("TupleWithTestIntegerSummary4kTrimmedSerVer2.sk");
     TupleSketch<IntegerSummary> sketch1 = TupleSketch.heapifySketch(MemorySegment.ofArray(byteArr), new IntegerSummaryDeserializer());
 
     // construct the same way
@@ -81,46 +130,15 @@ public class TupleCrossLanguageTest {
     Assert.assertEquals(sketch1.isEstimationMode(), sketch2.isEstimationMode());
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppIntegerSummary() throws IOException {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "tuple_int_n" + n + "_cpp.sk");
-      final TupleSketch<IntegerSummary> sketch =
-          TupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new IntegerSummaryDeserializer());
-      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
-      assertTrue(n > 1000 ? sketch.isEstimationMode() : !sketch.isEstimationMode());
-      assertEquals(sketch.getEstimate(), n, n * 0.03);
-      final TupleSketchIterator<IntegerSummary> it = sketch.iterator();
-      while (it.next()) {
-        assertTrue(it.getHash() < sketch.getThetaLong());
-        assertTrue(it.getSummary().getValue() < n);
-      }
-    }
-  }
-
-  @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateForCppIntegerSummary() throws IOException {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
-    for (int n: nArr) {
-      final UpdatableTupleSketch<Integer, IntegerSummary> sk =
-          new UpdatableTupleSketchBuilder<>(new IntegerSummaryFactory()).build();
-      for (int i = 0; i < n; i++) {
-        sk.update(i, i);
-      }
-      putBytesToJavaPath("tuple_int_n" + n + "_java.sk", sk.compact().toByteArray());
-    }
-  }
-
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] byteArr = TestUtil.getFileBytes(resPath, "ArrayOfDoublesUnion_v0.9.1.sk");
+    final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(byteArr));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] byteArr = TestUtil.getFileBytes(resPath, "ArrayOfDoublesUnion_v0.9.1.sk");
+    final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(byteArr));
   }
 

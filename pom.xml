@@ -136,9 +136,12 @@ under the License.
     <org-slf4j.version>2.0.12</org-slf4j.version> <!-- used by TestNG -->
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
     <testng.generate-java-files>generate_java_files</testng.generate-java-files>
+    <testng.check-java-files>check_java_files</testng.check-java-files>
     <testng.check-cpp-files>check_cpp_files</testng.check-cpp-files>
     <testng.check-go-files>check_go_files</testng.check-go-files>
     <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
+    <test.data.root>${project.basedir}</test.data.root>
+    <project.root>${project.basedir}</project.root>
 
     <!-- JVM arguments -->
     <jvm.mem>-Xmx4g</jvm.mem>
@@ -373,6 +376,7 @@ under the License.
           <version>${maven-javadoc-plugin.version}</version>
           <configuration>
             <locale>en_US</locale>
+            <overview>${project.basedir}/src/main/javadoc/overview.html</overview>
             <outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
@@ -480,6 +484,10 @@ under the License.
                 <value>0</value> 
               </property>
             </properties>
+            <systemPropertyVariables>
+              <test.data.root>${test.data.root}</test.data.root>
+              <project.root>${project.root}</project.root>
+            </systemPropertyVariables>
           </configuration>
         </plugin>
 
@@ -728,7 +736,33 @@ under the License.
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>${testng.generate-java-files}</groups>
-              <excludedGroups>${testng.check-cpp-files},${testng.check-go-files},${testng.check-cpp-historical-files}</excludedGroups>
+              <excludedGroups>
+                ${testng.check-java-files},
+                ${testng.check-cpp-files},
+                ${testng.check-go-files},
+                ${testng.check-cpp-historical-files}
+              </excludedGroups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>check-java-files</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>${testng.check-java-files}</groups>
+              <excludedGroups>
+                ${testng.generate-java-files},
+                ${testng.check-cpp-files},
+                ${testng.check-go-files},
+                ${testng.check-cpp-historical-files}
+              </excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -744,7 +778,12 @@ under the License.
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>${testng.check-cpp-files}</groups>
-              <excludedGroups>${testng.generate-java-files},${testng.check-go-files},${testng.check-cpp-historical-files}</excludedGroups>
+              <excludedGroups>
+              ${testng.generate-java-files},
+              ${testng.check-java-files},
+              ${testng.check-go-files},
+              ${testng.check-cpp-historical-files}
+            </excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -760,7 +799,12 @@ under the License.
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>${testng.check-go-files}</groups>
-              <excludedGroups>${testng.generate-java-files},${testng.check-cpp-files},${testng.check-cpp-historical-files}</excludedGroups>
+              <excludedGroups>
+                ${testng.generate-java-files},
+                ${testng.check-java-files},
+                ${testng.check-cpp-files},
+                ${testng.check-cpp-historical-files}
+              </excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -776,7 +820,12 @@ under the License.
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>${testng.check-cpp-historical-files}</groups>
-              <excludedGroups>${testng.generate-java-files},${testng.check-go-files},${testng.check-cpp-files}</excludedGroups>
+              <excludedGroups>
+                ${testng.generate-java-files},
+                ${testng.check-java-files},
+                ${testng.check-go-files},
+                ${testng.check-cpp-files}
+              </excludedGroups>
             </configuration>
           </plugin>
         </plugins>

@@ -19,23 +19,25 @@
 
 package org.apache.datasketches.tuple.strings;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.apache.datasketches.tuple.TupleSketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.testng.annotations.Test;
@@ -47,7 +49,7 @@ import org.testng.annotations.Test;
 public class AosSketchCrossLanguageTest {
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingOneString() throws IOException {
+  public void serializeOneString() throws IOException {
     int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
       ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
@@ -59,7 +61,7 @@ public class AosSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingThreeStrings() throws IOException {
+  public void serializeThreeStrings() throws IOException {
     int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
       ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
@@ -71,7 +73,7 @@ public class AosSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws IOException {
+  public void serializeOneStringNonEmptyNoEntries() throws IOException {
     ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch(12,
         ResizeFactor.X8, 0.01f);
     sk.update(new String[] {"key1"}, new String[] {"value1"});
@@ -81,7 +83,7 @@ public class AosSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingMultiKeyStrings() throws IOException {
+  public void serializeMultiKeyStrings() throws IOException {
     int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
       ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
@@ -93,11 +95,15 @@ public class AosSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingUnicodeStrings() throws IOException {
+  public void serializeUnicodeStrings() throws IOException {
     ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
 
     sk.update(new String[]{"키", "열쇠"}, new String[]{"밸류", "값"});
-    sk.update(new String[]{"🔑", "🗝️"}, new String[]{"📦", "🎁"});
+    //These are emojis that are outside the Basic Multilingual Plane and explicitly coded here
+    // as 16-bit surrogate pairs to fix a bug in the TestNG Eclipse Plugin (7.11.0).
+    // These 4 emojis are the Unicode Code Points (in order):
+    //"Key", U+1F511; "Old Key", U+1F5DD,U+FE0F; "Package", U+1F4E6; "Gift", U+1F381.
+    sk.update(new String[]{"\uD83D\uDD11", "\uD83D\uDDDD\uFE0F"}, new String[]{"\uD83D\uDCE6", "\uD83C\uDF81"});
     sk.update(new String[]{"ключ1", "ключ2"}, new String[]{"ценить1", "ценить2"});
 
     assertFalse(sk.isEmpty());
@@ -107,7 +113,7 @@ public class AosSketchCrossLanguageTest {
   }
 
   @Test(groups = {GENERATE_JAVA_FILES})
-  public void generateBinariesForCompatibilityTestingEmptyStrings() throws IOException {
+  public void serializeEmptyStrings() throws IOException {
     ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
 
     sk.update(new String[]{""}, new String[]{"empty_key_value"});
@@ -120,12 +126,45 @@ public class AosSketchCrossLanguageTest {
     putBytesToJavaPath("aos_empty_strings_java.sk", sk.compact().toByteArray());
   }
 
+  @Test(groups = {CHECK_JAVA_FILES})
+  public void checkJava() {
+    deserializeOneString(GroupLanguage.JAVA);
+    deserializeFromThreeStrings(GroupLanguage.JAVA);
+    deserializeOneStringNonEmptyNoEntries(GroupLanguage.JAVA);
+    deserializeMultiKeyStrings(GroupLanguage.JAVA);
+    deserializeUnicodeStrings(GroupLanguage.JAVA);
+    deserializeEmptyStrings(GroupLanguage.JAVA);
+  }
+
   @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppOneString() throws IOException {
+  public void checkCpp() {
+    deserializeOneString(GroupLanguage.CPP);
+    deserializeFromThreeStrings(GroupLanguage.CPP);
+    deserializeOneStringNonEmptyNoEntries(GroupLanguage.CPP);
+    deserializeMultiKeyStrings(GroupLanguage.CPP);
+    deserializeUnicodeStrings(GroupLanguage.CPP);
+    deserializeEmptyStrings(GroupLanguage.CPP);
+  }
+
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    deserializeOneString(GroupLanguage.GO);
+    deserializeFromThreeStrings(GroupLanguage.GO);
+    deserializeOneStringNonEmptyNoEntries(GroupLanguage.GO);
+    deserializeMultiKeyStrings(GroupLanguage.GO);
+    deserializeUnicodeStrings(GroupLanguage.GO);
+    deserializeEmptyStrings(GroupLanguage.GO);
+  }
+
+  private static void deserializeOneString(final GroupLanguage lang) {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("aos_1_n" + n + "_cpp.sk"));
-      final TupleSketch<ArrayOfStringsSummary> sketch = ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
+      final String fileName = "aos_1_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue; }
+      //System.out.println(fileName);
+      final TupleSketch<ArrayOfStringsSummary> sketch =
+         ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertTrue(n > 1000? sketch.isEstimationMode() : !sketch.isEstimationMode());
@@ -139,12 +178,15 @@ public class AosSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppThreeStrings() throws IOException {
+  private static void deserializeFromThreeStrings(final GroupLanguage lang) {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("aos_3_n" + n + "_cpp.sk"));
-      final TupleSketch<ArrayOfStringsSummary> sketch = ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
+      final String fileName = "aos_3_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue; }
+      //System.out.println(fileName);
+      final TupleSketch<ArrayOfStringsSummary> sketch =
+         ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertTrue(n > 1000? sketch.isEstimationMode() : !sketch.isEstimationMode());
@@ -158,21 +200,26 @@ public class AosSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppOneStringNonEmptyNoEntries() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("aos_1_non_empty_no_entries_cpp.sk"));
-    final TupleSketch<ArrayOfStringsSummary> sketch = ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
-
+  private static void deserializeOneStringNonEmptyNoEntries(final GroupLanguage lang) {
+    final String fileName = "aos_1_non_empty_no_entries" + lang.sfx + ".sk";
+    final byte[] bytes = getFileBytes(lang.pth, fileName);
+    if (bytes.length == 0) { return; }
+    //System.out.println(fileName);
+    final TupleSketch<ArrayOfStringsSummary> sketch =
+        ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppMultiKeyStrings() throws IOException {
+  private static void deserializeMultiKeyStrings(final GroupLanguage lang) {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
-      final byte[] bytes = Files.readAllBytes(cppPath.resolve("aos_multikey_n" + n + "_cpp.sk"));
-      final TupleSketch<ArrayOfStringsSummary> sketch = ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
+      final String fileName = "aos_multikey_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue; }
+      //System.out.println(fileName);
+      final TupleSketch<ArrayOfStringsSummary> sketch =
+         ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       assertEquals(sketch.getEstimate(), n, n * 0.03);
       assertTrue(n > 1000? sketch.isEstimationMode() : !sketch.isEstimationMode());
@@ -186,10 +233,13 @@ public class AosSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppUnicodeStrings() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("aos_unicode_cpp.sk"));
-    final TupleSketch<ArrayOfStringsSummary> sketch = ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
+  private static void deserializeUnicodeStrings(final GroupLanguage lang) {
+    final String fileName = "aos_unicode" + lang.sfx + ".sk";
+    final byte[] bytes = getFileBytes(lang.pth, fileName);
+    if (bytes.length == 0) { return; }
+    //System.out.println(fileName);
+    final TupleSketch<ArrayOfStringsSummary> sketch =
+        ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
     assertFalse(sketch.isEmpty());
     assertFalse(sketch.isEstimationMode());
     assertEquals(sketch.getEstimate(), 3.0);
@@ -200,10 +250,13 @@ public class AosSketchCrossLanguageTest {
     assertTrue(summaries.contains(Arrays.asList("ценить1", "ценить2")));
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void deserializeFromCppEmptyStrings() throws IOException {
-    final byte[] bytes = Files.readAllBytes(cppPath.resolve("aos_empty_strings_cpp.sk"));
-    final TupleSketch<ArrayOfStringsSummary> sketch = ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
+  private static void deserializeEmptyStrings(final GroupLanguage lang) {
+    final String fileName = "aos_empty_strings" + lang.sfx + ".sk";
+    final byte[] bytes = getFileBytes(lang.pth, fileName);
+    if (bytes.length == 0) { return; }
+    //System.out.println(fileName);
+    final TupleSketch<ArrayOfStringsSummary> sketch =
+        ArrayOfStringsTupleSketch.heapifySketch(MemorySegment.ofArray(bytes), new ArrayOfStringsSummaryDeserializer());
     assertFalse(sketch.isEmpty());
     assertFalse(sketch.isEstimationMode());
     assertEquals(sketch.getEstimate(), 3.0);

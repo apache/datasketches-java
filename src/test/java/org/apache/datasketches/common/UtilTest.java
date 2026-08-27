@@ -20,8 +20,6 @@
 package org.apache.datasketches.common;
 
 import static java.lang.Math.pow;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.javaPath;
 import static org.apache.datasketches.common.Util.bytesToInt;
 import static org.apache.datasketches.common.Util.bytesToLong;
 import static org.apache.datasketches.common.Util.bytesToString;
@@ -56,7 +54,6 @@ import static org.apache.datasketches.common.Util.pwr2SeriesPrev;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -436,11 +433,7 @@ public class UtilTest {
     assertEquals(v, v2);
   }
 
-  @Test
-  public void checkDirCreation() {
-    assertNotNull(javaPath);
-    assertNotNull(cppPath);
-  }
+
 
   @Test
   public void printlnTest() {
