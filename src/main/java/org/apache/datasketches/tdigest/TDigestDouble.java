@@ -256,7 +256,7 @@ public final class TDigestDouble {
     }
     final double lastWeight = centroidWeights_[numCentroids_ - 1];
     if ((lastWeight > 1) && ((centroidsWeight_ - weight) <= (lastWeight / 2.0))) {
-      return maxValue_ + (((centroidsWeight_ - weight - 1.0) / ((lastWeight / 2.0) - 1.0))
+      return maxValue_ - (((centroidsWeight_ - weight - 1.0) / ((lastWeight / 2.0) - 1.0))
           * (maxValue_ - centroidMeans_[numCentroids_ - 1]));
     }
 
@@ -278,7 +278,7 @@ public final class TDigestDouble {
         }
         final double w1 = weight - weightSoFar - leftWeight;
         final double w2 = (weightSoFar + dw) - weight - rightWeight;
-        return weightedAverage(centroidMeans_[i], w1, centroidMeans_[i + 1], w2);
+        return weightedAverage(centroidMeans_[i], w2, centroidMeans_[i + 1], w1);
       }
       weightSoFar += dw;
     }
