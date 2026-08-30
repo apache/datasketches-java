@@ -192,7 +192,8 @@ public final class TDigestDouble {
     if (value < firstMean) {
       if ((firstMean - minValue_) > 0) {
         if (value == minValue_) { return 0.5 / centroidsWeight_; }
-        return (1.0 + (((value - minValue_) / (firstMean - minValue_)) * ((centroidWeights_[0] / 2.0) - 1.0)));
+        return (1.0 + (((value - minValue_) / (firstMean - minValue_))
+            * ((centroidWeights_[0] / 2.0) - 1.0))) / centroidsWeight_;
       }
       return 0; // should never happen
     }
