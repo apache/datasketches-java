@@ -44,7 +44,7 @@ import org.testng.annotations.Test;
 public class VarOptCrossLanguageTest {
   static final double EPS = 1e-13;
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateSketchesLong() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -56,7 +56,7 @@ public class VarOptCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateSketchStringExact() throws IOException {
     final VarOptItemsSketch<String> sketch = VarOptItemsSketch.newInstance(1024);
     for (int i = 1; i <= 200; ++i) {
@@ -65,7 +65,7 @@ public class VarOptCrossLanguageTest {
     putBytesToJavaPath("varopt_sketch_string_exact_java.sk",  sketch.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateSketchLongSampling() throws IOException {
     final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(1024);
     for (long i = 0; i < 2000; ++i) {
@@ -78,7 +78,7 @@ public class VarOptCrossLanguageTest {
     putBytesToJavaPath("varopt_sketch_long_sampling_java.sk",  sketch.toByteArray(new ArrayOfLongsSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateUnionDoubleSampling() throws IOException {
     final int kSmall = 16;
     final int n1 = 32;
@@ -105,7 +105,7 @@ public class VarOptCrossLanguageTest {
     putBytesToJavaPath("varopt_union_double_sampling_java.sk",  union.toByteArray(new ArrayOfDoublesSerDe()));
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     deserializeSketchLongs(GroupLanguage.JAVA);
     deserializeSketchStringsExact(GroupLanguage.JAVA);

@@ -34,8 +34,6 @@ public final class UtilityIO  {
   private static final String LS = System.getProperty("line.separator");
   private static final Class<?> clazz = UtilityIO.class;
   private static final ClassLoader CL = clazz.getClassLoader();
-  private static final Path testDataRoot = getTestDataRoot();
-  public static final Path projectRoot = getProjectRoot();
   private static final String TEST_DATA_ROOT_PROP = "test.data.root";
   private static final String PROJECT_ROOT_PROP = "project.root";
 
@@ -66,7 +64,9 @@ public final class UtilityIO  {
   public enum GroupLanguage {
     JAVA("_java", getJavaPath()),
     CPP("_cpp", getCppPath()),
-    GO("_go", getGoPath());
+    GO("_go", getGoPath()),
+    RUST("_rust", getRustPath());
+
 
     public final String sfx;
     public final Path pth;
@@ -81,28 +81,28 @@ public final class UtilityIO  {
    * The project relative Path for Java serialized sketches to be tested by other languages.
    */
   public static Path getJavaPath() {
-    return testDataRoot.resolve("serialization_test_data", "java_generated_files");
+    return getTestDataRoot().resolve("serialization_test_data", "java_generated_files");
   }
 
   /**
    * The project relative Path for C++ serialized sketches to be tested by Java.
    */
   public static Path getCppPath() {
-    return testDataRoot.resolve("serialization_test_data", "cpp_generated_files");
+    return getTestDataRoot().resolve("serialization_test_data", "cpp_generated_files");
   }
 
   /**
    * The project relative Path for Go serialized sketches to be tested by Java.
    */
   public static Path getGoPath() {
-    return testDataRoot.resolve("serialization_test_data", "go_generated_files");
+    return getTestDataRoot().resolve("serialization_test_data", "go_generated_files");
   }
 
   /**
    * The project relative Path for Rust serialized sketches to be tested by Java.
    */
   public static Path getRustPath() {
-    return testDataRoot.resolve("serialization_test_data", "rust_generated_files");
+    return getTestDataRoot().resolve("serialization_test_data", "rust_generated_files");
   }
 
   /**
@@ -249,7 +249,7 @@ public final class UtilityIO  {
    * @return Path to the project.root directory.
    * @throws IllegalStateException if running from a JAR without -Dproject.root defined.
    */
-  private static Path getProjectRoot() {
+  public static Path getProjectRoot() {
     // Explicit user override or Maven-injected property
     String sysProp = System.getProperty(PROJECT_ROOT_PROP);
     if (sysProp != null && !sysProp.isBlank()) {

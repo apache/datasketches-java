@@ -35,8 +35,6 @@ import java.util.Objects;
  * this method is 2 times more compact, but it takes more time to encode and decode
  * by a factor of 1.5 to 2.
  *
- * <p>The serialization
- *
  * @author Alexander Saydakov
  */
 public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {

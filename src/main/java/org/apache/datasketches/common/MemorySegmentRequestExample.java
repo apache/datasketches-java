@@ -40,7 +40,7 @@ public final class MemorySegmentRequestExample implements MemorySegmentRequest {
   public MemorySegmentRequestExample() { }
 
   /**
-   * Request a new off-heap MemorySegment with the given <i>newByteSeze</i>.
+   * Request a new off-heap MemorySegment with the given <i>newByteSize</i>.
    * An internal confined Arena is created to exclusively manage the new segment and it is associated
    * with the new segment with a ConcurrentHashMap.
    */

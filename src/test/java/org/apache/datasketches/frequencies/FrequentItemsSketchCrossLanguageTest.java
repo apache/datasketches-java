@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
  */
 public class FrequentItemsSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTestingLongsSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -57,7 +57,7 @@ public class FrequentItemsSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTestingStringsSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -72,7 +72,7 @@ public class FrequentItemsSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTestingStringsSketchAscii() throws IOException {
     final FrequentItemsSketch<String> sk = new FrequentItemsSketch<>(64);
     sk.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1);
@@ -82,7 +82,7 @@ public class FrequentItemsSketchCrossLanguageTest {
     putBytesToJavaPath("frequent_string_ascii_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTestingStringsSketchUtf8() throws IOException {
     final FrequentItemsSketch<String> sk = new FrequentItemsSketch<>(64);
     sk.update("абвгд", 1);
@@ -95,7 +95,7 @@ public class FrequentItemsSketchCrossLanguageTest {
     putBytesToJavaPath("frequent_string_utf8_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     longs(GroupLanguage.JAVA);
     strings(GroupLanguage.JAVA);

@@ -50,7 +50,7 @@ import org.testng.annotations.Test;
 public class KllCrossLanguageTest {
   private final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateKllDoublesSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -60,7 +60,7 @@ public class KllCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateKllFloatsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -70,7 +70,7 @@ public class KllCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateKllLongsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -80,7 +80,7 @@ public class KllCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateKllItemsSketchBinaries() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -91,7 +91,7 @@ public class KllCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     kllFloat(GroupLanguage.JAVA);
     kllDouble(GroupLanguage.JAVA);

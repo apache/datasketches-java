@@ -39,9 +39,9 @@ import org.apache.datasketches.theta.ThetaSketch;
  * <li>The Lower Bound estimate on the ratio PopB/PopA is
  * BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(<i>A, B</i>).</li>
  * </ul>
- * Note: The theta of <i>A</i> cannot be greater than the theta of <i>B</i>.
+ * Note: The theta of <i>B</i> cannot be greater than the theta of <i>A</i>.
  * If <i>B</i> is formed as an intersection of <i>A</i> and some other set <i>C</i>,
- * then the theta of <i>B</i> is guaranteed to be less than or equal to the theta of <i>B</i>.
+ * then the theta of <i>B</i> is guaranteed to be less than or equal to the theta of <i>A</i>.
  *
  * @author Kevin Lang
  * @author Lee Rhodes

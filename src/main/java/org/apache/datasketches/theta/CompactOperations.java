@@ -326,7 +326,7 @@ final class CompactOperations {
 
   /**
    * This corrects a temporary anomalous condition where compact() or toByteArray() is called on an UpdatableThetaSketch
-   * that was initialized with p < 1.0 and update() was never called.  In this case Theta < 1.0,
+   * that was initialized with {@code p < 1.0} and update() was never called.  In this case {@code Theta < 1.0},
    * curCount = 0, and empty = true.  The correction is to change Theta to 1.0, which makes the
    * returning sketch empty. This should only be used in the compaction or serialization of an
    * UpdatableThetaSketch.

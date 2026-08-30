@@ -47,7 +47,7 @@ public final class BoundsOnRatiosInSampledSets {
    * @param f the inclusion probability used to produce the set with size <i>a</i> and should
    * generally be less than 0.5. Above this value, the results not be reliable.
    * When <i>f</i> = 1.0 this returns the estimate.
-   * @return the approximate upper bound
+   * @return the approximate lower bound
    */
   public static double getLowerBoundForBoverA(final long a, final long b, final double f) {
     checkInputs(a, b, f);
@@ -61,7 +61,7 @@ public final class BoundsOnRatiosInSampledSets {
    * @param a See class javadoc
    * @param b See class javadoc
    * @param f the inclusion probability used to produce the set with size <i>a</i>.
-   * @return the approximate lower bound
+   * @return the approximate upper bound
    */
   public static double getUpperBoundForBoverA(final long a, final long b, final double f) {
     checkInputs(a, b, f);
@@ -86,7 +86,7 @@ public final class BoundsOnRatiosInSampledSets {
    * Return the estimate of A. See class javadoc.
    * @param a See class javadoc
    * @param f the inclusion probability used to produce the set with size <i>a</i>.
-   * @return the approximate lower bound
+   * @return the approximate estimate of A.
    */
   public static double getEstimateOfA(final long a, final double f) {
     checkInputs(a, 1, f);
@@ -97,7 +97,7 @@ public final class BoundsOnRatiosInSampledSets {
    * Return the estimate of B. See class javadoc.
    * @param b See class javadoc
    * @param f the inclusion probability used to produce the set with size <i>b</i>.
-   * @return the approximate lower bound
+   * @return the approximate estimate of B.
    */
   public static double getEstimateOfB(final long b, final double f) {
     checkInputs(b + 1, b, f);

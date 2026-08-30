@@ -155,12 +155,12 @@ public class IncludeMinMax {
   }
 
   /**
-   * The logic to include the min and max of type double.
+   * The logic to include the min and max of type long.
    * @param quantilesIn The array of quantiles
    * @param cumWeightsIn The array of associated cumulative weights
    * @param maxItem the maximum item of the stream
    * @param minItem the minimum item of the stream
-   * @return a DoublesPair
+   * @return a LongsPair
    */
   public static LongsPair includeLongsMinMax(
           final long[] quantilesIn,

@@ -19,9 +19,28 @@
 
 package org.apache.datasketches.common;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.testng.annotations.BeforeSuite;
 
 public class A_BeforeSuite {
+
+  /**
+   * For counting cross-language test cases.
+   */
+  private final AtomicInteger count = new AtomicInteger(0);
+
+  public void incCount() {
+    count.incrementAndGet(); // getAndIncrement()
+  }
+
+  public int getCount() {
+    return count.get();
+  }
+
+  public void resetCount() {
+    count.set(0);
+  }
 
   @BeforeSuite(alwaysRun = true)
   public void printTestEnvironment() {
@@ -29,5 +48,7 @@ public class A_BeforeSuite {
     System.out.println("TEST JDK: " + System.getProperty("java.version"));
     System.out.println("TEST JDK HOME: " + System.getProperty("java.home"));
     System.out.println("=====================================================");
+    resetCount();
   }
+
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 
 <!--
-Licensed to the Apache Software Foundation (ASF) under one
+Licensed to the Apache Software Foundation (ASF) under one  
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
 regarding copyright ownership.  The ASF licenses this file
@@ -22,7 +22,10 @@ under the License.
 
 <!--
 From Maven:
-mvn clean test -Pcheck-cpp-files -Dtest.data.root="/"
+mvn clean test -Pcheck_cpp_files -Dtest.data.root="/"
+or
+mvn clean test -Dgroups=check_cpp_files -Dtest.data.root="/" #for a specific group
+
 
 From Java:
 Run all tests from the test.jar. 
@@ -41,94 +44,17 @@ CP="${CP}snakeyaml-2.6.jar" #optional
 
 java -Dtest.data.root="/" \
      -cp "$CP" \
-     org.testng.TestNG testng.xml -testnames "AllDSJavaTests"
+     org.testng.TestNG testng.xml -testnames "Run_All_Java_Tests"
 
 On Windows use back-tic "`" for line continuation and ";" for classpath separation.
 -->
 
 <suite name="DSJavaSuite">
 
-    <!-- Default: Run everything  -->
-    <test name="AllDSJavaTests">
-        <packages>
-            <package name="org.apache.datasketches.*" />
-        </packages>
-    </test>
-
-    <!-- Profile: Generate Java Files -->
-    <test name="GenerateJavaFiles">
-        <groups>
-            <run>
-                <include name="generate-java-files" />
-                <exclude name="check-cpp-files" />
-                <exclude name="check-go-files" />
-                <exclude name="check-cpp-historical-files" />
-            </run>
-        </groups>
-        <packages>
-            <package name="org.apache.datasketches.*" />
-        </packages>
-    </test>
-
-    <!-- Profile: Check Java Generated Files -->
-    <test name="CheckJavaFiles">
-        <groups>
-            <run>
-                <include name="check-java-files" />
-                <exclude name="check-cpp-historical-files" />
-                <exclude name="generate-java-files" />
-                <exclude name="check-cpp-files" />
-                <exclude name="check-go-files" />
-            </run>
-        </groups>
-        <packages>
-            <package name="org.apache.datasketches.*" />
-        </packages>
-    </test>
-
-    <!-- Profile: Check C++ Generated Files -->
-    <test name="CheckCppFiles">
-        <groups>
-            <run>
-                <include name="check-cpp-files" />
-                <exclude name="generate-java-files" />
-                <exclude name="check-go-files" />
-                <exclude name="check-cpp-historical-files" />
-            </run>
-        </groups>
-        <packages>
-            <package name="org.apache.datasketches.*" />
-        </packages>
-    </test>
-
-    <!-- Profile: Check Go Generated Files -->
-    <test name="CheckGoFiles">
-        <groups>
-            <run>
-                <include name="check-go-files" />
-                <exclude name="generate-java-files" />
-                <exclude name="check-cpp-files" />
-                <exclude name="check-cpp-historical-files" />
-            </run>
-        </groups>
-        <packages>
-            <package name="org.apache.datasketches.*" />
-        </packages>
-    </test>
-
-    <!-- Profile: Check C++ Historical Files -->
-    <test name="CheckCppHistoricalFiles">
-        <groups>
-            <run>
-                <include name="check-cpp-historical-files" />
-                <exclude name="generate-java-files" />
-                <exclude name="check-cpp-files" />
-                <exclude name="check-go-files" />
-            </run>
-        </groups>
-        <packages>
-            <package name="org.apache.datasketches.*" />
-        </packages>
-    </test>
+  <test name="All_Tests">
+    <packages>
+      <package name="org.apache.datasketches.*"/>
+    </packages>
+  </test>
 
 </suite>

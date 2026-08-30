@@ -51,8 +51,8 @@ abstract class AbstractCoupons extends HllSketchImpl {
    * <p>Note: This is an approximation to the true mapping from numCoupons to N,
    * which has a range of validity roughly from 0 to 6 million coupons.</p>
    *
-   * <p>The k of the implied coupon sketch, which must not be confused with the k of the HLL
-   * sketch.  In this application k is always 2^26, which is the number of address bits of the
+   * <p>The k of the implied coupon sketch must not be confused with the k of the HLL
+   * sketch.  In this context k is always 2^26, which is the number of address bits of the
    * 32-bit coupon.</p>
    * @return the unique count estimate.
    */

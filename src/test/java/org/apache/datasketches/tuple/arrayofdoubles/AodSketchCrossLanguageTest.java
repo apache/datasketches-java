@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
  */
 public class AodSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeOneValue() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -53,7 +53,7 @@ public class AodSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeThreeValues() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -65,7 +65,7 @@ public class AodSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeNonEmptyNoEntries() throws IOException {
     final ArrayOfDoublesUpdatableSketch sk =
         new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
@@ -75,7 +75,7 @@ public class AodSketchCrossLanguageTest {
     putBytesToJavaPath("aod_1_non_empty_no_entries_java.sk",  sk.compact().toByteArray());
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     deserializeOneValue(GroupLanguage.JAVA);
     deserializeThreeValues(GroupLanguage.JAVA);

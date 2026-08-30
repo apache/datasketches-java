@@ -23,7 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.UtilityIO.getCppPath;
 import static org.apache.datasketches.common.UtilityIO.getFileBytes;
 import static org.apache.datasketches.common.UtilityIO.getJavaPath;
-import static org.apache.datasketches.common.UtilityIO.projectRoot;
+import static org.apache.datasketches.common.UtilityIO.getProjectRoot;
 import static org.apache.datasketches.common.UtilityIO.putBytesToFile;
 import static org.apache.datasketches.common.UtilityIO.Existence.MUST_EXIST;
 import static org.apache.datasketches.common.UtilityIO.Existence.WARNING;
@@ -59,19 +59,19 @@ public class UtilityIOTest {
 
   @Test
   public void testGetFileBytes_MissingFile_Warning() {
-    byte[] resultBytes = getFileBytes(projectRoot, "Test_NonExistentFile_ThisIsOK", WARNING);
+    byte[] resultBytes = getFileBytes(getProjectRoot(), "Test_NonExistentFile_ThisIsOK", WARNING);
     assertNotNull(resultBytes);
     assertEquals(resultBytes.length, 0, "Should return empty array for missing file.");
   }
 
   @Test(expectedExceptions = RuntimeException.class)
   public void testGetFileBytes_MissingFile_MustExist() {
-    getFileBytes(projectRoot, "Test_NonExistentFile_ThisIsOK", MUST_EXIST);
+    getFileBytes(getProjectRoot(), "Test_NonExistentFile_ThisIsOK", MUST_EXIST);
   }
 
   @Test(expectedExceptions = RuntimeException.class)
   public void testGetFileBytes_NotRegular_NotReadable() throws IOException {
-    getFileBytes(projectRoot, "");
+    getFileBytes(getProjectRoot(), "");
   }
 
   private Path tempDir;

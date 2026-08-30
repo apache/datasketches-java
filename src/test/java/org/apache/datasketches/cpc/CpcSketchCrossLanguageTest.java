@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  */
 public class CpcSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 100, 200, 2000, 20_000};
     final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
@@ -54,7 +54,7 @@ public class CpcSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   void negativeIntEquivalence() throws Exception {
     final CpcSketch sk = new CpcSketch();
     final byte v1 = (byte) -1;
@@ -69,7 +69,7 @@ public class CpcSketchCrossLanguageTest {
     putBytesToJavaPath("cpc_negative_one_java.sk",  sk.toByteArray());
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     allFlavors(GroupLanguage.JAVA);
     negativeIntEquivalence(GroupLanguage.JAVA);

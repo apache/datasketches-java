@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
  */
 public class HllSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -65,7 +65,7 @@ public class HllSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     deserializeHll(GroupLanguage.JAVA);
   }

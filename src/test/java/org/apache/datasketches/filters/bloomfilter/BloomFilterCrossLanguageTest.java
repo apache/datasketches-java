@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  */
 public class BloomFilterCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBloomFilterBinaries() {
     final int[] nArr = {0, 10_000, 2_000_000, 30_000_000};
     final short[] hArr = {3, 5};
@@ -58,7 +58,7 @@ public class BloomFilterCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     readBloomFilterBinaries(GroupLanguage.JAVA);
   }

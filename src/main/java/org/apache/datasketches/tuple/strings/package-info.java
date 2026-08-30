@@ -18,7 +18,7 @@
  */
 
 /**
- * This package is for a generic implementation of the Tuple sketch for single String value.
+ * This package is for a generic implementation of the Tuple sketch for String arrays.
  */
 
 package org.apache.datasketches.tuple.strings;

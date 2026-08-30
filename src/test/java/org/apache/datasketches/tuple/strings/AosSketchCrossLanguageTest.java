@@ -48,7 +48,7 @@ import org.testng.annotations.Test;
  */
 public class AosSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeOneString() throws IOException {
     int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
@@ -60,7 +60,7 @@ public class AosSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeThreeStrings() throws IOException {
     int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
@@ -72,7 +72,7 @@ public class AosSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeOneStringNonEmptyNoEntries() throws IOException {
     ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch(12,
         ResizeFactor.X8, 0.01f);
@@ -82,7 +82,7 @@ public class AosSketchCrossLanguageTest {
     putBytesToJavaPath("aos_1_non_empty_no_entries_java.sk", sk.compact().toByteArray());
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeMultiKeyStrings() throws IOException {
     int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n : nArr) {
@@ -94,7 +94,7 @@ public class AosSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeUnicodeStrings() throws IOException {
     ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
 
@@ -112,7 +112,7 @@ public class AosSketchCrossLanguageTest {
     putBytesToJavaPath("aos_unicode_java.sk", sk.compact().toByteArray());
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeEmptyStrings() throws IOException {
     ArrayOfStringsTupleSketch sk = new ArrayOfStringsTupleSketch();
 
@@ -126,7 +126,7 @@ public class AosSketchCrossLanguageTest {
     putBytesToJavaPath("aos_empty_strings_java.sk", sk.compact().toByteArray());
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     deserializeOneString(GroupLanguage.JAVA);
     deserializeFromThreeStrings(GroupLanguage.JAVA);

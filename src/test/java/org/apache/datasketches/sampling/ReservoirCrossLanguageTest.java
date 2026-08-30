@@ -45,14 +45,14 @@ import org.testng.annotations.Test;
  */
 public class ReservoirCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirLongsSketchEmpty() throws IOException { //1
     final int k = 128;
     final ReservoirLongsSketch sk = ReservoirLongsSketch.newInstance(k);
     putBytesToJavaPath("reservoir_longs_empty_k" + k + "_java.sk",  sk.toByteArray());
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirLongsSketchExact() throws IOException { //2
     final int k = 128;
     final int[] nArr = {1, 10, 32, 100, 128};
@@ -67,7 +67,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirLongsSketchSampling() throws IOException { //3
     final int[] kArr = {32, 64, 128};
     final long n = 1000;
@@ -89,7 +89,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirLongsUnionEmpty() throws IOException { //4
     int maxK = 128;
     ReservoirLongsUnion union = ReservoirLongsUnion.newInstance(maxK);
@@ -97,7 +97,7 @@ public class ReservoirCrossLanguageTest {
     putBytesToJavaPath("reservoir_longs_union_empty_maxk" + maxK + "_java.sk",  union.toByteArray());
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirLongsUnionExact() throws IOException { //5
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
@@ -111,7 +111,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirLongsUnionSampling() throws IOException { //6
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
@@ -136,7 +136,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchLongEmpty() throws IOException { //7
     final int k = 128;
     final ReservoirItemsSketch<Long> sk = ReservoirItemsSketch.newInstance(k);
@@ -144,7 +144,7 @@ public class ReservoirCrossLanguageTest {
     putBytesToJavaPath("reservoir_items_long_empty_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfLongsSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchLongExact() throws IOException { //8
     final int k = 128;
     final int[] nArr = {1, 10, 32, 100, 128};
@@ -158,7 +158,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchLongSampling() throws IOException { //9
     final int[] kArr = {32, 64, 128};
     final long n = 1000;
@@ -180,7 +180,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchDoubleEmpty() throws IOException { //10
     final int k = 128;
     final ReservoirItemsSketch<Double> sk = ReservoirItemsSketch.newInstance(k);
@@ -188,7 +188,7 @@ public class ReservoirCrossLanguageTest {
     putBytesToJavaPath("reservoir_items_double_empty_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfDoublesSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchDoubleExact() throws IOException { //11
     final int k = 128;
     final int[] nArr = {1, 10, 32, 100, 128};
@@ -202,7 +202,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchDoubleSampling() throws IOException { //12
     final int[] kArr = {32, 64, 128};
     final long n = 1000;
@@ -224,7 +224,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchStringEmpty() throws IOException { //13
     final int k = 128;
     final ReservoirItemsSketch<String> sk = ReservoirItemsSketch.newInstance(k);
@@ -232,7 +232,7 @@ public class ReservoirCrossLanguageTest {
     putBytesToJavaPath("reservoir_items_string_empty_k" + k + "_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchStringExact() throws IOException { //14
     final int k = 128;
     final int[] nArr = {1, 10, 32, 100, 128};
@@ -246,7 +246,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsSketchStringSampling() throws IOException { //15
     final int[] kArr = {32, 64, 128};
     final long n = 1000;
@@ -267,7 +267,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionLongEmpty() throws IOException { //16
     int maxK = 128;
     ReservoirItemsUnion<Long> union = ReservoirItemsUnion.newInstance(maxK);
@@ -275,7 +275,7 @@ public class ReservoirCrossLanguageTest {
     putBytesToJavaPath("reservoir_items_union_long_empty_maxk" + maxK + "_java.sk",  union.toByteArray(new ArrayOfLongsSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionLongExact() throws IOException { //17
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
@@ -290,7 +290,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionLongSampling() throws IOException { //18
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
@@ -316,7 +316,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionDoubleEmpty() throws IOException { //19
     int maxK = 128;
     ReservoirItemsUnion<Double> union = ReservoirItemsUnion.newInstance(maxK);
@@ -324,7 +324,7 @@ public class ReservoirCrossLanguageTest {
     putBytesToJavaPath("reservoir_items_union_double_empty_maxk" + maxK + "_java.sk",  union.toByteArray(new ArrayOfDoublesSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionDoubleExact() throws IOException { //20
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
@@ -339,7 +339,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionDoubleSampling() throws IOException { //21
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
@@ -365,7 +365,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionStringEmpty() throws IOException { //22
     int maxK = 128;
     ReservoirItemsUnion<String> union = ReservoirItemsUnion.newInstance(maxK);
@@ -373,7 +373,7 @@ public class ReservoirCrossLanguageTest {
     putBytesToJavaPath("reservoir_items_union_string_empty_maxk" + maxK + "_java.sk",  union.toByteArray(new ArrayOfStringsSerDe()));
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionStringExact() throws IOException { //23
     int maxK = 128;
     int[] nArr = {1, 10, 32, 100, 128};
@@ -388,7 +388,7 @@ public class ReservoirCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateReservoirItemsUnionStringSampling() throws IOException { //24
     int[] maxKArr = {32, 64, 128};
     long n = 1000;
@@ -416,7 +416,7 @@ public class ReservoirCrossLanguageTest {
   /*****************************************************/
   /*****************************************************/
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     checkReservoirLongsSketchEmpty(GroupLanguage.JAVA);
     checkReservoirLongsSketchExact(GroupLanguage.JAVA);

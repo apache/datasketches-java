@@ -219,8 +219,7 @@ final class ItemsMergeImpl {
    * blockyTandemMergeSort() is an implementation of top-down merge sort specialized
    * for the case where the input contains successive equal-length blocks
    * that have already been sorted, so that only the top part of the
-   * merge tree remains to be executed. Also, two arrays are sorted in tandem,
-   * as discussed above.
+   * merge tree remains to be executed. The two arrays are sorted in tandem.
    * @param <T> the data type
    * @param quantiles array of quantiles
    * @param cumWts array of cum weights

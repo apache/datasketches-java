@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
  */
 public class ThetaSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeSketches() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -53,7 +53,7 @@ public class ThetaSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeCompressedSketches() throws IOException {
     final int[] nArr = {10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -65,7 +65,7 @@ public class ThetaSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void serializeNonEmptyNoEntries() throws IOException {
     final UpdatableThetaSketch sk = UpdatableThetaSketch.builder().setP(0.01f).build();
     sk.update(1); //ignored because of p = .01.
@@ -74,7 +74,7 @@ public class ThetaSketchCrossLanguageTest {
     putBytesToJavaPath("theta_non_empty_no_entries_java.sk",  sk.compact().toByteArray());
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     deserializeSketchesUsingSegment(GroupLanguage.JAVA);
     deserializeSketchesFromFile(GroupLanguage.JAVA);

@@ -39,9 +39,9 @@ import org.apache.datasketches.common.SketchesArgumentException;
 /**
  * This class defines the preamble items structure and provides basic utilities for some of the key
  * fields. Fields are presented in Little Endian format, but multi-byte values (int, long, double)
- * are stored in native byte order. All <tt>byte</tt> values are treated as unsigned.
+ * are stored in native byte order. All <code>byte</code> values are treated as unsigned.
  *
- * <h1>Reservoir Sampling</h1>
+ * <h2>Reservoir Sampling</h2>
  *
  * <p><strong>Sketch:</strong> The count of items seen is limited to 48 bits (~256 trillion) even
  * though there are adjacent unused preamble bits. The acceptance probability for an item is a
@@ -80,7 +80,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * </pre>
  *
  *
- * <h1>VarOpt Sampling</h1>
+ * <h2>VarOpt Sampling</h2>
  *
  * <p><strong>VarOpt:</strong> A VarOpt sketch has a more complex internal items structure and
  * requires a larger preamble. Values serving a similar purpose in both reservoir and varopt sampling
@@ -129,7 +129,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  *  </pre>
  *
  *
- * <h1>EPPS Sampling</h1>
+ * <h2>EPPS Sampling</h2>
  *
  * <p>An empty sketch requires 8 bytes.
  *

@@ -36,13 +36,14 @@ abstract class PairIterator {
    * In LIST and SET modes, this gets the iterating index into the integer array of HLL key/value
    * pairs.
    * In HLL mode, this is the iterating index into the hypothetical array of HLL values, which may
-   * be physically contructed differently based on the compaction scheme (HLL_4, HLL_6, HLL_8).
+   * be physically constructed differently based on the compaction scheme (HLL_4, HLL_6, HLL_8).
    * @return the index.
    */
   abstract int getIndex();
 
   /**
-   * Gets the key, the low 26 bits of an pair, and can be up to 26 bits in length.
+   * Gets the key from the low 26 bits of a pair.
+   * The key corresponds to the address in the HLL array and can be up to 26 bits in length.
    * @return the key
    */
   abstract int getKey();

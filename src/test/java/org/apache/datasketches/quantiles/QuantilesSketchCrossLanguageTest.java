@@ -49,7 +49,7 @@ import org.testng.annotations.Test;
 public class QuantilesSketchCrossLanguageTest {
   private static final String LS = System.getProperty("line.separator");
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateDoublesSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -61,7 +61,7 @@ public class QuantilesSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateItemsSketchWithStrings() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -88,7 +88,7 @@ public class QuantilesSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     checkDoublesSketch(GroupLanguage.JAVA);
     checkItemsSketchWithStrings(GroupLanguage.JAVA);

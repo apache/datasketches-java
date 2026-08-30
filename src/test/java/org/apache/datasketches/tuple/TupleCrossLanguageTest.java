@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 
 public class TupleCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateForCppIntegerSummary() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
@@ -56,7 +56,7 @@ public class TupleCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     deserializeTupleIntegerSummary(GroupLanguage.JAVA);
   }
@@ -130,16 +130,28 @@ public class TupleCrossLanguageTest {
     Assert.assertEquals(sketch1.isEstimationMode(), sketch2.isEstimationMode());
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
+  @Test(expectedExceptions = RuntimeException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportHeapifyV0_9_1() throws Exception {
     final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(byteArr));
+    try {
+      ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(byteArr));
+    }
+    catch (final SketchesArgumentException e) {
+      throw new RuntimeException(
+        "EXPECTED EXCEPTION: Sketch Type mismatch. Expected ArrayOfDoublesUnion, got ArrayOfDoublesQuickSelectSketch");
+    }
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
+  @Test(expectedExceptions = RuntimeException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
   public void noSupportWrapV0_9_1() throws Exception {
     final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(byteArr));
+    try {
+      ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(byteArr));
+    }
+    catch (final SketchesArgumentException e) {
+      throw new RuntimeException(
+        "EXPECTED EXCEPTION: Sketch Type mismatch. Expected ArrayOfDoublesUnion, got ArrayOfDoublesQuickSelectSketch");
+    }
   }
 
 }

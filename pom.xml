@@ -135,11 +135,14 @@ under the License.
     <testng.version>7.12.0</testng.version>
     <org-slf4j.version>2.0.12</org-slf4j.version> <!-- used by TestNG -->
     <!-- these are TestNG groups used for excluding / including groups of tests. See profiles section. -->
-    <testng.generate-java-files>generate_java_files</testng.generate-java-files>
-    <testng.check-java-files>check_java_files</testng.check-java-files>
-    <testng.check-cpp-files>check_cpp_files</testng.check-cpp-files>
-    <testng.check-go-files>check_go_files</testng.check-go-files>
-    <testng.check-cpp-historical-files>check_cpp_historical_files</testng.check-cpp-historical-files>
+    <testng.generate_java_files>generate_java_files</testng.generate_java_files>
+    <testng.check_java_files>check_java_files</testng.check_java_files>
+    <testng.check_cpp_files>check_cpp_files</testng.check_cpp_files>
+    <testng.check_go_files>check_go_files</testng.check_go_files>
+    <testng.check_rust_files>check_rust_files</testng.check_rust_files>
+    <testng.check_cpp_historical_files>check_cpp_historical_files</testng.check_cpp_historical_files>
+    <testng.all_groups>${testng.generate_java_files},${testng.check_java_files},${testng.check_cpp_files},${testng.check_go_files},${testng.check_rust_files},${testng.check_cpp_historical_files}</testng.all_groups>
+    
     <test.data.root>${project.basedir}</test.data.root>
     <project.root>${project.basedir}</project.root>
 
@@ -380,7 +383,17 @@ under the License.
             <outputDirectory>${project.reporting.outputDirectory}</outputDirectory>
             <docfilessubdirs>true</docfilessubdirs>
             <show>public</show>
-            <doclint>none</doclint> <!-- use Checkstyle -->
+            <!-- Checkstyle's own Java grammar lags real JDK releases (e.g. it cannot parse
+                 JEP 513 flexible constructor bodies, standard since Java 25), so Javadoc
+                 correctness is enforced here instead, via doclint, which ships inside javac/javadoc
+                 itself and is always in sync with whatever JDK this project targets.
+                 Combined with <show>public</show> above, this execution (attach-javadocs, below)
+                 both publishes and fully validates (including completeness) only the public API
+                 surface that actually appears in the published Javadoc jar.
+                 A second execution (validate-internal-javadoc, below) separately checks every
+                 protected/package/private member too, for correctness (only doclint's "missing"
+                 category is dropped there), without publishing or requiring documentation on them. -->
+            <doclint>all</doclint>
             <quiet>true</quiet>
             <additionalJOptions>
               <additionalJOption>-J${jvm.mem}</additionalJOption>
@@ -415,6 +428,22 @@ under the License.
               <id>attach-javadocs</id>
               <phase>package</phase>
               <goals><goal>jar</goal></goals>
+            </execution>
+            <execution>
+              <!-- Validates Javadoc correctness (broken HTML, bad @param references, etc.) on
+                   protected/package/private members too, which <show>public</show> above never
+                   sees. Deliberately drops doclint's "missing" category so it never demands
+                   documentation exist on non-public members; it only requires that whatever
+                   documentation IS there is well-formed. Output is thrown away; nothing here
+                   is published. -->
+              <id>validate-internal-javadoc</id>
+              <phase>verify</phase>
+              <goals><goal>javadoc</goal></goals>
+              <configuration>
+                <show>private</show>
+                <doclint>all,-missing</doclint>
+                <outputDirectory>${project.build.directory}/javadoc-internal-check</outputDirectory>
+              </configuration>
             </execution>
           </executions>
         </plugin>
@@ -475,13 +504,16 @@ under the License.
             <trimStackTrace>false</trimStackTrace>
             <useFile>true</useFile>
             <useManifestOnlyJar>false</useManifestOnlyJar>
-            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+            <redirectTestOutputToFile>false</redirectTestOutputToFile>
             <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
             <perCoreThreadCount>false</perCoreThreadCount>
+            <suiteXmlFiles>
+              <suiteXmlFile>${project.basedir}/src/test/resources/testng.xml</suiteXmlFile>
+            </suiteXmlFiles>
+            <excludedGroups>${testng.all_groups}</excludedGroups>
             <properties>
               <property>
-                <name>verbose</name>
-                <value>0</value> 
+                <name>verbose</name><value>0</value>
               </property>
             </properties>
             <systemPropertyVariables>
@@ -728,20 +760,15 @@ under the License.
     </profile>
 
     <profile>
-      <id>generate-java-files</id>
+      <id>generate_java_files</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>${testng.generate-java-files}</groups>
-              <excludedGroups>
-                ${testng.check-java-files},
-                ${testng.check-cpp-files},
-                ${testng.check-go-files},
-                ${testng.check-cpp-historical-files}
-              </excludedGroups>
+              <groups>${testng.generate_java_files}</groups>
+              <excludedGroups combine.self="override"></excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -749,20 +776,15 @@ under the License.
     </profile>
 
     <profile>
-      <id>check-java-files</id>
+      <id>check_all_language_files</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>${testng.check-java-files}</groups>
-              <excludedGroups>
-                ${testng.generate-java-files},
-                ${testng.check-cpp-files},
-                ${testng.check-go-files},
-                ${testng.check-cpp-historical-files}
-              </excludedGroups>
+              <groups>${testng.all_groups}</groups>
+              <excludedGroups combine.self="override"></excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -770,20 +792,15 @@ under the License.
     </profile>
 
     <profile>
-      <id>check-cpp-files</id>
+      <id>check_java_files</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>${testng.check-cpp-files}</groups>
-              <excludedGroups>
-              ${testng.generate-java-files},
-              ${testng.check-java-files},
-              ${testng.check-go-files},
-              ${testng.check-cpp-historical-files}
-            </excludedGroups>
+              <groups>${testng.generate_java_files},${testng.check_java_files}</groups>
+              <excludedGroups combine.self="override"></excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -791,20 +808,15 @@ under the License.
     </profile>
 
     <profile>
-      <id>check-go-files</id>
+      <id>check_cpp_files</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>${testng.check-go-files}</groups>
-              <excludedGroups>
-                ${testng.generate-java-files},
-                ${testng.check-java-files},
-                ${testng.check-cpp-files},
-                ${testng.check-cpp-historical-files}
-              </excludedGroups>
+              <groups>${testng.check_cpp_files}</groups>
+              <excludedGroups combine.self="override"></excludedGroups>
             </configuration>
           </plugin>
         </plugins>
@@ -812,20 +824,47 @@ under the License.
     </profile>
 
     <profile>
-      <id>check-cpp-historical-files</id>
+      <id>check_go_files</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>${testng.check-cpp-historical-files}</groups>
-              <excludedGroups>
-                ${testng.generate-java-files},
-                ${testng.check-java-files},
-                ${testng.check-go-files},
-                ${testng.check-cpp-files}
-              </excludedGroups>
+              <groups>${testng.check_go_files}</groups>
+              <excludedGroups combine.self="override"></excludedGroups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>check_rust_files</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>${testng.check_rust_files}</groups>
+              <excludedGroups combine.self="override"></excludedGroups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>check_cpp_historical_files</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>${testng.check_cpp_historical_files}</groups>
+              <excludedGroups combine.self="override"></excludedGroups>
             </configuration>
           </plugin>
         </plugins>

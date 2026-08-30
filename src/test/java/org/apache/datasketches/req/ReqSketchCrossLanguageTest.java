@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
  */
 public class ReqSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -53,7 +53,7 @@ public class ReqSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateNegativeBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {1, 10};
     for (final int n: nArr) {
@@ -65,7 +65,7 @@ public class ReqSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateMixedBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {1, 10};
     for (final int n: nArr) {
@@ -77,7 +77,7 @@ public class ReqSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_JAVA_FILES})
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     checkReqPositiveValues(GroupLanguage.JAVA);
     checkReqNegativeValues(GroupLanguage.JAVA);
@@ -171,7 +171,7 @@ public class ReqSketchCrossLanguageTest {
           assertTrue(it.getQuantile() <= sk.getMaxItem());
           weight += it.getWeight();
         }
-        assertEquals(weight, 2 * n + 1);
+        assertEquals(weight, 2L * n + 1L);
       }
     }
   }
