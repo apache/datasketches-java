@@ -39,8 +39,7 @@ import org.apache.datasketches.theta.ThetaSketch;
  * <li>The Lower Bound estimate on the ratio PopB/PopA is
  * BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(<i>A, B</i>).</li>
  * </ul>
- * Note: The theta of <i>B</i> cannot be greater than the theta of <i>A</i>.
- * If <i>B</i> is formed as an intersection of <i>A</i> and some other set <i>C</i>,
+ * Note: If <i>B</i> is formed as an intersection of <i>A</i> and some other set <i>C</i>,
  * then the theta of <i>B</i> is guaranteed to be less than or equal to the theta of <i>A</i>.
  *
  * @author Kevin Lang
@@ -51,9 +50,9 @@ public final class BoundsOnRatiosInThetaSketchedSets {
   private BoundsOnRatiosInThetaSketchedSets() {}
 
   /**
-   * Gets the approximate lower bound for B over A based on a 95% confidence interval
-   * @param sketchA the sketch A
-   * @param sketchB the sketch B
+   * Gets the approximate lower bound for (Theta) B over (Theta) A based on a 95% confidence interval
+   * @param sketchA the Theta sketch A
+   * @param sketchB the Theta sketch B
    * @return the approximate lower bound for B over A
    */
   public static double getLowerBoundForBoverA(final ThetaSketch sketchA, final ThetaSketch sketchB) {
@@ -61,9 +60,9 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
-    final int countB = sketchB.getRetainedEntries(true);
+    final int countB = sketchB.getRetainedEntries();
     final int countA = (thetaLongB == thetaLongA)
-        ? sketchA.getRetainedEntries(true)
+        ? sketchA.getRetainedEntries()
         : sketchA.getCountLessThanThetaLong(thetaLongB);
 
     if (countA <= 0) { return 0; }
@@ -72,9 +71,9 @@ public final class BoundsOnRatiosInThetaSketchedSets {
   }
 
   /**
-   * Gets the approximate upper bound for B over A based on a 95% confidence interval
-   * @param sketchA the sketch A
-   * @param sketchB the sketch B
+   * Gets the approximate upper bound for (Theta) B over (Theta) A based on a 95% confidence interval
+   * @param sketchA the Theta sketch A
+   * @param sketchB the Theta sketch B
    * @return the approximate upper bound for B over A
    */
   public static double getUpperBoundForBoverA(final ThetaSketch sketchA, final ThetaSketch sketchB) {
@@ -82,9 +81,9 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
-    final int countB = sketchB.getRetainedEntries(true);
+    final int countB = sketchB.getRetainedEntries();
     final int countA = (thetaLongB == thetaLongA)
-        ? sketchA.getRetainedEntries(true)
+        ? sketchA.getRetainedEntries()
         : sketchA.getCountLessThanThetaLong(thetaLongB);
 
     if (countA <= 0) { return 1.0; }
@@ -93,9 +92,9 @@ public final class BoundsOnRatiosInThetaSketchedSets {
   }
 
   /**
-   * Gets the estimate for B over A
-   * @param sketchA the sketch A
-   * @param sketchB the sketch B
+   * Gets the estimate for (Theta) B over (Theta) A
+   * @param sketchA the Theta sketch A
+   * @param sketchB the Theta sketch B
    * @return the estimate for B over A
    */
   public static double getEstimateOfBoverA(final ThetaSketch sketchA, final ThetaSketch sketchB) {
@@ -103,9 +102,9 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
-    final int countB = sketchB.getRetainedEntries(true);
+    final int countB = sketchB.getRetainedEntries();
     final int countA = (thetaLongB == thetaLongA)
-        ? sketchA.getRetainedEntries(true)
+        ? sketchA.getRetainedEntries()
         : sketchA.getCountLessThanThetaLong(thetaLongB);
 
     if (countA <= 0) { return 0.5; }
@@ -113,7 +112,7 @@ public final class BoundsOnRatiosInThetaSketchedSets {
     return (double) countB / (double) countA;
   }
 
-  static void checkThetas(final long thetaLongA, final long thetaLongB) {
+  private static void checkThetas(final long thetaLongA, final long thetaLongB) {
     if (thetaLongB > thetaLongA) {
       throw new SketchesArgumentException("ThetaLongB cannot be > ThetaLongA.");
     }
