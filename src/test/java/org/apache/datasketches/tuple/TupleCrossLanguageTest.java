@@ -32,12 +32,10 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
-import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.UtilityIO;
 import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
-import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUnion;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -128,30 +126,6 @@ public class TupleCrossLanguageTest {
     Assert.assertEquals(sketch1.getThetaLong(), sketch2.getThetaLong());
     Assert.assertEquals(sketch1.isEmpty(), sketch2.isEmpty());
     Assert.assertEquals(sketch1.isEstimationMode(), sketch2.isEstimationMode());
-  }
-
-  @Test(expectedExceptions = RuntimeException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    try {
-      ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(byteArr));
-    }
-    catch (final SketchesArgumentException e) {
-      throw new RuntimeException(
-        "EXPECTED EXCEPTION: Sketch Type mismatch. Expected ArrayOfDoublesUnion, got ArrayOfDoublesQuickSelectSketch");
-    }
-  }
-
-  @Test(expectedExceptions = RuntimeException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
-  public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
-    try {
-      ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(byteArr));
-    }
-    catch (final SketchesArgumentException e) {
-      throw new RuntimeException(
-        "EXPECTED EXCEPTION: Sketch Type mismatch. Expected ArrayOfDoublesUnion, got ArrayOfDoublesQuickSelectSketch");
-    }
   }
 
 }

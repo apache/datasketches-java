@@ -20,6 +20,7 @@
 package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
 import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
@@ -32,6 +33,8 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.UtilityIO;
 import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
@@ -142,6 +145,30 @@ public class AodSketchCrossLanguageTest {
     final ArrayOfDoublesSketch sketch = ArrayOfDoublesSketch.wrap(MemorySegment.ofArray(bytes));
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getRetainedEntries(), 0);
+  }
+
+  @Test(expectedExceptions = RuntimeException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
+  public void noSupportHeapifyV0_9_1() throws Exception {
+    final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk"); //Used Twice
+    try {
+      ArrayOfDoublesUnion.heapify(MemorySegment.ofArray(byteArr));
+    }
+    catch (final SketchesArgumentException e) {
+      throw new RuntimeException(
+        "EXPECTED EXCEPTION: Sketch Type mismatch. Expected ArrayOfDoublesUnion, got ArrayOfDoublesQuickSelectSketch");
+    }
+  }
+
+  @Test(expectedExceptions = RuntimeException.class, groups = {CHECK_CPP_HISTORICAL_FILES})
+  public void noSupportWrapV0_9_1() throws Exception {
+    final byte[] byteArr = UtilityIO.getTestResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
+    try {
+      ArrayOfDoublesUnion.wrap(MemorySegment.ofArray(byteArr));
+    }
+    catch (final SketchesArgumentException e) {
+      throw new RuntimeException(
+        "EXPECTED EXCEPTION: Sketch Type mismatch. Expected ArrayOfDoublesUnion, got ArrayOfDoublesQuickSelectSketch");
+    }
   }
 
 }

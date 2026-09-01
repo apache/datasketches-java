@@ -107,7 +107,7 @@ public class ThetaSketchCrossLanguageTest {
   private static void deserializeSketchesUsingSegment(final GroupLanguage lang) {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final String fileName = "theta_n" + n + lang.sfx + ".sk";
+      final String fileName = "theta_n" + n + lang.sfx + ".sk"; //file read twice (see below)
       final byte[] bytes = getFileBytes(lang.pth, fileName);
       if (bytes.length == 0) { continue; }
       //System.out.println(fileName);
@@ -149,7 +149,7 @@ public class ThetaSketchCrossLanguageTest {
   private static void deserializeCompressedUsingSegment(final GroupLanguage lang) {
     final int[] nArr = {10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final String fileName = "theta_compressed_n" + n + lang.sfx + ".sk";
+      final String fileName = "theta_compressed_n" + n + lang.sfx + ".sk"; //file read twice (see below)
       final byte[] bytes = getFileBytes(lang.pth, fileName);
       if (bytes.length == 0) { continue; }
       //System.out.println(fileName);

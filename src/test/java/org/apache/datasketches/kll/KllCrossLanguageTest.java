@@ -117,7 +117,7 @@ public class KllCrossLanguageTest {
   }
 
   private static void kllFloat(final GroupLanguage lang) {
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
       final String fileName = "kll_float_n" + n + lang.sfx + ".sk";
       final byte[] bytes = getFileBytes(lang.pth, fileName);
@@ -144,7 +144,7 @@ public class KllCrossLanguageTest {
   }
 
   private static  void kllDouble(final GroupLanguage lang) {
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
       final String fileName = "kll_double_n" + n + lang.sfx + ".sk";
       final byte[] bytes = getFileBytes(lang.pth, fileName);
@@ -184,7 +184,7 @@ public class KllCrossLanguageTest {
         }
       }
     };
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final String fileName = "kll_string_n" + n + lang.sfx + ".sk";
       final byte[] bytes = getFileBytes(lang.pth, fileName);
@@ -215,7 +215,7 @@ public class KllCrossLanguageTest {
   }
 
   private static void kllLong(final GroupLanguage lang) {
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
       final String fileName = "kll_long_n" + n + lang.sfx + ".sk";
       final byte[] bytes = getFileBytes(lang.pth, fileName);

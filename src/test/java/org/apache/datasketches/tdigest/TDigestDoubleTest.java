@@ -29,7 +29,6 @@ import java.lang.foreign.ValueLayout;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.common.UtilityIO;
 import org.testng.annotations.Test;
 
 public class TDigestDoubleTest {
@@ -235,35 +234,5 @@ public class TDigestDoubleTest {
     assertThrows(SketchesArgumentException.class, () -> TDigestDouble.heapify(MemorySegment.ofArray(bytes)));
   }
 
-  @Test
-  public void deserializeFromReferenceImplementationDouble() {
-    final byte[] bytes = UtilityIO.getTestResourceBytes("tdigest_ref_k100_n10000_double.sk");
-    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
-    final int n = 10000;
-    assertEquals(td.getK(), 100);
-    assertEquals(td.getTotalWeight(), n);
-    assertEquals(td.getMinValue(), 0);
-    assertEquals(td.getMaxValue(), n - 1);
-    assertEquals(td.getRank(0), 0, 0.0001);
-    assertEquals(td.getRank(n / 4), 0.25, 0.0001);
-    assertEquals(td.getRank(n / 2), 0.5, 0.0001);
-    assertEquals(td.getRank((n * 3) / 4), 0.75, 0.0001);
-    assertEquals(td.getRank(n), 1);
-  }
 
-  @Test
-  public void deserializeFromReferenceImplementationFloat() {
-    final byte[] bytes = UtilityIO.getTestResourceBytes("tdigest_ref_k100_n10000_float.sk");
-    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
-    final int n = 10000;
-    assertEquals(td.getK(), 100);
-    assertEquals(td.getTotalWeight(), n);
-    assertEquals(td.getMinValue(), 0);
-    assertEquals(td.getMaxValue(), n - 1);
-    assertEquals(td.getRank(0), 0, 0.0001);
-    assertEquals(td.getRank(n / 4), 0.25, 0.0001);
-    assertEquals(td.getRank(n / 2), 0.5, 0.0001);
-    assertEquals(td.getRank((n * 3) / 4), 0.75, 0.0001);
-    assertEquals(td.getRank(n), 1);
-  }
 }

@@ -82,7 +82,7 @@ public class HllSketchCrossLanguageTest {
 
   private static void deserializeHll(final GroupLanguage lang) {
     final String[] sArr = {"hll4", "hll6", "hll8"};
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final String s: sArr) {
       for (final int n: nArr) {
         final String fileName = s + "_n" + n + lang.sfx + ".sk";

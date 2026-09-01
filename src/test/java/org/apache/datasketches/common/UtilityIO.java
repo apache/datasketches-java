@@ -47,6 +47,8 @@ public final class UtilityIO  {
   public static final String CHECK_RUST_FILES = "check_rust_files";
   public static final String CHECK_CPP_HISTORICAL_FILES = "check_cpp_historical_files";
 
+  public static final boolean printFileNames = false;
+
   public enum Existence { MUST_EXIST, WARNING }
 
   /**
@@ -142,6 +144,7 @@ public final class UtilityIO  {
     try {
       final byte[] bytes = Files.readAllBytes(path);
       A_BeforeSuite.incReadCount();
+      if (printFileNames) { System.out.println("R\t "+fileName); }
       return bytes;
     } catch (NoSuchFileException e) {
       if (existence == Existence.MUST_EXIST) {
@@ -174,6 +177,7 @@ public final class UtilityIO  {
     }
       final byte[] bytes = is.readAllBytes();
       A_BeforeSuite.incReadCount();
+      if (printFileNames) { System.out.println("R\t "+fileName); }
       return bytes;
     } catch (final IOException e){
       throw new RuntimeException("Error reading resource: " + resourcePath, e);
@@ -210,6 +214,7 @@ public final class UtilityIO  {
       filePath = basePath.resolve(fileName);
       Files.write(filePath, bytes);
       A_BeforeSuite.incWriteCount();
+      if (printFileNames) { System.out.println("W\t " + fileName); }
     } catch (IOException e) {
       final String filePathDesc = String.valueOf(filePath);
       throw new RuntimeException("System IO Error writing file: " + filePathDesc + " " + e);

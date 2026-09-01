@@ -20,6 +20,7 @@
 package org.apache.datasketches.tdigest;
 
 import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_HISTORICAL_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
 import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
@@ -31,6 +32,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.UtilityIO;
 import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
@@ -91,6 +93,38 @@ public class TDigestCrossLanguageTest {
         }
       }
     }
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  public void deserializeFromReferenceImplementationDouble() {
+    final byte[] bytes = UtilityIO.getTestResourceBytes("tdigest_ref_k100_n10000_double.sk");
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
+    final int n = 10000;
+    assertEquals(td.getK(), 100);
+    assertEquals(td.getTotalWeight(), n);
+    assertEquals(td.getMinValue(), 0);
+    assertEquals(td.getMaxValue(), n - 1);
+    assertEquals(td.getRank(0), 0, 0.0001);
+    assertEquals(td.getRank(n / 4), 0.25, 0.0001);
+    assertEquals(td.getRank(n / 2), 0.5, 0.0001);
+    assertEquals(td.getRank((n * 3) / 4), 0.75, 0.0001);
+    assertEquals(td.getRank(n), 1);
+  }
+
+  @Test(groups = {CHECK_CPP_HISTORICAL_FILES})
+  public void deserializeFromReferenceImplementationFloat() {
+    final byte[] bytes = UtilityIO.getTestResourceBytes("tdigest_ref_k100_n10000_float.sk");
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
+    final int n = 10000;
+    assertEquals(td.getK(), 100);
+    assertEquals(td.getTotalWeight(), n);
+    assertEquals(td.getMinValue(), 0);
+    assertEquals(td.getMaxValue(), n - 1);
+    assertEquals(td.getRank(0), 0, 0.0001);
+    assertEquals(td.getRank(n / 4), 0.25, 0.0001);
+    assertEquals(td.getRank(n / 2), 0.5, 0.0001);
+    assertEquals(td.getRank((n * 3) / 4), 0.75, 0.0001);
+    assertEquals(td.getRank(n), 1);
   }
 
 }
