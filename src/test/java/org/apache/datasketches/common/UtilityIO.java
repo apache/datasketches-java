@@ -47,7 +47,11 @@ public final class UtilityIO  {
   public static final String CHECK_RUST_FILES = "check_rust_files";
   public static final String CHECK_CPP_HISTORICAL_FILES = "check_cpp_historical_files";
 
-  public static final boolean printFileNames = false;
+  /**
+   * Enables diagnostic printing of file names read or written.
+   * Set via Maven: <i>mvn clean test -Pcheck_java_files -Dprint=true</i>
+   */
+  private static final boolean printFileNames = Boolean.parseBoolean(System.getProperty("print", "false"));
 
   public enum Existence { MUST_EXIST, WARNING }
 

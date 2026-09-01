@@ -145,6 +145,7 @@ under the License.
     
     <test.data.root>${project.basedir}</test.data.root>
     <project.root>${project.basedir}</project.root>
+    <print>false</print> <!-- diagnostic printing of file names read/written/not-found in UtilityIO; override with -Dprint=true -->
 
     <!-- JVM arguments -->
     <jvm.mem>-Xmx4g</jvm.mem>
@@ -519,6 +520,7 @@ under the License.
             <systemPropertyVariables>
               <test.data.root>${test.data.root}</test.data.root>
               <project.root>${project.root}</project.root>
+              <print>${print}</print>
             </systemPropertyVariables>
           </configuration>
         </plugin>
