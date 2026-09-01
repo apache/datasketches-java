@@ -140,11 +140,14 @@ public final class UtilityIO  {
     }
 
     try {
-      return Files.readAllBytes(path);
+      final byte[] bytes = Files.readAllBytes(path);
+      A_BeforeSuite.incReadCount();
+      return bytes;
     } catch (NoSuchFileException e) {
       if (existence == Existence.MUST_EXIST) {
           throw new RuntimeException("File not found: " + pathDisplay, e);
       }
+      A_BeforeSuite.incWarnings();
       System.err.println("WARNING: File not found: " + pathDisplay);
       return new byte[0];
     } catch (AccessDeniedException e) {
@@ -169,7 +172,9 @@ public final class UtilityIO  {
       if (is == null) {
         throw new IllegalArgumentException("Resource not found on classpath: " + resourcePath);
     }
-      return is.readAllBytes();
+      final byte[] bytes = is.readAllBytes();
+      A_BeforeSuite.incReadCount();
+      return bytes;
     } catch (final IOException e){
       throw new RuntimeException("Error reading resource: " + resourcePath, e);
     }
@@ -204,6 +209,7 @@ public final class UtilityIO  {
       Files.createDirectories(basePath); //create the directory if it doesn't exist.
       filePath = basePath.resolve(fileName);
       Files.write(filePath, bytes);
+      A_BeforeSuite.incWriteCount();
     } catch (IOException e) {
       final String filePathDesc = String.valueOf(filePath);
       throw new RuntimeException("System IO Error writing file: " + filePathDesc + " " + e);
