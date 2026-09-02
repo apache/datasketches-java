@@ -35,7 +35,6 @@ public final class UtilityIO  {
   private static final Class<?> clazz = UtilityIO.class;
   private static final ClassLoader CL = clazz.getClassLoader();
   private static final String TEST_DATA_ROOT_PROP = "test.data.root";
-  private static final String PROJECT_ROOT_PROP = "project.root";
 
   /**
    * TestNG group constants
@@ -226,7 +225,7 @@ public final class UtilityIO  {
   }
 
   /**
-   * Resolves the target directory for test data generation/reading.
+   * Resolves the target directory for test data reading/writing.
    * The default is the project root, but it can be overridden like this:
    *
    * <p><i>mvn clean test -Pcheck-cpp-files -Dtest.data.root="/tmp/custom_path</i></p>
@@ -252,29 +251,14 @@ public final class UtilityIO  {
   }
 
   /**
-   * Resolves the project root
-   * The default is the project root, but it can be overridden like this:
+   * Finds the top-level project root by walking up from the working directory to the
+   * first '.mvn' directory, since Maven has no built-in way to locate it in a
+   * multi-module hierarchy. Internal fallback for {@link #getTestDataRoot()}.
    *
-   * <p><i>mvn clean test -Dproject.root="/tmp/custom_path</i></p>
-   *
-   * <p>Calling the binary test jar: see src/test/resources/testng.xml</p>
-   *
-   * Used by getTestDataRoot(), projectRoot
-   *
-   * @return Path to the project.root directory.
-   * @throws IllegalStateException if running from a JAR without -Dproject.root defined.
+   * @return Path to the project root directory.
+   * @throws IllegalStateException if no '.mvn' directory is found.
    */
-  public static Path getProjectRoot() {
-    // Explicit user override or Maven-injected property
-    String sysProp = System.getProperty(PROJECT_ROOT_PROP);
-    if (sysProp != null && !sysProp.isBlank()) {
-      return Path.of(sysProp).toAbsolutePath().normalize();
-    }
-
-    // Strict JAR Execution Rule: Must explicitly provide -Dproject.root = String path
-    checkExecutionFromJar(PROJECT_ROOT_PROP);
-
-    // Fallback for local source checkout / IDE runs (walk up to top-level .mvn)
+  private static Path getProjectRoot() {
     Path current = Path.of(System.getProperty("user.dir")).toAbsolutePath();
     while (current != null) {
       if (Files.exists(current.resolve(".mvn"))) {

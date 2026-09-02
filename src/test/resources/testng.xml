@@ -22,9 +22,16 @@ under the License.
 
 <!--
 From Maven:
-mvn clean test -Pcheck_cpp_files -Dtest.data.root="/"
-or
-mvn clean test -Dgroups=check_cpp_files -Dtest.data.root="/" #for a specific group
+Run cross-language tests from the installed project:
+
+mvn clean test -Pcheck_cpp_files -Dtest.data.root="..."
+#  test.data.root is never required under Maven 
+# (it defaults to project.basedir), but a user running via Maven 
+# can still choose to set -Dtest.data.root=... 
+# if they want CL test data read from/written to somewhere other 
+# than the installed project directory. 
+# It's only strictly mandatory when running the packaged jar 
+# standalone via java, since there's no pom default to fall back on there.
 
 
 From Java:

@@ -20,10 +20,7 @@
 package org.apache.datasketches.common;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.common.UtilityIO.getCppPath;
 import static org.apache.datasketches.common.UtilityIO.getFileBytes;
-import static org.apache.datasketches.common.UtilityIO.getJavaPath;
-import static org.apache.datasketches.common.UtilityIO.getProjectRoot;
 import static org.apache.datasketches.common.UtilityIO.putBytesToFile;
 import static org.apache.datasketches.common.UtilityIO.Existence.MUST_EXIST;
 import static org.apache.datasketches.common.UtilityIO.Existence.WARNING;
@@ -43,14 +40,24 @@ import org.testng.annotations.Test;
 
 public class UtilityIOTest {
 
-  @Test
-  public void checkDirCreation() {
-    assertNotNull(getJavaPath());
-    assertNotNull(getCppPath());
+  private Path tempDir;
+
+  @BeforeMethod
+  public void setUp() throws IOException {
+    tempDir = Files.createTempDirectory("testDir_");
+  }
+
+  @AfterMethod
+  public void tearDown() throws IOException {
+    if (tempDir != null && Files.exists(tempDir)) {
+      try (var stream = Files.walk(tempDir)) {
+        stream.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+      }
+    }
   }
 
   @Test
-  public void testGetFileBytes_Success() {// throws IOException {
+  public void testGetFileBytes_Success() {
     byte[] resultBytes = UtilityIO.getTestResourceBytes("GettysburgAddress.txt");
     assertNotNull(resultBytes);
     String resultString = new String(resultBytes, UTF_8);
@@ -59,27 +66,19 @@ public class UtilityIOTest {
 
   @Test
   public void testGetFileBytes_MissingFile_Warning() {
-    byte[] resultBytes = getFileBytes(getProjectRoot(), "Test_NonExistentFile_ThisIsOK", WARNING);
+    byte[] resultBytes = getFileBytes(tempDir, "Test_NonExistentFile_ThisIsOK", WARNING);
     assertNotNull(resultBytes);
     assertEquals(resultBytes.length, 0, "Should return empty array for missing file.");
   }
 
   @Test(expectedExceptions = RuntimeException.class)
   public void testGetFileBytes_MissingFile_MustExist() {
-    getFileBytes(getProjectRoot(), "Test_NonExistentFile_ThisIsOK", MUST_EXIST);
+    getFileBytes(tempDir, "Test_NonExistentFile_ThisIsOK", MUST_EXIST);
   }
 
   @Test(expectedExceptions = RuntimeException.class)
   public void testGetFileBytes_NotRegular_NotReadable() throws IOException {
-    getFileBytes(getProjectRoot(), "");
-  }
-
-  private Path tempDir;
-
-  @BeforeMethod
-  public void setUp() throws IOException {
-    // Creates a unique temporary directory in the OS temp location
-    tempDir = Files.createTempDirectory("testDir_");
+    getFileBytes(tempDir, "");
   }
 
   @Test
@@ -88,18 +87,6 @@ public class UtilityIOTest {
     putBytesToFile(tempDir, "GettysburgAddressCopy.txt", gettysBytes);
     byte[] gettysBytes2 = getFileBytes(tempDir, "GettysburgAddressCopy.txt");
     assertEquals(gettysBytes, gettysBytes2);
-  }
-
-  @AfterMethod
-  public void tearDown() throws IOException {
-    // Recursively deletes the temp directory and all enclosed files after the test runs
-    if (tempDir != null && Files.exists(tempDir)) {
-      try (var stream = Files.walk(tempDir)) {
-        stream.sorted(Comparator.reverseOrder())
-              .map(Path::toFile)
-              .forEach(File::delete);
-      }
-    }
   }
 
 }

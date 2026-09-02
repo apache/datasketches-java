@@ -144,7 +144,6 @@ under the License.
     <testng.all_groups>${testng.generate_java_files},${testng.check_java_files},${testng.check_cpp_files},${testng.check_go_files},${testng.check_rust_files},${testng.check_cpp_historical_files}</testng.all_groups>
     
     <test.data.root>${project.basedir}</test.data.root>
-    <project.root>${project.basedir}</project.root>
     <print>false</print> <!-- diagnostic printing of file names read/written/not-found in UtilityIO; override with -Dprint=true -->
 
     <!-- JVM arguments -->
@@ -519,7 +518,6 @@ under the License.
             </properties>
             <systemPropertyVariables>
               <test.data.root>${test.data.root}</test.data.root>
-              <project.root>${project.root}</project.root>
               <print>${print}</print>
             </systemPropertyVariables>
           </configuration>
