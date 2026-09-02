@@ -234,5 +234,56 @@ public class TDigestDoubleTest {
     assertThrows(SketchesArgumentException.class, () -> TDigestDouble.heapify(MemorySegment.ofArray(bytes)));
   }
 
+  @Test
+  public void rankBelowFirstCentroidMean() {
+    // the format allows a first centroid of weight greater than 1, so the left tail of
+    // getRank() must stay normalized just like the right tail
+    final byte[] bytes = serializeNonEmpty();
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 16, -1); // min
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_LONG_UNALIGNED, 40, 100L); // first weight
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
+    final double totalWeight = td.getTotalWeight();
+    assertEquals(td.getRank(-1), 0.5 / totalWeight);
+    assertEquals(td.getRank(-0.5), (1.0 + (((100 / 2.0) - 1.0) * 0.5)) / totalWeight);
+    double previous = 0;
+    for (int i = 0; i <= 100; i++) {
+      final double rank = td.getRank(-1 + (i / 100.0));
+      assertTrue((rank >= 0) && (rank <= 1), "rank out of [0, 1]: " + rank);
+      assertTrue(rank >= previous, "rank not monotonic: " + rank + " after " + previous);
+      previous = rank;
+    }
+  }
 
+  @Test
+  public void quantilesAreMonotonic() {
+    final TDigestDouble td = new TDigestDouble((short) 100);
+    for (int i = 0; i < 10000; i++) {
+      td.update(i);
+    }
+    double previous = td.getMinValue();
+    for (int i = 0; i <= 1000; i++) {
+      final double quantile = td.getQuantile(i / 1000.0);
+      assertTrue(quantile >= previous, "quantile not monotonic: " + quantile + " after " + previous);
+      assertTrue((quantile >= td.getMinValue()) && (quantile <= td.getMaxValue()),
+          "quantile out of [min, max]: " + quantile);
+      previous = quantile;
+    }
+  }
+
+  @Test
+  public void quantileAboveLastCentroidMean() {
+    final byte[] bytes = serializeNonEmpty();
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    final int numCentroids = seg.get(ValueLayout.JAVA_INT_UNALIGNED, 8);
+    final long lastWeightOffset = 40 + ((numCentroids - 1) * 16L);
+    seg.set(ValueLayout.JAVA_LONG_UNALIGNED, lastWeightOffset, 100L);
+    final TDigestDouble td = TDigestDouble.heapify(seg);
+    double previous = td.getMinValue();
+    for (int i = 0; i <= 1000; i++) {
+      final double quantile = td.getQuantile(i / 1000.0);
+      assertTrue(quantile >= previous, "quantile not monotonic: " + quantile + " after " + previous);
+      assertTrue(quantile <= td.getMaxValue(), "quantile above max: " + quantile);
+      previous = quantile;
+    }
+  }
 }
