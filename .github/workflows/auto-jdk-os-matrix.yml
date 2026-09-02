@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install Build JDKs for Subproject Toolchains
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: |
             25

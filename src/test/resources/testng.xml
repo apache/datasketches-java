@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd"> -->
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
 
 <!--
-Licensed to the Apache Software Foundation (ASF) under one
+Licensed to the Apache Software Foundation (ASF) under one  
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
 regarding copyright ownership.  The ASF licenses this file
@@ -20,10 +20,48 @@ specific language governing permissions and limitations
 under the License.
 -->
 
+<!--
+From Maven:
+Run cross-language tests from the installed project:
+
+mvn clean test -Pcheck_cpp_files -Dtest.data.root="..."
+#  test.data.root is never required under Maven 
+# (it defaults to project.basedir), but a user running via Maven 
+# can still choose to set -Dtest.data.root=... 
+# if they want CL test data read from/written to somewhere other 
+# than the installed project directory. 
+# It's only strictly mandatory when running the packaged jar 
+# standalone via java, since there's no pom default to fall back on there.
+
+
+From Java:
+Run all tests from the test.jar. 
+First build the classpath:
+
+CP=""
+CP="${CP}datasketches-java-9.1.0-tests.jar:"
+CP="${CP}datasketches-java-9.1.0.jar:"
+CP="${CP}testng-7.12.0.jar:"
+CP="${CP}jcommander-1.83.jar:"
+CP="${CP}slf4j-api-2.0.16.jar"
+CP="${CP}slf4j-simple-2.0.16.jar"
+CP="${CP}jquery-3.7.1.jar"
+CP="${CP}guice-5.1.0.jar" #optional
+CP="${CP}snakeyaml-2.6.jar" #optional
+
+java -Dtest.data.root="/" \
+     -cp "$CP" \
+     org.testng.TestNG testng.xml -testnames "Run_All_Java_Tests"
+
+On Windows use back-tic "`" for line continuation and ";" for classpath separation.
+-->
+
 <suite name="DSJavaSuite">
-    <test name="AllDSJavaTests">
-        <packages>
-            <package name="org.apache.datasketches.*" />
-        </packages>
-    </test>
+
+  <test name="All_Tests">
+    <packages>
+      <package name="org.apache.datasketches.*"/>
+    </packages>
+  </test>
+
 </suite>

@@ -19,9 +19,49 @@
 
 package org.apache.datasketches.common;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 
 public class A_BeforeSuite {
+
+  /**
+   * For counting cross-language test cases.
+   */
+  private static final AtomicInteger writeCount = new AtomicInteger(0);
+  private static final AtomicInteger readCount = new AtomicInteger(0);
+  private static final AtomicInteger warnings = new AtomicInteger(0);
+
+  public static void incWriteCount() {
+    writeCount.incrementAndGet();
+  }
+
+  public static void incReadCount() {
+    readCount.incrementAndGet();
+  }
+
+  public static void incWarnings() {
+    warnings.incrementAndGet();
+  }
+
+  public static int getWriteCount() {
+    return writeCount.get();
+  }
+
+  public static int getReadCount() {
+    return readCount.get();
+  }
+
+  public static int getWarnings() {
+    return warnings.get();
+  }
+
+  public static void resetCounts() {
+    writeCount.set(0);
+    readCount.set(0);
+    warnings.set(0);
+  }
 
   @BeforeSuite(alwaysRun = true)
   public void printTestEnvironment() {
@@ -29,5 +69,15 @@ public class A_BeforeSuite {
     System.out.println("TEST JDK: " + System.getProperty("java.version"));
     System.out.println("TEST JDK HOME: " + System.getProperty("java.home"));
     System.out.println("=====================================================");
+    resetCounts();
+  }
+
+  @AfterSuite(alwaysRun = true)
+  public void printCountResult() {
+    System.out.println("====================================================");
+    System.out.println("Total Files Written: " + getWriteCount());
+    System.out.println("Total Files Read   : " + getReadCount());
+    System.out.println("Total File Warnings: " + getWarnings());
+    System.out.println("====================================================");
   }
 }

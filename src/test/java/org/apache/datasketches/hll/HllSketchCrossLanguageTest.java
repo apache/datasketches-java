@@ -19,11 +19,12 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
@@ -33,6 +34,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
 /**
@@ -41,7 +43,7 @@ import org.testng.annotations.Test;
  */
 public class HllSketchCrossLanguageTest {
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTesting() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -63,39 +65,35 @@ public class HllSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void hll4() throws IOException {
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (final int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "hll4_n" + n + "_cpp.sk");
-      final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
-      assertEquals(sketch.getLgConfigK(), 12);
-      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
-      assertEquals(sketch.getEstimate(), n, n * 0.02);
-    }
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
+  public void checkJava() {
+    deserializeHll(GroupLanguage.JAVA);
   }
 
   @Test(groups = {CHECK_CPP_FILES})
-  public void hll6() throws IOException {
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (final int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "hll6_n" + n + "_cpp.sk");
-      final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
-      assertEquals(sketch.getLgConfigK(), 12);
-      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
-      assertEquals(sketch.getEstimate(), n, n * 0.02);
-    }
+  public void checkCpp() {
+    deserializeHll(GroupLanguage.CPP);
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void hll8() throws IOException {
-    final int[] nArr = {0, 10, 100, 1000, 10000, 100000, 1000000};
-    for (final int n: nArr) {
-      final byte[] bytes = getFileBytes(cppPath, "hll8_n" + n + "_cpp.sk");
-      final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
-      assertEquals(sketch.getLgConfigK(), 12);
-      assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
-      assertEquals(sketch.getEstimate(), n, n * 0.02);
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    deserializeHll(GroupLanguage.GO);
+  }
+
+  private static void deserializeHll(final GroupLanguage lang) {
+    final String[] sArr = {"hll4", "hll6", "hll8"};
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    for (final String s: sArr) {
+      for (final int n: nArr) {
+        final String fileName = s + "_n" + n + lang.sfx + ".sk";
+        final byte[] bytes = getFileBytes(lang.pth, fileName);
+        if (bytes.length == 0) { continue;}
+        //System.out.println(fileName);
+        final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
+        assertEquals(sketch.getLgConfigK(), 12);
+        assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
+        assertEquals(sketch.getEstimate(), n, n * 0.02);
+      }
     }
   }
 

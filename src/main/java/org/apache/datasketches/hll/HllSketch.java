@@ -81,8 +81,8 @@ import org.apache.datasketches.common.SketchesArgumentException;
  *
  * <pre>{@code
  * double estimate = sketch.getEstimate();
- * double estUB = sketch.getUpperBound(1.0); //the upper bound at 1 standard deviation.
- * double estLB = sketch.getLowerBound(1.0); //the lower bound at 1 standard deviation.
+ * double estUB = sketch.getUpperBound(1); //the upper bound at 1 standard deviation.
+ * double estLB = sketch.getLowerBound(1); //the lower bound at 1 standard deviation.
  * //OR
  * System.out.println(sketch.toString()); //will output a summary of the sketch.
  * }</pre>

@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_FILES;
-import static org.apache.datasketches.common.TestUtil.CHECK_CPP_HISTORICAL_FILES;
-import static org.apache.datasketches.common.TestUtil.GENERATE_JAVA_FILES;
-import static org.apache.datasketches.common.TestUtil.cppPath;
-import static org.apache.datasketches.common.TestUtil.getFileBytes;
-import static org.apache.datasketches.common.TestUtil.putBytesToJavaPath;
-import static org.apache.datasketches.common.TestUtil.resPath;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_HISTORICAL_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
+import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.getFileBytes;
+import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -35,7 +35,8 @@ import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
-import org.apache.datasketches.common.TestUtil;
+import org.apache.datasketches.common.UtilityIO;
+import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIteratorAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI;
 import org.testng.Assert;
@@ -48,7 +49,7 @@ import org.testng.annotations.Test;
 public class QuantilesSketchCrossLanguageTest {
   private static final String LS = System.getProperty("line.separator");
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateDoublesSketch() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -56,11 +57,11 @@ public class QuantilesSketchCrossLanguageTest {
       for (int i = 1; i <= n; i++) {
         sk.update(i);
       }
-      putBytesToJavaPath("quantiles_double_n" + n + "_java.sk",  sk.toByteArray());
+      putBytesToJavaPath("quantiles_double_n" + n + "_java.sk",  sk.toByteArray(true));
     }
   }
 
-  @Test(groups = {GENERATE_JAVA_FILES})
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateItemsSketchWithStrings() throws IOException {
     final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
     for (final int n: nArr) {
@@ -87,12 +88,32 @@ public class QuantilesSketchCrossLanguageTest {
     }
   }
 
+  @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
+  public void checkJava() {
+    checkDoublesSketch(GroupLanguage.JAVA);
+    checkItemsSketchWithStrings(GroupLanguage.JAVA);
+  }
+
   @Test(groups = {CHECK_CPP_FILES})
-  public void checkDoublesSketch() throws IOException {
+  public void checkCpp() {
+    checkDoublesSketch(GroupLanguage.CPP);
+    checkItemsSketchWithStrings(GroupLanguage.CPP);
+  }
+
+  @Test(groups = {CHECK_GO_FILES})
+  public void checkGo() {
+    checkDoublesSketch(GroupLanguage.GO);
+    checkItemsSketchWithStrings(GroupLanguage.GO);
+  }
+
+  private static void checkDoublesSketch(final GroupLanguage lang) {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] byteArr = getFileBytes(cppPath, "quantiles_double_n" + n + "_cpp.sk");
-      final QuantilesDoublesSketch sk = QuantilesDoublesSketch.wrap(MemorySegment.ofArray(byteArr));
+      final String fileName = "quantiles_double_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue; }
+      //System.out.println(fileName);
+      final QuantilesDoublesSketch sk = QuantilesDoublesSketch.wrap(MemorySegment.ofArray(bytes));
       assertTrue(n == 0 ? sk.isEmpty() : !sk.isEmpty());
       assertTrue(n > 128 ? sk.isEstimationMode() : !sk.isEstimationMode());
       assertEquals(sk.getN(), n);
@@ -111,8 +132,7 @@ public class QuantilesSketchCrossLanguageTest {
     }
   }
 
-  @Test(groups = {CHECK_CPP_FILES})
-  public void checkItemsSketchWithStrings() throws IOException {
+  private static void checkItemsSketchWithStrings(final GroupLanguage lang) {
     // sketch contains numbers in strings to make meaningful assertions
     final Comparator<String> numericOrder = new Comparator<String>() {
       @Override
@@ -128,10 +148,13 @@ public class QuantilesSketchCrossLanguageTest {
     };
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (final int n: nArr) {
-      final byte[] byteArr = getFileBytes(cppPath, "quantiles_string_n" + n + "_cpp.sk");
+      final String fileName = "quantiles_string_n" + n + lang.sfx + ".sk";
+      final byte[] bytes = getFileBytes(lang.pth, fileName);
+      if (bytes.length == 0) { continue; }
+      //System.out.println(fileName);
       final QuantilesItemsSketch<String> sk = QuantilesItemsSketch.heapify(
           String.class,
-          MemorySegment.ofArray(byteArr),
+          MemorySegment.ofArray(bytes),
           numericOrder,
           new ArrayOfStringsSerDe()
       );
@@ -242,7 +265,7 @@ public class QuantilesSketchCrossLanguageTest {
     println("fullName: "+ fileName);
     println("Old Median: " + quantile);
     //Read File bytes
-    final byte[] byteArr = TestUtil.getFileBytes(resPath, fileName);
+    final byte[] byteArr = UtilityIO.getTestResourceBytes(fileName);
     final MemorySegment srcSeg = MemorySegment.ofArray(byteArr);
 
     // heapify as update sketch

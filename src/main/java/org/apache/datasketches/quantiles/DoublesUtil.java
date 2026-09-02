@@ -34,9 +34,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
 /**
  * Utilities that support the doubles quantiles algorithms.
  *
- * <p>This class contains a highly specialized sort called blockyTandemMergeSort().
- * It also contains methods that are used while building histograms and other common
- * functions.</p>
+ * <p>This class contains methods that are used while building histograms and other common functions.</p>
  *
  * @author Lee Rhodes
  */

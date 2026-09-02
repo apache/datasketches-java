@@ -84,7 +84,7 @@ public class IntegerSummary implements UpdatableSummary<Integer> {
 
   /**
    * Creates an instance of IntegerSummary with a given mode.
-   * @param mode update mode. This should not be called by a user.
+   * @param mode update mode.
    */
   public IntegerSummary(final Mode mode) {
     mode_ = mode;

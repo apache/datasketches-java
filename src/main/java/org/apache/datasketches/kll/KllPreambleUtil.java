@@ -52,7 +52,7 @@ import org.apache.datasketches.kll.KllSketch.SketchType;
  * This allows the possibility of the introduction of different serialization
  * schemes with minimal impact on the rest of the library.</p>
  *
- * <h3>Visual Layout</h3>
+ * <h2>Visual Layout</h2>
  * The low significance bytes of the visual data structure below are on the left.
  * The multi-byte primitives are stored in native byte order.
  * The numeric <i>byte</i> and <i>short</i> fields are treated as unsigned.

@@ -217,12 +217,9 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   }
 
   /**
-   * Returns the length Copies items and weights from the sketch, if necessary, and returns the
-   * length of
-   * any
-   * resulting array. The result will be 0 for an empty sketch.
+   * Returns the number of samples from the sketch. The result will be 0 for an empty sketch.
    *
-   * @return The number of items and weights in the sketch
+   * @return The number of samples (items and weights) in the sketch
    */
   public int getNumSamples() {
     loadArrays();
@@ -232,7 +229,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   /**
    * Returns a shallow copy of the array of sample items contained in the sketch. If this is the
    * first getter call, copies data arrays from the sketch.
-   * @return The number of samples contained in the sketch.
+   * @return The samples contained in the sketch.
    */
   public T[] items() {
     loadArrays();
@@ -253,7 +250,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   /**
    * Returns a copy of the array of weights contained in the sketch. If this is the first
    * getter call, copies data arrays from the sketch.
-   * @return The number of samples contained in the sketch.
+   * @return The array of weights contained in the sketch.
    */
   public double[] weights() {
     loadArrays();

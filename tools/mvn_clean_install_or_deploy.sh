@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-# Default goal to 'install' if no argument provided
-# Otherwise specify 'deploy', in which case it also adds: -DskipTests" -Pnexus-jars
+# This creates artifacts for an Apache release and optionally deploys to Nexus.
+# * The default, if no argument provided, performs an 'install' for review.
+# * If you specify 'deploy' this will add -DskipTests" -Pnexus-jars, 
+#   which deploys the proper artifacts to Nexus/Maven Central.
+# * The zip file for Apache /dist/ is created but must be manually deployed.
+# * This works with or without a local '.git'.  If '.git' is not present
+#   the git.properties file will be populated with 'unknown' values. 
+
 GOAL="${1:-install}"
 shift 1 2>/dev/null || true
 

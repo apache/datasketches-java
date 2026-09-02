@@ -32,7 +32,7 @@ import org.apache.datasketches.tuple.UpdatableSummary;
  * Summary for generic tuple sketches of type Double.
  * This summary keeps a double value. On update a predefined operation is performed depending on
  * the mode.
- * Supported modes: Sum, Min, Max, AlwaysOne, Increment. The default mode is Sum.
+ * Supported modes: Sum, Min, Max, AlwaysOne.
  */
 public final class DoubleSummary implements UpdatableSummary<Double> {
   private double value_;

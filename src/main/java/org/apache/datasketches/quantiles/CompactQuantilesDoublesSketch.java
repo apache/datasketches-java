@@ -37,7 +37,7 @@ public abstract class CompactQuantilesDoublesSketch extends QuantilesDoublesSket
 
   @Override
   public boolean isReadOnly() {
-    return false;
+    return true;
   }
 
   @Override

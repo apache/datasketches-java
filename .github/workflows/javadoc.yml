@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
 
       - name: 2. Provision JDK 25 Runtime
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: '25'
           distribution: 'temurin'

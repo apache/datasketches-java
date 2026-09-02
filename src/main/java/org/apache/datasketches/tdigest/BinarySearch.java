@@ -31,9 +31,9 @@ public final class BinarySearch {
 
   /**
    * Returns an index to the first element in the range [first, last) such that
-   * element < value is false (i.e. that is greater than or equal to value),
+   * {@code element < value} is false (i.e. that is greater than or equal to value),
    * or last if no such element is found.
-   * The range [first, last) must be partitioned with respect to the expression element < value,
+   * The range [first, last) must be partitioned with respect to the expression {@code element < value},
    * i.e., all elements for which the expression is true must precede all elements
    * for which the expression is false.
    * A fully-sorted range meets this criterion.
@@ -64,9 +64,9 @@ public final class BinarySearch {
 
   /**
    * Returns an index to the first element in the range [first, last) such that
-   * value < element is true (i.e. that is strictly greater than value),
+   * {@code value < element} is true (i.e. that is strictly greater than value),
    * or last if no such element is found.
-   * The range [first, last) must be partitioned with respect to the expression !(value < element),
+   * The range [first, last) must be partitioned with respect to the expression {@code !(value < element)},
    * i.e., all elements for which the expression is true must precede all elements
    * for which the expression is false.
    * A fully-sorted range meets this criterion.
