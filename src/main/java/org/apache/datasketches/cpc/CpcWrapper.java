@@ -65,15 +65,29 @@ public final class CpcWrapper {
     this(MemorySegment.ofArray(byteArray));
   }
 
+  //An empty image carries none of the high preamble fields, so they must not be read.
+  private boolean isEmpty() {
+    final Format format = PreambleUtil.getFormat(seg);
+    return (format == Format.EMPTY_MERGED) || (format == Format.EMPTY_HIP);
+  }
+
+  private int numCoupons() {
+    return isEmpty() ? 0 : getNumCoupons(seg);
+  }
+
+  private double hipAccum() {
+    return isEmpty() ? 0.0 : getHipAccum(seg);
+  }
+
   /**
    * Returns the best estimate of the cardinality of the sketch.
    * @return the best estimate of the cardinality of the sketch.
    */
   public double getEstimate() {
     if (!hasHip(seg)) {
-      return getIconEstimate(PreambleUtil.getLgK(seg), getNumCoupons(seg));
+      return getIconEstimate(PreambleUtil.getLgK(seg), numCoupons());
     }
-    return getHipAccum(seg);
+    return hipAccum();
   }
 
   /**
@@ -100,9 +114,9 @@ public final class CpcWrapper {
    */
   public double getLowerBound(final int kappa) {
     if (!hasHip(seg)) {
-      return getIconConfidenceLB(PreambleUtil.getLgK(seg), getNumCoupons(seg), kappa);
+      return getIconConfidenceLB(PreambleUtil.getLgK(seg), numCoupons(), kappa);
     }
-    return getHipConfidenceLB(PreambleUtil.getLgK(seg), getNumCoupons(seg), getHipAccum(seg), kappa);
+    return getHipConfidenceLB(PreambleUtil.getLgK(seg), numCoupons(), hipAccum(), kappa);
   }
 
   /**
@@ -113,9 +127,9 @@ public final class CpcWrapper {
    */
   public double getUpperBound(final int kappa) {
     if (!hasHip(seg)) {
-      return getIconConfidenceUB(PreambleUtil.getLgK(seg), getNumCoupons(seg), kappa);
+      return getIconConfidenceUB(PreambleUtil.getLgK(seg), numCoupons(), kappa);
     }
-    return getHipConfidenceUB(PreambleUtil.getLgK(seg), getNumCoupons(seg), getHipAccum(seg), kappa);
+    return getHipConfidenceUB(PreambleUtil.getLgK(seg), numCoupons(), hipAccum(), kappa);
   }
 
 }
