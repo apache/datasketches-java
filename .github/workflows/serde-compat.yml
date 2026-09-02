@@ -13,10 +13,13 @@ jobs:
         include:
           - language: cpp
             name: C++
-            profile: check-cpp-files
+            profile: check_cpp_files
           - language: go
             name: Go
-            profile: check-go-files
+            profile: check_go_files
+          - language: java
+            name: Java
+            profile: check_java_files
     steps:
       - name: Checkout
         uses: actions/checkout@v7
