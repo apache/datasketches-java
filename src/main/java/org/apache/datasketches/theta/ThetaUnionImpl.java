@@ -196,12 +196,15 @@ final class ThetaUnionImpl extends ThetaUnion {
   public CompactThetaSketch getResult(final boolean dstOrdered, final MemorySegment dstSeg) {
     final int gadgetCurCount = gadget_.getRetainedEntries(true);
     final int k = 1 << gadget_.getLgNomLongs();
-    final long[] gadgetCacheCopy =
-        gadget_.hasMemorySegment() ? gadget_.getCache() : gadget_.getCache().clone();
+    //selectExcludingZeros permutes its input, so the gadget's own table may only be read in
+    //place when it does not run. Everything else here (count, compactCache) only reads.
+    final boolean willQuickSelect = gadgetCurCount > k;
+    final long[] gadgetCacheCopy = (gadget_.hasMemorySegment() || !willQuickSelect)
+        ? gadget_.getCache() : gadget_.getCache().clone();
 
     //Pull back to k
     final long curGadgetThetaLong = gadget_.getThetaLong();
-    final long adjGadgetThetaLong = gadgetCurCount > k
+    final long adjGadgetThetaLong = willQuickSelect
         ? selectExcludingZeros(gadgetCacheCopy, gadgetCurCount, k + 1) : curGadgetThetaLong;
 
     //Finalize Theta and curCount
