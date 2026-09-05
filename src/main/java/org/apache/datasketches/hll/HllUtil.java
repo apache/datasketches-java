@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.hll;
 
-import static java.lang.Math.log;
-import static java.lang.Math.sqrt;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
@@ -49,8 +47,8 @@ final class HllUtil {
   static final int MIN_LOG_K = 4;
   static final int MAX_LOG_K = 21;
 
-  static final double HLL_HIP_RSE_FACTOR = sqrt(log(2.0)); //.8325546
-  static final double HLL_NON_HIP_RSE_FACTOR = sqrt((3.0 * log(2.0)) - 1.0); //1.03896
+  static final double HLL_HIP_RSE_FACTOR = 0.8325546111576977; //sqrt(log(2.0))
+  static final double HLL_NON_HIP_RSE_FACTOR = 1.0389617614136892; //sqrt((3.0 * log(2.0)) - 1.0)
   static final double COUPON_RSE_FACTOR = .409; //at transition point not the asymptote
 
   static final double COUPON_RSE = COUPON_RSE_FACTOR / (1 << 13);
