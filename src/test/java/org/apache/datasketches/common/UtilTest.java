@@ -46,6 +46,7 @@ import static org.apache.datasketches.common.Util.isPowerOf2;
 import static org.apache.datasketches.common.Util.longToBytes;
 import static org.apache.datasketches.common.Util.milliSecToString;
 import static org.apache.datasketches.common.Util.nanoSecToString;
+import static org.apache.datasketches.common.Util.numDigits;
 import static org.apache.datasketches.common.Util.numberOfLeadingOnes;
 import static org.apache.datasketches.common.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
@@ -239,6 +240,16 @@ public class UtilTest {
     out = characterPad(s, 30, 'z', false);
     println(out);
     assertEquals(out,"zzzzzzzzzzzzPad 30, prepend z:");
+  }
+
+  @Test
+  public void checkNumDigits() {
+    for (long n = 0; n < 1000; n++) {
+      assertEquals(numDigits(n), Long.toString(n).length());
+    }
+    assertEquals(numDigits(999999999999999999L), 18);
+    assertEquals(numDigits(1000000000000000000L), 19);
+    assertEquals(numDigits(Long.MAX_VALUE), 19);
   }
 
   @Test

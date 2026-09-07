@@ -798,13 +798,15 @@ public final class Util {
   /** Decimal Digits ***************************/
   
   /**
-   * Computes the number of decimal digits of the number n
+   * Computes the number of decimal digits of the number n.
+   * Zero has one digit, and any negative n also returns one.
    * @param n the given number
    * @return the number of decimal digits of the number n
    */
-  public static int numDigits(long n) {
-    if ((n % 10) == 0) { n++; }
-    return (int) ceil(log(n) / log(10));
+  public static int numDigits(final long n) {
+    int digits = 1;
+    for (long v = n; v >= 10; v /= 10) { digits++; }
+    return digits;
   }
 
   /** Generic relational tests *****************/
