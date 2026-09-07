@@ -24,6 +24,8 @@ import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static org.apache.datasketches.cpc.Flavor.EMPTY;
 import static org.apache.datasketches.cpc.Flavor.SPARSE;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -136,6 +138,20 @@ public class CpcUnion {
   }
 
   /**
+   * Update this union with a serialized CpcSketch image.
+   *
+   * <p>Where possible the image's coupons are decoded straight into this union's bit matrix,
+   * which avoids building an intermediate sketch only to walk it once. Images that cannot be
+   * decoded that way are uncompressed into a sketch and merged as usual, so the result is the
+   * same either way.</p>
+   *
+   * @param seg the given MemorySegment holding a serialized CpcSketch image.
+   */
+  public void update(final MemorySegment seg) {
+    mergeInto(this, CompressedState.importFromSegment(seg));
+  }
+
+  /**
    * Returns the result of union operations as a CPC sketch.
    * @return the result of union operations as a CPC sketch.
    */
@@ -198,6 +214,15 @@ public class CpcUnion {
       if (rowCol != -1) {
         dest.rowColUpdate(rowCol & destMask);
       }
+    }
+  }
+
+  private static void orPairsIntoMatrix(final long[] destMatrix, final int destLgK,
+      final int[] pairs, final int numPairs, final int colShift) {
+    final int destMask = (1 << destLgK) - 1;  // downsamples when destlgK < srcLgK
+    for (int i = 0; i < numPairs; i++) {
+      final int rowCol = pairs[i];
+      destMatrix[(rowCol >>> 6) & destMask] |= 1L << ((rowCol & 63) + colShift);
     }
   }
 
@@ -273,6 +298,53 @@ public class CpcUnion {
       union.bitMatrix = CpcUtil.bitMatrixOfSketch(newSketch);
       union.lgK = newLgK;
     }
+  }
+
+  private static void mergeInto(final CpcUnion union, final CompressedState source) {
+    Util.checkSeedHashes(Util.computeSeedHash(union.seed), source.seedHash);
+
+    if (source.numCoupons == 0) { return; } //EMPTY
+
+    //Accumulator and bitMatrix must be mutually exclusive,
+    //so bitMatrix != null => accumulator == null and visa versa
+    //if (Accumulator != null) union must be EMPTY or SPARSE,
+    checkUnionState(union);
+
+    if (source.lgK < union.lgK) { reduceUnionK(union, source.lgK); }
+
+    // if source is past SPARSE mode, make sure that union is a bitMatrix.
+    if ((source.getFlavor().ordinal() > 1) && (union.accumulator != null)) {
+      union.bitMatrix = CpcUtil.bitMatrixOfSketch(union.accumulator);
+      union.accumulator = null;
+    }
+
+    //The source's coupons can be decoded straight into the union's bitMatrix, which avoids
+    //building an intermediate sketch only to walk it once. Flavors that cannot be decoded that
+    //way leave the switch without having touched the bitMatrix, and go through a sketch below.
+    if (union.bitMatrix != null) {
+      final int numPairs = source.numCsv;
+      switch (source.getFlavor()) {
+        case SPARSE :   //pairs are the whole sketch
+        case HYBRID : { //the window sits at column offset 0, so the pairs need no shift
+          orPairsIntoMatrix(union.bitMatrix, union.lgK,
+              CpcCompression.uncompressTheSurprisingValues(source), numPairs, 0);
+          return;
+        }
+        case PINNED : { //window at column offset 0, pairs shifted up 8 by the compressor
+          orWindowIntoMatrix(union.bitMatrix, union.lgK,
+              CpcCompression.uncompressTheWindow(source), 0, source.lgK);
+          if (numPairs > 0) {
+            orPairsIntoMatrix(union.bitMatrix, union.lgK,
+                CpcCompression.uncompressTheSurprisingValues(source), numPairs, 8);
+          }
+          return;
+        }
+        //Sliding inverts its logic, so a coupon can be signalled by the ABSENCE of a pair.
+        //EMPTY cannot arrive here, having returned above.
+        default : break;
+      }
+    }
+    mergeInto(union, CpcSketch.uncompress(source, union.seed));
   }
 
   private static void mergeInto(final CpcUnion union, final CpcSketch source) {
