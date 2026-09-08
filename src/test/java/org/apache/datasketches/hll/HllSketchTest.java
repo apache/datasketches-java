@@ -343,25 +343,25 @@ public class HllSketchTest {
     assertEquals(checkCompact(lgK, 24, HLL_8, true, false), false);
     assertEquals(checkCompact(lgK, 24, HLL_8, true, true), true);
 
-    //HLL8: always updatable
+    //HLL8: follows the toByteArray request
     assertEquals(checkCompact(lgK, 25, HLL_8, false, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_8, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, false, true), true);
     assertEquals(checkCompact(lgK, 25, HLL_8, false, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_8, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, false, true), true);
     assertEquals(checkCompact(lgK, 25, HLL_8, true, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_8, true, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, true, true), true);
     assertEquals(checkCompact(lgK, 25, HLL_8, true, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_8, true, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_8, true, true), true);
 
-    //HLL6: always updatable
+    //HLL6: follows the toByteArray request
     assertEquals(checkCompact(lgK, 25, HLL_6, false, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_6, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, false, true), true);
     assertEquals(checkCompact(lgK, 25, HLL_6, false, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_6, false, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, false, true), true);
     assertEquals(checkCompact(lgK, 25, HLL_6, true, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_6, true, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, true, true), true);
     assertEquals(checkCompact(lgK, 25, HLL_6, true, false), false);
-    assertEquals(checkCompact(lgK, 25, HLL_6, true, true), false);
+    assertEquals(checkCompact(lgK, 25, HLL_6, true, true), true);
 
     //HLL:4 follows the toByteArray request
     assertEquals(checkCompact(lgK, 25, HLL_4, false, false), false);

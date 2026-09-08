@@ -804,8 +804,7 @@ public class HllUnion extends BaseHllSketch {
     final boolean rebuild = hllSketchImpl.isRebuildCurMinNumKxQFlag();
     if ( !rebuild || (curMode != CurMode.HLL) || (tgtHllType != HLL_8) ) { return; }
     final AbstractHllArray absHllArr = (AbstractHllArray)(hllSketchImpl);
-    int curMin = 64;
-    int numAtCurMin = 0;
+    int numZeros = 0;
     double kxq0 = 1 << absHllArr.getLgConfigK();
     double kxq1 = 0;
     final PairIterator itr = absHllArr.iterator();
@@ -814,19 +813,17 @@ public class HllUnion extends BaseHllSketch {
       if (v > 0) {
         if (v < 32) { kxq0 += invPow2(v) - 1.0; }
         else        { kxq1 += invPow2(v) - 1.0; }
-      }
-      if (v > curMin) { continue; }
-      if (v < curMin) {
-        curMin = v;
-        numAtCurMin = 1;
       } else {
-        numAtCurMin++;
+        numZeros++;
       }
     }
     absHllArr.putKxQ0(kxq0);
     absHllArr.putKxQ1(kxq1);
-    absHllArr.putCurMin(curMin);
-    absHllArr.putNumAtCurMin(numAtCurMin);
+    //HLL_8 convention: curMin is always 0 and numAtCurMin is the number of zero registers.
+    //This is what the incremental update path maintains, so the rebuilt state is
+    //indistinguishable from it and the timing of this rebuild is not observable.
+    absHllArr.putCurMin(0);
+    absHllArr.putNumAtCurMin(numZeros);
     absHllArr.putRebuildCurMinNumKxQFlag(false);
     //HipAccum is not affected
   }

@@ -235,8 +235,13 @@ abstract class AbstractHllArray extends HllSketchImpl {
     assert newValue > oldValue;
     final double kxq0 = host.getKxQ0();
     final double kxq1 = host.getKxQ1();
-    //update hipAccum BEFORE updating kxq0 and kxq1
-    host.addToHipAccum((1 << host.getLgConfigK()) / (kxq0 + kxq1));
+    //update hipAccum BEFORE updating kxq0 and kxq1.
+    //HIP is only meaningful while the sketch is in-order; once the out-of-order flag is set
+    //the HIP accumulator is dead and must not keep drifting, or the serialized image becomes
+    //dependent on the update history after the merge.
+    if (!host.isOutOfOrder()) {
+      host.addToHipAccum((1 << host.getLgConfigK()) / (kxq0 + kxq1));
+    }
     incrementalUpdateKxQ(host, oldValue, newValue, kxq0, kxq1);
   }
 

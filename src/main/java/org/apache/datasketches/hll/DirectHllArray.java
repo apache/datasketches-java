@@ -262,7 +262,12 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override //used by HLL6 and HLL8, overridden by HLL4
   byte[] toCompactByteArray() {
-    return toUpdatableByteArray(); //indistinguishable for HLL6 and HLL8
+    final int totBytes = getCompactSerializationBytes();
+    final byte[] byteArr = new byte[totBytes];
+    final MemorySegment segOut = MemorySegment.ofArray(byteArr);
+    MemorySegment.copy(seg, 0, segOut, 0, totBytes);
+    insertCompactFlag(segOut, true);
+    return byteArr;
   }
 
   @Override //used by HLL6 and HLL8, overridden by HLL4
