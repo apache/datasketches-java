@@ -620,7 +620,7 @@ public final class Util {
   }
 
   /** Logarithm related ************************/
-  
+
   /**
    * The log<sub>2</sub>(value)
    * @param value the given value
@@ -719,7 +719,7 @@ public final class Util {
   }
 
   /** Checks that throw ************************/
-  
+
   /**
    * Check the requested offset and length against the allocated size.
    * The invariants equation is: {@code 0 <= reqOff <= reqLen <= reqOff + reqLen <= allocSize}.
@@ -796,7 +796,7 @@ public final class Util {
   }
 
   /** Decimal Digits ***************************/
-  
+
   /**
    * Computes the number of decimal digits of the number n
    * @param n the given number
@@ -807,8 +807,26 @@ public final class Util {
     return (int) ceil(log(n) / log(10));
   }
 
+  /**
+   * Computes the minimum number of characters required to print the number n as a decimal.
+   * Negative numbers add one for the minus sign character.
+   * No other non-digit characters are assumed.
+   * @param n the given number, which may be negative.
+   * @return the number of characters required to print the number n
+   */
+  public static int numDigits2(long n) {
+      if (n == 0) { return 1; }    // handles the zero special case
+      int count = (n < 0) ? 1 : 0; // handles the minus sign
+      while (n != 0) {
+          n /= 10;
+          count++;
+      }
+      return count;
+  }
+
+
   /** Generic relational tests *****************/
-  
+
   /**
    * Finds the minimum of two generic items
    * @param <T> the type
@@ -971,7 +989,7 @@ public final class Util {
   }
 
   /** Seed Hashes ******************************/
-  
+
   /**
    * Computes and checks the 16-bit seed hash from the given long seed.
    * The seed hash may not be zero in order to maintain compatibility with older serialized
@@ -1004,25 +1022,25 @@ public final class Util {
     }
     return seedHashA;
   }
-  
+
   /** Files and File Bytes ******************************/
 
   /**
-   * Windows, POSIX, and JAR friendly, returns a byte array of the contents of the file defined by the given 
+   * Windows, POSIX, and JAR friendly, returns a byte array of the contents of the file defined by the given
    * resourceName.
    * If the resource is in a JAR it will be copied into the File System as a temporary file first.
-   * 
+   *
    * @param resourceName the short name or the full path name.
    * @return a byte array of the contents of the file defined by the given resourceName.
    */
   public static byte[] getResourceBytes(final String resourceName) {
     Objects.requireNonNull(resourceName, "Given resourceName must not be null");
-    
+
     String normalizedName = resourceName.replace('\\', '/');
     if (normalizedName.startsWith("/")) {
       normalizedName = normalizedName.substring(1);
     }
-  
+
     final ClassLoader loader = Util.class.getClassLoader();
     try (InputStream in = loader.getResourceAsStream(normalizedName)) {
       if (in == null) {
@@ -1037,10 +1055,10 @@ public final class Util {
   /**
    *   Windows, POSIX, and JAR friendly get Resource File.
    *   If the resource is in a JAR it will be copied into the File System as a temporary file first.
-   *   
-   *   <p>While tempFile.deleteOnExit() works, keep in mind that JVMs running long processes won't delete those files 
-   *   until the JVM completely terminates, which can lead to memory/disk leaks if this method is called frequently. 
-   *   If you're using this for memory-mapped files, consider explicitly deleting the file once the memory-mapped buffer 
+   *
+   *   <p>While tempFile.deleteOnExit() works, keep in mind that JVMs running long processes won't delete those files
+   *   until the JVM completely terminates, which can lead to memory/disk leaks if this method is called frequently.
+   *   If you're using this for memory-mapped files, consider explicitly deleting the file once the memory-mapped buffer
    *   is no longer in use, or registering a custom shutdown hook if deleteOnExit() is insufficient.</p>
    *   @param resourceName the simple file name or full path name.
    *   Any back-slashes will be converted to forward slashes and a leading forward slash will be removed.
@@ -1053,19 +1071,19 @@ public final class Util {
     // Normalize name: ClassLoaders MUST use forward slashes even on Windows
     String normalizedName = resourceName.replace('\\', '/');
     if (normalizedName.startsWith("/")) { normalizedName = normalizedName.substring(1); }
-  
+
     final ClassLoader loader = Util.class.getClassLoader();
     final URL url = loader.getResource(normalizedName);
     if (url == null) { throw new IllegalArgumentException("Resource not found: " + normalizedName); }
-  
+
     // If it's a real file, return it directly
     if ("file".equals(url.getProtocol())) {
-        try { 
+        try {
           final URI uri = url.toURI();
-          return new File(uri); } 
+          return new File(uri); }
         catch (final URISyntaxException e) { return new File(url.getPath()); }
     }
-  
+
     // If it's in a JAR, we must extract it for Memory.map() to work
     // We use a prefix that won't collide with Windows reserved names
     // We use NIO Files.createTempFile to ensure secure default permissions (0600)
@@ -1073,17 +1091,17 @@ public final class Util {
     try { tempFile = Files.createTempFile("datasketches-", ".bin").toFile(); }
     catch (final IOException e1) { throw new IllegalArgumentException(e1); }
     tempFile.deleteOnExit();
-  
+
     try (InputStream in = loader.getResourceAsStream(normalizedName)) {
         if (in == null) { throw new IllegalArgumentException("Could not open stream for " + normalizedName); }
-        
+
         // Use REPLACE_EXISTING to avoid "File Already Exists" errors on Windows retries
         Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     } catch (final IOException e) { throw new IllegalArgumentException(e); }
-  
+
     // Final Windows Fix: Ensure the file is actually writable if you need to setReadOnly later
-    //tempFile.setWritable(true); 
-    
+    //tempFile.setWritable(true);
+
     return tempFile;
   }
 
