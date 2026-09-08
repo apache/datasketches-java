@@ -53,7 +53,27 @@ public class QuickSelectTest {
         final long retVal = select(arr, 0, len - 1, pivot);
         Assert.assertEquals(retVal, trueVal);
       }
+      Assert.assertEquals(select(ascending(len), 0, len - 1, pivot), trueVal);
+      Assert.assertEquals(select(descending(len), 0, len - 1, pivot), trueVal);
     }
+  }
+
+  @Test
+  public void checkQuickSelect0BasedAllEqual() {
+    final int len = 64;
+    for (int pivot = 0; pivot < len; pivot++ ) {
+      final long[] arr = new long[len];
+      java.util.Arrays.fill(arr, 7L);
+      Assert.assertEquals(select(arr, 0, len - 1, pivot), 7L);
+    }
+  }
+
+  //Quadratic work still returns the right value, so only the time limit can fail here.
+  @Test(timeOut = 10_000)
+  public void checkOrderedInputIsNotQuadratic() {
+    final int len = 1 << 19;
+    Assert.assertEquals(select(ascending(len), 0, len - 1, len / 2), len / 2);
+    Assert.assertEquals(select(descending(len), 0, len - 1, len / 2), len / 2);
   }
 
   @Test
@@ -116,7 +136,26 @@ public class QuickSelectTest {
         final double retVal = select(arr, 0, len - 1, pivot);
         Assert.assertEquals(retVal, trueVal, 0.0);
       }
+      Assert.assertEquals(select(ascendingDbl(len), 0, len - 1, pivot), trueVal, 0.0);
+      Assert.assertEquals(select(descendingDbl(len), 0, len - 1, pivot), trueVal, 0.0);
     }
+  }
+
+  @Test
+  public void checkQuickSelectDbl0BasedAllEqual() {
+    final int len = 64;
+    for (int pivot = 0; pivot < len; pivot++ ) {
+      final double[] arr = new double[len];
+      java.util.Arrays.fill(arr, 7.0);
+      Assert.assertEquals(select(arr, 0, len - 1, pivot), 7.0, 0.0);
+    }
+  }
+
+  @Test(timeOut = 10_000)
+  public void checkOrderedInputIsNotQuadraticDbl() {
+    final int len = 1 << 19;
+    Assert.assertEquals(select(ascendingDbl(len), 0, len - 1, len / 2), len / 2, 0.0);
+    Assert.assertEquals(select(descendingDbl(len), 0, len - 1, len / 2), len / 2, 0.0);
   }
 
   @Test
@@ -163,6 +202,39 @@ public class QuickSelectTest {
     Assert.assertEquals(retVal, trueVal, 0.0);
   }
 
+
+  //select rearranges its input, so each call needs a fresh array
+  private static long[] ascending(final int len) {
+    final long[] a = new long[len];
+    for (int i = 0; i < len; i++ ) {
+      a[i] = i;
+    }
+    return a;
+  }
+
+  private static long[] descending(final int len) {
+    final long[] a = new long[len];
+    for (int i = 0; i < len; i++ ) {
+      a[i] = (len - 1) - i;
+    }
+    return a;
+  }
+
+  private static double[] ascendingDbl(final int len) {
+    final double[] a = new double[len];
+    for (int i = 0; i < len; i++ ) {
+      a[i] = i;
+    }
+    return a;
+  }
+
+  private static double[] descendingDbl(final int len) {
+    final double[] a = new double[len];
+    for (int i = 0; i < len; i++ ) {
+      a[i] = (len - 1) - i;
+    }
+    return a;
+  }
 
   /**
    * Rearrange the elements of an array in random order.
