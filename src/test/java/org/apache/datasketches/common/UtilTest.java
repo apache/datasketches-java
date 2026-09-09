@@ -244,12 +244,21 @@ public class UtilTest {
 
   @Test
   public void checkNumDigits() {
-    for (long n = 0; n < 1000; n++) {
-      assertEquals(numDigits(n), Long.toString(n).length());
+    for (long n = -1000; n <= 1000; n++) {
+      checkN(n);
     }
-    assertEquals(numDigits(999999999999999999L), 18);
-    assertEquals(numDigits(1000000000000000000L), 19);
-    assertEquals(numDigits(Long.MAX_VALUE), 19);
+    for (long n = 1; (n < Long.MAX_VALUE) && (n > 0); n *= 10) {
+      checkN(n);
+      checkN(n - 1);
+      checkN(-n);
+      checkN(-n + 1);
+    }
+    checkN(Long.MAX_VALUE);
+    checkN(Long.MIN_VALUE);
+  }
+
+  private static void checkN(final long n) {
+    assertEquals(numDigits(n), String.valueOf(n).length());
   }
 
   @Test

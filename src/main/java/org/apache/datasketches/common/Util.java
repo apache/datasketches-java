@@ -798,15 +798,21 @@ public final class Util {
   /** Decimal Digits ***************************/
   
   /**
-   * Computes the number of decimal digits of the number n.
-   * Zero has one digit, and any negative n also returns one.
-   * @param n the given number
-   * @return the number of decimal digits of the number n
+   * Computes the minimum number of characters required to print the number n as a decimal.
+   * Negative numbers add one for the minus sign character.
+   * No other non-digit characters are assumed.
+   * @param n the given number, which may be negative.
+   * @return the number of characters required to print the number n as a decimal
    */
   public static int numDigits(final long n) {
-    int digits = 1;
-    for (long v = n; v >= 10; v /= 10) { digits++; }
-    return digits;
+    if (n == 0) { return 1; }    //handles the zero special case
+    int count = (n < 0) ? 1 : 0; //handles the minus sign
+    long v = n;
+    while (v != 0) {
+      v /= 10;
+      count++;
+    }
+    return count;
   }
 
   /** Generic relational tests *****************/
