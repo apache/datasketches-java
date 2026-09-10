@@ -247,11 +247,14 @@ public class UtilTest {
     for (long n = -1000; n <= 1000; n++) {
       checkN(n);
     }
-    for (long n = 1; (n < Long.MAX_VALUE) && (n > 0); n *= 10) {
+    final int maxExp = 18; //1E18 is the largest power of ten that fits in a signed long
+    long n = 1;
+    for (int exp = 0; exp <= maxExp; exp++) {
       checkN(n);
       checkN(n - 1);
       checkN(-n);
       checkN(-n + 1);
+      if (exp < maxExp) { n *= 10; } //the multiply past 1E18 would overflow
     }
     checkN(Long.MAX_VALUE);
     checkN(Long.MIN_VALUE);
