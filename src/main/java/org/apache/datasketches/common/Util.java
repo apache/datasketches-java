@@ -807,24 +807,6 @@ public final class Util {
     return (int) ceil(log(n) / log(10));
   }
 
-  /**
-   * Computes the minimum number of characters required to print the number n as a decimal.
-   * Negative numbers add one for the minus sign character.
-   * No other non-digit characters are assumed.
-   * @param n the given number, which may be negative.
-   * @return the number of characters required to print the number n
-   */
-  public static int numDigits2(long n) {
-      if (n == 0) { return 1; }    // handles the zero special case
-      int count = (n < 0) ? 1 : 0; // handles the minus sign
-      while (n != 0) {
-          n /= 10;
-          count++;
-      }
-      return count;
-  }
-
-
   /** Generic relational tests *****************/
 
   /**

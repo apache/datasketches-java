@@ -46,7 +46,6 @@ import static org.apache.datasketches.common.Util.isPowerOf2;
 import static org.apache.datasketches.common.Util.longToBytes;
 import static org.apache.datasketches.common.Util.milliSecToString;
 import static org.apache.datasketches.common.Util.nanoSecToString;
-import static org.apache.datasketches.common.Util.numDigits2;
 import static org.apache.datasketches.common.Util.numberOfLeadingOnes;
 import static org.apache.datasketches.common.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
@@ -432,23 +431,6 @@ public class UtilTest {
     final long v = ceilingMultiple2expK(n, k);
     final long v2 = (long)Math.ceil(n / (double)(1 << k));
     assertEquals(v, v2);
-  }
-
-  @Test
-  static void checkNumDigits() {
-    for (long n = 1; n < Long.MAX_VALUE && n > 0; n *= 10) {
-      checkN(n);
-      checkN(n - 1);
-      checkN(-n);
-      checkN(-n + 1);
-    }
-    checkN(Long.MAX_VALUE);
-    checkN(Long.MIN_VALUE);
-  }
-
-  private static void checkN(long n) {
-    //println(n);
-    assertEquals(numDigits2(n), String.valueOf(n).length());
   }
 
   @Test
