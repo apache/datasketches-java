@@ -486,19 +486,18 @@ final class CpcCompression {
     target.cwStream = windowBuf; //avoid extra copy
   }
 
-  private static void uncompressTheWindow(final CpcSketch target, final CompressedState source) {
+  static byte[] uncompressTheWindow(final CompressedState source) {
     final int srcLgK = source.lgK;
     final int srcK = 1 << srcLgK;
     final byte[] window = new byte[srcK];
     // bzero ((void *) window, (size_t) k); // zeroing not needed here (unlike the Hybrid Flavor)
-    assert (target.slidingWindow == null);
-    target.slidingWindow = window;
     final int pseudoPhase = determinePseudoPhase(srcLgK, source.numCoupons);
     assert (source.cwStream != null);
-    lowLevelUncompressBytes(target.slidingWindow, srcK,
+    lowLevelUncompressBytes(window, srcK,
            decodingTablesForHighEntropyByte[pseudoPhase],
            source.cwStream,
            source.cwLengthInts);
+    return window;
   }
 
   private static void compressTheSurprisingValues(final CompressedState target, final CpcSketch source,
@@ -521,7 +520,7 @@ final class CpcCompression {
 
   //allocates and returns an array of uncompressed pairs.
   //the length of this array is known to the source sketch.
-  private static int[] uncompressTheSurprisingValues(final CompressedState source) {
+  static int[] uncompressTheSurprisingValues(final CompressedState source) {
     final int srcK = 1 << source.lgK;
     final int numPairs = source.numCsv;
     assert numPairs > 0;
@@ -663,7 +662,8 @@ final class CpcCompression {
 
   private static void uncompressPinnedFlavor(final CpcSketch target, final CompressedState source) {
     assert (source.cwStream != null);
-    uncompressTheWindow(target, source);
+    assert (target.slidingWindow == null);
+    target.slidingWindow = uncompressTheWindow(source);
     final int srcLgK = source.lgK;
     final int numPairs = source.numCsv;
     if (numPairs == 0) {
@@ -724,7 +724,8 @@ final class CpcCompression {
 
   private static void uncompressSlidingFlavor(final CpcSketch target, final CompressedState source) {
     assert (source.cwStream != null);
-    uncompressTheWindow(target, source);
+    assert (target.slidingWindow == null);
+    target.slidingWindow = uncompressTheWindow(source);
     final int srcLgK = source.lgK;
     final int numPairs = source.numCsv;
     if (numPairs == 0) {

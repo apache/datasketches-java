@@ -237,7 +237,9 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override //used by HLL6 and HLL8, overridden by HLL4
   byte[] toCompactByteArray() {
-    return toUpdatableByteArray(); //indistinguishable for HLL6 and HLL8
+    //the image is the same as the updatable form for HLL6 and HLL8, but the compact flag
+    //records what the caller asked for, so it is set here as it is for HLL4
+    return ToByteArrayImpl.toHllByteArray(this, true);
   }
 
   @Override //used by HLL4, HLL6 and HLL8

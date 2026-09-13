@@ -107,20 +107,14 @@ public final class QuickSelect {
    * @return the next partition value.  Ultimately, the desired pivot.
    */
   private static int partition(final long[] arr, final int lo, final int hi) {
-    int i = lo, j = hi + 1; //left and right scan indices
+    medianOfThreeToLo(arr, lo, hi);
+    int i = lo, j = hi; //left and right scan indices
     final long v = arr[lo]; //partitioning item value
     while (true) {
       //Scan right, scan left, check for scan complete, and exchange
-      while (arr[ ++i] < v) {
-        if (i == hi) {
-          break;
-        }
-      }
-      while (v < arr[ --j]) {
-        if (j == lo) {
-          break;
-        }
-      }
+      //arr[hi] >= v and arr[lo] == v bound the scans
+      while (arr[ ++i] < v) { }
+      while (v < arr[ --j]) { }
       if (i >= j) {
         break;
       }
@@ -133,6 +127,21 @@ public final class QuickSelect {
     arr[lo] = arr[j];
     arr[j] = x;
     return j;
+  }
+
+  //A pivot taken from a fixed position is quadratic on ordered input; a median of three is not.
+  private static void medianOfThreeToLo(final long[] arr, final int lo, final int hi) {
+    final int mid = lo + ((hi - lo) >>> 1);
+    if (arr[mid] < arr[lo]) { swap(arr, mid, lo); }
+    if (arr[hi] < arr[lo]) { swap(arr, hi, lo); }
+    if (arr[hi] < arr[mid]) { swap(arr, hi, mid); }
+    swap(arr, lo, mid);
+  }
+
+  private static void swap(final long[] arr, final int i, final int j) {
+    final long x = arr[i];
+    arr[i] = arr[j];
+    arr[j] = x;
   }
 
   //For double arrays
@@ -211,20 +220,14 @@ public final class QuickSelect {
    * @return the next partition value.  Ultimately, the desired pivot.
    */
   private static int partition(final double[] arr, final int lo, final int hi) {
-    int i = lo, j = hi + 1; //left and right scan indices
+    medianOfThreeToLo(arr, lo, hi);
+    int i = lo, j = hi; //left and right scan indices
     final double v = arr[lo]; //partitioning item value
     while (true) {
       //Scan right, scan left, check for scan complete, and exchange
-      while (arr[ ++i] < v) {
-        if (i == hi) {
-          break;
-        }
-      }
-      while (v < arr[ --j]) {
-        if (j == lo) {
-          break;
-        }
-      }
+      //arr[hi] >= v and arr[lo] == v bound the scans
+      while (arr[ ++i] < v) { }
+      while (v < arr[ --j]) { }
       if (i >= j) {
         break;
       }
@@ -237,6 +240,20 @@ public final class QuickSelect {
     arr[lo] = arr[j];
     arr[j] = x;
     return j;
+  }
+
+  private static void medianOfThreeToLo(final double[] arr, final int lo, final int hi) {
+    final int mid = lo + ((hi - lo) >>> 1);
+    if (arr[mid] < arr[lo]) { swap(arr, mid, lo); }
+    if (arr[hi] < arr[lo]) { swap(arr, hi, lo); }
+    if (arr[hi] < arr[mid]) { swap(arr, hi, mid); }
+    swap(arr, lo, mid);
+  }
+
+  private static void swap(final double[] arr, final int i, final int j) {
+    final double x = arr[i];
+    arr[i] = arr[j];
+    arr[j] = x;
   }
 
 }
