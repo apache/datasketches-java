@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
+import static org.apache.datasketches.common.QuickSelect.select;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
@@ -167,6 +168,100 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
         dstOrdered,
         dstWSeg,
         getCache());
+  }
+
+  /**
+   * Converts this sketch to an ordered <i>CompactThetaSketch</i> on the Java heap, reduced to no
+   * more than <i>Nominal Entries</i> (or <i>k</i>) retained entries.
+   *
+   * <p>Equivalent to {@link #compactTrimmed(boolean, MemorySegment) compactTrimmed(true, null)}.
+   * See that method for the accuracy this gives up; trimming is lossy and is never required for
+   * correctness.</p>
+   *
+   * @return this sketch as an ordered <i>CompactThetaSketch</i> of at most <i>k</i> entries.
+   */
+  public CompactThetaSketch compactTrimmed() {
+    return compactTrimmed(true, null);
+  }
+
+  /**
+   * Convert this sketch to a <i>CompactThetaSketch</i> reduced to no more than
+   * <i>Nominal Entries</i> (or <i>k</i>) retained entries.
+   *
+   * <p>If this sketch retains more than <i>k</i> entries, <i>theta</i> is lowered to the
+   * (<i>k</i> + 1)th smallest retained hash value and only the <i>k</i> values below it are
+   * kept. Otherwise this is identical to {@link #compact(boolean, MemorySegment)}.
+   * This sketch is never modified, so unlike {@link #rebuild()} this may also be called on a
+   * read-only sketch.</p>
+   *
+   * <p>This produces the same result as {@link #rebuild()} followed by
+   * {@link #compact(boolean, MemorySegment)}, without mutating this sketch or rebuilding its
+   * hash table.</p>
+   *
+   * <p>The Alpha family does not support trimming and throws
+   * <i>UnsupportedOperationException</i>. Alpha maintains theta by its own discipline and never
+   * needs to be reduced to <i>k</i>. Every other member of this hierarchy is a QuickSelect
+   * sketch and is supported, including the read-only and concurrent variants.</p>
+   *
+   * <p>Trimming is lossy and is never required for correctness. It discards retained entries,
+   * and because the relative error scales with 1 / sqrt(retained), it always degrades accuracy
+   * and widens the confidence bounds, whatever mode this sketch is in. Worst case, a sketch
+   * grown to just under the rebuild threshold loses nearly half its entries. A sketch in exact
+   * mode that retains more than <i>k</i> entries loses exactness as well: the result is returned
+   * in estimation mode, so <i>getEstimate()</i> carries error where it would otherwise have
+   * returned an exact count. Only call this if a bounded result size matters more than that
+   * accuracy.</p>
+   *
+   * @param dstOrdered
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   * @param dstWSeg
+   * <a href="{@docRoot}/resources/dictionary.html#dstSeg">See Destination MemorySegment</a>.
+   * @return this sketch as a <i>CompactThetaSketch</i> of at most <i>k</i> entries.
+   */
+  public CompactThetaSketch compactTrimmed(final boolean dstOrdered, final MemorySegment dstWSeg) {
+    if (getFamily() == Family.ALPHA) {
+      throw new UnsupportedOperationException(
+          "The Alpha family does not support trimming; it maintains theta by its own discipline "
+          + "and never needs to be reduced to k.");
+    }
+    long thetaLong = getThetaLong();
+    int curCount = getRetainedEntries(true);
+    long[] hashArr = getCache();
+
+    final int k = 1 << getLgNomLongs();
+    if (curCount > k) {
+      //Gather the valid entries, non-zero and below the current theta, into a dense array.
+      //Copying is required in any case: this method must not modify the sketch, and select()
+      //permutes whatever array it is given. This mirrors the C++ path, which likewise copies
+      //the retained entries before selecting.
+      final long[] validArr = new long[curCount];
+      int n = 0;
+      for (final long hash : hashArr) {
+        if ((hash != 0L) && (hash < thetaLong) && (n < curCount)) { validArr[n++] = hash; }
+      }
+      //select() partitions validArr in place, which is safe: it is our own copy, never the
+      //sketch's cache. Index k is 0-based, so this is the (k + 1)th smallest hash, the same
+      //value the (k + 1) 1-based pivot yields in rebuild().
+      thetaLong = select(validArr, 0, n - 1, k);
+      final long[] trimmedArr = new long[k];
+      int j = 0;
+      for (int i = 0; i < n; i++) {
+        final long hash = validArr[i];
+        if ((hash < thetaLong) && (j < k)) { trimmedArr[j++] = hash; }
+      }
+      hashArr = (j == k) ? trimmedArr : java.util.Arrays.copyOf(trimmedArr, j);
+      curCount = j;
+    }
+    return componentsToCompact(
+        thetaLong,
+        curCount,
+        getSeedHash(),
+        isEmpty(),
+        false, //is src compact
+        false, //is src ordered
+        dstOrdered,
+        dstWSeg,
+        hashArr);
   }
 
   @Override
