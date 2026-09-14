@@ -242,19 +242,16 @@ public class UtilTest {
     assertEquals(out,"zzzzzzzzzzzzPad 30, prepend z:");
   }
 
+  /**
+   * Check all the transition points where the number of decimal characters change.
+   */
   @Test
   public void checkNumDigits() {
-    for (long n = -1000; n <= 1000; n++) {
-      checkN(n);
-    }
-    final int maxExp = 18; //1E18 is the largest power of ten that fits in a signed long
-    long n = 1;
-    for (int exp = 0; exp <= maxExp; exp++) {
+    for (long n = 1; n > 0; n *= 10) { //n goes negative on rollover, which halts the loop
       checkN(n);
       checkN(n - 1);
       checkN(-n);
       checkN(-n + 1);
-      if (exp < maxExp) { n *= 10; } //the multiply past 1E18 would overflow
     }
     checkN(Long.MAX_VALUE);
     checkN(Long.MIN_VALUE);
