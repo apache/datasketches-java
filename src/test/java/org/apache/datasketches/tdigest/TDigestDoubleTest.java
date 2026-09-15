@@ -65,6 +65,21 @@ public class TDigestDoubleTest {
   }
 
   @Test
+  public void repeatedValuesAtSingletonInterpolationBoundary() {
+    final TDigestDouble td = new TDigestDouble();
+    for (int i = 0; i < 20; i++) { td.update(1); }
+    assertEquals(td.getQuantile(0.9), 1.0);
+  }
+
+  @Test
+  public void emptySplitPointsDefineOneBin() {
+    final TDigestDouble td = new TDigestDouble();
+    td.update(1);
+    assertEquals(td.getCDF(new double[0]), new double[] {1});
+    assertEquals(td.getPMF(new double[0]), new double[] {1});
+  }
+
+  @Test
   public void manyValues() {
     final TDigestDouble td = new TDigestDouble();
     final int n = 10000;
@@ -184,6 +199,67 @@ public class TDigestDoubleTest {
     assertEquals(td2.getTotalWeight(), n);
     assertEquals(td2.getMinValue(), -Double.MAX_VALUE);
     assertEquals(td2.getMaxValue(), Double.MAX_VALUE);
+  }
+
+  @Test
+  public void sameSignExtremeQuantilesStayFinite() {
+    for (final double sign : new double[] {1, -1}) {
+      final TDigestDouble td = new TDigestDouble();
+      td.update(sign * Math.nextDown(Double.MAX_VALUE));
+      td.update(sign * Double.MAX_VALUE);
+      final MemorySegment seg = MemorySegment.ofArray(td.toByteArray());
+      // The independently rounded normalized weights used to overflow the sum of
+      // two finite terms, even though the result must lie between these means.
+      seg.set(ValueLayout.JAVA_LONG_UNALIGNED, 40, (1L << 52) - 1);
+      seg.set(ValueLayout.JAVA_LONG_UNALIGNED, 56, 1L << 52);
+      final TDigestDouble restored = TDigestDouble.heapify(seg);
+      for (final double rank : new double[] {0.25, 0.5, 0.75}) {
+        final double quantile = restored.getQuantile(rank);
+        assertTrue(Double.isFinite(quantile), "non-finite quantile: " + quantile);
+        assertTrue(quantile >= restored.getMinValue());
+        assertTrue(quantile <= restored.getMaxValue());
+      }
+    }
+  }
+
+  @Test
+  public void mergedExtremeCentroidStaysFinite() {
+    final double lower = Math.nextDown(Double.MAX_VALUE);
+    final TDigestDouble td = new TDigestDouble((short) 10);
+    td.update(lower);
+    td.update(lower);
+    td.update(Double.MAX_VALUE);
+    td.update(Double.MAX_VALUE);
+    final MemorySegment seg = MemorySegment.ofArray(td.toByteArray());
+    // Merging the middle centroids overflows (value - mean) * weight. The old
+    // fallback also overflowed because its independently rounded ratios summed above one.
+    seg.set(ValueLayout.JAVA_LONG_UNALIGNED, 40, 1L << 55);
+    seg.set(ValueLayout.JAVA_LONG_UNALIGNED, 56, (1L << 52) + 1);
+    seg.set(ValueLayout.JAVA_LONG_UNALIGNED, 72, 5L << 52);
+    seg.set(ValueLayout.JAVA_LONG_UNALIGNED, 88, 1L << 55);
+    final TDigestDouble source = TDigestDouble.heapify(seg);
+    final TDigestDouble merged = new TDigestDouble((short) 10);
+    merged.merge(source);
+    // Round-tripping validates every stored mean, including centroids away from the queried rank.
+    final TDigestDouble restored = TDigestDouble.heapify(MemorySegment.ofArray(merged.toByteArray()));
+    assertEquals(restored.getTotalWeight(), source.getTotalWeight());
+    assertEquals(restored.getMinValue(), lower);
+    assertEquals(restored.getMaxValue(), Double.MAX_VALUE);
+    assertTrue(Double.isFinite(restored.getQuantile(0.5)));
+  }
+
+  @Test
+  public void quantileWithTwoSampleLastCentroid() {
+    final TDigestDouble td = new TDigestDouble();
+    td.update(0);
+    td.update(50);
+    td.update(90);
+    final MemorySegment seg = MemorySegment.ofArray(td.toByteArray());
+    seg.set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 24, 100);
+    seg.set(ValueLayout.JAVA_LONG_UNALIGNED, 72, 2);
+    final TDigestDouble restored = TDigestDouble.heapify(seg);
+    assertEquals(restored.getTotalWeight(), 4);
+    assertEquals(restored.getQuantile(0.75), 100.0);
   }
 
   // serialized layout: preamble 16 bytes, min 8 bytes, max 8 bytes,

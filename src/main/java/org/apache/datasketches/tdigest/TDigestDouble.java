@@ -98,10 +98,12 @@ public final class TDigestDouble {
    * Update this TDigest with the given value.
    * NaN and infinity are ignored.
    * @param value to update the TDigest with
+   * @throws ArithmeticException if the total weight would exceed Long.MAX_VALUE
    */
   public void update(final double value) {
     if (!Double.isFinite(value)) { return; }
-    if (numBuffered_ == (centroidsCapacity_ * BUFFER_MULTIPLIER)) { compress(); }
+    Math.addExact(getTotalWeight(), 1);
+    if (numBuffered_ >= (centroidsCapacity_ * BUFFER_MULTIPLIER)) { compress(); }
     bufferValues_[numBuffered_] = value;
     numBuffered_++;
     minValue_ = Math.min(minValue_, value);
@@ -111,9 +113,11 @@ public final class TDigestDouble {
   /**
    * Merge the given TDigest into this one
    * @param other TDigest to merge
+   * @throws ArithmeticException if the combined total weight would exceed Long.MAX_VALUE
    */
   public void merge(final TDigestDouble other) {
     if (other.isEmpty()) { return; }
+    Math.addExact(getTotalWeight(), other.getTotalWeight());
     final int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
     final double[] values = new double[num];
     final long[] weights = new long[num];
@@ -256,6 +260,7 @@ public final class TDigestDouble {
     }
     final double lastWeight = centroidWeights_[numCentroids_ - 1];
     if ((lastWeight > 1) && ((centroidsWeight_ - weight) <= (lastWeight / 2.0))) {
+      if (lastWeight == 2) { return maxValue_; }
       return maxValue_ - (((centroidsWeight_ - weight - 1.0) / ((lastWeight / 2.0) - 1.0))
           * (maxValue_ - centroidMeans_[numCentroids_ - 1]));
     }
@@ -395,6 +400,7 @@ public final class TDigestDouble {
    * @return an instance of TDigest
    */
   public static TDigestDouble heapify(final MemorySegment seg, final boolean isFloat) {
+    checkSerializedSize(seg, 8);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     final byte preambleLongs = posSeg.getByte();
     final byte serialVersion = posSeg.getByte();
@@ -411,6 +417,10 @@ public final class TDigestDouble {
     final byte flagsByte = posSeg.getByte();
     final boolean isEmpty = (flagsByte & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     final boolean isSingleValue = (flagsByte & (1 << Flags.IS_SINGLE_VALUE.ordinal())) > 0;
+    final int knownFlags = (1 << Flags.values().length) - 1;
+    if (((flagsByte & ~knownFlags) != 0) || (isEmpty && isSingleValue)) {
+      throw new SketchesArgumentException("Invalid TDigest flags: " + flagsByte);
+    }
     final byte expectedPreambleLongs = isEmpty || isSingleValue ? PREAMBLE_LONGS_EMPTY_OR_SINGLE : PREAMBLE_LONGS_MULTIPLE;
     if (preambleLongs != expectedPreambleLongs) {
       throw new SketchesArgumentException("Preamble longs mismatch: expected " + expectedPreambleLongs + ", actual " + preambleLongs);
@@ -419,6 +429,7 @@ public final class TDigestDouble {
     if (isEmpty) { return new TDigestDouble(k); }
     final boolean reverseMerge = (flagsByte & (1 << Flags.REVERSE_MERGE.ordinal())) > 0;
     if (isSingleValue) {
+      checkSerializedSize(seg, 8 + (isFloat ? Float.BYTES : Double.BYTES));
       final double value;
       if (isFloat) {
         value = posSeg.getFloat();
@@ -428,8 +439,12 @@ public final class TDigestDouble {
       checkDeserializedValue(value, "value");
       return new TDigestDouble(reverseMerge, k, value, value, new double[] {value}, new long[] {1}, 1, null);
     }
+    final int valueBytes = isFloat ? Float.BYTES : Double.BYTES;
+    checkSerializedSize(seg, 16 + (2L * valueBytes));
     final int numCentroids = posSeg.getInt();
     final int numBuffered = posSeg.getInt();
+    checkDeserializedCounts(k, numCentroids, numBuffered);
+    checkSerializedSize(seg, 16 + (2L * valueBytes) + (2L * valueBytes * numCentroids) + ((long) valueBytes * numBuffered));
     final double min;
     final double max;
     if (isFloat) {
@@ -439,22 +454,22 @@ public final class TDigestDouble {
       min = posSeg.getDouble();
       max = posSeg.getDouble();
     }
-    checkDeserializedValue(min, "min");
-    checkDeserializedValue(max, "max");
+    checkDeserializedExtrema(min, max);
     final double[] means = new double[numCentroids];
     final long[] weights = new long[numCentroids];
     long totalWeight = 0;
     for (int i = 0; i < numCentroids; i++) {
       means[i] = isFloat ? posSeg.getFloat() : posSeg.getDouble();
       weights[i] = isFloat ? posSeg.getInt() : posSeg.getLong();
-      checkDeserializedValue(means[i], "centroid mean");
+      checkDeserializedRange(means[i], i == 0 ? min : means[i - 1], max, "centroid mean");
       checkDeserializedWeight(weights[i]);
-      totalWeight += weights[i];
+      totalWeight = addDeserializedWeight(totalWeight, weights[i]);
     }
+    addDeserializedWeight(totalWeight, numBuffered);
     final double[] buffered = new double[numBuffered];
     for (int i = 0; i < numBuffered; i++) {
       buffered[i] = isFloat ? posSeg.getFloat() : posSeg.getDouble();
-      checkDeserializedValue(buffered[i], "buffered value");
+      checkDeserializedRange(buffered[i], min, max, "buffered value");
     }
     return new TDigestDouble(reverseMerge, k, min, max, means, weights, totalWeight, buffered);
   }
@@ -468,25 +483,27 @@ public final class TDigestDouble {
       throw new SketchesArgumentException("unexpected compatibility type " + type);
     }
     if (type == COMPAT_DOUBLE) { // compatibility with asBytes()
+      checkSerializedSize(seg, 32);
       final double min = seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
       final double max = seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
       final short k = (short) seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
       final int numCentroids = seg.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset); offset += Integer.BYTES;
-      checkDeserializedValue(min, "min");
-      checkDeserializedValue(max, "max");
+      checkDeserializedCounts(k, numCentroids, 0);
+      checkSerializedSize(seg, offset + (16L * numCentroids));
+      checkDeserializedExtrema(min, max);
       final double[] means = new double[numCentroids];
       final long[] weights = new long[numCentroids];
       long totalWeight = 0;
       for (int i = 0; i < numCentroids; i++) {
-        weights[i] = (long) seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
+        weights[i] = readCompatibilityWeight(seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset)); offset += Double.BYTES;
         means[i] = seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
-        checkDeserializedValue(means[i], "centroid mean");
-        checkDeserializedWeight(weights[i]);
-        totalWeight += weights[i];
+        checkDeserializedRange(means[i], i == 0 ? min : means[i - 1], max, "centroid mean");
+        totalWeight = addDeserializedWeight(totalWeight, weights[i]);
       }
       return new TDigestDouble(false, k, min, max, means, weights, totalWeight, null);
     }
     // COMPAT_FLOAT: compatibility with asSmallBytes(), reference implementation uses doubles for min and max
+    checkSerializedSize(seg, 30);
     final double min = seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset); offset += Double.BYTES;
     final double max = seg.get(JAVA_DOUBLE_UNALIGNED_BIG_ENDIAN, offset);offset += Double.BYTES;
     final short k = (short) seg.get(JAVA_FLOAT_UNALIGNED_BIG_ENDIAN, offset); offset += Float.BYTES;
@@ -494,17 +511,19 @@ public final class TDigestDouble {
     // they can be derived from k in the constructor
     seg.get(JAVA_INT_UNALIGNED_BIG_ENDIAN, offset); offset += Integer.BYTES;
     final int numCentroids = seg.get(JAVA_SHORT_UNALIGNED_BIG_ENDIAN, offset); offset += Short.BYTES;
-    checkDeserializedValue(min, "min");
-    checkDeserializedValue(max, "max");
+    checkDeserializedCounts(k, numCentroids, 0);
+    checkSerializedSize(seg, offset + (8L * numCentroids));
+    checkDeserializedExtrema(min, max);
     final double[] means = new double[numCentroids];
     final long[] weights = new long[numCentroids];
     long totalWeight = 0;
     for (int i = 0; i < numCentroids; i++) {
-      weights[i] = (long) seg.get(JAVA_FLOAT_UNALIGNED_BIG_ENDIAN, offset); offset += Float.BYTES;
+      weights[i] = readCompatibilityWeight(seg.get(JAVA_FLOAT_UNALIGNED_BIG_ENDIAN, offset)); offset += Float.BYTES;
       means[i] = seg.get(JAVA_FLOAT_UNALIGNED_BIG_ENDIAN, offset); offset += Float.BYTES;
-      checkDeserializedValue(means[i], "centroid mean");
-      checkDeserializedWeight(weights[i]);
-      totalWeight += weights[i];
+      // Float means can round just outside the double extrema in asSmallBytes().
+      checkDeserializedRange(means[i], (float) (i == 0 ? min : means[i - 1]), (float) max, "centroid mean");
+      means[i] = Math.max(min, Math.min(max, means[i]));
+      totalWeight = addDeserializedWeight(totalWeight, weights[i]);
     }
     return new TDigestDouble(false, k, min, max, means, weights, totalWeight, null);
   }
@@ -518,6 +537,50 @@ public final class TDigestDouble {
   private static void checkDeserializedWeight(final long weight) {
     if (weight < 1) {
       throw new SketchesArgumentException("Deserialized centroid weight must be positive, actual: " + weight);
+    }
+  }
+
+  private static long readCompatibilityWeight(final double weight) {
+    // Validate before narrowing: Java truncates fractions and saturates overflowing casts.
+    if (!Double.isFinite(weight) || (weight < 1) || (weight >= 0x1p63) || (weight != Math.rint(weight))) {
+      throw new SketchesArgumentException("Deserialized centroid weight must be a positive long, actual: " + weight);
+    }
+    return (long) weight;
+  }
+
+  private static long addDeserializedWeight(final long total, final long weight) {
+    if (weight > (Long.MAX_VALUE - total)) {
+      throw new SketchesArgumentException("Deserialized total weight exceeds Long.MAX_VALUE");
+    }
+    return total + weight;
+  }
+
+  private static void checkDeserializedExtrema(final double min, final double max) {
+    checkDeserializedValue(min, "min");
+    checkDeserializedValue(max, "max");
+    if (min > max) { throw new SketchesArgumentException("Deserialized min must not exceed max"); }
+  }
+
+  private static void checkDeserializedRange(final double value, final double lower, final double upper,
+      final String description) {
+    checkDeserializedValue(value, description);
+    if ((value < lower) || (value > upper)) {
+      throw new SketchesArgumentException("Deserialized " + description + " must be within [" + lower + ", " + upper + "]");
+    }
+  }
+
+  private static void checkDeserializedCounts(final short k, final int numCentroids, final int numBuffered) {
+    checkK(k);
+    if ((numCentroids < 0) || (numBuffered < 0) || (numCentroids > (Integer.MAX_VALUE - numBuffered))
+        || ((numCentroids + numBuffered) == 0)) {
+      throw new SketchesArgumentException("Invalid TDigest counts: centroids=" + numCentroids + ", buffered=" + numBuffered);
+    }
+  }
+
+  private static void checkSerializedSize(final MemorySegment seg, final long requiredBytes) {
+    if (seg.byteSize() < requiredBytes) {
+      throw new SketchesArgumentException("Insufficient TDigest data: expected at least " + requiredBytes
+          + " bytes, actual: " + seg.byteSize());
     }
   }
 
@@ -542,8 +605,8 @@ public final class TDigestDouble {
       .append(" Compression: ").append(k_).append(LS)
       .append(" Centroids: ").append(numCentroids_).append(LS)
       .append(" Buffered: ").append(numBuffered_).append(LS)
-      .append(" Centroids Capacity: ").append(centroidsCapacity_).append(LS)
-      .append(" Buffer Capacity: ").append(centroidsCapacity_ * BUFFER_MULTIPLIER).append(LS)
+      .append(" Centroids Capacity: ").append(centroidMeans_.length).append(LS)
+      .append(" Buffer Capacity: ").append(bufferValues_.length).append(LS)
       .append("Centroids Weight: ").append(centroidsWeight_).append(LS)
       .append(" Total Weight: ").append(getTotalWeight()).append(LS)
       .append(" Reverse Merge: ").append(reverseMerge_).append(LS);
@@ -574,12 +637,15 @@ public final class TDigestDouble {
     k_ = k;
     minValue_ = min;
     maxValue_ = max;
-    if (k < 10) { throw new SketchesArgumentException("k must be at least 10"); }
+    checkK(k);
     final int fudge = k < 30 ? 30 : 10;
-    centroidsCapacity_ = (k_ * 2) + fudge;
-    centroidMeans_ = new double[centroidsCapacity_];
-    centroidWeights_ = new long[centroidsCapacity_];
-    bufferValues_ =  new double[centroidsCapacity_ * BUFFER_MULTIPLIER];
+    centroidsCapacity_ = (k * 2) + fudge;
+    // Compression thresholds are local sizing choices, not serialization limits.
+    final int centroidSlots = Math.max(centroidsCapacity_, means == null ? 0 : means.length);
+    final int bufferSlots = Math.max(centroidsCapacity_ * BUFFER_MULTIPLIER, buffer == null ? 0 : buffer.length);
+    centroidMeans_ = new double[centroidSlots];
+    centroidWeights_ = new long[centroidSlots];
+    bufferValues_ = new double[bufferSlots];
     numCentroids_ = 0;
     numBuffered_ = 0;
     centroidsWeight_ = weight;
@@ -592,6 +658,10 @@ public final class TDigestDouble {
       System.arraycopy(buffer, 0, bufferValues_, 0, buffer.length);
       numBuffered_ = buffer.length;
     }
+  }
+
+  private static void checkK(final short k) {
+    if (k < 10) { throw new SketchesArgumentException("k must be at least 10"); }
   }
 
   // assumes that there is enough room in the input arrays to add centroids from this TDigest
@@ -670,25 +740,26 @@ public final class TDigestDouble {
   }
 
   /*
-   * The weights are normalized before multiplying so that each term is bounded by the magnitude
-   * of its input, otherwise the products can overflow to infinity for values of large magnitude.
+   * Opposite-sign inputs need normalized weights to avoid overflowing their difference.
+   * Same-sign inputs need interpolation to avoid overflowing the sum of rounded products.
    */
   private static double weightedAverage(final double x1, final double w1, final double x2, final double w2) {
-    final double weight = w1 + w2;
-    return (x1 * (w1 / weight)) + (x2 * (w2 / weight));
+    final double ratio = w2 / (w1 + w2);
+    if (Math.copySign(1, x1) != Math.copySign(1, x2)) {
+      return (x1 * (1 - ratio)) + (x2 * ratio);
+    }
+    return Math.fma(x2 - x1, ratio, x1);
   }
 
   /*
    * Computes the mean of a centroid after merging in the given value with weight w,
    * where weight is the total weight of the centroid including w.
-   * The intermediate (value - mean) or its product with w can overflow to infinity
-   * even when both inputs are finite (e.g. means near opposite ends of the double range),
-   * which eventually turns the stored mean into NaN. In that case fall back to
-   * the overflow-safe weighted average, which stays finite.
+   * Normalize w before multiplying to avoid overflowing the product. If the difference
+   * itself overflows, the inputs have opposite signs and need the scaled weighted average.
    */
   private static double mergedMean(final double mean, final double value, final long w, final long weight) {
-    final double newMean = mean + (((value - mean) * w) / weight);
-    if (Double.isFinite(newMean)) { return newMean; }
+    final double delta = value - mean;
+    if (Double.isFinite(delta)) { return Math.fma(delta, (double) w / weight, mean); }
     return weightedAverage(mean, weight - w, value, w);
   }
 }
