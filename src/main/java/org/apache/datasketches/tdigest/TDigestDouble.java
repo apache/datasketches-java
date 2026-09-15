@@ -103,7 +103,7 @@ public final class TDigestDouble {
   public void update(final double value) {
     if (!Double.isFinite(value)) { return; }
     Math.addExact(getTotalWeight(), 1);
-    if (numBuffered_ == (centroidsCapacity_ * BUFFER_MULTIPLIER)) { compress(); }
+    if (numBuffered_ >= (centroidsCapacity_ * BUFFER_MULTIPLIER)) { compress(); }
     bufferValues_[numBuffered_] = value;
     numBuffered_++;
     minValue_ = Math.min(minValue_, value);
@@ -440,7 +440,7 @@ public final class TDigestDouble {
       return new TDigestDouble(reverseMerge, k, value, value, new double[] {value}, new long[] {1}, 1, null);
     }
     final int valueBytes = isFloat ? Float.BYTES : Double.BYTES;
-    checkSerializedSize(seg, 16 + (2 * valueBytes));
+    checkSerializedSize(seg, 16 + (2L * valueBytes));
     final int numCentroids = posSeg.getInt();
     final int numBuffered = posSeg.getInt();
     checkDeserializedCounts(k, numCentroids, numBuffered);
@@ -570,9 +570,9 @@ public final class TDigestDouble {
   }
 
   private static void checkDeserializedCounts(final short k, final int numCentroids, final int numBuffered) {
-    final int capacity = centroidsCapacity(k);
-    if ((numCentroids < 0) || (numCentroids > capacity) || (numBuffered < 0)
-        || (numBuffered > (capacity * BUFFER_MULTIPLIER)) || ((numCentroids + numBuffered) == 0)) {
+    checkK(k);
+    if ((numCentroids < 0) || (numBuffered < 0) || (numCentroids > (Integer.MAX_VALUE - numBuffered))
+        || ((numCentroids + numBuffered) == 0)) {
       throw new SketchesArgumentException("Invalid TDigest counts: centroids=" + numCentroids + ", buffered=" + numBuffered);
     }
   }
@@ -605,8 +605,8 @@ public final class TDigestDouble {
       .append(" Compression: ").append(k_).append(LS)
       .append(" Centroids: ").append(numCentroids_).append(LS)
       .append(" Buffered: ").append(numBuffered_).append(LS)
-      .append(" Centroids Capacity: ").append(centroidsCapacity_).append(LS)
-      .append(" Buffer Capacity: ").append(centroidsCapacity_ * BUFFER_MULTIPLIER).append(LS)
+      .append(" Centroids Capacity: ").append(centroidMeans_.length).append(LS)
+      .append(" Buffer Capacity: ").append(bufferValues_.length).append(LS)
       .append("Centroids Weight: ").append(centroidsWeight_).append(LS)
       .append(" Total Weight: ").append(getTotalWeight()).append(LS)
       .append(" Reverse Merge: ").append(reverseMerge_).append(LS);
@@ -637,10 +637,15 @@ public final class TDigestDouble {
     k_ = k;
     minValue_ = min;
     maxValue_ = max;
-    centroidsCapacity_ = centroidsCapacity(k);
-    centroidMeans_ = new double[centroidsCapacity_];
-    centroidWeights_ = new long[centroidsCapacity_];
-    bufferValues_ =  new double[centroidsCapacity_ * BUFFER_MULTIPLIER];
+    checkK(k);
+    final int fudge = k < 30 ? 30 : 10;
+    centroidsCapacity_ = (k * 2) + fudge;
+    // Compression thresholds are local sizing choices, not serialization limits.
+    final int centroidSlots = Math.max(centroidsCapacity_, means == null ? 0 : means.length);
+    final int bufferSlots = Math.max(centroidsCapacity_ * BUFFER_MULTIPLIER, buffer == null ? 0 : buffer.length);
+    centroidMeans_ = new double[centroidSlots];
+    centroidWeights_ = new long[centroidSlots];
+    bufferValues_ = new double[bufferSlots];
     numCentroids_ = 0;
     numBuffered_ = 0;
     centroidsWeight_ = weight;
@@ -655,10 +660,8 @@ public final class TDigestDouble {
     }
   }
 
-  private static int centroidsCapacity(final short k) {
+  private static void checkK(final short k) {
     if (k < 10) { throw new SketchesArgumentException("k must be at least 10"); }
-    final int fudge = k < 30 ? 30 : 10;
-    return (k * 2) + fudge;
   }
 
   // assumes that there is enough room in the input arrays to add centroids from this TDigest

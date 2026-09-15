@@ -65,6 +65,21 @@ public class TDigestDoubleTest {
   }
 
   @Test
+  public void repeatedValuesAtSingletonInterpolationBoundary() {
+    final TDigestDouble td = new TDigestDouble();
+    for (int i = 0; i < 20; i++) { td.update(1); }
+    assertEquals(td.getQuantile(0.9), 1.0);
+  }
+
+  @Test
+  public void emptySplitPointsDefineOneBin() {
+    final TDigestDouble td = new TDigestDouble();
+    td.update(1);
+    assertEquals(td.getCDF(new double[0]), new double[] {1});
+    assertEquals(td.getPMF(new double[0]), new double[] {1});
+  }
+
+  @Test
   public void manyValues() {
     final TDigestDouble td = new TDigestDouble();
     final int n = 10000;

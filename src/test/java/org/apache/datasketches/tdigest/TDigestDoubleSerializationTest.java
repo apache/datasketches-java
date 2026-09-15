@@ -60,6 +60,78 @@ public class TDigestDoubleSerializationTest {
     assertEquals(restored.getQuantile(0.5), 5.0);
   }
 
+  @Test
+  public void quantileInterpolationApproachesNearerCentroid() {
+    final byte[] bytes = serialize(false, false, -1, 21,
+        new double[] {0, 10, 20}, new double[] {4, 4, 4}, new double[0]);
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
+    // The first two centroids lie at ranks 2/12 and 6/12. Moving across this
+    // interval must approach the right centroid, not move back toward the left.
+    assertEquals(td.getQuantile(2.0 / 12), 0.0, 1e-12);
+    assertEquals(td.getQuantile(3.0 / 12), 2.5, 1e-12);
+    assertEquals(td.getQuantile(4.0 / 12), 5.0, 1e-12);
+    assertEquals(td.getQuantile(5.0 / 12), 7.5, 1e-12);
+    assertEquals(td.getQuantile(6.0 / 12), 10.0, 1e-12);
+  }
+
+  @Test
+  public void queryTailsAreSymmetric() {
+    final byte[] bytes = serialize(false, false, 0, 100,
+        new double[] {10, 50, 90}, new double[] {10, 10, 10}, new double[0]);
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
+    assertEquals(td.getQuantile(0.9), 95.0, 1e-12);
+    assertEquals(td.getQuantile(29.0 / 30), 100.0, 1e-12);
+    assertEquals(td.getQuantile(1.0 / 30), 0.0, 1e-12);
+    assertEquals(td.getQuantile(5.0 / 30), 10.0, 1e-12);
+    assertEquals(td.getRank(5), 0.1, 1e-12);
+    assertEquals(td.getRank(95), 0.9, 1e-12);
+    assertEquals(td.getCDF(new double[] {5, 95}), new double[] {0.1, 0.9, 1.0}, 1e-12);
+    assertEquals(td.getPMF(new double[] {5, 95}), new double[] {0.1, 0.8, 0.1}, 1e-12);
+  }
+
+  @Test(dataProvider = "formats")
+  public void centroidsBeyondLocalCapacity(final boolean compat, final boolean isFloat) {
+    // k=100 normally allocates 210 centroid slots, but that is not a wire-format limit.
+    final double[] means = new double[211];
+    final double[] weights = new double[means.length];
+    for (int i = 0; i < means.length; i++) {
+      means[i] = i;
+      weights[i] = 1;
+    }
+    final byte[] bytes = serialize(compat, isFloat, 0, 210, means, weights, new double[0]);
+    final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes), isFloat);
+    assertEquals(td.toByteArray(), serialize(false, false, 0, 210, means, weights, new double[0]));
+    assertEquals(td.getQuantile(0.5), 105.0);
+    final TDigestDouble merged = new TDigestDouble((short) 100);
+    merged.merge(td);
+    assertEquals(merged.getTotalWeight(), means.length);
+    td.update(211);
+    assertEquals(TDigestDouble.heapify(MemorySegment.ofArray(td.toByteArray())).getTotalWeight(), means.length + 1);
+  }
+
+  @Test(dataProvider = "precisions")
+  public void bufferedValuesBeyondLocalCapacity(final boolean isFloat) {
+    // A producer may serialize more than this implementation's 840 buffered values.
+    // Exercise both buffer-only and mixed images, then cross several update boundaries.
+    final double[] buffered = new double[841];
+    Arrays.fill(buffered, 10);
+    buffered[0] = 0;
+    for (final double[] means : new double[][] {new double[0], {0, 10}}) {
+      final double[] weights = new double[means.length];
+      Arrays.fill(weights, 1);
+      final byte[] bytes = serialize(false, isFloat, 0, 10, means, weights, buffered);
+      final TDigestDouble td = TDigestDouble.heapify(MemorySegment.ofArray(bytes), isFloat);
+      assertEquals(td.getTotalWeight(), buffered.length + means.length);
+      for (int i = 0; i < 10000; i++) { td.update(10); }
+      assertEquals(td.getTotalWeight(), 10000 + buffered.length + means.length);
+      assertEquals(td.getMinValue(), 0.0);
+      assertEquals(td.getMaxValue(), 10.0);
+      assertEquals(td.getQuantile(0.5), 10.0);
+      final TDigestDouble restored = TDigestDouble.heapify(MemorySegment.ofArray(td.toByteArray()));
+      assertEquals(restored.getTotalWeight(), td.getTotalWeight());
+    }
+  }
+
   @Test(dataProvider = "formats")
   public void invalidExtremaAndMeans(final boolean compat, final boolean isFloat) {
     final double[][] extrema = {{2, 1}, {Double.NaN, 1}, {0, Double.POSITIVE_INFINITY}};
