@@ -46,6 +46,7 @@ import static org.apache.datasketches.common.Util.isPowerOf2;
 import static org.apache.datasketches.common.Util.longToBytes;
 import static org.apache.datasketches.common.Util.milliSecToString;
 import static org.apache.datasketches.common.Util.nanoSecToString;
+import static org.apache.datasketches.common.Util.numDigits;
 import static org.apache.datasketches.common.Util.numberOfLeadingOnes;
 import static org.apache.datasketches.common.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
@@ -239,6 +240,25 @@ public class UtilTest {
     out = characterPad(s, 30, 'z', false);
     println(out);
     assertEquals(out,"zzzzzzzzzzzzPad 30, prepend z:");
+  }
+
+  /**
+   * Check all the transition points where the number of decimal characters change.
+   */
+  @Test
+  public void checkNumDigits() {
+    for (long n = 1; n > 0; n *= 10) { //n goes negative on rollover, which halts the loop
+      checkN(n);
+      checkN(n - 1);
+      checkN(-n);
+      checkN(-n + 1);
+    }
+    checkN(Long.MAX_VALUE);
+    checkN(Long.MIN_VALUE);
+  }
+
+  private static void checkN(final long n) {
+    assertEquals(numDigits(n), String.valueOf(n).length());
   }
 
   @Test
