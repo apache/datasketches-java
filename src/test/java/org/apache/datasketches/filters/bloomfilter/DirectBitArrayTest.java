@@ -217,6 +217,7 @@ public class DirectBitArrayTest {
     final DirectBitArray dba = DirectBitArray.writableWrap(wseg, false);
     assertThrows(SketchesArgumentException.class, () -> dba.union(new HeapBitArray(64)));
     assertThrows(SketchesArgumentException.class, () -> dba.intersect(new HeapBitArray(512)));
+    assertThrows(SketchesArgumentException.class, () -> dba.andNot(new HeapBitArray(512)));
   }
 
   @Test
@@ -242,5 +243,30 @@ public class DirectBitArrayTest {
 
     ba3.union(ba2);
     assertEquals(ba3.getNumBitsSet(), (3 * n) / 2);
+  }
+
+  @Test
+  public void validAndNotTest() {
+    final long numBits = 64;
+    final int sizeBytes = (int) BitArray.getSerializedSizeBytes(64);
+    final DirectBitArray ba1 = DirectBitArray.initialize(numBits, MemorySegment.ofArray(new byte[sizeBytes]));
+    final DirectBitArray ba2 = DirectBitArray.initialize(numBits, MemorySegment.ofArray(new byte[sizeBytes]));
+
+    final int n = 10;
+    for (int i = 0; i < n; ++i) {
+      ba1.getAndSetBit(i);
+      ba2.getAndSetBit(i + (n / 2));
+    }
+    assertEquals(ba1.getNumBitsSet(), n);
+    assertEquals(ba2.getNumBitsSet(), n);
+
+    ba1.andNot(ba2);
+    assertEquals(ba1.getNumBitsSet(), n / 2);
+    for (int i = 0; i < (n / 2); ++i) {
+      assertTrue(ba1.getBit(i));
+    }
+    for (int i = n / 2; i < n; ++i) {
+      assertFalse(ba1.getBit(i));
+    }
   }
 }

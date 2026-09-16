@@ -147,6 +147,36 @@ public class HeapBitArrayTest {
     assertEquals(ba3.getNumBitsSet(), (3 * n) / 2);
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void invalidAndNotTest() {
+    final HeapBitArray ba = new HeapBitArray(128);
+    ba.andNot(new HeapBitArray(64));
+  }
+
+  @Test
+  public void validAndNotTest() {
+    final HeapBitArray ba1 = new HeapBitArray(64);
+    final HeapBitArray ba2 = new HeapBitArray(64);
+
+    final int n = 10;
+    for (int i = 0; i < n; ++i) {
+      ba1.getAndSetBit(i);
+      ba2.getAndSetBit(i + (n / 2));
+    }
+    assertEquals(ba1.getNumBitsSet(), n);
+    assertEquals(ba2.getNumBitsSet(), n);
+
+    ba1.andNot(ba2);
+    // bits [0, n/2) remain; bits [n/2, n) cleared
+    assertEquals(ba1.getNumBitsSet(), n / 2);
+    for (int i = 0; i < (n / 2); ++i) {
+      assertTrue(ba1.getBit(i));
+    }
+    for (int i = n / 2; i < n; ++i) {
+      assertFalse(ba1.getBit(i));
+    }
+  }
+
   @Test
   public void serializeEmptyTest() {
     final HeapBitArray ba = new HeapBitArray(64);

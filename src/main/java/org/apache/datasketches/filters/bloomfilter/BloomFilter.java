@@ -703,13 +703,50 @@ public final class BloomFilter implements MemorySegmentStatus {
 
   /**
    * Inverts all the bits of the BloomFilter. Approximately inverts the notion of set-membership.
+   *
+   * @deprecated Bit inversion has no sound set-membership interpretation. An inverted filter is a
+   * strictly worse absence oracle than the original, and updates after inversion have no checkable
+   * meaning. Use {@link #difference(BloomFilter)} for the approximate set-difference (A NOT B) use
+   * case {@code invert} was meant to enable. See
+   * <a href="https://github.com/apache/datasketches-java/issues/766">#766</a>.
    */
+  @Deprecated
   public void invert() {
     bitArray_.invert();
   }
 
   /**
-   * Helps identify if two BloomFilters may be unioned or intersected.
+   * Computes the approximate set difference with another filter via bitwise AND-NOT
+   * ({@code this &= ~other}). After this operation, the filter approximates the set of items
+   * inserted into this filter but not into {@code other}:
+   * <ul>
+   *   <li>Items inserted into {@code other} always query {@code false}: they are excluded exactly.</li>
+   *   <li>Items inserted only into this filter keep querying {@code true} as long as none of their
+   *       hash positions is occupied in {@code other}. Unlike {@link #union(BloomFilter)} and
+   *       {@link #intersect(BloomFilter)}, this operation can drop items, with a probability that
+   *       grows with {@code other}'s load factor.</li>
+   *   <li>Items never inserted into this filter may still query {@code true} (false positives), at a
+   *       rate no higher than this filter's false positive rate before the operation.</li>
+   * </ul>
+   * This is the Bloom-filter form of the A NOT B operation exposed elsewhere in DataSketches
+   * (for example Theta {@code AnotB}). Compatible with the Rust {@code BloomFilter::difference}
+   * API.
+   *
+   * @param other A BloomFilter to subtract from this one. A {@code null} argument is a no-op.
+   * @throws SketchesArgumentException if the filters are not compatible (different seeds, hash
+   *         counts, or sizes)
+   */
+  public void difference(final BloomFilter other) {
+    if (other == null) { return; }
+    if (!isCompatible(other)) {
+      throw new SketchesArgumentException("Cannot difference sketches with different seeds, hash functions, or sizes");
+    }
+
+    bitArray_.andNot(other.bitArray_);
+  }
+
+  /**
+   * Helps identify if two BloomFilters may be unioned, intersected, or differenced.
    * @param other A BloomFilter to check for compatibility with this one
    * @return True if the filters are compatible, otherwise false
    */

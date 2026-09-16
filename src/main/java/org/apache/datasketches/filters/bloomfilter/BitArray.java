@@ -88,6 +88,9 @@ abstract class BitArray implements MemorySegmentStatus {
 
   abstract void invert();
 
+  // applies logical AND-NOT (this &= ~other), matching BitSet.andNot
+  abstract void andNot(final BitArray other);
+
   // prints the raw BitArray as 0s and 1s, one long per row
   @Override
   public String toString() {

@@ -167,5 +167,6 @@ public class DirectBitArrayRTest {
     assertThrows(SketchesReadOnlyException.class, () -> dba.invert());
     assertThrows(SketchesReadOnlyException.class, () -> dba.intersect(hba));
     assertThrows(SketchesReadOnlyException.class, () -> dba.union(hba));
+    assertThrows(SketchesReadOnlyException.class, () -> dba.andNot(hba));
   }
 }

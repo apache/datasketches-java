@@ -180,7 +180,9 @@ public class BloomFilterTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void inversionTest() {
+    // Deprecated path retained until invert() is removed; prefer difference().
     final long numBits = 8192;
     final int numHashes = 3;
 
@@ -195,12 +197,12 @@ public class BloomFilterTest {
     bf.invert();
     assertEquals(bf.getBitsUsed(), numBits - numBitsSet);
 
-    // original items should be mostly not-present
+    // inserted items are always absent after inversion (all their positions flipped to 0)
     int count = 0;
     for (int i = 0; i < n; ++i) {
       count += bf.query(Integer.toString(i)) ? 1 : 0;
     }
-    assertTrue(count < (numBits / 10));
+    assertEquals(count, 0);
 
     // many other items should be present
     count = 0;
@@ -227,6 +229,7 @@ public class BloomFilterTest {
     // mismatched seed
     final BloomFilter bf4 = BloomFilterBuilder.createBySize(numBits, numHashes, bf1.getSeed() - 1);
     assertThrows(SketchesArgumentException.class, () -> bf1.union(bf4));
+    assertThrows(SketchesArgumentException.class, () -> bf1.difference(bf4));
   }
 
   @Test
@@ -288,6 +291,68 @@ public class BloomFilterTest {
     }
 
     assertTrue(count < (numBits / 10)); // not being super strict
+  }
+
+  @Test
+  public void basicDifferenceTest() {
+    final long numBits = 8192;
+    final int numHashes = 5;
+
+    final BloomFilter left = BloomFilterBuilder.createBySize(numBits, numHashes);
+    final BloomFilter right = BloomFilterBuilder.createBySize(numBits, numHashes, left.getSeed());
+
+    final int n = 1024;
+    for (int i = 0; i < n; ++i) {
+      left.queryAndUpdate(i);
+      right.queryAndUpdate((n / 2) + i); // overlap [n/2, n)
+    }
+
+    final long bitsBefore = left.getBitsUsed();
+    left.difference(null); // no-op
+    left.difference(right);
+
+    // items only in the right filter / overlap are excluded exactly
+    for (int i = n / 2; i < (n + n / 2); ++i) {
+      assertFalse(left.query(i), "item " + i + " should be excluded by difference");
+    }
+    assertTrue(left.getBitsUsed() <= bitsBefore);
+
+    // disjoint left-only items should mostly remain; allow for hash collisions with right
+    int retained = 0;
+    for (int i = 0; i < (n / 2); ++i) {
+      retained += left.query(i) ? 1 : 0;
+    }
+    assertTrue(retained > (n / 4), "expected most left-only items retained, got " + retained);
+  }
+
+  @Test
+  public void differenceWithSelfClearsFilter() {
+    final BloomFilter bf = BloomFilterBuilder.createBySize(4096, 4);
+    for (int i = 0; i < 200; ++i) {
+      bf.queryAndUpdate(i);
+    }
+    assertFalse(bf.isEmpty());
+    final BloomFilter same = BloomFilter.heapify(MemorySegment.ofArray(bf.toByteArray()));
+    bf.difference(same);
+    assertTrue(bf.isEmpty());
+    assertEquals(bf.getBitsUsed(), 0);
+    assertFalse(bf.query(0));
+  }
+
+  @Test
+  public void differenceWithEmptyIsIdentity() {
+    final BloomFilter left = BloomFilterBuilder.createBySize(4096, 4, 42L);
+    left.queryAndUpdate("apple");
+    left.queryAndUpdate("banana");
+    final long bits = left.getBitsUsed();
+    final byte[] before = left.toByteArray();
+
+    final BloomFilter empty = BloomFilterBuilder.createBySize(4096, 4, 42L);
+    left.difference(empty);
+    assertEquals(left.getBitsUsed(), bits);
+    assertTrue(left.query("apple"));
+    assertTrue(left.query("banana"));
+    assertEquals(left.toByteArray(), before);
   }
 
   @Test

@@ -156,6 +156,11 @@ public class DirectBitArrayR extends BitArray {
   }
 
   @Override
+  void andNot(final BitArray other) {
+    throw new SketchesReadOnlyException("Attempt to call andNot() on read-only MemorySegment");
+  }
+
+  @Override
   protected void setLong(final int arrayIndex, final long value) {
     throw new SketchesReadOnlyException("Attempt to call setLong() on read-only MemorySegment");
   }
