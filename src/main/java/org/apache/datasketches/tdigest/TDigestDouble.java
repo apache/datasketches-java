@@ -117,6 +117,9 @@ public final class TDigestDouble {
    */
   public void merge(final TDigestDouble other) {
     if (other.isEmpty()) { return; }
+    // Extreme centroid means are not the true min/max when those centroids have weight > 1.
+    minValue_ = Math.min(minValue_, other.minValue_);
+    maxValue_ = Math.max(maxValue_, other.maxValue_);
     Math.addExact(getTotalWeight(), other.getTotalWeight());
     final int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
     final double[] values = new double[num];

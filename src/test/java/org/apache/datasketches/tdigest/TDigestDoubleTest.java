@@ -125,6 +125,33 @@ public class TDigestDoubleTest {
   }
 
   @Test
+  public void mergePreservesDeserializedMinMaxWithWeightedTails() {
+    final TDigestDouble source = new TDigestDouble();
+    source.update(0);
+    source.update(50);
+    source.update(90);
+    final byte[] bytes = source.toByteArray();
+    // serialized layout: preamble 16 bytes, min 8 bytes, max 8 bytes
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 16, -1.0);
+    MemorySegment.ofArray(bytes).set(ValueLayout.JAVA_DOUBLE_UNALIGNED, 24, 100.0);
+    final TDigestDouble other = TDigestDouble.heapify(MemorySegment.ofArray(bytes));
+    assertEquals(other.getMinValue(), -1.0);
+    assertEquals(other.getMaxValue(), 100.0);
+
+    final TDigestDouble empty = new TDigestDouble();
+    empty.merge(other);
+    assertEquals(empty.getMinValue(), -1.0);
+    assertEquals(empty.getMaxValue(), 100.0);
+
+    final TDigestDouble left = new TDigestDouble();
+    left.update(10);
+    left.update(20);
+    left.merge(other);
+    assertEquals(left.getMinValue(), -1.0);
+    assertEquals(left.getMaxValue(), 100.0);
+  }
+
+  @Test
   public void mergeLarge() {
     final int n = 10000;
     final TDigestDouble td1 = new TDigestDouble();
