@@ -199,6 +199,21 @@ final class DirectBitArray extends DirectBitArrayR {
   }
 
   @Override
+  void andNot(final BitArray other) {
+    if (getCapacity() != other.getCapacity()) {
+      throw new SketchesArgumentException("Cannot andNot bit arrays with unequal lengths");
+    }
+
+    numBitsSet_ = 0;
+    for (int i = 0; i < dataLength_; ++i) {
+      final long val = getLong(i) & ~other.getLong(i);
+      numBitsSet_ += Long.bitCount(val);
+      setLong(i, val);
+    }
+    wseg_.set(JAVA_LONG_UNALIGNED, NUM_BITS_OFFSET, numBitsSet_);
+  }
+
+  @Override
   protected void setLong(final int arrayIndex, final long value) {
     wseg_.set(JAVA_LONG_UNALIGNED, DATA_OFFSET + (arrayIndex << 3), value);
   }

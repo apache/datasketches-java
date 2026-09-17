@@ -202,6 +202,22 @@ final class HeapBitArray extends BitArray {
     }
   }
 
+  // applies logical AND-NOT (this &= ~other)
+  @Override
+  void andNot(final BitArray other) {
+    if (getCapacity() != other.getCapacity()) {
+      throw new SketchesArgumentException("Cannot andNot bit arrays with unequal lengths");
+    }
+
+    numBitsSet_ = 0;
+    for (int i = 0; i < data_.length; ++i) {
+      final long val = data_[i] & ~other.getLong(i);
+      numBitsSet_ += Long.bitCount(val);
+      data_[i] = val;
+    }
+    isDirty_ = false;
+  }
+
   void writeToSegmentAsStream(final PositionalSegment posSeg) { //position = 16
     posSeg.setInt(data_.length);
     posSeg.setInt(0); // unused
