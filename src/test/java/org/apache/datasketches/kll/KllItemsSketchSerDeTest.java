@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -124,6 +125,70 @@ public class KllItemsSketchSerDeTest {
     //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
     final byte[] bytes2 = sk3.toByteArray();
     assertEquals(bytes, bytes2);
+  }
+
+  @Test
+  // Querying a heap Items sketch before serialization must not corrupt the round-trip
+  // sorted view. CreateSortedView sorted a defensive copy from getTotalItemsArray() but
+  // still set levelZeroSorted, so heapify/wrap skipped sorting (#756).
+  public void serializeDeserializeAfterQueryHeapifyMatches() {
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(8, Comparator.naturalOrder(), serDe);
+    sk.update("a");
+    sk.update("b");
+    sk.update("c");
+    sk.update("d");
+    assertFalse(sk.isLevelZeroSorted());
+    sk.getQuantile(0.5, INCLUSIVE); // any query builds the sorted view
+    assertFalse(sk.isLevelZeroSorted()); // live level-0 was not sorted
+
+    final KllItemsSketch<String> rt = KllItemsSketch.heapify(
+        MemorySegment.ofArray(sk.toByteArray()), Comparator.naturalOrder(), serDe);
+    assertEquals(rt.getNumRetained(), sk.getNumRetained());
+    assertEquals(rt.getSortedView().getQuantiles(), sk.getSortedView().getQuantiles());
+    assertEquals(rt.getSortedView().getCumulativeWeights(), sk.getSortedView().getCumulativeWeights());
+    for (int i = 0; i <= 20; i++) {
+      final double rank = i / 20.0;
+      assertEquals(rt.getQuantile(rank, INCLUSIVE), sk.getQuantile(rank, INCLUSIVE),
+          "rank=" + rank);
+    }
+  }
+
+  @Test
+  public void serializeDeserializeAfterQueryWrapMatches() {
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(8, Comparator.naturalOrder(), serDe);
+    sk.update("a");
+    sk.update("b");
+    sk.update("c");
+    sk.update("d");
+    sk.getQuantile(0.5, INCLUSIVE);
+
+    final KllItemsSketch<String> rt = KllItemsSketch.wrap(
+        MemorySegment.ofArray(sk.toByteArray()), Comparator.naturalOrder(), serDe);
+    assertEquals(rt.getSortedView().getQuantiles(), sk.getSortedView().getQuantiles());
+    assertEquals(rt.getSortedView().getCumulativeWeights(), sk.getSortedView().getCumulativeWeights());
+    assertEquals(rt.getQuantile(0.5, INCLUSIVE), sk.getQuantile(0.5, INCLUSIVE));
+    assertEquals(rt.getQuantile(0.55, INCLUSIVE), sk.getQuantile(0.55, INCLUSIVE));
+  }
+
+  @Test
+  public void serializeDeserializeAfterQueryWithCompaction() {
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(8, Comparator.naturalOrder(), serDe);
+    for (int i = 1; i <= 8; i++) {
+      sk.update(String.valueOf((char) ('a' + i - 1)));
+    }
+    sk.getQuantile(0.5, INCLUSIVE);
+    assertFalse(sk.isLevelZeroSorted());
+
+    final KllItemsSketch<String> heapified = KllItemsSketch.heapify(
+        MemorySegment.ofArray(sk.toByteArray()), Comparator.naturalOrder(), serDe);
+    final KllItemsSketch<String> wrapped = KllItemsSketch.wrap(
+        MemorySegment.ofArray(sk.toByteArray()), Comparator.naturalOrder(), serDe);
+    for (int i = 0; i <= 20; i++) {
+      final double rank = i / 20.0;
+      final String expected = sk.getQuantile(rank, INCLUSIVE);
+      assertEquals(heapified.getQuantile(rank, INCLUSIVE), expected, "heapify rank=" + rank);
+      assertEquals(wrapped.getQuantile(rank, INCLUSIVE), expected, "wrap rank=" + rank);
+    }
   }
 
 }

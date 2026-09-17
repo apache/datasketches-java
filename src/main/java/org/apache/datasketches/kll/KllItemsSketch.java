@@ -426,7 +426,10 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
       if (!isLevelZeroSorted()) {
         Arrays.sort(srcQuantiles, srcLevelsArr[0], srcLevelsArr[1], comparator);
-        if (!hasMemorySegment()) { setLevelZeroSorted(true); }
+        // Do not setLevelZeroSorted(true). Unlike KllDoublesSketch, getTotalItemsArray()
+        // returns a defensive copy for the heap Items sketch (and a reconstituted array for
+        // direct), so this sort does not sort the live level-0. Setting the flag would make
+        // serialization claim level-0 is sorted and cause heapify/wrap to skip sorting (#756).
       }
       final int numQuantiles = getNumRetained();
       quantiles = (T[]) Array.newInstance(serDe.getClassOfT(), numQuantiles);
