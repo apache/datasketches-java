@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.frequencies;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+
 final class Util {
 
   private Util() {}
@@ -49,6 +51,18 @@ final class Util {
     key *= 0xc4ceb9fe1a85ec53L;
     key ^= key >>> 33;
     return key;
+  }
+
+  /**
+   * Checks the stream weight read from the serialized image of a non-empty sketch.
+   * @param streamWeight the stream weight
+   * @throws SketchesArgumentException if the stream weight is not positive
+   */
+  static void checkStreamWeight(final long streamWeight) {
+    if (streamWeight <= 0) {
+      throw new SketchesArgumentException(
+          "Possible Corruption: stream weight of a non-empty sketch must be positive: " + streamWeight);
+    }
   }
 
 }

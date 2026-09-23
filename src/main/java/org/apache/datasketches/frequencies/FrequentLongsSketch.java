@@ -42,6 +42,7 @@ import static org.apache.datasketches.frequencies.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.frequencies.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
+import static org.apache.datasketches.frequencies.Util.checkStreamWeight;
 
 import java.lang.foreign.MemorySegment;
 import java.util.ArrayList;
@@ -235,7 +236,7 @@ public class FrequentLongsSketch {
     final int familyID = extractFamilyID(pre0);         //Byte 2
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
-    final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
+    final boolean emptyFlag = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
 
     // Checks
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
@@ -253,17 +254,19 @@ public class FrequentLongsSketch {
       throw new SketchesArgumentException(
           "Possible Corruption: FamilyID must be " + actFamID + ": " + familyID);
     }
-    if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
+    if (emptyFlag ^ preLongsEq1) {                      //Byte 5 and Byte 0
       throw new SketchesArgumentException(
-          "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
+          "Possible Corruption: Empty flag does not match PreLongs: flags "
+            + extractFlags(pre0) + ", preLongs " + preLongs);
     }
 
-    if (empty) {
+    if (preLongsEq1) { //empty is determined by PreLongs
       return new FrequentLongsSketch(lgMaxMapSize, LG_MIN_MAP_SIZE);
     }
     //get full preamble
     final long[] preArr = new long[preLongs];
     MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, 0, preArr, 0, preLongs);
+    checkStreamWeight(preArr[2]);
 
     final FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
     fls.streamWeight = 0; //update after
@@ -319,11 +322,13 @@ public class FrequentLongsSketch {
       throw new SketchesArgumentException("Possible Corruption: Bad SerVer: " + serVer);
     }
     Family.FREQUENCY.checkFamilyID(famID);
-    final boolean empty = flags > 0;
-    if (!empty && (numActive == 0)) {
+    final boolean emptyFlag = (flags & EMPTY_FLAG_MASK) != 0;
+    if (emptyFlag != (streamWt == 0)) {
       throw new SketchesArgumentException(
-          "Possible Corruption: !Empty && NumActive=0;  strLen: " + numActive);
+          "Possible Corruption: Empty flag does not match stream weight: flags "
+            + flags + ", stream weight " + streamWt);
     }
+    if (streamWt != 0) { checkStreamWeight(streamWt); }
     final int numTokens = tokens.length;
     if ((2 * numActive) != (numTokens - STR_PREAMBLE_TOKENS - 2)) {
       throw new SketchesArgumentException(
@@ -499,12 +504,13 @@ public class FrequentLongsSketch {
   }
 
   /**
-   * Returns true if this sketch is empty
+   * Returns true if this sketch is empty, that is, it has not been updated with any positive count.
+   * A sketch that is not empty may retain no items if a purge removed all of them.
    *
    * @return true if this sketch is empty
    */
   public boolean isEmpty() {
-    return getNumActiveItems() == 0;
+    return streamWeight == 0;
   }
 
   /**
@@ -552,7 +558,7 @@ public class FrequentLongsSketch {
     final int serVer = SER_VER;                 //0
     final int famID = Family.FREQUENCY.getID(); //1
     final int lgMaxMapSz = lgMaxMapSize;        //2
-    final int flags = (hashMap.getNumActive() == 0) ? EMPTY_FLAG_MASK : 0; //3
+    final int flags = isEmpty() ? EMPTY_FLAG_MASK : 0; //3
     final String fmt = "%d,%d,%d,%d,%d,%d,";
     final String s =
         String.format(fmt, serVer, famID, lgMaxMapSz, flags, streamWeight, offset);
@@ -602,8 +608,10 @@ public class FrequentLongsSketch {
       MemorySegment.copy(preArr, 0, seg, JAVA_LONG_UNALIGNED, 0, preLongs);
 
       final int preBytes = preLongs << 3;
-      MemorySegment.copy(hashMap.getActiveValues(), 0, seg, JAVA_LONG_UNALIGNED, preBytes, activeItems);
-      MemorySegment.copy(hashMap.getActiveKeys(), 0, seg, JAVA_LONG_UNALIGNED, preBytes + (activeItems << 3), activeItems);
+      if (activeItems > 0) { //a purge may have removed all items
+        MemorySegment.copy(hashMap.getActiveValues(), 0, seg, JAVA_LONG_UNALIGNED, preBytes, activeItems);
+        MemorySegment.copy(hashMap.getActiveKeys(), 0, seg, JAVA_LONG_UNALIGNED, preBytes + (activeItems << 3), activeItems);
+      }
     }
     return outArr;
   }

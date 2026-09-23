@@ -72,6 +72,34 @@ public class FrequentItemsSketchCrossLanguageTest {
     }
   }
 
+  // lgMaxMapSize=8 -> capacity 192; the 193rd distinct item triggers a purge whose
+  // median (1) removes every counter: not empty, with no retained items
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
+  public void generateBinariesForCompatibilityTestingLongsSketchPurged() throws IOException {
+    final FrequentLongsSketch sk = new FrequentLongsSketch(1 << 8);
+    for (int i = 1; i <= 193; i++) {
+      sk.update(i);
+    }
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getNumActiveItems(), 0);
+    assertEquals(sk.getStreamLength(), 193);
+    assertEquals(sk.getMaximumError(), 1);
+    putBytesToJavaPath("frequent_long_purged_java.sk",  sk.toByteArray());
+  }
+
+  @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
+  public void generateBinariesForCompatibilityTestingStringsSketchPurged() throws IOException {
+    final FrequentItemsSketch<String> sk = new FrequentItemsSketch<>(1 << 8);
+    for (int i = 1; i <= 193; i++) {
+      sk.update(Integer.toString(i));
+    }
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getNumActiveItems(), 0);
+    assertEquals(sk.getStreamLength(), 193);
+    assertEquals(sk.getMaximumError(), 1);
+    putBytesToJavaPath("frequent_string_purged_java.sk",  sk.toByteArray(new ArrayOfStringsSerDe()));
+  }
+
   @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateBinariesForCompatibilityTestingStringsSketchAscii() throws IOException {
     final FrequentItemsSketch<String> sk = new FrequentItemsSketch<>(64);
@@ -99,6 +127,8 @@ public class FrequentItemsSketchCrossLanguageTest {
   public void checkJava() {
     longs(GroupLanguage.JAVA);
     strings(GroupLanguage.JAVA);
+    longsPurged(GroupLanguage.JAVA);
+    stringsPurged(GroupLanguage.JAVA);
     stringsAscii(GroupLanguage.JAVA);
     stringsUtf8(GroupLanguage.JAVA);
   }
@@ -107,14 +137,18 @@ public class FrequentItemsSketchCrossLanguageTest {
   public void checkCpp() {
     longs(GroupLanguage.CPP);
     strings(GroupLanguage.CPP);
-    stringsAscii(GroupLanguage.JAVA);
-    stringsUtf8(GroupLanguage.JAVA);
+    longsPurged(GroupLanguage.CPP);
+    stringsPurged(GroupLanguage.CPP);
+    stringsAscii(GroupLanguage.CPP);
+    stringsUtf8(GroupLanguage.CPP);
   }
 
   @Test(groups = {CHECK_GO_FILES})
   public void checkGo() {
     longs(GroupLanguage.GO);
     strings(GroupLanguage.GO);
+    longsPurged(GroupLanguage.GO);
+    stringsPurged(GroupLanguage.GO);
     stringsAscii(GroupLanguage.GO);
     stringsUtf8(GroupLanguage.GO);
   }
@@ -153,6 +187,28 @@ public class FrequentItemsSketchCrossLanguageTest {
       }
       assertEquals(sketch.getStreamLength(), n);
     }
+  }
+
+  private static void longsPurged(final GroupLanguage lang) {
+    final String fileName = "frequent_long_purged" + lang.sfx + ".sk";
+    final byte[] bytes = getFileBytes(lang.pth, fileName);
+    if (bytes.length == 0) { return; }
+    final FrequentLongsSketch sketch = FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes));
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getNumActiveItems(), 0);
+    assertEquals(sketch.getStreamLength(), 193);
+    assertEquals(sketch.getMaximumError(), 1);
+  }
+
+  private static void stringsPurged(final GroupLanguage lang) {
+    final String fileName = "frequent_string_purged" + lang.sfx + ".sk";
+    final byte[] bytes = getFileBytes(lang.pth, fileName);
+    if (bytes.length == 0) { return; }
+    final FrequentItemsSketch<String> sketch = FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getNumActiveItems(), 0);
+    assertEquals(sketch.getStreamLength(), 193);
+    assertEquals(sketch.getMaximumError(), 1);
   }
 
   private static void stringsAscii(final GroupLanguage lang) {
