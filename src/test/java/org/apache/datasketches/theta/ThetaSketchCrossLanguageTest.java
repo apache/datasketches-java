@@ -23,6 +23,7 @@ import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
 import static org.apache.datasketches.common.UtilityIO.GENERATE_JAVA_FILES;
+import static org.apache.datasketches.common.UtilityIO.LS;
 import static org.apache.datasketches.common.UtilityIO.getFileBytes;
 import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.testng.Assert.assertEquals;
@@ -32,6 +33,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.UtilityIO.GroupLanguage;
 import org.testng.annotations.Test;
 
@@ -92,6 +94,7 @@ public class ThetaSketchCrossLanguageTest {
     deserializeCompressedFromFile(GroupLanguage.CPP);
     deserializeNonEmptyNoEntriesUsingSegment(GroupLanguage.CPP);
     deserializeNonEmptyNoEntriesFromFile(GroupLanguage.CPP);
+    deserializeSketchesFromFile_crossBinary(GroupLanguage.CPP, GroupLanguage.JAVA);
   }
 
   @Test(groups = {CHECK_GO_FILES})
@@ -102,6 +105,7 @@ public class ThetaSketchCrossLanguageTest {
     deserializeCompressedFromFile(GroupLanguage.GO);
     deserializeNonEmptyNoEntriesUsingSegment(GroupLanguage.GO);
     deserializeNonEmptyNoEntriesFromFile(GroupLanguage.GO);
+    //deserializeSketchesFromFile_crossBinary(GroupLanguage.GO, GroupLanguage.JAVA);
   }
 
   private static void deserializeSketchesUsingSegment(final GroupLanguage lang) {
@@ -142,6 +146,23 @@ public class ThetaSketchCrossLanguageTest {
         assertTrue(it.get() < sketch.getThetaLong());
         assertTrue(it.get() > previous);
         previous = it.get();
+      }
+    }
+  }
+
+  private static void deserializeSketchesFromFile_crossBinary(final GroupLanguage lang1, final GroupLanguage lang2) {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    for (final int n: nArr) {
+      final String fileName1 = "theta_n" + n + lang1.sfx + ".sk";
+      final byte[] bytes1 = getFileBytes(lang1.pth, fileName1);
+      final String fileName2 = "theta_n" + n + lang2.sfx + ".sk";
+      final byte[] bytes2 = getFileBytes(lang2.pth, fileName2);
+      if (bytes1.length == 0 || bytes2.length == 0) { continue; }
+      try { assertEquals(bytes1, bytes2); }
+      catch (final AssertionError e) {
+        String err = "FileName1: " + fileName1 + ", FileName2: " + fileName2
+            + ", n: " + n;
+        throw new SketchesArgumentException(err + LS + e);
       }
     }
   }

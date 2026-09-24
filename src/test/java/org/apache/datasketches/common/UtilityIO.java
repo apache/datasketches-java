@@ -31,7 +31,7 @@ import java.util.Objects;
  * Utilities common to testing
  */
 public final class UtilityIO  {
-  private static final String LS = System.getProperty("line.separator");
+  public static final String LS = System.getProperty("line.separator");
   private static final Class<?> clazz = UtilityIO.class;
   private static final ClassLoader CL = clazz.getClassLoader();
   private static final String TEST_DATA_ROOT_PROP = "test.data.root";
