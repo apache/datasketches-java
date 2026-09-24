@@ -43,6 +43,7 @@ import static org.apache.datasketches.frequencies.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.frequencies.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
+import static org.apache.datasketches.frequencies.Util.checkStreamWeight;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
@@ -242,7 +243,7 @@ public class FrequentItemsSketch<T> {
     final int familyID = extractFamilyID(pre0);         //Byte 2
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //Byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //Byte 4
-    final boolean empty = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
+    final boolean emptyFlag = (extractFlags(pre0) & EMPTY_FLAG_MASK) != 0; //Byte 5
 
     // Checks
     final boolean preLongsEq1 = (preLongs == 1);        //Byte 0
@@ -260,17 +261,19 @@ public class FrequentItemsSketch<T> {
       throw new SketchesArgumentException(
           "Possible Corruption: FamilyID must be " + actFamID + ": " + familyID);
     }
-    if (empty ^ preLongsEq1) {                          //Byte 5 and Byte 0
+    if (emptyFlag ^ preLongsEq1) {                      //Byte 5 and Byte 0
       throw new SketchesArgumentException(
-          "Possible Corruption: (PreLongs == 1) ^ Empty == True.");
+          "Possible Corruption: Empty flag does not match PreLongs: flags "
+            + extractFlags(pre0) + ", preLongs " + preLongs);
     }
 
-    if (empty) {
+    if (preLongsEq1) { //empty is determined by PreLongs
       return new FrequentItemsSketch<>(lgMaxMapSize, LG_MIN_MAP_SIZE);
     }
     //get full preamble
     final long[] preArr = new long[preLongs];
     MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, 0, preArr, 0, preLongs);
+    checkStreamWeight(preArr[2]);
 
     final FrequentItemsSketch<T> fis = new FrequentItemsSketch<>(lgMaxMapSize, lgCurMapSize);
     fis.streamWeight = 0; //update after
@@ -448,12 +451,13 @@ public class FrequentItemsSketch<T> {
   }
 
   /**
-   * Returns true if this sketch is empty
+   * Returns true if this sketch is empty, that is, it has not been updated with any positive count.
+   * A sketch that is not empty may retain no items if a purge removed all of them.
    *
    * @return true if this sketch is empty
    */
   public boolean isEmpty() {
-    return getNumActiveItems() == 0;
+    return streamWeight == 0;
   }
 
   /**
@@ -506,7 +510,8 @@ public class FrequentItemsSketch<T> {
       outBytes = 8;
     } else {
       preLongs = Family.FREQUENCY.getMaxPreLongs();
-      bytes = serDe.serializeToByteArray(hashMap.getActiveKeys());
+      //a purge may have removed all items
+      bytes = (activeItems > 0) ? serDe.serializeToByteArray(hashMap.getActiveKeys()) : new byte[0];
       outBytes = ((preLongs + activeItems) << 3) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
@@ -533,8 +538,10 @@ public class FrequentItemsSketch<T> {
       MemorySegment.copy(preArr, 0, seg, JAVA_LONG_UNALIGNED, 0, preLongs);
 
       final int preBytes = preLongs << 3;
-      MemorySegment.copy(hashMap.getActiveValues(), 0, seg, JAVA_LONG_UNALIGNED, preBytes, activeItems);
-      MemorySegment.copy(bytes, 0, seg, JAVA_BYTE, preBytes + (activeItems << 3), bytes.length);
+      if (activeItems > 0) {
+        MemorySegment.copy(hashMap.getActiveValues(), 0, seg, JAVA_LONG_UNALIGNED, preBytes, activeItems);
+        MemorySegment.copy(bytes, 0, seg, JAVA_BYTE, preBytes + (activeItems << 3), bytes.length);
+      }
     }
     return outArr;
   }

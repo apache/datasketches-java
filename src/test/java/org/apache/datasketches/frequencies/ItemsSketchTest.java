@@ -25,6 +25,7 @@ import static org.apache.datasketches.frequencies.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.frequencies.PreambleUtil.STREAMLENGTH_LONG;
 import static org.apache.datasketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -414,6 +415,90 @@ public class ItemsSketchTest {
     }
   }
 
+
+  // lgMaxMapSize=8 -> capacity 192; the 193rd distinct item triggers a purge whose
+  // median (1) removes every counter: not empty, no retained items
+  private static FrequentItemsSketch<String> purgedToZero() {
+    final FrequentItemsSketch<String> sk = new FrequentItemsSketch<>(1 << 8);
+    for (int i = 0; i < 193; i++) { sk.update(Integer.toString(i)); }
+    return sk;
+  }
+
+  @Test
+  public void checkPurgedToZeroIsNotEmpty() {
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final FrequentItemsSketch<String> sk = purgedToZero();
+    assertEquals(sk.getNumActiveItems(), 0);
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getStreamLength(), 193);
+    assertEquals(sk.getMaximumError(), 1);
+
+    final byte[] bytes = sk.toByteArray(serDe);
+    assertEquals(bytes.length, 32);
+    assertEquals(bytes[PREAMBLE_LONGS_BYTE], 4);
+    assertEquals(bytes[FLAGS_BYTE], 0);
+
+    final FrequentItemsSketch<String> sk2 = FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), serDe);
+    assertFalse(sk2.isEmpty());
+    assertEquals(sk2.getNumActiveItems(), 0);
+    assertEquals(sk2.getStreamLength(), 193);
+    assertEquals(sk2.getMaximumError(), 1);
+
+    final FrequentItemsSketch<String> sk3 = new FrequentItemsSketch<>(1 << 8);
+    sk3.update("x");
+    sk3.merge(sk);
+    assertEquals(sk3.getStreamLength(), 194);
+    assertEquals(sk3.getMaximumError(), 1);
+  }
+
+  @Test
+  public void checkResetAfterPurge() {
+    final FrequentItemsSketch<String> sk = purgedToZero();
+    sk.reset();
+    assertTrue(sk.isEmpty());
+    assertEquals(sk.getStreamLength(), 0);
+    assertEquals(sk.getMaximumError(), 0);
+    assertEquals(sk.toByteArray(new ArrayOfStringsSerDe()).length, 8);
+  }
+
+  @Test
+  public void checkEmptyWithEitherLegacyFlag() {
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final byte[] bytes = new FrequentItemsSketch<String>(1 << 8).toByteArray(serDe);
+    assertEquals(bytes.length, 8);
+    assertEquals(bytes[FLAGS_BYTE], 5);
+    for (final int flags : new int[] {1, 4, 5}) {
+      bytes[FLAGS_BYTE] = (byte) flags;
+      assertTrue(FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), serDe).isEmpty());
+    }
+  }
+
+  @Test
+  public void checkCorruptEmptyPreamble() {
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final byte[] empty = new FrequentItemsSketch<String>(1 << 8).toByteArray(serDe);
+    empty[FLAGS_BYTE] = 0; //preLongs 1 without empty flag
+    tryBadBytes(empty);
+
+    final FrequentItemsSketch<String> sk = new FrequentItemsSketch<>(1 << 8);
+    sk.update("a");
+    final byte[] flagged = sk.toByteArray(serDe);
+    flagged[FLAGS_BYTE] = 5; //preLongs 4 with empty flag
+    tryBadBytes(flagged);
+
+    final byte[] zeroWeight = sk.toByteArray(serDe);
+    MemorySegment.ofArray(zeroWeight).set(JAVA_LONG_UNALIGNED, STREAMLENGTH_LONG, 0L);
+    tryBadBytes(zeroWeight);
+  }
+
+  private static void tryBadBytes(final byte[] bytes) {
+    try {
+      FrequentItemsSketch.getInstance(MemorySegment.ofArray(bytes), new ArrayOfStringsSerDe());
+      fail();
+    } catch (final SketchesArgumentException e) {
+      //expected
+    }
+  }
 
   /**
    * @param s value to print

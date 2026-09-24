@@ -27,6 +27,7 @@ import static org.apache.datasketches.frequencies.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.frequencies.PreambleUtil.STREAMLENGTH_LONG;
 import static org.apache.datasketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -533,15 +534,45 @@ public class LongsSketchTest {
     }
   }
 
+  @Test
+  public void checkStringDeserNonEmptyNoItems() {
+    final String s = "1,"  //serVer
+             + "10," //FamID
+             + "3,"  //lgMaxMapSz
+             + "0,"  //Empty Flag = false
+             + "7,"  //stream Len so far
+             + "1,"  //error offset
+             + "0,"  //numActive: a purge removed all items
+             + "8,"; //curMapLen
+    final FrequentLongsSketch sk = FrequentLongsSketch.getInstance(s);
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getNumActiveItems(), 0);
+    assertEquals(sk.getStreamLength(), 7);
+    assertEquals(sk.getMaximumError(), 1);
+  }
+
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkStringDeserEmptyCorrupt() {
+  public void checkStringDeserEmptyFlagMissing() {
     final String s = "1,"  //serVer
              + "10," //FamID
              + "3,"  //lgMaxMapSz
              + "0,"  //Empty Flag = false ... corrupted, should be true
+             + "0,"  //stream Len: empty
+             + "0,"  //error offset
+             + "0,"  //numActive
+             + "8,"; //curMapLen
+    FrequentLongsSketch.getInstance(s);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkStringDeserEmptyFlagWithStreamLength() {
+    final String s = "1,"  //serVer
+             + "10," //FamID
+             + "3,"  //lgMaxMapSz
+             + "5,"  //Empty Flag = true ... corrupted, should be false
              + "7,"  //stream Len so far
              + "1,"  //error offset
-             + "0,"  //numActive ...conflict with empty
+             + "0,"  //numActive
              + "8,"; //curMapLen
     FrequentLongsSketch.getInstance(s);
   }
@@ -597,6 +628,94 @@ public class LongsSketchTest {
     if (rows.length > 0) { //check equals null case
       final Row nullRow = null;
       assertFalse(rows[0].equals(nullRow));
+    }
+  }
+
+  // lgMaxMapSize=8 -> capacity 192; the 193rd distinct item triggers a purge whose
+  // median (1) removes every counter: not empty, no retained items
+  private static FrequentLongsSketch purgedToZero() {
+    final FrequentLongsSketch sk = new FrequentLongsSketch(1 << 8);
+    for (long i = 0; i < 193; i++) { sk.update(i); }
+    return sk;
+  }
+
+  @Test
+  public void checkPurgedToZeroIsNotEmpty() {
+    final FrequentLongsSketch sk = purgedToZero();
+    assertEquals(sk.getNumActiveItems(), 0);
+    assertFalse(sk.isEmpty());
+    assertEquals(sk.getStreamLength(), 193);
+    assertEquals(sk.getMaximumError(), 1);
+
+    final byte[] bytes = sk.toByteArray();
+    assertEquals(bytes.length, 32);
+    assertEquals(bytes[PREAMBLE_LONGS_BYTE], 4);
+    assertEquals(bytes[FLAGS_BYTE], 0);
+    assertEquals(sk.getStorageBytes(), 32);
+
+    final FrequentLongsSketch sk2 = FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes));
+    assertFalse(sk2.isEmpty());
+    assertEquals(sk2.getNumActiveItems(), 0);
+    assertEquals(sk2.getStreamLength(), 193);
+    assertEquals(sk2.getMaximumError(), 1);
+
+    final FrequentLongsSketch sk3 = FrequentLongsSketch.getInstance(sk.serializeToString());
+    assertFalse(sk3.isEmpty());
+    assertEquals(sk3.getStreamLength(), 193);
+    assertEquals(sk3.getMaximumError(), 1);
+    assertEquals(sk3.serializeToString(), sk.serializeToString());
+
+    final FrequentLongsSketch sk4 = new FrequentLongsSketch(1 << 8);
+    sk4.update(999_999);
+    sk4.merge(sk);
+    assertEquals(sk4.getStreamLength(), 194);
+    assertEquals(sk4.getMaximumError(), 1);
+  }
+
+  @Test
+  public void checkResetAfterPurge() {
+    final FrequentLongsSketch sk = purgedToZero();
+    sk.reset();
+    assertTrue(sk.isEmpty());
+    assertEquals(sk.getStreamLength(), 0);
+    assertEquals(sk.getMaximumError(), 0);
+    assertEquals(sk.toByteArray().length, 8);
+  }
+
+  @Test
+  public void checkEmptyWithEitherLegacyFlag() {
+    final byte[] bytes = new FrequentLongsSketch(1 << 8).toByteArray();
+    assertEquals(bytes.length, 8);
+    assertEquals(bytes[FLAGS_BYTE], 5);
+    for (final int flags : new int[] {1, 4, 5}) {
+      bytes[FLAGS_BYTE] = (byte) flags;
+      assertTrue(FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes)).isEmpty());
+    }
+  }
+
+  @Test
+  public void checkCorruptEmptyPreamble() {
+    final byte[] empty = new FrequentLongsSketch(1 << 8).toByteArray();
+    empty[FLAGS_BYTE] = 0; //preLongs 1 without empty flag
+    tryBadBytes(empty);
+
+    final FrequentLongsSketch sk = new FrequentLongsSketch(1 << 8);
+    sk.update(1);
+    final byte[] flagged = sk.toByteArray();
+    flagged[FLAGS_BYTE] = 5; //preLongs 4 with empty flag
+    tryBadBytes(flagged);
+
+    final byte[] zeroWeight = sk.toByteArray();
+    MemorySegment.ofArray(zeroWeight).set(JAVA_LONG_UNALIGNED, STREAMLENGTH_LONG, 0L);
+    tryBadBytes(zeroWeight);
+  }
+
+  private static void tryBadBytes(final byte[] bytes) {
+    try {
+      FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes));
+      fail();
+    } catch (final SketchesArgumentException e) {
+      //expected
     }
   }
 

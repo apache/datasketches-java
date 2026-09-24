@@ -57,8 +57,17 @@ import org.apache.datasketches.common.SketchesArgumentException;
  *      ||    31    |   30   |   29   |   28   |   27   |   26   |   25   |    24          |
  *  3   ||---------------------------------offset------------------------------------------|
  *      ||    39    |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
- *  5   ||----------start of values buffer, followed by keys buffer------------------------|
+ *  4   ||----------start of values buffer, followed by keys buffer------------------------|
  * </pre>
+ *
+ * <p>Emptiness is determined by PreambleLongs: 1 if the sketch is empty, 4 otherwise.
+ * A sketch is empty if its stream length is zero. A non-empty sketch may have zero active items
+ * if a purge removed all of them; it is serialized with the full preamble and no items.</p>
+ *
+ * <p>Flags (byte 5): only the empty flag is defined, as bits 0 and 2 (mask 0x05). Due to a
+ * historical mistake C++ and Java used different bits, so both are set when writing and either
+ * is accepted when reading. It is only checked for consistency with PreambleLongs.
+ * No other flag bits are defined.</p>
  *
  * @author Lee Rhodes
  */
@@ -74,7 +83,6 @@ final class PreambleUtil {
   static final int LG_MAX_MAP_SIZE_BYTE      = 3;
   static final int LG_CUR_MAP_SIZE_BYTE      = 4;
   static final int FLAGS_BYTE                = 5;
-  static final int SER_DE_ID_SHORT           = 6;  // to 7
   static final int ACTIVE_ITEMS_INT          = 8;  // to 11 : 0 to 4 in pre1
   static final int STREAMLENGTH_LONG         = 16; // to 23 : pre2
   static final int OFFSET_LONG               = 24; // to 31 : pre3
