@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.common.UtilityIO.CHECK_CL_BINARY_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_CPP_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_GO_FILES;
 import static org.apache.datasketches.common.UtilityIO.CHECK_JAVA_FILES;
@@ -70,20 +71,52 @@ public class HllSketchCrossLanguageTest {
   @Test(groups = {CHECK_JAVA_FILES}, priority = 1)
   public void checkJava() {
     deserializeHll(GroupLanguage.JAVA);
-    deserializeHll_crossBinary(GroupLanguage.JAVA, GroupLanguage.CPP);
-
   }
 
   @Test(groups = {CHECK_CPP_FILES})
   public void checkCpp() {
     deserializeHll(GroupLanguage.CPP);
-    deserializeHll_crossBinary(GroupLanguage.JAVA, GroupLanguage.CPP);
   }
 
   @Test(groups = {CHECK_GO_FILES})
   public void checkGo() {
     deserializeHll(GroupLanguage.GO);
-    deserializeHll_crossBinary(GroupLanguage.JAVA, GroupLanguage.GO);
+  }
+
+  @Test(groups = {CHECK_CL_BINARY_FILES})
+  public void checkBinaries1() {
+    deserializeHll_crossBinary(GroupLanguage.CPP, GroupLanguage.JAVA);
+  }
+
+  @Test(groups = {CHECK_CL_BINARY_FILES})
+  public void checkBinaries2() {
+    deserializeHll_crossBinary(GroupLanguage.GO, GroupLanguage.JAVA);
+  }
+
+  @Test(groups = {CHECK_CL_BINARY_FILES})
+  public void checkBinaries3() {
+    deserializeHll_crossBinary(GroupLanguage.GO, GroupLanguage.CPP);
+  }
+
+  private static void deserializeHll_crossBinary(final GroupLanguage lang1, final GroupLanguage lang2) {
+    final String[] sArr = {"hll4", "hll6", "hll8"};
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    String id = null;
+    for (final String s: sArr) {
+      for (final int n: nArr) {
+        final String fileName1 = s + "_n" + n + lang1.sfx + ".sk";
+        final byte[] bytes1 = getFileBytes(lang1.pth, fileName1);
+        final String fileName2 = s + "_n" + n + lang2.sfx + ".sk";
+        final byte[] bytes2 = getFileBytes(lang2.pth, fileName2);
+        if (bytes1.length == 0 || bytes2.length == 0) { continue;}
+        id = "CLB: " + fileName1 + " vs " + fileName2 + ", HllType: " + s + ", n: " + n;
+        try { assertEquals(bytes1, bytes2); }
+        catch (final AssertionError e) {
+          throw new SketchesArgumentException(id + LS + e);
+        }
+        println("PASSED: " + id);
+      }
+    }
   }
 
   private static void deserializeHll(final GroupLanguage lang) {
@@ -103,24 +136,8 @@ public class HllSketchCrossLanguageTest {
     }
   }
 
-  private static void deserializeHll_crossBinary(final GroupLanguage lang1, final GroupLanguage lang2) {
-    final String[] sArr = {"hll4", "hll6", "hll8"};
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
-    for (final String s: sArr) {
-      for (final int n: nArr) {
-        final String fileName1 = s + "_n" + n + lang1.sfx + ".sk";
-        final byte[] bytes1 = getFileBytes(lang1.pth, fileName1);
-        final String fileName2 = s + "_n" + n + lang2.sfx + ".sk";
-        final byte[] bytes2 = getFileBytes(lang2.pth, fileName2);
-        if (bytes1.length == 0 || bytes2.length == 0) { continue;}
-        try { assertEquals(bytes1, bytes2); }
-        catch (final AssertionError e) {
-          String err = "FileName1: " + fileName1 + ", FileName2: " + fileName2
-              + ", HllType: " + s + ", n: " + n;
-          throw new SketchesArgumentException(err + LS + e);
-        }
-      }
-    }
+  static void println(Object o) {
+    //System.out.println(o.toString());
   }
 
 }

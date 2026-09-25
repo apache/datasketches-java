@@ -44,6 +44,7 @@ public final class UtilityIO  {
   public static final String CHECK_CPP_FILES = "check_cpp_files";
   public static final String CHECK_GO_FILES = "check_go_files";
   public static final String CHECK_RUST_FILES = "check_rust_files";
+  public static final String CHECK_CL_BINARY_FILES = "check_CL_binary_files";
   public static final String CHECK_CPP_HISTORICAL_FILES = "check_cpp_historical_files";
 
   /**
