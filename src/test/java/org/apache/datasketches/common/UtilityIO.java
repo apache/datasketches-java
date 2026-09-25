@@ -31,7 +31,7 @@ import java.util.Objects;
  * Utilities common to testing
  */
 public final class UtilityIO  {
-  private static final String LS = System.getProperty("line.separator");
+  public static final String LS = System.getProperty("line.separator");
   private static final Class<?> clazz = UtilityIO.class;
   private static final ClassLoader CL = clazz.getClassLoader();
   private static final String TEST_DATA_ROOT_PROP = "test.data.root";
@@ -44,6 +44,7 @@ public final class UtilityIO  {
   public static final String CHECK_CPP_FILES = "check_cpp_files";
   public static final String CHECK_GO_FILES = "check_go_files";
   public static final String CHECK_RUST_FILES = "check_rust_files";
+  public static final String CHECK_CL_BINARY_FILES = "check_CL_binary_files";
   public static final String CHECK_CPP_HISTORICAL_FILES = "check_cpp_historical_files";
 
   /**
