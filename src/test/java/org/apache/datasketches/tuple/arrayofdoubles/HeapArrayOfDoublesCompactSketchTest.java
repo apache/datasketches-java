@@ -134,4 +134,52 @@ public class HeapArrayOfDoublesCompactSketchTest {
     MemorySegment seg = MemorySegment.ofArray(sketch1.toByteArray());
     ArrayOfDoublesSketch.heapifySketch(seg, 123);
   }
+  @Test
+  public void emptyImageSeedHashIsZeroAndIgnoredOnRead() {
+    final long seed = 12345;
+    final ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    final byte[] heapBytes = us.compact().toByteArray();
+    final byte[] directBytes = new byte[heapBytes.length + 8]; // the direct writer asks for room for one entry
+    us.compact(MemorySegment.ofArray(directBytes));
+    Assert.assertEquals(java.util.Arrays.copyOf(directBytes, heapBytes.length), heapBytes);
+    Assert.assertEquals(MemorySegment.ofArray(heapBytes).get(java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED,
+        ArrayOfDoublesSketch.SEED_HASH_SHORT), (short) 0);
+
+    // a historical empty image may carry a seed hash; it is ignored on read
+    final byte[] historical = heapBytes.clone();
+    MemorySegment.ofArray(historical).set(java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED,
+        ArrayOfDoublesSketch.SEED_HASH_SHORT, (short) 0x1234);
+    for (final byte[] bytes : new byte[][] {heapBytes, historical}) {
+      final ArrayOfDoublesSketch heap = new HeapArrayOfDoublesCompactSketch(MemorySegment.ofArray(bytes), seed);
+      final ArrayOfDoublesSketch direct = new DirectArrayOfDoublesCompactSketch(MemorySegment.ofArray(bytes), seed);
+      Assert.assertEquals(heap.toByteArray(), heapBytes); // re-serializing writes a zero seed hash
+      for (final ArrayOfDoublesSketch empty : new ArrayOfDoublesSketch[] {heap, direct}) {
+        Assert.assertTrue(empty.isEmpty());
+
+        // set operations ignore the seed hash of an empty input
+        final ArrayOfDoublesUpdatableSketch other = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+        other.update(1, new double[] {1.0});
+        final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildUnion();
+        union.union(empty);
+        union.union(other);
+        Assert.assertEquals(union.getResult().getEstimate(), 1.0);
+        final ArrayOfDoublesIntersection inter = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildIntersection();
+        inter.intersect(empty, null);
+        Assert.assertTrue(inter.getResult().isEmpty());
+        final ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildAnotB();
+        aNotB.update(other, empty);
+        Assert.assertEquals(aNotB.getResult().getEstimate(), 1.0);
+        aNotB.update(empty, other);
+        Assert.assertTrue(aNotB.getResult().isEmpty());
+      }
+    }
+
+    // a non-empty image still has its seed hash checked
+    us.update(1, new double[] {1.0});
+    final byte[] withEntry = us.compact().toByteArray();
+    Assert.assertThrows(SketchesArgumentException.class,
+        () -> new HeapArrayOfDoublesCompactSketch(MemorySegment.ofArray(withEntry), seed + 1));
+    Assert.assertThrows(SketchesArgumentException.class,
+        () -> new DirectArrayOfDoublesCompactSketch(MemorySegment.ofArray(withEntry), seed + 1));
+  }
 }

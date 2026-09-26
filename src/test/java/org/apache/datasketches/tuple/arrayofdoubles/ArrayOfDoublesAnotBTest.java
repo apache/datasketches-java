@@ -306,8 +306,10 @@ public class ArrayOfDoublesAnotBTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeeds() {
-    ArrayOfDoublesSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
-    ArrayOfDoublesSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(2).build();
+    ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(2).build();
+    sketchA.update(1, new double[] {1.0}); // the seed hash of an empty sketch is not checked
+    sketchB.update(1, new double[] {1.0});
     ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().setSeed(3).buildAnotB();
     aNotB.update(sketchA, sketchB);
   }

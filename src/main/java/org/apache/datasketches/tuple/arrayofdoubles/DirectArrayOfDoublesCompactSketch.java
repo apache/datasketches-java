@@ -78,7 +78,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
-    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
+    // an empty compact image carries a zero seed hash, which readers ignore
+    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, isEmpty_ ? 0 : Util.computeSeedHash(sketch.getSeed()));
     thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
     dstSeg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
@@ -119,7 +120,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
     ));
     dstSeg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
-    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash);
+    dstSeg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, isEmpty_ ? 0 : seedHash);
     thetaLong_ = thetaLong;
     dstSeg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
@@ -167,8 +168,11 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
       throw new SketchesArgumentException("Serial version mismatch. Expected: " + serialVersionUID
           + ", actual: " + version);
     }
-    Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
+    // the seed hash of an empty image is ignored; historical images may have filled it in
+    if (!isEmpty_) {
+      Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
+    }
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
   }
 
