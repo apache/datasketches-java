@@ -204,12 +204,12 @@ final class PreambleUtil {
   static final int UNION_THETA_LONG           = 24; //8-byte aligned, only used by ThetaUnion
 
   // flag byte bit masks
-  static final int RESERVED_FLAG_MASK   = 1; //Bit 0: Reserved, no longer used. Was BigEndian
-  static final int READ_ONLY_FLAG_MASK  = 2; //Bit 1: Reserved, Set but not read.
-  static final int EMPTY_FLAG_MASK      = 4; //Bit 2:
-  static final int COMPACT_FLAG_MASK    = 8; //Bit 3:
-  static final int ORDERED_FLAG_MASK    = 16;//Bit 4:
-  static final int SINGLEITEM_FLAG_MASK = 32;//Bit 5:
+  static final int RESERVED_FLAG_MASK   = 1; //Bit 0: 0x1: Reserved, no longer used. Was BigEndian
+  static final int READ_ONLY_FLAG_MASK  = 2; //Bit 1: 0x2:
+  static final int EMPTY_FLAG_MASK      = 4; //Bit 2: 0x4:
+  static final int COMPACT_FLAG_MASK    = 8; //Bit 3: 0x8:
+  static final int ORDERED_FLAG_MASK    = 16;//Bit 4: 0x10:
+  static final int SINGLEITEM_FLAG_MASK = 32;//Bit 5: 0x20:
   //The last 2 bits (Bit 6,7) of the flags byte are reserved and assumed to be zero.
 
   //Other constants

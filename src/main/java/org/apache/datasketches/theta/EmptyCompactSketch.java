@@ -27,29 +27,30 @@ import java.lang.foreign.MemorySegment;
 import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
- * Singleton empty CompactThetaSketch.
+ * Singleton Empty CompactThetaSketch.
  *
  * @author Lee Rhodes
  */
 final class EmptyCompactSketch extends CompactThetaSketch {
 
-  //For backward compatibility, a candidate long must have Flags= compact, read-only,
-  //  COMPACT-Family=3, SerVer=3, PreLongs=1, and be exactly 8 bytes long. The seedHash is ignored.
-  // NOTE: The empty and ordered flags may or may not be set
-  private static final long EMPTY_SKETCH_MASK = 0X00_00_EB_00_00_FF_FF_FFL;
-  private static final long EMPTY_SKETCH_TEST = 0X00_00_0A_00_00_03_03_01L;
-  //When returning a byte array the empty and ordered bits are also set
+  // For backward compatibility, a candidate EmptyCompactSketch
+  //  must have Flags: compact, empty, read-only;
+  //  and bytes: COMPACT-Family=3, SerVer=3, PreLongs=1; and be exactly 8 bytes long.
+  // NOTE: The seedHash bytes are ignored
+  private static final long EMPTY_SKETCH_MASK = 0X00_00_FF_FF_FF_FF_FF_FFL;
+  private static final long EMPTY_SKETCH_TEST = 0X00_00_1E_00_00_03_03_01L;
+  //When returning a byte array the following flags are set: ordered, compact, empty, read-only
   static final byte[] EMPTY_COMPACT_SKETCH_ARR = { 1, 3, 3, 0, 0, 0x1E, 0, 0 };
   private static final EmptyCompactSketch EMPTY_COMPACT_SKETCH = new EmptyCompactSketch();
 
   private EmptyCompactSketch() {}
 
-  static synchronized EmptyCompactSketch getInstance() {
+  static EmptyCompactSketch getInstance() {
     return EMPTY_COMPACT_SKETCH;
   }
 
-  //This should be a heapify
-  static synchronized EmptyCompactSketch getHeapInstance(final MemorySegment srcSeg) {
+  //This is effectively a heapify
+  static EmptyCompactSketch getHeapInstance(final MemorySegment srcSeg) {
     final long pre0 = srcSeg.get(JAVA_LONG_UNALIGNED, 0);
     if (testCandidatePre0(pre0)) {
       return EMPTY_COMPACT_SKETCH;
