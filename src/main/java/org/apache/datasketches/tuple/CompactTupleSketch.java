@@ -221,7 +221,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
       | (1 << Flags.IS_READ_ONLY.ordinal())
       | (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
     );
-    ByteArrayUtil.putShortLE(bytes, offset, defaultSeedHash);
+    ByteArrayUtil.putShortLE(bytes, offset, isEmpty() ? 0 : defaultSeedHash); // empty image carries zero, as in theta
     offset += Short.BYTES;
     if (!isEmpty()) {
       if (!isSingleItem) {

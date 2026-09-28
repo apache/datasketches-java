@@ -295,7 +295,7 @@ public class BloomFilterTest {
 
   @Test
   public void basicDifferenceTest() {
-    final long numBits = 8192;
+    final long numBits = 65536; // keeps right's load low (~7.5%) so most left-only items survive
     final int numHashes = 5;
 
     final BloomFilter left = BloomFilterBuilder.createBySize(numBits, numHashes);

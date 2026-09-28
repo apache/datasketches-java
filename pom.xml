@@ -146,9 +146,9 @@ under the License.
     <!-- Language Groups -->
     <testng.check_java_cpp>${testng.generate_java_files},${testng.check_java_files},${testng.check_cpp_files}</testng.check_java_cpp>
     <testng.check_go_rust>${testng.check_go_files},${testng.check_rust_files}</testng.check_go_rust>
-    <testng.check_specials>${testng.check_CL_binaries}${testng.check_cpp_historicals}</testng.check_specials>
+    <testng.check_specials>${testng.check_CL_binaries},${testng.check_cpp_historicals}</testng.check_specials>
     <!-- All Languages & types -->
-    <testng.all_groups>${testng.check_java_cpp}${testng.check_go_rust}${testng.check_specials}</testng.all_groups>
+    <testng.all_groups>${testng.check_java_cpp},${testng.check_go_rust},${testng.check_specials}</testng.all_groups>
     
     <test.data.root>${project.basedir}</test.data.root>
     <print>false</print> <!-- diagnostic printing of file names read/written/not-found in UtilityIO; override with -Dprint=true -->
@@ -870,7 +870,7 @@ under the License.
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>${testng.check_CL_binary_files}</groups>
+              <groups>${testng.check_CL_binaries}</groups>
               <excludedGroups combine.self="override"></excludedGroups>
             </configuration>
           </plugin>
@@ -886,7 +886,7 @@ under the License.
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <groups>${testng.check_cpp_historical_files}</groups>
+              <groups>${testng.check_cpp_historicals}</groups>
               <excludedGroups combine.self="override"></excludedGroups>
             </configuration>
           </plugin>
