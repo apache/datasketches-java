@@ -107,6 +107,16 @@ public class PreambleUtilTest {
   }
 
   @Test
+  public void checkHistoricalSingleItemToString() {
+    final byte[] bytes = SingleItemSketch.create(1).toByteArray();
+    bytes[5] &= (byte) ~PreambleUtil.SINGLEITEM_FLAG_MASK;
+
+    final String summary = PreambleUtil.preambleToString(bytes);
+    assertTrue(summary.contains("    5 SINGLE_ITEM             : false"));
+    assertTrue(summary.contains("Bytes 8-11 : CurrentCount     : 1"));
+  }
+
+  @Test
   public void checkPreambleToStringExceptions() {
     byte[] byteArr = new byte[7];
     try { //check preLongs < 8 fails
