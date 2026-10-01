@@ -278,7 +278,7 @@ final class PreambleUtil {
     final int seedHash = extractSeedHash(seg);
 
     //assumes preLongs == 1; empty or singleItem
-    int curCount = singleItem ? 1 : 0;
+    int curCount = empty ? 0 : 1;
     float p = (float) 1.0;            //preLongs 1 or 2
     long thetaLong = Long.MAX_VALUE;  //preLongs 1 or 2
     long thetaULong = thetaLong;      //preLongs 1, 2 or 3
