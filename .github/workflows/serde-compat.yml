@@ -30,7 +30,9 @@ jobs:
           java-version: '25'
           distribution: 'temurin'
 
+      # The Java profile generates its own snapshots before checking them.
       - name: Download ${{ matrix.name }} snapshots
+        if: matrix.language != 'java'
         run: ./tools/download_serialization_test_data.sh ${{ matrix.language }}
 
       - name: Run Java tests against ${{ matrix.name }} snapshots
