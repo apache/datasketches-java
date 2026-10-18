@@ -20,7 +20,7 @@
 set -euo pipefail
 
 # Pin the archive so compatibility tests always use an immutable snapshot set.
-readonly TCK_REVISION="d363b12d293b395d90abb42677f9ea63178dbc0d"
+readonly TCK_REVISION="e748b0a038a17c6d5c771afc4efd9ee35a5a7ec5"
 readonly TCK_ARCHIVE_URL="https://api.github.com/repos/apache/datasketches-tck/tarball/${TCK_REVISION}"
 readonly SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPOSITORY_ROOT="$(cd "${SCRIPT_DIRECTORY}/.." && pwd)"
@@ -103,7 +103,7 @@ for language in "${languages[@]}"; do
 
   while IFS= read -r member; do
     case "${member}" in
-      */serialization/"${language}"/snapshots/*.sk)
+      */serialization_test_data/"${language}"_generated_files/*.sk)
         name="${member##*/}"
         for existing_name in "${names[@]-}"; do
           if [[ "${name}" == "${existing_name}" ]]; then
@@ -126,7 +126,7 @@ for language in "${languages[@]}"; do
   tar \
     -xzf "${archive_path}" \
     -C "${staging_directory}" \
-    --strip-components=4 \
+    --strip-components=3 \
     "${members[@]}"
   for name in "${names[@]}"; do
     if [[ ! -f "${staging_directory}/${name}" ]]; then
