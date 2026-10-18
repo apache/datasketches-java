@@ -107,7 +107,8 @@ public abstract class CompactThetaSketch extends ThetaSketch {
       final int flags = extractFlags(srcSeg);
       final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
       final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
-      if (!empty) { PreambleUtil.checkSegmentSeedHash(srcSeg, expectedSeed); }
+      if (empty) { return EmptyCompactSketch.getHeapInstance(srcSeg, Util.computeSeedHash(expectedSeed)); }
+      PreambleUtil.checkSegmentSeedHash(srcSeg, expectedSeed);
       return CompactOperations.segmentToCompact(srcSeg, srcOrdered, null);
     }
     //not SerVer 3 or 4
@@ -161,7 +162,7 @@ public abstract class CompactThetaSketch extends ThetaSketch {
 
     if (serVer == 3) {
       if (PreambleUtil.isEmptyFlag(srcSeg)) {
-        return EmptyCompactSketch.getHeapInstance(srcSeg);
+        return EmptyCompactSketch.getHeapInstance(srcSeg, seedHash);
       }
       if (checkForSingleItem(srcSeg)) {
         return SingleItemSketch.heapify(srcSeg, seedHash);
@@ -239,7 +240,7 @@ public abstract class CompactThetaSketch extends ThetaSketch {
     if (serVer == 3) {
       final int flags = bytes[FLAGS_BYTE];
       if ((flags & EMPTY_FLAG_MASK) > 0) {
-        return EmptyCompactSketch.getHeapInstance(MemorySegment.ofArray(bytes));
+        return EmptyCompactSketch.getHeapInstance(MemorySegment.ofArray(bytes), seedHash);
       }
       final int preLongs = bytes[PREAMBLE_LONGS_BYTE];
       if (checkForSingleItem(preLongs, serVer, familyId, flags)) {
