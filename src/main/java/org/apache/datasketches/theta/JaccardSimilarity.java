@@ -100,6 +100,10 @@ public final class JaccardSimilarity {
   /**
    * Returns true if the two given sketches have exactly the same hash values and the same
    * theta values. Thus, they are equivalent.
+   *
+   * <p>Note: For very large pairs of sketches, where the configured nominal entries of the sketches
+   * are 2^26, this method may return false even if the two sketches are equal.
+   *
    * @param sketchA the given sketch A
    * @param sketchB the given sketch B
    * @return true if the two given sketches have exactly the same hash values and the same
@@ -116,8 +120,11 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries(true);
 
     //Create the ThetaUnion
+    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
+    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
+    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
     final ThetaUnion union =
-        ThetaSetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
+        ThetaSetOperation.builder().setNominalEntries(newK).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
     final ThetaSketch unionAB = union.getResult();
