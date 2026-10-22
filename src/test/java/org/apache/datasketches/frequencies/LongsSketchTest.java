@@ -577,6 +577,37 @@ public class LongsSketchTest {
     FrequentLongsSketch.getInstance(s);
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class, timeOut = 5000)
+  public void checkStringDeserMapLengthTooSmall() {
+    final String s = "1,"  //serVer
+             + "10," //FamID
+             + "3,"  //lgMaxMapSz
+             + "5,"  //Empty Flag
+             + "0,"  //stream Len: empty
+             + "0,"  //error offset
+             + "0,"  //numActive
+             + "2,"; //curMapLen ... corrupted, below the minimum of 8
+    final FrequentLongsSketch fls = FrequentLongsSketch.getInstance(s);
+    fls.update(1);
+    fls.update(2);
+    fls.update(3);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class, timeOut = 5000)
+  public void checkStringDeserNumActiveExceedsMapCapacity() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("1,")  //serVer
+      .append("10,") //FamID
+      .append("3,")  //lgMaxMapSz
+      .append("0,")  //Empty Flag = false
+      .append("9,")  //stream Len
+      .append("0,")  //error offset
+      .append("9,")  //numActive ... corrupted, more than the map can hold
+      .append("8,"); //curMapLen
+    for (int i = 1; i <= 9; i++) { sb.append(i).append(",1,"); }
+    FrequentLongsSketch.getInstance(sb.toString());
+  }
+
   @Test
   public void checkGetEpsilon() {
     assertEquals(FrequentLongsSketch.getEpsilon(1024), 3.5 / 1024, 0.0);

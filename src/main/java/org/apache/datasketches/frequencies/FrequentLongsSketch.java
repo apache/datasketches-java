@@ -335,6 +335,16 @@ public class FrequentLongsSketch {
           "Possible Corruption: Incorrect # of tokens: " + numTokens
             + ", numActive: " + numActive);
     }
+    if (lgCur < LG_MIN_MAP_SIZE) {
+      throw new SketchesArgumentException(
+          "Possible Corruption: Map length must be at least " + (1 << LG_MIN_MAP_SIZE) + ": "
+            + tokens[STR_PREAMBLE_TOKENS + 1]);
+    }
+    final long maxActive = (long) ((1L << lgCur) * ReversePurgeLongHashMap.getLoadFactor());
+    if ((numActive < 0) || (numActive > maxActive)) {
+      throw new SketchesArgumentException(
+          "Possible Corruption: numActive exceeds map capacity: " + numActive);
+    }
 
     final FrequentLongsSketch sketch = new FrequentLongsSketch(lgMax, lgCur);
     sketch.streamWeight = streamWt;
