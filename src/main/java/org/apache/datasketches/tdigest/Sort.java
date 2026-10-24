@@ -32,11 +32,15 @@ public final class Sort {
   public Sort() { }
 
   /**
-   * Stable sort two arrays.
-   * The first array is sorted while the second array is permuted the same way.
+   * Sort two arrays so that the result is deterministic.
+   * The elements are ordered by key (ascending) and, if the keys are equal, by the paired value
+   * (ascending). The first array is sorted while the second array is permuted the same way.
+   *
+   * <p>Because the pairs (key, value) are totally ordered, the output depends only on the
+   * multiset of pairs and not on the initial order of the elements nor on the choice of pivots.
    *
    * @param keys array to be sorted
-   * @param values array to be permuted the same way
+   * @param values array to be permuted the same way, also used to break ties between equal keys
    * @param n number of elements to sort from the beginning of the arrays
    */
   public static void stableSort(final double[] keys, final long[] values, final int n) {
@@ -50,33 +54,25 @@ public final class Sort {
     while (end - start > limit) {
 
       final int pivotIndex = start + ThreadLocalRandom.current().nextInt(end - start);
-      final double pivotValue = keys[pivotIndex];
+      final double pivotKey = keys[pivotIndex];
+      final long pivotValue = values[pivotIndex];
 
-      // move pivot to beginning of array
-      swap(keys, start, pivotIndex);
-      swap(values, start, pivotIndex);
-
-      // use a three way partition because many duplicate values is an important case
-      int low = start + 1;   // low points to first value not known to be equal to pivotValue
-      int high = end;        // high points to first value > pivotValue
-      int i = low;           // i scans the array
+      // use a three way partition because many duplicate pairs is an important case
+      // invariant: pairs in [start, low) are less than the pivot
+      // invariant: pairs in [low, i) are equal to the pivot
+      // invariant: pairs in [high, end) are greater than the pivot
+      // pairs in [i, high) are not yet classified
+      int low = start;
+      int high = end;
+      int i = start;
       while (i < high) {
-        // invariant: values[k] == pivotValue for k in [0..low)
-        // invariant: values[k] < pivotValue for k in [low..i)
-        // invariant: values[k] > pivotValue for k in [high..end)
-        // in-loop:  i < high
-        // in-loop:  low < high
-        // in-loop:  i >= low
-        final double vi = keys[i];
-        if (vi == pivotValue && i == pivotIndex) {
-          if (low != i) {
-            swap(keys, low, i);
-            swap(values, low, i);
-          } else {
-            i++;
-          }
+        final int c = compare(keys[i], values[i], pivotKey, pivotValue);
+        if (c < 0) {
+          swap(keys, low, i);
+          swap(values, low, i);
           low++;
-        } else if (vi > pivotValue || (vi == pivotValue && i > pivotIndex)) {
+          i++;
+        } else if (c > 0) {
           high--;
           swap(keys, i, high);
           swap(values, i, high);
@@ -84,30 +80,10 @@ public final class Sort {
           i++;
         }
       }
-      // assert i == high || low == high therefore, we are done with partition
-      // at this point, i == high, [start, low) == pivot,
-      // [low, high) < pivot and [high, end) > pivot
-      // we have to move the values equal to the pivot into the middle.
-      // To do this, we swap pivot values into the top end of the [low, high) range
-      // stopping when we run out of destinations or when we run out of values to copy
-      int from = start;
-      int to = high - 1;
-      for (i = 0; from < low && to >= low; i++) {
-        swap(keys, from, to);
-        swap(values, from++, to--);
-      }
-      if (from == low) {
-        // ran out of things to copy. This means that the last destination is the boundary
-        low = to + 1;
-      } else {
-        // ran out of places to copy to. This means that there are uncopied pivots and the
-        // boundary is at the beginning of those
-        low = from;
-      }
+      // at this point [low, high) holds pairs equal to the pivot (same key and same value),
+      // which are indistinguishable, so they don't need any further sorting.
 
       // now recurse, but arrange it to handle the longer limit by tail recursion
-      // we have to sort the pivot values because they may have different weights
-      // we can't do that, however until we know how much weight is in the left and right
       if (low - start < end - high) {
         // left side is smaller
         stableLimitedQuickSort(keys, values, start, low, limit);
@@ -132,7 +108,7 @@ public final class Sort {
       // values in [start, i) are ordered
       // scan backwards to find where to stick the current key
       for (int j = i; j >= m; j--) {
-        if (j == 0 || keys[j - 1] <= k) {
+        if (j == 0 || compare(keys[j - 1], values[j - 1], k, v) <= 0) {
           if (j < i) {
             System.arraycopy(keys, j, keys, j + 1, i - j);
             System.arraycopy(values, j, values, j + 1, i - j);
@@ -143,6 +119,16 @@ public final class Sort {
         }
       }
     }
+  }
+
+  /**
+   * Compares two (key, value) pairs: first by key, then, if the keys are equal, by value.
+   */
+  private static int compare(final double key1, final long value1,
+      final double key2, final long value2) {
+    if (key1 < key2) { return -1; }
+    if (key1 > key2) { return 1; }
+    return Long.compare(value1, value2);
   }
 
   private static void swap(final double[] values, final int i, final int j) {
