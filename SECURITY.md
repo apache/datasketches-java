@@ -56,8 +56,11 @@ input crafted by an attacker. This includes the `heapify()`, `wrap()`,
 a `MemorySegment`, a byte array or a `String`.
 
 Given a malformed, truncated or corrupt input, these methods must
-reject it by throwing a `SketchesException`, usually a
-`SketchesArgumentException`. They must never:
+reject it by throwing a `RuntimeException`. This is usually a
+`SketchesArgumentException`, but a standard Java runtime exception, such
+as `IndexOutOfBoundsException` or `IllegalArgumentException`, is also
+acceptable and often describes the problem more precisely. They must
+never:
 
 - loop forever, or run for a time far out of proportion to the size of
   the input;
@@ -67,7 +70,10 @@ reject it by throwing a `SketchesException`, usually a
   the declared maximum size, or larger than the configured K allows);
 - return a sketch whose internal state is inconsistent, such that a
   later update, merge, query or serialization of that sketch loops
-  forever or fails with an exception other than a `SketchesException`.
+  forever or exhausts memory as described above.
+
+Throwing an `Error`, such as `OutOfMemoryError`, `StackOverflowError` or
+`AssertionError`, is also not an acceptable way to reject input.
 
 A failure to meet this is treated as a security vulnerability.
 
@@ -80,13 +86,14 @@ must not trust any bytes in such a segment beyond the serialized sketch
 image, and must initialize that space before using it.
 
 Because Java checks array and `MemorySegment` bounds, a malformed input
-cannot cause an out-of-bounds read or write of memory. An
-`IndexOutOfBoundsException` or other unexpected runtime exception thrown
-from these methods is still a bug and should be reported, but on its own
-it is not treated as a vulnerability.
+cannot cause an out-of-bounds read or write of memory. A corrupt input
+that is accepted, and then causes a runtime exception in a later
+operation, is a bug and should be reported, but on its own it is not
+treated as a vulnerability.
 
 Applications that deserialize sketches from untrusted sources should
-catch `SketchesException`. Note that a well-formed sketch can
+catch `RuntimeException`, both when deserializing and when using the
+resulting sketch. Note that a well-formed sketch can
 legitimately be large. Applications that accept sketches from untrusted
 sources should limit the size of the input they accept.
 
