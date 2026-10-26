@@ -61,28 +61,8 @@ public final class JaccardSimilarity {
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES.clone(); }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS.clone(); }
 
-    final int countA = sketchA.getRetainedEntries(true);
-    final int countB = sketchB.getRetainedEntries(true);
-
-    //Create the ThetaUnion
-    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
-    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
-    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
-    final ThetaUnion union =
-        ThetaSetOperation.builder().setNominalEntries(newK).buildUnion();
-    union.union(sketchA);
-    union.union(sketchB);
-    final ThetaSketch unionAB = union.getResult(false, null);
-    final long thetaLongUAB = unionAB.getThetaLong();
-    final long thetaLongA = sketchA.getThetaLong();
-    final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries(true);
-
-    //Check for identical data
-    if (countUAB == countA && countUAB == countB
-        && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
-      return ONES.clone();
-    }
+    final ThetaSketch unionAB = computeUnion(sketchA, sketchB);
+    if (identicalSets(sketchA, sketchB, unionAB)) { return ONES.clone(); }
 
     //Create the ThetaIntersection
     final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
@@ -116,29 +96,8 @@ public final class JaccardSimilarity {
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return true; }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return false; }
 
-    final int countA = sketchA.getRetainedEntries(true);
-    final int countB = sketchB.getRetainedEntries(true);
-
-    //Create the ThetaUnion
-    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
-    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
-    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
-    final ThetaUnion union =
-        ThetaSetOperation.builder().setNominalEntries(newK).buildUnion();
-    union.union(sketchA);
-    union.union(sketchB);
-    final ThetaSketch unionAB = union.getResult(false, null);
-    final long thetaLongUAB = unionAB.getThetaLong();
-    final long thetaLongA = sketchA.getThetaLong();
-    final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries(true);
-
-    //Check for identical counts and thetas
-    if (countUAB == countA && countUAB == countB
-        && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
-      return true;
-    }
-    return false;
+    final ThetaSketch unionAB = computeUnion(sketchA, sketchB);
+    return identicalSets(sketchA, sketchB, unionAB);
   }
 
   /**
@@ -183,6 +142,45 @@ public final class JaccardSimilarity {
       //index 2: the upper bound
       final double jRatioUB = jaccard(measured, expected)[2]; //choosing the upper bound
     return jRatioUB <= threshold;
+  }
+
+  /**
+   * Computes the union of the two given sketches. The union is sized to hold the retained entries
+   * of both sketches, clamped to the legal range of nominal entries. The result is unordered,
+   * because only its retained entries and theta are used.
+   * @param sketchA the given sketch A
+   * @param sketchB the given sketch B
+   * @return the unordered union of sketch A and sketch B
+   */
+  private static ThetaSketch computeUnion(final ThetaSketch sketchA, final ThetaSketch sketchB) {
+    final int countA = sketchA.getRetainedEntries(true);
+    final int countB = sketchB.getRetainedEntries(true);
+    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
+    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
+    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
+    final ThetaUnion union =
+        ThetaSetOperation.builder().setNominalEntries(newK).buildUnion();
+    union.union(sketchA);
+    union.union(sketchB);
+    return union.getResult(false, null);
+  }
+
+  /**
+   * Returns true if the two given sketches and their union all have the same number of retained
+   * entries and the same theta, which means the two sketches hold identical sets.
+   * @param sketchA the given sketch A
+   * @param sketchB the given sketch B
+   * @param unionAB the union of sketch A and sketch B
+   * @return true if the two given sketches hold identical sets
+   */
+  private static boolean identicalSets(final ThetaSketch sketchA, final ThetaSketch sketchB,
+      final ThetaSketch unionAB) {
+    final int countUAB = unionAB.getRetainedEntries(true);
+    final long thetaLongUAB = unionAB.getThetaLong();
+    return countUAB == sketchA.getRetainedEntries(true)
+        && countUAB == sketchB.getRetainedEntries(true)
+        && thetaLongUAB == sketchA.getThetaLong()
+        && thetaLongUAB == sketchB.getThetaLong();
   }
 
 }
