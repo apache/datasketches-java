@@ -25,6 +25,8 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.frequencies.DistTest.randomGeometricDist;
 import static org.apache.datasketches.frequencies.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.FLAGS_BYTE;
+import static org.apache.datasketches.frequencies.PreambleUtil.LG_CUR_MAP_SIZE_BYTE;
+import static org.apache.datasketches.frequencies.PreambleUtil.LG_MAX_MAP_SIZE_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.STREAMLENGTH_LONG;
@@ -606,6 +608,37 @@ public class LongsSketchTest {
       .append("8,"); //curMapLen
     for (int i = 1; i <= 9; i++) { sb.append(i).append(",1,"); }
     FrequentLongsSketch.getInstance(sb.toString());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class, timeOut = 5000)
+  public void checkStringDeserMapLengthExceedsMax() {
+    final String s = "1,"  //serVer
+             + "10," //FamID
+             + "3,"  //lgMaxMapSz
+             + "5,"  //Empty Flag
+             + "0,"  //stream Len: empty
+             + "0,"  //error offset
+             + "0,"  //numActive
+             + "16,"; //curMapLen ... corrupted, above the max of 8
+    FrequentLongsSketch.getInstance(s);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class, timeOut = 5000)
+  public void checkSegDeserLgCurMapSizeTooSmall() {
+    final FrequentLongsSketch sk = new FrequentLongsSketch(1 << 8);
+    sk.update(1);
+    final byte[] bytes = sk.toByteArray();
+    bytes[LG_CUR_MAP_SIZE_BYTE] = (byte) (LG_MIN_MAP_SIZE - 1); //corrupted, below the minimum
+    FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes));
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class, timeOut = 5000)
+  public void checkSegDeserLgCurMapSizeExceedsLgMax() {
+    final FrequentLongsSketch sk = new FrequentLongsSketch(1 << 8);
+    sk.update(1);
+    final byte[] bytes = sk.toByteArray();
+    bytes[LG_CUR_MAP_SIZE_BYTE] = (byte) (bytes[LG_MAX_MAP_SIZE_BYTE] + 1); //corrupted, above max
+    FrequentLongsSketch.getInstance(MemorySegment.ofArray(bytes));
   }
 
   @Test
