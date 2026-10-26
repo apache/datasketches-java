@@ -127,7 +127,7 @@ public final class JaccardSimilarity {
         ThetaSetOperation.builder().setNominalEntries(newK).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
-    final ThetaSketch unionAB = union.getResult();
+    final ThetaSketch unionAB = union.getResult(false, null);
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
