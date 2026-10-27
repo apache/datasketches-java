@@ -234,6 +234,17 @@ public class JaccardSimilarityTest {
   }
 
   @Test
+  public void checkMinKExactlyEqual() {
+    UpdatableThetaSketch skA = UpdatableThetaSketch.builder().build(); //4096
+    UpdatableThetaSketch skB = UpdatableThetaSketch.builder().build(); //4096
+    skA.update(1);
+    skB.update(1);
+    assertTrue(exactlyEqual(skA, skB));
+    skB.update(2);
+    assertFalse(exactlyEqual(skA, skB));
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
