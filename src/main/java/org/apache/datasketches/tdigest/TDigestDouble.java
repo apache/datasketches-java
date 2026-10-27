@@ -44,8 +44,9 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * This implementation is similar to MergingDigest in the above implementation
  *
  * <p>When centroids are merged, they are ordered by mean ascending and then, for equal means,
- * by weight ascending. This tie-break rule makes the result of a merge independent of the
- * order of the input and is part of the behavior of this sketch.</p>
+ * by weight ascending. This makes each merge independent of how the centroids are arranged
+ * before sorting, so that the same sequence of updates and merges always produces the same
+ * sketch. It does not make the sketch independent of the order of the input values.</p>
  */
 public final class TDigestDouble {
 
