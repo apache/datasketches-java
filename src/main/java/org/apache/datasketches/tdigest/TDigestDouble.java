@@ -42,6 +42,11 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * and the following implementation:
  * https://github.com/tdunning/t-digest
  * This implementation is similar to MergingDigest in the above implementation
+ *
+ * <p>When centroids are merged, they are ordered by mean ascending and then, for equal means,
+ * by weight ascending. This makes each merge independent of how the centroids are arranged
+ * before sorting, so that the same sequence of updates and merges always produces the same
+ * sketch. It does not make the sketch independent of the order of the input values.</p>
  */
 public final class TDigestDouble {
 
@@ -684,13 +689,14 @@ public final class TDigestDouble {
     numCentroids_++;
     int current = 1;
     double weightSoFar = 0;
+    // the inputs don't change inside the loop, so compute the normalizer only once
+    final double normalizer = ScaleFunction.normalizer(k_ * 2, centroidsWeight_);
     while (current != num) {
       final double proposedWeight = centroidWeights_[numCentroids_ - 1] + weights[current];
       boolean addThis = false;
       if ((current != 1) && (current != (num - 1))) {
         final double q0 = weightSoFar / centroidsWeight_;
         final double q2 = (weightSoFar + proposedWeight) / centroidsWeight_;
-        final double normalizer = ScaleFunction.normalizer(k_ * 2, centroidsWeight_);
         addThis = proposedWeight <= (centroidsWeight_ * Math.min(ScaleFunction.max(q0, normalizer), ScaleFunction.max(q2, normalizer)));
       }
       if (addThis) { // merge into existing centroid
@@ -738,7 +744,9 @@ public final class TDigestDouble {
     }
 
     static double z(final double compression, final double n) {
-      return (4 * Math.log(n / compression)) + 24;
+      // StrictMath.log gives bit-identical results on every JVM and platform, while Math.log may
+      // differ by up to 1 ulp, which could change which centroids get combined in merge()
+      return (4 * StrictMath.log(n / compression)) + 24;
     }
   }
 
