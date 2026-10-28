@@ -19,11 +19,16 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.theta.JaccardSimilarity.dissimilarityTest;
 import static org.apache.datasketches.theta.JaccardSimilarity.exactlyEqual;
 import static org.apache.datasketches.theta.JaccardSimilarity.jaccard;
+import static org.apache.datasketches.theta.JaccardSimilarity.similarityTest;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 /**
@@ -242,6 +247,29 @@ public class JaccardSimilarityTest {
     assertTrue(exactlyEqual(skA, skB));
     skB.update(2);
     assertFalse(exactlyEqual(skA, skB));
+  }
+
+  @Test
+  public void checkCustomSeed() {
+    final long seed = 123L;
+    final UpdatableThetaSketch skA = UpdatableThetaSketch.builder().setSeed(seed).build();
+    final UpdatableThetaSketch skB = UpdatableThetaSketch.builder().setSeed(seed).build();
+    for (int i = 0; i < 1000; i++) { skA.update(i); skB.update(i); }
+    assertTrue(exactlyEqual(skA, skB, seed));
+    assertEquals(jaccard(skA, skB, seed), new double[] {1.0, 1.0, 1.0});
+    assertTrue(similarityTest(skA, skB, 0.95, seed));
+    assertFalse(dissimilarityTest(skA, skB, 0.95, seed));
+
+    for (int i = 1000; i < 2000; i++) { skB.update(i); }
+    assertFalse(exactlyEqual(skA, skB, seed));
+    final double[] result = jaccard(skA, skB, seed);
+    assertEquals(result[1], 0.5, 0.0);
+    assertFalse(similarityTest(skA, skB, 0.95, seed));
+    assertTrue(dissimilarityTest(skA, skB, 0.95, seed));
+
+    //the default-seed methods reject sketches made with another seed
+    try { exactlyEqual(skA, skB); fail(); } catch (final SketchesArgumentException e) { }
+    try { jaccard(skA, skB); fail(); } catch (final SketchesArgumentException e) { }
   }
 
   @Test

@@ -25,7 +25,9 @@ import static org.apache.datasketches.tuple.JaccardSimilarity.jaccard;
 import static org.apache.datasketches.tuple.JaccardSimilarity.similarityTest;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.theta.UpdatableThetaSketch;
 import org.apache.datasketches.theta.UpdatableThetaSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
@@ -440,6 +442,40 @@ public class JaccardSimilarityTest {
     }
     result = jaccard(skA, skB, factory.newSummary(), dsso);
     println(result[0] + ", " + result[1] + ", " + result[2]);
+  }
+
+  @Test
+  public void checkMinKExactlyEqual1() { // tuple, tuple
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4096
+    final UpdatableTupleSketch<Double, DoubleSummary> skB = tupleBldr.build(); //4096
+    skA.update(1, constSummary);
+    skB.update(1, constSummary);
+    assertTrue(exactlyEqual(skA, skB, dsso));
+    skB.update(2, constSummary);
+    assertFalse(exactlyEqual(skA, skB, dsso));
+  }
+
+  @Test
+  public void checkMinKExactlyEqual2() { // tuple, theta
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build(); //4096
+    final UpdatableThetaSketch skB = UpdatableThetaSketch.builder().build(); //4096
+    skA.update(1, constSummary);
+    skB.update(1);
+    assertTrue(exactlyEqual(skA, skB, factory.newSummary(), dsso));
+    skB.update(2);
+    assertFalse(exactlyEqual(skA, skB, factory.newSummary(), dsso));
+  }
+
+  @Test
+  public void checkThetaWithCustomSeedRejected() {
+    final UpdatableTupleSketch<Double, DoubleSummary> skA = tupleBldr.build();
+    final UpdatableThetaSketch skB = UpdatableThetaSketch.builder().setSeed(123L).build();
+    skA.update(1, constSummary);
+    skB.update(1);
+    try { jaccard(skA, skB, factory.newSummary(), dsso); fail(); }
+    catch (final SketchesArgumentException e) { }
+    try { exactlyEqual(skA, skB, factory.newSummary(), dsso); fail(); }
+    catch (final SketchesArgumentException e) { }
   }
 
   @Test

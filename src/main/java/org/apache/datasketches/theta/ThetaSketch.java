@@ -584,10 +584,12 @@ public abstract class ThetaSketch implements MemorySegmentStatus {
   MemorySegment getMemorySegment() { return null; }
 
   /**
-   * Gets the 16-bit seed hash
+   * Gets the 16-bit hash of the update seed that this sketch was created with. Set operations use it
+   * to check that their inputs were created with the same seed.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return the seed hash
    */
-  abstract short getSeedHash();
+  public abstract short getSeedHash();
 
   static boolean getEmpty(final MemorySegment srcSeg) {
     checkSegPreambleCap(srcSeg);

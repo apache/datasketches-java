@@ -380,7 +380,7 @@ final class SingleItemSketch extends CompactThetaSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return (short) (pre0_ >>> 48);
   }
 

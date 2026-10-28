@@ -20,12 +20,16 @@
 package org.apache.datasketches.tuple;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+import static org.apache.datasketches.common.Util.checkSeedHashes;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.hash.XxHash.hashCharArr;
 import static org.apache.datasketches.hash.XxHash.hashString;
 
 import java.lang.reflect.Array;
 
+import org.apache.datasketches.theta.ThetaSketch;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -33,11 +37,23 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  */
 public final class Util {
   private static final int PRIME = 0x7A3C_CA71;
+  private static final short DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED);
 
   /**
    * No argument constructor.
    */
   public Util() { }
+
+  /**
+   * Checks that the given ThetaSketch was created with the default update seed, which is the seed
+   * that all TupleSketches use. Null and empty sketches are not checked.
+   * @param thetaSketch the given ThetaSketch
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the seed hashes do not match
+   */
+  static void checkThetaSeedHash(final ThetaSketch thetaSketch) {
+    if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
+    checkSeedHashes(DEFAULT_SEED_HASH, thetaSketch.getSeedHash());
+  }
 
   /**
    * Converts a <i>double</i> to a <i>long[]</i>.

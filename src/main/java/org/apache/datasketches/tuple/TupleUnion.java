@@ -126,6 +126,7 @@ public class TupleUnion<S extends Summary> {
     if (summary == null) {
       throw new SketchesArgumentException("Summary cannot be null."); }
     if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
+    Util.checkThetaSeedHash(thetaSketch);
     empty_ = false;
     final long thetaIn = thetaSketch.getThetaLong();
     unionThetaLong_ = min(thetaIn, unionThetaLong_);

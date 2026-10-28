@@ -71,29 +71,13 @@ public final class JaccardSimilarity {
       final SummarySetOperations<S> summarySetOps) {
     //Corner case checks
     if (sketchA == null || sketchB == null) { return ZEROS.clone(); }
+    if (sketchA == sketchB) { return ONES.clone(); }
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES.clone(); }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS.clone(); }
 
-    final int countA = sketchA.getRetainedEntries();
-    final int countB = sketchB.getRetainedEntries();
-
-    //Create the TupleUnion
-    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
-    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
-    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
-    final TupleUnion<S> union = new TupleUnion<>(newK, summarySetOps);
-    union.union(sketchA);
-    union.union(sketchB);
-
-    final TupleSketch<S> unionAB = union.getResult();
-    final long thetaLongUAB = unionAB.getThetaLong();
-    final long thetaLongA = sketchA.getThetaLong();
-    final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries();
-
-    //Check for identical data
-    if (countUAB == countA && countUAB == countB
-            && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
+    final TupleSketch<S> unionAB = computeUnion(sketchA, sketchB, summarySetOps);
+    if (identicalSets(sketchA.getRetainedEntries(), sketchA.getThetaLong(),
+        sketchB.getRetainedEntries(), sketchB.getThetaLong(), unionAB)) {
       return ONES.clone();
     }
 
@@ -142,26 +126,9 @@ public final class JaccardSimilarity {
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES.clone(); }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS.clone(); }
 
-    final int countA = sketchA.getRetainedEntries();
-    final int countB = sketchB.getRetainedEntries(true);
-
-    //Create the Tuple/Theta Union
-    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
-    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
-    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
-    final TupleUnion<S> union = new TupleUnion<>(newK, summarySetOps);
-    union.union(sketchA);
-    union.union(sketchB, summary);
-
-    final TupleSketch<S> unionAB = union.getResult();
-    final long thetaLongUAB = unionAB.getThetaLong();
-    final long thetaLongA = sketchA.getThetaLong();
-    final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries();
-
-    //Check for identical data
-    if (countUAB == countA && countUAB == countB
-            && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
+    final TupleSketch<S> unionAB = computeUnion(sketchA, sketchB, summary, summarySetOps);
+    if (identicalSets(sketchA.getRetainedEntries(), sketchA.getThetaLong(),
+        sketchB.getRetainedEntries(true), sketchB.getThetaLong(), unionAB)) {
       return ONES.clone();
     }
 
@@ -198,25 +165,9 @@ public final class JaccardSimilarity {
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return true; }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return false; }
 
-    final int countA = sketchA.getRetainedEntries();
-    final int countB = sketchB.getRetainedEntries();
-
-    //Create the TupleUnion
-    final TupleUnion<S> union = new TupleUnion<>(ceilingPowerOf2(countA + countB), summarySetOps);
-    union.union(sketchA);
-    union.union(sketchB);
-    final TupleSketch<S> unionAB = union.getResult();
-    final long thetaLongUAB = unionAB.getThetaLong();
-    final long thetaLongA = sketchA.getThetaLong();
-    final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries();
-
-    //Check for identical counts and thetas
-    if (countUAB == countA && countUAB == countB
-            && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
-      return true;
-    }
-    return false;
+    final TupleSketch<S> unionAB = computeUnion(sketchA, sketchB, summarySetOps);
+    return identicalSets(sketchA.getRetainedEntries(), sketchA.getThetaLong(),
+        sketchB.getRetainedEntries(), sketchB.getThetaLong(), unionAB);
   }
 
   /**
@@ -244,25 +195,9 @@ public final class JaccardSimilarity {
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return true; }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return false; }
 
-    final int countA = sketchA.getRetainedEntries();
-    final int countB = sketchB.getRetainedEntries(true);
-
-    //Create the TupleUnion
-    final TupleUnion<S> union = new TupleUnion<>(ceilingPowerOf2(countA + countB), summarySetOps);
-    union.union(sketchA);
-    union.union(sketchB, summary);
-    final TupleSketch<S> unionAB = union.getResult();
-    final long thetaLongUAB = unionAB.getThetaLong();
-    final long thetaLongA = sketchA.getThetaLong();
-    final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries();
-
-    //Check for identical counts and thetas
-    if (countUAB == countA && countUAB == countB
-        && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
-      return true;
-    }
-    return false;
+    final TupleSketch<S> unionAB = computeUnion(sketchA, sketchB, summary, summarySetOps);
+    return identicalSets(sketchA.getRetainedEntries(), sketchA.getThetaLong(),
+        sketchB.getRetainedEntries(true), sketchB.getThetaLong(), unionAB);
   }
 
   /**
@@ -371,6 +306,79 @@ public final class JaccardSimilarity {
     //index 2: the upper bound
     final double jRatioUB = jaccard(measured, expected, summary, summarySetOps)[2]; //choosing the upper bound
     return jRatioUB <= threshold;
+  }
+
+  /**
+   * Computes the union of the two given TupleSketches. See {@link #newUnion(int, SummarySetOperations)}.
+   * @param sketchA the given TupleSketch A
+   * @param sketchB the given TupleSketch B
+   * @param summarySetOps instance of SummarySetOperations used to unify summaries.
+   * @param <S> Summary
+   * @return the unordered union of sketch A and sketch B
+   */
+  private static <S extends Summary> TupleSketch<S> computeUnion(
+      final TupleSketch<S> sketchA,
+      final TupleSketch<S> sketchB,
+      final SummarySetOperations<S> summarySetOps) {
+    final TupleUnion<S> union =
+        newUnion(sketchA.getRetainedEntries() + sketchB.getRetainedEntries(), summarySetOps);
+    union.union(sketchA);
+    union.union(sketchB);
+    return union.getResult();
+  }
+
+  /**
+   * Computes the union of the given TupleSketch and ThetaSketch. See {@link #newUnion(int, SummarySetOperations)}.
+   * @param sketchA the given TupleSketch A
+   * @param sketchB the given ThetaSketch B
+   * @param summary the given proxy summary for the ThetaSketch.
+   * @param summarySetOps instance of SummarySetOperations used to unify summaries.
+   * @param <S> Summary
+   * @return the unordered union of sketch A and sketch B
+   */
+  private static <S extends Summary> TupleSketch<S> computeUnion(
+      final TupleSketch<S> sketchA,
+      final ThetaSketch sketchB,
+      final S summary, final SummarySetOperations<S> summarySetOps) {
+    final TupleUnion<S> union =
+        newUnion(sketchA.getRetainedEntries() + sketchB.getRetainedEntries(true), summarySetOps);
+    union.union(sketchA);
+    union.union(sketchB, summary);
+    return union.getResult();
+  }
+
+  /**
+   * Creates a TupleUnion sized to hold the given total number of retained entries, clamped to the
+   * legal range of nominal entries.
+   * @param totalCount the sum of the retained entries of the two sketches
+   * @param summarySetOps instance of SummarySetOperations used to unify summaries.
+   * @param <S> Summary
+   * @return a new TupleUnion
+   */
+  private static <S extends Summary> TupleUnion<S> newUnion(
+      final int totalCount, final SummarySetOperations<S> summarySetOps) {
+    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
+    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
+    final int newK = max(min(ceilingPowerOf2(totalCount), maxK), minK);
+    return new TupleUnion<>(newK, summarySetOps);
+  }
+
+  /**
+   * Returns true if the two given sketches and their union all have the same number of retained
+   * entries and the same theta, which means the two sketches hold identical sets.
+   * @param countA the retained entries of sketch A
+   * @param thetaLongA the theta of sketch A
+   * @param countB the retained entries of sketch B
+   * @param thetaLongB the theta of sketch B
+   * @param unionAB the union of sketch A and sketch B
+   * @return true if the two given sketches hold identical sets
+   */
+  private static boolean identicalSets(final int countA, final long thetaLongA,
+      final int countB, final long thetaLongB, final TupleSketch<?> unionAB) {
+    final int countUAB = unionAB.getRetainedEntries();
+    final long thetaLongUAB = unionAB.getThetaLong();
+    return countUAB == countA && countUAB == countB
+        && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB;
   }
 
 }
