@@ -222,6 +222,7 @@ public final class TupleAnotB<S extends Summary> {
    */
   public void notB(final ThetaSketch skB) {
     if (skB == null) { return; } //ignore
+    Util.checkThetaSeedHash(skB);
 
     final long thetaLongB = skB.getThetaLong();
     final int countB = skB.getRetainedEntries();
@@ -417,6 +418,7 @@ public final class TupleAnotB<S extends Summary> {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
+    Util.checkThetaSeedHash(skB);
 
     final long thetaLongA = skA.getThetaLong();
     final int countA = skA.getRetainedEntries();

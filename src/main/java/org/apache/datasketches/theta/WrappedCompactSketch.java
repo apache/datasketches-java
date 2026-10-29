@@ -139,7 +139,7 @@ class WrappedCompactSketch extends CompactThetaSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return getShortLE(bytes_, SEED_HASH_SHORT);
   }
 }

@@ -161,7 +161,7 @@ final class EmptyCompactSketch extends CompactThetaSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return 0;
   }
 

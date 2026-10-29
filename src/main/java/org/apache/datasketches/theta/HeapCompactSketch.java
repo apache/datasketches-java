@@ -130,7 +130,7 @@ final class HeapCompactSketch extends CompactThetaSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return seedHash_;
   }
 

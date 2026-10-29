@@ -150,6 +150,7 @@ public class TupleIntersection<S extends Summary> {
   public void intersect(final ThetaSketch thetaSketch, final S summary) {
     if (thetaSketch == null) { throw new SketchesArgumentException("ThetaSketch must not be null"); }
     if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
+    Util.checkThetaSeedHash(thetaSketch);
     final boolean firstCall = firstCall_;
     firstCall_ = false;
     // input sketch is not null, could be first or next call

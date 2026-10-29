@@ -247,7 +247,7 @@ class DirectQuickSelectSketchR extends UpdatableThetaSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return (short) PreambleUtil.extractSeedHash(wseg_);
   }
 

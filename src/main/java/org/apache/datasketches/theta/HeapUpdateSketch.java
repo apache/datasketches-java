@@ -88,7 +88,7 @@ abstract class HeapUpdateSketch extends UpdatableThetaSketch {
   //restricted methods
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return Util.computeSeedHash(getSeed());
   }
 

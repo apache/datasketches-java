@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA;
@@ -49,23 +50,41 @@ public final class JaccardSimilarity {
    * <p>Note: For very large pairs of sketches, where the configured nominal entries of the sketches
    * are 2^25 or 2^26, this method may produce unpredictable results.
    *
+   * <p>Both sketches must have been created with the default update seed.</p>
+   *
    * @param sketchA given sketch A
    * @param sketchB given sketch B
    * @return a double array {LowerBound, Estimate, UpperBound} of the Jaccard index.
    * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
    */
   public static double[] jaccard(final ThetaSketch sketchA, final ThetaSketch sketchB) {
+    return jaccard(sketchA, sketchB, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Computes the Jaccard similarity index with upper and lower bounds, for two sketches created
+   * with the given update seed. See {@link #jaccard(ThetaSketch, ThetaSketch)}.
+   *
+   * @param sketchA given sketch A
+   * @param sketchB given sketch B
+   * @param seed the update seed that both sketches were created with.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return a double array {LowerBound, Estimate, UpperBound} of the Jaccard index.
+   * The Upper and Lower bounds are for a confidence interval of 95.4% or +/- 2 standard deviations.
+   */
+  public static double[] jaccard(final ThetaSketch sketchA, final ThetaSketch sketchB,
+      final long seed) {
     //Corner case checks
     if (sketchA == null || sketchB == null) { return ZEROS.clone(); }
     if (sketchA == sketchB) { return ONES.clone(); }
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES.clone(); }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS.clone(); }
 
-    final ThetaSketch unionAB = computeUnion(sketchA, sketchB);
+    final ThetaSketch unionAB = computeUnion(sketchA, sketchB, seed);
     if (identicalSets(sketchA, sketchB, unionAB)) { return ONES.clone(); }
 
     //Create the ThetaIntersection
-    final ThetaIntersection inter = ThetaSetOperation.builder().buildIntersection();
+    final ThetaIntersection inter = ThetaSetOperation.builder().setSeed(seed).buildIntersection();
     inter.intersect(sketchA);
     inter.intersect(sketchB);
     inter.intersect(unionAB); //ensures that intersection is a subset of the union
@@ -84,19 +103,37 @@ public final class JaccardSimilarity {
    * <p>Note: For very large pairs of sketches, where the configured nominal entries of the sketches
    * are 2^26, this method may return false even if the two sketches are equal.
    *
+   * <p>Both sketches must have been created with the default update seed.</p>
+   *
    * @param sketchA the given sketch A
    * @param sketchB the given sketch B
    * @return true if the two given sketches have exactly the same hash values and the same
    * theta values.
    */
   public static boolean exactlyEqual(final ThetaSketch sketchA, final ThetaSketch sketchB) {
+    return exactlyEqual(sketchA, sketchB, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Returns true if the two given sketches, created with the given update seed, have exactly the
+   * same hash values and the same theta values. See {@link #exactlyEqual(ThetaSketch, ThetaSketch)}.
+   *
+   * @param sketchA the given sketch A
+   * @param sketchB the given sketch B
+   * @param seed the update seed that both sketches were created with.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return true if the two given sketches have exactly the same hash values and the same
+   * theta values.
+   */
+  public static boolean exactlyEqual(final ThetaSketch sketchA, final ThetaSketch sketchB,
+      final long seed) {
     //Corner case checks
     if (sketchA == null || sketchB == null) { return false; }
     if (sketchA == sketchB) { return true; }
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return true; }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return false; }
 
-    final ThetaSketch unionAB = computeUnion(sketchA, sketchB);
+    final ThetaSketch unionAB = computeUnion(sketchA, sketchB, seed);
     return identicalSets(sketchA, sketchB, unionAB);
   }
 
@@ -115,10 +152,27 @@ public final class JaccardSimilarity {
    */
   public static boolean similarityTest(final ThetaSketch measured, final ThetaSketch expected,
       final double threshold) {
+    return similarityTest(measured, expected, threshold, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Tests similarity of a measured ThetaSketch against an expected ThetaSketch, both created
+   * with the given update seed. See {@link #similarityTest(ThetaSketch, ThetaSketch, double)}.
+   *
+   * @param measured the sketch to be tested
+   * @param expected the reference sketch that is considered to be correct.
+   * @param threshold a real value between zero and one.
+   * @param seed the update seed that both sketches were created with.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return if true, the similarity of the two sketches is greater than the given threshold
+   * with at least 97.7% confidence.
+   */
+  public static boolean similarityTest(final ThetaSketch measured, final ThetaSketch expected,
+      final double threshold, final long seed) {
       //index 0: the lower bound
       //index 1: the mean estimate
       //index 2: the upper bound
-      final double jRatioLB = jaccard(measured, expected)[0]; //choosing the lower bound
+      final double jRatioLB = jaccard(measured, expected, seed)[0]; //choosing the lower bound
     return jRatioLB >= threshold;
   }
 
@@ -137,10 +191,27 @@ public final class JaccardSimilarity {
    */
   public static boolean dissimilarityTest(final ThetaSketch measured, final ThetaSketch expected,
       final double threshold) {
+    return dissimilarityTest(measured, expected, threshold, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Tests dissimilarity of a measured ThetaSketch against an expected ThetaSketch, both created
+   * with the given update seed. See {@link #dissimilarityTest(ThetaSketch, ThetaSketch, double)}.
+   *
+   * @param measured the sketch to be tested
+   * @param expected the reference sketch that is considered to be correct.
+   * @param threshold a real value between zero and one.
+   * @param seed the update seed that both sketches were created with.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @return if true, the dissimilarity of the two sketches is greater than the given threshold
+   * with at least 97.7% confidence.
+   */
+  public static boolean dissimilarityTest(final ThetaSketch measured, final ThetaSketch expected,
+      final double threshold, final long seed) {
       //index 0: the lower bound
       //index 1: the mean estimate
       //index 2: the upper bound
-      final double jRatioUB = jaccard(measured, expected)[2]; //choosing the upper bound
+      final double jRatioUB = jaccard(measured, expected, seed)[2]; //choosing the upper bound
     return jRatioUB <= threshold;
   }
 
@@ -150,16 +221,18 @@ public final class JaccardSimilarity {
    * because only its retained entries and theta are used.
    * @param sketchA the given sketch A
    * @param sketchB the given sketch B
+   * @param seed the update seed that both sketches were created with
    * @return the unordered union of sketch A and sketch B
    */
-  private static ThetaSketch computeUnion(final ThetaSketch sketchA, final ThetaSketch sketchB) {
+  private static ThetaSketch computeUnion(final ThetaSketch sketchA, final ThetaSketch sketchB,
+      final long seed) {
     final int countA = sketchA.getRetainedEntries(true);
     final int countB = sketchB.getRetainedEntries(true);
     final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
     final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
     final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
     final ThetaUnion union =
-        ThetaSetOperation.builder().setNominalEntries(newK).buildUnion();
+        ThetaSetOperation.builder().setNominalEntries(newK).setSeed(seed).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
     return union.getResult(false, null);

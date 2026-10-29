@@ -173,7 +173,7 @@ class DirectCompactSketch extends CompactThetaSketch {
   }
 
   @Override
-  short getSeedHash() {
+  public short getSeedHash() {
     return (short) extractSeedHash(seg_);
   }
 }
