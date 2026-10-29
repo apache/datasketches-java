@@ -24,6 +24,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.common.AllocationTracker;
+import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.testng.annotations.Test;
@@ -238,4 +240,35 @@ public class CountMinSketchTest {
       assertEquals(d.getEstimate(i), c.getEstimate(i));
     }
   }
+
+  @Test
+  public void emptyImageIsUsable() {
+    final long seed = 123L;
+    final CountMinSketch cms = CountMinSketch.deserialize(new CountMinSketch((byte) 3, 5, seed).toByteArray(), seed);
+    final CountMinSketch other = new CountMinSketch((byte) 3, 5, seed);
+    cms.merge(other); //both empty
+    assertTrue(cms.isEmpty());
+    other.update(1L, 2);
+    cms.merge(other);
+    assertEquals(cms.getEstimate(1L), 2);
+    cms.update(1L, 3);
+    assertEquals(cms.getEstimate(1L), 5);
+    final CountMinSketch cms2 = CountMinSketch.deserialize(cms.toByteArray(), seed);
+    assertEquals(cms2.getEstimate(1L), 5);
+  }
+
+  @Test
+  public void truncatedImageThrows() {
+    final long seed = 123L;
+    final CountMinSketch cms = new CountMinSketch((byte) 3, 5, seed);
+    cms.update(1L, 1);
+    final byte[] bytes = cms.toByteArray();
+    ByteArrayUtil.putIntLE(bytes, 8, 1 << 28); //numBuckets larger than the image holds
+    final long allocated = AllocationTracker.allocatedBytes(() -> CountMinSketch.deserialize(bytes, seed));
+    assertTrue(allocated < (1 << 20), "allocated " + allocated);
+    assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(bytes, seed));
+    final byte[] shortBytes = java.util.Arrays.copyOf(bytes, 8);
+    assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(shortBytes, seed));
+  }
+
 }

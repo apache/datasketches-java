@@ -441,6 +441,8 @@ public class CountMinSketch {
    * @return The deserialized CountMinSketch.
    */
   public static CountMinSketch deserialize(final byte[] b, final long seed) {
+    final int preambleBytes = Family.COUNTMIN.getMinPreLongs() * Long.BYTES;
+    Util.checkBounds(0, preambleBytes, b.length);
     final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(b));
 
     final byte preambleLongs = posSeg.getByte();
@@ -476,8 +478,12 @@ public class CountMinSketch {
           + Util.computeSeedHash(seed));
     }
 
-    final CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, seed);
     final boolean empty = (flagsByte & Flag.IS_EMPTY.mask()) > 0;
+    if (!empty) { //the image must hold the total weight and the whole sketch array
+      final long arrayBytes = (long) numHashes * numBuckets * Long.BYTES;
+      Util.checkBounds(preambleBytes, Long.BYTES + Math.max(arrayBytes, 0), b.length);
+    }
+    final CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, seed);
     if (empty) {
       return cms;
     }
