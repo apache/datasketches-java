@@ -19,6 +19,14 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static org.apache.datasketches.common.Util.checkBounds;
+
+import java.lang.foreign.MemorySegment;
+
+import org.apache.datasketches.common.SketchesArgumentException;
+
 /**
  * Top level compact tuple sketch of type ArrayOfDoubles. Compact sketches are never created
  * directly.  They are created as a result of the compact() method on a QuickSelectSketch
@@ -44,6 +52,29 @@ public abstract class ArrayOfDoublesCompactSketch extends ArrayOfDoublesSketch {
 
   ArrayOfDoublesCompactSketch(final int numValues) {
     super(numValues);
+  }
+
+  /**
+   * Checks that the given image is large enough for the number of entries and values it declares,
+   * before anything is allocated or read from it.
+   * @param seg the serialized compact sketch
+   * @throws SketchesArgumentException if the image is too small or its counts are invalid
+   */
+  static void checkCompactImage(final MemorySegment seg) {
+    checkBounds(0, EMPTY_SIZE, seg.byteSize());
+    final int numValues = seg.get(JAVA_BYTE, NUM_VALUES_BYTE);
+    if (numValues < 1) {
+      throw new SketchesArgumentException("Possible corruption: numValues must be positive: " + numValues);
+    }
+    final boolean hasEntries = (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
+    if (!hasEntries) { return; }
+    checkBounds(0, ENTRIES_START, seg.byteSize());
+    final int count = seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
+    if (count < 0) {
+      throw new SketchesArgumentException("Possible corruption: negative retained entries: " + count);
+    }
+    checkBounds(ENTRIES_START, (long) count * (SIZE_OF_KEY_BYTES + ((long) SIZE_OF_VALUE_BYTES * numValues)),
+        seg.byteSize());
   }
 
   @Override

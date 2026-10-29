@@ -157,6 +157,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   DirectArrayOfDoublesCompactSketch(final MemorySegment seg, final long seed) {
+    checkCompactImage(seg);
     super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE));
     seg_ = seg;
     SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),
