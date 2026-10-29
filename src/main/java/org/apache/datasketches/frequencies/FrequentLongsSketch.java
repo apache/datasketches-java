@@ -42,6 +42,7 @@ import static org.apache.datasketches.frequencies.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.frequencies.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.frequencies.Util.LG_MIN_MAP_SIZE;
 import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
+import static org.apache.datasketches.frequencies.Util.checkMapSizes;
 import static org.apache.datasketches.frequencies.Util.checkStreamWeight;
 
 import java.lang.foreign.MemorySegment;
@@ -278,17 +279,19 @@ public class FrequentLongsSketch {
     MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, 0, preArr, 0, preLongs);
     checkStreamWeight(preArr[2]);
 
-    final FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgCurMapSize);
+    final int preBytes = preLongs << 3;
+    final int activeItems = extractActiveItems(preArr[1]);
+    final int lgStartMapSize =
+        checkMapSizes(lgMaxMapSize, lgCurMapSize, activeItems, ReversePurgeLongHashMap.getLoadFactor());
+    final long reqBytes = preBytes + (2L * activeItems * Long.BYTES); //count Arr + Items Arr
+    checkBounds(0, reqBytes, srcSeg.byteSize()); //check MemorySegment capacity before allocating
+
+    final FrequentLongsSketch fls = new FrequentLongsSketch(lgMaxMapSize, lgStartMapSize);
     fls.streamWeight = 0; //update after
     fls.offset = preArr[3];
 
-    final int preBytes = preLongs << 3;
-    final int activeItems = extractActiveItems(preArr[1]);
-
     //Get countArray
     final long[] countArray = new long[activeItems];
-    final int reqBytes = preBytes + (2 * activeItems * Long.BYTES); //count Arr + Items Arr
-    checkBounds(0, reqBytes, srcSeg.byteSize()); //check MemorySegment capacity
     MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, preBytes, countArray, 0, activeItems);
 
     //Get itemArray

@@ -54,6 +54,42 @@ final class Util {
   }
 
   /**
+   * Checks the map sizes and the number of active items read from the serialized image of a
+   * non-empty sketch, and returns the log2 size of the map to rebuild the sketch into.
+   *
+   * <p>The returned size is just large enough to hold the active items, and no larger than
+   * <i>lgCurMapSize</i>. The map then grows as needed while the items are inserted, so the memory
+   * allocated is bounded by the size of the image, not by the declared map size.</p>
+   *
+   * @param lgMaxMapSize log2 of the maximum map size
+   * @param lgCurMapSize log2 of the current map size
+   * @param activeItems the number of active items
+   * @param loadFactor the load factor of the hash map
+   * @return log2 of the map size to rebuild into
+   * @throws SketchesArgumentException if the values are not consistent
+   */
+  static int checkMapSizes(final int lgMaxMapSize, final int lgCurMapSize, final int activeItems,
+      final double loadFactor) {
+    if (lgCurMapSize < LG_MIN_MAP_SIZE) {
+      throw new SketchesArgumentException(
+          "Possible Corruption: LgCurMapSize must be at least " + LG_MIN_MAP_SIZE + ": " + lgCurMapSize);
+    }
+    if (lgCurMapSize > lgMaxMapSize) {
+      throw new SketchesArgumentException(
+          "Possible Corruption: LgCurMapSize must not exceed LgMaxMapSize: "
+            + lgCurMapSize + " > " + lgMaxMapSize);
+    }
+    final long maxActive = (long) ((1L << Math.min(lgCurMapSize, 62)) * loadFactor);
+    if ((activeItems < 0) || (activeItems > maxActive)) {
+      throw new SketchesArgumentException(
+          "Possible Corruption: ActiveItems exceeds map capacity: " + activeItems);
+    }
+    int lgStart = LG_MIN_MAP_SIZE;
+    while ((lgStart < lgCurMapSize) && (((1L << lgStart) * loadFactor) < activeItems)) { lgStart++; }
+    return lgStart;
+  }
+
+  /**
    * Checks the stream weight read from the serialized image of a non-empty sketch.
    * @param streamWeight the stream weight
    * @throws SketchesArgumentException if the stream weight is not positive
