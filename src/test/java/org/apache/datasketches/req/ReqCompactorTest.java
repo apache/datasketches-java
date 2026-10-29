@@ -62,7 +62,6 @@ public class ReqCompactorTest {
   private static void checkSerDeImpl(final int k, final boolean hra) {
     final ReqCompactor c1 = new ReqCompactor((byte)0, hra, k, null);
     final int nomCap = 2 * 3 * k;
-    final int cap = 2 * nomCap;
     final int delta = nomCap;
     final FloatBuffer fbuf = c1.getBuffer();
 
@@ -81,7 +80,7 @@ public class ReqCompactorTest {
     final byte[] c1ser = c1.toByteArray();
     //now deserialize
     final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
-    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, sorted, c1hra);
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, k, sorted, c1hra);
     final ReqCompactor c2 = compactor.reqCompactor;
     assertEquals(compactor.minItem, minV);
     assertEquals(compactor.maxItem, maxV);
@@ -93,9 +92,14 @@ public class ReqCompactorTest {
     assertEquals(c2.getLgWeight(), lgWeight);
     assertEquals(c2.isHighRankAccuracy(), c1hra);
     final FloatBuffer fbuf2 = c2.getBuffer();
-    assertEquals(fbuf2.getCapacity(), cap);
+    //deserialization sizes the buffer to the items it holds; the buffer grows as needed
+    assertTrue(fbuf2.getCapacity() >= compactor.count);
     assertEquals(fbuf2.getDelta(), delta);
-    assertTrue(fbuf.isEqualTo(fbuf2));
+    assertEquals(fbuf2.getCount(), fbuf.getCount());
+    assertEquals(fbuf2.isSorted(), fbuf.isSorted());
+    for (int i = 0; i < fbuf.getCount(); i++) {
+      assertEquals(fbuf2.getItem(i), fbuf.getItem(i));
+    }
   }
 
   @Test
@@ -114,7 +118,7 @@ public class ReqCompactorTest {
     }
     final byte[] c1ser = c1.toByteArray();
     final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
-    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, fbuf.isSorted(), hra);
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, k, fbuf.isSorted(), hra);
     assertEquals(compactor.minItem, -nomCap);
     assertEquals(compactor.maxItem, -1f);
   }
@@ -136,7 +140,7 @@ public class ReqCompactorTest {
     }
     final byte[] c1ser = c1.toByteArray();
     final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
-    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, fbuf.isSorted(), hra);
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, k, fbuf.isSorted(), hra);
     assertEquals(compactor.minItem, (float) -half);
     assertEquals(compactor.maxItem, (float) (half - 1));
   }
@@ -158,7 +162,7 @@ public class ReqCompactorTest {
 
     final byte[] c1ser = c1.toByteArray();
     final PositionalSegment posSeg = PositionalSegment.wrap(MemorySegment.ofArray(c1ser));
-    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, fbuf.isSorted(), hra);
+    final Compactor compactor = ReqSerDe.extractCompactor(posSeg, k, fbuf.isSorted(), hra);
     assertEquals(compactor.minItem, Float.NEGATIVE_INFINITY);
     assertEquals(compactor.maxItem, Float.POSITIVE_INFINITY);
   }
