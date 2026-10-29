@@ -254,12 +254,12 @@ public class HllSketch extends BaseHllSketch {
           "Cannot perform a writableWrap of a sketch image that is in compact form. "
           + "Compact sketches are by definition immutable.");
     }
+    final CurMode curMode = checkPreamble(srcWseg); //checks lgK before it is used
     final int lgConfigK = extractLgK(srcWseg);
     final TgtHllType tgtHllType = extractTgtHllType(srcWseg);
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     final long capBytes = srcWseg.byteSize();
     HllUtil.checkSegSize(minBytes, capBytes);
-    final CurMode curMode = checkPreamble(srcWseg);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
       if (tgtHllType == TgtHllType.HLL_4) {
