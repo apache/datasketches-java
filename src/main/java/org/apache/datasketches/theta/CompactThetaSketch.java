@@ -397,6 +397,7 @@ public abstract class CompactThetaSketch extends ThetaSketch {
     final int numEntriesBytes = extractNumEntriesBytesV4(srcSeg);
     final short seedHash = (short) extractSeedHash(srcSeg);
     PreambleUtil.checkSegmentSeedHash(srcSeg, seed);
+    PreambleUtil.checkCompressedImage(srcSeg);
     int offsetBytes = 8;
     long theta = Long.MAX_VALUE;
     if (preLongs > 1) {

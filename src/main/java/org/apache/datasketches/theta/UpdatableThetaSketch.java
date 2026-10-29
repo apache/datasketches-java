@@ -30,13 +30,13 @@ import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.checkSegPreambleCap;
 import static org.apache.datasketches.theta.PreambleUtil.checkSegmentSeedHash;
+import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.getUpdatableSegBytes;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpty;
 
 import java.lang.foreign.MemorySegment;
@@ -562,9 +562,19 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
     final short seedHash = checkSegmentSeedHash(srcSeg, expectedSeed);              //byte 6,7
     Util.checkSeedHashes(seedHash, Util.computeSeedHash(expectedSeed));
 
-    //Check seg capacity, lgArrLongs
+    //Check lgNomLongs, lgArrLongs and curCount. The hash table grows to at most twice the nominal entries.
+    if ((lgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (lgArrLongs < 0) || (lgArrLongs > (lgNomLongs + 1))) {
+      throw new SketchesArgumentException("Possible corruption: lgNomLongs: " + lgNomLongs
+          + ", lgArrLongs: " + lgArrLongs);
+    }
+    final int curCount = extractCurCount(srcSeg);
+    if ((curCount < 0) || (curCount > (1 << lgArrLongs))) {
+      throw new SketchesArgumentException("Possible corruption: invalid curCount: " + curCount);
+    }
+
+    //Check seg capacity, computed in long arithmetic so that it cannot overflow
     final long curCapBytes = srcSeg.byteSize();
-    final int minReqBytes = getUpdatableSegBytes(lgArrLongs, preambleLongs);
+    final long minReqBytes = (8L << lgArrLongs) + ((long) preambleLongs << 3);
     if (curCapBytes < minReqBytes) {
       throw new SketchesArgumentException(
           "Possible corruption: Current MemorySegment size < min required size: "
