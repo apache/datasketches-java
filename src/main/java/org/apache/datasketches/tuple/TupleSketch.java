@@ -19,7 +19,9 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 
@@ -41,11 +43,23 @@ public abstract class TupleSketch<S extends Summary> {
   long thetaLong_;
   boolean empty_ = true;
   protected SummaryFactory<S> summaryFactory_ = null;
+  final short seedHash_;
 
-  TupleSketch(final long thetaLong, final boolean empty, final SummaryFactory<S> summaryFactory) {
+  TupleSketch(final long thetaLong, final boolean empty, final SummaryFactory<S> summaryFactory,
+      final short seedHash) {
     this.thetaLong_ = thetaLong;
     this.empty_ = empty;
     this.summaryFactory_ = summaryFactory;
+    this.seedHash_ = seedHash;
+  }
+
+  /**
+   * Gets the 16-bit hash of the update seed that this sketch was created with.
+   * Set operations use it to check that their inputs were created with the same seed.
+   * @return the seed hash
+   */
+  public short getSeedHash() {
+    return seedHash_;
   }
 
   /**
@@ -252,11 +266,31 @@ public abstract class TupleSketch<S extends Summary> {
   public static <S extends Summary> TupleSketch<S> heapifySketch(
       final MemorySegment seg,
       final SummaryDeserializer<S> deserializer) {
+    return heapifySketch(seg, deserializer, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Instantiate a TupleSketch from a given MemorySegment, which was created with the given update seed.
+   * The seed hash of a non-empty compact image must match the given seed.
+   * An updatable image does not store a seed hash and must have been created with the default seed.
+   * @param <S> Type of Summary
+   * @param seg MemorySegment object representing a TupleSketch
+   * @param deserializer instance of SummaryDeserializer
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @return TupleSketch created from its MemorySegment representation
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the seed hashes do not match
+   */
+  public static <S extends Summary> TupleSketch<S> heapifySketch(
+      final MemorySegment seg,
+      final SummaryDeserializer<S> deserializer,
+      final long seed) {
     final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(seg);
     if (sketchType == SerializerDeserializer.SketchType.QuickSelectSketch) {
-      return new QuickSelectSketch<>(seg, deserializer, null);
+      final QuickSelectSketch<S> sketch = new QuickSelectSketch<>(seg, deserializer, null);
+      Util.checkTupleSeedHash(sketch, computeSeedHash(seed));
+      return sketch;
     }
-    return new CompactTupleSketch<>(seg, deserializer);
+    return new CompactTupleSketch<>(seg, deserializer, seed);
   }
 
   /**
@@ -265,7 +299,7 @@ public abstract class TupleSketch<S extends Summary> {
    * @return an empty instance of a CompactTupleSketch
    */
   public static <S extends Summary> TupleSketch<S> createEmptySketch() {
-    return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
+    return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true, Util.DEFAULT_SEED_HASH);
   }
 
 }

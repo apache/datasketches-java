@@ -60,6 +60,26 @@ public class IntegerTupleSketch extends UpdatableTupleSketch<Integer, IntegerSum
   }
 
   /**
+   * Creates this sketch with the following parameters and the given update seed:
+   * @param lgK Log_base2 of <i>Nominal Entries</i>.
+   * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
+   * <pre>
+   * 0 - no resizing (max size allocated),
+   * 1 - double internal hash table each time it reaches a threshold
+   * 2 - grow four times
+   * 3 - grow eight times (default)
+   * </pre>
+   * @param samplingProbability
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param mode The IntegerSummary mode to be used
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public IntegerTupleSketch(final int lgK, final int lgResizeFactor, final float samplingProbability,
+      final IntegerSummary.Mode mode, final long seed) {
+    super(1 << lgK, lgResizeFactor, samplingProbability, new IntegerSummaryFactory(mode), seed);
+  }
+
+  /**
    * Constructs this sketch from a MemorySegment image, which must be from an IntegerTupleSketch, and
    * usually with data.
    * @param seg the given MemorySegment

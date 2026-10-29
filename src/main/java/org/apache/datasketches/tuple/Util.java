@@ -37,7 +37,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  */
 public final class Util {
   private static final int PRIME = 0x7A3C_CA71;
-  private static final short DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED);
+  static final short DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED);
 
   /**
    * No argument constructor.
@@ -45,14 +45,27 @@ public final class Util {
   public Util() { }
 
   /**
-   * Checks that the given ThetaSketch was created with the default update seed, which is the seed
-   * that all TupleSketches use. Null and empty sketches are not checked.
+   * Checks that the given ThetaSketch was created with the seed that has the given seed hash.
+   * Null and empty sketches are not checked.
    * @param thetaSketch the given ThetaSketch
+   * @param seedHash the expected seed hash
    * @throws org.apache.datasketches.common.SketchesArgumentException if the seed hashes do not match
    */
-  static void checkThetaSeedHash(final ThetaSketch thetaSketch) {
+  static void checkThetaSeedHash(final ThetaSketch thetaSketch, final short seedHash) {
     if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
-    checkSeedHashes(DEFAULT_SEED_HASH, thetaSketch.getSeedHash());
+    checkSeedHashes(seedHash, thetaSketch.getSeedHash());
+  }
+
+  /**
+   * Checks that the given TupleSketch was created with the seed that has the given seed hash.
+   * Null and empty sketches are not checked.
+   * @param tupleSketch the given TupleSketch
+   * @param seedHash the expected seed hash
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the seed hashes do not match
+   */
+  static void checkTupleSeedHash(final TupleSketch<?> tupleSketch, final short seedHash) {
+    if (tupleSketch == null || tupleSketch.isEmpty()) { return; }
+    checkSeedHashes(seedHash, tupleSketch.getSeedHash());
   }
 
   /**
