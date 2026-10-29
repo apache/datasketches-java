@@ -51,7 +51,7 @@ public final class SerializerDeserializer {
     /** ArrayOfDoublesUnion */
     ArrayOfDoublesUnion }
 
-  static final int TYPE_BYTE_OFFSET = 3;
+  static final int TYPE_BYTE_OFFSET = PreambleUtil.SKETCH_TYPE_BYTE;
 
   /**
    * Validates the preamble-Longs value given the family ID
