@@ -127,6 +127,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   public Number[] deserializeFromMemorySegment(final MemorySegment seg, final long offsetBytes, final int numItems) {
     Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return new Number[0]; }
+    Util.checkBounds(offsetBytes, numItems, seg.byteSize()); //each item has at least a 1-byte type code
     final Number[] array = new Number[numItems];
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
