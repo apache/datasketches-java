@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -33,6 +35,7 @@ public class UpdatableTupleSketchBuilder<U, S extends UpdatableSummary<U>> {
   private int nomEntries_;
   private ResizeFactor resizeFactor_;
   private float samplingProbability_;
+  private long seed_;
   private final SummaryFactory<S> summaryFactory_;
 
   private static final float DEFAULT_SAMPLING_PROBABILITY = 1;
@@ -46,6 +49,7 @@ public class UpdatableTupleSketchBuilder<U, S extends UpdatableSummary<U>> {
     nomEntries_ = ThetaUtil.DEFAULT_NOMINAL_ENTRIES;
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
+    seed_ = DEFAULT_UPDATE_SEED;
     summaryFactory_ = summaryFactory;
   }
 
@@ -87,21 +91,33 @@ public class UpdatableTupleSketchBuilder<U, S extends UpdatableSummary<U>> {
   }
 
   /**
+   * This is to set the update seed.
+   * Default seed is the library default update seed.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @return this UpdatableTupleSketchBuilder
+   */
+  public UpdatableTupleSketchBuilder<U, S> setSeed(final long seed) {
+    seed_ = seed;
+    return this;
+  }
+
+  /**
    * Returns an UpdatableTupleSketch with the current configuration of this Builder.
    * @return an UpdatableTupleSketch
    */
   public UpdatableTupleSketch<U, S> build() {
     return new UpdatableTupleSketch<>(nomEntries_, resizeFactor_.lg(), samplingProbability_,
-        summaryFactory_);
+        summaryFactory_, seed_);
   }
 
   /**
-   * Resets the Nominal Entries, Resize Factor and Sampling Probability to their default values.
+   * Resets the Nominal Entries, Resize Factor, Sampling Probability and Seed to their default values.
    * The assignment of <i>U</i> and <i>S</i> remain the same.
    */
   public void reset() {
     nomEntries_ = ThetaUtil.DEFAULT_NOMINAL_ENTRIES;
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
+    seed_ = DEFAULT_UPDATE_SEED;
   }
 }

@@ -22,6 +22,9 @@ package org.apache.datasketches.tuple;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+import static org.apache.datasketches.common.Util.checkSeedHashes;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_FLAGS_BYTE;
 import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_SER_VER;
 import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_SER_VER_LEGACY;
@@ -54,7 +57,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * @param <S> type of Summary
  */
 public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> {
-  private static final short defaultSeedHash = (short) 37836; // for compatibility with C++
   private final long[] hashArr_;
   private S[] summaryArr_;
 
@@ -68,9 +70,11 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
    * @param summaryArr compacted summary array
    * @param thetaLong long value of theta
    * @param empty empty flag
+   * @param seedHash the seed hash
    */
-  CompactTupleSketch(final long[] hashArr, final S[] summaryArr, final long thetaLong, final boolean empty) {
-    super(thetaLong, empty, null);
+  CompactTupleSketch(final long[] hashArr, final S[] summaryArr, final long thetaLong, final boolean empty,
+      final short seedHash) {
+    super(thetaLong, empty, null, seedHash);
     super.thetaLong_ = thetaLong;
     super.empty_ = empty;
     hashArr_ = hashArr;
@@ -82,9 +86,10 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
    *
    * @param seg MemorySegment object with serialized CompactTupleSketch
    * @param deserializer the SummaryDeserializer
+   * @param seed the update seed that the serialized sketch must have been created with
    */
-  CompactTupleSketch(final MemorySegment seg, final SummaryDeserializer<S> deserializer) {
-    super(Long.MAX_VALUE, true, null);
+  CompactTupleSketch(final MemorySegment seg, final SummaryDeserializer<S> deserializer, final long seed) {
+    super(Long.MAX_VALUE, true, null, computeSeedHash(seed));
     final byte preambleLongs = seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE);
     final byte version = seg.get(JAVA_BYTE, SER_VER_BYTE);
     final byte familyId = seg.get(JAVA_BYTE, FAMILY_BYTE);
@@ -95,10 +100,11 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
     }
     SerializerDeserializer
       .validateType(seg.get(JAVA_BYTE, SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.CompactTupleSketch);
-    if (version <= COMPACT_SER_VER_LEGACY) { // legacy serial format: fields after the flags are packed
+    if (version <= COMPACT_SER_VER_LEGACY) { // legacy serial format, always written with the default seed
       final byte flags = seg.get(JAVA_BYTE, LEGACY_FLAGS_BYTE);
-      int offset = LEGACY_FLAGS_BYTE + 1;
+      int offset = LEGACY_FLAGS_BYTE + 1; // fields after the flags are packed
       empty_ = (flags & (1 << FlagsLegacy.IS_EMPTY.ordinal())) > 0;
+      if (!empty_) { checkSeedHashes(seedHash_, Util.DEFAULT_SEED_HASH); }
       final boolean isThetaIncluded = (flags & (1 << FlagsLegacy.IS_THETA_INCLUDED.ordinal())) > 0;
       if (isThetaIncluded) {
         thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, offset);
@@ -132,7 +138,9 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
       }
     } else { // current serial format
       final byte flags = seg.get(JAVA_BYTE, COMPACT_FLAGS_BYTE);
+      final short seedHash = seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
       empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+      if (!empty_) { checkSeedHashes(seedHash_, seedHash); } // an empty image carries zero, as in theta
       thetaLong_ = Long.MAX_VALUE;
       int count = 0;
       if (!empty_) {
@@ -225,7 +233,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
       | (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
     );
     // an empty image carries zero, as in theta
-    ByteArrayUtil.putShortLE(bytes, SEED_HASH_SHORT, isEmpty() ? 0 : defaultSeedHash);
+    ByteArrayUtil.putShortLE(bytes, SEED_HASH_SHORT, isEmpty() ? 0 : seedHash_);
     if (!isEmpty()) {
       if (!isSingleItem) {
         ByteArrayUtil.putIntLE(bytes, RETAINED_ENTRIES_INT, count);

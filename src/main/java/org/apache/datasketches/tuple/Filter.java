@@ -50,7 +50,7 @@ public class Filter<T extends Summary> {
     @SuppressWarnings("unchecked")
     public CompactTupleSketch<T> filter(final TupleSketch<T> sketchIn) {
         if (sketchIn == null) {
-            return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
+            return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true, Util.DEFAULT_SEED_HASH);
         }
         final long[] hashes = new long[sketchIn.getRetainedEntries()];
         T[] summaries = null; // lazy init to get class from the first entry
@@ -68,9 +68,10 @@ public class Filter<T extends Summary> {
         }
         final boolean isEmpty = i == 0 && !sketchIn.isEstimationMode();
         if (i == 0) {
-          return new CompactTupleSketch<>(null, null, sketchIn.getThetaLong(), isEmpty);
+          return new CompactTupleSketch<>(null, null, sketchIn.getThetaLong(), isEmpty, sketchIn.getSeedHash());
         }
-        return new CompactTupleSketch<>(Arrays.copyOf(hashes, i), Arrays.copyOf(summaries, i), sketchIn.getThetaLong(), isEmpty);
+        return new CompactTupleSketch<>(Arrays.copyOf(hashes, i), Arrays.copyOf(summaries, i),
+            sketchIn.getThetaLong(), isEmpty, sketchIn.getSeedHash());
     }
 }
 

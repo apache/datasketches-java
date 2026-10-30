@@ -22,6 +22,7 @@ package org.apache.datasketches.fdt;
 import java.lang.foreign.MemorySegment;
 import java.util.List;
 
+import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsTupleSketch;
@@ -55,6 +56,16 @@ public final class FdtSketch extends ArrayOfStringsTupleSketch {
    */
   public FdtSketch(final int lgK) {
     super(lgK);
+  }
+
+  /**
+   * Create new instance of Frequent Distinct Tuples sketch with the given
+   * Log-base2 of required nominal entries and the given update seed.
+   * @param lgK Log-base2 of required nominal entries.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public FdtSketch(final int lgK, final long seed) {
+    super(lgK, ResizeFactor.X8, 1.0F, seed);
   }
 
   /**

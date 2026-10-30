@@ -35,7 +35,7 @@ public class CompactSketchWithDoubleSummaryTest {
   @Test
   public void emptyFromNonPublicConstructorNullArray() {
     CompactTupleSketch<DoubleSummary> sketch =
-        new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
+        new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true, Util.DEFAULT_SEED_HASH);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -56,7 +56,7 @@ public class CompactSketchWithDoubleSummaryTest {
     DoubleSummary[] summaries =
         (DoubleSummary[]) java.lang.reflect.Array.newInstance(DoubleSummary.class, 0);
     CompactTupleSketch<DoubleSummary> sketch =
-        new CompactTupleSketch<>(keys, summaries, Long.MAX_VALUE, true);
+        new CompactTupleSketch<>(keys, summaries, Long.MAX_VALUE, true, Util.DEFAULT_SEED_HASH);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
