@@ -22,6 +22,18 @@ package org.apache.datasketches.tuple;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_FLAGS_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_SER_VER;
+import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_SER_VER_LEGACY;
+import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_SER_VER_WITH_CLASS_NAME;
+import static org.apache.datasketches.tuple.PreambleUtil.FAMILY_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.LEGACY_FLAGS_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.RETAINED_ENTRIES_INT;
+import static org.apache.datasketches.tuple.PreambleUtil.SEED_HASH_SHORT;
+import static org.apache.datasketches.tuple.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.SKETCH_TYPE_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.THETA_LONG;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.foreign.MemorySegment;
@@ -42,9 +54,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * @param <S> type of Summary
  */
 public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> {
-  private static final byte serialVersionWithSummaryClassNameUID = 1;
-  private static final byte serialVersionUIDLegacy = 2;
-  private static final byte serialVersionUID = 3;
   private static final short defaultSeedHash = (short) 37836; // for compatibility with C++
   private final long[] hashArr_;
   private S[] summaryArr_;
@@ -76,19 +85,19 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
    */
   CompactTupleSketch(final MemorySegment seg, final SummaryDeserializer<S> deserializer) {
     super(Long.MAX_VALUE, true, null);
-    int offset = 0;
-    final byte preambleLongs = seg.get(JAVA_BYTE, offset++);
-    final byte version = seg.get(JAVA_BYTE, offset++);
-    final byte familyId = seg.get(JAVA_BYTE, offset++);
+    final byte preambleLongs = seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE);
+    final byte version = seg.get(JAVA_BYTE, SER_VER_BYTE);
+    final byte familyId = seg.get(JAVA_BYTE, FAMILY_BYTE);
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
-    if (version > serialVersionUID) {
+    if (version > COMPACT_SER_VER) {
       throw new SketchesArgumentException(
-          "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: " + version);
+          "Unsupported serial version. Expected: " + COMPACT_SER_VER + " or lower, actual: " + version);
     }
     SerializerDeserializer
-      .validateType(seg.get(JAVA_BYTE, offset++), SerializerDeserializer.SketchType.CompactTupleSketch);
-    if (version <= serialVersionUIDLegacy) { // legacy serial format
-      final byte flags = seg.get(JAVA_BYTE, offset++);
+      .validateType(seg.get(JAVA_BYTE, SKETCH_TYPE_BYTE), SerializerDeserializer.SketchType.CompactTupleSketch);
+    if (version <= COMPACT_SER_VER_LEGACY) { // legacy serial format: fields after the flags are packed
+      final byte flags = seg.get(JAVA_BYTE, LEGACY_FLAGS_BYTE);
+      int offset = LEGACY_FLAGS_BYTE + 1;
       empty_ = (flags & (1 << FlagsLegacy.IS_EMPTY.ordinal())) > 0;
       final boolean isThetaIncluded = (flags & (1 << FlagsLegacy.IS_THETA_INCLUDED.ordinal())) > 0;
       if (isThetaIncluded) {
@@ -100,12 +109,12 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
       final boolean hasEntries = (flags & (1 << FlagsLegacy.HAS_ENTRIES.ordinal())) > 0;
       if (hasEntries) {
         int classNameLength = 0;
-        if (version == serialVersionWithSummaryClassNameUID) {
+        if (version == COMPACT_SER_VER_WITH_CLASS_NAME) {
           classNameLength = seg.get(JAVA_BYTE, offset++);
         }
         final int count = seg.get(JAVA_INT_UNALIGNED, offset);
         offset += Integer.BYTES;
-        if (version == serialVersionWithSummaryClassNameUID) {
+        if (version == COMPACT_SER_VER_WITH_CLASS_NAME) {
           offset += classNameLength;
         }
         hashArr_ = new long[count];
@@ -122,9 +131,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         summaryArr_ = null;
       }
     } else { // current serial format
-      offset++; //skip unused byte
-      final byte flags = seg.get(JAVA_BYTE, offset++);
-      offset += 2; //skip 2 unused bytes
+      final byte flags = seg.get(JAVA_BYTE, COMPACT_FLAGS_BYTE);
       empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
       thetaLong_ = Long.MAX_VALUE;
       int count = 0;
@@ -132,15 +139,13 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         if (preambleLongs == 1) {
           count = 1;
         } else {
-          count = seg.get(JAVA_INT_UNALIGNED, offset);
-          offset += Integer.BYTES;
-          offset += 4; // unused
+          count = seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
           if (preambleLongs > 2) {
-            thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, offset);
-            offset += Long.BYTES;
+            thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
           }
         }
       }
+      int offset = preambleLongs * Long.BYTES; // the entries start after the preamble
       hashArr_ = new long[count];
 
       for (int i = 0; i < count; i++) {
@@ -210,30 +215,26 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
 
     final int sizeBytes = (Long.BYTES * preambleLongs) + (Long.BYTES * count) + summariesSizeBytes;
     final byte[] bytes = new byte[sizeBytes];
-    int offset = 0;
-    bytes[offset++] = (byte) preambleLongs;
-    bytes[offset++] = serialVersionUID;
-    bytes[offset++] = (byte) Family.TUPLE.getID();
-    bytes[offset++] = (byte) SerializerDeserializer.SketchType.CompactTupleSketch.ordinal();
-    offset++; // unused
-    bytes[offset++] = (byte) (
+    bytes[PREAMBLE_LONGS_BYTE] = (byte) preambleLongs;
+    bytes[SER_VER_BYTE] = COMPACT_SER_VER;
+    bytes[FAMILY_BYTE] = (byte) Family.TUPLE.getID();
+    bytes[SKETCH_TYPE_BYTE] = (byte) SerializerDeserializer.SketchType.CompactTupleSketch.ordinal();
+    bytes[COMPACT_FLAGS_BYTE] = (byte) (
         (1 << Flags.IS_COMPACT.ordinal())
       | (1 << Flags.IS_READ_ONLY.ordinal())
       | (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
     );
-    ByteArrayUtil.putShortLE(bytes, offset, isEmpty() ? 0 : defaultSeedHash); // empty image carries zero, as in theta
-    offset += Short.BYTES;
+    // an empty image carries zero, as in theta
+    ByteArrayUtil.putShortLE(bytes, SEED_HASH_SHORT, isEmpty() ? 0 : defaultSeedHash);
     if (!isEmpty()) {
       if (!isSingleItem) {
-        ByteArrayUtil.putIntLE(bytes, offset, count);
-        offset += Integer.BYTES;
-        offset += 4; // unused
+        ByteArrayUtil.putIntLE(bytes, RETAINED_ENTRIES_INT, count);
         if (isEstimationMode()) {
-          ByteArrayUtil.putLongLE(bytes, offset, thetaLong_);
-          offset += Long.BYTES;
+          ByteArrayUtil.putLongLE(bytes, THETA_LONG, thetaLong_);
         }
       }
     }
+    int offset = preambleLongs * Long.BYTES; // the entries start after the preamble
     for (int i = 0; i < count; i++) {
       ByteArrayUtil.putLongLE(bytes, offset, hashArr_[i]);
       offset += Long.BYTES;

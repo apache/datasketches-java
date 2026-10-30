@@ -27,6 +27,16 @@ import static org.apache.datasketches.common.Util.ceilingPowerOf2;
 import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
+import static org.apache.datasketches.tuple.PreambleUtil.FAMILY_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.LEGACY_FLAGS_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.LG_CUR_CAPACITY_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.LG_NOM_ENTRIES_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.LG_RESIZE_FACTOR_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.QS_VARIABLE_START;
+import static org.apache.datasketches.tuple.PreambleUtil.QUICK_SELECT_SER_VER;
+import static org.apache.datasketches.tuple.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.tuple.PreambleUtil.SKETCH_TYPE_BYTE;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.reflect.Array;
@@ -46,7 +56,6 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @param <S> type of Summary
  */
 class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
-  private static final byte serialVersionUID = 2;
 
   private enum Flags { IS_RESERVED, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
@@ -219,22 +228,22 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
       Objects.requireNonNull(deserializer, "Deserializer must not be null.");
       checkBounds(0, 8, seg.byteSize());
 
-      int offset = 0;
-      final byte preambleLongs = seg.get(JAVA_BYTE, offset++); //byte 0 PreLongs
-      final byte version = seg.get(JAVA_BYTE, offset++);       //byte 1 SerVer
-      final byte familyId = seg.get(JAVA_BYTE, offset++);      //byte 2 FamID
+      final byte preambleLongs = seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE);
+      final byte version = seg.get(JAVA_BYTE, SER_VER_BYTE);
+      final byte familyId = seg.get(JAVA_BYTE, FAMILY_BYTE);
       SerializerDeserializer.validateFamily(familyId, preambleLongs);
-      if (version > serialVersionUID) {
+      if (version > QUICK_SELECT_SER_VER) {
         throw new SketchesArgumentException(
-            "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: "
+            "Unsupported serial version. Expected: " + QUICK_SELECT_SER_VER + " or lower, actual: "
                 + version);
       }
-      SerializerDeserializer.validateType(seg.get(JAVA_BYTE, offset++), //byte 3
+      SerializerDeserializer.validateType(seg.get(JAVA_BYTE, SKETCH_TYPE_BYTE),
           SerializerDeserializer.SketchType.QuickSelectSketch);
-      final byte flags = seg.get(JAVA_BYTE, offset++); //byte 4
-      myNomEntries = 1 << seg.get(JAVA_BYTE, offset++); //byte 5
-      myLgCurrentCapacity = seg.get(JAVA_BYTE, offset++); //byte 6
-      myLgResizeFactor = seg.get(JAVA_BYTE, offset++); //byte 7
+      final byte flags = seg.get(JAVA_BYTE, LEGACY_FLAGS_BYTE);
+      myNomEntries = 1 << seg.get(JAVA_BYTE, LG_NOM_ENTRIES_BYTE);
+      myLgCurrentCapacity = seg.get(JAVA_BYTE, LG_CUR_CAPACITY_BYTE);
+      myLgResizeFactor = seg.get(JAVA_BYTE, LG_RESIZE_FACTOR_BYTE);
+      int offset = QS_VARIABLE_START; // the remaining fields are packed and optional
 
       checkBounds(0, preambleLongs * 8L, seg.byteSize());
       final boolean isInSamplingMode = (flags & (1 << Flags.IS_IN_SAMPLING_MODE.ordinal())) > 0;
@@ -445,20 +454,20 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
     }
     sizeBytes += (Long.BYTES * retEntries_) + summariesBytesLength;
     final byte[] bytes = new byte[sizeBytes];
-    int offset = 0;
-    bytes[offset++] = PREAMBLE_LONGS;
-    bytes[offset++] = serialVersionUID;
-    bytes[offset++] = (byte) Family.TUPLE.getID();
-    bytes[offset++] = (byte) SerializerDeserializer.SketchType.QuickSelectSketch.ordinal();
-    bytes[offset++] = (byte) (
+    bytes[PREAMBLE_LONGS_BYTE] = PREAMBLE_LONGS;
+    bytes[SER_VER_BYTE] = QUICK_SELECT_SER_VER;
+    bytes[FAMILY_BYTE] = (byte) Family.TUPLE.getID();
+    bytes[SKETCH_TYPE_BYTE] = (byte) SerializerDeserializer.SketchType.QuickSelectSketch.ordinal();
+    bytes[LEGACY_FLAGS_BYTE] = (byte) (
         (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
       | (empty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (retEntries_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     );
-    bytes[offset++] = (byte) Integer.numberOfTrailingZeros(nomEntries_);
-    bytes[offset++] = (byte) lgCurrentCapacity_;
-    bytes[offset++] = (byte) lgResizeFactor_;
+    bytes[LG_NOM_ENTRIES_BYTE] = (byte) Integer.numberOfTrailingZeros(nomEntries_);
+    bytes[LG_CUR_CAPACITY_BYTE] = (byte) lgCurrentCapacity_;
+    bytes[LG_RESIZE_FACTOR_BYTE] = (byte) lgResizeFactor_;
+    int offset = QS_VARIABLE_START; // the remaining fields are packed and optional
     if (samplingProbability_ < 1f) {
       ByteArrayUtil.putFloatLE(bytes, offset, samplingProbability_);
       offset += Float.BYTES;
