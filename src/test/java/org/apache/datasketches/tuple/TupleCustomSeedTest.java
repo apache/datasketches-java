@@ -132,6 +132,21 @@ public class TupleCustomSeedTest {
   }
 
   @Test
+  public void checkUpdatableSerializationComparesFullSeed() {
+    //a custom seed whose 16-bit seed hash equals that of the default seed must still be refused
+    final short defaultSeedHash = computeSeedHash(DEFAULT_UPDATE_SEED);
+    long seed = 1;
+    while ((seed == DEFAULT_UPDATE_SEED) || (computeSeedHash(seed) != defaultSeedHash)) { seed++; }
+    final UpdatableTupleSketch<Double, DoubleSummary> sk = tupleSketch(seed, 0, 10);
+    assertEquals(sk.getSeedHash(), defaultSeedHash);
+    expectThrows(SketchesStateException.class, () -> sk.toByteArray());
+    expectThrows(SketchesStateException.class, () -> sk.copy().toByteArray());
+    expectThrows(SketchesStateException.class,
+        () -> new DoubleTupleSketch(12, 3, 1f, DoubleSummary.Mode.Sum, SEED).toByteArray());
+    assertEquals(sk.compact().toByteArray().length, tupleSketch(DEFAULT_UPDATE_SEED, 0, 10).compact().toByteArray().length);
+  }
+
+  @Test
   public void checkUnion() {
     final TupleUnion<DoubleSummary> union = new TupleUnion<>(4096, dsso, SEED);
     union.union(tupleSketch(SEED, 0, 10));

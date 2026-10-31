@@ -47,7 +47,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.QuickSelect;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
@@ -440,16 +439,10 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
    * @deprecated As of 3.0.0, serializing an UpdatableTupleSketch is deprecated.
    * This capability will be removed in a future release.
    * Serializing a CompactTupleSketch is not deprecated.
-   * @throws SketchesStateException if this sketch was created with a custom seed,
-   * because this serialized form has no seed hash. Use compact().toByteArray() instead.
    */
   @Deprecated
   @Override
   public byte[] toByteArray() {
-    if (seedHash_ != Util.DEFAULT_SEED_HASH) {
-      throw new SketchesStateException("An updatable sketch created with a custom seed cannot be serialized, "
-          + "because this serialized form has no seed hash. Use compact().toByteArray() instead.");
-    }
     byte[][] summariesBytes = null;
     int summariesBytesLength = 0;
     if (retEntries_ > 0) {

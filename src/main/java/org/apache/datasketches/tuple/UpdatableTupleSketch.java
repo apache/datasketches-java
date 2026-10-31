@@ -25,6 +25,7 @@ import static org.apache.datasketches.common.Util.computeSeedHash;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.hash.MurmurHash3;
 
 /**
@@ -119,6 +120,25 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
   @Override
   public UpdatableTupleSketch<U,S> copy() {
     return new UpdatableTupleSketch<>(this);
+  }
+
+  /**
+   * This serializes an UpdatableTupleSketch.
+   * @return serialized representation of this UpdatableTupleSketch.
+   * @deprecated As of 3.0.0, serializing an UpdatableTupleSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Serializing a CompactTupleSketch is not deprecated.
+   * @throws SketchesStateException if this sketch was created with a seed other than the default,
+   * because this serialized form has no seed hash. Use compact().toByteArray() instead.
+   */
+  @Deprecated
+  @Override
+  public byte[] toByteArray() {
+    if (seed_ != DEFAULT_UPDATE_SEED) {
+      throw new SketchesStateException("An updatable sketch created with a custom seed cannot be serialized, "
+          + "because this serialized form has no seed hash. Use compact().toByteArray() instead.");
+    }
+    return super.toByteArray();
   }
 
   /**
