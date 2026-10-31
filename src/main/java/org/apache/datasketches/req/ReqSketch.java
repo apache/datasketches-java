@@ -588,7 +588,7 @@ public final class ReqSketch extends BaseReqSketch {
       for (int i = 0; i < numComp; i++) {
         final ReqCompactor c = compactors.get(i);
         final FloatBuffer fbufIn = c.getBuffer();
-        final long fbufWeight = 1 << c.getLgWeight();
+        final long fbufWeight = 1L << c.getLgWeight();
         final int fbufInLen = fbufIn.getCount();
         mergeSortIn(fbufIn, fbufWeight, count, getHighRankAccuracyMode());
         count += fbufInLen;

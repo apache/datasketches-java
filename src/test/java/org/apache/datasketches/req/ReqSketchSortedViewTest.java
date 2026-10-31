@@ -24,6 +24,9 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.testng.annotations.Test;
@@ -92,6 +95,31 @@ public class ReqSketchSortedViewTest {
     FloatsSortedView sv = sketch.getSortedView();
     FloatsSortedViewIterator itr = sv.iterator();
     printIterator(itr);
+  }
+
+  @Test
+  public void highLevelWeights() {
+    //One item per compactor, levels 0 to 32. The item at level h has the value h and weight 2^h.
+    final int numLevels = 33;
+    for (final boolean hraMode : new boolean[] {false, true}) {
+      final List<ReqCompactor> compactors = new ArrayList<>();
+      long totalN = 0;
+      for (int h = 0; h < numLevels; h++) {
+        final FloatBuffer buf = FloatBuffer.reconstruct(new float[] {h}, 1, 1, 0, true, hraMode);
+        compactors.add(new ReqCompactor((byte) h, hraMode, 0, 12f, (byte) 3, buf));
+        totalN += 1L << h;
+      }
+      final ReqSketch sketch = new ReqSketch(12, hraMode, totalN, 0f, numLevels - 1, compactors);
+      sketch.setRetainedItems(sketch.computeTotalRetainedItems());
+      final FloatsSortedViewIterator itr = sketch.getSortedView().iterator();
+      for (int h = 0; h < numLevels; h++) {
+        assertTrue(itr.next());
+        assertEquals(itr.getQuantile(), (float) h);
+        assertEquals(itr.getWeight(), 1L << h);
+        assertEquals(itr.getNaturalRank(INCLUSIVE), (1L << (h + 1)) - 1);
+      }
+      assertEquals(sketch.getSortedView().getN(), totalN);
+    }
   }
 
   private static void printIterator(final FloatsSortedViewIterator itr) {
