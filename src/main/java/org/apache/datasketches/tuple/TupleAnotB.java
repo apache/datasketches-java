@@ -20,6 +20,8 @@
 package org.apache.datasketches.tuple;
 
 import static java.lang.Math.min;
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
@@ -70,6 +72,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * @author Lee Rhodes
  */
 public final class TupleAnotB<S extends Summary> {
+  private final short seedHash_;
   private boolean empty_ = true;
   private long thetaLong_ = Long.MAX_VALUE;
   private long[] hashArr_ = null;   //always in compact form, not necessarily sorted
@@ -88,9 +91,19 @@ public final class TupleAnotB<S extends Summary> {
   }
 
   /**
-   * No argument constructor.
+   * No argument constructor. The inputs must have been created with the default update seed.
    */
-  public TupleAnotB() { }
+  public TupleAnotB() {
+    this(DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Creates a TupleAnotB for sketches that were created with the given update seed.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public TupleAnotB(final long seed) {
+    seedHash_ = computeSeedHash(seed);
+  }
 
   /**
    * This is part of a multistep, stateful TupleAnotB operation and sets the given TupleSketch as the
@@ -122,6 +135,7 @@ public final class TupleAnotB<S extends Summary> {
       reset();
       throw new SketchesArgumentException("The input argument <i>A</i> may not be null");
     }
+    Util.checkTupleSeedHash(skA, seedHash_);
 
     empty_ = skA.isEmpty();
     thetaLong_ = skA.getThetaLong();
@@ -150,6 +164,7 @@ public final class TupleAnotB<S extends Summary> {
    */
   public void notB(final TupleSketch<S> skB) {
     if (skB == null) { return; } //ignore
+    Util.checkTupleSeedHash(skB, seedHash_);
 
     final long thetaLongB = skB.getThetaLong();
     final int countB = skB.getRetainedEntries();
@@ -222,7 +237,7 @@ public final class TupleAnotB<S extends Summary> {
    */
   public void notB(final ThetaSketch skB) {
     if (skB == null) { return; } //ignore
-    Util.checkThetaSeedHash(skB);
+    Util.checkThetaSeedHash(skB, seedHash_);
 
     final long thetaLongB = skB.getThetaLong();
     final int countB = skB.getRetainedEntries();
@@ -285,10 +300,11 @@ public final class TupleAnotB<S extends Summary> {
   public CompactTupleSketch<S> getResult(final boolean reset) {
     final CompactTupleSketch<S> result;
     if (curCount_ == 0) {
-      result = new CompactTupleSketch<>(null, null, thetaLong_, thetaLong_ == Long.MAX_VALUE);
+      result = new CompactTupleSketch<>(null, null, thetaLong_, thetaLong_ == Long.MAX_VALUE, seedHash_);
     } else {
 
-      result = new CompactTupleSketch<>(hashArr_, Util.copySummaryArray(summaryArr_), thetaLong_, false);
+      result = new CompactTupleSketch<>(hashArr_, Util.copySummaryArray(summaryArr_), thetaLong_, false,
+          seedHash_);
     }
     if (reset) { reset(); }
     return result;
@@ -322,9 +338,32 @@ public final class TupleAnotB<S extends Summary> {
   public static <S extends Summary> CompactTupleSketch<S> aNotB(
       final TupleSketch<S> skA,
       final TupleSketch<S> skB) {
+    return aNotB(skA, skB, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Returns the A-and-not-B set operation on a TupleSketch and a TupleSketch, which were created with the given
+   * update seed. Otherwise, this is the same as {@link #aNotB(TupleSketch, TupleSketch)}.
+   *
+   * @param skA The incoming TupleSketch for the first argument
+   * @param skB The incoming TupleSketch for the second argument
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @param <S> Type of Summary
+   * @return the result as an unordered {@link CompactTupleSketch}
+   * @throws SketchesArgumentException if the seed hash of a non-empty argument does not match the given seed
+   */
+  @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
+      justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
+  public static <S extends Summary> CompactTupleSketch<S> aNotB(
+      final TupleSketch<S> skA,
+      final TupleSketch<S> skB,
+      final long seed) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
+    final short seedHash = computeSeedHash(seed);
+    Util.checkTupleSeedHash(skA, seedHash);
+    Util.checkTupleSeedHash(skB, seedHash);
 
     final long thetaLongA = skA.getThetaLong();
     final int countA = skA.getRetainedEntries();
@@ -343,16 +382,16 @@ public final class TupleAnotB<S extends Summary> {
 
     switch (anotbAction) {
       case EMPTY_1_0_T: {
-        result = new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
+        result = new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true, seedHash);
         break;
       }
       case DEGEN_MIN_0_F: {
         final long thetaLong = min(thetaLongA, thetaLongB);
-        result = new CompactTupleSketch<>(null, null, thetaLong, false);
+        result = new CompactTupleSketch<>(null, null, thetaLong, false, seedHash);
         break;
       }
       case DEGEN_THA_0_F: {
-        result = new CompactTupleSketch<>(null, null, thetaLongA, false);
+        result = new CompactTupleSketch<>(null, null, thetaLongA, false, seedHash);
         break;
       }
       case TRIM_A: {
@@ -361,12 +400,12 @@ public final class TupleAnotB<S extends Summary> {
         final S[] summaryArrA = daA.summaryArr;
         final long minThetaLong =  min(thetaLongA, thetaLongB);
         final DataArrays<S> da = trimAndCopyDataArrays(hashArrA, summaryArrA, minThetaLong, false);
-        result = new CompactTupleSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
+        result = new CompactTupleSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_, seedHash);
         break;
       }
       case SKETCH_A: {
         final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
-        result = new CompactTupleSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
+        result = new CompactTupleSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_, seedHash);
         break;
       }
       case FULL_ANOTB: { //both A and B should have valid entries.
@@ -376,9 +415,9 @@ public final class TupleAnotB<S extends Summary> {
             getCopyOfResultArraysTuple(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
         final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
         if (countR == 0) {
-          result = new CompactTupleSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
+          result = new CompactTupleSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE, seedHash);
         } else {
-          result = new CompactTupleSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
+          result = new CompactTupleSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false, seedHash);
         }
       }
       //default: not possible
@@ -415,10 +454,32 @@ public final class TupleAnotB<S extends Summary> {
   public static <S extends Summary> CompactTupleSketch<S> aNotB(
       final TupleSketch<S> skA,
       final ThetaSketch skB) {
+    return aNotB(skA, skB, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Returns the A-and-not-B set operation on a TupleSketch and a ThetaSketch, which were created with the given
+   * update seed. Otherwise, this is the same as {@link #aNotB(TupleSketch, ThetaSketch)}.
+   *
+   * @param skA The incoming TupleSketch for the first argument
+   * @param skB The incoming ThetaSketch for the second argument
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   * @param <S> Type of Summary
+   * @return the result as an unordered {@link CompactTupleSketch}
+   * @throws SketchesArgumentException if the seed hash of a non-empty argument does not match the given seed
+   */
+  @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
+      justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
+  public static <S extends Summary> CompactTupleSketch<S> aNotB(
+      final TupleSketch<S> skA,
+      final ThetaSketch skB,
+      final long seed) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
-    Util.checkThetaSeedHash(skB);
+    final short seedHash = computeSeedHash(seed);
+    Util.checkTupleSeedHash(skA, seedHash);
+    Util.checkThetaSeedHash(skB, seedHash);
 
     final long thetaLongA = skA.getThetaLong();
     final int countA = skA.getRetainedEntries();
@@ -437,16 +498,16 @@ public final class TupleAnotB<S extends Summary> {
 
     switch (anotbAction) {
       case EMPTY_1_0_T: {
-        result = new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true);
+        result = new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true, seedHash);
         break;
       }
       case DEGEN_MIN_0_F: {
         final long thetaLong = min(thetaLongA, thetaLongB);
-        result = new CompactTupleSketch<>(null, null, thetaLong, false);
+        result = new CompactTupleSketch<>(null, null, thetaLong, false, seedHash);
         break;
       }
       case DEGEN_THA_0_F: {
-        result = new CompactTupleSketch<>(null, null, thetaLongA, false);
+        result = new CompactTupleSketch<>(null, null, thetaLongA, false, seedHash);
         break;
       }
       case TRIM_A: {
@@ -455,12 +516,12 @@ public final class TupleAnotB<S extends Summary> {
         final S[] summaryArrA = daA.summaryArr;
         final long minThetaLong = min(thetaLongA, thetaLongB);
         final DataArrays<S> da = trimAndCopyDataArrays(hashArrA, summaryArrA, minThetaLong, false);
-        result = new CompactTupleSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
+        result = new CompactTupleSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_, seedHash);
         break;
       }
       case SKETCH_A: {
         final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
-        result = new CompactTupleSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
+        result = new CompactTupleSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_, seedHash);
         break;
       }
       case FULL_ANOTB: { //both A and B have valid entries.
@@ -472,9 +533,9 @@ public final class TupleAnotB<S extends Summary> {
             getCopyOfResultArraysTheta(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
         final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
         if (countR == 0) {
-          result = new CompactTupleSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
+          result = new CompactTupleSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE, seedHash);
         } else {
-          result = new CompactTupleSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
+          result = new CompactTupleSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false, seedHash);
         }
       }
       //default: not possible

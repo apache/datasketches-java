@@ -20,10 +20,12 @@
 package org.apache.datasketches.tuple;
 
 import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.hash.MurmurHash3;
 
 /**
@@ -41,6 +43,7 @@ import org.apache.datasketches.hash.MurmurHash3;
  * @param <S> Type of the UpdatableSummary&lt;U&gt;
  */
 public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
+  private final long seed_;
 
   /**
    * This is to create a new instance of an UpdatableQuickSelectSketch.
@@ -59,7 +62,29 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    */
   public UpdatableTupleSketch(final int nomEntries, final int lgResizeFactor,
       final float samplingProbability, final SummaryFactory<S> summaryFactory) {
-    super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
+    this(nomEntries, lgResizeFactor, samplingProbability, summaryFactory, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * This is to create a new instance of an UpdatableQuickSelectSketch with the given update seed.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
+   * or equal to the given value.
+   * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
+   * <pre>
+   * 0 - no resizing (max size allocated),
+   * 1 - double internal hash table each time it reaches a threshold
+   * 2 - grow four times
+   * 3 - grow eight times (default)
+   * </pre>
+   * @param samplingProbability
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param summaryFactory An instance of a SummaryFactory.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public UpdatableTupleSketch(final int nomEntries, final int lgResizeFactor,
+      final float samplingProbability, final SummaryFactory<S> summaryFactory, final long seed) {
+    super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory, computeSeedHash(seed));
+    seed_ = seed;
   }
 
   /**
@@ -77,6 +102,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
     super(srcSeg, deserializer, summaryFactory);
+    seed_ = DEFAULT_UPDATE_SEED; //this serialized form is always created with the default seed
   }
 
   /**
@@ -85,6 +111,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    */
   public UpdatableTupleSketch(final UpdatableTupleSketch<U, S> sketch) {
     super(sketch);
+    seed_ = sketch.seed_;
   }
 
   /**
@@ -93,6 +120,25 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
   @Override
   public UpdatableTupleSketch<U,S> copy() {
     return new UpdatableTupleSketch<>(this);
+  }
+
+  /**
+   * This serializes an UpdatableTupleSketch.
+   * @return serialized representation of this UpdatableTupleSketch.
+   * @deprecated As of 3.0.0, serializing an UpdatableTupleSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Serializing a CompactTupleSketch is not deprecated.
+   * @throws SketchesStateException if this sketch was created with a seed other than the default,
+   * because this serialized form has no seed hash. Use compact().toByteArray() instead.
+   */
+  @Deprecated
+  @Override
+  public byte[] toByteArray() {
+    if (seed_ != DEFAULT_UPDATE_SEED) {
+      throw new SketchesStateException("An updatable sketch created with a custom seed cannot be serialized, "
+          + "because this serialized form has no seed hash. Use compact().toByteArray() instead.");
+    }
+    return super.toByteArray();
   }
 
   /**
@@ -137,7 +183,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    */
   public void update(final byte[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, value);
   }
 
   /**
@@ -149,7 +195,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    */
   public void update(final ByteBuffer buffer, final U value) {
     if (buffer == null || buffer.hasRemaining() == false) { return; }
-    insertOrIgnore(MurmurHash3.hash(buffer, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(buffer, seed_)[0] >>> 1, value);
   }
 
   /**
@@ -161,7 +207,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    */
   public void update(final int[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, value);
   }
 
   /**
@@ -173,7 +219,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    */
   public void update(final long[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, value);
   }
 
   void insertOrIgnore(final long hash, final U value) {

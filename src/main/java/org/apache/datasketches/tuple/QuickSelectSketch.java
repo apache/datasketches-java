@@ -121,12 +121,32 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
       final int lgResizeFactor,
       final float samplingProbability,
       final SummaryFactory<S> summaryFactory) {
+    this(nomEntries, lgResizeFactor, samplingProbability, summaryFactory, Util.DEFAULT_SEED_HASH);
+  }
+
+  /**
+   * This is to create a new instance of a QuickSelectSketch with custom resize factor, sampling
+   * probability and seed hash
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
+   * or equal to the given value.
+   * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3
+   * @param samplingProbability the given sampling probability
+   * @param summaryFactory An instance of a SummaryFactory.
+   * @param seedHash the hash of the update seed
+   */
+  QuickSelectSketch(
+      final int nomEntries,
+      final int lgResizeFactor,
+      final float samplingProbability,
+      final SummaryFactory<S> summaryFactory,
+      final short seedHash) {
     this(
       nomEntries,
       lgResizeFactor,
       samplingProbability,
       summaryFactory,
-      Util.getStartingCapacity(nomEntries, lgResizeFactor)
+      Util.getStartingCapacity(nomEntries, lgResizeFactor),
+      seedHash
     );
   }
 
@@ -137,18 +157,21 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
    * @param samplingProbability the given sampling probability
    * @param summaryFactory An instance of a SummaryFactory.
    * @param startingSize starting size of the sketch.
+   * @param seedHash the hash of the update seed
    */
   private QuickSelectSketch(
       final int nomEntries,
       final int lgResizeFactor,
       final float samplingProbability,
       final SummaryFactory<S> summaryFactory,
-      final int startingSize) {
+      final int startingSize,
+      final short seedHash) {
       final long thetaLong = (long) (Long.MAX_VALUE * (double) samplingProbability);
     super(
         thetaLong,
         true,
-        summaryFactory);
+        summaryFactory,
+        seedHash);
     nomEntries_ = ceilingPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
@@ -167,7 +190,8 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
     super(
         sketch.thetaLong_,
         sketch.empty_,
-        sketch.summaryFactory_);
+        sketch.summaryFactory_,
+        sketch.seedHash_);
     nomEntries_ = sketch.nomEntries_;
     lgResizeFactor_ = sketch.lgResizeFactor_;
     samplingProbability_ = sketch.samplingProbability_;
@@ -203,7 +227,7 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
     rebuildThreshold_ = val.myRebuildThreshold;
     hashTable_ = val.myHashTable;
     summaryTable_ = val.mySummaryTable;
-    super(thetaLong, val.myEmpty, summaryFactory);
+    super(thetaLong, val.myEmpty, summaryFactory, Util.DEFAULT_SEED_HASH); //this form has no seed hash
   }
 
   private static final class Validate<S> {
@@ -388,8 +412,8 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
   @SuppressWarnings("unchecked")
   public CompactTupleSketch<S> compact() {
     if (getRetainedEntries() == 0) {
-      if (empty_) { return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true); }
-      return new CompactTupleSketch<>(null, null, thetaLong_, false);
+      if (empty_) { return new CompactTupleSketch<>(null, null, Long.MAX_VALUE, true, seedHash_); }
+      return new CompactTupleSketch<>(null, null, thetaLong_, false, seedHash_);
     }
     final long[] hashArr = new long[getRetainedEntries()];
     final S[] summaryArr = Util.newSummaryArray(summaryTable_, getRetainedEntries());
@@ -401,7 +425,7 @@ class QuickSelectSketch<S extends Summary> extends TupleSketch<S> {
         i++;
       }
     }
-    return new CompactTupleSketch<>(hashArr, summaryArr, thetaLong_, empty_);
+    return new CompactTupleSketch<>(hashArr, summaryArr, thetaLong_, empty_, seedHash_);
   }
 
   // Layout of first 8 bytes:

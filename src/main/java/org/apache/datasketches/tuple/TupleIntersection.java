@@ -22,7 +22,9 @@ package org.apache.datasketches.tuple;
 import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
@@ -43,6 +45,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
 @SuppressWarnings("unchecked")
 public class TupleIntersection<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
+  private final short seedHash_;
   private boolean empty_;
   private long thetaLong_;
   private HashTables<S> hashTables_;
@@ -53,7 +56,17 @@ public class TupleIntersection<S extends Summary> {
    * @param summarySetOps instance of SummarySetOperations
    */
   public TupleIntersection(final SummarySetOperations<S> summarySetOps) {
+    this(summarySetOps, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Creates new TupleIntersection instance for sketches that were created with the given update seed.
+   * @param summarySetOps instance of SummarySetOperations
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public TupleIntersection(final SummarySetOperations<S> summarySetOps, final long seed) {
     summarySetOps_ = summarySetOps;
+    seedHash_ = computeSeedHash(seed);
     empty_ = false; // universal set at the start
     thetaLong_ = Long.MAX_VALUE;
     hashTables_ = new HashTables<>();
@@ -101,9 +114,11 @@ public class TupleIntersection<S extends Summary> {
   /**
    * Performs a stateful intersection of the internal set with the given TupleSketch.
    * @param tupleSketch input sketch to intersect with the internal state. It must not be null.
+   * @throws SketchesArgumentException if the seed hash of a non-empty sketch does not match this intersection
    */
   public void intersect(final TupleSketch<S> tupleSketch) {
     if (tupleSketch == null) { throw new SketchesArgumentException("TupleSketch must not be null"); }
+    Util.checkTupleSeedHash(tupleSketch, seedHash_);
 
     final boolean firstCall = firstCall_;
     firstCall_ = false;
@@ -150,7 +165,7 @@ public class TupleIntersection<S extends Summary> {
   public void intersect(final ThetaSketch thetaSketch, final S summary) {
     if (thetaSketch == null) { throw new SketchesArgumentException("ThetaSketch must not be null"); }
     if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
-    Util.checkThetaSeedHash(thetaSketch);
+    Util.checkThetaSeedHash(thetaSketch, seedHash_);
     final boolean firstCall = firstCall_;
     firstCall_ = false;
     // input sketch is not null, could be first or next call
@@ -196,7 +211,7 @@ public class TupleIntersection<S extends Summary> {
     }
     final int countIn = hashTables_.numKeys;
     if (countIn == 0) {
-      return new CompactTupleSketch<>(null, null, thetaLong_, empty_);
+      return new CompactTupleSketch<>(null, null, thetaLong_, empty_, seedHash_);
     }
 
     final int tableSize = hashTables_.hashTable.length;
@@ -214,7 +229,7 @@ public class TupleIntersection<S extends Summary> {
       cnt++;
     }
     assert cnt == countIn;
-    return new CompactTupleSketch<>(hashArr, summaryArr, thetaLong_, empty_);
+    return new CompactTupleSketch<>(hashArr, summaryArr, thetaLong_, empty_, seedHash_);
   }
 
   /**

@@ -60,6 +60,26 @@ public class DoubleTupleSketch extends UpdatableTupleSketch<Double, DoubleSummar
   }
 
   /**
+   * Creates this sketch with the following parameters and the given update seed:
+   * @param lgK Log_base2 of <i>Nominal Entries</i>.
+   * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
+   * <pre>
+   * 0 - no resizing (max size allocated),
+   * 1 - double internal hash table each time it reaches a threshold
+   * 2 - grow four times
+   * 3 - grow eight times (default)
+   * </pre>
+   * @param samplingProbability
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param mode The DoubleSummary mode to be used
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public DoubleTupleSketch(final int lgK, final int lgResizeFactor, final float samplingProbability,
+      final DoubleSummary.Mode mode, final long seed) {
+    super(1 << lgK, lgResizeFactor, samplingProbability, new DoubleSummaryFactory(mode), seed);
+  }
+
+  /**
    * Constructs this sketch from a MemorySegment image, which must be from an DoubleTupleSketch, and
    * usually with data.
    * @param seg the given MemorySegment

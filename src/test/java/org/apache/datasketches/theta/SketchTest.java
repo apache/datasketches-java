@@ -129,7 +129,7 @@ public class SketchTest {
     String nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapAlphaSketch");
     assertEquals(sk1.getLgNomLongs(), lgK);
-    assertEquals(sk1.getSeed(), seed);
+    assertEquals(sk1.getSeedHash(), Util.computeSeedHash(seed));
     assertEquals(sk1.getP(), p);
 
     //check reset of defaults
@@ -138,7 +138,7 @@ public class SketchTest {
     nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapQuickSelectSketch");
     assertEquals(sk1.getLgNomLongs(), Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES));
-    assertEquals(sk1.getSeed(), Util.DEFAULT_UPDATE_SEED);
+    assertEquals(sk1.getSeedHash(), Util.computeSeedHash(Util.DEFAULT_UPDATE_SEED));
     assertEquals(sk1.getP(), (float)1.0);
     assertEquals(sk1.getResizeFactor(), ResizeFactor.X8);
   }

@@ -63,6 +63,20 @@ public class ArrayOfStringsTupleSketch extends UpdatableTupleSketch<String[], Ar
   }
 
   /**
+   * Constructs new sketch with given ResizeFactor, <i>p</i>, <i>lgK</i> and update seed.
+   * @param lgK Log_base2 of <i>Nominal Entries</i>.
+   * <a href="{@docRoot}/resources/dictionary.html#nomEntries">See Nominal Entries</a>
+   * @param rf ResizeFactor
+   * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @param p sampling probability
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public ArrayOfStringsTupleSketch(final int lgK, final ResizeFactor rf, final float p, final long seed) {
+    super(1 << lgK, rf.lg(), p, new ArrayOfStringsSummaryFactory(), seed);
+  }
+
+  /**
    * Constructs this sketch from a MemorySegment image, which must be from an ArrayOfStringsTupleSketch, and
    * usually with data.
    * @param seg the given MemorySegment

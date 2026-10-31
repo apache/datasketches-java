@@ -20,8 +20,11 @@
 package org.apache.datasketches.tuple;
 
 import static java.lang.Math.min;
+import static org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.common.Util.computeSeedHash;
 
 import org.apache.datasketches.common.QuickSelect;
+import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.theta.HashIterator;
 import org.apache.datasketches.theta.ThetaSketch;
@@ -34,6 +37,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  */
 public class TupleUnion<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
+  private final short seedHash_;
   private QuickSelectSketch<S> qsk_;
   private long unionThetaLong_; // need to maintain outside of the sketch
   private boolean empty_;
@@ -54,8 +58,20 @@ public class TupleUnion<S extends Summary> {
    * @param summarySetOps instance of SummarySetOperations
    */
   public TupleUnion(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
+    this(nomEntries, summarySetOps, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Creates new TupleUnion instance for sketches that were created with the given update seed.
+   * @param nomEntries nominal entries (K). Forced to the nearest power of 2 greater than
+   * given value.
+   * @param summarySetOps instance of SummarySetOperations
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
+   */
+  public TupleUnion(final int nomEntries, final SummarySetOperations<S> summarySetOps, final long seed) {
     summarySetOps_ = summarySetOps;
-    qsk_ = new QuickSelectSketch<>(nomEntries, null);
+    seedHash_ = computeSeedHash(seed);
+    qsk_ = new QuickSelectSketch<>(nomEntries, ResizeFactor.X8.lg(), 1f, null, seedHash_);
     unionThetaLong_ = qsk_.getThetaLong();
     empty_ = true;
   }
@@ -103,9 +119,11 @@ public class TupleUnion<S extends Summary> {
    * Performs a stateful union of the internal set with the given TupleSketch.
    * @param tupleSketch input tuple sketch to merge with the internal set.
    * Nulls and empty sketches are ignored.
+   * @throws SketchesArgumentException if the seed hash of a non-empty sketch does not match this union
    */
   public void union(final TupleSketch<S> tupleSketch) {
     if (tupleSketch == null || tupleSketch.isEmpty()) { return; }
+    Util.checkTupleSeedHash(tupleSketch, seedHash_);
     empty_ = false;
     unionThetaLong_ = min(tupleSketch.thetaLong_, unionThetaLong_);
     final TupleSketchIterator<S> it = tupleSketch.iterator();
@@ -126,7 +144,7 @@ public class TupleUnion<S extends Summary> {
     if (summary == null) {
       throw new SketchesArgumentException("Summary cannot be null."); }
     if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
-    Util.checkThetaSeedHash(thetaSketch);
+    Util.checkThetaSeedHash(thetaSketch, seedHash_);
     empty_ = false;
     final long thetaIn = thetaSketch.getThetaLong();
     unionThetaLong_ = min(thetaIn, unionThetaLong_);
@@ -174,7 +192,7 @@ public class TupleUnion<S extends Summary> {
       if (numHashesIn == 0) {
         //numHashes == 0 && empty == false means Theta < 1.0
         //Therefore, this is a degenerate sketch: theta < 1.0, count = 0, empty = false
-        result = new CompactTupleSketch<>(null, null, tmpThetaLong, empty_);
+        result = new CompactTupleSketch<>(null, null, tmpThetaLong, empty_, seedHash_);
       }
 
       else {
@@ -209,7 +227,7 @@ public class TupleUnion<S extends Summary> {
             i++;
           }
         }
-        result = new CompactTupleSketch<>(hashArr, summaries, thetaLongOut, empty_);
+        result = new CompactTupleSketch<>(hashArr, summaries, thetaLongOut, empty_, seedHash_);
       }
     }
     if (reset) { reset(); }

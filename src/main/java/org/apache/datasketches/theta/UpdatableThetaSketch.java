@@ -327,7 +327,10 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
   /**
    * Gets the configured seed
    * @return the configured seed
+   * @deprecated The update seed should not be visible outside of this sketch. Use {@link #getSeedHash()},
+   * which identifies the seed without revealing it. This method will be removed in a future release.
    */
+  @Deprecated
   public long getSeed() { return seed_; }
 
   /**
