@@ -92,7 +92,10 @@ public class SetOperationTest {
     bldr.setNominalEntries(k);
     assertEquals(bldr.getLgNominalEntries(), lgK);
 
-    println(bldr.toString());
+    final String str = bldr.toString();
+    assertFalse(str.contains(Long.toString(seed))); //the seed itself is never printed
+    assertTrue(str.contains(Short.toString(Util.computeSeedHash(seed))));
+    println(str);
   }
 
   @Test

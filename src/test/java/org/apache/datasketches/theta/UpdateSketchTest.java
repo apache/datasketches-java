@@ -29,6 +29,7 @@ import static org.apache.datasketches.theta.PreambleUtil.insertLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgResizeFactor;
 import static org.apache.datasketches.theta.UpdatableThetaSketch.isResizeFactorIncorrect;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -137,7 +138,10 @@ public class UpdateSketchTest {
     bldr.setNominalEntries(k);
     assertEquals(bldr.getLgNominalEntries(), lgK);
 
-    println(bldr.toString());
+    final String str = bldr.toString();
+    assertFalse(str.contains(Long.toString(seed))); //the seed itself is never printed
+    assertTrue(str.contains(Short.toString(Util.computeSeedHash(seed))));
+    println(str);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

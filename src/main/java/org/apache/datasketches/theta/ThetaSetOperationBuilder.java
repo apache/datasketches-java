@@ -261,13 +261,22 @@ public final class ThetaSetOperationBuilder {
     return (ThetaAnotB) build(Family.A_NOT_B);
   }
 
+  private static String seedHashString(final long seed) {
+    try {
+      final short seedHash = Util.computeSeedHash(seed);
+      return Integer.toHexString(seedHash & 0xFFFF) + " | " + seedHash;
+    } catch (final SketchesArgumentException e) {
+      return "invalid, the seed produces a seed hash of zero";
+    }
+  }
+
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("SetOperationBuilder configuration:").append(LS);
     sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
     sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
-    sb.append("Seed:").append(TAB).append(bSeed).append(LS);
+    sb.append("SeedHash:").append(TAB).append(seedHashString(bSeed)).append(LS); //never the seed itself
     sb.append("p:").append(TAB).append(bP).append(LS);
     sb.append("ResizeFactor:").append(TAB).append(bRF).append(LS);
     return sb.toString();
