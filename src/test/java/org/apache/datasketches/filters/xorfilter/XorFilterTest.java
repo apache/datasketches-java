@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.util.HexFormat;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
@@ -472,16 +473,8 @@ public class XorFilterTest {
   @Test
   public void referenceImplementationImageTest() {
     final long[] items = { 1, 2, 3, Long.MIN_VALUE };
-    assertEquals(XorFilterBuilder.create(items, 8, 42L).toByteArray(), fromHex(REFERENCE_XOR8_IMAGE));
-    assertEquals(XorFilterBuilder.create(items, 16, 42L).toByteArray(), fromHex(REFERENCE_XOR16_IMAGE));
-  }
-
-  private static byte[] fromHex(final String hex) {
-    final byte[] bytes = new byte[hex.length() / 2];
-    for (int i = 0; i < bytes.length; ++i) {
-      bytes[i] = (byte) Integer.parseInt(hex.substring(2 * i, (2 * i) + 2), 16);
-    }
-    return bytes;
+    assertEquals(XorFilterBuilder.create(items, 8, 42L).toByteArray(), HexFormat.of().parseHex(REFERENCE_XOR8_IMAGE));
+    assertEquals(XorFilterBuilder.create(items, 16, 42L).toByteArray(), HexFormat.of().parseHex(REFERENCE_XOR16_IMAGE));
   }
 
   // returns a copy of the image with a single byte replaced
