@@ -51,9 +51,11 @@ abstract class HeapUpdateSketch extends UpdatableThetaSketch {
   final int lgNomLongs_;
   private final float p_;
   private final ResizeFactor rf_;
+  private final short seedHash_;
 
   HeapUpdateSketch(final int lgNomLongs, final long seed, final float p, final ResizeFactor rf) {
     super(seed);
+    seedHash_ = Util.computeSeedHash(seed); //as the direct sketch does, which writes it to its image
     lgNomLongs_ = Math.max(lgNomLongs, ThetaUtil.MIN_LG_NOM_LONGS);
     p_ = p;
     rf_ = rf;
@@ -89,7 +91,7 @@ abstract class HeapUpdateSketch extends UpdatableThetaSketch {
 
   @Override
   public short getSeedHash() {
-    return Util.computeSeedHash(getSeed());
+    return seedHash_;
   }
 
   //Used by HeapAlphaSketch and HeapQuickSelectThetaSketch / UpdatableThetaSketch
