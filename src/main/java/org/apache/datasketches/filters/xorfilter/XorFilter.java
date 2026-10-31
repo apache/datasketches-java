@@ -433,6 +433,13 @@ public final class XorFilter implements MemorySegmentStatus {
 
   // Maps every key onto its three slots then peels singletons onto a stack. Returns the stack size,
   // which equals numKeys when the mapping succeeds.
+  //
+  // Each segment has its own LIFO queue of singleton slots. Peeling drains segment 0, then 1, then 2,
+  // and repeats until all queues are empty. This follows the reference C implementation (FastFilter
+  // xor_singleheader) and the Rust xorf crate. datasketches-rust uses the same order, so both
+  // libraries build identical images from the same keys and base seed. Draining one segment at a time
+  // also keeps its reads close to sequential order, because peeling a key only creates new singletons
+  // in the other two segments.
   private int map(final long[] keys, final int numKeys, final long buildSeed, final long[] xorMask,
       final int[] count, final int[] queue, final long[] stackHash, final int[] stackIndex) {
     final int blockLength = segmentLength_;
@@ -449,40 +456,69 @@ public final class XorFilter implements MemorySegmentStatus {
       xorMask[h2] ^= hash; ++count[h2];
     }
 
-    int queueLength = 0;
-    for (int i = 0; i < count.length; ++i) {
-      if (count[i] == 1) { queue[queueLength++] = i; }
+    // The queue holds one region of blockLength entries per segment, storing absolute slots. A slot is
+    // queued at most once, either here or when its count drops from two to one, so no region can
+    // overflow. The region lengths are kept in locals so the JIT can hold them in registers.
+    final int start1 = blockLength;
+    final int start2 = 2 * blockLength;
+    int length0 = 0;
+    int length1 = 0;
+    int length2 = 0;
+    for (int index = 0; index < start1; ++index) {
+      if (count[index] == 1) { queue[length0++] = index; }
+    }
+    for (int index = start1; index < start2; ++index) {
+      if (count[index] == 1) { queue[start1 + length1++] = index; }
+    }
+    for (int index = start2; index < count.length; ++index) {
+      if (count[index] == 1) { queue[start2 + length2++] = index; }
     }
 
+    // A peeled key is removed only from its slots in the other two segments: its own slot holds no
+    // other key, so it is never queued again. Entries whose count has dropped to zero are stale.
     int stackSize = 0;
-    while (queueLength > 0) {
-      final int index = queue[--queueLength];
-      if (count[index] != 1) { continue; } // stale entry whose count has since dropped to zero
-      final long hash = xorMask[index];
-      stackHash[stackSize] = hash;
-      stackIndex[stackSize] = index;
-      ++stackSize;
-
-      final int h0 = reduce((int) hash, blockLength);
-      final int h1 = reduce((int) Long.rotateLeft(hash, 21), blockLength) + blockLength;
-      final int h2 = reduce((int) Long.rotateLeft(hash, 42), blockLength) + (2 * blockLength);
-      queueLength = removeKey(hash, h0, count, xorMask, queue, queueLength);
-      queueLength = removeKey(hash, h1, count, xorMask, queue, queueLength);
-      queueLength = removeKey(hash, h2, count, xorMask, queue, queueLength);
+    while ((length0 | length1 | length2) != 0) {
+      while (length0 > 0) {
+        final int index = queue[--length0];
+        if (count[index] == 0) { continue; }
+        final long hash = xorMask[index];
+        stackHash[stackSize] = hash;
+        stackIndex[stackSize++] = index;
+        final int h1 = reduce((int) Long.rotateLeft(hash, 21), blockLength) + start1;
+        if (removeKey(hash, h1, count, xorMask)) { queue[start1 + length1++] = h1; }
+        final int h2 = reduce((int) Long.rotateLeft(hash, 42), blockLength) + start2;
+        if (removeKey(hash, h2, count, xorMask)) { queue[start2 + length2++] = h2; }
+      }
+      while (length1 > 0) {
+        final int index = queue[start1 + --length1];
+        if (count[index] == 0) { continue; }
+        final long hash = xorMask[index];
+        stackHash[stackSize] = hash;
+        stackIndex[stackSize++] = index;
+        final int h0 = reduce((int) hash, blockLength);
+        if (removeKey(hash, h0, count, xorMask)) { queue[length0++] = h0; }
+        final int h2 = reduce((int) Long.rotateLeft(hash, 42), blockLength) + start2;
+        if (removeKey(hash, h2, count, xorMask)) { queue[start2 + length2++] = h2; }
+      }
+      while (length2 > 0) {
+        final int index = queue[start2 + --length2];
+        if (count[index] == 0) { continue; }
+        final long hash = xorMask[index];
+        stackHash[stackSize] = hash;
+        stackIndex[stackSize++] = index;
+        final int h0 = reduce((int) hash, blockLength);
+        if (removeKey(hash, h0, count, xorMask)) { queue[length0++] = h0; }
+        final int h1 = reduce((int) Long.rotateLeft(hash, 21), blockLength) + start1;
+        if (removeKey(hash, h1, count, xorMask)) { queue[start1 + length1++] = h1; }
+      }
     }
     return stackSize;
   }
 
-  // Removes a key's hash from a single slot, enqueuing the slot if it becomes a singleton.
-  private static int removeKey(final long hash, final int index, final int[] count, final long[] xorMask,
-      final int[] queue, final int queueLength) {
-    --count[index];
+  // Removes a key's hash from a slot and returns whether the slot now holds a single key.
+  private static boolean removeKey(final long hash, final int index, final int[] count, final long[] xorMask) {
     xorMask[index] ^= hash;
-    if (count[index] == 1) {
-      queue[queueLength] = index;
-      return queueLength + 1;
-    }
-    return queueLength;
+    return --count[index] == 1;
   }
 
   // Writes the fingerprints in reverse peel order so that each owned slot is finalized before it is

@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
+import java.util.HexFormat;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
@@ -456,6 +457,24 @@ public class XorFilterTest {
     assertThrows(SketchesArgumentException.class, () -> XorFilter.heapify(corrupt(valid, 4, (byte) 5)));  // bitsPerFP
     assertThrows(SketchesArgumentException.class, () -> XorFilter.heapify(corrupt(valid, 5, (byte) 4)));  // numHashes
     assertThrows(SketchesArgumentException.class, () -> XorFilter.heapify(MemorySegment.ofArray(new byte[16])));
+  }
+
+  // Images built by datasketches-rust for the same items and base seed. Both libraries peel through
+  // one queue per segment, so their images must be identical.
+  private static final String REFERENCE_XOR8_IMAGE =
+      "0301160008030000956eeb2f2632d7bd0c00000004000000"
+      + "000000000000000400dd0000000000000000ce0000c50000000000000000000000000000";
+  private static final String REFERENCE_XOR16_IMAGE =
+      "0301160010030000956eeb2f2632d7bd0c00000004000000"
+      + "000000000000000000000000000004e80000dd6e00000000000000000000000000000000"
+      + "ce9500000000c5b600000000000000000000000000000000000000000000000000000000";
+
+  // the peeling order determines the fingerprint payload, not just the header
+  @Test
+  public void referenceImplementationImageTest() {
+    final long[] items = { 1, 2, 3, Long.MIN_VALUE };
+    assertEquals(XorFilterBuilder.create(items, 8, 42L).toByteArray(), HexFormat.of().parseHex(REFERENCE_XOR8_IMAGE));
+    assertEquals(XorFilterBuilder.create(items, 16, 42L).toByteArray(), HexFormat.of().parseHex(REFERENCE_XOR16_IMAGE));
   }
 
   // returns a copy of the image with a single byte replaced
