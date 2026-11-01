@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.positional.PositionalSegment;
 
 /**
@@ -162,6 +163,7 @@ class ReqSerDe {
       case EXACT: {
         assert preInts == 2;
         final Compactor compactor = extractCompactor(posSeg, lvl0Sorted, hra);
+        checkLgWeight(compactor, 0);
         //Construct sketch
         final long totalN = compactor.count;
         final float minItem = compactor.minItem;
@@ -183,6 +185,7 @@ class ReqSerDe {
         for (int i = 0; i < numCompactors; i++) {
           final boolean level0sorted = i == 0 ? lvl0Sorted : true;
           final Compactor compactor = extractCompactor(posSeg, level0sorted, hra);
+          checkLgWeight(compactor, i);
           compactors.add(compactor.reqCompactor);
         }
         final ReqSketch sk = new ReqSketch(k, hra, totalN, minItem, maxItem, compactors);
@@ -190,6 +193,16 @@ class ReqSerDe {
         sk.setRetainedItems(sk.computeTotalRetainedItems());
         return sk;
       }
+    }
+  }
+
+  // The sketch creates the compactor at level h with lgWeight h, so any other value is corrupt.
+  // An unchecked value would not fail. It would silently weight the items by 1L << lgWeight.
+  private static void checkLgWeight(final Compactor compactor, final int level) {
+    final int lgWeight = compactor.reqCompactor.getLgWeight();
+    if (lgWeight != level) {
+      throw new SketchesArgumentException("Possible corruption: compactor " + level
+          + " has lgWeight " + lgWeight + ", expected " + level);
     }
   }
 
