@@ -88,14 +88,15 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   public String[] deserializeFromMemorySegment(final MemorySegment seg, final long offsetBytes, final int numItems) {
     Objects.requireNonNull(seg, "MemorySegment must not be null");
     if (numItems <= 0) { return new String[0]; }
+    Util.checkBounds(offsetBytes, (long) numItems * Integer.BYTES, seg.byteSize());
     final String[] array = new String[numItems];
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
       Util.checkBounds(offset, Integer.BYTES, seg.byteSize());
       final int strLength = seg.get(JAVA_INT_UNALIGNED, offset);
       offset += Integer.BYTES;
-      final byte[] utf8Bytes = new byte[strLength];
       Util.checkBounds(offset, strLength, seg.byteSize());
+      final byte[] utf8Bytes = new byte[strLength];
       MemorySegment.copy(seg, JAVA_BYTE, offset, utf8Bytes, 0, strLength);
       offset += strLength;
       array[i] = new String(utf8Bytes, StandardCharsets.UTF_8);
