@@ -110,12 +110,11 @@ public class PreambleUtilTest {
     final HllSketch sk = new HllSketch(12);
     byte[] segObj = sk.toCompactByteArray();
     MemorySegment wseg = MemorySegment.ofArray(segObj);
-    HllSketch bad;
 
     //checkFamily
     try {
       wseg.set(JAVA_BYTE, FAMILY_BYTE, (byte) 0); //corrupt, should be 7
-      bad = HllSketch.heapify(wseg);
+      HllSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { /* OK */ }
     insertFamilyId(wseg); //corrected
@@ -123,7 +122,7 @@ public class PreambleUtilTest {
     //check SerVer
     try {
       wseg.set(JAVA_BYTE, SER_VER_BYTE, (byte) 0); //corrupt, should be 1
-      bad = HllSketch.heapify(wseg);
+      HllSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { /* OK */ }
     insertSerVer(wseg); //corrected
@@ -131,7 +130,7 @@ public class PreambleUtilTest {
     //check bad PreInts
     try {
       insertPreInts(wseg, 0); //corrupt, should be 2
-      bad = HllSketch.heapify(wseg);
+      HllSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { /* OK */ }
     insertPreInts(wseg, 2); //corrected
@@ -139,7 +138,7 @@ public class PreambleUtilTest {
     //check wrong PreInts and LIST
     try {
       insertPreInts(wseg, 3); //corrupt, should be 2
-      bad = HllSketch.heapify(wseg);
+      HllSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { /* OK */ }
     insertPreInts(wseg, 2); //corrected
@@ -152,7 +151,7 @@ public class PreambleUtilTest {
     //check wrong PreInts and SET
     try {
       insertPreInts(wseg, 2); //corrupt, should be 3
-      bad = HllSketch.heapify(wseg);
+      HllSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { /* OK */ }
     insertPreInts(wseg, 3); //corrected
@@ -165,7 +164,7 @@ public class PreambleUtilTest {
     //check wrong PreInts and HLL
     try {
       insertPreInts(wseg, 2); //corrupt, should be 10
-      bad = HllSketch.heapify(wseg);
+      HllSketch.heapify(wseg);
       fail();
     } catch (final SketchesArgumentException e) { /* OK */ }
     insertPreInts(wseg, 10); //corrected
@@ -176,8 +175,7 @@ public class PreambleUtilTest {
   public void checkExtractFlags() {
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(4, TgtHllType.HLL_4);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes]);
-    final Object segObj = wseg.toArray(JAVA_BYTE);
-    final HllSketch sk = new HllSketch(4, TgtHllType.HLL_4, wseg);
+    new HllSketch(4, TgtHllType.HLL_4, wseg);
     final int flags = extractFlags(wseg);
     assertEquals(flags, EMPTY_FLAG_MASK);
   }

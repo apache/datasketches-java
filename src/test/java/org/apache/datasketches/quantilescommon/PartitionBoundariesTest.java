@@ -250,7 +250,7 @@ public class PartitionBoundariesTest {
     //this should pass
     final long goodPartSizeRequest= sk.getMinPartitionSizeItems();
     println("Good partSizeRequest " + goodPartSizeRequest);
-    final GenericPartitionBoundaries<String> gpb = sk.getPartitionBoundariesFromPartSize(goodPartSizeRequest);
+    sk.getPartitionBoundariesFromPartSize(goodPartSizeRequest);
     //this should fail
     try {
       final long badPartSizeRequest = goodPartSizeRequest - 1;

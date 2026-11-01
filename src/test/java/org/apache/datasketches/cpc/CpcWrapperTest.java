@@ -41,9 +41,9 @@ public class CpcWrapperTest {
     final CpcSketch sk1 = new CpcSketch(lgK);
     final CpcSketch sk2 = new CpcSketch(lgK);
     final CpcSketch skD = new CpcSketch(lgK);
-    final double dEst = skD.getEstimate();
-    final double dlb = skD.getLowerBound(2);
-    final double dub = skD.getUpperBound(2);
+    assertEquals(skD.getEstimate(), 0.0);
+    assertEquals(skD.getLowerBound(2), 0.0);
+    assertEquals(skD.getUpperBound(2), 0.0);
 
     final int n = 100000;
     for (int i = 0; i < n; i++) {
@@ -56,9 +56,9 @@ public class CpcWrapperTest {
 
     final CpcUnion union = new CpcUnion(lgK);
     final CpcSketch result = union.getResult();
-    final double uEst = result.getEstimate();
-    final double ulb = result.getLowerBound(2);
-    final double uub = result.getUpperBound(2);
+    assertEquals(result.getEstimate(), 0.0);
+    assertEquals(result.getLowerBound(2), 0.0);
+    assertEquals(result.getUpperBound(2), 0.0);
     union.update(sk1);
     union.update(sk2);
     final CpcSketch merged = union.getResult();
@@ -90,7 +90,7 @@ public class CpcWrapperTest {
     final byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
     try {
-      final CpcWrapper wrapper = new CpcWrapper(MemorySegment.ofArray(byteArr));
+      new CpcWrapper(MemorySegment.ofArray(byteArr));
       fail();
     } catch (final AssertionError e) {}
   }

@@ -125,8 +125,6 @@ public class ReqSketchTest {
     final String dfmt = "%10.2f%10.6f" + LS;
     final String sfmt = "%10s%10s" + LS;
     if (iDebug > 0) { printf(sfmt, "Value", "Rank"); }
-    final float va = 0;
-    final double ranka = 0;
     for (int i = 0; i < spArr.length; i++) {
       final float v = spArr[i];
       final double trueRank = trueRanks[i];
