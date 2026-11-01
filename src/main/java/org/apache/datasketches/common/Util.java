@@ -175,7 +175,23 @@ public final class Util {
 
   /** Byte array conversions *******************/
 
-  static long[] convertToLongArray(final byte[] byteArr, final boolean littleEndian) {
+  /**
+   * Converts a byte array to an array of longs, taking the bytes in groups of 8.
+   *
+   * <p>Each group of 8 bytes becomes one long. If <i>bigEndian</i> is false, the first byte of a group
+   * is the least significant byte of its long (Little-Endian). If true, the first byte of a group is the
+   * most significant byte (Big-Endian).</p>
+   *
+   * <p>If the length of the byte array is not a multiple of 8, the final group has fewer than 8 bytes.
+   * Those bytes are converted in the same byte order and are flush right in the final long; its unused
+   * high-order bytes are zero. For example, the final group {9, 10, 11, 12} becomes
+   * 0x000000000C0B0A09 if Little-Endian and 0x00000000090A0B0C if Big-Endian.</p>
+   *
+   * @param byteArr the given byte array
+   * @param bigEndian if true, the bytes of each group are in Big-Endian order, otherwise Little-Endian.
+   * @return an array of ceiling(byteArr.length / 8) longs.
+   */
+  static long[] convertToLongArray(final byte[] byteArr, final boolean bigEndian) {
     final int len = byteArr.length;
     final long[] longArr = new long[(len / 8) + ((len % 8) != 0 ? 1 : 0)];
     int off = 0;
@@ -184,7 +200,7 @@ public final class Util {
       final int end = Math.min(off + 8, len); //exclusive
       long tgt = 0;
       for (int j = off; j < end; j++) {
-        final int shift = littleEndian ? (end - 1 - j) * 8 : (j - off) * 8;
+        final int shift = bigEndian ? (end - 1 - j) * 8 : (j - off) * 8;
         tgt |= (byteArr[j] & 0XFFL) << shift;
       }
       off += 8;
