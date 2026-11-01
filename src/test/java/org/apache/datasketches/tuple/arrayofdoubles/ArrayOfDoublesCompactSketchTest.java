@@ -126,8 +126,7 @@ public class ArrayOfDoublesCompactSketchTest {
 
     MemorySegment hcskSeg = MemorySegment.ofArray(hcsk.toByteArray());
 
-    DirectArrayOfDoublesCompactSketch dcsk2 =
-        (DirectArrayOfDoublesCompactSketch)ArrayOfDoublesSketch.wrap(hcskSeg, Util.DEFAULT_UPDATE_SEED);
+    Assert.assertTrue(ArrayOfDoublesSketch.wrap(hcskSeg, Util.DEFAULT_UPDATE_SEED) instanceof DirectArrayOfDoublesCompactSketch);
     final double[][] values4 = dqssk.getValues();
     final double[] values1d4 = dqssk.getValuesAsOneDimension();
     final long[] keys4 = dqssk.getKeys();

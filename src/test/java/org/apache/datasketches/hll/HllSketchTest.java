@@ -268,13 +268,13 @@ public class HllSketchTest {
   @Test
   public void checkConfigKLimits() {
     try {
-      final HllSketch sk = new HllSketch(HllUtil.MIN_LOG_K - 1);
+      new HllSketch(HllUtil.MIN_LOG_K - 1);
       fail();
     } catch (final SketchesArgumentException e) {
       //expected
     }
     try {
-      final HllSketch sk = new HllSketch(HllUtil.MAX_LOG_K + 1);
+      new HllSketch(HllUtil.MAX_LOG_K + 1);
       fail();
     } catch (final SketchesArgumentException e) {
       //expected
@@ -303,7 +303,7 @@ public class HllSketchTest {
     final int bytes = getMaxUpdatableSerializationBytes(8, TgtHllType.HLL_8);
     final MemorySegment wseg = MemorySegment.ofArray(new byte[bytes -1]);
     try {
-      final HllSketch sk = new HllSketch(8, TgtHllType.HLL_8, wseg);
+      new HllSketch(8, TgtHllType.HLL_8, wseg);
       fail();
     } catch (final SketchesArgumentException e) {
       //OK
@@ -415,7 +415,7 @@ public class HllSketchTest {
     final HllSketch sk = new HllSketch();
     final byte[] byteArr = sk.toCompactByteArray();
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
-    final HllSketch sk2 = HllSketch.writableWrap(wseg);
+    HllSketch.writableWrap(wseg);
   }
 
   @SuppressWarnings("unused")

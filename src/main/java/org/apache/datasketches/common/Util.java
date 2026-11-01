@@ -181,16 +181,11 @@ public final class Util {
     int off = 0;
     int longArrIdx = 0;
     while (off < len) {
-      final int rem = Math.min(len - 1 - off, 7);
+      final int end = Math.min(off + 8, len); //exclusive
       long tgt = 0;
-      if (littleEndian) {
-        for (int j = off + rem, k = 0; j >= off; --j, k++) {
-          tgt |= (byteArr[j] & 0XFFL) << (k * 8);
-        }
-      } else { //BE
-        for (int j = off + rem, k = rem; j >= off; --j, k--) {
-          tgt |= (byteArr[j] & 0XFFL) << (k * 8);
-        }
+      for (int j = off; j < end; j++) {
+        final int shift = littleEndian ? (end - 1 - j) * 8 : (j - off) * 8;
+        tgt |= (byteArr[j] & 0XFFL) << shift;
       }
       off += 8;
       longArr[longArrIdx++] = tgt;

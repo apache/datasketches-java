@@ -446,7 +446,7 @@ public class UtilTest {
 
   @Test
   static void checkCeilingMultiple2expK() {
-    final long n = (1 << 36) - 1L;
+    final long n = (1L << 36) - 1L;
     final int k = 6;
     final long v = ceilingMultiple2expK(n, k);
     final long v2 = (long)Math.ceil(n / (double)(1 << k));
