@@ -148,7 +148,6 @@ public final class GenericPartitionBoundaries<T> {
    * sketch algorithm.
    *
    * @return the maximum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
    */
   public T getMaxItem() { return maxItem; }
 
@@ -157,7 +156,6 @@ public final class GenericPartitionBoundaries<T> {
    * sketch algorithm.
    *
    * @return the minimum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
    */
   public T getMinItem() { return minItem; }
 

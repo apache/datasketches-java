@@ -52,6 +52,7 @@ public interface PartitioningFeature<T> {
    * </ul>
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   default GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(final int numEquallySizedParts) {
     return getPartitionBoundariesFromNumParts(numEquallySizedParts, INCLUSIVE);
@@ -83,6 +84,7 @@ public interface PartitioningFeature<T> {
    * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   GenericPartitionBoundaries<T> getPartitionBoundariesFromNumParts(
       int numEquallySizedParts, QuantileSearchCriteria searchCrit);
@@ -105,6 +107,7 @@ public interface PartitioningFeature<T> {
    * {@link SketchPartitionLimits#getMinPartitionSizeItems() getMinPartitionSizeItems()}
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   default GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(final long nominalPartSizeItems) {
     return getPartitionBoundariesFromPartSize(nominalPartSizeItems, INCLUSIVE);
@@ -129,6 +132,7 @@ public interface PartitioningFeature<T> {
    * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
    *
    * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   GenericPartitionBoundaries<T> getPartitionBoundariesFromPartSize(
       long nominalPartSizeItems, QuantileSearchCriteria searchCrit);
