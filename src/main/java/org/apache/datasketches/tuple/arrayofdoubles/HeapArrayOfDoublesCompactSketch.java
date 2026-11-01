@@ -126,8 +126,9 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       throw new SketchesArgumentException(
           "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     }
-    Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
+    // the seed hash of an empty image is ignored; historical images may have filled it in
+    if (!isEmpty_) { Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed)); }
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
     final boolean hasEntries =
         (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
@@ -172,7 +173,8 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       | ((count > 0 ? 1 : 0) << Flags.HAS_ENTRIES.ordinal())
     ));
     seg.set(JAVA_BYTE, NUM_VALUES_BYTE, (byte) numValues_);
-    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, seedHash_);
+    // an empty compact image carries a zero seed hash, which readers ignore
+    seg.set(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT, isEmpty() ? 0 : seedHash_);
     seg.set(JAVA_LONG_UNALIGNED, THETA_LONG, thetaLong_);
     if (count > 0) {
       seg.set(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT, count);
