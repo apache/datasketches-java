@@ -40,10 +40,10 @@ public class PositionalSegmentTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[n * Byte.BYTES]);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     for (int i = 0; i < (n/2); i++) { posSeg.setByte((byte)i); }
-    for (int i = n/2; i < n; i++) { posSeg.setByte(i * Byte.BYTES, (byte)i); }
+    for (int i = n/2; i < n; i++) { posSeg.setByte((long) i * Byte.BYTES, (byte)i); }
     posSeg.resetPosition();
     for (int i = 0; i < n; i++) {
-      final byte v1 = posSeg.getByte(i * Byte.BYTES);
+      final byte v1 = posSeg.getByte((long) i * Byte.BYTES);
       final byte v2 = posSeg.getByte();
       assertEquals(v1, v2);
       assertEquals(v2, i);
@@ -57,7 +57,7 @@ public class PositionalSegmentTest {
 
     final MemorySegment seg2 = posSeg.getMemorySegment();
     for (int i = 0; i < n; i++) {
-      assertEquals(seg2.get(JAVA_BYTE, i * Byte.BYTES), (byte)i);
+      assertEquals(seg2.get(JAVA_BYTE, (long) i * Byte.BYTES), (byte)i);
     }
   }
 
@@ -67,10 +67,10 @@ public class PositionalSegmentTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[n * Character.BYTES]);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     for (int i = 0; i < (n/2); i++) { posSeg.setChar((char)i); }
-    for (int i = n/2; i < n; i++) { posSeg.setChar(i * Character.BYTES, (char)i); }
+    for (int i = n/2; i < n; i++) { posSeg.setChar((long) i * Character.BYTES, (char)i); }
     posSeg.resetPosition();
     for (int i = 0; i < n; i++) {
-      final int v1 = posSeg.getChar(i *Character.BYTES);
+      final int v1 = posSeg.getChar((long) i * Character.BYTES);
       final int v2 = posSeg.getChar();
       assertEquals(v1, v2);
       assertEquals(v2, i);
@@ -84,7 +84,7 @@ public class PositionalSegmentTest {
 
     final MemorySegment seg2 = posSeg.getMemorySegment();
     for (int i = 0; i < n; i++) {
-      assertEquals(seg2.get(JAVA_CHAR_UNALIGNED, i * Character.BYTES), (char)i);
+      assertEquals(seg2.get(JAVA_CHAR_UNALIGNED, (long) i * Character.BYTES), (char)i);
     }
   }
 
@@ -94,10 +94,10 @@ public class PositionalSegmentTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[n * Short.BYTES]);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     for (int i = 0; i < (n/2); i++) { posSeg.setShort((short)i); }
-    for (int i = n/2; i < n; i++) { posSeg.setShort(i * Short.BYTES, (short)i); }
+    for (int i = n/2; i < n; i++) { posSeg.setShort((long) i * Short.BYTES, (short)i); }
     posSeg.resetPosition();
     for (int i = 0; i < n; i++) {
-      final int v1 = posSeg.getShort(i *Short.BYTES);
+      final int v1 = posSeg.getShort((long) i * Short.BYTES);
       final int v2 = posSeg.getShort();
       assertEquals(v1, v2);
       assertEquals(v2, i);
@@ -111,7 +111,7 @@ public class PositionalSegmentTest {
 
     final MemorySegment seg2 = posSeg.getMemorySegment();
     for (int i = 0; i < n; i++) {
-      assertEquals(seg2.get(JAVA_SHORT_UNALIGNED, i * Short.BYTES), (short)i);
+      assertEquals(seg2.get(JAVA_SHORT_UNALIGNED, (long) i * Short.BYTES), (short)i);
     }
   }
 
@@ -121,10 +121,10 @@ public class PositionalSegmentTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[n * Integer.BYTES]);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     for (int i = 0; i < (n/2); i++) { posSeg.setInt((int)i); }
-    for (int i = n/2; i < n; i++) { posSeg.setInt(i * Integer.BYTES, (int)i); }
+    for (int i = n/2; i < n; i++) { posSeg.setInt((long) i * Integer.BYTES, (int)i); }
     posSeg.resetPosition();
     for (int i = 0; i < n; i++) {
-      final int v1 = posSeg.getInt(i * Integer.BYTES);
+      final int v1 = posSeg.getInt((long) i * Integer.BYTES);
       final int v2 = posSeg.getInt();
       assertEquals(v1, v2);
       assertEquals(v2, i);
@@ -138,7 +138,7 @@ public class PositionalSegmentTest {
 
     final MemorySegment seg2 = posSeg.getMemorySegment();
     for (int i = 0; i < n; i++) {
-      assertEquals(seg2.get(JAVA_INT_UNALIGNED, i * Integer.BYTES), (int)i);
+      assertEquals(seg2.get(JAVA_INT_UNALIGNED, (long) i * Integer.BYTES), (int)i);
     }
   }
 
@@ -149,10 +149,10 @@ public class PositionalSegmentTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[n * Long.BYTES]);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     for (int i = 0; i < (n/2); i++) { posSeg.setLong(i); }
-    for (int i = n/2; i < n; i++) { posSeg.setLong(i * Long.BYTES, i); }
+    for (int i = n/2; i < n; i++) { posSeg.setLong((long) i * Long.BYTES, i); }
     posSeg.resetPosition();
     for (int i = 0; i < n; i++) {
-      final long v1 = posSeg.getLong(i * Long.BYTES);
+      final long v1 = posSeg.getLong((long) i * Long.BYTES);
       final long v2 = posSeg.getLong();
       assertEquals(v1, v2);
       assertEquals(v2, i);
@@ -166,7 +166,7 @@ public class PositionalSegmentTest {
 
     final MemorySegment seg2 = posSeg.getMemorySegment();
     for (int i = 0; i < n; i++) {
-      assertEquals(seg2.get(JAVA_LONG_UNALIGNED, i * Long.BYTES), i);
+      assertEquals(seg2.get(JAVA_LONG_UNALIGNED, (long) i * Long.BYTES), i);
     }
   }
 
@@ -176,10 +176,10 @@ public class PositionalSegmentTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[n * Float.BYTES]);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     for (int i = 0; i < (n/2); i++) { posSeg.setFloat(i); }
-    for (int i = n/2; i < n; i++) { posSeg.setFloat(i * Float.BYTES, i); }
+    for (int i = n/2; i < n; i++) { posSeg.setFloat((long) i * Float.BYTES, i); }
     posSeg.resetPosition();
     for (int i = 0; i < n; i++) {
-      final float v1 = posSeg.getFloat(i * Float.BYTES);
+      final float v1 = posSeg.getFloat((long) i * Float.BYTES);
       final float v2 = posSeg.getFloat();
       assertEquals(v1, v2);
       assertEquals(v2, i);
@@ -193,7 +193,7 @@ public class PositionalSegmentTest {
 
     final MemorySegment seg2 = posSeg.getMemorySegment();
     for (int i = 0; i < n; i++) {
-      assertEquals(seg2.get(JAVA_FLOAT_UNALIGNED, i * Float.BYTES), i);
+      assertEquals(seg2.get(JAVA_FLOAT_UNALIGNED, (long) i * Float.BYTES), i);
     }
   }
 
@@ -203,10 +203,10 @@ public class PositionalSegmentTest {
     final MemorySegment seg = MemorySegment.ofArray(new byte[n * Double.BYTES]);
     final PositionalSegment posSeg = PositionalSegment.wrap(seg);
     for (int i = 0; i < (n/2); i++) { posSeg.setDouble(i); }
-    for (int i = n/2; i < n; i++) { posSeg.setDouble(i * Double.BYTES, i); }
+    for (int i = n/2; i < n; i++) { posSeg.setDouble((long) i * Double.BYTES, i); }
     posSeg.resetPosition();
     for (int i = 0; i < n; i++) {
-      final double v1 = posSeg.getDouble(i * Double.BYTES);
+      final double v1 = posSeg.getDouble((long) i * Double.BYTES);
       final double v2 = posSeg.getDouble();
       assertEquals(v1, v2);
       assertEquals(v2, i);
@@ -220,7 +220,7 @@ public class PositionalSegmentTest {
 
     final MemorySegment seg2 = posSeg.getMemorySegment();
     for (int i = 0; i < n; i++) {
-      assertEquals(seg2.get(JAVA_DOUBLE_UNALIGNED, i * Double.BYTES), i);
+      assertEquals(seg2.get(JAVA_DOUBLE_UNALIGNED, (long) i * Double.BYTES), i);
     }
   }
 

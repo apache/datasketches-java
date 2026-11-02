@@ -139,6 +139,8 @@ final class KllPreambleUtil {
 
   private KllPreambleUtil() {}
 
+  private static final String ITEMS_SERDE_MSG = "SerDe parameter must not be null for ITEMS_SKETCH.";
+
   // Preamble byte addresses
   static final int PREAMBLE_INTS_BYTE_ADR     = 0;
   static final int SER_VER_BYTE_ADR           = 1;
@@ -224,7 +226,7 @@ final class KllPreambleUtil {
   static <T> String toString(final MemorySegment seg, final SketchType sketchType, final boolean includeData,
       final ArrayOfItemsSerDe<T> serDe) {
     if (sketchType == KLL_ITEMS_SKETCH) {
-      Objects.requireNonNull(serDe, "SerDe parameter must not be null for ITEMS_SKETCH.");
+      Objects.requireNonNull(serDe, ITEMS_SERDE_MSG);
     }
     final KllMemorySegmentValidate segVal = new KllMemorySegmentValidate(seg, sketchType, serDe);
     final SketchStructure myStructure = segVal.sketchStructure;
@@ -359,10 +361,11 @@ final class KllPreambleUtil {
           sb.append(seg.get(JAVA_LONG_UNALIGNED, offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else {  //ITEMS_SKETCH
-          sb.append(serDe.deserializeFromMemorySegment(seg, offsetBytes, 1)[0]).append(LS);
-          offsetBytes += serDe.sizeOf(seg, offsetBytes, 1);
-          sb.append(serDe.deserializeFromMemorySegment(seg, offsetBytes, 1)[0]).append(LS);
-          offsetBytes += serDe.sizeOf(seg, offsetBytes, 1);
+          final ArrayOfItemsSerDe<T> itemsSerDe = Objects.requireNonNull(serDe, ITEMS_SERDE_MSG);
+          sb.append(itemsSerDe.deserializeFromMemorySegment(seg, offsetBytes, 1)[0]).append(LS);
+          offsetBytes += itemsSerDe.sizeOf(seg, offsetBytes, 1);
+          sb.append(itemsSerDe.deserializeFromMemorySegment(seg, offsetBytes, 1)[0]).append(LS);
+          offsetBytes += itemsSerDe.sizeOf(seg, offsetBytes, 1);
         }
 
         sb.append("RETAINED DATA").append(LS);
@@ -383,9 +386,10 @@ final class KllPreambleUtil {
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
-          final T[] itemsArr = serDe.deserializeFromMemorySegment(seg, offsetBytes, retainedItems);
+          final ArrayOfItemsSerDe<T> itemsSerDe = Objects.requireNonNull(serDe, ITEMS_SERDE_MSG);
+          final T[] itemsArr = itemsSerDe.deserializeFromMemorySegment(seg, offsetBytes, retainedItems);
           for (int i = 0; i < itemsArr.length; i++) {
-            sb.append(i + ", " + serDe.toString(itemsArr[i])).append(LS);
+            sb.append(i + ", " + itemsSerDe.toString(itemsArr[i])).append(LS);
           }
         }
 
@@ -399,7 +403,8 @@ final class KllPreambleUtil {
           } else if (sketchType == KLL_LONGS_SKETCH) {
             sb.append(seg.get(JAVA_LONG_UNALIGNED, DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else { //ITEMS_SKETCH
-            sb.append(serDe.deserializeFromMemorySegment(seg, DATA_START_ADR_SINGLE_ITEM, 1)[0]).append(LS);
+            final ArrayOfItemsSerDe<T> itemsSerDe = Objects.requireNonNull(serDe, ITEMS_SERDE_MSG);
+            sb.append(itemsSerDe.deserializeFromMemorySegment(seg, DATA_START_ADR_SINGLE_ITEM, 1)[0]).append(LS);
           }
 
       } else { //COMPACT_EMPTY

@@ -58,6 +58,9 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -431,22 +434,39 @@ public class UtilTest {
   static void checkConvertToLongArray() {
     final byte[] arr = {1,2,3,4,5,6,7,8,9,10,11,12};
 
+    //Little-Endian; the 4-byte tail is flush right
     long[] out = convertToLongArray(arr, false);
+    assertEquals(out.length, 2);
     String s = zeroPad(Long.toHexString(out[0]), 16);
     assertEquals(s, "0807060504030201");
     s = zeroPad(Long.toHexString(out[1]), 16);
     assertEquals(s, "000000000c0b0a09");
 
+    //Big-Endian; the 4-byte tail is flush right
     out = convertToLongArray(arr, true);
+    assertEquals(out.length, 2);
     s = zeroPad(Long.toHexString(out[0]), 16);
     assertEquals(s, "0102030405060708");
     s = zeroPad(Long.toHexString(out[1]), 16);
     assertEquals(s, "00000000090a0b0c");
+
+    //full groups agree with ByteBuffer in both byte orders
+    final byte[] arr16 = new byte[16];
+    for (int i = 0; i < 16; i++) { arr16[i] = (byte) (0xF0 + i); } //high bit set, to check sign handling
+    for (final boolean bigEndian : new boolean[] {false, true}) {
+      final ByteBuffer bb = ByteBuffer.wrap(arr16).order(bigEndian ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
+      out = convertToLongArray(arr16, bigEndian);
+      assertEquals(out.length, 2);
+      assertEquals(out[0], bb.getLong(0));
+      assertEquals(out[1], bb.getLong(8));
+    }
+
+    assertEquals(convertToLongArray(new byte[0], true).length, 0);
   }
 
   @Test
   static void checkCeilingMultiple2expK() {
-    final long n = (1 << 36) - 1L;
+    final long n = (1L << 36) - 1L;
     final int k = 6;
     final long v = ceilingMultiple2expK(n, k);
     final long v2 = (long)Math.ceil(n / (double)(1 << k));

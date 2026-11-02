@@ -241,8 +241,8 @@ public final class ReservoirLongsUnion {
   // gadgetBytes will be null only if gadget_ == null AND empty == true
   public byte[] toByteArray() {
     final int preLongs, outBytes;
-    final boolean empty = gadget_ == null;
-    final byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray() : null);
+    final byte[] gadgetBytes = (gadget_ == null) ? null : gadget_.toByteArray();
+    final boolean empty = gadgetBytes == null;
 
     if (empty) {
       preLongs = Family.RESERVOIR_UNION.getMinPreLongs();

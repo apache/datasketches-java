@@ -288,8 +288,8 @@ public final class ReservoirItemsUnion<T> {
   // gadgetBytes will be null only if gadget_ == null AND empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
-    final boolean empty = gadget_ == null;
-    final byte[] gadgetBytes = (gadget_ != null ? gadget_.toByteArray(serDe, clazz) : null);
+    final byte[] gadgetBytes = (gadget_ == null) ? null : gadget_.toByteArray(serDe, clazz);
+    final boolean empty = gadgetBytes == null;
 
     if (empty) {
       preLongs = Family.RESERVOIR_UNION.getMinPreLongs();

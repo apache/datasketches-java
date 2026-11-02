@@ -167,9 +167,7 @@ public class DirectUpdateDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test
   public void variousExceptions() {
-    final MemorySegment seg = MemorySegment.ofArray(new byte[8]);
     try {
-      final int flags = PreambleUtil.COMPACT_FLAG_MASK;
       DirectUpdateDoublesSketch.checkCompact(2, 0);
       fail();
     } catch (final SketchesArgumentException e) {} //OK

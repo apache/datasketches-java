@@ -158,7 +158,6 @@ public class IsomorphicTest {
   private static void innerLoop(final int uLgK, final int skLgK, final TgtHllType tgtHllType) {
     HllUnion u;
     HllSketch sk;
-    final HllSketch skOut;
 
     //CASE 1 Heap HllUnion, Heap HllSketch
     u = buildHeapUnionHllMode(uLgK, 0);
