@@ -127,11 +127,12 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
           "Serial version mismatch. Expected: " + serialVersionUID + ", actual: " + version);
     }
     isEmpty_ = (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    // the seed hash of an empty image is ignored; historical images may have filled it in
-    if (!isEmpty_) { Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed)); }
-    thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
     final boolean hasEntries =
         (seg.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
+    // the seed hash of an empty image is ignored; historical images may have filled it in.
+    // A corrupt image that claims to be empty but has entries is still checked.
+    if (!isEmpty_ || hasEntries) { Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed)); }
+    thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);
     if (hasEntries) {
       final int count = seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
       keys_ = new long[count];

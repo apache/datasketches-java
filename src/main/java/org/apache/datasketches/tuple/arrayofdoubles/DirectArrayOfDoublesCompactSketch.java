@@ -169,8 +169,10 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
           + ", actual: " + version);
     }
     isEmpty_ = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    // the seed hash of an empty image is ignored; historical images may have filled it in
-    if (!isEmpty_) {
+    final boolean hasEntries = (seg_.get(JAVA_BYTE, FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
+    // the seed hash of an empty image is ignored; historical images may have filled it in.
+    // A corrupt image that claims to be empty but has entries is still checked.
+    if (!isEmpty_ || hasEntries) {
       Util.checkSeedHashes(seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT), Util.computeSeedHash(seed));
     }
     thetaLong_ = seg.get(JAVA_LONG_UNALIGNED, THETA_LONG);

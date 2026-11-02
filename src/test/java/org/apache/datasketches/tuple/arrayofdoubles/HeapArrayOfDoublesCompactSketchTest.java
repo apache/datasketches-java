@@ -181,5 +181,13 @@ public class HeapArrayOfDoublesCompactSketchTest {
         () -> new HeapArrayOfDoublesCompactSketch(MemorySegment.ofArray(withEntry), seed + 1));
     Assert.assertThrows(SketchesArgumentException.class,
         () -> new DirectArrayOfDoublesCompactSketch(MemorySegment.ofArray(withEntry), seed + 1));
+
+    // so is a corrupt image that claims to be empty but has entries
+    final byte[] emptyWithEntry = withEntry.clone();
+    emptyWithEntry[ArrayOfDoublesSketch.FLAGS_BYTE] |= (byte) (1 << ArrayOfDoublesSketch.Flags.IS_EMPTY.ordinal());
+    Assert.assertThrows(SketchesArgumentException.class,
+        () -> new HeapArrayOfDoublesCompactSketch(MemorySegment.ofArray(emptyWithEntry), seed + 1));
+    Assert.assertThrows(SketchesArgumentException.class,
+        () -> new DirectArrayOfDoublesCompactSketch(MemorySegment.ofArray(emptyWithEntry), seed + 1));
   }
 }
