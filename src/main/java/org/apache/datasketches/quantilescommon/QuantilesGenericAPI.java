@@ -24,6 +24,8 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 
 import java.util.Comparator;
 
+import org.apache.datasketches.common.SketchesArgumentException;
+
 /**
  * The Quantiles API for item type <i>generic</i>.
  * @see QuantilesAPI
@@ -36,7 +38,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * This is equivalent to {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   default double[] getCDF(final T[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
@@ -73,7 +76,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * </blockquote>
    * @param searchCrit the desired search criteria.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -94,7 +98,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * sketch algorithm.
    *
    * @return the maximum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   T getMaxItem();
 
@@ -108,7 +113,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * sketch algorithm.
    *
    * @return the minimum item of the stream
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   T getMinItem();
 
@@ -116,7 +122,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * This is equivalent to {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   default double[] getPMF(final T[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -160,7 +167,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * </blockquote>
    * @param searchCrit the desired search criteria.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   double[] getPMF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -168,7 +176,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * This is equivalent to {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
    * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @return the approximate quantile given the normalized rank.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   default T getQuantile(final double rank) {
     return getQuantile(rank, INCLUSIVE);
@@ -183,7 +192,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * If EXCLUSIVE, he given rank includes all quantiles &lt;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   T getQuantile(double rank, QuantileSearchCriteria searchCrit);
@@ -200,7 +210,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @param rank the given normalized rank
    * @return the lower bound of the quantile confidence interval in which the quantile of the
    * given rank exists.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   T getQuantileLowerBound(double rank);
 
@@ -216,7 +227,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @param rank the given normalized rank
    * @return the upper bound of the quantile confidence interval in which the true quantile of the
    * given rank exists.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   T getQuantileUpperBound(double rank);
 
@@ -225,7 +237,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @param ranks the given array of normalized ranks, each of which must be
    * in the interval [0.0,1.0].
    * @return an array of quantiles corresponding to the given array of normalized ranks.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   default T[] getQuantiles(final double[] ranks) {
     return getQuantiles(ranks, INCLUSIVE);
@@ -239,7 +252,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le;
    * the quantile directly corresponding to each rank.
    * @return an array of quantiles corresponding to the given array of normalized ranks.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   T[] getQuantiles(double[] ranks, QuantileSearchCriteria searchCrit);
@@ -248,7 +262,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * This is equivalent to {@link #getRank(Object, QuantileSearchCriteria) getRank(T quantile, INCLUSIVE)}
    * @param quantile the given quantile
    * @return the normalized rank corresponding to the given quantile.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   default double getRank(final T quantile) {
     return getRank(quantile, INCLUSIVE);
@@ -260,7 +275,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @param quantile the given quantile
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
    * @return the normalized rank corresponding to the given quantile.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double getRank(T quantile, QuantileSearchCriteria searchCrit);
@@ -269,7 +285,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * This is equivalent to {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    */
   default double[] getRanks(final T[] quantiles) {
     return getRanks(quantiles, INCLUSIVE);
@@ -282,7 +299,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI, PartitioningFeatur
    * @param quantiles the given array of quantiles
    * @param searchCrit if INCLUSIVE, the given quantiles include the rank directly corresponding to each quantile.
    * @return an array of normalized ranks corresponding to the given array of quantiles.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws SketchesArgumentException if sketch is empty and is a KllItemsSketch.
+   * @throws IllegalArgumentException if sketch is empty and is a QuantilesItemsSketch.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double[] getRanks(T[] quantiles, QuantileSearchCriteria searchCrit);
