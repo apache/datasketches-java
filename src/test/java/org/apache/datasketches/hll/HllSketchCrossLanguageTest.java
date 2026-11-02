@@ -31,8 +31,11 @@ import static org.apache.datasketches.common.UtilityIO.putBytesToJavaPath;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.hll.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.hll.PreambleUtil.CUR_MIN_COUNT_INT;
 import static org.apache.datasketches.hll.PreambleUtil.FLAGS_BYTE;
+import static org.apache.datasketches.hll.PreambleUtil.HLL_CUR_MIN_BYTE;
 import static org.apache.datasketches.hll.PreambleUtil.REBUILD_CURMIN_NUM_KXQ_MASK;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -145,11 +148,11 @@ public class HllSketchCrossLanguageTest {
   }
 
   /**
-   * The fixtures above are update sketches only, serialized compact, at a single lgK. That
+   * The cross-language (CL) files above are update sketches only, serialized compact, at a single lgK. That
    * leaves two gaps a cross-language reader can fall through, both of which produced real bugs
    * in 2026-09: the deferred KxQ rebuild is reachable only through a union gadget, and the
-   * flags-byte bit 32 collision is only visible in the flags byte itself. These fixtures close
-   * both. One lgK is deliberate; the defect classes are not lgK-dependent.
+   * flags-byte bit 32 collision is only visible in the flags byte itself. These union CL files
+   * close both. One lgK is deliberate; the defect classes are not lgK-dependent.
    */
   @Test(groups = {GENERATE_JAVA_FILES}, priority = 0)
   public void generateUnionBinariesForCompatibilityTesting() throws IOException {
@@ -199,15 +202,18 @@ public class HllSketchCrossLanguageTest {
   /**
    * One body, reused by every language. Beyond deserializing, this asserts the two flags-byte
    * invariants the 2026-09 fixes established: bit 32 is reserved and must never be written by
-   * any implementation, and the compact flag must reflect the form actually produced.
+   * any implementation, and the compact flag must reflect the form actually produced. It also
+   * checks curMin and numAtCurMin, which the deferred KxQ rebuild updates, against Java's own
+   * result for the same target type and form.
    */
   private static void deserializeUnionResults(final GroupLanguage lang) {
-    final String[] tags = {"hll4", "hll6", "hll8"};
+    final TgtHllType[] types = {HLL_4, HLL_6, HLL_8};
     final String[] forms = {"_union", "_unionupd"};
+    final HllUnion expectedUnion = mixedModeUnion();
     double firstEstimate = Double.NaN;
     for (final String form: forms) {
-      for (final String tag: tags) {
-        final String fileName = tag + form + lang.sfx + ".sk";
+      for (final TgtHllType type: types) {
+        final String fileName = tagOf(type) + form + lang.sfx + ".sk";
         final byte[] bytes = getFileBytes(lang.pth, fileName);
         if (bytes.length == 0) { continue; }
         final int flags = bytes[FLAGS_BYTE] & 0xFF;
@@ -220,6 +226,16 @@ public class HllSketchCrossLanguageTest {
         //HLL_6 and HLL_8 used to omit this on toCompactByteArray()
         assertEquals((flags & COMPACT_FLAG_MASK) > 0, form.equals("_union"),
             fileName + " compact flag does not match its serialized form");
+
+        //curMin and numAtCurMin are rebuilt together with KxQ, so check them directly
+        final HllSketch expected = expectedUnion.getResult(type);
+        final byte[] expectedBytes =
+            form.equals("_union") ? expected.toCompactByteArray() : expected.toUpdatableByteArray();
+        assertEquals(bytes[HLL_CUR_MIN_BYTE] & 0xFF, expectedBytes[HLL_CUR_MIN_BYTE] & 0xFF,
+            fileName + " curMin");
+        assertEquals(MemorySegment.ofArray(bytes).get(JAVA_INT_UNALIGNED, CUR_MIN_COUNT_INT),
+            MemorySegment.ofArray(expectedBytes).get(JAVA_INT_UNALIGNED, CUR_MIN_COUNT_INT),
+            fileName + " numAtCurMin");
 
         final HllSketch sketch = HllSketch.heapify(MemorySegment.ofArray(bytes));
         assertEquals(sketch.getLgConfigK(), LG_K);
