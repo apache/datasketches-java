@@ -45,6 +45,8 @@ jobs:
             pom.xml
             **/pom.xml
             **/target/*.jar
+            **/target/classes/
+            **/target/test-classes/
             **/src/test/resources/
 
 # PHASE 2: Run isolated target matrix tests against the JARs
