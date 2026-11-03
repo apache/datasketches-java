@@ -65,7 +65,7 @@ public abstract class ArrayOfDoublesIntersection {
    */
   public void intersect(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
     if (tupleSketch == null) { throw new SketchesArgumentException("TupleSketch must not be null"); }
-    Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
+    if (!tupleSketch.isEmpty()) { Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash()); }
     if (tupleSketch.numValues_ != numValues_) {
       throw new SketchesArgumentException(
           "Input TupleSketch cannot have different numValues from the internal numValues.");

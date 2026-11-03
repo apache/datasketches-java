@@ -70,12 +70,8 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
       throw new SketchesArgumentException("Neither argument may be null.");
     }
     numValues_ = skA.getNumValues();
-    seedHash_ = skA.getSeedHash();
     if (numValues_ != skB.getNumValues()) {
       throw new SketchesArgumentException("Inputs cannot have different numValues");
-    }
-    if (seedHash_ != skB.getSeedHash()) {
-      throw new SketchesArgumentException("Inputs cannot have different seedHashes");
     }
 
     final long thetaLongA = skA.getThetaLong();
@@ -85,6 +81,13 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
     final long thetaLongB = skB.getThetaLong();
     final int countB = skB.getRetainedEntries();
     final boolean emptyB = skB.isEmpty();
+
+    // the seed hash of an empty sketch is not meaningful (its image carries zero)
+    if (!emptyA) { seedHash_ = skA.getSeedHash(); }
+    else if (!emptyB) { seedHash_ = skB.getSeedHash(); }
+    if (!emptyA && !emptyB && (skA.getSeedHash() != skB.getSeedHash())) {
+      throw new SketchesArgumentException("Inputs cannot have different seedHashes");
+    }
 
     final int id =
         SetOperationCornerCases.createCornerCaseId(thetaLongA, countA, emptyA, thetaLongB, countB, emptyB);

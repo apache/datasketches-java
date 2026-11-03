@@ -305,6 +305,7 @@ public class ArrayOfDoublesIntersectionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeeds() {
     final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    sketch.update(1, new double[] {1.0}); // the seed hash of an empty sketch is not checked
     final ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildIntersection();
     intersection.intersect(sketch, combiner);
   }

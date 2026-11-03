@@ -426,6 +426,7 @@ public class ArrayOfDoublesUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeeds() {
     final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    sketch.update(1, new double[] {1.0}); // the seed hash of an empty sketch is not checked
     final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildUnion();
     union.union(sketch);
   }

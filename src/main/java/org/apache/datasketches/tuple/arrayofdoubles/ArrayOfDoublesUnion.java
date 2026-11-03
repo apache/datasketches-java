@@ -109,7 +109,7 @@ public abstract class ArrayOfDoublesUnion {
    */
   public void union(final ArrayOfDoublesSketch tupleSketch) {
     if (tupleSketch == null) { return; }
-    Util.checkSeedHashes(gadget_.getSeedHash(), tupleSketch.getSeedHash());
+    if (!tupleSketch.isEmpty()) { Util.checkSeedHashes(gadget_.getSeedHash(), tupleSketch.getSeedHash()); }
     if (gadget_.getNumValues() != tupleSketch.getNumValues()) {
       throw new SketchesArgumentException("Incompatible sketches: number of values mismatch "
           + gadget_.getNumValues() + " and " + tupleSketch.getNumValues());
