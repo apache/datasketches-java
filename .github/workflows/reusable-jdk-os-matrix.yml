@@ -74,8 +74,15 @@ jobs:
             JAVA_EXE="$JAVA_HOME/bin/java"
           fi
           echo "Testing datasketches-java jars for JDK version ${{ inputs.jdk_version }}..."
+          # Surefire needs these directories to exist, but the classes come from the jars.
+          mkdir -p target/classes target/test-classes
+          MAIN_JAR=$(ls target/datasketches-java-*.jar | grep -v -E -e '-(tests|sources|test-sources|javadoc)\.jar$')
+          TEST_JAR=$(ls target/datasketches-java-*-tests.jar)
+          echo "Main jar: $MAIN_JAR"
+          echo "Test jar: $TEST_JAR"
           mvn surefire:test -B \
-            -Dmaven.test.classpath.useTestJar=true \
+            -Dmaven.test.additionalClasspath="$MAIN_JAR,$TEST_JAR" \
+            -DfailIfNoTests=true \
             -Djvm="$JAVA_EXE" \
             -DargLine="${{ env.JVM_ARGS }}"
 
