@@ -574,6 +574,8 @@ under the License.
             </execution>
           </executions>
           <configuration>
+            <!-- Maven commands are sometimes run on the release artifact directly, which is not a Git repository -->
+            <failOnNoGitDirectory>false</failOnNoGitDirectory>
             <generateGitPropertiesFile>true</generateGitPropertiesFile>
             <generateGitPropertiesFilename>${project.basedir}/git.properties</generateGitPropertiesFilename>
             <includeOnlyProperties>
@@ -606,7 +608,7 @@ under the License.
               <inputExclude>**/*.yml</inputExclude>
               <inputExclude>**/.*</inputExclude>
               <inputExclude>**/test-output/**/*</inputExclude>
-              <!-- <inputExclude>**/git.properties</inputExclude> -->
+              <inputExclude>**/git.properties</inputExclude>
               <inputExclude>**/doc/**</inputExclude>
               <inputExclude>**/docs/**</inputExclude>
               <inputExclude>**/*.sk</inputExclude>
