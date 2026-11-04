@@ -27,7 +27,7 @@ under the License.
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>9.1.0-SNAPSHOT</version>
+  <version>9.2.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
@@ -53,9 +53,9 @@ under the License.
     </mailingList>
     <mailingList>
       <name>DataSketches Users</name>
-      <subscribe>user-subscribe@datasketches.apache.org</subscribe>
-      <unsubscribe>user-unsubscribe@datasketches.apache.org</unsubscribe>
-      <post>user@datasketches.apache.org</post>
+      <subscribe>users-subscribe@datasketches.apache.org</subscribe>
+      <unsubscribe>users-unsubscribe@datasketches.apache.org</unsubscribe>
+      <post>users@datasketches.apache.org</post>
       <archive>https://mail-archives.apache.org/mod_mbox/datasketches-user</archive>
     </mailingList>
   </mailingLists>
