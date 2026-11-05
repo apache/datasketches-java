@@ -167,7 +167,7 @@ public enum Family {
   /**
    * Xor Filter
    */
-  XORFILTER(22, "XORFILTER", 3, 3);
+  XORFILTER(22, "XORFILTER", 2, 2);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();

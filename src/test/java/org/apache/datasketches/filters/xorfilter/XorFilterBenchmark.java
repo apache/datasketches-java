@@ -90,7 +90,7 @@ public final class XorFilterBenchmark {
     final Result r = new Result();
     r.buildNanosPerKey = (double) buildElapsed / numKeys;
     r.queryNanosPerOp = (double) queryElapsed / numKeys;
-    r.bitsPerItem = filter.getBitsPerItem();
+    r.bitsPerItem = (double) filter.getCapacity() * bits / numKeys;
     r.observedFpp = (double) falsePositives / numKeys;
     return r;
   }

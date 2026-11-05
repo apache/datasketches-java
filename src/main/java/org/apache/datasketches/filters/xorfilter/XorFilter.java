@@ -60,8 +60,8 @@ import org.apache.datasketches.hash.XxHash64;
  * ACM Journal of Experimental Algorithmics, 2020.</p>
  */
 public final class XorFilter implements MemorySegmentStatus {
-  private static final int SER_VER = 1;
-  private static final int PREAMBLE_LONGS = 3;
+  private static final int SER_VER = 2;
+  private static final int PREAMBLE_LONGS = 2;
   private static final long PREAMBLE_SIZE_BYTES = (long) PREAMBLE_LONGS * Long.BYTES;
 
   // number of hash functions / segments used by the three-partite construction
@@ -84,7 +84,6 @@ public final class XorFilter implements MemorySegmentStatus {
 
   private final int bitsPerFingerprint_;    // fingerprint width in bits, 8 or 16
   private final int segmentLength_;          // number of fingerprint slots per hash segment
-  private final int numKeys_;                // number of distinct keys used to build the filter
   private final long seed_;                  // winning construction seed for the murmur mix
   private final MemorySegment fpSeg_;        // holds the raw fingerprint payload
   private final MemorySegment wseg_;         // used only when wrapping a serialized image
@@ -100,7 +99,6 @@ public final class XorFilter implements MemorySegmentStatus {
    */
   XorFilter(final int bitsPerFingerprint, final long seed, final long[] keys, final int numKeys) {
     bitsPerFingerprint_ = bitsPerFingerprint;
-    numKeys_ = numKeys;
 
     final int capacity = computeCapacity(numKeys);
     segmentLength_ = capacity / NUM_HASHES;
@@ -142,11 +140,10 @@ public final class XorFilter implements MemorySegmentStatus {
   }
 
   // Constructor used with internalHeapifyOrWrap()
-  XorFilter(final int bitsPerFingerprint, final int segmentLength, final int numKeys, final long seed,
+  XorFilter(final int bitsPerFingerprint, final int segmentLength, final long seed,
       final MemorySegment fpSeg, final MemorySegment wseg) {
     bitsPerFingerprint_ = bitsPerFingerprint;
     segmentLength_ = segmentLength;
-    numKeys_ = numKeys;
     seed_ = seed;
     fpSeg_ = fpSeg;
     wseg_ = wseg;
@@ -179,7 +176,6 @@ public final class XorFilter implements MemorySegmentStatus {
     final int preLongs = posSeg.getByte();
     final int serVer = posSeg.getByte();
     final int familyID = posSeg.getByte();
-    posSeg.getByte(); // flags, reserved
 
     checkArgument((preLongs < Family.XORFILTER.getMinPreLongs()) || (preLongs > Family.XORFILTER.getMaxPreLongs()),
         "Possible corruption: Incorrect number of preamble bytes specified in header");
@@ -189,43 +185,24 @@ public final class XorFilter implements MemorySegmentStatus {
     final int bitsPerFingerprint = posSeg.getByte();
     checkArgument((bitsPerFingerprint != 8) && (bitsPerFingerprint != 16),
         "Possible corruption: Fingerprint width must be 8 or 16. Found: " + bitsPerFingerprint);
-    final int numHashes = posSeg.getByte();
-    checkArgument(numHashes != NUM_HASHES, "Possible corruption: Number of hash functions must be " + NUM_HASHES
-        + ". Found: " + numHashes);
-    posSeg.getShort(); // unused
-
-    final long seed = posSeg.getLong();
     final int segmentLength = posSeg.getInt();
-    final int numKeys = posSeg.getInt();
     checkArgument(segmentLength < 1, "Possible corruption: Segment length must be strictly positive. Found: " + segmentLength);
-    checkArgument(numKeys < 0, "Possible corruption: Number of keys must be non-negative. Found: " + numKeys);
+    final long seed = posSeg.getLong();
 
-    final long fingerprintBytes = (long) numHashes * segmentLength * (bitsPerFingerprint >>> 3);
+    final long fingerprintBytes = (long) NUM_HASHES * segmentLength * (bitsPerFingerprint >>> 3);
     checkArgument(seg.byteSize() < (PREAMBLE_SIZE_BYTES + fingerprintBytes),
         "Possible corruption: MemorySegment capacity insufficient to hold the fingerprint array");
 
     final MemorySegment payload = seg.asSlice(PREAMBLE_SIZE_BYTES, fingerprintBytes);
     if (isWrap) {
-      return new XorFilter(bitsPerFingerprint, segmentLength, numKeys, seed, payload, seg);
+      return new XorFilter(bitsPerFingerprint, segmentLength, seed, payload, seg);
     }
     // heapify copies the payload onto the Java heap
     checkArgument(fingerprintBytes > Integer.MAX_VALUE, "Filter is too large to heapify; use wrap() instead");
     final byte[] fingerprints = new byte[(int) fingerprintBytes];
     MemorySegment.copy(payload, JAVA_BYTE, 0, fingerprints, 0, (int) fingerprintBytes);
-    return new XorFilter(bitsPerFingerprint, segmentLength, numKeys, seed, MemorySegment.ofArray(fingerprints), null);
+    return new XorFilter(bitsPerFingerprint, segmentLength, seed, MemorySegment.ofArray(fingerprints), null);
   }
-
-  /**
-   * Checks if the XorFilter was built from any items.
-   * @return True if the XorFilter holds no items, otherwise False
-   */
-  public boolean isEmpty() { return numKeys_ == 0; }
-
-  /**
-   * Returns the number of distinct items used to build this XorFilter.
-   * @return The number of distinct items in this filter
-   */
-  public int getNumItems() { return numKeys_; }
 
   /**
    * Returns the fixed number of hash functions used by the three-partite xor construction.
@@ -250,16 +227,6 @@ public final class XorFilter implements MemorySegmentStatus {
    * @return The construction seed for this filter
    */
   public long getSeed() { return seed_; }
-
-  /**
-   * Returns the average number of bits stored per item by this XorFilter, a measure of its
-   * space efficiency. This is approximately 1.23 times the fingerprint width.
-   * @return The number of bits used per item, or 0 for an empty filter
-   */
-  public double getBitsPerItem() {
-    if (numKeys_ == 0) { return 0.0; }
-    return ((double) getCapacity() * bitsPerFingerprint_) / numKeys_;
-  }
 
   @Override
   public boolean hasMemorySegment() { return wseg_ != null; }
@@ -597,23 +564,19 @@ public final class XorFilter implements MemorySegmentStatus {
   }
 
 /*
- * An Xor Filter's serialized image always uses 3 longs of preamble, as the filter is
- * immutable and therefore has no empty or growable state:
+ * An Xor Filter's version 2 serialized image uses 2 longs of preamble:
  *
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
  *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
- *  0   || Preamble_Longs | SerVer | FamID  |  Flags | BitsPFP|NumHash |-----Unused------|
+ *  0   || Preamble_Longs | SerVer | FamID  |BitsPFP |--------Segment Length (int)------|
  *
  *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
  *  1   ||-------------------------------Construction Seed-------------------------------|
- *
- *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
- *  2   ||----------Segment Length (int)-------------|-----------Num Keys (int)----------|
  *  </pre>
  *
- * The raw fingerprint array starts at byte 24.
+ * The raw fingerprint array starts at byte 16. The layout always has three segments.
  */
 
   /**
@@ -654,13 +617,9 @@ public final class XorFilter implements MemorySegmentStatus {
     posSeg.setByte((byte) PREAMBLE_LONGS);
     posSeg.setByte((byte) SER_VER);
     posSeg.setByte((byte) Family.XORFILTER.getID());
-    posSeg.setByte((byte) 0); // flags
     posSeg.setByte((byte) bitsPerFingerprint_);
-    posSeg.setByte((byte) NUM_HASHES);
-    posSeg.setShort((short) 0); // unused
-    posSeg.setLong(seed_);
     posSeg.setInt(segmentLength_);
-    posSeg.setInt(numKeys_);
+    posSeg.setLong(seed_);
     MemorySegment.copy(fpSeg_, JAVA_BYTE, 0, seg, JAVA_BYTE, PREAMBLE_SIZE_BYTES, fpSeg_.byteSize());
   }
 
@@ -676,12 +635,10 @@ public final class XorFilter implements MemorySegmentStatus {
     sb.append(LS);
     final String thisSimpleName = this.getClass().getSimpleName();
     sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
-    sb.append("   numItems     : ").append(numKeys_).append(LS);
     sb.append("   numHashes    : ").append(NUM_HASHES).append(LS);
     sb.append("   bitsPerFP    : ").append(bitsPerFingerprint_).append(LS);
     sb.append("   capacity     : ").append(getCapacity()).append(LS);
     sb.append("   seed         : ").append(seed_).append(LS);
-    sb.append("   bits/item    : ").append(getBitsPerItem()).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
 
     return sb.toString();
