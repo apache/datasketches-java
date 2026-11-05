@@ -60,7 +60,7 @@ import org.apache.datasketches.hash.XxHash64;
  * ACM Journal of Experimental Algorithmics, 2020.</p>
  */
 public final class XorFilter implements MemorySegmentStatus {
-  private static final int SER_VER = 2;
+  private static final int SER_VER = 1;
   private static final int PREAMBLE_LONGS = 2;
   private static final long PREAMBLE_SIZE_BYTES = (long) PREAMBLE_LONGS * Long.BYTES;
 
@@ -564,7 +564,7 @@ public final class XorFilter implements MemorySegmentStatus {
   }
 
 /*
- * An Xor Filter's version 2 serialized image uses 2 longs of preamble:
+ * An Xor Filter's serialized image uses 2 longs of preamble:
  *
  * <pre>
  * Long || Start Byte Adr:
