@@ -52,6 +52,7 @@ import java.util.Arrays;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * @author Lee Rhodes
@@ -174,9 +175,15 @@ final class CompactOperations {
     //extract hashArr > 1
     final long[] hashArr;
     if (srcCompactFlag) {
+      PreambleUtil.checkCompactImage(srcSeg);
       hashArr = new long[curCount];
       MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, srcPreLongs << 3, hashArr, 0, curCount);
     } else { //update sketch, thus hashTable form
+      if ((srcLgArrLongs > (ThetaUtil.MAX_LG_NOM_LONGS + 1))
+          || (srcSeg.byteSize() < (((long) srcPreLongs << 3) + (8L << srcLgArrLongs)))) {
+        throw new SketchesArgumentException("Possible corruption: lgArrLongs " + srcLgArrLongs
+            + " is too large for the MemorySegment size " + srcSeg.byteSize());
+      }
       final int srcCacheLen = 1 << srcLgArrLongs;
       final long[] tempHashArr = new long[srcCacheLen];
       MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, srcPreLongs << 3, tempHashArr, 0, srcCacheLen);

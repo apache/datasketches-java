@@ -68,6 +68,7 @@ class DirectCompactSketch extends CompactThetaSketch {
    */
   static DirectCompactSketch wrapInstance(final MemorySegment srcSeg, final short seedHash) {
     Util.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
+    PreambleUtil.checkCompactImage(srcSeg);
     return new DirectCompactSketch(srcSeg);
   }
 

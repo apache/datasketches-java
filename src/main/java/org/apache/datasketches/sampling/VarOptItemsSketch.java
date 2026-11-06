@@ -345,6 +345,11 @@ public final class VarOptItemsSketch<T> {
 
     final int preLongBytes = numPreLongs << 3;
 
+    // In sampling mode the sketch holds exactly k items; while warming up it holds at most k.
+    if (((rCount > 0) && (((long) hCount + rCount) != k)) || ((rCount == 0) && (hCount > k))) {
+      throw new SketchesArgumentException("Possible Corruption: H and R region counts " + hCount + " and "
+          + rCount + " are not valid for k = " + k);
+    }
     final int totalItems = hCount + rCount;
     int allocatedItems = k + 1; // default to full
 
@@ -361,10 +366,13 @@ public final class VarOptItemsSketch<T> {
       }
     }
 
-    // allocate full-sized ArrayLists, but we store only hCount weights at any moment
+    // The ArrayLists grow as needed, so size them to the items in the image rather than to k.
+    // We store only hCount weights at any moment.
     final long weightOffsetBytes = TOTAL_WEIGHT_R_DOUBLE + (rCount > 0 ? Double.BYTES : 0);
-    final ArrayList<Double> weightList = new ArrayList<>(allocatedItems);
-    final double[] wts = new double[allocatedItems];
+    Util.checkBounds(weightOffsetBytes, (long) hCount * Double.BYTES, srcSeg.byteSize());
+    final int listCapacity = (int) Math.min(allocatedItems, (long) totalItems + 1);
+    final ArrayList<Double> weightList = new ArrayList<>(listCapacity);
+    final double[] wts = new double[hCount];
     MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, weightOffsetBytes, wts, 0, hCount);
 
     // can't use Arrays.asList(wts) since double[] rather than Double[]
@@ -383,7 +391,7 @@ public final class VarOptItemsSketch<T> {
     if (isGadget) {
       final long markOffsetBytes = preLongBytes + ((long) hCount * Double.BYTES);
       markBytes = ArrayOfBooleansSerDe.computeBytesNeeded(hCount);
-      markList = new ArrayList<>(allocatedItems);
+      markList = new ArrayList<>(listCapacity);
 
       final ArrayOfBooleansSerDe booleansSerDe = new ArrayOfBooleansSerDe();
       final Boolean[] markArray = booleansSerDe.deserializeFromMemorySegment(
@@ -398,7 +406,7 @@ public final class VarOptItemsSketch<T> {
     final long offsetBytes = preLongBytes + ((long) hCount * Double.BYTES) + markBytes;
     final T[] data = serDe.deserializeFromMemorySegment(srcSeg.asSlice(offsetBytes), 0, totalItems);
     final List<T> wrappedData = Arrays.asList(data);
-    final ArrayList<T> dataList = new ArrayList<>(allocatedItems);
+    final ArrayList<T> dataList = new ArrayList<>(listCapacity);
     dataList.addAll(wrappedData.subList(0, hCount));
 
     // Load items in R as needed

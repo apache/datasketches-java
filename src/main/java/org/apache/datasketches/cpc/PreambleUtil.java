@@ -375,6 +375,7 @@ final class PreambleUtil {
   static int[] getSvStream(final MemorySegment seg) {
     final long offset = getSvStreamOffset(seg);
     final int svLengthInts = getSvLengthInts(seg);
+    checkBounds(offset, (long) svLengthInts * Integer.BYTES, seg.byteSize()); //before allocating
     final int[] svStream = new int[svLengthInts];
     MemorySegment.copy(seg, JAVA_INT_UNALIGNED, offset, svStream, 0, svLengthInts);
     return svStream;
@@ -383,6 +384,7 @@ final class PreambleUtil {
   static int[] getWStream(final MemorySegment seg) {
     final long offset = getWStreamOffset(seg);
     final int wLength = getWLengthInts(seg);
+    checkBounds(offset, (long) wLength * Integer.BYTES, seg.byteSize()); //before allocating
     final int[] wStream = new int[wLength];
     MemorySegment.copy(seg, JAVA_INT_UNALIGNED, offset, wStream, 0, wLength);
     return wStream;

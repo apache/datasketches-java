@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static org.apache.datasketches.common.Util.ceilingPowerOf2;
+import static org.apache.datasketches.common.Util.checkBounds;
 
 import java.lang.foreign.MemorySegment;
 
@@ -53,6 +56,32 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   static final int ENTRIES_START = 32;
 
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;
+
+  /**
+   * Checks that the given image holds the whole hash table it declares, and that its counts are valid,
+   * before anything is allocated or read from it. The serialized form always includes the whole table.
+   * @param seg the serialized QuickSelect sketch
+   * @throws SketchesArgumentException if the image is too small or its counts are invalid
+   */
+  static void checkQuickSelectImage(final MemorySegment seg) {
+    checkBounds(0, ENTRIES_START, seg.byteSize());
+    final int numValues = seg.get(JAVA_BYTE, NUM_VALUES_BYTE);
+    final int lgCurCapacity = seg.get(JAVA_BYTE, LG_CUR_CAPACITY_BYTE);
+    final int lgNomEntries = seg.get(JAVA_BYTE, LG_NOM_ENTRIES_BYTE);
+    //the table grows to at most twice the nominal entries, but is never smaller than the minimum table size
+    if ((numValues < 1) || (lgNomEntries < 0) || (lgNomEntries > ThetaUtil.MAX_LG_NOM_LONGS) || (lgCurCapacity < 0)
+        || (lgCurCapacity > Math.max(lgNomEntries + 1, ThetaUtil.MIN_LG_ARR_LONGS))) {
+      throw new SketchesArgumentException("Possible corruption: numValues: " + numValues
+          + ", lgNomEntries: " + lgNomEntries + ", lgCurrentCapacity: " + lgCurCapacity);
+    }
+    final long capacity = 1L << lgCurCapacity;
+    final int count = seg.get(JAVA_INT_UNALIGNED, RETAINED_ENTRIES_INT);
+    if ((count < 0) || (count > capacity)) {
+      throw new SketchesArgumentException("Possible corruption: invalid retained entries: " + count);
+    }
+    checkBounds(ENTRIES_START, capacity * (SIZE_OF_KEY_BYTES + ((long) SIZE_OF_VALUE_BYTES * numValues)),
+        seg.byteSize());
+  }
 
   // these can be derived from other things, but are kept here for performance
   int rebuildThreshold_; //absolute value relative to current capacity

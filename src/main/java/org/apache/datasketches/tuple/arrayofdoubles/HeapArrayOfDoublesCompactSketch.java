@@ -115,6 +115,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   HeapArrayOfDoublesCompactSketch(final MemorySegment seg, final long seed) {
+    checkCompactImage(seg);
     super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE));
     seedHash_ = seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
     SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),

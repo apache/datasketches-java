@@ -23,8 +23,13 @@ import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.LIST_PREINTS;
+import static org.apache.datasketches.hll.PreambleUtil.extractAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractCurMode;
 import static org.apache.datasketches.hll.PreambleUtil.extractFamilyId;
+import static org.apache.datasketches.hll.PreambleUtil.extractHashSetCount;
+import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
+import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
+import static org.apache.datasketches.hll.PreambleUtil.extractListCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractPreInts;
 import static org.apache.datasketches.hll.PreambleUtil.extractSerVer;
 
@@ -111,7 +116,38 @@ final class HllUtil {
       throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
           + PreambleUtil.toString(seg));
     }
+    checkSizes(seg, curMode);
     return curMode;
+  }
+
+  /**
+   * Checks lgK and the sizes declared by the image.
+   * LgK must be in the documented range. The coupon hash set and the auxiliary (exception) hash map
+   * are never larger than K, and a coupon list never holds more than its initial capacity.
+   * @param seg the image
+   * @param curMode the current mode of the image
+   */
+  private static void checkSizes(final MemorySegment seg, final CurMode curMode) {
+    final int lgK = extractLgK(seg);
+    checkLgK(lgK);
+    if (curMode == CurMode.LIST) {
+      final int count = extractListCount(seg);
+      if (count > (1 << LG_INIT_LIST_SIZE)) {
+        throw new SketchesArgumentException("Possible Corruption: list count " + count);
+      }
+    } else if (curMode == CurMode.SET) {
+      final int count = extractHashSetCount(seg);
+      final int lgArr = extractLgArr(seg);
+      if ((count < 0) || (count > (1 << lgK)) || (lgArr > lgK)) {
+        throw new SketchesArgumentException("Possible Corruption: set count " + count + ", lgArr " + lgArr);
+      }
+    } else { //HLL
+      final int auxCount = extractAuxCount(seg);
+      final int lgArr = extractLgArr(seg);
+      if ((auxCount < 0) || (auxCount > (1 << lgK)) || ((auxCount > 0) && (lgArr > lgK))) {
+        throw new SketchesArgumentException("Possible Corruption: aux count " + auxCount + ", lgArr " + lgArr);
+      }
+    }
   }
 
   //Exceptions

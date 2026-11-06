@@ -58,6 +58,7 @@ final class DirectCompactCompressedSketch extends DirectCompactSketch {
    */
   static DirectCompactCompressedSketch wrapInstance(final MemorySegment srcSeg, final short seedHash) {
     Util.checkSeedHashes((short) extractSeedHash(srcSeg), seedHash);
+    PreambleUtil.checkCompressedImage(srcSeg);
     return new DirectCompactCompressedSketch(srcSeg);
   }
 

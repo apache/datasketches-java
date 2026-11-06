@@ -796,4 +796,55 @@ public class LongsSketchTest {
     return new FrequentLongsSketch(maxMapSize);
   }
 
+
+  private static byte[] longsImage() {
+    final FrequentLongsSketch fls = new FrequentLongsSketch(1 << 10);
+    for (int i = 0; i < 5; i++) { fls.update(i, i + 1); }
+    return fls.toByteArray();
+  }
+
+  @Test
+  public void checkBinaryDeserLargeDeclaredMapDoesNotAllocate() {
+    final byte[] bytes = longsImage();
+    bytes[PreambleUtil.LG_MAX_MAP_SIZE_BYTE] = 30;
+    bytes[PreambleUtil.LG_CUR_MAP_SIZE_BYTE] = 30;
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    final long allocated = org.apache.datasketches.common.AllocationTracker.allocatedBytes(
+        () -> FrequentLongsSketch.getInstance(seg));
+    assertTrue(allocated < (1 << 20), "allocated " + allocated);
+    final FrequentLongsSketch fls = FrequentLongsSketch.getInstance(seg);
+    assertEquals(fls.getNumActiveItems(), 5);
+    assertEquals(fls.getEstimate(4), 5);
+  }
+
+  @Test
+  public void checkBinaryDeserInconsistentSizes() {
+    final byte[] curTooBig = longsImage();
+    curTooBig[PreambleUtil.LG_CUR_MAP_SIZE_BYTE] = (byte) (curTooBig[PreambleUtil.LG_MAX_MAP_SIZE_BYTE] + 1);
+    final byte[] curTooSmall = longsImage();
+    curTooSmall[PreambleUtil.LG_CUR_MAP_SIZE_BYTE] = 2;
+    final byte[] tooManyActive = longsImage();
+    org.apache.datasketches.common.ByteArrayUtil.putIntLE(tooManyActive, 8, 1 << 20);
+    final byte[] negActive = longsImage();
+    org.apache.datasketches.common.ByteArrayUtil.putIntLE(negActive, 8, -1);
+    for (final byte[] b : new byte[][] {curTooBig, curTooSmall, tooManyActive, negActive}) {
+      try { FrequentLongsSketch.getInstance(MemorySegment.ofArray(b)); fail(); }
+      catch (final SketchesArgumentException e) { }
+    }
+  }
+
+  @Test
+  public void checkBinaryDeserActiveItemsBeyondImage() {
+    final byte[] bytes = longsImage();
+    bytes[PreambleUtil.LG_MAX_MAP_SIZE_BYTE] = 30;
+    bytes[PreambleUtil.LG_CUR_MAP_SIZE_BYTE] = 30;
+    org.apache.datasketches.common.ByteArrayUtil.putIntLE(bytes, 8, 1 << 28); //more items than the image holds
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    final long allocated = org.apache.datasketches.common.AllocationTracker.allocatedBytes(
+        () -> FrequentLongsSketch.getInstance(seg));
+    assertTrue(allocated < (1 << 20), "allocated " + allocated);
+    try { FrequentLongsSketch.getInstance(seg); fail(); }
+    catch (final SketchesArgumentException e) { }
+  }
+
 }
