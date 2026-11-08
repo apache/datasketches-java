@@ -61,7 +61,7 @@ import org.apache.datasketches.hash.XxHash64;
  */
 public final class XorFilter implements MemorySegmentStatus {
   private static final int SER_VER = 1;
-  private static final int PREAMBLE_LONGS = 2;
+  private static final int PREAMBLE_LONGS = 3;
   private static final long PREAMBLE_SIZE_BYTES = (long) PREAMBLE_LONGS * Long.BYTES;
 
   // number of hash functions / segments used by the three-partite construction
@@ -178,16 +178,21 @@ public final class XorFilter implements MemorySegmentStatus {
     final int familyID = posSeg.getByte();
 
     checkArgument((preLongs < Family.XORFILTER.getMinPreLongs()) || (preLongs > Family.XORFILTER.getMaxPreLongs()),
-        "Possible corruption: Incorrect number of preamble bytes specified in header");
+        "Possible corruption: Incorrect number of preamble longs specified in header");
     checkArgument(serVer != SER_VER, "Possible corruption: Unrecognized serialization version: " + serVer);
     checkArgument(familyID != Family.XORFILTER.getID(), "Possible corruption: Incorrect FamilyID for xor filter. Found: " + familyID);
 
+    final int flags = posSeg.getByte();
+    checkArgument(flags != 0, "Possible corruption: Unsupported xor filter flags: " + flags);
     final int bitsPerFingerprint = posSeg.getByte();
     checkArgument((bitsPerFingerprint != 8) && (bitsPerFingerprint != 16),
         "Possible corruption: Fingerprint width must be 8 or 16. Found: " + bitsPerFingerprint);
+    posSeg.getByte(); // reserved
+    posSeg.getShort(); // reserved
+    final long seed = posSeg.getLong();
     final int segmentLength = posSeg.getInt();
     checkArgument(segmentLength < 1, "Possible corruption: Segment length must be strictly positive. Found: " + segmentLength);
-    final long seed = posSeg.getLong();
+    posSeg.getInt(); // reserved
 
     final long fingerprintBytes = (long) NUM_HASHES * segmentLength * (bitsPerFingerprint >>> 3);
     checkArgument(seg.byteSize() < (PREAMBLE_SIZE_BYTES + fingerprintBytes),
@@ -564,19 +569,22 @@ public final class XorFilter implements MemorySegmentStatus {
   }
 
 /*
- * An Xor Filter's serialized image uses 2 longs of preamble:
+ * An Xor Filter's serialized image uses 3 longs of preamble:
  *
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
  *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
- *  0   || Preamble_Longs | SerVer | FamID  |BitsPFP |--------Segment Length (int)------|
+ *  0   || Preamble_Longs | SerVer | FamID  | Flags | BitsPFP|---------Reserved--------|
  *
  *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
  *  1   ||-------------------------------Construction Seed-------------------------------|
+ *
+ *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
+ *  2   ||----------Segment Length (int)-------------|-------------Reserved-------------|
  *  </pre>
  *
- * The raw fingerprint array starts at byte 16. The layout always has three segments.
+ * The raw fingerprint array starts at byte 24. The layout always has three segments.
  */
 
   /**
@@ -617,9 +625,13 @@ public final class XorFilter implements MemorySegmentStatus {
     posSeg.setByte((byte) PREAMBLE_LONGS);
     posSeg.setByte((byte) SER_VER);
     posSeg.setByte((byte) Family.XORFILTER.getID());
+    posSeg.setByte((byte) 0); // flags
     posSeg.setByte((byte) bitsPerFingerprint_);
-    posSeg.setInt(segmentLength_);
+    posSeg.setByte((byte) 0); // reserved
+    posSeg.setShort((short) 0); // reserved
     posSeg.setLong(seed_);
+    posSeg.setInt(segmentLength_);
+    posSeg.setInt(0); // reserved
     MemorySegment.copy(fpSeg_, JAVA_BYTE, 0, seg, JAVA_BYTE, PREAMBLE_SIZE_BYTES, fpSeg_.byteSize());
   }
 
