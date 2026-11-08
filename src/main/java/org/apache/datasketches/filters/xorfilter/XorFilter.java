@@ -187,12 +187,13 @@ public final class XorFilter implements MemorySegmentStatus {
     final int bitsPerFingerprint = posSeg.getByte();
     checkArgument((bitsPerFingerprint != 8) && (bitsPerFingerprint != 16),
         "Possible corruption: Fingerprint width must be 8 or 16. Found: " + bitsPerFingerprint);
-    posSeg.getByte(); // reserved
-    posSeg.getShort(); // reserved
+    // Skip padding to the seed at byte 8.
+    posSeg.getByte();
+    posSeg.getShort();
     final long seed = posSeg.getLong();
     final int segmentLength = posSeg.getInt();
     checkArgument(segmentLength < 1, "Possible corruption: Segment length must be strictly positive. Found: " + segmentLength);
-    posSeg.getInt(); // reserved
+    posSeg.getInt(); // Skip padding to the end of the three-long preamble.
 
     final long fingerprintBytes = (long) NUM_HASHES * segmentLength * (bitsPerFingerprint >>> 3);
     checkArgument(seg.byteSize() < (PREAMBLE_SIZE_BYTES + fingerprintBytes),
@@ -575,13 +576,13 @@ public final class XorFilter implements MemorySegmentStatus {
  * Long || Start Byte Adr:
  * Adr:
  *      ||       0        |    1   |    2   |    3   |    4   |    5   |    6   |    7   |
- *  0   || Preamble_Longs | SerVer | FamID  | Flags | BitsPFP|---------Reserved--------|
+ *  0   || Preamble_Longs | SerVer | FamID  | Flags | BitsPFP|---------Padding---------|
  *
  *      ||       8        |    9   |   10   |   11   |   12   |   13   |   14   |   15   |
  *  1   ||-------------------------------Construction Seed-------------------------------|
  *
  *      ||      16        |   17   |   18   |   19   |   20   |   21   |   22   |   23   |
- *  2   ||----------Segment Length (int)-------------|-------------Reserved-------------|
+ *  2   ||----------Segment Length (int)-------------|-------------Padding--------------|
  *  </pre>
  *
  * The raw fingerprint array starts at byte 24. The layout always has three segments.
@@ -627,11 +628,12 @@ public final class XorFilter implements MemorySegmentStatus {
     posSeg.setByte((byte) Family.XORFILTER.getID());
     posSeg.setByte((byte) 0); // flags
     posSeg.setByte((byte) bitsPerFingerprint_);
-    posSeg.setByte((byte) 0); // reserved
-    posSeg.setShort((short) 0); // reserved
+    // Pad to the seed at byte 8.
+    posSeg.setByte((byte) 0);
+    posSeg.setShort((short) 0);
     posSeg.setLong(seed_);
     posSeg.setInt(segmentLength_);
-    posSeg.setInt(0); // reserved
+    posSeg.setInt(0); // Pad the preamble to three 64-bit words.
     MemorySegment.copy(fpSeg_, JAVA_BYTE, 0, seg, JAVA_BYTE, PREAMBLE_SIZE_BYTES, fpSeg_.byteSize());
   }
 
