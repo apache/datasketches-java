@@ -214,9 +214,16 @@ public final class QuantilesItemsSketch<T> implements QuantilesGenericAPI<T> {
     //Not empty, must have valid preamble + min, max
     final long n = extractN(srcSeg);
 
-    //can't check MemorySegment capacity here, not enough information
+    //can't check the exact MemorySegment capacity here, not enough information
     final int extra = 2; //for min, max
     final int numSegItems = computeRetainedItems(k, n) + extra;
+    //No serialized item takes less than one bit (booleans are packed 8 per byte),
+    //so the image bounds the number of items before the buffer is allocated.
+    final long itemsBytes = segCapBytes - ((long) preambleLongs * Long.BYTES);
+    if ((n < 0) || ((long) numSegItems > (8L * itemsBytes))) {
+      throw new SketchesArgumentException("Possible corruption: n = " + n + " requires " + numSegItems
+          + " items, but only " + itemsBytes + " bytes remain");
+    }
 
     //set class members
     sk.n_ = n;

@@ -78,6 +78,10 @@ final class HeapBitArray extends BitArray {
     // will be -1 if dirty
     final long numBitsSet = posSeg.getLong();
 
+    if (posSeg.getRemaining() < ((long) numLongs * Long.BYTES)) {
+      throw new SketchesArgumentException("Possible corruption: bit array of " + numLongs
+          + " longs does not fit in the remaining " + posSeg.getRemaining() + " bytes");
+    }
     final long[] data = new long[numLongs];
     posSeg.getLongArray(data, 0, numLongs);
     return new HeapBitArray(numBitsSet, data);

@@ -527,6 +527,50 @@ final class PreambleUtil {
     }
   }
 
+  /**
+   * Checks that a serial version 3 compact image, which is not empty and not a single item, holds the
+   * number of hashes it declares, before anything is allocated or read from it.
+   * @param seg the compact image
+   * @throws SketchesArgumentException if the image is too small or the count is invalid
+   */
+  static void checkCompactImage(final MemorySegment seg) {
+    final int preLongs = checkSegPreambleCap(seg);
+    final int curCount = (preLongs > 1) ? extractCurCount(seg) : 1;
+    final long reqBytes = ((long) preLongs << 3) + ((long) curCount << 3);
+    if ((curCount < 0) || (seg.byteSize() < reqBytes)) {
+      throw new SketchesArgumentException("Possible corruption: curCount " + curCount
+          + " needs " + reqBytes + " bytes, MemorySegment has " + seg.byteSize());
+    }
+  }
+
+  /**
+   * Checks that a serial version 4 (compressed) compact image holds the number of entries it
+   * declares, before anything is allocated or read from it.
+   * @param seg the compressed compact image
+   * @throws SketchesArgumentException if the image is too small or its fields are invalid
+   */
+  static void checkCompressedImage(final MemorySegment seg) {
+    final int preLongs = checkSegPreambleCap(seg);
+    final int entryBits = extractEntryBitsV4(seg);
+    final int numEntriesBytes = extractNumEntriesBytesV4(seg);
+    if ((preLongs < 1) || (preLongs > 2) || (entryBits < 1) || (entryBits > 63)
+        || (numEntriesBytes < 1) || (numEntriesBytes > 4)) {
+      throw new SketchesArgumentException("Possible corruption: preLongs: " + preLongs
+          + ", entryBits: " + entryBits + ", numEntriesBytes: " + numEntriesBytes);
+    }
+    final int offsetBytes = preLongs << 3;
+    Util.checkBounds(0, offsetBytes + numEntriesBytes, seg.byteSize());
+    long numEntries = 0;
+    for (int i = 0; i < numEntriesBytes; i++) {
+      numEntries |= (long) Byte.toUnsignedInt(seg.get(JAVA_BYTE, offsetBytes + i)) << (i << 3);
+    }
+    if (numEntries > Integer.MAX_VALUE) {
+      throw new SketchesArgumentException("Possible corruption: numEntries: " + numEntries);
+    }
+    final long packedBytes = ((numEntries * entryBits) + 7) >>> 3;
+    Util.checkBounds(offsetBytes + numEntriesBytes, packedBytes, seg.byteSize());
+  }
+
   static short checkSegmentSeedHash(final MemorySegment seg, final long seed) {
     final short seedHashSeg = (short) extractSeedHash(seg);
     Util.checkSeedHashes(seedHashSeg, Util.computeSeedHash(seed)); //throws if bad seedHash

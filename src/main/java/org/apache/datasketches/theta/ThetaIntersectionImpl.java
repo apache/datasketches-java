@@ -641,6 +641,21 @@ final class ThetaIntersectionImpl extends ThetaIntersection {
       }
       //empty = true AND curCount_ = 0: OK
     } //else empty = false, curCount could be anything
+    //The hash table holds curCount entries and is no larger than for the largest nominal entries.
+    //A curCount of -1 means the intersection has no result yet.
+    final int lgArrLongs = extractLgArrLongs(srcSeg);
+    if ((lgArrLongs < 0) || (lgArrLongs > (ThetaUtil.MAX_LG_NOM_LONGS + 1))
+        || (curCount < -1) || (curCount > (1 << lgArrLongs))) {
+      throw new SketchesArgumentException("Possible corruption: lgArrLongs: " + lgArrLongs
+          + ", curCount: " + curCount);
+    }
+    if (curCount > 0) { //the image must hold the hash table
+      final long reqBytes = ((long) CONST_PREAMBLE_LONGS << 3) + (8L << lgArrLongs);
+      if (srcSeg.byteSize() < reqBytes) {
+        throw new SketchesArgumentException("Possible corruption: MemorySegment size " + srcSeg.byteSize()
+            + " < required " + reqBytes);
+      }
+    }
   }
 
 }

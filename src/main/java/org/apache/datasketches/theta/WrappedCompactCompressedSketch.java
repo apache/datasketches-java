@@ -24,6 +24,8 @@ import static org.apache.datasketches.theta.PreambleUtil.NUM_ENTRIES_BYTES_BYTE_
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.wholeBytesToHoldBits;
 
+import java.lang.foreign.MemorySegment;
+
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Util;
 
@@ -52,6 +54,7 @@ final class WrappedCompactCompressedSketch extends WrappedCompactSketch {
    */
   static WrappedCompactCompressedSketch wrapInstance(final byte[] bytes, final short seedHash) {
     Util.checkSeedHashes(ByteArrayUtil.getShortLE(bytes, PreambleUtil.SEED_HASH_SHORT), seedHash);
+    PreambleUtil.checkCompressedImage(MemorySegment.ofArray(bytes));
     return new WrappedCompactCompressedSketch(bytes);
   }
 

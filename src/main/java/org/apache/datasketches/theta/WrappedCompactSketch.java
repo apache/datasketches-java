@@ -62,6 +62,7 @@ class WrappedCompactSketch extends CompactThetaSketch {
    */
   static WrappedCompactSketch wrapInstance(final byte[] bytes, final short seedHash) {
     Util.checkSeedHashes(getShortLE(bytes, SEED_HASH_SHORT), seedHash);
+    PreambleUtil.checkCompactImage(MemorySegment.ofArray(bytes));
     return new WrappedCompactSketch(bytes);
   }
 

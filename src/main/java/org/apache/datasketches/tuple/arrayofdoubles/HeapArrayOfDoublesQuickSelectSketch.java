@@ -89,6 +89,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   HeapArrayOfDoublesQuickSelectSketch(final MemorySegment seg, final long seed) {
+    checkQuickSelectImage(seg);
     super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE), seed);
     SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),
         seg.get(JAVA_BYTE, PREAMBLE_LONGS_BYTE));

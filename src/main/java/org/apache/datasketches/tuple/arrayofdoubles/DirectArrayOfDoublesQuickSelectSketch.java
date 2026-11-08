@@ -126,6 +126,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
       final MemorySegment seg,
       final long seed) {
     checkSerVer(seg);
+    checkQuickSelectImage(seg);
     super(seg.get(JAVA_BYTE, NUM_VALUES_BYTE), seed);
     seg_ = seg;
     SerializerDeserializer.validateFamily(seg.get(JAVA_BYTE, FAMILY_ID_BYTE),

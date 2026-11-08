@@ -49,6 +49,7 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 
 /**
@@ -115,7 +116,7 @@ final class CompressedState {
   long getRequiredSerializedBytes() {
     final Format format = getFormat();
     final int preInts = getDefinedPreInts(format);
-    return 4L * (preInts + csvLengthInts + cwLengthInts);
+    return 4L * ((long) preInts + csvLengthInts + cwLengthInts); //long arithmetic, so it cannot overflow
   }
 
   static CompressedState importFromSegment(final MemorySegment seg) {
@@ -216,8 +217,26 @@ final class CompressedState {
       }
     }
     checkCapacity(seg.byteSize(),
-        4L * (getPreInts(seg) + state.csvLengthInts + state.cwLengthInts));
+        4L * ((long) getPreInts(seg) + state.csvLengthInts + state.cwLengthInts));
+    checkCounts(state);
     return state;
+  }
+
+  /**
+   * Checks the coupon and surprising-value counts read from an image, before they are used to size
+   * the arrays that hold the uncompressed values. The matrix has k rows of 64 columns, so there are
+   * at most 64k coupons. The surprising values are a subset of the coupons, and each one takes at
+   * least one bit of the compressed stream.
+   * @param state the imported state
+   */
+  private static void checkCounts(final CompressedState state) {
+    final long k = 1L << state.lgK;
+    if ((state.numCoupons < 0) || (state.numCoupons > (64L * k))
+        || (state.numCsv < 0) || (state.numCsv > state.numCoupons)
+        || (state.numCsv > (32L * state.csvLengthInts))) {
+      throw new SketchesArgumentException("Possible corruption: numCoupons: " + state.numCoupons
+          + ", numSv: " + state.numCsv + ", svLengthInts: " + state.csvLengthInts);
+    }
   }
 
   void exportToSegment(final MemorySegment wseg) {

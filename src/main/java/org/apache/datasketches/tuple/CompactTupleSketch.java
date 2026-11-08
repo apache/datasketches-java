@@ -23,6 +23,7 @@ import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 import static java.lang.foreign.ValueLayout.JAVA_SHORT_UNALIGNED;
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.checkSeedHashes;
 import static org.apache.datasketches.common.Util.computeSeedHash;
 import static org.apache.datasketches.tuple.PreambleUtil.COMPACT_FLAGS_BYTE;
@@ -118,11 +119,13 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         if (version == COMPACT_SER_VER_WITH_CLASS_NAME) {
           classNameLength = seg.get(JAVA_BYTE, offset++);
         }
+        checkBounds(offset, Integer.BYTES, seg.byteSize());
         final int count = seg.get(JAVA_INT_UNALIGNED, offset);
         offset += Integer.BYTES;
         if (version == COMPACT_SER_VER_WITH_CLASS_NAME) {
           offset += classNameLength;
         }
+        checkCount(count, offset, seg);
         hashArr_ = new long[count];
 
         for (int i = 0; i < count; i++) {
@@ -137,6 +140,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         summaryArr_ = null;
       }
     } else { // current serial format
+      checkBounds(0, (long) preambleLongs * Long.BYTES, seg.byteSize());
       final byte flags = seg.get(JAVA_BYTE, COMPACT_FLAGS_BYTE);
       final short seedHash = seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
       empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
@@ -154,6 +158,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         }
       }
       int offset = preambleLongs * Long.BYTES; // the entries start after the preamble
+      checkCount(count, offset, seg);
       hashArr_ = new long[count];
 
       for (int i = 0; i < count; i++) {
@@ -161,6 +166,19 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         offset += Long.BYTES;
         offset += readSummary(seg, offset, i, count, deserializer);
       }
+    }
+  }
+
+  /**
+   * Checks the retained entries count read from an image. Each entry is at least an 8-byte hash,
+   * so the remaining bytes of the image bound the count.
+   * @param count the retained entries count
+   * @param offset the offset of the first entry
+   * @param seg the image
+   */
+  private static void checkCount(final int count, final int offset, final MemorySegment seg) {
+    if ((count < 0) || (((long) count * Long.BYTES) > (seg.byteSize() - offset))) {
+      throw new SketchesArgumentException("Possible corruption: invalid retained entries count: " + count);
     }
   }
 
