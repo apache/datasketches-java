@@ -425,8 +425,7 @@ under the License.
             </archive>
             <bottom>
               <![CDATA[
-                Copyright &#169; {inceptionYear}&#8211;{currentYear} The Apache Software Foundation. 
-                All rights reserved. (Commit Time: ${git.commit.time}, Commit: ${git.commit.id.abbrev})
+                Copyright &#169; {inceptionYear}&#8211;{currentYear} The Apache Software Foundation. All rights reserved. (Commit Time: ${git.commit.time}, Commit: ${git.commit.id.abbrev})
               ]]>
             </bottom>
           </configuration>
@@ -576,11 +575,13 @@ under the License.
           <configuration>
             <!-- Maven commands are sometimes run on the release artifact directly, which is not a Git repository -->
             <failOnNoGitDirectory>false</failOnNoGitDirectory>
+            <commitIdGenerationMode>full</commitIdGenerationMode>
             <generateGitPropertiesFile>true</generateGitPropertiesFile>
             <generateGitPropertiesFilename>${project.basedir}/git.properties</generateGitPropertiesFilename>
             <includeOnlyProperties>
               <includeOnlyProperty>^git\.branch$</includeOnlyProperty>
-              <includeOnlyProperty>^git\.commit\.id$</includeOnlyProperty>
+              <includeOnlyProperty>^git\.commit\.id\.full$</includeOnlyProperty>
+              <includeOnlyProperty>^git\.commit\.id\.abbrev$</includeOnlyProperty>
               <includeOnlyProperty>^git\.commit\.time$</includeOnlyProperty>
               <includeOnlyProperty>^git\.build\.user\.email$</includeOnlyProperty>
             </includeOnlyProperties>
