@@ -77,14 +77,37 @@ public class CountMinSketch {
   }
 
   /**
-   * Creates a CountMin sketch with given number of hash functions and buckets,
-   * and a user-specified seed. The sketch uses serialization version 2.
+   * Creates an empty CountMin sketch with the given number of hash functions and buckets,
+   * and the default seed, {@link Util#DEFAULT_UPDATE_SEED}.
+   * The sketch uses serialization version 2.
    *
-   * @param numHashes The number of hash functions to apply to items
-   * @param numBuckets Array size for each of the hashing function
-   * @param seed The base hash seed
+   * <p>{@link #suggestNumHashes(double)} and {@link #suggestNumBuckets(double)} give suitable values
+   * for a desired confidence and relative error.</p>
+   *
+   * @param numHashes The number of hash functions (rows), from 1 to 127
+   * @param numBuckets The number of buckets per hash function, at least 3.
+   * The product of numHashes and numBuckets must be less than 2<sup>30</sup>.
+   * @throws SketchesArgumentException if a parameter is out of range
    */
-  CountMinSketch(final byte numHashes, final int numBuckets, final long seed) {
+  public CountMinSketch(final byte numHashes, final int numBuckets) {
+    this(numHashes, numBuckets, Util.DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Creates an empty CountMin sketch with the given number of hash functions and buckets,
+   * and the given seed. The sketch uses serialization version 2.
+   *
+   * <p>{@link #suggestNumHashes(double)} and {@link #suggestNumBuckets(double)} give suitable values
+   * for a desired confidence and relative error. Sketches can be merged only if they use the same
+   * seed, and an image must be read back with the seed it was created with.</p>
+   *
+   * @param numHashes The number of hash functions (rows), from 1 to 127
+   * @param numBuckets The number of buckets per hash function, at least 3.
+   * The product of numHashes and numBuckets must be less than 2<sup>30</sup>.
+   * @param seed The base hash seed
+   * @throws SketchesArgumentException if a parameter is out of range
+   */
+  public CountMinSketch(final byte numHashes, final int numBuckets, final long seed) {
     this(numHashes, numBuckets, seed, SERIAL_VERSION_2);
   }
 

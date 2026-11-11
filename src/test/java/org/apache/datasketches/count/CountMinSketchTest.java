@@ -428,6 +428,22 @@ public class CountMinSketchTest {
     assertEquals(cms.getUpperBound((byte[]) null), 0);
   }
 
+  @Test
+  public void publicConstructorsUseDefaultSeedAndVersion2() {
+    final CountMinSketch dflt = new CountMinSketch((byte) 2, 9);
+    assertEquals(dflt.getSeed_(), org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED);
+    assertEquals(dflt.getSerialVersion(), CountMinSketch.SERIAL_VERSION_2);
+    assertEquals(dflt.toByteArray(), new CountMinSketch((byte) 2, 9, SPEC_SEED).toByteArray());
+
+    final byte numHashes = CountMinSketch.suggestNumHashes(0.95);
+    final int numBuckets = CountMinSketch.suggestNumBuckets(0.01);
+    final CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, 42L);
+    cms.update("x", 3);
+    assertEquals(cms.getEstimate("x"), 3);
+    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 0, 9));
+    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 2, 2));
+  }
+
   private static void assertBuckets(final long seed, final long item, final int... buckets) {
     final CountMinSketch cms = new CountMinSketch((byte) 3, 1000, seed);
     cms.update(item, 1);
