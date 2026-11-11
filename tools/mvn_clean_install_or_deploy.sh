@@ -24,12 +24,14 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   [ "$BRANCH" = "HEAD" ] && BRANCH=$(git name-rev --name-only HEAD 2>/dev/null)
 
   COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
+  ABBREV=$(git rev-parse --short=7 HEAD 2>/dev/null || echo "unknown")
   TIME=$(git log -1 --format=%cI 2>/dev/null || echo "unknown")
   EMAIL=$(git config user.email 2>/dev/null)
   [ -z "$EMAIL" ] && EMAIL="unknown"
 else
   BRANCH="source-release-no-git"
   COMMIT="unknown"
+  ABBREV="unknown"
   TIME="unknown"
   EMAIL="unknown"
 fi
@@ -39,6 +41,7 @@ exec mvn clean "$GOAL" \
   "${EXTRA_ARGS[@]}" \
   -Dgit.branch="${BRANCH:-source-release-no-git}" \
   -Dgit.commit.id.full="${COMMIT:-unknown}" \
+  -Dgit.commit.id.abbrev="${ABBREV:-unknown}" \
   -Dgit.commit.time="${TIME:-unknown}" \
   -Dgit.build.user.email="${EMAIL:-unknown}" \
   "$@"
