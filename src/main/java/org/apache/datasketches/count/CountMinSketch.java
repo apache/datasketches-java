@@ -21,6 +21,8 @@ package org.apache.datasketches.count;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
+import static org.apache.datasketches.hash.XxHash64.hash;
+import static org.apache.datasketches.hash.XxHash64.hashBytes;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.charset.StandardCharsets;
@@ -42,8 +44,19 @@ import org.apache.datasketches.hash.MurmurHash3;
  * providing approximate counts with configurable error bounds.
  *
  * Reference: http://dimacs.rutgers.edu/~graham/pubs/papers/cm-full.pdf
+ *
+ * <p>New sketches are written in serialization version 2, the cross-language format defined in
+ * <a href="https://github.com/apache/datasketches-tck/blob/main/docs/count-min-format.md">
+ * the DataSketches TCK</a>. Version 2 hashes items with XxHash64, so its images give the same results
+ * in every language. A sketch read from a version 1 image keeps the version 1 hashing, which used
+ * MurmurHash3 and seeds from {@link Random}, and is written back as version 1.
+ * Version 1 and version 2 sketches can't be merged.</p>
  */
 public class CountMinSketch {
+  static final byte SERIAL_VERSION_1 = 1;
+  static final byte SERIAL_VERSION_2 = 2;
+
+  private final byte serialVersion_;
   private final byte numHashes_;
   private final int numBuckets_;
   private final long seed_;
@@ -65,13 +78,25 @@ public class CountMinSketch {
 
   /**
    * Creates a CountMin sketch with given number of hash functions and buckets,
-   * and a user-specified seed.
+   * and a user-specified seed. The sketch uses serialization version 2.
    *
    * @param numHashes The number of hash functions to apply to items
    * @param numBuckets Array size for each of the hashing function
    * @param seed The base hash seed
    */
   CountMinSketch(final byte numHashes, final int numBuckets, final long seed) {
+    this(numHashes, numBuckets, seed, SERIAL_VERSION_2);
+  }
+
+  /**
+   * Creates a CountMin sketch that hashes items as the given serialization version does.
+   *
+   * @param numHashes The number of hash functions to apply to items
+   * @param numBuckets Array size for each of the hashing function
+   * @param seed The base hash seed
+   * @param serialVersion 1 for the legacy hashing, 2 for the cross-language hashing
+   */
+  private CountMinSketch(final byte numHashes, final int numBuckets, final long seed, final byte serialVersion) {
     // Validate numHashes
     if (numHashes <= 0) {
       throw new SketchesArgumentException("Number of hash functions must be positive, got: " + numHashes);
@@ -102,6 +127,7 @@ public class CountMinSketch {
           + "Consider reducing numHashes or numBuckets.");
     }
 
+    serialVersion_ = serialVersion;
     numHashes_ = numHashes;
     numBuckets_ = numBuckets;
     seed_ = seed;
@@ -109,9 +135,16 @@ public class CountMinSketch {
     sketchArray_ = new long[(int) totalSize];
     totalWeight_ = 0;
 
-    final Random rand = new Random(seed);
-    for (int i = 0; i < numHashes; i++) {
-      hashSeeds_[i] = rand.nextLong();
+    if (serialVersion == SERIAL_VERSION_1) {
+      final Random rand = new Random(seed);
+      for (int i = 0; i < numHashes; i++) {
+        hashSeeds_[i] = rand.nextLong();
+      }
+    } else {
+      // rowSeed[i] = XXH64(LE64(i), seed): XxHash64.hash(long, seed) hashes the 8 little-endian bytes of i
+      for (int i = 0; i < numHashes; i++) {
+        hashSeeds_[i] = hash(i, seed);
+      }
     }
   }
 
@@ -128,11 +161,40 @@ public class CountMinSketch {
     final long[] updateLocations = new long[numHashes_];
 
     for (int i = 0; i < numHashes_; i++) {
-      final long[] index = MurmurHash3.hash(item, hashSeeds_[i]);
-      updateLocations[i] = (i * (long)numBuckets_) + Math.floorMod(index[0], numBuckets_);
+      updateLocations[i] = (i * (long) numBuckets_) + bucket(item, hashSeeds_[i]);
     }
 
     return updateLocations;
+  }
+
+  private long[] getHashes(final long item) {
+    if (serialVersion_ == SERIAL_VERSION_1) {
+      return getHashes(longToBytes(item));
+    }
+    final long[] updateLocations = new long[numHashes_];
+    for (int i = 0; i < numHashes_; i++) {
+      // XxHash64.hash(long, seed) hashes the 8 little-endian bytes of the item, as version 2 requires
+      final long h = hash(item, hashSeeds_[i]);
+      updateLocations[i] = (i * (long) numBuckets_) + ((h >>> 1) % numBuckets_);
+    }
+    return updateLocations;
+  }
+
+  private long bucket(final byte[] item, final long rowSeed) {
+    if (serialVersion_ == SERIAL_VERSION_1) {
+      return Math.floorMod(MurmurHash3.hash(item, rowSeed)[0], numBuckets_);
+    }
+    final long h = hashBytes(item, 0, item.length, rowSeed);
+    return (h >>> 1) % numBuckets_;
+  }
+
+  /**
+   * Returns the serialization version this sketch hashes and serializes with:
+   * 2 for new sketches, or 1 for a sketch read from a version 1 image.
+   * @return the serialization version
+   */
+  byte getSerialVersion() {
+    return serialVersion_;
   }
 
   /**
@@ -214,7 +276,7 @@ public class CountMinSketch {
    * @param weight The weight of the item.
    */
   public void update(final long item, final long weight) {
-    update(longToBytes(item), weight);
+    updateLocations(getHashes(item), weight);
   }
 
   /**
@@ -236,12 +298,14 @@ public class CountMinSketch {
    * @param weight The weight of the item.
    */
   public void update(final byte[] item, final long weight) {
-    if (item.length == 0) {
+    if ((item == null) || (item.length == 0)) {
       return;
     }
+    updateLocations(getHashes(item), weight);
+  }
 
+  private void updateLocations(final long[] hashLocations, final long weight) {
     totalWeight_ += weight > 0 ? weight : -weight;
-    final long[] hashLocations = getHashes(item);
     for (final long h : hashLocations) {
       sketchArray_[(int) h] += weight;
     }
@@ -253,7 +317,7 @@ public class CountMinSketch {
    * @return Estimated frequency.
    */
   public long getEstimate(final long item) {
-    return getEstimate(longToBytes(item));
+    return estimateAt(getHashes(item));
   }
 
   /**
@@ -276,11 +340,13 @@ public class CountMinSketch {
    * @return Estimated frequency.
    */
   public long getEstimate(final byte[] item) {
-    if (item.length == 0) {
+    if ((item == null) || (item.length == 0)) {
       return 0;
     }
+    return estimateAt(getHashes(item));
+  }
 
-    final long[] hashLocations = getHashes(item);
+  private long estimateAt(final long[] hashLocations) {
     long res = sketchArray_[(int) hashLocations[0]];
     // Start from index 1 to avoid processing first element twice
     for (int i = 1; i < hashLocations.length; i++) {
@@ -296,7 +362,7 @@ public class CountMinSketch {
    * @return Upper bound of estimated frequency.
    */
   public long getUpperBound(final long item) {
-    return getUpperBound(longToBytes(item));
+    return getEstimate(item) + (long) (getRelativeError() * getTotalWeight_());
   }
 
   /**
@@ -319,7 +385,7 @@ public class CountMinSketch {
    * @return Upper bound of estimated frequency.
    */
   public long getUpperBound(final byte[] item) {
-    if (item.length == 0) {
+    if ((item == null) || (item.length == 0)) {
       return 0;
     }
 
@@ -332,7 +398,7 @@ public class CountMinSketch {
    * @return Lower bound of estimated frequency.
    */
   public long getLowerBound(final long item) {
-    return getLowerBound(longToBytes(item));
+    return getEstimate(item);
   }
 
   /**
@@ -373,6 +439,10 @@ public class CountMinSketch {
     if (!acceptableConfig) {
       throw new SketchesException("Incompatible sketch configuration.");
     }
+    if (serialVersion_ != other.serialVersion_) {
+      throw new SketchesException("Cannot merge sketches with different serialization versions: "
+          + serialVersion_ + " and " + other.serialVersion_);
+    }
 
     for (int i = 0; i < sketchArray_.length; i++) {
       sketchArray_[i] += other.sketchArray_[i];
@@ -404,8 +474,7 @@ public class CountMinSketch {
     // Long 0
     final int preambleLongs = Family.COUNTMIN.getMinPreLongs();
     posSeg.setByte((byte) preambleLongs);
-    final int serialVersion = 1;
-    posSeg.setByte((byte) serialVersion);
+    posSeg.setByte(serialVersion_);
     final int familyId = Family.COUNTMIN.getID();
     posSeg.setByte((byte) familyId);
     final int flagsByte = isEmpty() ? Flag.IS_EMPTY.mask() : 0;
@@ -457,10 +526,9 @@ public class CountMinSketch {
       throw new SketchesArgumentException("Preamble longs mismatch: expected " + expectedPreambleLongs
           + ", actual " + preambleLongs);
     }
-    final int expectedSerialVersion = 1;
-    if (serialVersion != expectedSerialVersion) {
-      throw new SketchesArgumentException("Serial version mismatch: expected " + expectedSerialVersion
-          + ", actual " + serialVersion);
+    if ((serialVersion != SERIAL_VERSION_1) && (serialVersion != SERIAL_VERSION_2)) {
+      throw new SketchesArgumentException("Serial version mismatch: expected " + SERIAL_VERSION_1
+          + " or " + SERIAL_VERSION_2 + ", actual " + serialVersion);
     }
     final int expectedFamilyId = Family.COUNTMIN.getID();
     if (familyId != expectedFamilyId) {
@@ -483,7 +551,7 @@ public class CountMinSketch {
       final long arrayBytes = (long) numHashes * numBuckets * Long.BYTES;
       Util.checkBounds(preambleBytes, Long.BYTES + Math.max(arrayBytes, 0), b.length);
     }
-    final CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, seed);
+    final CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, seed, serialVersion);
     if (empty) {
       return cms;
     }
