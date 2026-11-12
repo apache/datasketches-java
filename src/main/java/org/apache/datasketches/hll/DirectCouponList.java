@@ -238,7 +238,7 @@ class DirectCouponList extends AbstractCoupons {
     final MemorySegment wseg = src.wseg;
 
     //get the data from the current MemorySegment
-    HllUtil.checkPreamble(wseg); //sanity check
+    HllUtil.checkPreamble(wseg, false); //sanity check, mid-promotion
     final int lgConfigK = src.lgConfigK;
     final TgtHllType tgtHllType = src.tgtHllType;
     final int srcOffset = LIST_INT_ARR_START;
@@ -273,7 +273,7 @@ class DirectCouponList extends AbstractCoupons {
     final MemorySegment wseg = src.wseg;
 
     //get the data from the current list or set MemorySegment
-    HllUtil.checkPreamble(wseg); //sanity check
+    HllUtil.checkPreamble(wseg, false); //sanity check, mid-promotion
     final int lgConfigK = src.lgConfigK;
     final TgtHllType tgtHllType = src.tgtHllType;
     final int srcSegDataStart = src.getSegDataStart();
