@@ -20,13 +20,17 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.common.Util.checkBounds;
+import static org.apache.datasketches.hll.PreambleUtil.HASH_SET_INT_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.LIST_PREINTS;
+import static org.apache.datasketches.hll.PreambleUtil.computeLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.extractAuxCount;
+import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractCurMode;
 import static org.apache.datasketches.hll.PreambleUtil.extractFamilyId;
 import static org.apache.datasketches.hll.PreambleUtil.extractHashSetCount;
+import static org.apache.datasketches.hll.PreambleUtil.extractInt;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractListCount;
@@ -99,6 +103,17 @@ final class HllUtil {
   }
 
   static CurMode checkPreamble(final MemorySegment seg) {
+    return checkPreamble(seg, true);
+  }
+
+  /**
+   * Checks the preamble of an image.
+   * @param seg the image
+   * @param checkSetLimits true for an image from outside. False only for the sketch's own segment
+   * while it is being promoted, when a coupon list or set is one coupon past its limit.
+   * @return the current mode of the image
+   */
+  static CurMode checkPreamble(final MemorySegment seg, final boolean checkSetLimits) {
     checkBounds(0, 8, seg.byteSize()); //need min 8 bytes
     final int preInts = extractPreInts(seg);
     checkBounds(0, (long)preInts * Integer.BYTES, seg.byteSize());
@@ -116,7 +131,7 @@ final class HllUtil {
       throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
           + PreambleUtil.toString(seg));
     }
-    checkSizes(seg, curMode);
+    checkSizes(seg, curMode, checkSetLimits);
     return curMode;
   }
 
@@ -126,8 +141,10 @@ final class HllUtil {
    * are never larger than K, and a coupon list never holds more than its initial capacity.
    * @param seg the image
    * @param curMode the current mode of the image
+   * @param checkSetLimits if true, also check a coupon hash set image with checkSet()
    */
-  private static void checkSizes(final MemorySegment seg, final CurMode curMode) {
+  private static void checkSizes(final MemorySegment seg, final CurMode curMode,
+      final boolean checkSetLimits) {
     final int lgK = extractLgK(seg);
     checkLgK(lgK);
     if (curMode == CurMode.LIST) {
@@ -141,12 +158,55 @@ final class HllUtil {
       if ((count < 0) || (count > (1 << lgK)) || (lgArr > lgK)) {
         throw new SketchesArgumentException("Possible Corruption: set count " + count + ", lgArr " + lgArr);
       }
+      if (checkSetLimits) { checkSet(seg, lgK, count, lgArr); }
     } else { //HLL
       final int auxCount = extractAuxCount(seg);
       final int lgArr = extractLgArr(seg);
       if ((auxCount < 0) || (auxCount > (1 << lgK)) || ((auxCount > 0) && (lgArr > lgK))) {
         throw new SketchesArgumentException("Possible Corruption: aux count " + auxCount + ", lgArr " + lgArr);
       }
+    }
+  }
+
+  /**
+   * Checks a coupon hash set image against the limits a valid sketch keeps.
+   * A sketch uses a hash set only when lgK is at least 8. The table starts at 2^LG_INIT_SET_SIZE
+   * ints, grows up to 2^(lgK - 3) ints, and is never more than 3/4 full; the sketch is promoted to
+   * HLL mode before that would be exceeded. In an updatable image the count must equal the number
+   * of non-empty slots in the table.
+   * @param seg the image
+   * @param lgK the checked lgK of the image
+   * @param count the coupon count of the image, already checked to be in [0, K]
+   * @param lgArr the lgArr field of the image, already checked to be at most lgK
+   */
+  private static void checkSet(final MemorySegment seg, final int lgK, final int count, final int lgArr) {
+    if (lgK < (LG_INIT_SET_SIZE + 3)) {
+      throw new SketchesArgumentException("Possible Corruption: set mode with lgK " + lgK);
+    }
+    final int maxLgArr = lgK - 3;
+    if (extractCompactFlag(seg)) {
+      if ((RESIZE_DENOM * (long) count) > (RESIZE_NUMER * (1L << maxLgArr))) {
+        throw new SketchesArgumentException("Possible Corruption: set count " + count + " for lgK " + lgK);
+      }
+      checkBounds(0, HASH_SET_INT_ARR_START + ((long) count << 2), seg.byteSize());
+      return;
+    }
+    //updatable: early images may not have the lgArr field, then it is computed from the count
+    final int effLgArr = (lgArr < LG_INIT_SET_SIZE) ? computeLgArr(seg, count, lgK) : lgArr;
+    if ((effLgArr < LG_INIT_SET_SIZE) || (effLgArr > maxLgArr)
+        || ((RESIZE_DENOM * (long) count) > (RESIZE_NUMER * (1L << effLgArr)))) {
+      throw new SketchesArgumentException("Possible Corruption: set count " + count + ", lgArr " + effLgArr
+          + " for lgK " + lgK);
+    }
+    final int arrInts = 1 << effLgArr;
+    checkBounds(0, HASH_SET_INT_ARR_START + ((long) arrInts << 2), seg.byteSize());
+    int nonEmpty = 0;
+    for (int i = 0; i < arrInts; i++) {
+      if (extractInt(seg, HASH_SET_INT_ARR_START + (i << 2)) != EMPTY) { nonEmpty++; }
+    }
+    if (nonEmpty != count) {
+      throw new SketchesArgumentException("Possible Corruption: set count " + count + ", non-empty slots "
+          + nonEmpty);
     }
   }
 

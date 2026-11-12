@@ -130,7 +130,19 @@ public final class Util {
   }
 
   /**
-   * Returns the hash of the concatenated strings
+   * Returns the hash of the concatenated strings.
+   *
+   * <p>This is the key hash used by the Array of Strings tuple sketch. Another implementation
+   * must compute it exactly as follows to produce the same keys:</p>
+   * <ul>
+   * <li>The elements are joined with a single comma (",") between them, as by
+   * {@link #stringConcat(String[])}. Nothing is escaped, so {"a,b"} and {"a", "b"} produce the same
+   * string and the same hash. A <i>null</i> element contributes the four characters "null".</li>
+   * <li>The joined string is hashed as its UTF-16 code units in little-endian byte order
+   * (UTF-16LE), with no byte-order mark. It is not encoded as UTF-8.</li>
+   * <li>The hash function is XXH64 with the seed 0x7A3CCA71.</li>
+   * </ul>
+   *
    * @param strArray array of Strings
    * @return the hash of concatenated strings.
    */
