@@ -82,6 +82,13 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * <p>The default <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
  * "double-sided" (PMF) epsilon of about 1.65%, with a confidence of 99%.</p>
  *
+ * <p><b>Memory allocation.</b> A new heap sketch does not allocate storage for items until it is first used:
+ * the first update, or the first merge of a non-empty sketch. After that, the storage grows as the sketch
+ * needs it. An {@link OutOfMemoryError} from that first allocation therefore happens in the update or merge,
+ * not when the sketch is created. Call {@link #ensureCapacity()} right after creating the sketch to allocate
+ * the storage up front instead. A sketch backed by a MemorySegment is not affected.
+ * Results and the serialized form are the same either way.</p>
+ *
  * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
  * @see QuantilesAPI
  *
@@ -268,6 +275,16 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
    * @param other sketch to merge into this one
    */
   public abstract void merge(KllSketch other);
+
+  /**
+   * Allocates the item storage of a heap sketch now, rather than on its first update or merge.
+   * The storage is the initial capacity of <i>k</i> items. Call this right after creating the sketch to move
+   * an {@link OutOfMemoryError} from the first update or merge to this call. It has no effect if the storage
+   * already exists, and none for a sketch backed by a MemorySegment.
+   *
+   * <p>{@link #reset()} releases the storage of a heap sketch, and it is allocated again on first use.</p>
+   */
+  public void ensureCapacity() { }
 
   @Override
   public final String toString() {

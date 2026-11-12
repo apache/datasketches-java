@@ -69,6 +69,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
    * @param <T> The sketch data type.
@@ -85,6 +86,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
    * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
@@ -267,6 +269,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllItemsSketch<T> othItmSk = (KllItemsSketch<T>)other;
     if (othItmSk.isEmpty()) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
     KllItemsHelper.mergeItemImpl(this, othItmSk, comparator);
     itemsSV = null;
   }
@@ -282,7 +285,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     setLevelsArray(new int[] {k, k});
     setMinItem(null);
     setMaxItem(null);
-    setItemsArray(new Object[k]);
+    //a heap sketch releases its storage and allocates it again on first use
+    setItemsArray(null);
     itemsSV = null;
   }
 
@@ -309,6 +313,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   public void update(final T item) {
     if (item == null) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    ensureCapacity(); //first use allocates, before anything changes
     KllItemsHelper.updateItem(this, item);
     itemsSV = null;
   }
@@ -322,6 +327,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     if (item == null) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
+    ensureCapacity(); //first use allocates, before anything changes
     if (weight == 1L) { KllItemsHelper.updateItem(this, item); }
     else { KllItemsHelper.updateItem(this, item, weight); }
     itemsSV = null;
