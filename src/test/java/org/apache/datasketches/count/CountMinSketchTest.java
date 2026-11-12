@@ -40,8 +40,8 @@ public class CountMinSketchTest {
 
   @Test
   public void createNewCountMinSketchTest() throws Exception {
-    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 5, 1, 123));
-    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 4, (1 << 28), 123));
+    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch(5, 1, 123));
+    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch(4, (1 << 28), 123));
     final byte numHashes = 3;
     final int numBuckets = 5;
     final long seed = 1234567;
@@ -110,7 +110,7 @@ public class CountMinSketchTest {
 
   @Test
   public void frequencyCancellationTest() {
-    final CountMinSketch c = new CountMinSketch((byte) 1, 5, 123456);
+    final CountMinSketch c = new CountMinSketch(1, 5, 123456);
     c.update("x", 1);
     c.update("y", -1);
     assertEquals(c.getTotalWeight_(), 2);
@@ -161,7 +161,7 @@ public class CountMinSketchTest {
 
     assertThrows("Cannot merge a sketch with itself.", SketchesException.class, () -> s.merge(s));
 
-    final CountMinSketch s1 = new CountMinSketch((byte) (numHashes + 1), numBuckets, seed);
+    final CountMinSketch s1 = new CountMinSketch(numHashes + 1, numBuckets, seed);
     final CountMinSketch s2 = new CountMinSketch(numHashes, numBuckets + 1, seed);
     final CountMinSketch s3 = new CountMinSketch(numHashes, numBuckets, seed + 1);
 
@@ -250,8 +250,8 @@ public class CountMinSketchTest {
   @Test
   public void emptyImageIsUsable() {
     final long seed = 123L;
-    final CountMinSketch cms = CountMinSketch.deserialize(new CountMinSketch((byte) 3, 5, seed).toByteArray(), seed);
-    final CountMinSketch other = new CountMinSketch((byte) 3, 5, seed);
+    final CountMinSketch cms = CountMinSketch.deserialize(new CountMinSketch(3, 5, seed).toByteArray(), seed);
+    final CountMinSketch other = new CountMinSketch(3, 5, seed);
     cms.merge(other); //both empty
     assertTrue(cms.isEmpty());
     other.update(1L, 2);
@@ -266,7 +266,7 @@ public class CountMinSketchTest {
   @Test
   public void truncatedImageThrows() {
     final long seed = 123L;
-    final CountMinSketch cms = new CountMinSketch((byte) 3, 5, seed);
+    final CountMinSketch cms = new CountMinSketch(3, 5, seed);
     cms.update(1L, 1);
     final byte[] bytes = cms.toByteArray();
     ByteArrayUtil.putIntLE(bytes, 8, 1 << 28); //numBuckets larger than the image holds
@@ -313,11 +313,11 @@ public class CountMinSketchTest {
   // 7.4 images
   @Test
   public void v2ImageVectors() {
-    final CountMinSketch empty = new CountMinSketch((byte) 2, 9, SPEC_SEED);
+    final CountMinSketch empty = new CountMinSketch(2, 9, SPEC_SEED);
     assertEquals(empty.getSerialVersion(), CountMinSketch.SERIAL_VERSION_2);
     assertEquals(empty.toByteArray(), hex("02021201000000000900000002cc9300"));
 
-    final CountMinSketch cms = new CountMinSketch((byte) 2, 9, SPEC_SEED);
+    final CountMinSketch cms = new CountMinSketch(2, 9, SPEC_SEED);
     cms.update(1L, 10);
     cms.update(9L, 810);
     cms.update("apple", 5);
@@ -343,8 +343,8 @@ public class CountMinSketchTest {
   // The long overloads hash the 8 little-endian bytes of the item, like the byte[] overloads
   @Test
   public void v2LongMatchesLittleEndianBytes() {
-    final CountMinSketch a = new CountMinSketch((byte) 4, 101, SPEC_SEED);
-    final CountMinSketch b = new CountMinSketch((byte) 4, 101, SPEC_SEED);
+    final CountMinSketch a = new CountMinSketch(4, 101, SPEC_SEED);
+    final CountMinSketch b = new CountMinSketch(4, 101, SPEC_SEED);
     final long[] items = { 0L, 1L, -1L, Long.MIN_VALUE, Long.MAX_VALUE, 0x0123456789ABCDEFL };
     for (final long item : items) {
       final byte[] le = new byte[Long.BYTES];
@@ -395,10 +395,10 @@ public class CountMinSketchTest {
   @Test
   public void mergeAcrossVersionsThrows() {
     final long seed = 1234L;
-    final byte[] emptyV1 = new CountMinSketch((byte) 3, 17, seed).toByteArray();
+    final byte[] emptyV1 = new CountMinSketch(3, 17, seed).toByteArray();
     emptyV1[1] = CountMinSketch.SERIAL_VERSION_1;
     final CountMinSketch v1 = CountMinSketch.deserialize(emptyV1, seed);
-    final CountMinSketch v2 = new CountMinSketch((byte) 3, 17, seed);
+    final CountMinSketch v2 = new CountMinSketch(3, 17, seed);
     assertThrows(SketchesException.class, () -> v1.merge(v2));
     assertThrows(SketchesException.class, () -> v2.merge(v1));
   }
@@ -406,7 +406,7 @@ public class CountMinSketchTest {
   @Test
   public void unknownSerialVersionThrows() {
     final long seed = 1234L;
-    final byte[] image = new CountMinSketch((byte) 3, 17, seed).toByteArray();
+    final byte[] image = new CountMinSketch(3, 17, seed).toByteArray();
     image[1] = 3;
     assertThrows(SketchesArgumentException.class, () -> CountMinSketch.deserialize(image, seed));
     image[1] = 0;
@@ -415,7 +415,7 @@ public class CountMinSketchTest {
 
   @Test
   public void nullAndEmptyItemsAreIgnored() {
-    final CountMinSketch cms = new CountMinSketch((byte) 3, 17, SPEC_SEED);
+    final CountMinSketch cms = new CountMinSketch(3, 17, SPEC_SEED);
     cms.update((byte[]) null, 5);
     cms.update(new byte[0], 5);
     cms.update((String) null, 5);
@@ -430,28 +430,40 @@ public class CountMinSketchTest {
 
   @Test
   public void publicConstructorsUseDefaultSeedAndVersion2() {
-    final CountMinSketch dflt = new CountMinSketch((byte) 2, 9);
+    final CountMinSketch dflt = new CountMinSketch(2, 9);
     assertEquals(dflt.getSeed_(), org.apache.datasketches.common.Util.DEFAULT_UPDATE_SEED);
     assertEquals(dflt.getSerialVersion(), CountMinSketch.SERIAL_VERSION_2);
-    assertEquals(dflt.toByteArray(), new CountMinSketch((byte) 2, 9, SPEC_SEED).toByteArray());
+    assertEquals(dflt.toByteArray(), new CountMinSketch(2, 9, SPEC_SEED).toByteArray());
 
     final byte numHashes = CountMinSketch.suggestNumHashes(0.95);
     final int numBuckets = CountMinSketch.suggestNumBuckets(0.01);
     final CountMinSketch cms = new CountMinSketch(numHashes, numBuckets, 42L);
     cms.update("x", 3);
     assertEquals(cms.getEstimate("x"), 3);
-    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 0, 9));
-    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch((byte) 2, 2));
+    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch(0, 9));
+    assertThrows(SketchesArgumentException.class, () -> new CountMinSketch(2, 2));
+  }
+
+  @Test
+  public void numHashesRange() {
+    // numHashes is an int in the constructors but is stored as one byte, so it must be from 1 to 127
+    for (final int bad : new int[] {0, -1, 128, 256 + 3}) {
+      assertThrows(SketchesArgumentException.class, () -> new CountMinSketch(bad, 9));
+    }
+    final CountMinSketch max = new CountMinSketch(127, 3);
+    assertEquals(max.getNumHashes_(), (byte) 127);
+    final CountMinSketch copy = CountMinSketch.deserialize(max.toByteArray(), max.getSeed_());
+    assertEquals(copy.getNumHashes_(), (byte) 127);
   }
 
   private static void assertBuckets(final long seed, final long item, final int... buckets) {
-    final CountMinSketch cms = new CountMinSketch((byte) 3, 1000, seed);
+    final CountMinSketch cms = new CountMinSketch(3, 1000, seed);
     cms.update(item, 1);
     assertCounters(cms, buckets);
   }
 
   private static void assertBuckets(final long seed, final String item, final int... buckets) {
-    final CountMinSketch cms = new CountMinSketch((byte) 3, 1000, seed);
+    final CountMinSketch cms = new CountMinSketch(3, 1000, seed);
     cms.update(item, 1);
     assertCounters(cms, buckets);
   }

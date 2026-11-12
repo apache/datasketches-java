@@ -89,7 +89,7 @@ public class CountMinSketch {
    * The product of numHashes and numBuckets must be less than 2<sup>30</sup>.
    * @throws SketchesArgumentException if a parameter is out of range
    */
-  public CountMinSketch(final byte numHashes, final int numBuckets) {
+  public CountMinSketch(final int numHashes, final int numBuckets) {
     this(numHashes, numBuckets, Util.DEFAULT_UPDATE_SEED);
   }
 
@@ -107,22 +107,22 @@ public class CountMinSketch {
    * @param seed The base hash seed
    * @throws SketchesArgumentException if a parameter is out of range
    */
-  public CountMinSketch(final byte numHashes, final int numBuckets, final long seed) {
+  public CountMinSketch(final int numHashes, final int numBuckets, final long seed) {
     this(numHashes, numBuckets, seed, SERIAL_VERSION_2);
   }
 
   /**
    * Creates a CountMin sketch that hashes items as the given serialization version does.
    *
-   * @param numHashes The number of hash functions to apply to items
+   * @param numHashes The number of hash functions to apply to items, from 1 to 127
    * @param numBuckets Array size for each of the hashing function
    * @param seed The base hash seed
    * @param serialVersion 1 for the legacy hashing, 2 for the cross-language hashing
    */
-  private CountMinSketch(final byte numHashes, final int numBuckets, final long seed, final byte serialVersion) {
+  private CountMinSketch(final int numHashes, final int numBuckets, final long seed, final byte serialVersion) {
     // Validate numHashes
-    if (numHashes <= 0) {
-      throw new SketchesArgumentException("Number of hash functions must be positive, got: " + numHashes);
+    if ((numHashes < 1) || (numHashes > Byte.MAX_VALUE)) {
+      throw new SketchesArgumentException("Number of hash functions must be from 1 to 127, got: " + numHashes);
     }
 
     // Validate numBuckets with clear mathematical justification
@@ -151,7 +151,7 @@ public class CountMinSketch {
     }
 
     serialVersion_ = serialVersion;
-    numHashes_ = numHashes;
+    numHashes_ = (byte) numHashes; //stored as one byte in the image
     numBuckets_ = numBuckets;
     seed_ = seed;
     hashSeeds_ = new long[numHashes];
