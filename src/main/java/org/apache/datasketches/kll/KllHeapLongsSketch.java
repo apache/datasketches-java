@@ -52,7 +52,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
   private boolean isLevelZeroSorted;
   private long minLongItem;
   private long maxLongItem;
-  private long[] longItems;
+  private long[] longItems; // null until first use, see ensureCapacity()
 
   /**
    * New instance heap constructor with a given parameters <em>k</em> and <em>m</em>.
@@ -76,7 +76,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
     isLevelZeroSorted = false;
     minLongItem = Long.MAX_VALUE;
     maxLongItem = Long.MIN_VALUE;
-    longItems = new long[k];
+    longItems = null; //allocated on first use, or by ensureCapacity()
   }
 
   /**
@@ -118,7 +118,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
     if (segStructure == COMPACT_EMPTY) {
       minLongItem = Long.MAX_VALUE;
       maxLongItem = Long.MIN_VALUE;
-      longItems = new long[k];
+      longItems = null; //allocated on first use
     }
     else if (segStructure == COMPACT_SINGLE) {
       final long item = srcSeg.get(JAVA_LONG_UNALIGNED, DATA_START_ADR_SINGLE_ITEM);
@@ -221,7 +221,26 @@ final class KllHeapLongsSketch extends KllLongsSketch {
   //other restricted
 
   @Override
-  long[] getLongItemsArray() { return longItems; }
+  long[] getLongItemsArray() {
+    ensureCapacity(); //callers may write into the returned array
+    return longItems;
+  }
+
+  /**
+   * Allocates the item storage now, which a heap sketch otherwise allocates on first use.
+   * It has no effect if the storage already exists.
+   * @see KllSketch#ensureCapacity()
+   */
+  @Override
+  public void ensureCapacity() {
+    if (longItems == null) { longItems = new long[k]; }
+  }
+
+  /**
+   * Returns true if the item storage has been allocated.
+   * @return true if the item storage has been allocated
+   */
+  boolean hasItemStorage() { return longItems != null; }
 
   @Override
   long getLongSingleItem() {
@@ -254,6 +273,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
 
   @Override
   byte[] getTotalItemsByteArr() {
+    if (longItems == null) { return new byte[k * Long.BYTES]; } //empty, all zeros
     final byte[] byteArr = new byte[longItems.length * Long.BYTES];
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     MemorySegment.copy(longItems, 0, wseg, JAVA_LONG_UNALIGNED, 0, longItems.length);
@@ -303,6 +323,7 @@ final class KllHeapLongsSketch extends KllLongsSketch {
 
   @Override
   long[] getLongRetainedItemsArray() {
+    if (longItems == null) { return new long[0]; }
     return Arrays.copyOfRange(longItems, levelsArr[0], levelsArr[getNumLevels()]);
   }
 

@@ -68,6 +68,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @return new KllFloatsSketch on the Java heap.
    */
   public static KllFloatsSketch newHeapInstance() {
@@ -79,6 +80,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
    * <em>k</em> can be between 8, inclusive, and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @return new KllFloatsSketch on the Java heap.
    */
@@ -268,7 +270,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Override
   public QuantilesFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(
-        getFloatItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
+        isEmpty() ? new float[0] : getFloatItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }
 
   @Override
@@ -277,6 +279,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
     if (othFltSk.isEmpty()) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
     KllFloatsHelper.mergeFloatImpl(this, othFltSk);
     floatsSV = null;
   }
@@ -297,7 +300,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     setLevelsArray(new int[] {k, k});
     setMinItem(Float.NaN);
     setMaxItem(Float.NaN);
-    setFloatItemsArray(new float[k]);
+    //a heap sketch releases its storage and allocates it again on first use
+    setFloatItemsArray(hasMemorySegment() ? new float[k] : null);
     floatsSV = null;
   }
 
@@ -323,6 +327,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   public void update(final float item) {
     if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    ensureCapacity(); //first use allocates, before anything changes
     updateFloat(this, item);
     floatsSV = null;
   }
@@ -369,6 +374,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     if (Float.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
+    ensureCapacity(); //first use allocates, before anything changes
     if (weight == 1L) { updateFloat(this, item); }
     else if (weight < levelsArr[0]) {
       for (int i = 0; i < (int)weight; i++) { updateFloat(this, item); }
@@ -393,6 +399,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   public void update(final float[] items, final int offset, final int length) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (length == 0) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
     if (!hasNaN(items, offset, length)) {
       updateFloat(items, offset, length); //fast path
       floatsSV = null;

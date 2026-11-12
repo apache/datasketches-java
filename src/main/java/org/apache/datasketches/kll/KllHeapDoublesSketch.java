@@ -52,7 +52,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   private boolean isLevelZeroSorted;
   private double minDoubleItem;
   private double maxDoubleItem;
-  private double[] doubleItems;
+  private double[] doubleItems; // null until first use, see ensureCapacity()
 
   /**
    * New instance heap constructor with a given parameters <em>k</em> and <em>m</em>.
@@ -76,7 +76,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     isLevelZeroSorted = false;
     minDoubleItem = Double.NaN;
     maxDoubleItem = Double.NaN;
-    doubleItems = new double[k];
+    doubleItems = null; //allocated on first use, or by ensureCapacity()
   }
 
   /**
@@ -118,7 +118,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     if (segStructure == COMPACT_EMPTY) {
       minDoubleItem = Double.NaN;
       maxDoubleItem = Double.NaN;
-      doubleItems = new double[k];
+      doubleItems = null; //allocated on first use
     }
     else if (segStructure == COMPACT_SINGLE) {
       final double item = srcSeg.get(JAVA_DOUBLE_UNALIGNED, DATA_START_ADR_SINGLE_ITEM);
@@ -221,7 +221,26 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   //other restricted
 
   @Override
-  double[] getDoubleItemsArray() { return doubleItems; }
+  double[] getDoubleItemsArray() {
+    ensureCapacity(); //callers may write into the returned array
+    return doubleItems;
+  }
+
+  /**
+   * Allocates the item storage now, which a heap sketch otherwise allocates on first use.
+   * It has no effect if the storage already exists.
+   * @see KllSketch#ensureCapacity()
+   */
+  @Override
+  public void ensureCapacity() {
+    if (doubleItems == null) { doubleItems = new double[k]; }
+  }
+
+  /**
+   * Returns true if the item storage has been allocated.
+   * @return true if the item storage has been allocated
+   */
+  boolean hasItemStorage() { return doubleItems != null; }
 
   @Override
   double getDoubleSingleItem() {
@@ -254,6 +273,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   byte[] getTotalItemsByteArr() {
+    if (doubleItems == null) { return new byte[k * Double.BYTES]; } //empty, all zeros
     final byte[] byteArr = new byte[doubleItems.length * Double.BYTES];
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     MemorySegment.copy(doubleItems, 0, wseg, JAVA_DOUBLE_UNALIGNED, 0, doubleItems.length);
@@ -303,6 +323,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   double[] getDoubleRetainedItemsArray() {
+    if (doubleItems == null) { return new double[0]; }
     return Arrays.copyOfRange(doubleItems, levelsArr[0], levelsArr[getNumLevels()]);
   }
 
