@@ -190,7 +190,7 @@ public final class UtilityIO  {
 
   /**
    * Puts all the bytes of the given byte array to a file with the given fileName.
-   * This assumes that the base directory path is {@link #javaPath javaPath}.
+   * This assumes that the base directory path is {@link #getJavaPath()}.
    * @param fileName the name of the target file
    * @param bytes the given byte array
    */
