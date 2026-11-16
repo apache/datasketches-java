@@ -47,6 +47,14 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * by weight ascending. This makes each merge independent of how the centroids are arranged
  * before sorting, so that the same sequence of updates and merges always produces the same
  * sketch. It does not make the sketch independent of the order of the input values.</p>
+ *
+ * <p><b>Memory allocation.</b> A new t-Digest does not allocate storage for centroids or buffered values
+ * up front. The storage is allocated on first use and grows as values arrive, up to its full size.
+ * A t-Digest that stays small never allocates the full storage. An {@link OutOfMemoryError} while
+ * growing the storage therefore happens in {@link #update(double)} or {@link #merge(TDigestDouble)},
+ * not in the constructor; if it happens, the t-Digest is unchanged. Call {@link #ensureCapacity()} right
+ * after construction to allocate the full storage up front instead. Results and the serialized form
+ * are the same either way.</p>
  */
 public final class TDigestDouble {
 
@@ -59,13 +67,17 @@ public final class TDigestDouble {
   private double maxValue_;
   private final int centroidsCapacity_;
   private int numCentroids_;
-  private final double[] centroidMeans_;
-  private final long[] centroidWeights_;
+  // the storage arrays grow as they fill, up to their full size; see ensureCapacity()
+  private double[] centroidMeans_;
+  private long[] centroidWeights_;
   private long centroidsWeight_;
   private int numBuffered_;
-  private final double[] bufferValues_;
+  private double[] bufferValues_;
 
   private static final int BUFFER_MULTIPLIER = 4;
+  private static final int MIN_BUFFER_GROWTH = 8;
+  private static final double[] NO_VALUES = new double[0];
+  private static final long[] NO_WEIGHTS = new long[0];
 
   private static final byte PREAMBLE_LONGS_EMPTY_OR_SINGLE = 1;
   private static final byte PREAMBLE_LONGS_MULTIPLE = 2;
@@ -77,14 +89,16 @@ public final class TDigestDouble {
   private enum Flags { IS_EMPTY, IS_SINGLE_VALUE, REVERSE_MERGE }
 
   /**
-   * Constructor with the default K
+   * Constructor with the default K.
+   * Storage is allocated on first use; see {@link #ensureCapacity()}.
    */
   public TDigestDouble() {
     this(DEFAULT_K);
   }
 
   /**
-   * Constructor
+   * Constructor.
+   * Storage is allocated on first use; see {@link #ensureCapacity()}.
    * @param k affects the size of TDigest and its estimation error
    */
   public TDigestDouble(final short k) {
@@ -108,7 +122,8 @@ public final class TDigestDouble {
   public void update(final double value) {
     if (!Double.isFinite(value)) { return; }
     Math.addExact(getTotalWeight(), 1);
-    if (numBuffered_ >= (centroidsCapacity_ * BUFFER_MULTIPLIER)) { compress(); }
+    if (numBuffered_ >= getFullBufferSize()) { compress(); }
+    else if (numBuffered_ == bufferValues_.length) { growBuffer(); } //allocates before anything changes
     bufferValues_[numBuffered_] = value;
     numBuffered_++;
     minValue_ = Math.min(minValue_, value);
@@ -123,12 +138,14 @@ public final class TDigestDouble {
   public void merge(final TDigestDouble other) {
     if (other.isEmpty()) { return; }
     Math.addExact(getTotalWeight(), other.getTotalWeight());
+    // allocate everything before changing anything, so that an OutOfMemoryError leaves this t-Digest unchanged
+    final int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
+    ensureCentroidCapacity(num);
+    final double[] values = new double[num];
+    final long[] weights = new long[num];
     // Extreme centroid means are not the true min/max when those centroids have weight > 1.
     minValue_ = Math.min(minValue_, other.minValue_);
     maxValue_ = Math.max(maxValue_, other.maxValue_);
-    final int num = numCentroids_ + numBuffered_ + other.numCentroids_ + other.numBuffered_;
-    final double[] values = new double[num];
-    final long[] weights = new long[num];
     System.arraycopy(bufferValues_, 0, values, 0, numBuffered_);
     Arrays.fill(weights, 0, numBuffered_, 1);
     System.arraycopy(other.bufferValues_, 0, values, numBuffered_, other.numBuffered_);
@@ -144,6 +161,7 @@ public final class TDigestDouble {
   private void compress() {
     if (numBuffered_ == 0) { return; }
     final int num = numBuffered_ + numCentroids_;
+    ensureCentroidCapacity(num);
     final double[] values =  new double[num];
     final long[] weights = new long[num];
     System.arraycopy(bufferValues_, 0, values, 0, numBuffered_);
@@ -613,8 +631,10 @@ public final class TDigestDouble {
       .append(" Compression: ").append(k_).append(LS)
       .append(" Centroids: ").append(numCentroids_).append(LS)
       .append(" Buffered: ").append(numBuffered_).append(LS)
-      .append(" Centroids Capacity: ").append(centroidMeans_.length).append(LS)
-      .append(" Buffer Capacity: ").append(bufferValues_.length).append(LS)
+      .append(" Centroids Capacity: ").append(centroidsCapacity_)
+        .append(" (allocated ").append(centroidMeans_.length).append(")").append(LS)
+      .append(" Buffer Capacity: ").append(getFullBufferSize())
+        .append(" (allocated ").append(bufferValues_.length).append(")").append(LS)
       .append("Centroids Weight: ").append(centroidsWeight_).append(LS)
       .append(" Total Weight: ").append(getTotalWeight()).append(LS)
       .append(" Reverse Merge: ").append(reverseMerge_).append(LS);
@@ -649,24 +669,70 @@ public final class TDigestDouble {
     final int fudge = k < 30 ? 30 : 10;
     centroidsCapacity_ = (k * 2) + fudge;
     // Compression thresholds are local sizing choices, not serialization limits.
-    final int centroidSlots = Math.max(centroidsCapacity_, means == null ? 0 : means.length);
-    final int bufferSlots = Math.max(centroidsCapacity_ * BUFFER_MULTIPLIER, buffer == null ? 0 : buffer.length);
-    centroidMeans_ = new double[centroidSlots];
-    centroidWeights_ = new long[centroidSlots];
-    bufferValues_ = new double[bufferSlots];
-    numCentroids_ = 0;
-    numBuffered_ = 0;
+    // Storage is sized to the given data and grows as needed; a new t-Digest allocates none.
     centroidsWeight_ = weight;
     if ((means != null) && (weights != null)) {
-      System.arraycopy(means, 0, centroidMeans_, 0, means.length);
-      System.arraycopy(weights, 0, centroidWeights_, 0, weights.length);
+      centroidMeans_ = Arrays.copyOf(means, means.length);
+      centroidWeights_ = Arrays.copyOf(weights, weights.length);
       numCentroids_ = means.length;
+    } else {
+      centroidMeans_ = NO_VALUES;
+      centroidWeights_ = NO_WEIGHTS;
+      numCentroids_ = 0;
     }
     if (buffer != null) {
-      System.arraycopy(buffer, 0, bufferValues_, 0, buffer.length);
+      bufferValues_ = Arrays.copyOf(buffer, buffer.length);
       numBuffered_ = buffer.length;
+    } else {
+      bufferValues_ = NO_VALUES;
+      numBuffered_ = 0;
     }
   }
+
+  /**
+   * Allocates the full storage for centroids and buffered values now, rather than as values arrive.
+   * Call this right after construction to move an {@link OutOfMemoryError} from {@link #update(double)}
+   * or {@link #merge(TDigestDouble)} to this call, or so that updates do not pay for growing the storage.
+   * It has no effect on storage that is already at its full size, and it does not change the contents.
+   */
+  public void ensureCapacity() {
+    final int fullBuffer = getFullBufferSize();
+    final double[] buffer = (bufferValues_.length < fullBuffer) ? Arrays.copyOf(bufferValues_, fullBuffer) : null;
+    ensureCentroidCapacity(centroidsCapacity_);
+    if (buffer != null) { bufferValues_ = buffer; }
+  }
+
+  /** Returns the full size of the buffer, at which buffered values are compressed into centroids. */
+  private int getFullBufferSize() {
+    return centroidsCapacity_ * BUFFER_MULTIPLIER;
+  }
+
+  /** Grows the buffer geometrically, up to its full size. */
+  private void growBuffer() {
+    final int newLength = Math.min(Math.max(2 * bufferValues_.length, MIN_BUFFER_GROWTH), getFullBufferSize());
+    bufferValues_ = Arrays.copyOf(bufferValues_, newLength);
+  }
+
+  /**
+   * Grows the centroid storage, if needed, so that it holds the given number of centroids, up to its full size.
+   * Both arrays are allocated before either is replaced.
+   */
+  private void ensureCentroidCapacity(final int num) {
+    final int target = Math.min(num, centroidsCapacity_);
+    final int length = centroidMeans_.length;
+    if (length >= target) { return; }
+    final int newLength = Math.max(target, Math.min(2 * length, centroidsCapacity_));
+    final double[] means = Arrays.copyOf(centroidMeans_, newLength);
+    final long[] weights = Arrays.copyOf(centroidWeights_, newLength);
+    centroidMeans_ = means;
+    centroidWeights_ = weights;
+  }
+
+  /** Returns the number of centroids the allocated storage holds. For tests. */
+  int getAllocatedCentroids() { return centroidMeans_.length; }
+
+  /** Returns the number of values the allocated buffer holds. For tests. */
+  int getAllocatedBuffer() { return bufferValues_.length; }
 
   private static void checkK(final short k) {
     if (k < 10) { throw new SketchesArgumentException("k must be at least 10"); }
