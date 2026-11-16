@@ -146,9 +146,13 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
       offsetBytes += Double.BYTES;
       maxDoubleItem = srcSeg.get(JAVA_DOUBLE_UNALIGNED, offsetBytes);
       offsetBytes += Double.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      doubleItems = new double[capacityItems];
-      MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, offsetBytes, doubleItems, 0, capacityItems);
+      if (KllHelper.isEmptyBaseLevels(n, k, levelsArr)) {
+        doubleItems = null; //allocated on first use
+      } else {
+        final int capacityItems = levelsArr[getNumLevels()];
+        doubleItems = new double[capacityItems];
+        MemorySegment.copy(srcSeg, JAVA_DOUBLE_UNALIGNED, offsetBytes, doubleItems, 0, capacityItems);
+      }
     }
   }
 

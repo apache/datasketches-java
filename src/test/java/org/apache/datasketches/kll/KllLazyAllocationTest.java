@@ -28,6 +28,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.lang.foreign.MemorySegment;
 import java.util.Comparator;
+import java.util.List;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.testng.annotations.Test;
@@ -243,5 +244,68 @@ public class KllLazyAllocationTest {
     assertTrue(sk.isEmpty());
     sk.update("z");
     assertEquals(sk.getMinItem(), "z");
+  }
+
+  //An updatable image of an empty sketch heapifies without item storage, like a compact empty image.
+  @Test
+  public void updatableEmptyImageHoldsNoStorage() {
+    final KllDoublesSketch grown = KllDoublesSketch.newHeapInstance(K);
+    for (int i = 0; i < (10 * K); i++) { grown.update(i); }
+    grown.reset(); //back to the base level
+    final KllDoublesSketch[] empties = { KllDoublesSketch.newHeapInstance(K), grown };
+    for (final KllDoublesSketch empty : empties) {
+      final byte[] image = KllHelper.toByteArray(empty, true);
+      final KllDoublesSketch sk = KllDoublesSketch.heapify(MemorySegment.ofArray(image));
+      assertFalse(heapDoubles(sk).hasItemStorage());
+      assertTrue(sk.isEmpty());
+      assertEquals(KllHelper.toByteArray(sk, true), image);
+      assertEquals(sk.toByteArray(), empty.toByteArray());
+      sk.update(1.0);
+      assertTrue(heapDoubles(sk).hasItemStorage());
+      assertEquals(sk.getN(), 1);
+    }
+
+    final byte[] floatsImage = KllHelper.toByteArray(KllFloatsSketch.newHeapInstance(K), true);
+    final KllFloatsSketch floats = KllFloatsSketch.heapify(MemorySegment.ofArray(floatsImage));
+    assertFalse(((KllHeapFloatsSketch) floats).hasItemStorage());
+    assertEquals(KllHelper.toByteArray(floats, true), floatsImage);
+    floats.update(1.0f);
+    assertTrue(((KllHeapFloatsSketch) floats).hasItemStorage());
+
+    final byte[] longsImage = KllHelper.toByteArray(KllLongsSketch.newHeapInstance(K), true);
+    final KllLongsSketch longs = KllLongsSketch.heapify(MemorySegment.ofArray(longsImage));
+    assertFalse(((KllHeapLongsSketch) longs).hasItemStorage());
+    assertEquals(KllHelper.toByteArray(longs, true), longsImage);
+    longs.update(1L);
+    assertTrue(((KllHeapLongsSketch) longs).hasItemStorage());
+  }
+
+  //Updatable images that hold items still heapify with their item storage.
+  @Test
+  public void updatableImageWithItemsHasStorage() {
+    for (final int n : new int[] {1, K - 1, 10 * K}) {
+      final KllDoublesSketch src = KllDoublesSketch.newHeapInstance(K);
+      for (int i = 0; i < n; i++) { src.update(i); }
+      final byte[] image = KllHelper.toByteArray(src, true);
+      final KllDoublesSketch sk = KllDoublesSketch.heapify(MemorySegment.ofArray(image));
+      assertTrue(heapDoubles(sk).hasItemStorage());
+      assertEquals(KllHelper.toByteArray(sk, true), image);
+      assertEquals(sk.toByteArray(), src.toByteArray());
+    }
+  }
+
+  //A compact items image allocates item storage only for a single item or a full sketch.
+  @Test
+  public void itemsHeapifyAllocatesOnlyWithItems() {
+    final KllItemsSketch<String> single = KllItemsSketch.newHeapInstance(K, Comparator.naturalOrder(), SERDE);
+    single.update("a");
+    final KllItemsSketch<String> full = KllItemsSketch.newHeapInstance(K, Comparator.naturalOrder(), SERDE);
+    for (int i = 0; i < (10 * K); i++) { full.update(Integer.toString(i)); }
+    for (final KllItemsSketch<String> src : List.of(single, full)) {
+      final KllItemsSketch<String> copy = KllItemsSketch.heapify(MemorySegment.ofArray(src.toByteArray()),
+          Comparator.naturalOrder(), SERDE);
+      assertTrue(((KllHeapItemsSketch<String>) copy).hasItemStorage());
+      assertEquals(copy.toByteArray(), src.toByteArray());
+    }
   }
 }

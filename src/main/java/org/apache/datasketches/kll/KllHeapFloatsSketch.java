@@ -146,9 +146,13 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
       offsetBytes += Float.BYTES;
       maxFloatItem = srcSeg.get(JAVA_FLOAT_UNALIGNED, offsetBytes);
       offsetBytes += Float.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      floatItems = new float[capacityItems];
-      MemorySegment.copy(srcSeg, JAVA_FLOAT_UNALIGNED, offsetBytes, floatItems, 0, capacityItems);
+      if (KllHelper.isEmptyBaseLevels(n, k, levelsArr)) {
+        floatItems = null; //allocated on first use
+      } else {
+        final int capacityItems = levelsArr[getNumLevels()];
+        floatItems = new float[capacityItems];
+        MemorySegment.copy(srcSeg, JAVA_FLOAT_UNALIGNED, offsetBytes, floatItems, 0, capacityItems);
+      }
     }
   }
 

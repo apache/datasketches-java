@@ -146,9 +146,13 @@ final class KllHeapLongsSketch extends KllLongsSketch {
       offsetBytes += Long.BYTES;
       maxLongItem = srcSeg.get(JAVA_LONG_UNALIGNED, offsetBytes);
       offsetBytes += Long.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      longItems = new long[capacityItems];
-      MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, offsetBytes, longItems, 0, capacityItems);
+      if (KllHelper.isEmptyBaseLevels(n, k, levelsArr)) {
+        longItems = null; //allocated on first use
+      } else {
+        final int capacityItems = levelsArr[getNumLevels()];
+        longItems = new long[capacityItems];
+        MemorySegment.copy(srcSeg, JAVA_LONG_UNALIGNED, offsetBytes, longItems, 0, capacityItems);
+      }
     }
   }
 

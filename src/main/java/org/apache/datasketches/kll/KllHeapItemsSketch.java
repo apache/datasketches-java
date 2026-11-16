@@ -120,16 +120,16 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
     minK = segVal.minK;
     isLevelZeroSorted = segVal.level0SortedFlag;
     final SketchStructure segStruct = segVal.sketchStructure;
-    //an empty image allocates no item storage; it is allocated on first use
-    itemsArr = (segStruct == COMPACT_EMPTY) ? null : new Object[levelsArr[segVal.numLevels]]; //updatable size
     if (segStruct == COMPACT_EMPTY) {
       minItem = null;
       maxItem = null;
+      itemsArr = null; //allocated on first use
     } else if (segStruct == COMPACT_SINGLE) {
       final int offset = N_LONG_ADR;
       final T item = serDe.deserializeFromMemorySegment(srcSeg, offset, 1)[0];
       minItem = item;
       maxItem = item;
+      itemsArr = new Object[levelsArr[segVal.numLevels]]; //updatable size
       itemsArr[k - 1] = item;
     } else if (segStruct == COMPACT_FULL) {
       int offset = DATA_START_ADR + (segVal.numLevels * Integer.BYTES);
@@ -139,6 +139,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
       offset += serDe.sizeOf(maxItem);
       final int numRetained = levelsArr[segVal.numLevels] - levelsArr[0];
       final Object[] retItems = serDe.deserializeFromMemorySegment(srcSeg, offset, numRetained);
+      itemsArr = new Object[levelsArr[segVal.numLevels]]; //updatable size
       System.arraycopy(retItems, 0, itemsArr, levelsArr[0], numRetained);
     } else { //segStruct == UPDATABLE
       throw new SketchesArgumentException(UNSUPPORTED_MSG + "UPDATABLE");
