@@ -324,4 +324,65 @@ public class EbppsItemsSketchTest {
     final MemorySegment shortSeg = seg.asSlice(0, seg.byteSize() - 1);
     EbppsItemsSketch.heapify(shortSeg, new ArrayOfLongsSerDe());
   }
+
+  // A merge must keep the larger maximum weight of the two sketches. Otherwise a later update
+  // uses the smaller one and the sample stops being proportional to weight.
+  // C depends only on the sequence of rho values, so these checks are deterministic.
+  // See apache/datasketches-cpp#581.
+  @Test
+  public void mergeKeepsMaxWeight() {
+    final int k = 10;
+    final int n = 1000;
+    final double heavyWt = 500.0;
+
+    // reference: the same items in a single sketch
+    final EbppsItemsSketch<Long> ref = new EbppsItemsSketch<>(k);
+    for (long i = 0; i < n; ++i) { ref.update(i, 1.0); }
+    ref.update(-1L, heavyWt);
+    ref.update(-2L, 1.0);
+    assertEquals(ref.getC(), (n + 1 + heavyWt) / heavyWt, EPS);
+
+    // the heavy item merged into the larger sketch
+    final EbppsItemsSketch<Long> big = buildUnitWeightSketch(k, n);
+    big.merge(buildHeavySketch(k, heavyWt));
+    checkAfterOneUpdate(big, ref);
+
+    // the larger sketch merged into the heavy one: merge() takes the swap path
+    final EbppsItemsSketch<Long> heavy = buildHeavySketch(k, heavyWt);
+    heavy.merge(buildUnitWeightSketch(k, n));
+    checkAfterOneUpdate(heavy, ref);
+
+    // the maximum weight must also survive serialization
+    final EbppsItemsSketch<Long> big2 = buildUnitWeightSketch(k, n);
+    big2.merge(buildHeavySketch(k, heavyWt));
+    checkAfterOneUpdate(heapifyCopy(big2), ref);
+
+    final EbppsItemsSketch<Long> heavy2 = buildHeavySketch(k, heavyWt);
+    heavy2.merge(buildUnitWeightSketch(k, n));
+    checkAfterOneUpdate(heapifyCopy(heavy2), ref);
+  }
+
+  private static EbppsItemsSketch<Long> buildUnitWeightSketch(final int k, final int n) {
+    final EbppsItemsSketch<Long> sk = new EbppsItemsSketch<>(k);
+    for (long i = 0; i < n; ++i) { sk.update(i, 1.0); }
+    return sk;
+  }
+
+  private static EbppsItemsSketch<Long> buildHeavySketch(final int k, final double heavyWt) {
+    final EbppsItemsSketch<Long> sk = new EbppsItemsSketch<>(k);
+    sk.update(-1L, heavyWt);
+    return sk;
+  }
+
+  private static EbppsItemsSketch<Long> heapifyCopy(final EbppsItemsSketch<Long> sk) {
+    final byte[] bytes = sk.toByteArray(new ArrayOfLongsSerDe());
+    return EbppsItemsSketch.heapify(MemorySegment.ofArray(bytes), new ArrayOfLongsSerDe());
+  }
+
+  private static void checkAfterOneUpdate(final EbppsItemsSketch<Long> sk, final EbppsItemsSketch<Long> ref) {
+    sk.update(-2L, 1.0);
+    assertEquals(sk.getN(), ref.getN());
+    assertEquals(sk.getCumulativeWeight(), ref.getCumulativeWeight(), EPS);
+    assertEquals(sk.getC(), ref.getC(), EPS);
+  }
 }
