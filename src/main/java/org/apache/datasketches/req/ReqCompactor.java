@@ -62,6 +62,15 @@ class ReqCompactor {
       final boolean hra,
       final int sectionSize,
       final ReqDebug reqDebug) {
+    this(lgWeight, hra, sectionSize, reqDebug, true);
+  }
+
+  private ReqCompactor(
+      final byte lgWeight,
+      final boolean hra,
+      final int sectionSize,
+      final ReqDebug reqDebug,
+      final boolean allocate) {
     this.lgWeight = lgWeight;
     this.hra = hra;
     this.sectionSize = sectionSize;
@@ -70,7 +79,29 @@ class ReqCompactor {
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
     final int nomCap = getNomCapacity();
-    buf = new FloatBuffer(2 * nomCap, nomCap, hra);
+    buf = new FloatBuffer(allocate ? 2 * nomCap : 0, nomCap, hra);
+  }
+
+  /**
+   * Constructs a compactor whose buffer has no storage yet. The first compactor of a new sketch uses this,
+   * and the sketch allocates the storage on first use with {@link #ensureCapacity()}.
+   * @param lgWeight the lgWeight of this compactor
+   * @param hra High Rank Accuracy
+   * @param sectionSize initially the size of k
+   * @param reqDebug The debug signaling interface
+   * @return a new compactor with an empty, unallocated buffer
+   */
+  static ReqCompactor newUnallocated(final byte lgWeight, final boolean hra, final int sectionSize,
+      final ReqDebug reqDebug) {
+    return new ReqCompactor(lgWeight, hra, sectionSize, reqDebug, false);
+  }
+
+  /**
+   * Allocates the buffer storage, twice the nominal capacity, if the buffer has none yet.
+   * It has no effect otherwise.
+   */
+  void ensureCapacity() {
+    if (buf.getCapacity() == 0) { buf.ensureCapacity(2 * getNomCapacity()); }
   }
 
   /**

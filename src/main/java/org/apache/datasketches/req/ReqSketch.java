@@ -74,6 +74,12 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  * help users understand how the sketch works.</li>
  * </ul>
  *
+ * <p><b>Memory allocation.</b> A new sketch does not allocate storage for items until it is first used:
+ * the first update, or the first merge of a non-empty sketch. After that, the storage grows as the sketch
+ * needs it. An {@link OutOfMemoryError} from that first allocation therefore happens in the update or merge,
+ * not when the sketch is built. Call {@link #ensureCapacity()} right after building the sketch to allocate
+ * the storage up front instead. Results and the serialized form are the same either way.</p>
+ *
  * @see QuantilesAPI
  *
  * @author Edo Liberty
@@ -141,7 +147,27 @@ public final class ReqSketch extends BaseReqSketch {
     hra = highRankAccuracy;
     this.reqDebug = reqDebug;
     rand = (reqDebug == null) ? new Random() : new Random(1);
-    grow();
+    growUnallocated();
+  }
+
+  /**
+   * Allocates the storage of the first compactor now, rather than on the first update or merge.
+   * The storage is the same as a sketch allocated when it was built before: twice the nominal capacity
+   * of the first compactor. Call this right after building the sketch to move an {@link OutOfMemoryError}
+   * from the first update or merge to this call. It has no effect if the storage already exists.
+   *
+   * <p>{@link #reset()} releases the storage, and it is allocated again on first use.</p>
+   */
+  public void ensureCapacity() {
+    compactors.get(0).ensureCapacity();
+  }
+
+  /**
+   * Returns true if the first compactor has storage. For tests.
+   * @return true if the first compactor has storage
+   */
+  boolean hasItemStorage() {
+    return compactors.get(0).getBuffer().getCapacity() > 0;
   }
 
   /**
@@ -384,12 +410,14 @@ public final class ReqSketch extends BaseReqSketch {
       throw new SketchesArgumentException(
           "Both sketches must have the same HighRankAccuracy setting.");
     }
+    //allocate first: the first compactor's storage, then any new levels, before the counters change
+    ensureCapacity();
+    //Grow until self has at least as many compactors as other
+    while (getNumLevels() < other.getNumLevels()) { grow(); }
     totalN += other.totalN;
     //update min, max items, n
     if (Float.isNaN(minItem) || (other.minItem < minItem)) { minItem = other.minItem; }
     if (Float.isNaN(maxItem) || (other.maxItem > maxItem)) { maxItem = other.maxItem; }
-    //Grow until self has at least as many compactors as other
-    while (getNumLevels() < other.getNumLevels()) { grow(); }
     //Merge the items in all height compactors
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.get(i).merge(other.compactors.get(i));
@@ -413,7 +441,7 @@ public final class ReqSketch extends BaseReqSketch {
     maxItem = Float.NaN;
     reqSV = null;
     compactors = new ArrayList<>();
-    grow();
+    growUnallocated(); //the storage is allocated again on first use
   }
 
   @Override
@@ -440,6 +468,7 @@ public final class ReqSketch extends BaseReqSketch {
   @Override
   public void update(final float item) {
     if (Float.isNaN(item)) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
     if (isEmpty()) {
       minItem = item;
       maxItem = item;
@@ -549,9 +578,18 @@ public final class ReqSketch extends BaseReqSketch {
   }
 
   private void grow() {
+    addCompactor(new ReqCompactor((byte)getNumLevels(), hra, k, reqDebug));
+  }
+
+  //adds the first compactor of a new or reset sketch, with no storage until first use
+  private void growUnallocated() {
+    addCompactor(ReqCompactor.newUnallocated((byte)getNumLevels(), hra, k, reqDebug));
+  }
+
+  private void addCompactor(final ReqCompactor compactor) {
     final byte lgWeight = (byte)getNumLevels();
     if ((lgWeight == 0) && (reqDebug != null)) { reqDebug.emitStart(this); }
-    compactors.add(new ReqCompactor(lgWeight, hra, k, reqDebug));
+    compactors.add(compactor);
     maxNomSize = computeMaxNomSize();
     if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
   }

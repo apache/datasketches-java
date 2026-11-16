@@ -55,16 +55,14 @@ public final class ReqSketchIterator implements QuantilesFloatsSketchIterator {
 
   @Override
   public boolean next() {
-    if ((numRetainedItems == 0)
-        || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getCount() - 1)))) {
-      return false;
-    }
-    if (bIndex == (currentBuf.getCount() - 1)) {
+    if (numRetainedItems == 0) { return false; }
+    if (bIndex < currentBuf.getCount()) { bIndex++; }
+    //skip any level without items, so the iterator never stops on an empty one
+    while (bIndex >= currentBuf.getCount()) {
+      if (cIndex >= (compactors.size() - 1)) { return false; }
       cIndex++;
       currentBuf = compactors.get(cIndex).getBuffer();
       bIndex = 0;
-    } else {
-      bIndex++;
     }
     return true;
   }

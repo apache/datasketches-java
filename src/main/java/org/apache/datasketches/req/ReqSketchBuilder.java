@@ -44,6 +44,7 @@ public class ReqSketchBuilder {
 
   /**
    * Returns a new ReqSketch with the current configuration of the builder.
+   * The sketch allocates its item storage on first use; see {@link ReqSketch#ensureCapacity()}.
    * @return a new ReqSketch
    */
   public ReqSketch build() {
