@@ -102,6 +102,18 @@ final class KllHelper {
  205891132094649L};
 
   /**
+   * Returns true if an updatable image holds no items and only the base level, as an empty
+   * sketch does. Heapifying such an image allocates no item storage; it is allocated on first use.
+   * @param n the number of items the image has seen
+   * @param k the k of the image
+   * @param levelsArr the full levels array of the image
+   * @return true if the image is an empty updatable image with only the base level
+   */
+  static boolean isEmptyBaseLevels(final long n, final int k, final int[] levelsArr) {
+    return (n == 0) && (levelsArr.length == 2) && (levelsArr[0] == k) && (levelsArr[1] == k);
+  }
+
+  /**
    * Checks the validity of the given k
    * @param k must be greater than 7 and less than 65536.
    */

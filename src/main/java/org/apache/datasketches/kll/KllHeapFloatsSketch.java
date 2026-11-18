@@ -52,7 +52,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   private boolean isLevelZeroSorted;
   private float minFloatItem;
   private float maxFloatItem;
-  private float[] floatItems;
+  private float[] floatItems; // null until first use, see ensureCapacity()
 
   /**
    * New instance heap constructor with a given parameters <em>k</em> and <em>m</em>.
@@ -76,7 +76,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     isLevelZeroSorted = false;
     minFloatItem = Float.NaN;
     maxFloatItem = Float.NaN;
-    floatItems = new float[k];
+    floatItems = null; //allocated on first use, or by ensureCapacity()
   }
 
   /**
@@ -118,7 +118,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     if (segStructure == COMPACT_EMPTY) {
       minFloatItem = Float.NaN;
       maxFloatItem = Float.NaN;
-      floatItems = new float[k];
+      floatItems = null; //allocated on first use
     }
     else if (segStructure == COMPACT_SINGLE) {
       final float item = srcSeg.get(JAVA_FLOAT_UNALIGNED, DATA_START_ADR_SINGLE_ITEM);
@@ -146,9 +146,13 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
       offsetBytes += Float.BYTES;
       maxFloatItem = srcSeg.get(JAVA_FLOAT_UNALIGNED, offsetBytes);
       offsetBytes += Float.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      floatItems = new float[capacityItems];
-      MemorySegment.copy(srcSeg, JAVA_FLOAT_UNALIGNED, offsetBytes, floatItems, 0, capacityItems);
+      if (KllHelper.isEmptyBaseLevels(n, k, levelsArr)) {
+        floatItems = null; //allocated on first use
+      } else {
+        final int capacityItems = levelsArr[getNumLevels()];
+        floatItems = new float[capacityItems];
+        MemorySegment.copy(srcSeg, JAVA_FLOAT_UNALIGNED, offsetBytes, floatItems, 0, capacityItems);
+      }
     }
   }
 
@@ -221,7 +225,26 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   //other restricted
 
   @Override
-  float[] getFloatItemsArray() { return floatItems; }
+  float[] getFloatItemsArray() {
+    ensureCapacity(); //callers may write into the returned array
+    return floatItems;
+  }
+
+  /**
+   * Allocates the item storage now, which a heap sketch otherwise allocates on first use.
+   * It has no effect if the storage already exists.
+   * @see KllSketch#ensureCapacity()
+   */
+  @Override
+  public void ensureCapacity() {
+    if (floatItems == null) { floatItems = new float[k]; }
+  }
+
+  /**
+   * Returns true if the item storage has been allocated.
+   * @return true if the item storage has been allocated
+   */
+  boolean hasItemStorage() { return floatItems != null; }
 
   @Override
   float getFloatSingleItem() {
@@ -254,6 +277,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   byte[] getTotalItemsByteArr() {
+    if (floatItems == null) { return new byte[k * Float.BYTES]; } //empty, all zeros
     final byte[] byteArr = new byte[floatItems.length * Float.BYTES];
     final MemorySegment wseg = MemorySegment.ofArray(byteArr);
     MemorySegment.copy(floatItems, 0, wseg, JAVA_FLOAT_UNALIGNED, 0, floatItems.length);
@@ -303,6 +327,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   float[] getFloatRetainedItemsArray() {
+    if (floatItems == null) { return new float[0]; }
     return Arrays.copyOfRange(floatItems, levelsArr[0], levelsArr[getNumLevels()]);
   }
 

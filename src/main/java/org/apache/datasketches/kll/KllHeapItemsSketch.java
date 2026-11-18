@@ -52,7 +52,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   private boolean isLevelZeroSorted;
   private T minItem;
   private T maxItem;
-  private Object[] itemsArr;
+  private Object[] itemsArr; // null until first use, see ensureCapacity()
 
   /**
    * New instance heap constructor.
@@ -77,7 +77,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
     isLevelZeroSorted = false;
     minItem = null;
     maxItem = null;
-    itemsArr = new Object[k];
+    itemsArr = null; //allocated on first use, or by ensureCapacity()
   }
 
   /**
@@ -119,17 +119,17 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
     n = segVal.n;
     minK = segVal.minK;
     isLevelZeroSorted = segVal.level0SortedFlag;
-    itemsArr = new Object[levelsArr[segVal.numLevels]]; //updatable size
     final SketchStructure segStruct = segVal.sketchStructure;
     if (segStruct == COMPACT_EMPTY) {
       minItem = null;
       maxItem = null;
-      itemsArr = new Object[k];
+      itemsArr = null; //allocated on first use
     } else if (segStruct == COMPACT_SINGLE) {
       final int offset = N_LONG_ADR;
       final T item = serDe.deserializeFromMemorySegment(srcSeg, offset, 1)[0];
       minItem = item;
       maxItem = item;
+      itemsArr = new Object[levelsArr[segVal.numLevels]]; //updatable size
       itemsArr[k - 1] = item;
     } else if (segStruct == COMPACT_FULL) {
       int offset = DATA_START_ADR + (segVal.numLevels * Integer.BYTES);
@@ -139,6 +139,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
       offset += serDe.sizeOf(maxItem);
       final int numRetained = levelsArr[segVal.numLevels] - levelsArr[0];
       final Object[] retItems = serDe.deserializeFromMemorySegment(srcSeg, offset, numRetained);
+      itemsArr = new Object[levelsArr[segVal.numLevels]]; //updatable size
       System.arraycopy(retItems, 0, itemsArr, levelsArr[0], numRetained);
     } else { //segStruct == UPDATABLE
       throw new SketchesArgumentException(UNSUPPORTED_MSG + "UPDATABLE");
@@ -220,6 +221,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   T[] getRetainedItemsArray() {
     final int numRet = getNumRetained();
     final T[] outArr = (T[]) Array.newInstance(serDe.getClassOfT(), numRet);
+    if (itemsArr == null) { return outArr; } //empty
     System.arraycopy(itemsArr, levelsArr[0], outArr, 0 , numRet);
     return outArr;
   }
@@ -253,7 +255,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   T[] getTotalItemsArray() {
-    if (n == 0) { return (T[]) Array.newInstance(serDe.getClassOfT(), k); }
+    if ((n == 0) || (itemsArr == null)) { return (T[]) Array.newInstance(serDe.getClassOfT(), k); }
     final T[] outArr = (T[]) Array.newInstance(serDe.getClassOfT(), itemsArr.length);
     System.arraycopy(itemsArr, 0, outArr, 0, itemsArr.length);
     return outArr;
@@ -296,6 +298,22 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   void setItemsArrayAt(final int index, final Object item) {
     itemsArr[index] = item;
   }
+
+  /**
+   * Allocates the item storage now, which a heap sketch otherwise allocates on first use.
+   * It has no effect if the storage already exists.
+   * @see KllSketch#ensureCapacity()
+   */
+  @Override
+  public void ensureCapacity() {
+    if (itemsArr == null) { itemsArr = new Object[k]; }
+  }
+
+  /**
+   * Returns true if the item storage has been allocated.
+   * @return true if the item storage has been allocated
+   */
+  boolean hasItemStorage() { return itemsArr != null; }
 
   @Override
   void setMaxItem(final Object item) {

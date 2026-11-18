@@ -68,6 +68,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @return new KllDoublesSketch on the Java heap.
    */
   public static KllDoublesSketch newHeapInstance() {
@@ -79,6 +80,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * <em>k</em> can be between 8, inclusive, and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @return new KllDoublesSketch on the Java heap.
    */
@@ -268,7 +270,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   public QuantilesDoublesSketchIteratorAPI iterator() {
     return new KllDoublesSketchIterator(
-        getDoubleItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
+        isEmpty() ? new double[0] : getDoubleItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }
 
   @Override
@@ -277,6 +279,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
     if (othDblSk.isEmpty()) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
     KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
     doublesSV = null;
   }
@@ -297,7 +300,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     setLevelsArray(new int[] {k, k});
     setMinItem(Double.NaN);
     setMaxItem(Double.NaN);
-    setDoubleItemsArray(new double[k]);
+    //a heap sketch releases its storage and allocates it again on first use
+    setDoubleItemsArray(hasMemorySegment() ? new double[k] : null);
     doublesSV = null;
   }
 
@@ -323,6 +327,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public void update(final double item) {
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    ensureCapacity(); //first use allocates, before anything changes
     updateDouble(this, item);
     doublesSV = null;
   }
@@ -369,6 +374,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (Double.isNaN(item)) { return; } //ignore
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
+    ensureCapacity(); //first use allocates, before anything changes
     if (weight == 1L) { updateDouble(this, item); }
     else if (weight < levelsArr[0]) {
       for (int i = 0; i < (int)weight; i++) { updateDouble(this, item); }
@@ -393,6 +399,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public void update(final double[] items, final int offset, final int length) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (length == 0) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
     if (!hasNaN(items, offset, length)) {
       updateDouble(items, offset, length); //fast path
       doublesSV = null;

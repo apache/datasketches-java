@@ -68,6 +68,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @return new KllLongsSketch on the Java heap.
    */
   public static KllLongsSketch newHeapInstance() {
@@ -79,6 +80,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
    * <em>k</em> can be between 8, inclusive, and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * The sketch allocates its item storage on first use; see {@link KllSketch#ensureCapacity()}.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @return new KllLongsSketch on the Java heap.
    */
@@ -268,7 +270,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   @Override
   public QuantilesLongsSketchIterator iterator() {
     return new KllLongsSketchIterator(
-        getLongItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
+        isEmpty() ? new long[0] : getLongItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }
 
   @Override
@@ -277,6 +279,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
     if (this == other) { throw new SketchesArgumentException(SELF_MERGE_MSG); }
     final KllLongsSketch otherLngSk = (KllLongsSketch)other;
     if (otherLngSk.isEmpty()) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
     KllLongsHelper.mergeLongsImpl(this, otherLngSk);
     longsSV = null;
   }
@@ -297,7 +300,8 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
     setLevelsArray(new int[] {k, k});
     setMinItem(Long.MAX_VALUE);
     setMaxItem(Long.MIN_VALUE);
-    setLongItemsArray(new long[k]);
+    //a heap sketch releases its storage and allocates it again on first use
+    setLongItemsArray(hasMemorySegment() ? new long[k] : null);
     longsSV = null;
   }
 
@@ -323,6 +327,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   public void update(final long item) {
     // Align with KllDoublesSketch
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
+    ensureCapacity(); //first use allocates, before anything changes
     updateLong(this, item);
     longsSV = null;
   }
@@ -369,6 +374,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
     //
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (weight < 1L) { throw new SketchesArgumentException("Weight is less than one."); }
+    ensureCapacity(); //first use allocates, before anything changes
     if (weight == 1L) { updateLong(this, item); }
     else if (weight < levelsArr[0]) {
       for (int i = 0; i < (int)weight; i++) { updateLong(this, item); }
@@ -391,6 +397,7 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
   public void update(final long[] items, final int offset, final int length) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     if (length == 0) { return; }
+    ensureCapacity(); //first use allocates, before anything changes
       updateLong(items, offset, length);
       longsSV = null;
   }
