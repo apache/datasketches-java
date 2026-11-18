@@ -345,6 +345,7 @@ public final class EbppsItemsSketch<T> {
     // avoid numeric issues by setting cumulative weight to the
     // pre-computed value
     cumulativeWt_ = finalCumWt;
+    wtMax_ = newWtMax;
     n_ = newN;
   }
 

@@ -190,7 +190,7 @@ public final class UtilityIO  {
 
   /**
    * Puts all the bytes of the given byte array to a file with the given fileName.
-   * This assumes that the base directory path is {@link #javaPath javaPath}.
+   * This assumes that the base directory path is {@link #getJavaPath()}.
    * @param fileName the name of the target file
    * @param bytes the given byte array
    */
@@ -229,7 +229,7 @@ public final class UtilityIO  {
    * Resolves the target directory for test data reading/writing.
    * The default is the project root, but it can be overridden like this:
    *
-   * <p><i>mvn clean test -Pcheck-cpp-files -Dtest.data.root="/tmp/custom_path</i></p>
+   * <p><i>mvn clean test -Pcheck_cpp_files -Dtest.data.root="/tmp/custom_path"</i></p>
    *
    * <p>Calling the binary test jar: see src/test/resources/testng.xml</p>
    *
