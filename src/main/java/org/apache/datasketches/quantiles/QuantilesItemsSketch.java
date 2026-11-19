@@ -70,6 +70,12 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIteratorAPI
  * <p>The size of an QuantilesItemsSketch is very dependent on the size of the generic Items input into the sketch,
  * so there is no comparable size table as there is for the QuantilesDoublesSketch.</p>
  *
+ * <p><b>Exceptions during update.</b> If {@link #update(Object)} throws an {@code OutOfMemoryError},
+ * the item is not added and the sketch is unchanged. The same holds if the comparator throws while
+ * the item is compared with the minimum and maximum items, or while the full base buffer is sorted.
+ * If the comparator throws while sorted levels are being merged, or does not impose a consistent
+ * total order, the state of the sketch is undefined.</p>
+ *
  * @see QuantilesAPI
  *
  * @param <T> The sketch item data type.
@@ -541,17 +547,23 @@ public final class QuantilesItemsSketch<T> implements QuantilesGenericAPI<T> {
     // this method only uses the base buffer part of the combined buffer
 
     if (item == null) { return; }
-    if ((maxItem_ == null) || (comparator_.compare(item, maxItem_) > 0)) { maxItem_ = item; }
-    if ((minItem_ == null) || (comparator_.compare(item, minItem_) < 0)) { minItem_ = item; }
+    //compare first, but change nothing until the item has been fully processed,
+    //so that an exception leaves the sketch as it was
+    final boolean isNewMax = (maxItem_ == null) || (comparator_.compare(item, maxItem_) > 0);
+    final boolean isNewMin = (minItem_ == null) || (comparator_.compare(item, minItem_) < 0);
 
     if ((baseBufferCount_ + 1) > combinedBufferItemCapacity_) {
       QuantilesItemsSketch.growBaseBuffer(this);
     }
-    combinedBuffer_[baseBufferCount_++] = item;
-    n_++;
-    if (baseBufferCount_ == (2 * k_)) {
-      ItemsUtil.processFullBaseBuffer(this);
+    combinedBuffer_[baseBufferCount_] = item; //not counted yet
+    if ((baseBufferCount_ + 1) == (2 * k_)) {
+      ItemsUtil.processFullBaseBuffer(this, n_ + 1); //empties the base buffer
+    } else {
+      baseBufferCount_++;
     }
+    n_++;
+    if (isNewMax) { maxItem_ = item; }
+    if (isNewMin) { minItem_ = item; }
     classicQisSV = null;
   }
 

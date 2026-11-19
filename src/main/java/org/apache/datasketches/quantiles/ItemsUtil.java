@@ -53,31 +53,35 @@ final class ItemsUtil {
   }
 
   /**
-   * Called when the base buffer has just acquired 2*k elements.
+   * Called by update() when the new item, already placed in the base buffer but not yet counted,
+   * fills the base buffer to 2*k items. On success the base buffer is empty and the levels hold
+   * its items; the caller then updates n. If this throws, the counts and the levels are unchanged,
+   * unless the comparator throws while levels are being merged.
    * @param <T> the data type
    * @param sketch the given quantiles sketch
+   * @param newN the number of items the sketch will have seen once the new item is counted
    */
   @SuppressWarnings("unchecked")
-  static <T> void processFullBaseBuffer(final QuantilesItemsSketch<T> sketch) {
-    final int bbCount = sketch.getBaseBufferCount();
-    final long n = sketch.getN();
-    assert bbCount == (2 * sketch.getK()); // internal consistency check
+  static <T> void processFullBaseBuffer(final QuantilesItemsSketch<T> sketch, final long newN) {
+    final int k = sketch.getK();
+    final int bbCount = 2 * k;
+    assert newN == (sketch.getN() + 1); // internal consistency check
 
     // make sure there will be enough levels for the propagation
-    ItemsUpdateImpl.maybeGrowLevels(sketch, n); // important: n_ was incremented by update before we got here
+    ItemsUpdateImpl.maybeGrowLevels(sketch, newN);
 
-    // this aliasing is a bit dangerous; notice that we did it after the possible resizing
-    final Object[] baseBuffer = sketch.getCombinedBuffer();
-
-    Arrays.sort((T[]) baseBuffer, 0, bbCount, sketch.getComparator());
+    // sort a copy, so that a failing comparator leaves the base buffer as it was
+    final Object[] baseBuffer = sketch.getCombinedBuffer(); // after the possible resizing
+    final Object[] sortedBuffer = Arrays.copyOf(baseBuffer, bbCount);
+    Arrays.sort((T[]) sortedBuffer, 0, bbCount, sketch.getComparator());
     ItemsUpdateImpl.inPlacePropagateCarry(
         0,
         null, 0,  // this null is okay
-        (T[]) baseBuffer, 0,
+        (T[]) sortedBuffer, 0,
         true, sketch);
     sketch.baseBufferCount_ = 0;
-    Arrays.fill(baseBuffer, 0, 2 * sketch.getK(), null); // to release the discarded objects
-    assert (n / (2L * sketch.getK())) == sketch.getBitPattern();  // internal consistency check
+    Arrays.fill(baseBuffer, 0, bbCount, null); // to release the discarded objects
+    assert (newN / (2L * k)) == sketch.getBitPattern();  // internal consistency check
   }
 
   static <T> String toString(final boolean withLevels, final boolean withLevelsAndItems,
