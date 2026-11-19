@@ -334,7 +334,6 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
 
   //Also Called from KllLongsHelper::merge
   static void updateLong(final KllLongsSketch lngSk, final long item) {
-    lngSk.updateMinMax(item);
     int freeSpace = lngSk.levelsArr[0];
     assert (freeSpace >= 0);
     if (freeSpace == 0) {
@@ -342,6 +341,8 @@ public abstract class KllLongsSketch extends KllSketch implements QuantilesLongs
       freeSpace = lngSk.levelsArr[0];
       assert (freeSpace > 0);
     }
+    //min and max change only after the compression, which may fail, has succeeded
+    lngSk.updateMinMax(item);
     lngSk.incN(1);
     lngSk.setLevelZeroSorted(false);
     final int nextPos = freeSpace - 1;

@@ -617,7 +617,7 @@ public class KllDirectDoublesSketchTest {
     final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     final KllDoublesSketch sk2 = KllDoublesSketch.wrap(MemorySegment.ofArray(sk.toByteArray()));
     try { sk2.incN(1);                           fail(); } catch (final SketchesArgumentException e) { }
-    try { sk2.incNumLevels();                    fail(); } catch (final SketchesArgumentException e) { }
+    try { sk2.setNumLevels(2);                   fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setDoubleItemsArray(dblArr);       fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setDoubleItemsArrayAt(idx, dblV);  fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);          fail(); } catch (final SketchesArgumentException e) { }

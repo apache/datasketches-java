@@ -183,14 +183,7 @@ final class KllLongsHelper {
       myNewNumLevels = result[0];
       assert myNewNumLevels <= ub; // ub may be much bigger
 
-      // THE NEW ITEMS ARRAY
-      myNewLongItemsArray = (targetItemCount == myCurLongItemsArray.length)
-          ? myCurLongItemsArray
-          : new long[targetItemCount];
       final int freeSpaceAtBottom = targetItemCount - curItemCount;
-
-      //shift the new items array create space at bottom
-      System.arraycopy(workbuf, outlevels[0], myNewLongItemsArray, freeSpaceAtBottom, curItemCount);
       final int theShift = freeSpaceAtBottom - outlevels[0];
 
       //calculate the new levels array length
@@ -203,6 +196,16 @@ final class KllLongsHelper {
       for (int lvl = 0; lvl < (myNewNumLevels + 1); lvl++) { // includes the "extra" index
         myNewLevelsArr[lvl] = outlevels[lvl] + theShift;
       }
+
+      // THE NEW ITEMS ARRAY
+      //the levels array is allocated first, because this may be the current items array,
+      //and once it is overwritten nothing else may fail
+      myNewLongItemsArray = (targetItemCount == myCurLongItemsArray.length)
+          ? myCurLongItemsArray
+          : new long[targetItemCount];
+
+      //shift the new items array create space at bottom
+      System.arraycopy(workbuf, outlevels[0], myNewLongItemsArray, freeSpaceAtBottom, curItemCount);
 
       //MemorySegment SPACE MANAGEMENT
       if (mySketch.getMemorySegment() != null) {

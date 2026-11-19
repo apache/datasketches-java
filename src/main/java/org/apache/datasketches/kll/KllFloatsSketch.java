@@ -334,7 +334,6 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   //Also Called from KllFloatsHelper::merge
   static void updateFloat(final KllFloatsSketch fltSk, final float item) {
-    fltSk.updateMinMax(item);
     int freeSpace = fltSk.levelsArr[0];
     assert (freeSpace >= 0);
     if (freeSpace == 0) {
@@ -342,6 +341,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       freeSpace = fltSk.levelsArr[0];
       assert (freeSpace > 0);
     }
+    //min and max change only after the compression, which may fail, has succeeded
+    fltSk.updateMinMax(item);
     fltSk.incN(1);
     fltSk.setLevelZeroSorted(false);
     final int nextPos = freeSpace - 1;

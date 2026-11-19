@@ -617,7 +617,7 @@ public class KllDirectFloatsSketchTest {
     final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     final KllFloatsSketch sk2 = KllFloatsSketch.wrap(MemorySegment.ofArray(sk.toByteArray()));
     try { sk2.incN(1);                         fail(); } catch (final SketchesArgumentException e) { }
-    try { sk2.incNumLevels();                  fail(); } catch (final SketchesArgumentException e) { }
+    try { sk2.setNumLevels(2);                 fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setFloatItemsArray(fltArr);      fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setFloatItemsArrayAt(idx, fltV); fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);        fail(); } catch (final SketchesArgumentException e) { }

@@ -609,7 +609,7 @@ public class KllDirectLongsSketchTest {
     final KllLongsSketch sk = KllLongsSketch.newHeapInstance(k);
     final KllLongsSketch sk2 = KllLongsSketch.wrap(MemorySegment.ofArray(sk.toByteArray()));
     try { sk2.incN(1);                         fail(); } catch (final SketchesArgumentException e) { }
-    try { sk2.incNumLevels();                  fail(); } catch (final SketchesArgumentException e) { }
+    try { sk2.setNumLevels(2);                 fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setLongItemsArray(fltArr);       fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setLongItemsArrayAt(idx, fltV);  fail(); } catch (final SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);        fail(); } catch (final SketchesArgumentException e) { }

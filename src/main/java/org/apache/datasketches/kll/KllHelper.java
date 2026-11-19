@@ -661,7 +661,6 @@ final class KllHelper {
       myNewLevelsArr = Arrays.copyOf(myCurLevelsArr, myCurNumLevels + 2);
       assert myNewLevelsArr.length == (myCurLevelsArr.length + 1);
       myNewNumLevels = myCurNumLevels + 1;
-      sketch.incNumLevels(); //increment for off-heap
     } else {
       myNewLevelsArr = myCurLevelsArr;
       myNewNumLevels = myCurNumLevels;

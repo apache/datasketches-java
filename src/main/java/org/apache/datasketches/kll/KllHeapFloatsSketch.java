@@ -292,10 +292,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   @Override
   void incN(final int increment) { n += increment; }
 
-  @Override
-  void incNumLevels() {
-    //the heap sketch computes num levels from the array itself, so this is not used on-heap
-  }
 
   @Override
   boolean isLevelZeroSorted() { return isLevelZeroSorted; }

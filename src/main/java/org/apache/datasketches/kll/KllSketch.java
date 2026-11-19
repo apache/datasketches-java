@@ -89,6 +89,11 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * the storage up front instead. A sketch backed by a MemorySegment is not affected.
  * Results and the serialized form are the same either way.</p>
  *
+ * <p><b>Exceptions during update.</b> If an update of a single item throws because storage cannot be
+ * allocated, because the {@code MemorySegmentRequest} of a sketch backed by a MemorySegment cannot provide a
+ * larger segment, or because the comparator of an items sketch throws, the item is not added and the sketch
+ * is unchanged. Weighted and vector updates, and merges, may have applied part of their input when they throw.</p>
+ *
  * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
  * @see QuantilesAPI
  *
@@ -450,8 +455,6 @@ public abstract class KllSketch implements QuantilesAPI, MemorySegmentStatus {
   abstract MemorySegment getMemorySegment();
 
   abstract void incN(int increment);
-
-  abstract void incNumLevels();
 
   final boolean isCompactSingleItem() {
     return hasMemorySegment() && (sketchStructure == COMPACT_SINGLE) && (getN() == 1);
