@@ -63,11 +63,17 @@ final class KllItemsHelper {
   private static <T> void compressWhileUpdatingSketch(final KllItemsSketch<T> itmSk) {
     final int level =
         findLevelToCompact(itmSk.getK(), itmSk.getM(), itmSk.getNumLevels(), itmSk.levelsArr);
+    //The comparator may throw while sorting or merging below. Nothing in the sketch changes before
+    //that work is done, except for a new top level, which is then removed again.
+    int[] savedLevelsArr = null;
+    Object[] savedItemsArr = null;
     if (level == (itmSk.getNumLevels() - 1)) {
       //The level to compact is the top level, thus we need to add a level.
       //Be aware that this operation grows the items array,
       //shifts the items data and the level boundaries of the data,
       //and grows the levels array and increments numLevels_.
+      savedLevelsArr = itmSk.levelsArr;
+      savedItemsArr = itmSk.getTotalItemsArray(); //a copy; growth happens only O(log n) times
       KllHelper.addEmptyTopLevelToCompletelyFullSketch(itmSk);
     }
     //after this point, the levelsArray will not be expanded, only modified.
@@ -83,18 +89,27 @@ final class KllItemsHelper {
     final int halfAdjPop = adjPop / 2;
 
     //the following is specific to generic Items
-    final Object[] myItemsArr = itmSk.getTotalItemsArray();
-    if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
-      Arrays.sort((T[])myItemsArr, adjBeg, adjBeg + adjPop, itmSk.comparator);
-    }
-    if (popAbove == 0) {
-      KllItemsHelper.randomlyHalveUpItems(myItemsArr, adjBeg, adjPop, KllSketch.random);
-    } else {
-      KllItemsHelper.randomlyHalveDownItems(myItemsArr, adjBeg, adjPop, KllSketch.random);
-      KllItemsHelper.mergeSortedItemsArrays(
-          myItemsArr, adjBeg, halfAdjPop,
-          myItemsArr, rawEnd, popAbove,
-          myItemsArr, adjBeg + halfAdjPop, itmSk.comparator);
+    final Object[] myItemsArr;
+    try {
+      myItemsArr = itmSk.getTotalItemsArray(); //a copy, set into the sketch at the end
+      if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
+        Arrays.sort((T[])myItemsArr, adjBeg, adjBeg + adjPop, itmSk.comparator);
+      }
+      if (popAbove == 0) {
+        KllItemsHelper.randomlyHalveUpItems(myItemsArr, adjBeg, adjPop, KllSketch.random);
+      } else {
+        KllItemsHelper.randomlyHalveDownItems(myItemsArr, adjBeg, adjPop, KllSketch.random);
+        KllItemsHelper.mergeSortedItemsArrays(
+            myItemsArr, adjBeg, halfAdjPop,
+            myItemsArr, rawEnd, popAbove,
+            myItemsArr, adjBeg + halfAdjPop, itmSk.comparator);
+      }
+    } catch (final RuntimeException | Error e) {
+      if (savedLevelsArr != null) { //remove the new top level
+        itmSk.setLevelsArray(savedLevelsArr);
+        itmSk.setItemsArray(savedItemsArr);
+      }
+      throw e;
     }
 
     int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
@@ -189,14 +204,7 @@ final class KllItemsHelper {
       myNewNumLevels = result[0];
       assert myNewNumLevels <= ub; // ub may be much bigger
 
-      // THE NEW ITEMS ARRAY
-      myNewItemsArr = (targetItemCount == myCurItemsArr.length)
-          ? myCurItemsArr
-          : new Object[targetItemCount];
       final int freeSpaceAtBottom = targetItemCount - curItemCount;
-
-      //shift the new items array create space at bottom
-      System.arraycopy(workbuf, outlevels[0], myNewItemsArr, freeSpaceAtBottom, curItemCount);
       final int theShift = freeSpaceAtBottom - outlevels[0];
 
       //calculate the new levels array length
@@ -209,6 +217,16 @@ final class KllItemsHelper {
       for (int lvl = 0; lvl < (myNewNumLevels + 1); lvl++) { // includes the "extra" index
         myNewLevelsArr[lvl] = outlevels[lvl] + theShift;
       }
+
+      // THE NEW ITEMS ARRAY
+      //the levels array is allocated first, because this may be the current items array,
+      //and once it is overwritten nothing else may fail
+      myNewItemsArr = (targetItemCount == myCurItemsArr.length)
+          ? myCurItemsArr
+          : new Object[targetItemCount];
+
+      //shift the new items array create space at bottom
+      System.arraycopy(workbuf, outlevels[0], myNewItemsArr, freeSpaceAtBottom, curItemCount);
 
       //MEMORY SPACE MANAGEMENT
       //not used
@@ -317,7 +335,16 @@ final class KllItemsHelper {
 
   //Called from KllItemsSketch::update and this
   static <T> void updateItem(final KllItemsSketch<T> itmSk, final Object item) {
-    itmSk.updateMinMax((T)item);
+    //compare first, but change min and max only after the compression, which may fail, has succeeded
+    final T newMin;
+    final T newMax;
+    if (itmSk.isEmpty()) {
+      newMin = (T) item;
+      newMax = (T) item;
+    } else {
+      newMin = (T) Util.minT(itmSk.getMinItem(), item, itmSk.comparator);
+      newMax = (T) Util.maxT(itmSk.getMaxItem(), item, itmSk.comparator);
+    }
     int freeSpace = itmSk.levelsArr[0];
     assert freeSpace >= 0;
     if (freeSpace == 0) {
@@ -325,6 +352,8 @@ final class KllItemsHelper {
       freeSpace = itmSk.levelsArr[0];
       assert (freeSpace > 0);
     }
+    itmSk.setMinItem(newMin);
+    itmSk.setMaxItem(newMax);
     itmSk.incN(1);
     itmSk.setLevelZeroSorted(false);
     final int nextPos = freeSpace - 1;
@@ -336,8 +365,7 @@ final class KllItemsHelper {
   static <T> void updateItem(final KllItemsSketch<T> itmSk, final T item, final long weight) {
     if (weight < itmSk.levelsArr[0]) {
       for (int i = 0; i < (int)weight; i++) { updateItem(itmSk, item); }
-    } else {
-      itmSk.updateMinMax(item);
+    } else { //the merge updates min and max
       final KllHeapItemsSketch<T> tmpSk =
           new KllHeapItemsSketch<>(itmSk.getK(), DEFAULT_M, item, weight, itmSk.comparator, itmSk.serDe);
       itmSk.merge(tmpSk);

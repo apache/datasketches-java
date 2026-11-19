@@ -183,14 +183,7 @@ final class KllDoublesHelper {
       myNewNumLevels = result[0];
       assert myNewNumLevels <= ub; // ub may be much bigger
 
-      // THE NEW ITEMS ARRAY
-      myNewDoubleItemsArr = (targetItemCount == myCurDoubleItemsArr.length)
-          ? myCurDoubleItemsArr
-          : new double[targetItemCount];
       final int freeSpaceAtBottom = targetItemCount - curItemCount;
-
-      //shift the new items array create space at bottom
-      System.arraycopy(workbuf, outlevels[0], myNewDoubleItemsArr, freeSpaceAtBottom, curItemCount);
       final int theShift = freeSpaceAtBottom - outlevels[0];
 
       //calculate the new levels array length
@@ -203,6 +196,16 @@ final class KllDoublesHelper {
       for (int lvl = 0; lvl < (myNewNumLevels + 1); lvl++) { // includes the "extra" index
         myNewLevelsArr[lvl] = outlevels[lvl] + theShift;
       }
+
+      // THE NEW ITEMS ARRAY
+      //the levels array is allocated first, because this may be the current items array,
+      //and once it is overwritten nothing else may fail
+      myNewDoubleItemsArr = (targetItemCount == myCurDoubleItemsArr.length)
+          ? myCurDoubleItemsArr
+          : new double[targetItemCount];
+
+      //shift the new items array create space at bottom
+      System.arraycopy(workbuf, outlevels[0], myNewDoubleItemsArr, freeSpaceAtBottom, curItemCount);
 
       //MemorySegment SPACE MANAGEMENT
       if (mySketch.getMemorySegment() != null) {

@@ -317,12 +317,6 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     setMemorySegmentN(wseg, getMemorySegmentN(wseg) + increment);
   }
 
-  @Override
-  void incNumLevels() {
-    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    int numLevels = getMemorySegmentNumLevels(wseg);
-    setMemorySegmentNumLevels(wseg, ++numLevels);
-  }
 
   @Override
   boolean isLevelZeroSorted() {

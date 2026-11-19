@@ -334,7 +334,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   //Also Called from KllDoublesHelper::merge
   static void updateDouble(final KllDoublesSketch dblSk, final double item) {
-    dblSk.updateMinMax(item);
     int freeSpace = dblSk.levelsArr[0];
     assert (freeSpace >= 0);
     if (freeSpace == 0) {
@@ -342,6 +341,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       freeSpace = dblSk.levelsArr[0];
       assert (freeSpace > 0);
     }
+    //min and max change only after the compression, which may fail, has succeeded
+    dblSk.updateMinMax(item);
     dblSk.incN(1);
     dblSk.setLevelZeroSorted(false);
     final int nextPos = freeSpace - 1;

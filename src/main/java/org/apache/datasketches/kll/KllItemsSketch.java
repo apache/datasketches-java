@@ -378,10 +378,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     throw new SketchesArgumentException(UNSUPPORTED_MSG);
   }
 
-  @Override
-  void incNumLevels() {
-    //this is not used and must be a no-op.
-  }
 
   abstract void setItemsArray(Object[] ItemsArr);
 
@@ -399,16 +395,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   void setMemorySegment(final MemorySegment wseg) {
     throw new SketchesArgumentException(UNSUPPORTED_MSG + "Sketch not writable.");
-  }
-
-  void updateMinMax(final T item) {
-    if (isEmpty()) {
-      setMinItem(item);
-      setMaxItem(item);
-    } else {
-      setMinItem(Util.minT(getMinItem(), item, comparator));
-      setMaxItem(Util.maxT(getMaxItem(), item, comparator));
-    }
   }
 
   private final ItemsSketchSortedView<T> refreshSortedView() {
