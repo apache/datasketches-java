@@ -320,10 +320,10 @@ public final class ReservoirLongsSketch {
       ++itemsSeen_;
     } else { // code for steady state where we sample randomly
       ++itemsSeen_;
-      // prob(keep_item) < k / n = reservoirSize_ / itemsSeen_
-      // so multiply to get: keep if rand * itemsSeen_ < reservoirSize_
-      if ((SamplingUtil.rand().nextDouble() * itemsSeen_) < reservoirSize_) {
-        final int newSlot = SamplingUtil.rand().nextInt(reservoirSize_);
+      // Use the same draw for acceptance and the replacement slot.
+      final long randomSlot = SamplingUtil.rand().nextLong(itemsSeen_);
+      if (randomSlot < reservoirSize_) {
+        final int newSlot = (int) randomSlot;
         data_[newSlot] = item;
       }
     }

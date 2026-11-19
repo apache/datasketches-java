@@ -682,6 +682,7 @@ public class ReservoirItemsSketchTest {
     final byte[] afterFailedNonnull = sketch.toByteArray(new ArrayOfLongsSerDe());
     assertEquals(afterFailedNonnull, afterSuccessBytes);
 
+    // Pins current behavior: the capacity check runs before the null check.
     try {
       sketch.update(null);
       fail("Expected SketchesStateException");
