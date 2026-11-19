@@ -36,6 +36,7 @@ import static org.testng.Assert.fail;
 import java.lang.foreign.MemorySegment;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfNumbersSerDe;
@@ -45,6 +46,7 @@ import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class ReservoirItemsSketchTest {
@@ -593,6 +595,103 @@ public class ReservoirItemsSketchTest {
       assertEquals(ss.getTotalSketchWeight(), itemCount);
     } //End trial loop
     assertTrue(passLB >= 2 && passUB >= 2); //2 out of 3 must pass for LB and UB
+  }
+
+  @DataProvider(name = "largeNProvider")
+  public Object[][] largeNProvider() {
+    final long[] largeNs = {
+        (1L << 31) - 1, (1L << 31) + 3, (1L << 32) - 1, (1L << 32) + 3, (1L << 48) - 2
+    };
+    final int[] kValues = {2, 17};
+    final Object[][] params = new Object[kValues.length * (largeNs.length + 1)][2];
+    int idx = 0;
+    for (final int k : kValues) {
+      params[idx++] = new Object[] {k, (long) k};
+      for (final long n : largeNs) {
+        params[idx++] = new Object[] {k, n};
+      }
+    }
+    return params;
+  }
+
+  @Test(dataProvider = "largeNProvider")
+  public void checkLargeNItemSeenInvariants(final int k, final long n) {
+    final long newItem = Long.MAX_VALUE;
+    final ArrayList<Long> data = new ArrayList<>(k);
+    for (long i = 0; i < k; ++i) {
+      data.add(i);
+    }
+    final ReservoirItemsSketch<Long> sketch =
+        ReservoirItemsSketch.newInstance(data, n, ResizeFactor.X8, k);
+    assertEquals(sketch.getN(), n);
+    assertEquals(sketch.getNumSamples(), k);
+    sketch.update(newItem);
+    assertEquals(sketch.getN(), n + 1);
+    assertEquals(sketch.getNumSamples(), k);
+
+    final Long[] samples = sketch.getSamples();
+    assertEquals(samples.length, k);
+    final HashSet<Long> seen = new HashSet<>();
+    for (final Long sample : samples) {
+      assertTrue(sample == newItem || (sample >= 0 && sample < k));
+      assertTrue(seen.add(sample)); // no duplicates
+    }
+
+    final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(bytes);
+    final ReservoirItemsSketch<Long> rebuilt = ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe());
+    validateReservoirEquality(sketch, rebuilt);
+    assertEquals(
+        rebuilt.toByteArray(new ArrayOfLongsSerDe()), sketch.toByteArray(new ArrayOfLongsSerDe()));
+  }
+
+  @Test
+  public void checkNearMaxItemSeenCapacity() {
+    final int k = 2;
+    final long max = 0xFFFFFFFFFFFFL; // MAX_ITEMS_SEEN
+    final ArrayList<Long> data = new ArrayList<>(k);
+    data.add(0L);
+    data.add(1L);
+    final ReservoirItemsSketch<Long> sketch =
+        ReservoirItemsSketch.newInstance(data, max - 1, ResizeFactor.X8, k);
+
+    final byte[] beforeNull = sketch.toByteArray(new ArrayOfLongsSerDe());
+    sketch.update(null);
+    assertEquals(sketch.getN(), max - 1);
+    assertEquals(sketch.toByteArray(new ArrayOfLongsSerDe()), beforeNull);
+
+    sketch.update(2L);
+    assertEquals(sketch.getN(), max);
+    assertEquals(sketch.getNumSamples(), k);
+    final byte[] afterSuccessBytes = sketch.toByteArray(new ArrayOfLongsSerDe());
+    final MemorySegment seg = MemorySegment.ofArray(afterSuccessBytes);
+    final ReservoirItemsSketch<Long> rebuilt = ReservoirItemsSketch.heapify(seg, new ArrayOfLongsSerDe());
+    assertEquals(rebuilt.getN(), max);
+    validateReservoirEquality(sketch, rebuilt);
+    assertEquals(
+        rebuilt.toByteArray(new ArrayOfLongsSerDe()), sketch.toByteArray(new ArrayOfLongsSerDe()));
+
+    try {
+      sketch.update(3L);
+      fail("Expected SketchesStateException");
+    } catch (final SketchesStateException e) {
+      // expected
+    }
+    assertEquals(sketch.getN(), max);
+    assertEquals(sketch.getNumSamples(), k);
+    final byte[] afterFailedNonnull = sketch.toByteArray(new ArrayOfLongsSerDe());
+    assertEquals(afterFailedNonnull, afterSuccessBytes);
+
+    // Pins current behavior: the capacity check runs before the null check.
+    try {
+      sketch.update(null);
+      fail("Expected SketchesStateException");
+    } catch (final SketchesStateException e) {
+      // expected
+    }
+    assertEquals(sketch.getN(), max);
+    final byte[] afterFailedNull = sketch.toByteArray(new ArrayOfLongsSerDe());
+    assertEquals(afterFailedNull, afterSuccessBytes);
   }
 
   private static MemorySegment getBasicSerializedLongsRIS() {
