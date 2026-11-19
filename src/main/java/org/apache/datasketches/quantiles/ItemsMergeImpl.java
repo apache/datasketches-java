@@ -78,13 +78,13 @@ final class ItemsMergeImpl {
     final Object[] srcCombBuf     = src.getCombinedBuffer();
     final long nFinal = tgtN + srcN;
 
+    //allocate everything first, so that an OutOfMemoryError leaves the target as it was
+    growForMerge(tgt, nFinal);
+    final Object[] scratchBuf = new Object[2 * tgtK];
+
     for (int i = 0; i < src.getBaseBufferCount(); i++) { //update only the base buffer
       tgt.update((T) srcCombBuf[i]);
     }
-
-    ItemsUpdateImpl.maybeGrowLevels(tgt, nFinal);
-
-    final Object[] scratchBuf = new Object[2 * tgtK];
 
     long srcBitPattern = src.getBitPattern();
     assert srcBitPattern == (srcN / (2L * srcK));
@@ -125,6 +125,22 @@ final class ItemsMergeImpl {
   }
 
   /**
+   * Grows the target's combined buffer to hold everything a merge giving nFinal items needs,
+   * so that the merge itself allocates nothing more in the target.
+   * @param <T> the data type
+   * @param tgt the target sketch
+   * @param nFinal the number of items the target will have seen after the merge
+   */
+  private static <T> void growForMerge(final QuantilesItemsSketch<T> tgt, final long nFinal) {
+    if (ClassicUtil.computeNumLevelsNeeded(tgt.getK(), nFinal) > 0) {
+      ItemsUpdateImpl.maybeGrowLevels(tgt, nFinal);
+    } else if (tgt.getCombinedBufferAllocatedCount() < nFinal) { //nFinal < 2k here
+      tgt.combinedBuffer_ = Arrays.copyOf(tgt.getCombinedBuffer(), (int) nFinal);
+      tgt.combinedBufferItemCapacity_ = (int) nFinal;
+    }
+  }
+
+  /**
    * Merges the source sketch into the target sketch that can have a smaller parameter K.
    * However, it is required that the ratio of the two K parameters be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
@@ -152,14 +168,14 @@ final class ItemsMergeImpl {
 
     final long nFinal = tgt.getN() + src.getN();
 
+    //allocate everything first, so that an OutOfMemoryError leaves the target as it was
+    growForMerge(tgt, nFinal);
+    final Object[] scratchBuf = new Object[2 * targetK];
+    final Object[] downBuf    = new Object[targetK];
+
     for (int i = 0; i < src.getBaseBufferCount(); i++) {
       tgt.update((T) sourceBaseBuffer[i]);
     }
-
-    ItemsUpdateImpl.maybeGrowLevels(tgt, nFinal);
-
-    final Object[] scratchBuf = new Object[2 * targetK];
-    final Object[] downBuf    = new Object[targetK];
 
     long srcBitPattern = src.getBitPattern();
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
