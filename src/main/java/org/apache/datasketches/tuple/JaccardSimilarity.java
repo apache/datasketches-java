@@ -518,7 +518,7 @@ public final class JaccardSimilarity {
    * @param summarySetOps instance of SummarySetOperations used to unify summaries.
    * @param seed the update seed
    * @param <S> Summary
-   * @return the unordered union of sketch A and sketch B
+   * @return the ordered union of sketch A and sketch B
    */
   private static <S extends Summary> TupleSketch<S> computeUnion(
       final TupleSketch<S> sketchA,
@@ -540,7 +540,7 @@ public final class JaccardSimilarity {
    * @param summarySetOps instance of SummarySetOperations used to unify summaries.
    * @param seed the update seed
    * @param <S> Summary
-   * @return the unordered union of sketch A and sketch B
+   * @return the ordered union of sketch A and sketch B
    */
   private static <S extends Summary> TupleSketch<S> computeUnion(
       final TupleSketch<S> sketchA,

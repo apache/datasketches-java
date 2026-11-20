@@ -42,7 +42,8 @@ package org.apache.datasketches.tuple;
  * <p>This form is binary compatible with the C++ and Go compact tuple sketches, as long as
  * every language uses the same Summary encoding.</p>
  *
- * <p>Flags: ReadOnly, Compact, Empty if empty. The Ordered flag is defined but Java does not set it.
+ * <p>Flags: ReadOnly, Compact, Empty if empty, Ordered if the entries are sorted by hash value. A sketch with
+ * at most one entry is always ordered, as in C++.
  * The seed hash is zero when the sketch is empty, as in theta.</p>
  *
  * <p>An empty sketch, or a single-item sketch that is not in estimation mode, uses 1 preamble long.

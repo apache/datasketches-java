@@ -295,7 +295,7 @@ public final class TupleAnotB<S extends Summary> {
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
-   * @return the result of this operation as an unordered {@link CompactTupleSketch}.
+   * @return the result of this operation as an ordered {@link CompactTupleSketch}.
    */
   public CompactTupleSketch<S> getResult(final boolean reset) {
     final CompactTupleSketch<S> result;
@@ -331,7 +331,7 @@ public final class TupleAnotB<S extends Summary> {
    * @param skA The incoming TupleSketch for the first argument
    * @param skB The incoming TupleSketch for the second argument
    * @param <S> Type of Summary
-   * @return the result as an unordered {@link CompactTupleSketch}
+   * @return the result as an ordered {@link CompactTupleSketch}
    */
   @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
       justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
@@ -349,7 +349,7 @@ public final class TupleAnotB<S extends Summary> {
    * @param skB The incoming TupleSketch for the second argument
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @param <S> Type of Summary
-   * @return the result as an unordered {@link CompactTupleSketch}
+   * @return the result as an ordered {@link CompactTupleSketch}
    * @throws SketchesArgumentException if the seed hash of a non-empty argument does not match the given seed
    */
   @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
@@ -447,7 +447,7 @@ public final class TupleAnotB<S extends Summary> {
    * @param skA The incoming TupleSketch for the first argument
    * @param skB The incoming ThetaSketch for the second argument
    * @param <S> Type of Summary
-   * @return the result as an unordered {@link CompactTupleSketch}
+   * @return the result as an ordered {@link CompactTupleSketch}
    */
   @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
       justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
@@ -465,7 +465,7 @@ public final class TupleAnotB<S extends Summary> {
    * @param skB The incoming ThetaSketch for the second argument
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @param <S> Type of Summary
-   * @return the result as an unordered {@link CompactTupleSketch}
+   * @return the result as an ordered {@link CompactTupleSketch}
    * @throws SketchesArgumentException if the seed hash of a non-empty argument does not match the given seed
    */
   @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
