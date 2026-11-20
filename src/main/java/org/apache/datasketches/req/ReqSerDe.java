@@ -192,11 +192,31 @@ class ReqSerDe {
           checkLgWeight(compactor, i);
           compactors.add(compactor.reqCompactor);
         }
+        checkTotalN(totalN, compactors);
         final ReqSketch sk = new ReqSketch(k, hra, totalN, minItem, maxItem, compactors);
         sk.setMaxNomSize(sk.computeMaxNomSize());
         sk.setRetainedItems(sk.computeTotalRetainedItems());
         return sk;
       }
+    }
+  }
+
+  // Each item of the compactor at level h has weight 2^h, and compaction keeps the total weight, so N must
+  // equal the total weight of the retained items.
+  private static void checkTotalN(final long totalN, final List<ReqCompactor> compactors) {
+    long weight = 0;
+    for (int h = 0; h < compactors.size(); h++) {
+      final long count = compactors.get(h).getBuffer().getCount();
+      if ((count > 0) && ((h >= Long.SIZE - 1) || (count > ((Long.MAX_VALUE - weight) >>> h)))) {
+        weight = -1; //exceeds any valid N
+        break;
+      }
+      weight += count << h;
+    }
+    if (weight != totalN) {
+      throw new SketchesArgumentException("Possible corruption: N is " + totalN
+          + ", but the retained items have a total weight of "
+          + ((weight < 0) ? "more than Long.MAX_VALUE" : Long.toString(weight)));
     }
   }
 
@@ -221,7 +241,8 @@ class ReqSerDe {
     final int count = posSeg.getInt();
     // The section size starts at k and only shrinks, and as the number of sections doubles the section size
     // shrinks by sqrt(2) to no less than MIN_K, so sectionSize * numSections stays below k * k.
-    if ((sectionSize < 1) || (sectionSize > k) || (numSections < 1)
+    // The number of sections never exceeds MAX_NUM_SECTIONS.
+    if ((sectionSize < 1) || (sectionSize > k) || (numSections < 1) || (numSections > ReqSketch.MAX_NUM_SECTIONS)
         || (((long) sectionSize * numSections) > ((long) k * k))) {
       throw new SketchesArgumentException("Possible corruption: sectionSize: " + sectionSize
           + ", numSections: " + numSections + ", k: " + k);

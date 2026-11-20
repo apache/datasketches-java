@@ -37,7 +37,8 @@ public class ReqCorruptImageTest {
   private static final int EST_SECTION_SIZE_FLOAT = 32; //first compactor, estimation mode
   private static final int EST_NUM_SECTIONS_BYTE = 37;
   private static final int EST_COUNT_INT = 40;
-  private static final int EXACT_COUNT_INT = 24; //the only compactor, exact mode
+  private static final int EXACT_COUNT_INT = 24;
+  private static final int EST_N_LONG = 8; //estimation mode //the only compactor, exact mode
 
   private static byte[] image(final int n) {
     final ReqSketch sk = ReqSketch.builder().setK(12).build();
@@ -85,6 +86,41 @@ public class ReqCorruptImageTest {
     final byte[] negative = image(10_000);
     negative[EST_NUM_SECTIONS_BYTE] = -1;
     checkRejected(negative);
+  }
+
+  @Test
+  public void checkTooManySections() {
+    final byte[] bytes = image(10_000);
+    bytes[EST_NUM_SECTIONS_BYTE] = 49; //49 * 2 is within k * k, but above the maximum of 48
+    ByteArrayUtil.putFloatLE(bytes, EST_SECTION_SIZE_FLOAT, 2f);
+    checkRejected(bytes);
+    bytes[EST_NUM_SECTIONS_BYTE] = 48; //the maximum is accepted
+    assertEquals(ReqSketch.heapify(MemorySegment.ofArray(bytes)).getN(), 10_000);
+  }
+
+  // A compactor whose state allows another doubling stops at the maximum number of sections,
+  // so it still fits the byte that holds it and the image can be read back.
+  @Test
+  public void checkSectionDoublingStopsAtMax() {
+    for (final boolean hra : new boolean[] {true, false}) {
+      final FloatBuffer buf = FloatBuffer.reconstruct(new float[0], 0, 0, 2 * 12 * 48, true, hra);
+      final ReqCompactor c = new ReqCompactor((byte) 0, hra, 1L << 50, 64f, ReqSketch.MAX_NUM_SECTIONS, buf);
+      c.merge(new ReqCompactor((byte) 0, hra, 64, null));
+      assertEquals(c.getNumSections(), ReqSketch.MAX_NUM_SECTIONS);
+      assertEquals(c.getSectionSize(), 64);
+    }
+  }
+
+  @Test
+  public void checkNNotEqualToWeight() {
+    final byte[] bytes = image(10_000);
+    assertEquals(ByteArrayUtil.getLongLE(bytes, EST_N_LONG), 10_000L);
+    ByteArrayUtil.putLongLE(bytes, EST_N_LONG, 10_001L);
+    checkRejected(bytes);
+    ByteArrayUtil.putLongLE(bytes, EST_N_LONG, -10_000L);
+    checkRejected(bytes);
+    ByteArrayUtil.putLongLE(bytes, EST_N_LONG, Long.MAX_VALUE);
+    checkRejected(bytes);
   }
 
   @Test

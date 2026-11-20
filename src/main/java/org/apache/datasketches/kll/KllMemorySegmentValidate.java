@@ -126,6 +126,7 @@ final class KllMemorySegmentValidate {
         final int capacityItems = KllHelper.computeTotalItemCapacity(k, m, numLevels);
         levelsArr[numLevels] = capacityItems; //load the last one
         sketchBytes = computeSketchBytes(srcSeg, sketchType, levelsArr, false, serDe);
+        checkN();
         break;
       }
       case COMPACT_EMPTY: {
@@ -159,9 +160,19 @@ final class KllMemorySegmentValidate {
 
 
         sketchBytes = computeSketchBytes(srcSeg, sketchType, levelsArr, true, serDe);
+        checkN();
         break;
       }
       default: break; //can not happen
+    }
+  }
+
+  //Each retained item has a weight of at least one, so N can be neither negative nor less than the
+  //number of retained items.
+  private void checkN() {
+    final int retainedItems = levelsArr[numLevels] - levelsArr[0];
+    if ((n < 0) || (n < retainedItems)) {
+      throw new SketchesArgumentException(N_LESS_THAN_RETAINED + "n: " + n + ", retained items: " + retainedItems);
     }
   }
 
@@ -195,6 +206,7 @@ final class KllMemorySegmentValidate {
   static final String EMPTY_FLAG_AND_COMPACT_FULL = "A compact full sketch should not have empty flag set. ";
   static final String EMPTY_FLAG_AND_COMPACT_SINGLE = "A single item sketch should not have empty flag set. ";
   //static final String N_AND_COMPACT_FULL = "A compact full sketch should have n > 1. ";
+  static final String N_LESS_THAN_RETAINED = "Possible corruption: n must be at least the number of retained items. ";
   static final String SRC_NOT_KLL = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: ";
   static final String MEMORY_TOO_SMALL = "A sketch MemorySegment image must be at least 8 bytes. ";
 
