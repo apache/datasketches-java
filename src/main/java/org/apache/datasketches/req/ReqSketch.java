@@ -476,6 +476,7 @@ public final class ReqSketch extends BaseReqSketch {
     ensureCapacity(); //first use allocates, before anything changes
     final FloatBuffer fbuf = compactors.get(0).getBuffer();
     fbuf.append(item); //may grow the buffer; nothing else has changed yet
+    reqSV = null; //the item is in: a cached sorted view is now stale
     if (isEmpty()) {
       minItem = item;
       maxItem = item;
@@ -489,7 +490,6 @@ public final class ReqSketch extends BaseReqSketch {
       fbuf.sort();
       compress();
     }
-    reqSV = null;
   }
 
   @Override
@@ -513,7 +513,9 @@ public final class ReqSketch extends BaseReqSketch {
    */
   int computeMaxNomSize() {
     int cap = 0;
-    for (final ReqCompactor c : compactors) { cap += c.getNomCapacity(); }
+    for (int i = 0; i < compactors.size(); i++) { //no iterator: used in recovery
+      cap += compactors.get(i).getNomCapacity();
+    }
     return cap;
   }
 
@@ -522,8 +524,8 @@ public final class ReqSketch extends BaseReqSketch {
    */
   int computeTotalRetainedItems() {
     int count = 0;
-    for (final ReqCompactor c : compactors) {
-      count += c.getBuffer().getCount();
+    for (int i = 0; i < compactors.size(); i++) { //no iterator: used in recovery
+      count += compactors.get(i).getBuffer().getCount();
     }
     return count;
   }
