@@ -54,6 +54,14 @@ public class FamilyTest {
     checkStringToFamily("AnotB");
     checkStringToFamily("HLL");
     checkStringToFamily("Quantiles");
+    checkStringToFamily("Density");
+  }
+
+  @Test
+  public void checkDensityId() {
+    //shared with C++ and Python, which moved the Density Sketch from ID 19 (EBPPS) to 23
+    assertEquals(idToFamily(23), Family.DENSITY);
+    assertEquals(idToFamily(19), Family.EBPPS);
   }
 
   private static void checkStringToFamily(final String inStr) {
