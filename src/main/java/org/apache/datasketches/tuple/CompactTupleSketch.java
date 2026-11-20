@@ -82,7 +82,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
     super(thetaLong, empty, null, seedHash);
     super.thetaLong_ = thetaLong;
     super.empty_ = empty;
-    if ((hashArr == null) || isSorted(hashArr)) {
+    if ((hashArr == null) || (summaryArr == null) || isSorted(hashArr)) { //callers pass both or neither
       hashArr_ = hashArr;
       summaryArr_ = summaryArr;
     } else {
