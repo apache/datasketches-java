@@ -156,7 +156,7 @@ public class TupleUnion<S extends Summary> {
   }
 
   /**
-   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactTupleSketch
+   * Gets the result of a sequence of stateful <i>union</i> operations as an ordered CompactTupleSketch
    * @return result of the stateful unions so far. The state of this operation is not reset after the
    * result is returned.
    */
@@ -165,7 +165,7 @@ public class TupleUnion<S extends Summary> {
   }
 
   /**
-   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactTupleSketch.
+   * Gets the result of a sequence of stateful <i>union</i> operations as an ordered CompactTupleSketch.
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    * @return result of the stateful union

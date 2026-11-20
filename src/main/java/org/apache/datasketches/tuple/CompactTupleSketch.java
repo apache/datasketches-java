@@ -52,21 +52,25 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * the compact() method of an UpdatableTupleSketch or as a result of the getResult()
  * method of a set operation like TupleUnion, TupleIntersection or TupleAnotB.
  * CompactTupleSketch consists of a compact list (i.e. no intervening spaces) of hash values,
- * corresponding list of Summaries, and a value for theta. The lists may or may
- * not be ordered. CompactTupleSketch is read-only.
+ * corresponding list of Summaries, and a value for theta. A CompactTupleSketch created by this
+ * library is ordered: its entries are sorted by hash value, as in C++. One deserialized from an
+ * unordered image, such as those written by earlier Java releases, keeps the order of that image.
+ * CompactTupleSketch is read-only.
  *
  * @param <S> type of Summary
  */
 public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> {
   private final long[] hashArr_;
   private S[] summaryArr_;
+  private final boolean ordered_;
 
   private enum FlagsLegacy { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
 
   private enum Flags { IS_RESERVED, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
 
   /**
-   * Create a CompactTupleSketch from correct components
+   * Create a CompactTupleSketch from correct components. The entries are sorted by hash value. If they are
+   * not already sorted, the given arrays are not changed: sorted copies are used instead.
    * @param hashArr compacted hash array
    * @param summaryArr compacted summary array
    * @param thetaLong long value of theta
@@ -78,8 +82,60 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
     super(thetaLong, empty, null, seedHash);
     super.thetaLong_ = thetaLong;
     super.empty_ = empty;
-    hashArr_ = hashArr;
-    summaryArr_ = summaryArr;
+    if ((hashArr == null) || (summaryArr == null) || isSorted(hashArr)) { //callers pass both or neither
+      hashArr_ = hashArr;
+      summaryArr_ = summaryArr;
+    } else {
+      hashArr_ = hashArr.clone();
+      summaryArr_ = summaryArr.clone();
+      sortByHash(hashArr_, summaryArr_, hashArr_.clone(), summaryArr_.clone(), 0, hashArr_.length);
+    }
+    ordered_ = true;
+  }
+
+  private static boolean isSorted(final long[] hashArr) {
+    for (int i = 1; i < hashArr.length; i++) {
+      if (hashArr[i - 1] > hashArr[i]) { return false; }
+    }
+    return true;
+  }
+
+  // Sorts hashArr[lo, hi) and moves the summaries with their hashes: a merge sort, with tmpHash and
+  // tmpSum as scratch space of the same length.
+  private static <T> void sortByHash(final long[] hashArr, final T[] sumArr, final long[] tmpHash,
+      final T[] tmpSum, final int lo, final int hi) {
+    if ((hi - lo) <= 16) { //insertion sort
+      for (int i = lo + 1; i < hi; i++) {
+        final long h = hashArr[i];
+        final T sm = sumArr[i];
+        int j = i - 1;
+        while ((j >= lo) && (hashArr[j] > h)) {
+          hashArr[j + 1] = hashArr[j];
+          sumArr[j + 1] = sumArr[j];
+          j--;
+        }
+        hashArr[j + 1] = h;
+        sumArr[j + 1] = sm;
+      }
+      return;
+    }
+    final int mid = (lo + hi) >>> 1;
+    sortByHash(hashArr, sumArr, tmpHash, tmpSum, lo, mid);
+    sortByHash(hashArr, sumArr, tmpHash, tmpSum, mid, hi);
+    if (hashArr[mid - 1] <= hashArr[mid]) { return; } //already in order
+    System.arraycopy(hashArr, lo, tmpHash, lo, hi - lo);
+    System.arraycopy(sumArr, lo, tmpSum, lo, hi - lo);
+    int i = lo;
+    int j = mid;
+    for (int k = lo; k < hi; k++) {
+      if ((j >= hi) || ((i < mid) && (tmpHash[i] <= tmpHash[j]))) {
+        hashArr[k] = tmpHash[i];
+        sumArr[k] = tmpSum[i++];
+      } else {
+        hashArr[k] = tmpHash[j];
+        sumArr[k] = tmpSum[j++];
+      }
+    }
   }
 
   /**
@@ -139,6 +195,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         hashArr_ = new long[0];
         summaryArr_ = null;
       }
+      ordered_ = hashArr_.length <= 1; // the legacy format has no ordered flag
     } else { // current serial format
       checkBounds(0, (long) preambleLongs * Long.BYTES, seg.byteSize());
       final byte flags = seg.get(JAVA_BYTE, COMPACT_FLAGS_BYTE);
@@ -166,6 +223,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         offset += Long.BYTES;
         offset += readSummary(seg, offset, i, count, deserializer);
       }
+      ordered_ = (count <= 1) || ((flags & (1 << Flags.IS_ORDERED.ordinal())) > 0);
     }
   }
 
@@ -199,6 +257,14 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
   @Override
   public CompactTupleSketch<S> compact() {
     return this;
+  }
+
+  /**
+   * Returns true if the entries are sorted by hash value. A sketch with no more than one entry is ordered.
+   * @return true if the entries are sorted by hash value
+   */
+  boolean isOrdered() {
+    return ordered_;
   }
 
   long[] getHashArr() {
@@ -249,6 +315,7 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         (1 << Flags.IS_COMPACT.ordinal())
       | (1 << Flags.IS_READ_ONLY.ordinal())
       | (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
+      | (ordered_ ? 1 << Flags.IS_ORDERED.ordinal() : 0)
     );
     // an empty image carries zero, as in theta
     ByteArrayUtil.putShortLE(bytes, SEED_HASH_SHORT, isEmpty() ? 0 : seedHash_);

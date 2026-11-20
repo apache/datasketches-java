@@ -75,10 +75,10 @@ public class TupleIntersection<S extends Summary> {
 
   /**
    * Perform a stateless intersect set operation on the two given TupleSketches and returns the
-   * result as an unordered CompactTupleSketch on the heap.
+   * result as an ordered CompactTupleSketch on the heap.
    * @param tupleSketchA The first sketch argument.  It must not be null.
    * @param tupleSketchB The second sketch argument.  It must not be null.
-   * @return an unordered CompactTupleSketch on the heap
+   * @return an ordered CompactTupleSketch on the heap
    */
   public CompactTupleSketch<S> intersect(
       final TupleSketch<S> tupleSketchA,
@@ -93,12 +93,12 @@ public class TupleIntersection<S extends Summary> {
 
   /**
    * Perform a stateless intersect set operation on a TupleSketch and a ThetaSketch and returns the
-   * result as an unordered CompactTupleSketch on the heap.
+   * result as an ordered CompactTupleSketch on the heap.
    * @param tupleSketch The first sketch argument. It must not be null.
    * @param thetaSketch The second sketch argument. It must not be null.
    * @param summary the given proxy summary for the ThetaSketch, which doesn't have one.
    * This must not be null.
-   * @return an unordered CompactTupleSketch on the heap
+   * @return an ordered CompactTupleSketch on the heap
    */
   public CompactTupleSketch<S> intersect(
       final TupleSketch<S> tupleSketch,
@@ -201,7 +201,7 @@ public class TupleIntersection<S extends Summary> {
   }
 
   /**
-   * Gets the internal set as an unordered CompactTupleSketch
+   * Gets the internal set as an ordered CompactTupleSketch
    * @return result of the intersections so far
    */
   public CompactTupleSketch<S> getResult() {
