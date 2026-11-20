@@ -80,6 +80,11 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  * not when the sketch is built. Call {@link #ensureCapacity()} right after building the sketch to allocate
  * the storage up front instead. Results and the serialized form are the same either way.</p>
  *
+ * <p><b>Exceptions during update.</b> If {@link #update(float)} throws an {@link OutOfMemoryError} before
+ * the item is stored, the item is not added and the sketch is unchanged. If the error happens later, while
+ * the sketch compresses, the item has been added and no retained item is lost: the sketch stays valid and
+ * compresses again on the next update. A merge may have applied part of the other sketch when it throws.</p>
+ *
  * @see QuantilesAPI
  *
  * @author Edo Liberty
@@ -469,6 +474,9 @@ public final class ReqSketch extends BaseReqSketch {
   public void update(final float item) {
     if (Float.isNaN(item)) { return; }
     ensureCapacity(); //first use allocates, before anything changes
+    final FloatBuffer fbuf = compactors.get(0).getBuffer();
+    fbuf.append(item); //may grow the buffer; nothing else has changed yet
+    reqSV = null; //the item is in: a cached sorted view is now stale
     if (isEmpty()) {
       minItem = item;
       maxItem = item;
@@ -476,15 +484,12 @@ public final class ReqSketch extends BaseReqSketch {
       if (item < minItem) { minItem = item; }
       if (item > maxItem) { maxItem = item; }
     }
-    final FloatBuffer fbuf = compactors.get(0).getBuffer();
-    fbuf.append(item);
     retItems++;
     totalN++;
     if (retItems >= maxNomSize) {
       fbuf.sort();
       compress();
     }
-    reqSV = null;
   }
 
   @Override
@@ -508,7 +513,9 @@ public final class ReqSketch extends BaseReqSketch {
    */
   int computeMaxNomSize() {
     int cap = 0;
-    for (final ReqCompactor c : compactors) { cap += c.getNomCapacity(); }
+    for (int i = 0; i < compactors.size(); i++) { //no iterator: used in recovery
+      cap += compactors.get(i).getNomCapacity();
+    }
     return cap;
   }
 
@@ -517,8 +524,8 @@ public final class ReqSketch extends BaseReqSketch {
    */
   int computeTotalRetainedItems() {
     int count = 0;
-    for (final ReqCompactor c : compactors) {
-      count += c.getBuffer().getCount();
+    for (int i = 0; i < compactors.size(); i++) { //no iterator: used in recovery
+      count += compactors.get(i).getBuffer().getCount();
     }
     return count;
   }
@@ -554,26 +561,35 @@ public final class ReqSketch extends BaseReqSketch {
     }
   }
 
+  //Each compaction moves items to the next level only after the space for them has been allocated,
+  //so a failed allocation never loses items. If an error interrupts compression, the counters are
+  //recomputed from the compactors, so the sketch stays consistent and the next update compresses again.
   private void compress() {
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
-    for (int h = 0; h < compactors.size(); h++) {
-      final ReqCompactor c = compactors.get(h);
-      final int compRetItems = c.getBuffer().getCount();
-      final int compNomCap = c.getNomCapacity();
+    try {
+      for (int h = 0; h < compactors.size(); h++) {
+        final ReqCompactor c = compactors.get(h);
+        final int compRetItems = c.getBuffer().getCount();
+        final int compNomCap = c.getNomCapacity();
 
-      if (compRetItems >= compNomCap) {
-        if ((h + 1) >= getNumLevels()) { //at the top?
-          if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
-          grow(); //add a level, increases maxNomSize
+        if (compRetItems >= compNomCap) {
+          if ((h + 1) >= getNumLevels()) { //at the top?
+            if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
+            grow(); //add a level, increases maxNomSize
+          }
+          c.compact(cReturn, rand, compactors.get(h + 1).getBuffer());
+          retItems += cReturn.deltaRetItems;
+          maxNomSize += cReturn.deltaNomSize;
+          //we specifically decided not to do lazy compression.
         }
-        final FloatBuffer promoted = c.compact(cReturn, rand);
-        compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
-        retItems += cReturn.deltaRetItems;
-        maxNomSize += cReturn.deltaNomSize;
-        //we specifically decided not to do lazy compression.
       }
+    } catch (final RuntimeException | Error e) {
+      retItems = computeTotalRetainedItems();
+      maxNomSize = computeMaxNomSize();
+      throw e;
+    } finally {
+      reqSV = null;
     }
-    reqSV = null;
     if (reqDebug != null) { reqDebug.emitCompressDone(); }
   }
 

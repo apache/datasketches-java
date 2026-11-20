@@ -175,7 +175,7 @@ class FloatBuffer {
    * @param space the requested space remaining
    * @return this
    */
-  private FloatBuffer ensureSpace(final int space) {
+  FloatBuffer ensureSpace(final int space) {
     if ((count_ + space) > capacity_) {
       final int newCap = count_ + space + delta_;
       ensureCapacity(newCap);
