@@ -75,6 +75,17 @@ public class HllCorruptImageTest {
   }
 
   @Test
+  public void checkHll8SlotAbove63() {
+    final byte[] bytes = sketch(TgtHllType.HLL_8, 10_000).toUpdatableByteArray();
+    assertEquals(HllSketch.heapify(bytes).getCurMode(), CurMode.HLL);
+    bytes[bytes.length - 1] = 64; // bit 6 set; the 6-bit mask would read this as 0
+    final SketchesArgumentException e = expectThrows(
+        SketchesArgumentException.class, () -> HllSketch.heapify(bytes));
+    assertTrue(e.getMessage().contains("HLL8 slot"));
+    checkAllPaths(bytes);
+  }
+
+  @Test
   public void checkLgKTooLarge() {
     for (final TgtHllType type : TgtHllType.values()) {
       for (final int n : new int[] {5, 200, 10_000}) { //list, set and HLL modes

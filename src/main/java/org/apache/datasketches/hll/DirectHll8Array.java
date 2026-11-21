@@ -38,11 +38,13 @@ final class DirectHll8Array extends DirectHllArray {
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll8Array(final int lgConfigK, final MemorySegment wseg) {
     super(lgConfigK, TgtHllType.HLL_8, wseg);
+    Hll8Array.checkSlots(wseg, lgConfigK);
   }
 
   //Called by HllSketch.wrap(MemorySegment)
   DirectHll8Array(final int lgConfigK, final MemorySegment seg, final boolean readOnly) {
     super(lgConfigK, TgtHllType.HLL_8, seg, readOnly);
+    Hll8Array.checkSlots(seg, lgConfigK);
   }
 
   @Override
