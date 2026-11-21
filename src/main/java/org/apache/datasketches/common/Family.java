@@ -167,7 +167,15 @@ public enum Family {
   /**
    * Xor Filter
    */
-  XORFILTER(22, "XORFILTER", 3, 3);
+  XORFILTER(22, "XORFILTER", 3, 3),
+
+  /**
+   * Density Sketch, for estimating the density of multidimensional points with a kernel function.
+   * This ID is reserved for the C++ and Python Density Sketch, which has no Java implementation.
+   * Its preamble is 3 ints (empty) or 6 ints, so 2 or 3 longs. Earlier C++ releases
+   * serialized it with family ID 19, the ID of {@link #EBPPS}.
+   */
+  DENSITY(23, "DENSITY", 2, 3);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
