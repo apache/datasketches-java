@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.FloatsSketchSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
@@ -403,6 +404,16 @@ public final class ReqSketch extends BaseReqSketch {
     return new ReqSketchIterator(this);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>If an error interrupts the merge of the compactors, part of the other sketch may have been
+   * merged. N, the retained items and the nominal size are then recomputed from the compactors, and
+   * min and max include those of the other sketch if any of its items were merged.</p>
+   *
+   * @throws SketchesArgumentException if the two sketches differ in their HighRankAccuracy setting, or if
+   * the combined N would exceed {@link Long#MAX_VALUE}. In both cases this sketch is unchanged.
+   */
   @Override
   public ReqSketch merge(final ReqSketch other) {
     if ((other == null) || other.isEmpty()) { return this; }
@@ -410,18 +421,33 @@ public final class ReqSketch extends BaseReqSketch {
       throw new SketchesArgumentException(
           "Both sketches must have the same HighRankAccuracy setting.");
     }
+    if (other.totalN > (Long.MAX_VALUE - totalN)) {
+      throw new SketchesArgumentException("The merged N would exceed Long.MAX_VALUE: "
+          + totalN + " + " + other.totalN);
+    }
     //allocate first: the first compactor's storage, then any new levels, before the counters change
     ensureCapacity();
     //Grow until self has at least as many compactors as other
     while (getNumLevels() < other.getNumLevels()) { grow(); }
-    totalN += other.totalN;
-    //update min, max items, n
-    if (Float.isNaN(minItem) || (other.minItem < minItem)) { minItem = other.minItem; }
-    if (Float.isNaN(maxItem) || (other.maxItem > maxItem)) { maxItem = other.maxItem; }
     //Merge the items in all height compactors
-    for (int i = 0; i < other.getNumLevels(); i++) {
-      compactors.get(i).merge(other.compactors.get(i));
+    final long startWeight = computeTotalWeight();
+    try {
+      for (int i = 0; i < other.getNumLevels(); i++) {
+        compactors.get(i).merge(other.compactors.get(i));
+      }
+    } catch (final RuntimeException | Error e) {
+      //Part of other may have been merged. Each level's items carry weight 2^level, so the weight
+      //added so far is the part of other's N that was merged.
+      final long addedWeight = computeTotalWeight() - startWeight;
+      if (addedWeight > 0) { updateMinMax(other); }
+      totalN += addedWeight;
+      maxNomSize = computeMaxNomSize();
+      retItems = computeTotalRetainedItems();
+      reqSV = null;
+      throw e;
     }
+    totalN += other.totalN;
+    updateMinMax(other);
     maxNomSize = computeMaxNomSize();
     retItems = computeTotalRetainedItems();
     if (retItems >= maxNomSize) {
@@ -465,9 +491,17 @@ public final class ReqSketch extends BaseReqSketch {
     return sb.toString();
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @throws SketchesStateException if N is already {@link Long#MAX_VALUE}. The sketch is unchanged.
+   */
   @Override
   public void update(final float item) {
     if (Float.isNaN(item)) { return; }
+    if (totalN == Long.MAX_VALUE) {
+      throw new SketchesStateException("N cannot exceed Long.MAX_VALUE.");
+    }
     ensureCapacity(); //first use allocates, before anything changes
     if (isEmpty()) {
       minItem = item;
@@ -510,6 +544,17 @@ public final class ReqSketch extends BaseReqSketch {
     int cap = 0;
     for (final ReqCompactor c : compactors) { cap += c.getNomCapacity(); }
     return cap;
+  }
+
+  /**
+   * Computes the total weight of the retained items, where each item at level h has weight 2^h.
+   */
+  long computeTotalWeight() {
+    long weight = 0;
+    for (final ReqCompactor c : compactors) {
+      weight += (long) c.getBuffer().getCount() << c.getLgWeight();
+    }
+    return weight;
   }
 
   /**
@@ -575,6 +620,11 @@ public final class ReqSketch extends BaseReqSketch {
     }
     reqSV = null;
     if (reqDebug != null) { reqDebug.emitCompressDone(); }
+  }
+
+  private void updateMinMax(final ReqSketch other) {
+    if (Float.isNaN(minItem) || (other.minItem < minItem)) { minItem = other.minItem; }
+    if (Float.isNaN(maxItem) || (other.maxItem > maxItem)) { maxItem = other.maxItem; }
   }
 
   private void grow() {
