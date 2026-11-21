@@ -96,6 +96,9 @@ public final class ReqSketch extends BaseReqSketch {
   //static finals
   static final byte MIN_K = 4;
   static final byte NOM_CAP_MULT = 2;
+  //The number of sections starts at 3 and doubles: 48 takes 2^23 compactions of one compactor, and doubling
+  //again would take 2^47. It stops at 48, as in C++, so it always fits the byte that holds it.
+  static final byte MAX_NUM_SECTIONS = 48;
 
   //finals
   private final int k; //default is 12 (1% @ 95% Confidence)
