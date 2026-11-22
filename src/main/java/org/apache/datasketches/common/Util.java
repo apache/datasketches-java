@@ -485,12 +485,15 @@ public final class Util {
 
   /**
    * Computes the inverse integer power of 2: 1/(2^exp) = 2^(-exp).
-   * @param exp a positive value between 0 and 1023 inclusive
+   * The result is built directly from its IEEE 754 bits, so it is exact.
+   * @param exp a value between 0 and 1022 inclusive. 2^(-1022) is the smallest normal double;
+   * 2^(-1023) is subnormal and cannot be built this way.
    * @return the inverse integer power of 2: 1/(2^exp) = 2^(-exp)
+   * @throws SketchesArgumentException if exp is negative or greater than 1022
    */
   public static double invPow2(final int exp) {
-    if ((exp | (1024 - exp - 1)) < 0) {
-      throw new SketchesArgumentException("exp cannot be negative or greater than 1023: " + exp);
+    if ((exp | (1022 - exp)) < 0) {
+      throw new SketchesArgumentException("exp cannot be negative or greater than 1022: " + exp);
     }
     return Double.longBitsToDouble((1023L - exp) << 52);
   }
