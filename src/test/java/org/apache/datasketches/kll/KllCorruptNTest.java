@@ -20,8 +20,10 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.expectThrows;
 
 import java.lang.foreign.MemorySegment;
@@ -33,7 +35,8 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 /**
- * Checks that KLL images whose n is negative, or less than the number of retained items, are rejected.
+ * Checks that KLL images whose n is negative, or less than the number of retained items, are rejected,
+ * and that a non-empty image that retains no items is rejected.
  */
 public class KllCorruptNTest {
   private static final int K = 20;
@@ -85,5 +88,58 @@ public class KllCorruptNTest {
         seg -> KllItemsSketch.heapify(seg, String::compareTo, serDe));
     checkNValues(sk.toByteArray(), sk.getNumRetained(),
         seg -> KllItemsSketch.wrap(seg, String::compareTo, serDe));
+  }
+
+  //Sets levelsArr[0] of a single-level image to the capacity, so the image retains no items.
+  private static byte[] withNoItems(final byte[] image) {
+    final byte[] bytes = image.clone();
+    ByteArrayUtil.putIntLE(bytes, DATA_START_ADR, K); //one level: capacity = k
+    return bytes;
+  }
+
+  private static void checkNoItemsRejected(final byte[] image, final Consumer<MemorySegment> heapify) {
+    heapify.accept(MemorySegment.ofArray(image)); //the unchanged image is valid
+    final MemorySegment seg = MemorySegment.ofArray(withNoItems(image));
+    final SketchesArgumentException e = expectThrows(SketchesArgumentException.class, () -> heapify.accept(seg));
+    assertTrue(e.getMessage().startsWith(KllMemorySegmentValidate.NOT_EMPTY_NO_ITEMS));
+  }
+
+  @Test
+  public void rejectsNonEmptyWithNoItems() {
+    final int n = 10; //fewer than k: one level
+    final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+    final KllDoublesSketch dsk = KllDoublesSketch.newHeapInstance(K);
+    final KllFloatsSketch fsk = KllFloatsSketch.newHeapInstance(K);
+    final KllLongsSketch lsk = KllLongsSketch.newHeapInstance(K);
+    final KllItemsSketch<String> isk = KllItemsSketch.newHeapInstance(K, String::compareTo, serDe);
+    for (int i = 0; i < n; i++) { dsk.update(i); fsk.update(i); lsk.update(i); isk.update(Integer.toString(i)); }
+    assertEquals(dsk.getNumLevels(), 1);
+    for (final boolean updatable : new boolean[] {false, true}) {
+      checkNoItemsRejected(KllHelper.toByteArray(dsk, updatable), KllDoublesSketch::heapify);
+      checkNoItemsRejected(KllHelper.toByteArray(dsk, updatable), KllDoublesSketch::wrap);
+      checkNoItemsRejected(KllHelper.toByteArray(fsk, updatable), KllFloatsSketch::heapify);
+      checkNoItemsRejected(KllHelper.toByteArray(lsk, updatable), KllLongsSketch::wrap);
+    }
+    checkNoItemsRejected(isk.toByteArray(), seg -> KllItemsSketch.heapify(seg, String::compareTo, serDe));
+    checkNoItemsRejected(isk.toByteArray(), seg -> KllItemsSketch.wrap(seg, String::compareTo, serDe));
+  }
+
+  //A compact full image with n = 0 and no items is not empty by its layout, so it is rejected too.
+  @Test
+  public void rejectsCompactFullWithZeroNAndNoItems() {
+    final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(K);
+    for (int i = 0; i < 10; i++) { sk.update(i); }
+    final MemorySegment seg = MemorySegment.ofArray(withN(withNoItems(sk.toByteArray()), 0));
+    expectThrows(SketchesArgumentException.class, () -> KllDoublesSketch.heapify(seg));
+  }
+
+  //An empty updatable image has n = 0 and no items, and stays valid.
+  @Test
+  public void acceptsEmptyUpdatable() {
+    final byte[] image = KllHelper.toByteArray(KllDoublesSketch.newHeapInstance(K), true);
+    assertTrue(KllDoublesSketch.heapify(MemorySegment.ofArray(image)).isEmpty());
+    assertTrue(KllDoublesSketch.wrap(MemorySegment.ofArray(image)).isEmpty());
+    final byte[] fimage = KllHelper.toByteArray(KllFloatsSketch.newHeapInstance(K), true);
+    assertTrue(KllFloatsSketch.wrap(MemorySegment.ofArray(fimage)).isEmpty());
   }
 }
