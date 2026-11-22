@@ -151,6 +151,10 @@ class ReqSerDe {
       throw new SketchesArgumentException(
           "Possible corruption: K must be even and in the range [4, 1024]: " + k);
     }
+    if (numCompactors > ReqSketch.MAX_NUM_LEVELS) {
+      throw new SketchesArgumentException("Possible corruption: the number of levels must be at most "
+          + ReqSketch.MAX_NUM_LEVELS + ": " + numCompactors);
+    }
     //  extract different serialization formats
     final SerDeFormat deserFormat = getDeserFormat(empty, rawItems, numCompactors);
     switch (deserFormat) {
