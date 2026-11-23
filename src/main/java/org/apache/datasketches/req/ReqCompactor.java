@@ -141,10 +141,14 @@ class ReqCompactor {
   }
 
   /**
-   * Perform a compaction operation on this compactor
-   * @return the array of items to be promoted to the next level compactor
+   * Perform a compaction operation on this compactor and merge the promoted items into the given
+   * buffer of the next level. The space in that buffer is allocated before anything changes, so an
+   * allocation failure leaves both compactors as they were.
+   * @param cReturn receives the changes in retained items and nominal capacity
+   * @param rand the source of the random coin flips
+   * @param nextBuf the sorted buffer of the next level compactor, which receives the promoted items
    */
-  FloatBuffer compact(final CompactorReturn cReturn, final Random rand) {
+  void compact(final CompactorReturn cReturn, final Random rand, final FloatBuffer nextBuf) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
     final int startRetItems = buf.getCount();
     final int startNomCap = getNomCapacity();
@@ -154,24 +158,27 @@ class ReqCompactor {
     final int compactionStart = (int) (compactionRange & 0xFFFF_FFFFL); //low 32
     final int compactionEnd = (int) (compactionRange >>> 32); //high 32
     assert (compactionEnd - compactionStart) >= 2;
+    nextBuf.ensureSpace((compactionEnd - compactionStart) / 2); //allocate before anything changes
 
-    if ((state & 1L) == 1L) { coin = !coin; } //if numCompactions odd, flip coin;
-    else { coin = rand.nextBoolean(); }       //random coin flip
+    final boolean newCoin;
+    if ((state & 1L) == 1L) { newCoin = !coin; } //if numCompactions odd, flip coin;
+    else { newCoin = rand.nextBoolean(); }       //random coin flip
 
-    final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
+    final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, newCoin);
 
     if (reqDebug != null) {
       reqDebug.emitCompactionDetail(compactionStart, compactionEnd, secsToCompact,
-          promote.getCount(), coin);
+          promote.getCount(), newCoin);
     }
 
+    nextBuf.mergeSortIn(promote); //the space was allocated above
+    coin = newCoin;
     buf.trimCount(buf.getCount() - (compactionEnd - compactionStart));
     state += 1;
-    ensureEnoughSections();
     cReturn.deltaRetItems = (buf.getCount() - startRetItems) + promote.getCount();
+    ensureEnoughSections();
     cReturn.deltaNomSize = getNomCapacity() - startNomCap;
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
-    return promote;
   } //End Compact
 
   /**
@@ -262,10 +269,10 @@ class ReqCompactor {
         && (sectionSize > MIN_K)
         && ((ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K))
     {
+      buf.ensureCapacity(2 * NOM_CAP_MULT * (numSections << 1) * ne); //allocate before anything changes
       sectionSizeFlt = szf;
       sectionSize = ne;
       numSections <<= 1;
-      buf.ensureCapacity(2 * getNomCapacity());
       if (reqDebug != null) { reqDebug.emitAdjSecSizeNumSec(lgWeight); }
       return true;
     }
