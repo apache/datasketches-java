@@ -78,12 +78,16 @@ import org.apache.datasketches.kll.KllSketch.SketchType;
  * It is not updatable.
  * It is identified by the <i>enum SketchStructure.COMPACT_FULL</i>.</li>
  *
- * <li>A serialized, <i>n &gt; 1</i> non-compact, updatable structure requires 20 bytes of preamble (5 ints).
+ * <li>A serialized, non-compact, updatable structure, for any <i>n</i>, requires 20 bytes of preamble (5 ints).
  * This is followed by the LevelsArr int[NumLevels + 1], followed by the min and max values, and then
  * followed by an items data array that may include free space. It is updatable.
- * The details of these fields can be found in the code..
+ * The details of these fields can be found in the code.
  * It is identified by the <i>enum SketchStructure.UPDATABLE</i>. This structure may not be implemented by
- * some sketches.</li>
+ * some sketches.
+ * In this structure the empty and single-item flags are set when the image is written, but are not
+ * updated as the sketch changes in place, so they may be stale. The sketch is empty when <i>N</i> is zero,
+ * and readers of this structure use <i>N</i>, not these flags.
+ * Only Java reads or writes this structure; it is not a cross-language format.</li>
  * </ul>
  *
  * <h3>Visual Layout</h3>
