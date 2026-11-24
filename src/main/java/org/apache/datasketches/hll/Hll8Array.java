@@ -68,19 +68,16 @@ final class Hll8Array extends HllArray {
    * @param slots the HLL8 register bytes
    */
   static void checkSlots(final byte[] slots) {
-    for (int i = 0; i < slots.length; i++) {
-      final int value = slots[i] & 0xFF;
-      if (value > VAL_MASK_6) {
-        throw new SketchesArgumentException(
-            "Possible Corruption: HLL8 slot " + i + " value " + value + " > " + VAL_MASK_6);
-      }
-    }
+    checkSlotValues(MemorySegment.ofArray(slots), 0, slots.length);
   }
 
   static void checkSlots(final MemorySegment seg, final int lgConfigK) {
-    final int bytes = hll8ArrBytes(lgConfigK);
+    checkSlotValues(seg, HLL_BYTE_ARR_START, hll8ArrBytes(lgConfigK));
+  }
+
+  private static void checkSlotValues(final MemorySegment seg, final long offset, final int bytes) {
     for (int i = 0; i < bytes; i++) {
-      final int value = seg.get(JAVA_BYTE, HLL_BYTE_ARR_START + i) & 0xFF;
+      final int value = seg.get(JAVA_BYTE, offset + i) & 0xFF;
       if (value > VAL_MASK_6) {
         throw new SketchesArgumentException(
             "Possible Corruption: HLL8 slot " + i + " value " + value + " > " + VAL_MASK_6);
