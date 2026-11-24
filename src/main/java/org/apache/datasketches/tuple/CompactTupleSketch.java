@@ -201,7 +201,11 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
       final byte flags = seg.get(JAVA_BYTE, COMPACT_FLAGS_BYTE);
       final short seedHash = seg.get(JAVA_SHORT_UNALIGNED, SEED_HASH_SHORT);
       empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-      if (!empty_) { checkSeedHashes(seedHash_, seedHash); } // an empty image carries zero, as in theta
+      if (empty_) {
+        checkEmptyPre0(seg.get(JAVA_LONG_UNALIGNED, 0)); // the seed hash of an empty image is ignored
+      } else {
+        checkSeedHashes(seedHash_, seedHash);
+      }
       thetaLong_ = Long.MAX_VALUE;
       int count = 0;
       if (!empty_) {
@@ -224,6 +228,26 @@ public final class CompactTupleSketch<S extends Summary> extends TupleSketch<S> 
         offset += readSummary(seg, offset, i, count, deserializer);
       }
       ordered_ = (count <= 1) || ((flags & (1 << Flags.IS_ORDERED.ordinal())) > 0);
+    }
+  }
+
+  // The MASK selects which bits of the first 8 bytes of an empty image are examined.
+  // The TEST gives the required values of the examined bits; it lies within the MASK.
+  //
+  // An empty image must have
+  //  bytes: PreLongs=1, SerVer=3, Family=TUPLE(9), SketchType=CompactTupleSketch(1), byte 4 = 0 (unused);
+  //  flags: read-only, empty, compact set; reserved bits 0, 5, 6, 7 clear.
+  // The ordered flag is ignored: older Java writers omit it, C++ and Go set it.
+  // The seed hash bytes are ignored: they may be 0 or the seed hash, depending on the writer.
+  // Every Java (since 3.1.0), C++ and Go writer of this serial version writes empty images in this form.
+  static final long EMPTY_SKETCH_MASK = 0X00_00_EF_FF_FF_FF_FF_FFL;
+  static final long EMPTY_SKETCH_TEST = 0X00_00_0E_00_01_09_03_01L;
+
+  private static void checkEmptyPre0(final long pre0) {
+    if ((pre0 & EMPTY_SKETCH_MASK) != EMPTY_SKETCH_TEST) {
+      throw new SketchesArgumentException("Possible corruption: an empty CompactTupleSketch image must have "
+          + "masked Pre0 " + Long.toHexString(EMPTY_SKETCH_TEST) + ", found: "
+          + Long.toHexString(pre0 & EMPTY_SKETCH_MASK));
     }
   }
 
