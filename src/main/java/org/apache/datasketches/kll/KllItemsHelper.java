@@ -236,6 +236,12 @@ final class KllItemsHelper {
       //
     } //end of updating levels above level 0
 
+    //The new min and max items. The comparator may throw, so this is done before anything is committed.
+    final Object otherMin = otherItmSk.getMinItem();
+    final Object otherMax = otherItmSk.getMaxItem();
+    final Object newMin = myEmpty ? otherMin : Util.minT(myMin, otherMin, comp);
+    final Object newMax = myEmpty ? otherMax : Util.maxT(myMax, otherMax, comp);
+
     //Update Preamble:
     mySketch.setN(finalN);
     if (otherItmSk.isEstimationMode()) { //otherwise the merge brings over exact items.
@@ -248,15 +254,8 @@ final class KllItemsHelper {
     mySketch.setItemsArray(myNewItemsArr);
 
     //Update min, max items
-    final Object otherMin = otherItmSk.getMinItem();
-    final Object otherMax = otherItmSk.getMaxItem();
-    if (myEmpty) {
-      mySketch.setMinItem(otherMin);
-      mySketch.setMaxItem(otherMax);
-    } else {
-      mySketch.setMinItem(Util.minT(myMin, otherMin, comp));
-      mySketch.setMaxItem(Util.maxT(myMax, otherMax, comp));
-    }
+    mySketch.setMinItem(newMin);
+    mySketch.setMaxItem(newMax);
     assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
   }
 
