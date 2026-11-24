@@ -205,7 +205,14 @@ public class UtilTest {
     Assert.assertEquals(invPow2(1), 0.5);
     Assert.assertEquals(invPow2(0), 1.0);
     try {invPow2(-1); failIAE(); } catch (final SketchesArgumentException e) {}
+    try {invPow2(1023); failIAE(); } catch (final SketchesArgumentException e) {}
     try {invPow2(1024); failIAE(); } catch (final SketchesArgumentException e) {}
+    try {invPow2(Integer.MAX_VALUE); failIAE(); } catch (final SketchesArgumentException e) {}
+    Assert.assertEquals(invPow2(1022), Double.MIN_NORMAL);
+    for (int exp = 0; exp <= 1022; exp++) { //exact over the whole range
+      Assert.assertEquals(Double.doubleToRawLongBits(invPow2(exp)),
+          Double.doubleToRawLongBits(Math.scalb(1.0, -exp)), "exp: " + exp);
+    }
     try {invPow2(Integer.MIN_VALUE); failIAE(); } catch (final SketchesArgumentException e) {}
   }
 
