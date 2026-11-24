@@ -68,7 +68,8 @@ final class ForwardCompatibility {
       return EmptyCompactSketch.getInstance();
     }
 
-    final int reqCap = (curCount + preLongs) << 3;
+    checkCurCount(curCount);
+    final long reqCap = ((long) curCount + preLongs) << 3;
     validateInputSize(reqCap, memCap);
 
     if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
@@ -98,7 +99,7 @@ final class ForwardCompatibility {
     if ((familyId < 1) || (familyId > 4)) {
       throw new SketchesArgumentException("Family (Sketch Type) must be 1 to 4: " + familyId);
     }
-    int reqBytesIn = 8;
+    long reqBytesIn = 8;
     int curCount = 0;
     long thetaLong = Long.MAX_VALUE;
     if (preLongs == 1) {
@@ -120,7 +121,8 @@ final class ForwardCompatibility {
         return new SingleItemSketch(hash, seedHash);
       }
       //curCount > 1
-      reqBytesIn = (curCount + preLongs) << 3;
+      checkCurCount(curCount);
+      reqBytesIn = ((long) curCount + preLongs) << 3;
       validateInputSize(reqBytesIn, memCap);
       final long[] compactOrderedCache = new long[curCount];
       srcMem.getLongArray(preLongs << 3, compactOrderedCache, 0, curCount);
@@ -141,7 +143,8 @@ final class ForwardCompatibility {
         return new SingleItemSketch(hash, seedHash);
       }
       //curCount > 1 and/or theta < 1.0
-      reqBytesIn = (curCount + preLongs) << 3;
+      checkCurCount(curCount);
+      reqBytesIn = ((long) curCount + preLongs) << 3;
       validateInputSize(reqBytesIn, memCap);
       final long[] compactOrderedCache = new long[curCount];
       srcMem.getLongArray(preLongs << 3, compactOrderedCache, 0, curCount);
@@ -150,7 +153,13 @@ final class ForwardCompatibility {
     throw new SketchesArgumentException("PreLongs must be 1,2, or 3: " + preLongs);
   }
 
-  private static final void validateInputSize(final int reqBytesIn, final int memCap) {
+  private static final void checkCurCount(final int curCount) {
+    if (curCount < 0) {
+      throw new SketchesArgumentException("Possible corruption: negative curCount: " + curCount);
+    }
+  }
+
+  private static final void validateInputSize(final long reqBytesIn, final long memCap) {
     if (reqBytesIn > memCap) {
       throw new SketchesArgumentException(
         "Input Memory or byte[] size is too small: Required Bytes: " + reqBytesIn
