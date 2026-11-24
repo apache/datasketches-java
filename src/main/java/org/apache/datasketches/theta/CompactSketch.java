@@ -340,6 +340,7 @@ public abstract class CompactSketch extends Sketch {
     final short seedHash = (short) extractSeedHash(srcMem);
     final boolean isEmpty = (flags & EMPTY_FLAG_MASK) > 0;
     if (enforceSeed && !isEmpty) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
+    PreambleUtil.checkCompressedImage(srcMem);
     int offsetBytes = 8;
     long theta = Long.MAX_VALUE;
     if (preLongs > 1) {

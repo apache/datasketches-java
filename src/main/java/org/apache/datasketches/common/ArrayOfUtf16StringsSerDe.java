@@ -80,14 +80,15 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
   public String[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
     Objects.requireNonNull(mem, "Memory must not be null");
     if (numItems <= 0) { return new String[0]; }
+    Util.checkBounds(offsetBytes, (long) numItems * Integer.BYTES, mem.getCapacity());
     final String[] array = new String[numItems];
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
       Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
       final int strLength = mem.getInt(offset);
       offset += Integer.BYTES;
-      final byte[] utf16Bytes = new byte[strLength];
       Util.checkBounds(offset, strLength, mem.getCapacity());
+      final byte[] utf16Bytes = new byte[strLength];
       mem.getByteArray(offset, utf16Bytes, 0, strLength);
       offset += strLength;
       array[i] = new String(utf16Bytes, StandardCharsets.UTF_16);

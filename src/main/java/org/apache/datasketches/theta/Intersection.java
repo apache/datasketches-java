@@ -25,6 +25,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
@@ -216,6 +217,21 @@ public abstract class Intersection extends SetOperation {
       }
       //empty = true AND curCount_ = 0: OK
     } //else empty = false, curCount could be anything
+    //The hash table holds curCount entries and is no larger than for the largest nominal entries.
+    //A curCount of -1 means the intersection has no result yet.
+    final int lgArrLongs = extractLgArrLongs(srcMem);
+    if ((lgArrLongs < 0) || (lgArrLongs > (ThetaUtil.MAX_LG_NOM_LONGS + 1))
+        || (curCount < -1) || (curCount > (1 << lgArrLongs))) {
+      throw new SketchesArgumentException("Possible corruption: lgArrLongs: " + lgArrLongs
+          + ", curCount: " + curCount);
+    }
+    if (curCount > 0) { //the image must hold the hash table
+      final long reqBytes = ((long) CONST_PREAMBLE_LONGS << 3) + (8L << lgArrLongs);
+      if (srcMem.getCapacity() < reqBytes) {
+        throw new SketchesArgumentException("Possible corruption: Memory size " + srcMem.getCapacity()
+            + " < required " + reqBytes);
+      }
+    }
   }
 
 }

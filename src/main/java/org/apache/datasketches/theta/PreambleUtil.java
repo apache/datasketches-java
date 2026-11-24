@@ -347,6 +347,67 @@ final class PreambleUtil {
 
   //@formatter:on
 
+  /**
+   * Checks that the Memory holds the preamble longs it declares, and returns them.
+   * @param mem the sketch image
+   * @return the number of preamble longs
+   * @throws SketchesArgumentException if the Memory is smaller than the preamble
+   */
+  static int checkMemPreambleCap(final Memory mem) {
+    Util.checkBounds(0, 8, mem.getCapacity());
+    final int preLongs = extractPreLongs(mem);
+    final long reqBytes = (long) preLongs << 3;
+    if (mem.getCapacity() < reqBytes) {
+      throw new SketchesArgumentException("Possible corruption: preLongs " + preLongs
+          + " needs " + reqBytes + " bytes, Memory has " + mem.getCapacity());
+    }
+    return preLongs;
+  }
+
+  /**
+   * Checks that a serial version 3 compact image, which is not empty and not a single item, holds the
+   * number of hashes it declares, before anything is allocated or read from it.
+   * @param mem the compact image
+   * @throws SketchesArgumentException if the image is too small or the count is invalid
+   */
+  static void checkCompactImage(final Memory mem) {
+    final int preLongs = checkMemPreambleCap(mem);
+    final int curCount = (preLongs > 1) ? extractCurCount(mem) : 1;
+    final long reqBytes = ((long) preLongs << 3) + ((long) curCount << 3);
+    if ((curCount < 0) || (mem.getCapacity() < reqBytes)) {
+      throw new SketchesArgumentException("Possible corruption: curCount " + curCount
+          + " needs " + reqBytes + " bytes, Memory has " + mem.getCapacity());
+    }
+  }
+
+  /**
+   * Checks that a serial version 4 (compressed) compact image holds the number of entries it
+   * declares, before anything is allocated or read from it.
+   * @param mem the compressed compact image
+   * @throws SketchesArgumentException if the image is too small or its fields are invalid
+   */
+  static void checkCompressedImage(final Memory mem) {
+    final int preLongs = checkMemPreambleCap(mem);
+    final int entryBits = extractEntryBitsV4(mem);
+    final int numEntriesBytes = extractNumEntriesBytesV4(mem);
+    if ((preLongs < 1) || (preLongs > 2) || (entryBits < 1) || (entryBits > 63)
+        || (numEntriesBytes < 1) || (numEntriesBytes > 4)) {
+      throw new SketchesArgumentException("Possible corruption: preLongs: " + preLongs
+          + ", entryBits: " + entryBits + ", numEntriesBytes: " + numEntriesBytes);
+    }
+    final int offsetBytes = preLongs << 3;
+    Util.checkBounds(0, offsetBytes + numEntriesBytes, mem.getCapacity());
+    long numEntries = 0;
+    for (int i = 0; i < numEntriesBytes; i++) {
+      numEntries |= (long) Byte.toUnsignedInt(mem.getByte(offsetBytes + i)) << (i << 3);
+    }
+    if (numEntries > Integer.MAX_VALUE) {
+      throw new SketchesArgumentException("Possible corruption: numEntries: " + numEntries);
+    }
+    final long packedBytes = ((numEntries * entryBits) + 7) >>> 3;
+    Util.checkBounds(offsetBytes + numEntriesBytes, packedBytes, mem.getCapacity());
+  }
+
   static int extractPreLongs(final Memory mem) {
     return mem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
   }

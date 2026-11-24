@@ -66,6 +66,7 @@ class DirectCompactSketch extends CompactSketch {
    */
   static DirectCompactSketch wrapInstance(final Memory srcMem, final short seedHash) {
     ThetaUtil.checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
+    PreambleUtil.checkCompactImage(srcMem);
     return new DirectCompactSketch(srcMem);
   }
 
