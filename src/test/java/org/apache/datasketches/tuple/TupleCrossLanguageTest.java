@@ -64,6 +64,22 @@ public class TupleCrossLanguageTest {
     deserializeTupleIntegerSummary(GroupLanguage.CPP);
   }
 
+  //Java sorts a compact tuple sketch by hash and sets the ordered flag, as C++ does, so the images are identical.
+  @Test(groups = {CHECK_CPP_FILES})
+  public void checkCppBytesIdentical() {
+    final int[] nArr = {0, 1, 10, 100, 1000, 10_000, 100_000, 1_000_000};
+    for (int n: nArr) {
+      final byte[] cppBytes = getFileBytes(GroupLanguage.CPP.pth, "tuple_int_n" + n + "_cpp.sk");
+      if (cppBytes.length == 0) { continue; }
+      final UpdatableTupleSketch<Integer, IntegerSummary> sk =
+          new UpdatableTupleSketchBuilder<>(new IntegerSummaryFactory()).build();
+      for (int i = 0; i < n; i++) {
+        sk.update(i, i);
+      }
+      Assert.assertEquals(sk.compact().toByteArray(), cppBytes, "n = " + n);
+    }
+  }
+
   @Test(groups = {CHECK_GO_FILES})
   public void checkGo() {
     deserializeTupleIntegerSummary(GroupLanguage.GO);
