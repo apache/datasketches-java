@@ -212,15 +212,14 @@ class ReqSerDe {
     for (int h = 0; h < compactors.size(); h++) {
       final long count = compactors.get(h).getBuffer().getCount();
       if ((count > 0) && ((h >= Long.SIZE - 1) || (count > ((Long.MAX_VALUE - weight) >>> h)))) {
-        weight = -1; //exceeds any valid N
-        break;
+        throw new SketchesArgumentException("Possible corruption: N is " + totalN
+            + ", but the total weight of the retained items exceeds Long.MAX_VALUE");
       }
       weight += count << h;
     }
     if (weight != totalN) {
       throw new SketchesArgumentException("Possible corruption: N is " + totalN
-          + ", but the retained items have a total weight of "
-          + ((weight < 0) ? "more than Long.MAX_VALUE" : Long.toString(weight)));
+          + ", but the retained items have a total weight of " + weight);
     }
   }
 

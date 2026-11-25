@@ -150,6 +150,24 @@ public class ReqCorruptImageTest {
     return bytes;
   }
 
+  //The total weight exceeds Long.MAX_VALUE, so no N is valid, including -1.
+  @Test
+  public void checkWeightOverflow() {
+    for (final int[] levelsAndCount : new int[][] {{63, 2}, {64, 1}}) { //2 items at level 62, 1 item at level 63
+      final byte[] image = withLevels(image(10_000), levelsAndCount[0]);
+      final int count = levelsAndCount[1];
+      final byte[] bytes = Arrays.copyOf(image, image.length + (count * Float.BYTES));
+      ByteArrayUtil.putIntLE(bytes, image.length - Integer.BYTES, count); //the top compactor
+      for (final long n : new long[] {-1L, 10_000L, Long.MAX_VALUE, Long.MIN_VALUE}) {
+        ByteArrayUtil.putLongLE(bytes, EST_N_LONG, n);
+        checkRejected(bytes);
+        final SketchesArgumentException e = expectThrows(SketchesArgumentException.class,
+            () -> ReqSketch.heapify(MemorySegment.ofArray(bytes)));
+        assertTrue(e.getMessage().contains("exceeds Long.MAX_VALUE"), e.getMessage());
+      }
+    }
+  }
+
   @Test
   public void checkTooManyLevels() {
     final byte[] image = image(10_000);
