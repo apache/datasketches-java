@@ -19,13 +19,16 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
+import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
 import java.lang.foreign.MemorySegment;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
 
 /**
@@ -55,7 +58,31 @@ final class Hll8Array extends HllArray {
     final int lgConfigK = extractLgK(seg);
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
     HllArray.extractCommonHll(seg, hll8Array);
+    checkSlots(hll8Array.hllByteArr);
     return hll8Array;
+  }
+
+  /**
+   * A valid HLL8 rank is {@code 0..63}. Readers mask with {@link HllUtil#VAL_MASK_6}, so a
+   * byte of 64 would be treated as an empty slot and the estimate would drop. Reject it here.
+   * @param slots the HLL8 register bytes
+   */
+  static void checkSlots(final byte[] slots) {
+    checkSlotValues(MemorySegment.ofArray(slots), 0, slots.length);
+  }
+
+  static void checkSlots(final MemorySegment seg, final int lgConfigK) {
+    checkSlotValues(seg, HLL_BYTE_ARR_START, hll8ArrBytes(lgConfigK));
+  }
+
+  private static void checkSlotValues(final MemorySegment seg, final long offset, final int bytes) {
+    for (int i = 0; i < bytes; i++) {
+      final int value = seg.get(JAVA_BYTE, offset + i) & 0xFF;
+      if (value > VAL_MASK_6) {
+        throw new SketchesArgumentException(
+            "Possible Corruption: HLL8 slot " + i + " value " + value + " > " + VAL_MASK_6);
+      }
+    }
   }
 
   @Override
