@@ -126,6 +126,7 @@ final class KllMemorySegmentValidate {
         final int capacityItems = KllHelper.computeTotalItemCapacity(k, m, numLevels);
         levelsArr[numLevels] = capacityItems; //load the last one
         sketchBytes = computeSketchBytes(srcSeg, sketchType, levelsArr, false, serDe);
+        checkN(false);
         break;
       }
       case COMPACT_EMPTY: {
@@ -159,9 +160,23 @@ final class KllMemorySegmentValidate {
 
 
         sketchBytes = computeSketchBytes(srcSeg, sketchType, levelsArr, true, serDe);
+        checkN(true);
         break;
       }
       default: break; //can not happen
+    }
+  }
+
+  //Each retained item has a weight of at least one, so N can be neither negative nor less than the
+  //number of retained items. A sketch that is not empty retains at least one item. A compact full image
+  //is never empty; an updatable image is empty when n is zero.
+  private void checkN(final boolean mayBeEmpty) {
+    final int retainedItems = levelsArr[numLevels] - levelsArr[0];
+    if ((n < 0) || (n < retainedItems)) {
+      throw new SketchesArgumentException(N_LESS_THAN_RETAINED + "n: " + n + ", retained items: " + retainedItems);
+    }
+    if ((retainedItems == 0) && (!mayBeEmpty || (n > 0))) {
+      throw new SketchesArgumentException(NOT_EMPTY_NO_ITEMS + "n: " + n);
     }
   }
 
@@ -195,6 +210,8 @@ final class KllMemorySegmentValidate {
   static final String EMPTY_FLAG_AND_COMPACT_FULL = "A compact full sketch should not have empty flag set. ";
   static final String EMPTY_FLAG_AND_COMPACT_SINGLE = "A single item sketch should not have empty flag set. ";
   //static final String N_AND_COMPACT_FULL = "A compact full sketch should have n > 1. ";
+  static final String N_LESS_THAN_RETAINED = "Possible corruption: n must be at least the number of retained items. ";
+  static final String NOT_EMPTY_NO_ITEMS = "Possible corruption: a sketch that is not empty retains no items. ";
   static final String SRC_NOT_KLL = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: ";
   static final String MEMORY_TOO_SMALL = "A sketch MemorySegment image must be at least 8 bytes. ";
 

@@ -22,6 +22,7 @@ package org.apache.datasketches.req;
 import static java.lang.Math.round;
 import static org.apache.datasketches.common.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.req.BaseReqSketch.INIT_NUMBER_OF_SECTIONS;
+import static org.apache.datasketches.req.ReqSketch.MAX_NUM_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
 import static org.apache.datasketches.req.ReqSketch.NOM_CAP_MULT;
 
@@ -266,6 +267,7 @@ class ReqCompactor {
     final float szf;
     final int ne;
     if ((state >= (1L << (numSections - 1)))
+        && ((numSections << 1) <= MAX_NUM_SECTIONS)
         && (sectionSize > MIN_K)
         && ((ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K))
     {
