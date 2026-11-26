@@ -20,7 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.assertThrows;
 
 import java.lang.foreign.MemorySegment;
 import java.io.PrintStream;
@@ -109,10 +109,8 @@ public class CompressedStateTest {
     final CpcSketch sk = new CpcSketch(10);
     final byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
-    try {
-      CompressedState.importFromSegment(MemorySegment.ofArray(byteArr));
-      fail();
-    } catch (final AssertionError e) { }
+    assertThrows(AssertionError.class,
+        () -> CompressedState.importFromSegment(MemorySegment.ofArray(byteArr)));
   }
 
   /**
