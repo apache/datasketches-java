@@ -20,7 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.assertThrows;
 
 import java.lang.foreign.MemorySegment;
 import java.io.PrintStream;
@@ -83,16 +83,12 @@ public class CpcWrapperTest {
     assertEquals(Family.CPC, CpcWrapper.getFamily());
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void checkIsCompressed() {
     final CpcSketch sk = new CpcSketch(10);
     final byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
-    try {
-      new CpcWrapper(MemorySegment.ofArray(byteArr));
-      fail();
-    } catch (final AssertionError e) {}
+    assertThrows(AssertionError.class, () -> new CpcWrapper(MemorySegment.ofArray(byteArr)));
   }
 
   /**
