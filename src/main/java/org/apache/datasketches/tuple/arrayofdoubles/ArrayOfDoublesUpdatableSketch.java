@@ -26,7 +26,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.ResizeFactor;
-import org.apache.datasketches.hash.MurmurHash3;
+import org.apache.datasketches.hash.ItemHash;
 import org.apache.datasketches.tuple.Util;
 
 /**
@@ -89,7 +89,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final long key, final double[] values) {
-    update(new long[] {key}, values);
+    update(ItemHash.of(key, seed_), values);
   }
 
   /**
@@ -100,7 +100,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final double key, final double[] values) {
-    update(Util.doubleToLongArray(key), values);
+    update(ItemHash.of(key, seed_), values);
   }
 
   /**
@@ -111,7 +111,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final String key, final double[] values) {
-    update(Util.stringToByteArray(key), values);
+    update(ItemHash.of(key, seed_), values);
   }
 
   /**
@@ -122,8 +122,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final byte[] key, final double[] values) {
-    if (key == null || key.length == 0) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
+    update(ItemHash.of(key, seed_), values);
   }
 
   /**
@@ -134,8 +133,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final ByteBuffer key, final double[] values) {
-    if (key == null || key.hasRemaining() == false) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
+    update(ItemHash.of(key, seed_), values);
   }
 
   /**
@@ -146,8 +144,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final int[] key, final double[] values) {
-    if (key == null || key.length == 0) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
+    update(ItemHash.of(key, seed_), values);
   }
 
   /**
@@ -158,8 +155,21 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param values The given values
    */
   public void update(final long[] key, final double[] values) {
-    if (key == null || key.length == 0) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, values);
+    update(ItemHash.of(key, seed_), values);
+  }
+
+  /**
+   * Present this sketch with a precomputed item hash, as if updating with the item itself.
+   * A null hash is ignored.
+   *
+   * @param hash the item hash, computed with this sketch's seed
+   * @param values the given values
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the hash was computed with a different seed
+   */
+  public void update(final ItemHash hash, final double[] values) {
+    if (hash == null) { return; }
+    hash.checkSeed(seed_);
+    insertOrIgnore(hash.h0() >>> 1, values);
   }
 
   /**

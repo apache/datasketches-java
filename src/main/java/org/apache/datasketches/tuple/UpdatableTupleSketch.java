@@ -26,7 +26,7 @@ import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.SketchesStateException;
-import org.apache.datasketches.hash.MurmurHash3;
+import org.apache.datasketches.hash.ItemHash;
 
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.
@@ -149,7 +149,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    * @param value The given U value
    */
   public void update(final long key, final U value) {
-    update(new long[] {key}, value);
+    update(ItemHash.of(key, seed_), value);
   }
 
   /**
@@ -160,7 +160,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    * @param value The given U value
    */
   public void update(final double key, final U value) {
-    update(Util.doubleToLongArray(key), value);
+    update(ItemHash.of(key, seed_), value);
   }
 
   /**
@@ -171,7 +171,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    * @param value The given U value
    */
   public void update(final String key, final U value) {
-    update(Util.stringToByteArray(key), value);
+    update(ItemHash.of(key, seed_), value);
   }
 
   /**
@@ -182,8 +182,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    * @param value The given U value
    */
   public void update(final byte[] key, final U value) {
-    if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, value);
+    update(ItemHash.of(key, seed_), value);
   }
 
   /**
@@ -194,8 +193,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    * @param value The given U value
    */
   public void update(final ByteBuffer buffer, final U value) {
-    if (buffer == null || buffer.hasRemaining() == false) { return; }
-    insertOrIgnore(MurmurHash3.hash(buffer, seed_)[0] >>> 1, value);
+    update(ItemHash.of(buffer, seed_), value);
   }
 
   /**
@@ -206,8 +204,7 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    * @param value The given U value
    */
   public void update(final int[] key, final U value) {
-    if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, value);
+    update(ItemHash.of(key, seed_), value);
   }
 
   /**
@@ -218,8 +215,21 @@ public class UpdatableTupleSketch<U, S extends UpdatableSummary<U>> extends Quic
    * @param value The given U value
    */
   public void update(final long[] key, final U value) {
-    if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, seed_)[0] >>> 1, value);
+    update(ItemHash.of(key, seed_), value);
+  }
+
+  /**
+   * Present this sketch with a precomputed item hash, as if updating with the item itself.
+   * A null hash is ignored.
+   *
+   * @param hash the item hash, computed with this sketch's seed
+   * @param value the given U value
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the hash was computed with a different seed
+   */
+  public void update(final ItemHash hash, final U value) {
+    if (hash == null) { return; }
+    hash.checkSeed(seed_);
+    insertOrIgnore(hash.h0() >>> 1, value);
   }
 
   void insertOrIgnore(final long hash, final U value) {

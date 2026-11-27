@@ -20,8 +20,6 @@
 package org.apache.datasketches.hll;
 
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
 import static org.apache.datasketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
@@ -32,6 +30,7 @@ import java.nio.ByteBuffer;
 
 import org.apache.datasketches.common.MemorySegmentStatus;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.hash.ItemHash;
 
 /**
  * Although this class is package-private, it provides a single place to define and document
@@ -303,8 +302,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param datum The given long datum.
    */
   public void update(final long datum) {
-    final long[] data = { datum };
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(datum, Util.DEFAULT_UPDATE_SEED));
   }
 
   /**
@@ -317,9 +315,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param datum The given double datum.
    */
   public void update(final double datum) {
-    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN & +/- infinity forms
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(datum, Util.DEFAULT_UPDATE_SEED));
   }
 
   /**
@@ -337,9 +333,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param datum The given String.
    */
   public void update(final String datum) {
-    if ((datum == null) || datum.isEmpty()) { return; }
-    final byte[] data = datum.getBytes(UTF_8);
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(datum, Util.DEFAULT_UPDATE_SEED));
   }
 
   /**
@@ -355,8 +349,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param data The given byte buffer.
    */
   public void update(final ByteBuffer data) {
-    if ((data == null) || (data.remaining() == 0)) { return; }
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(data, Util.DEFAULT_UPDATE_SEED));
   }
 
   /**
@@ -366,8 +359,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param data The given byte array.
    */
   public void update(final byte[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(data, Util.DEFAULT_UPDATE_SEED));
   }
 
   /**
@@ -380,8 +372,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param data The given char array.
    */
   public void update(final char[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(data, Util.DEFAULT_UPDATE_SEED));
   }
 
   /**
@@ -391,8 +382,7 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param data The given int array.
    */
   public void update(final int[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(data, Util.DEFAULT_UPDATE_SEED));
   }
 
   /**
@@ -402,13 +392,25 @@ abstract class BaseHllSketch implements MemorySegmentStatus {
    * @param data The given long array.
    */
   public void update(final long[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, Util.DEFAULT_UPDATE_SEED)));
+    update(ItemHash.of(data, Util.DEFAULT_UPDATE_SEED));
   }
 
-  private static final int coupon(final long[] hash) {
-    final int addr26 = (int) ((hash[0] & KEY_MASK_26));
-    final int lz = Long.numberOfLeadingZeros(hash[1]);
+  /**
+   * Present this sketch with a precomputed item hash, as if updating with the item itself.
+   * A null hash is ignored.
+   *
+   * @param hash the item hash, computed with the default update seed
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the hash was computed with a different seed
+   */
+  public void update(final ItemHash hash) {
+    if (hash == null) { return; }
+    hash.checkSeed(Util.DEFAULT_UPDATE_SEED);
+    couponUpdate(coupon(hash.h0(), hash.h1()));
+  }
+
+  private static final int coupon(final long hash0, final long hash1) {
+    final int addr26 = (int) ((hash0 & KEY_MASK_26));
+    final int lz = Long.numberOfLeadingZeros(hash1);
     final int value = ((lz > 62 ? 62 : lz) + 1);
     return (value << KEY_BITS_26) | addr26;
   }

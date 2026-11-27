@@ -19,10 +19,8 @@
 
 package org.apache.datasketches.theta;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.common.QuickSelect.select;
-import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
@@ -48,6 +46,7 @@ import org.apache.datasketches.common.MemorySegmentRequest;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.hash.ItemHash;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
@@ -353,7 +352,7 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final long datum) {
-    return hashUpdate(hash(datum, seed_)[0] >>> 1);
+    return update(ItemHash.of(datum, seed_));
   }
 
   /**
@@ -368,9 +367,7 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final double datum) {
-    final double d = datum == 0.0 ? 0.0 : datum; // canonicalize -0.0, 0.0
-    final long data = Double.doubleToLongBits(d);// canonicalize all NaN & +/- infinity forms
-    return hashUpdate(hash(data, seed_)[0] >>> 1);
+    return update(ItemHash.of(datum, seed_));
   }
 
   /**
@@ -387,11 +384,7 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final String datum) {
-    if (datum == null || datum.isEmpty()) {
-      return RejectedNullOrEmpty;
-    }
-    final byte[] data = datum.getBytes(UTF_8);
-    return hashUpdate(hash(data, seed_)[0] >>> 1);
+    return update(ItemHash.of(datum, seed_));
   }
 
   /**
@@ -403,10 +396,7 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final byte[] data) {
-    if (data == null || data.length == 0) {
-      return RejectedNullOrEmpty;
-    }
-    return hashUpdate(hash(data, seed_)[0] >>> 1);
+    return update(ItemHash.of(data, seed_));
   }
 
   /**
@@ -418,10 +408,7 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final ByteBuffer buffer) {
-    if (buffer == null || !buffer.hasRemaining()) {
-      return RejectedNullOrEmpty;
-    }
-    return hashUpdate(hash(buffer, seed_)[0] >>> 1);
+    return update(ItemHash.of(buffer, seed_));
   }
 
   /**
@@ -436,10 +423,7 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final char[] data) {
-    if (data == null || data.length == 0) {
-      return RejectedNullOrEmpty;
-    }
-    return hashUpdate(hash(data, seed_)[0] >>> 1);
+    return update(ItemHash.of(data, seed_));
   }
 
   /**
@@ -451,10 +435,7 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final int[] data) {
-    if (data == null || data.length == 0) {
-      return RejectedNullOrEmpty;
-    }
-    return hashUpdate(hash(data, seed_)[0] >>> 1);
+    return update(ItemHash.of(data, seed_));
   }
 
   /**
@@ -466,10 +447,22 @@ public abstract class UpdatableThetaSketch extends ThetaSketch {
    * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   public UpdateReturnState update(final long[] data) {
-    if (data == null || data.length == 0) {
-      return RejectedNullOrEmpty;
-    }
-    return hashUpdate(hash(data, seed_)[0] >>> 1);
+    return update(ItemHash.of(data, seed_));
+  }
+
+  /**
+   * Present this sketch with a precomputed item hash, as if updating with the item itself.
+   * A null hash is ignored.
+   *
+   * @param hash the item hash, computed with this sketch's seed
+   * @return
+   * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the hash was computed with a different seed
+   */
+  public UpdateReturnState update(final ItemHash hash) {
+    if (hash == null) { return RejectedNullOrEmpty; }
+    hash.checkSeed(seed_);
+    return hashUpdate(hash.h0() >>> 1);
   }
 
   //restricted methods

@@ -22,14 +22,12 @@ package org.apache.datasketches.cpc;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import static java.lang.foreign.ValueLayout.JAVA_BYTE;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.CpcUtil.bitMatrixOfSketch;
 import static org.apache.datasketches.cpc.CpcUtil.checkLgK;
 import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
-import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
@@ -37,6 +35,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.hash.ItemHash;
 
 /**
  * This is a unique-counting sketch that implements the
@@ -309,9 +308,7 @@ public final class CpcSketch {
    * @param datum The given long datum.
    */
   public void update(final long datum) {
-    final long[] data = { datum };
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(datum, seed));
   }
 
   /**
@@ -324,10 +321,7 @@ public final class CpcSketch {
    * @param datum The given double datum.
    */
   public void update(final double datum) {
-    final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
-    final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(datum, seed));
   }
 
   /**
@@ -345,10 +339,7 @@ public final class CpcSketch {
    * @param datum The given String.
    */
   public void update(final String datum) {
-    if ((datum == null) || datum.isEmpty()) { return; }
-    final byte[] data = datum.getBytes(UTF_8);
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(datum, seed));
   }
 
   /**
@@ -358,9 +349,7 @@ public final class CpcSketch {
    * @param data The given byte array.
    */
   public void update(final byte[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(data, seed));
   }
 
   /**
@@ -370,9 +359,7 @@ public final class CpcSketch {
    * @param data The given ByteBuffer
    */
   public void update(final ByteBuffer data) {
-    if ((data == null) || !data.hasRemaining()) { return; }
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(data, seed));
   }
 
   /**
@@ -385,9 +372,7 @@ public final class CpcSketch {
    * @param data The given char array.
    */
   public void update(final char[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(data, seed));
   }
 
   /**
@@ -397,9 +382,7 @@ public final class CpcSketch {
    * @param data The given int array.
    */
   public void update(final int[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(data, seed));
   }
 
   /**
@@ -409,9 +392,20 @@ public final class CpcSketch {
    * @param data The given long array.
    */
   public void update(final long[] data) {
-    if ((data == null) || (data.length == 0)) { return; }
-    final long[] arr = hash(data, seed);
-    hashUpdate(arr[0], arr[1]);
+    update(ItemHash.of(data, seed));
+  }
+
+  /**
+   * Present this sketch with a precomputed item hash, as if updating with the item itself.
+   * A null hash is ignored.
+   *
+   * @param hash the item hash, computed with this sketch's seed
+   * @throws org.apache.datasketches.common.SketchesArgumentException if the hash was computed with a different seed
+   */
+  public void update(final ItemHash hash) {
+    if (hash == null) { return; }
+    hash.checkSeed(seed);
+    hashUpdate(hash.h0(), hash.h1());
   }
 
   /**
